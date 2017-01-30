@@ -11,7 +11,9 @@
 -- (2, Geometry::STGeomFromText('LINESTRING (5 15,45 15)', 4326)),              -- through all three polygons
 -- (3, Geometry::STGeomFromText('LINESTRING (25 5,25 25,35 25,35 5)', 4326)),   -- up through one, across, down through another
 -- (4, Geometry::STGeomFromText('LINESTRING (32 17,17 17)', 4326)),             -- right to left, from middle of one, through another, and to the middle of another
--- (5, Geometry::STGeomFromText('LINESTRING (45 12,38 12,38 18,45 18)', 4326)); -- outside into one, loop around and out again
+-- (5, Geometry::STGeomFromText('LINESTRING (45 12,38 12,38 18,45 18)', 4326)), -- outside into one, loop around and out again
+-- (6, Geometry::STGeomFromText('LINESTRING (12 12,12 5,17 5,17 12)', 4326)),   -- inside-to-out-to-inside-again (same polygon)
+-- (7, Geometry::STGeomFromText('LINESTRING (32 22,43 22)', 4326));             -- completely outside
 
 -- select id, geom from polygons
 -- union all
@@ -58,5 +60,7 @@ from
   ) as results;
 
 
--- Dammit, haven't checked the case (like lines 3 and 5) where the line intersects
--- the same valid polygon (not external one) multiple times... that's probably also a multiline
+-- Current Known Bugs:
+-- * Re-entrant transects (eg, line #6), in which case the output is a Mult-linestring and also needs to be split.
+--   Probably just means we wrap the "splitting" up into a function (accepts a geometry, returns a table)
+-- * No intersection at all, in which case it explodes (effectively, doing a "select top(null)" afaict)
