@@ -41,7 +41,8 @@ BEGIN
 END;
 GO
 
-declare @line geometry = (select geom from Lines where id = 5);
+declare @line     geometry = (select geom from Lines where id = 1);
+declare @buffered geometry = @line.STBuffer(0.0000001);
 
 with
 -- first narrow to polygons we care about (those that intersect our line of interest):
@@ -57,7 +58,7 @@ total_extent as (
 -- Polygons may not cover the entire length of the line; the difference gives us the bits outside our habitat data:
 external_area as (
   --select @line.STEnvelope().STBuffer(1).STDifference(agg) as diff from total_extent
-  select @line.STBuffer(0.0000001).STDifference(agg) as diff from total_extent
+  select ISNULL(@buffered.STDifference(agg), @buffered) as diff from total_extent
 )
 ,
 -- numbers table
