@@ -57,4 +57,4 @@ from
 -- Current Known Bugs:
 -- * Re-entrant transects (eg, line #6), in which case the output is a Mult-linestring and also needs to be split.
 --   Probably just means we wrap the "splitting" up into a function (accepts a geometry, returns a table)
--- * No intersection at all, in which case it explodes (effectively, doing a "select top(null)" afaict)
+-- * No intersection at all, in which case it returns nothing (should just return the same single transect)
