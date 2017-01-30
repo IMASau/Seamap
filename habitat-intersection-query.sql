@@ -71,12 +71,9 @@ intermediate_results as (
     ) as results
 )
 --
-select ir.id, ir.name, simplified.geom
+select ir.id, ir.name, simplified.geom, simplified.geom.ToString()
 from intermediate_results as ir
 cross apply split_geom(ir.intersections) as simplified;
 
 
--- Current Known Bugs:
--- * Re-entrant transects (eg, line #6), in which case the output is a Multi-linestring and also needs to be split.
---   Probably just means we wrap the "splitting" up into a function (accepts a geometry, returns a table)
 -- * We'll need to remove actual geometries from the output (eg, name, startx,starty,length,endx,endy), since we can't handle SQL Server geometries from python!
