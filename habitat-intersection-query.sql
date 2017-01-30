@@ -58,3 +58,4 @@ from
 -- * Re-entrant transects (eg, line #6), in which case the output is a Mult-linestring and also needs to be split.
 --   Probably just means we wrap the "splitting" up into a function (accepts a geometry, returns a table)
 -- * No intersection at all, in which case it returns nothing (should just return the same single transect)
+-- * We'll need to remove actual geometries from the output (eg, name, startx,starty,length,endx,endy), since we can't handle SQL Server geometries from python!
