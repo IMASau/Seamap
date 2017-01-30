@@ -37,13 +37,7 @@ external_area as (
   select @line.STBuffer(0.0000001).STDifference(agg) as diff from total_extent
 ),
 -- numbers table
-L0   AS(SELECT 1 AS c UNION ALL SELECT 1),
-L1   AS(SELECT 1 AS c FROM L0 AS A CROSS JOIN L0 AS B),
-L2   AS(SELECT 1 AS c FROM L1 AS A CROSS JOIN L1 AS B),
-L3   AS(SELECT 1 AS c FROM L2 AS A CROSS JOIN L2 AS B),
-L4   AS(SELECT 1 AS c FROM L3 AS A CROSS JOIN L3 AS B),
-L5   AS(SELECT 1 AS c FROM L4 AS A CROSS JOIN L4 AS B),
-Nums AS(SELECT top(select top 1 diff.STNumGeometries() from external_area) ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS number FROM L5),
+Nums AS(SELECT top (ISNULL((select top 1 diff.STNumGeometries() from external_area), 0)) ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS number FROM master..spt_values t1 cross join master..spt_values t2),
 --
 -- external_area above might be a multipolygon; split it up by indexing each:
 split_external_area as (
@@ -51,7 +45,7 @@ split_external_area as (
   from (select top 1 diff from external_area) as ea
   inner join Nums n on n.number <= diff.STNumGeometries()
 )
-
+--
 select id, name, geom.STIntersection(@line) as intersections, geom.STIntersection(@line).ToString() as wkt
 from
   (select id, name, geom from valid_polygons
