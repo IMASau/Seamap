@@ -19,7 +19,7 @@
 -- union all
 -- select id, geom from lines;
 
--- Given a geometry, return a table of geometries all of whom have STNumGeometries() == 1:
+-- Given a geometry, return a table of component geometries all of whom have STNumGeometries() == 1:
 IF OBJECT_ID('split_geom') IS NULL
   EXEC('create function split_geom(@geom geometry) returns @split_geom table (geom geometry) as begin return; end');
 GO
@@ -82,7 +82,6 @@ from
 
 
 -- Current Known Bugs:
--- * Re-entrant transects (eg, line #6), in which case the output is a Mult-linestring and also needs to be split.
+-- * Re-entrant transects (eg, line #6), in which case the output is a Multi-linestring and also needs to be split.
 --   Probably just means we wrap the "splitting" up into a function (accepts a geometry, returns a table)
--- * No intersection at all, in which case it returns nothing (should just return the same single transect)
 -- * We'll need to remove actual geometries from the output (eg, name, startx,starty,length,endx,endy), since we can't handle SQL Server geometries from python!
