@@ -48,17 +48,22 @@ with
 valid_polygons as (
   select id, name, geom
   from Polygons
-  where geom.STIntersects(@line) = 1),
+  where geom.STIntersects(@line) = 1)
+,
 total_extent as (
   select geometry::UnionAggregate(geom) as agg from valid_polygons
-),
+)
+,
 -- Polygons may not cover the entire length of the line; the difference gives us the bits outside our habitat data:
 external_area as (
   --select @line.STEnvelope().STBuffer(1).STDifference(agg) as diff from total_extent
   select @line.STBuffer(0.0000001).STDifference(agg) as diff from total_extent
-),
+)
+,
 -- numbers table
-Nums AS(SELECT top (ISNULL((select top 1 diff.STNumGeometries() from external_area), 0)) ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS number FROM master..spt_values t1 cross join master..spt_values t2),
+Nums AS(SELECT top (ISNULL((select top 1 diff.STNumGeometries() from external_area), 0))
+   ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS number FROM master..spt_values t1 cross join master..spt_values t2)
+,
 --
 -- external_area above might be a multipolygon; split it up by indexing each:
 split_external_area as (
