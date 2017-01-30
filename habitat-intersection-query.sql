@@ -61,24 +61,19 @@ external_area as (
   select ISNULL(@buffered.STDifference(agg), @buffered) as diff from total_extent
 )
 ,
--- numbers table
-Nums AS(SELECT top (ISNULL((select top 1 diff.STNumGeometries() from external_area), 0))
-   ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS number FROM master..spt_values t1 cross join master..spt_values t2)
-,
---
--- external_area above might be a multipolygon; split it up by indexing each:
-split_external_area as (
-  select 0 as id, 'External' + cast(n.number as varchar) as name, diff.STGeometryN(n.number) as geom
-  from (select top 1 diff from external_area) as ea
-  inner join Nums n on n.number <= diff.STNumGeometries()
+-- Intermediate results are just all the intersections; we'll flatten them as the final step:
+intermediate_results as (
+  select id, name, geom.STIntersection(@line) as intersections
+  from
+    (select id, name, geom from valid_polygons
+    union all
+    select 0 as id, 'External' as name, diff as geom from external_area
+    ) as results
 )
 --
-select id, name, geom.STIntersection(@line) as intersections, geom.STIntersection(@line).ToString() as wkt
-from
-  (select id, name, geom from valid_polygons
-  union all
-  select id, name, geom from split_external_area
-  ) as results;
+select ir.id, ir.name, simplified.geom
+from intermediate_results as ir
+cross apply split_geom(ir.intersections) as simplified;
 
 
 -- Current Known Bugs:
