@@ -5,7 +5,7 @@
                  [com.cemerick/piggieback "0.2.1"]
                  [reagent "0.6.0" :exclusions [cljsjs/react]]
                  [re-frame "0.9.1"]
-                 [cljsjs/react-with-addons "15.4.2-1"]
+                 [cljsjs/react-with-addons "15.2.1-0"]
                  [cljsjs/react-leaflet "0.12.3-2"]
                  [re-frisk "0.3.2"]
                  [philoskim/debux "0.2.1"]]
