@@ -1,6 +1,7 @@
 (ns imas-seamap.views.map
   (:require [cljsjs.react-leaflet]
-            [reagent.core :as r]))
+            [reagent.core :as r]
+            [re-frame.core :as re-frame]))
 
 
 (def tile-layer  (r/adapt-react-class js/ReactLeaflet.TileLayer))
@@ -10,16 +11,16 @@
 
 (defn map-component []
   ;; pos/zoom would normally come from the state, of course:
-  (let [{:keys [pos zoom]} {:pos [51.505 -0.09] :zoom 13}]
-    [leaflet-map-c {:id "map" :center pos :zoom zoom
+  (let [map-props (re-frame/subscribe [:map/props])]
+    [leaflet-map {:id "map" :center (:pos @map-props) :zoom (:zoom @map-props)
                     ;; Event handlers must start with "on" and are hooked up automatically
                     ;; (see http://leafletjs.com/reference.html#map-events)
                     ;; Downside is the only info you get is the event type and target (probably the map):
                     :ondrag #(println "dragging..." (-> (.-target %) .getCenter js->clj (select-keys ["lat" "lng"])))}
-     [tile-layer-c {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+     [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                     :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]
-     [marker-c {:position pos}
-      [popup-c {:position pos}
+     [marker {:position (:pos @map-props)}
+      [popup {:position (:pos @map-props)}
        [:div.classname
         [:b "Roar!"]
         [:p "Testing testing, " [:i "one two three..."]]]]]]))

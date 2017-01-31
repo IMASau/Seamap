@@ -6,3 +6,7 @@
  :name
  (fn [db]
    (:name db)))
+
+(re-frame/reg-sub
+ :map/props
+ (fn [db] (:map db)))
