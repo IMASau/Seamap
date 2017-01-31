@@ -1,1 +1,4 @@
 -r base_requirements.txt
+werkzeug
+ipython
+ipdb
