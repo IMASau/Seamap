@@ -11,7 +11,7 @@ class RunScript(migrations.RunSQL):
     def __init__(self, filename, **kwargs):
         path = os.path.join(settings.SQL_ROOT, filename)
         assert os.path.exists(path)
-        sql = open(path).read().decode("utf-8-sig")
+        sql = open(path).read()
         sql = sql.replace("\nGO\n","\n--GO\n")
         super(RunScript, self).__init__(sql, **kwargs)
 
