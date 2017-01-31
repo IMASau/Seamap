@@ -1,11 +1,7 @@
 -- Calculate all the intersections along a path, together with an attribute of interest from the intersected polygon.
 -- Assumption is that the input is a LINESTRING, and the intersected geometries are all polygons.
 
-IF OBJECT_ID('path_intersections') IS NULL
-  EXEC('create function path_intersections(@geom geometry) returns @split_geom table (geom geometry) as begin return; end');
-GO
-
-ALTER FUNCTION path_intersections(@transect geometry, @habitat HabitatTableType READONLY)
+CREATE FUNCTION path_intersections(@transect geometry, @habitat HabitatTableType READONLY)
 RETURNS @TransectSegments TABLE (
   name varchar(max),
   segment geometry

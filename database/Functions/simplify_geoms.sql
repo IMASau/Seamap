@@ -1,10 +1,6 @@
 -- Given a geometry, return a table of component geometries all of whom have STNumGeometries() == 1:
 
-IF OBJECT_ID('simplify_geoms') IS NULL
-  EXEC('create function simplify_geoms(@geom geometry) returns @split_geom table (geom geometry) as begin return; end');
-GO
-
-ALTER FUNCTION simplify_geoms (@geom geometry)
+CREATE FUNCTION simplify_geoms (@geom geometry)
 RETURNS @split_geom TABLE (geom geometry)
 AS
 BEGIN
