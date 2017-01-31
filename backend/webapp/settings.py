@@ -31,14 +31,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
-	'django.contrib.admin',
-	'django.contrib.auth',
-	'django.contrib.contenttypes',
-	'django.contrib.sessions',
-	'django.contrib.messages',
-	'django.contrib.staticfiles',
-	'catalogue',
-	'rest_framework',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rest_framework',
+    'catalogue',
+    'sql',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -102,6 +103,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+SQL_ROOT = os.path.join(BASE_DIR, "../database")
 
 try:
     import local_settings
