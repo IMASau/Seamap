@@ -1,5 +1,6 @@
-Django==1.8
+Django==1.8.17
 djangorestframework==3.5.3
 django-extensions
-django-pyodbc-azure>=1.8,<1.8.99
+django-pyodbc-azure>=1.8.17,<1.8.99
+sqlparse
 
