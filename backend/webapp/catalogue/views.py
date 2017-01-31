@@ -1,11 +1,7 @@
 from catalogue.models import Layer
 from catalogue.serializers import LayerSerializer
-from rest_framework import generics
+from rest_framework import viewsets
 
-class LayerList(generics.ListCreateAPIView):
-	queryset = Layer.objects.all()
-	serializer_class = LayerSerializer
-
-class LayerDetail(generics.RetrieveUpdateDestroyAPIView):
+class LayerViewset(viewsets.ReadOnlyModelViewSet):
 	queryset = Layer.objects.all()
 	serializer_class = LayerSerializer
