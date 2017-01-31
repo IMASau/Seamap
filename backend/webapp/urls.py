@@ -1,10 +1,10 @@
 from django.conf.urls import include, url
 from django.contrib import admin
-from catalogue import views
+from catalogue import viewsets
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(r'layers', views.LayerViewset)
+router.register(r'layers', viewsets.LayerViewset)
 
 urlpatterns = [
 	url(r'^admin/', admin.site.urls),
