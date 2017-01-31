@@ -108,6 +108,6 @@ STATIC_URL = '/static/'
 SQL_ROOT = os.path.join(BASE_DIR, "../database")
 
 try:
-    import local_settings
+    from local_settings import *
 except ImportError:
     pass
