@@ -10,20 +10,19 @@
 (def popup       (r/adapt-react-class js/ReactLeaflet.Popup))
 
 (defn map-component []
-  (let [map-props (re-frame/subscribe [:map/props])]
-    #(let [{:keys [pos zoom markers layer-idx]} @map-props
-           wl [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
-                          :layers "nasa:bluemarble"
-                          :attribution "Made by Condense / Images by NASA"}]
-           tl [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-                           :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
-       [leaflet-map {:id "map" :center pos :zoom zoom}
-        ;; Just hacking around, to test swapping layers in and out:
-        (if (odd? layer-idx) wl tl)
-        (for [{:keys [pos title]} markers]
-          ^{:key (str pos)}
-          [marker {:position pos}
-           [popup {:position pos}
-            [:div.classname
-             [:b title]
-             [:p "Testing testing, " [:i "one two three..."]]]]])])))
+  (let [{:keys [pos zoom markers layer-idx]} @(re-frame/subscribe [:map/props])
+        wl [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
+                       :layers "nasa:bluemarble"
+                       :attribution "Made by Condense / Images by NASA"}]
+        tl [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+                        :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
+    [leaflet-map {:id "map" :center pos :zoom zoom}
+     ;; Just hacking around, to test swapping layers in and out:
+     (if (odd? layer-idx) wl tl)
+     (for [{:keys [pos title]} markers]
+       ^{:key (str pos)}
+       [marker {:position pos}
+        [popup {:position pos}
+         [:div.classname
+          [:b title]
+          [:p "Testing testing, " [:i "one two three..."]]]]])]))
