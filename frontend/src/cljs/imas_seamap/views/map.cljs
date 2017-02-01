@@ -20,10 +20,10 @@
                      :ondrag (fn [e] (println "dragging..." (-> (.-target e) .getCenter js->clj (select-keys ["lat" "lng"]))))}
         [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                      :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]
-        (for [{:keys [pos]} markers]
+        (for [{:keys [pos title]} markers]
           ^{:key (str pos)}
           [marker {:position pos}
            [popup {:position pos}
             [:div.classname
-             [:b "Roar!"]
+             [:b title]
              [:p "Testing testing, " [:i "one two three..."]]]]])])))
