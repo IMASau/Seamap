@@ -3,12 +3,16 @@
                  [org.clojure/clojurescript "1.9.229"]
                  [figwheel-sidecar "0.5.4-7"]
                  [com.cemerick/piggieback "0.2.1"]
-                 [reagent "0.6.0" :exclusions [cljsjs/react]]
+                 [reagent "0.6.0"]
                  [re-frame "0.9.1"]
-                 [cljsjs/react-with-addons "15.2.1-0"]
-                 [cljsjs/react-leaflet "0.12.3-2"]
                  [re-frisk "0.3.2"]
                  [philoskim/debux "0.2.1"]]
+
+  ;; Managed using create-react-app:
+  ;; TODO: snaffle the externs from these (and Leaflet) and include
+  :exclusions [[cljsjs/react]
+               [cljsjs/react-dom]
+               [cljsjs/react-dom-server]]
 
   :plugins [[lein-cljsbuild "1.1.4"]]
 

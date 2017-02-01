@@ -1,6 +1,5 @@
 (ns imas-seamap.views.map
-  (:require [cljsjs.react-leaflet]
-            [reagent.core :as r]
+  (:require [reagent.core :as r]
             [re-frame.core :as re-frame]))
 
 
