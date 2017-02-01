@@ -3,13 +3,13 @@
             [re-frame.core :as re-frame]))
 
 
-(def tile-layer  (r/adapt-react-class js/ReactLeaflet.TileLayer))
-(def wms-layer   (r/adapt-react-class js/ReactLeaflet.WMSTileLayer))
-(def leaflet-map (r/adapt-react-class js/ReactLeaflet.Map))
-(def marker      (r/adapt-react-class js/ReactLeaflet.Marker))
-(def popup       (r/adapt-react-class js/ReactLeaflet.Popup))
+(def tile-layer    (r/adapt-react-class js/ReactLeaflet.TileLayer))
+(def wms-layer     (r/adapt-react-class js/ReactLeaflet.WMSTileLayer))
+(def leaflet-map   (r/adapt-react-class js/ReactLeaflet.Map))
+(def marker        (r/adapt-react-class js/ReactLeaflet.Marker))
+(def popup         (r/adapt-react-class js/ReactLeaflet.Popup))
 (def feature-group (r/adapt-react-class js/ReactLeaflet.FeatureGroup))
-(def edit-control (r/adapt-react-class js/ReactLeaflet.EditControl))
+(def edit-control  (r/adapt-react-class js/ReactLeaflet.EditControl))
 
 (defn map-component []
   (let [{:keys [pos zoom markers layer-idx]} @(re-frame/subscribe [:map/props])
