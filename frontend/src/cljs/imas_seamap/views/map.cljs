@@ -11,7 +11,6 @@
 (def popup       (r/adapt-react-class js/ReactLeaflet.Popup))
 
 (defn map-component []
-  ;; pos/zoom would normally come from the state, of course:
   (let [map-props (re-frame/subscribe [:map/props])]
     #(let [{:keys [pos zoom markers layer-idx]} @map-props
            wl [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
