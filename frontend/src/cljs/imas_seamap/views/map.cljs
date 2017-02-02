@@ -26,7 +26,8 @@
                             :circle    false
                             :marker    false
                             :polygon   false
-                            :polyline  {:allowIntersection false}}}]]
+                            :polyline  {:allowIntersection false}}
+                     :on-created #(js/console.warn "Got me a drawing!" (-> % .-layer .toGeoJSON))}]]
      (for [{:keys [pos title]} markers]
        ^{:key (str pos)}
        [marker {:position pos}
