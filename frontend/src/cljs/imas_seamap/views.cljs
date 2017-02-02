@@ -6,9 +6,15 @@
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
+(defn app-controls []
+  [:div#sidebar])
+
+(defn plot-component []
+  [:footer])
+
 (defn layout-app []
   [:div#main-wrapper
-   [:div#sidebar]
+   [app-controls]
    [:div#content-wrapper
     [map-component]
-    [:footer]]])
+    [plot-component]]])
