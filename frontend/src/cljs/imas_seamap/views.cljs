@@ -7,8 +7,8 @@
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
 (defn layout-app []
-  [:div {:style {:height "100%" :width "100%"}}
-   [:div.sidebar]
-   [:div.main-wrapper
+  [:div#main-wrapper
+   [:div#sidebar]
+   [:div#content-wrapper
     [map-component]
-    [:div#footer]]])
+    [:footer]]])
