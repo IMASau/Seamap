@@ -10,7 +10,14 @@
   [:div#sidebar])
 
 (defn plot-component []
-  [:footer])
+  (let [show-plot (reagent/atom true)]
+    (fn []
+      [:footer {:on-click #(swap! show-plot not)}
+       [css-transition-group {:transition-name "plot-height"
+                              :transition-enter-timeout 300
+                              :transition-leave-timeout 300}
+        (if @show-plot
+          [:div.plot-container])]])))
 
 (defn layout-app []
   [:div#main-wrapper

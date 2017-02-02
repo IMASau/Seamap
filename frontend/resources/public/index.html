@@ -28,7 +28,26 @@
        flex: 1 1 100%;
      }
      footer {
-       flex: 0 0 200px;
+       flex: 0 0;
+       flex-basis: 10px;
+     }
+
+     .plot-container {
+       height: 200px;
+     }
+     .plot-height-enter {
+       height: 10px;
+     }
+     .plot-height-leave {
+       height: 10px;
+       transition: height 300ms ease-in;
+     }
+     .plot-height-enter-active {
+       height: 200px;
+       transition: height 300ms ease-in;
+     }
+     .plot-height-leave-active {
+       height: 10px;
      }
     </style>
 
