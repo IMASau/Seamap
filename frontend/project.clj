@@ -1,6 +1,7 @@
 (defproject imas-seamap "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.9.0-alpha10"]
                  [org.clojure/clojurescript "1.9.229"]
+                 [org.clojure/test.check "0.9.0"]
                  [figwheel-sidecar "0.5.4-7"]
                  [com.cemerick/piggieback "0.2.1"]
                  [reagent "0.6.0"]
@@ -41,7 +42,8 @@
                     :output-dir           "resources/public/js/compiled/out"
                     :asset-path           "js/compiled/out"
                     :source-map-timestamp true
-                    :preloads             [devtools.preload]
+                    :preloads             [devtools.preload
+                                           imas-seamap.specs.preload]
                     :external-config      {:devtools/config {:features-to-install :all}}}}
 
     {:id           "min"
