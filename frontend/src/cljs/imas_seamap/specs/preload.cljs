@@ -2,6 +2,7 @@
   (:require [re-frame.db :refer [app-db]]
             [cljs.spec :as s]
             [cljs.spec.test :as stest]
+            [imas-seamap.specs.app-state]
             [imas-seamap.specs.spec-utils :as spec-utils]))
 
 
