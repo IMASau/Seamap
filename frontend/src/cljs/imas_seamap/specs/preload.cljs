@@ -8,7 +8,7 @@
 
 
 (js/console.info ::instrumenting)
-(s/check-asserts true)
+(js/console.info ::check-asserts (s/check-asserts true))
 
 (spec-utils/patch-spec-checking-fn)
 (stest/instrument)
