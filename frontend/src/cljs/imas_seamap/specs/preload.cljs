@@ -13,7 +13,14 @@
 (spec-utils/patch-spec-checking-fn)
 (stest/instrument)
 
+;;; Don't raise an error though, just report to the user
 (defn validate-state [val]
-  (s/assert :seamap/app-state val))
+  (try
+    (when-not (s/valid? :seamap/app-state val)
+      (js/console.error "app-state is in an invalid state")
+      (spec-utils/explain-console (s/explain-data :seamap/app-state val)))
+    (catch js/Object e
+      (js/console.error e)))
+  true)
 
 (set-validator! app-db validate-state)
