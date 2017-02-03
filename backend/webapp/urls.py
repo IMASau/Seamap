@@ -1,10 +1,12 @@
 from django.conf.urls import include, url
 from django.contrib import admin
-from catalogue import viewsets
+from catalogue.viewsets import LayerViewset
+from habitat.viewsets import HabitatViewSet
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(r'layers', viewsets.LayerViewset)
+router.register(r'layers', LayerViewset)
+router.register(r'habitat', HabitatViewSet, 'Habitat')
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
