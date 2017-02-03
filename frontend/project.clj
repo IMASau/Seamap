@@ -42,6 +42,7 @@
                     :output-dir           "resources/public/js/compiled/out"
                     :asset-path           "js/compiled/out"
                     :source-map-timestamp true
+                    :closure-defines      {goog.DEBUG true}
                     :preloads             [devtools.preload
                                            imas-seamap.specs.preload]
                     :external-config      {:devtools/config {:features-to-install :all}}}}
