@@ -3,11 +3,13 @@
             [re-frame.core :as re-frame]))
 
 
-(def tile-layer  (r/adapt-react-class js/ReactLeaflet.TileLayer))
-(def wms-layer   (r/adapt-react-class js/ReactLeaflet.WMSTileLayer))
-(def leaflet-map (r/adapt-react-class js/ReactLeaflet.Map))
-(def marker      (r/adapt-react-class js/ReactLeaflet.Marker))
-(def popup       (r/adapt-react-class js/ReactLeaflet.Popup))
+(def tile-layer    (r/adapt-react-class js/ReactLeaflet.TileLayer))
+(def wms-layer     (r/adapt-react-class js/ReactLeaflet.WMSTileLayer))
+(def leaflet-map   (r/adapt-react-class js/ReactLeaflet.Map))
+(def marker        (r/adapt-react-class js/ReactLeaflet.Marker))
+(def popup         (r/adapt-react-class js/ReactLeaflet.Popup))
+(def feature-group (r/adapt-react-class js/ReactLeaflet.FeatureGroup))
+(def edit-control  (r/adapt-react-class js/ReactLeaflet.EditControl))
 
 (defn map-component []
   (let [{:keys [pos zoom markers layer-idx]} @(re-frame/subscribe [:map/props])
@@ -19,6 +21,13 @@
     [leaflet-map {:id "map" :center pos :zoom zoom}
      ;; Just hacking around, to test swapping layers in and out:
      (if (odd? layer-idx) wl tl)
+     [feature-group
+      [edit-control {:draw {:rectangle false
+                            :circle    false
+                            :marker    false
+                            :polygon   false
+                            :polyline  {:allowIntersection false}}
+                     :on-created #(js/console.warn "Got me a drawing!" (-> % .-layer .toGeoJSON))}]]
      (for [{:keys [pos title]} markers]
        ^{:key (str pos)}
        [marker {:position pos}

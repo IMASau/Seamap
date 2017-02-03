@@ -5,7 +5,6 @@
             [imas-seamap.events]
             [imas-seamap.subs]
             [imas-seamap.views :as views]
-            [imas-seamap.views.map :as mview]
             [imas-seamap.config :as config]))
 
 
@@ -17,7 +16,7 @@
 
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
-  (reagent/render [mview/map-component]
+  (reagent/render [views/layout-app]
                   (.getElementById js/document "app")))
 
 (defn ^:export init []
