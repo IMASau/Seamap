@@ -3,6 +3,6 @@
               [imas-seamap.db :as db]))
 
 (re-frame/reg-event-db
- :initialize-db
+ :initialise-db
  (fn  [_ _]
    db/default-db))
