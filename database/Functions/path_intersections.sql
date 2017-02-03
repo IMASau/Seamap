@@ -41,7 +41,7 @@ BEGIN
   INSERT INTO @TransectSegments
     SELECT ir.name, simplified.geom
     FROM intermediate_results AS ir
-    CROSS APPLY split_geom(ir.intersections) AS simplified;
+    CROSS APPLY simplify_geoms(ir.intersections) AS simplified;
   RETURN;
 END;
 GO
