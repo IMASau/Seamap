@@ -2,6 +2,4 @@
     (:require-macros [reagent.ratom :refer [reaction]])
     (:require [re-frame.core :as re-frame]))
 
-(re-frame/reg-sub
- :map/props
- (fn [db] (:map db)))
+(defn map-props [db] (:map db))
