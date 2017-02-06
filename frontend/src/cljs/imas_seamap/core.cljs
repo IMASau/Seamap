@@ -4,6 +4,7 @@
             [re-frame.std-interceptors :refer [debug]]
             [re-frisk.core :refer [enable-re-frisk!]]
             [imas-seamap.events :as events]
+            [imas-seamap.events.map :as mevents]
             [imas-seamap.subs :as subs]
             [imas-seamap.views :as views]
             [imas-seamap.config :as config]))
@@ -11,7 +12,12 @@
 
 (def config
   {:subs   {:map/props     subs/map-props}
-   :events {:initialise-db events/-initialise-db}})
+   :events {:ajax          events/ajax
+            :ajax/default-success-handler (fn [db [_ arg]] (js/console.log arg) db)
+            :ajax/default-err-handler (fn [db [_ arg]] (js/console.error arg) db)
+            :initialise-db events/-initialise-db
+            :initialise-layers events/-initialise-layers
+            :map/update-layers mevents/update-layers}})
 
 (def standard-interceptors
   [(when ^boolean goog.DEBUG debug)])
@@ -39,5 +45,6 @@
 (defn ^:export init []
   (register-handlers! config)
   (re-frame/dispatch-sync [:initialise-db])
+  (re-frame/dispatch [:initialise-layers])
   (dev-setup)
   (mount-root))

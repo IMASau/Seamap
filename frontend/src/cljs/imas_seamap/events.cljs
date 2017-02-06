@@ -2,11 +2,17 @@
   (:require [ajax.core :as ajax]
             [imas-seamap.db :as db]
             [re-frame.core :as re-frame]
-            [debux.cs.core :refer [dbg]]))
+            [debux.cs.core :refer-macros [dbg]]))
 
 ;;; TODO: maybe pull in extra config inject as page config, but that
 ;;; may not be feasible with a wordpress host
 (defn -initialise-db [_ _] db/default-db)
+
+(defn -initialise-layers [db _]
+  (let [layer-url ""]
+    (re-frame/dispatch [:ajax layer-url
+                        {:handler :map/update-layers}])
+    db))
 
 
 (defn ajax [db [_ url {:keys [handler err-handler override-opts]
