@@ -7,4 +7,4 @@
 (s/fdef events/initialise-db
   :args (s/cat :db map?       ; Presumably uninitialised at this point
                :event-v (s/coll-of keyword? :count 1))
-  :ret (constantly false))
+  :ret :seamap/app-state)
