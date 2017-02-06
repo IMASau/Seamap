@@ -11,13 +11,16 @@
 
 
 (def config
-  {:subs   {:map/props     subs/map-props}
-   :events {:ajax          events/ajax
-            :ajax/default-success-handler (fn [db [_ arg]] (js/console.log arg) db)
-            :ajax/default-err-handler (fn [db [_ arg]] (js/console.error arg) db)
-            :initialise-db events/-initialise-db
-            :initialise-layers events/-initialise-layers
-            :map/update-layers mevents/update-layers}})
+  {:subs
+   {:map/props                            subs/map-props}
+
+   :events
+   {:ajax                                 events/ajax
+    :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
+    :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
+    :initialise-db                        events/-initialise-db
+    :initialise-layers                    events/-initialise-layers
+    :map/update-layers                    mevents/update-layers}})
 
 (def standard-interceptors
   [(when ^boolean goog.DEBUG debug)])
