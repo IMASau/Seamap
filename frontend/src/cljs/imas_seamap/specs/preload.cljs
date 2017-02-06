@@ -7,11 +7,10 @@
             [imas-seamap.specs.spec-utils :as spec-utils]))
 
 
-(js/console.info ::instrumenting)
-(js/console.info ::check-asserts (s/check-asserts true))
-
 (spec-utils/patch-spec-checking-fn)
-(stest/instrument)
+
+(js/console.info ::instrumenting (stest/instrument))
+(js/console.info ::check-asserts (s/check-asserts true))
 
 ;;; Don't raise an error though, just report to the user
 (defn validate-state [val]
