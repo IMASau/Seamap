@@ -4,6 +4,13 @@
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
 
+(defn not-yet-implemented
+  "Register this handler against event symbols that don't have a
+  handler yet"
+  [db [sym & args :as event-v]]
+  (js/console.warn "Warning: no handler for" sym "implemented yet")
+  db)
+
 ;;; TODO: maybe pull in extra config inject as page config, but that
 ;;; may not be feasible with a wordpress host
 (defn initialise-db [_ _] db/default-db)
