@@ -7,7 +7,9 @@
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
 (defn app-controls []
-  [:div#sidebar])
+  [:div#sidebar
+   [:button {:on-click #(re-frame/dispatch [:map/toggle-transect])}
+    "Toggle Transect"]])
 
 (defn plot-component []
   (let [show-plot (reagent/atom true)]

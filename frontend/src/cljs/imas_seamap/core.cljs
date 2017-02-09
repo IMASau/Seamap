@@ -20,6 +20,7 @@
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     :initialise-db                        events/initialise-db
     :initialise-layers                    events/initialise-layers
+    :map/toggle-transect                  mevents/toggle-transect
     :map/update-layers                    mevents/update-layers}})
 
 (def standard-interceptors
