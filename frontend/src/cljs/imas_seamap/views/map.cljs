@@ -28,6 +28,7 @@
                               :marker    false
                               :polygon   false
                               :polyline  {:allowIntersection false}}
+                       :on-mounted #(.. % -_toolbars -draw -_modes -polyline -handler enable)
                        :on-created #(js/console.warn "Got me a drawing!" (-> % .-layer .toGeoJSON))}]])
      (for [{:keys [pos title]} markers]
        ^{:key (str pos)}
