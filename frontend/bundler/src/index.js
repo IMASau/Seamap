@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom';
 import CSSTransitionGroup from 'react-addons-css-transition-group';
 
 import * as ReactLeaflet from 'react-leaflet';
-import { EditControl } from 'react-leaflet-draw';
+import EditControl from './EditControl';
 
 window.L = L;
 
