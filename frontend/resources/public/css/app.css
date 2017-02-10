@@ -42,3 +42,8 @@ footer {
 .plot-height-leave-active {
     height: 10px;
 }
+
+
+/* Map customisation */
+/* Don't display the edit toolbar: */
+.leaflet-draw.leaflet-control > .leaflet-draw-section:nth-child(2) { display: none !important; }
