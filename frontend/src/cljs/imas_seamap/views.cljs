@@ -6,10 +6,17 @@
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
+(defn transect-toggle []
+  (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])]
+    (if drawing?
+      [:button {:on-click #(re-frame/dispatch [:transect.draw/disable])}
+       "Cancel Transect"]
+      [:button {:on-click #(re-frame/dispatch [:transect.draw/enable])}
+       "Draw Transect"])))
+
 (defn app-controls []
   [:div#sidebar
-   [:button {:on-click #(re-frame/dispatch [:map/toggle-transect])}
-    "Toggle Transect"]])
+   [transect-toggle]])
 
 (defn plot-component []
   (let [show-plot (reagent/atom true)]
