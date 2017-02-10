@@ -26,7 +26,7 @@
 (s/def :geojson/type string?)
 (s/def :geojson/geometry map?)
 (s/def :geojson/properties map?)
-(s/def ::geojson object?) ; Problem here is keys are actually strings!  We'll leave it here for now
+(s/def ::geojson (s/keys :req-un [:geojson/type :geojson/geometry :geojson/properties]))
 (s/def ::transect (s/nilable ::geojson))
 
 (s/def :seamap/app-state

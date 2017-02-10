@@ -24,7 +24,7 @@
      ;; Just hacking around, to test swapping layers in and out:
      (if (odd? layer-idx) wl tl)
      (when query
-       [geojson-layer {:data query}])
+       [geojson-layer {:data (clj->js query)}])
      (when drawing?
        [feature-group
         [edit-control {:draw {:rectangle false
@@ -35,7 +35,7 @@
                        :on-mounted (fn [e]
                                      (.. e -_toolbars -draw -_modes -polyline -handler enable)
                                      (.. e -_map  (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
-                       :on-created #(re-frame/dispatch [:transect/query (-> % .-layer .toGeoJSON)])}]])
+                       :on-created #(re-frame/dispatch [:transect/query (-> % .-layer .toGeoJSON (js->clj :keywordize-keys true))])}]])
      (for [{:keys [pos title]} markers]
        ^{:key (str pos)}
        [marker {:position pos}
