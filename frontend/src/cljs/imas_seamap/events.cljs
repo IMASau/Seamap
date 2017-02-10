@@ -21,6 +21,16 @@
                         {:handler :map/update-layers}])
     db))
 
+(defn transect-query [db [_ geojson]]
+  (assoc db :transect geojson))
+
+(defn transect-drawing-start [db]
+  (-> db
+      (assoc-in [:map :controls :transect] true)
+      (assoc-in [:transect] nil)))
+
+(defn transect-drawing-finish [db]
+  (assoc-in db [:map :controls :transect] false))
 
 (defn ajax [db [_ url {:keys [handler err-handler override-opts]
                        :or   {handler     :ajax/default-success-handler

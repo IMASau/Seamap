@@ -12,7 +12,8 @@
 
 (def config
   {:subs
-   {:map/props                            subs/map-props}
+   {:map/props                            subs/map-props
+    :transect/info                        subs/transect-info}
 
    :events
    {:ajax                                 events/ajax
@@ -20,10 +21,10 @@
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     :initialise-db                        events/initialise-db
     :initialise-layers                    events/initialise-layers
-    :transect/query                       events/not-yet-implemented ; send off the query; store geojson arg in db
-    :transect.draw/enable                 events/not-yet-implemented ; enable controls on map
-    :transect.draw/disable                events/not-yet-implemented ; disable controls on map
-    :transect.draw/clear                  events/not-yet-implemented ; remove transect from map
+    :transect/query                       events/transect-query
+    :transect.draw/enable                 events/transect-drawing-start
+    :transect.draw/disable                events/transect-drawing-finish
+    :transect.draw/clear                  events/not-yet-implemented
     :map/toggle-transect                  mevents/toggle-transect
     :map/update-layers                    mevents/update-layers}})
 
