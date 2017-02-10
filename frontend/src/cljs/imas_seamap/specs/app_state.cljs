@@ -17,8 +17,17 @@
 (s/def :map/markers
   (s/coll-of :map/marker-type))
 
+(s/def :map.controls/transect boolean?)
+(s/def :map/controls (s/keys :req-un [:map.controls/transect]))
+
 (s/def ::map
-  (s/keys :req-un [:map/pos :map/zoom :map/layer-idx :map/markers]))
+  (s/keys :req-un [:map/pos :map/zoom :map/layer-idx :map/markers :map/controls]))
+
+(s/def :geojson/type string?)
+(s/def :geojson/geometry map?)
+(s/def :geojson/properties map?)
+(s/def ::geojson (s/keys :req-un [:geojson/type :geojson/geometry :geojson/properties]))
+(s/def ::transect (s/nilable ::geojson))
 
 (s/def :seamap/app-state
-  (s/keys :req-un [::map]))
+  (s/keys :req-un [::map ::transect]))
