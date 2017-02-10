@@ -31,7 +31,7 @@
 
   :profiles
   {:dev
-   {:dependencies [[binaryage/devtools "0.8.2"]]}}
+   {:dependencies [[binaryage/devtools "0.9.0"]]}}
 
   :cljsbuild
   {:builds
