@@ -29,5 +29,7 @@
 (s/def ::geojson (s/keys :req-un [:geojson/type :geojson/geometry :geojson/properties]))
 (s/def ::transect (s/nilable ::geojson))
 
+(s/def ::config map?)
+
 (s/def :seamap/app-state
-  (s/keys :req-un [::map ::transect]))
+  (s/keys :req-un [::map ::transect ::config]))
