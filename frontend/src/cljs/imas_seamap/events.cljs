@@ -16,7 +16,7 @@
 (defn initialise-db [_ _] db/default-db)
 
 (defn initialise-layers [db _]
-  (let [layer-url ""]
+  (let [layer-url (get-in db [:config :catalogue-url])]
     (re-frame/dispatch [:ajax layer-url
                         {:handler :map/update-layers}])
     db))
