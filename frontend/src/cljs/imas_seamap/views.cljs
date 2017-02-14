@@ -18,6 +18,15 @@
   [:div#sidebar
    [transect-toggle]])
 
+(defn plot-component-animatable [{:keys [on-add on-remove]
+                                  :or   {on-add identity on-remove identity}
+                                  :as   props}]
+  (reagent/create-class
+   {:display-name           "plot-component-animatable"
+    :component-will-unmount on-remove
+    :component-did-mount    on-add
+    :reagent-render         (fn [props] [:div.plot-container])}))
+
 (defn plot-component []
   (let [show-plot (reagent/atom true)]
     (fn []
