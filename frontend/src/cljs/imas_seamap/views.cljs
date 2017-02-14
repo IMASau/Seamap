@@ -28,14 +28,15 @@
     :reagent-render         (fn [props] [:div.plot-container])}))
 
 (defn plot-component []
-  (let [show-plot (reagent/atom true)]
+  (let [show-plot (reagent/atom true)
+        force-resize #(js/window.dispatchEvent (js/Event. "resize"))]
     (fn []
       [:footer {:on-click #(swap! show-plot not)}
        [css-transition-group {:transition-name "plot-height"
                               :transition-enter-timeout 300
                               :transition-leave-timeout 300}
         (if @show-plot
-          [:div.plot-container])]])))
+          [plot-component-animatable {:on-add force-resize :on-remove force-resize}])]])))
 
 (defn layout-app []
   [:div#main-wrapper
