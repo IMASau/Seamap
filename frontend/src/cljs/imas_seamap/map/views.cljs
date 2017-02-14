@@ -1,4 +1,4 @@
-(ns imas-seamap.views.map
+(ns imas-seamap.map.views
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]))
 

@@ -4,7 +4,7 @@
             [re-frame.std-interceptors :refer [debug]]
             [re-frisk.core :refer [enable-re-frisk!]]
             [imas-seamap.events :as events]
-            [imas-seamap.events.map :as mevents]
+            [imas-seamap.map.events :as mevents]
             [imas-seamap.subs :as subs]
             [imas-seamap.views :as views]
             [imas-seamap.config :as config]))
