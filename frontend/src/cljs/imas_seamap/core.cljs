@@ -4,7 +4,7 @@
             [re-frame.std-interceptors :refer [debug]]
             [re-frisk.core :refer [enable-re-frisk!]]
             [imas-seamap.events :as events]
-            [imas-seamap.events.map :as mevents]
+            [imas-seamap.map.events :as mevents]
             [imas-seamap.subs :as subs]
             [imas-seamap.views :as views]
             [imas-seamap.config :as config]))
@@ -12,7 +12,8 @@
 
 (def config
   {:subs
-   {:map/props                            subs/map-props}
+   {:map/props                            subs/map-props
+    :transect/info                        subs/transect-info}
 
    :events
    {:ajax                                 events/ajax
@@ -20,6 +21,10 @@
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     :initialise-db                        events/initialise-db
     :initialise-layers                    events/initialise-layers
+    :transect/query                       events/transect-query
+    :transect.draw/enable                 events/transect-drawing-start
+    :transect.draw/disable                events/transect-drawing-finish
+    :transect.draw/clear                  events/not-yet-implemented
     :map/update-layers                    mevents/update-layers}})
 
 (def standard-interceptors

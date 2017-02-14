@@ -1,4 +1,4 @@
-(ns imas-seamap.events.map
+(ns imas-seamap.map.events
   (:require [re-frame.core :as re-frame]))
 
 

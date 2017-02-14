@@ -8,11 +8,12 @@
   "dependencies": {
     "leaflet": "^1.0.3",
     "leaflet-draw": "^0.4.7",
+    "lodash.isequal": "^4.5.0", // only needed for our copy of react-leaflet-draw; when issue is resolved this can be removed
     "react": "^15.4.2",
     "react-addons-css-transition-group": "^15.4.2",
     "react-dom": "^15.4.2",
-    "react-leaflet": "^1.1.0",
-    "react-leaflet-draw": "^0.13.0"
+    "react-leaflet": "^1.1.0"
+    //"react-leaflet-draw": "^0.13.0" // until https://github.com/alex3165/react-leaflet-draw/issues/16 is addressed we'll do it ourselves
   },
   "scripts": {
     "start": "react-scripts start",
