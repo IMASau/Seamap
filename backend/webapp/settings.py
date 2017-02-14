@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'django_extensions',
     'rest_framework',
     'catalogue',
@@ -45,6 +46,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -99,6 +101,14 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+# CORS support (add your localhost server to CORS_ORIGIN_WHITELIST in
+# local_settings for development)
+CORS_ALLOW_METHODS = (
+    'GET',
+    'OPTIONS',
+)
+CORS_ORIGIN_WHITELIST = []
 
 
 # Static files (CSS, JavaScript, Images)
