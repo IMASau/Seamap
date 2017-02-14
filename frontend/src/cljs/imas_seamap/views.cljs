@@ -31,35 +31,35 @@
 
 (defn generate-bathymetry []
       (let [a (iterate #(+ 1 %) 0)
-            b (repeatedly 101 #(rand 100))
+            b (repeatedly 101 #(+ (rand 50) (rand 50)))
             c (map list a b)
             bathymetry (into [] c)]
            bathymetry))
 
 (defn generate-habitat []
-      (let [habitat [(list 0 15 "zone1")
-                     (list 15 20 "zone2")
-                     (list 20 31 "zone3")
-                     (list 31 47 "zone4")
-                     (list 47 60 "zone5")
-                     (list 60 100 "zone6")]]
+      (let [num-zones (+ 3 (rand-int 7))
+            a (repeatedly num-zones #(+ 10 (rand-int 90)))
+            b (list* 0 100 a)
+            c (sort b)
+            d (distinct c)
+            habitat (for [i (take (+ 1 num-zones) (clojure.core/range))]
+                         (list (nth d i) (nth d (+ 1 i)) (str "zone" (rand-int 7))))
+            ]
+           (js/console.log "habitat: " habitat)
            habitat))
 
 (defn get-min-depth [bathymetry]
-      0)
+      (apply min (map #(nth % 1) bathymetry)))
 
 (defn get-max-depth [bathymetry]
-      100)
+      (apply max (map #(nth % 1) bathymetry)))
 
-(defn get-formatted-graph-line [{:keys [bathymetry origin domain range] :as props}]
-      (let [minDepth (get-min-depth bathymetry)
-            maxDepth (get-max-depth bathymetry)
-            spread (- maxDepth minDepth)
-            offsetPercentage 0.3
+(defn get-formatted-graph-line [{:keys [bathymetry origin buffer domain range offset minDepth maxDepth] :as props}]
+      (let [spread (- maxDepth minDepth)
             [firstDepth & remaining] bathymetry
-            startString (str "M " (+ (origin 0) (* (/ (nth firstDepth 0) 100) domain)) " " (/ (nth firstDepth 1) spread) " ")
+            startString (str "M " (+ (origin 0) (* (/ (nth firstDepth 0) 100) domain)) " " (+ (* (* range (- 1 offset)) (/ (- (nth firstDepth 1) minDepth) spread)) (buffer 1)) " ")
             middleString (clojure.string/join (for [depth remaining]
-                                                   (str "L " (+ (origin 0) (* (/ (nth depth 0) 100) domain)) " " (- range (nth depth 1)) " ")))
+                                                   (str "L " (+ (origin 0) (* (/ (nth depth 0) 100) domain)) " " (+ (* (* range (- 1 offset)) (/ (- (nth depth 1) minDepth) spread)) (buffer 1)) " ")))
            ]
            (str startString middleString)
            ))
@@ -70,52 +70,107 @@
    :zone3 (randColour)
    :zone4 (randColour)
    :zone5 (randColour)
-   :zone6 (randColour)
-   })
+   :zone6 (randColour)})
 
-(defn draw-graph [{:keys [bathymetry habitat width height] :as props}]
+(defn draw-graph [{:keys [bathymetry habitat width height] :or {width 500} :as props}]
       (let [origin [100 100]
-            range (- height (origin 1))
-            domain (- width (origin 0))
+            buffer [20 20]
+            range (- height (+ (buffer 1) (origin 1)))
+            domain (- width (+ (buffer 0) (origin 0)))
+            max-depth (get-max-depth bathymetry)
+            min-depth (get-min-depth bathymetry)
+            offset 0.3
             line (get-formatted-graph-line {:bathymetry bathymetry
-                                               :origin     origin
-                                               :domain     domain
-                                               :range      range})
-            endString (str "L " width " " height "L 0 " height " Z")
-            clipPathString (str line endString)
+                                            :origin     origin
+                                            :domain     domain
+                                            :buffer     buffer
+                                            :range      range
+                                            :offset     offset
+                                            :minDepth   min-depth
+                                            :maxDepth   max-depth})
+            clipPathString (str line "L " (- width (buffer 0)) " " (+ range (buffer 1)) "L " (origin 0) " " (+ (buffer 1) range) " Z")
             ]
            [:div#transect-plot
             [:svg {:width  width
                    :height height}
-             [:clipPath {:id "clipPath"}
-              [:path {:d clipPathString}]]
-             (for [zone habitat]
-                  [:rect {:x      (+ (origin 0) (* (/ (nth zone 0) 100) (- width (origin 0))))
-                          :y      0
-                          :width  (* (/ (- (nth zone 1) (nth zone 0)) 100) (- width (origin 0)))
-                          :height (- height (origin 1))
-                          :style  {:fill      (zone-color-mapping (keyword (nth zone 2)))
-                                   :clip-path "url(#clipPath)"}}])
+
+             [:defs
+              [:clipPath {:id "clipPath"}
+               [:path {:d clipPathString}]]]
+
+             ;draw habitat zones
+             [:g
+              (for [zone habitat]
+                   [:rect {:x          (+ (origin 0) (* (/ (nth zone 0) 100) domain))
+                           :y          (buffer 1)
+                           :width      (* (/ (- (nth zone 1) (nth zone 0)) 100) domain)
+                           :height     range
+                           :title (nth zone 2)
+                           :style      {:fill      (zone-color-mapping (keyword (nth zone 2)))
+                                        :clip-path "url(#clipPath)"
+                                        }}])]
+
+             ;draw bathymetry line
              [:path {:d line
                      :fill "none"
                      :stroke "black"
                      :stroke-width 3}]
 
              ;draw axes
-             [:path {:d            (str "M " (origin 0) " " (- height (origin 1)) " L " width " " (- height (origin 1)))
-                     :fill         "none"
-                     :stroke       "black"
-                     :stroke-width 5}]
-             [:path {:d (str "M " (origin 0) " " (- height (origin 1)) " L " (origin 0) " " 0)
-                     :fill "none"
-                     :stroke "black"
-                     :stroke-width 5}]
+             [:g {:fill         "none"
+                  :stroke       "black"
+                  :stroke-width "3"}
+              [:line {:x1 (origin 0)
+                      :y1 (- height (origin 1))
+                      :x2 width
+                      :y2 (- height (origin 1))}]
+              [:line {:x1 (origin 0)
+                      :y1 (- height (origin 1))
+                      :x2 (origin 0)
+                      :y2 "0"}]]
+
+
+             ;label axes
+             (let [line-height 10
+                   offset-x-axis (+ 10 line-height)
+                   offset-y-axis 10
+                   spread (- max-depth min-depth)
+                   origin-depth (+ min-depth (/ spread (- 1 offset)))
+                   delta (- origin-depth min-depth)
+                   x-steps 10
+                   y-steps 6]
+                  [:g {:style {:line-height line-height}}
+
+                   ;x-axis
+                   [:g {:style {:text-anchor "middle"}}
+                    (for [i (take (+ 1 x-steps) (clojure.core/range))]
+                         [:text {:x (+ (* (/ i x-steps) domain) (origin 0))
+                                 :y (+ (buffer 1) (+ offset-x-axis range))}
+                          (str (int (* (/ i x-steps) 100)))])
+                    [:text {:x (+ (origin 0) (/ domain 2))
+                            :y (+ offset-x-axis (+ (+ (buffer 1) range) (* 2 line-height)))}
+                     "Percentage (%)"]]
+
+                   ;y-axis
+                   [:g {:style {:text-anchor "end"}}
+                    (for [i (take (+ 1 y-steps) (clojure.core/range))]
+                         [:text {:x (- (origin 0) offset-y-axis)
+                                 :y (+ (buffer 1) (+ (/ line-height 2) (* (/ i y-steps) range)))}
+                          (str (int (+ min-depth (* (/ i y-steps) delta))))])
+                    [:text {:x         (- (origin 0) (+ 30 offset-y-axis))
+                            :y         (+ (buffer 1) (/ range 2))
+                            :transform (str "rotate(-90, " (- (origin 0) (+ 30 offset-y-axis)) ", " (+ (buffer 1) (/ range 2)) ")")
+                            :style     {:text-anchor "middle"}}
+                     "Depth (m)"]]
+
+                   ])
              ]])
       )
 
 (defn transect-plot []
-      (draw-graph {:bathymetry (generate-bathymetry)
-                   :habitat    (generate-habitat)
-                   :width      900
-                   :height     300}))
+      [:div {:style {:position "absolute" :top "50px"}}
+       (draw-graph {:bathymetry (generate-bathymetry)
+                    :habitat    (generate-habitat)
+                    :width      900
+                    :height     300})])
 
