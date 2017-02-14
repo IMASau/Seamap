@@ -28,6 +28,7 @@
              :server-port      3451
              :nrepl-port       7892
              :css-dirs         ["resources/public/css"]}
+  :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
 
   :profiles
   {:dev
