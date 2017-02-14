@@ -1,0 +1,51 @@
+[
+{
+  "fields": {
+    "name": "Habitat"
+  },
+  "model": "catalogue.category",
+  "pk": 1
+},
+{
+  "fields": {
+    "name": "Bathymetry"
+  },
+  "model": "catalogue.category",
+  "pk": 2
+},
+{
+  "fields": {
+    "name": "Imagery"
+  },
+  "model": "catalogue.category",
+  "pk": 3
+},
+{
+  "fields": {
+    "name": "Third-party"
+  },
+  "model": "catalogue.category",
+  "pk": 4
+},
+{
+  "fields": {
+    "name": "ncwms"
+  },
+  "model": "catalogue.servertype",
+  "pk": 1
+},
+{
+  "fields": {
+    "name": "geoserver"
+  },
+  "model": "catalogue.servertype",
+  "pk": 2
+},
+{
+  "fields": {
+    "name": "other"
+  },
+  "model": "catalogue.servertype",
+  "pk": 3
+}
+]
