@@ -1,5 +1,5 @@
 (defproject imas-seamap "0.1.0-SNAPSHOT"
-  :dependencies [[org.clojure/clojure "1.9.0-alpha10"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
                  [org.clojure/clojurescript "1.9.456"]
                  [cljs-ajax "0.5.5"]
                  [org.clojure/test.check "0.9.0"]
