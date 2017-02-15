@@ -16,7 +16,7 @@
 (defn initialise-db [_ _] db/default-db)
 
 (defn initialise-layers [db _]
-  (let [layer-url ""]
+  (let [layer-url (get-in db [:config :catalogue-url])]
     (re-frame/dispatch [:ajax layer-url
                         {:handler :map/update-layers}])
     db))
@@ -24,12 +24,12 @@
 (defn transect-query [db [_ geojson]]
   (assoc db :transect geojson))
 
-(defn transect-drawing-start [db]
+(defn transect-drawing-start [db _]
   (-> db
       (assoc-in [:map :controls :transect] true)
       (assoc-in [:transect] nil)))
 
-(defn transect-drawing-finish [db]
+(defn transect-drawing-finish [db _]
   (assoc-in db [:map :controls :transect] false))
 
 (defn ajax [db [_ url {:keys [handler err-handler override-opts]
