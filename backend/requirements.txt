@@ -2,3 +2,4 @@
 werkzeug
 ipython
 ipdb
+jedi
