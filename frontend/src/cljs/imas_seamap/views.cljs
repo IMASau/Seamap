@@ -7,6 +7,7 @@
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
 (def Button (reagent/adapt-react-class js/Blueprint.Button))
+(def Collapse (reagent/adapt-react-class js/Blueprint.Collapse))
 
 (defn transect-toggle []
   (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])
@@ -18,9 +19,27 @@
              :on-click #(re-frame/dispatch [dispatch-key])
              :text label}]))
 
+(defn layer-card [idx]
+  [:div.layer-wrapper
+   [:div.pt-card.pt-elevation-1
+    "Roar" idx]])
+
+(defn layer-group [title & children]
+  (let [expanded (reagent/atom false)]
+    (fn [title & children]
+      [:div.layer-group
+       [:span {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")
+               :on-click #(swap! expanded not)}
+        title]
+       [Collapse {:is-open @expanded}
+        (map-indexed #(with-meta %2 {:key %1}) children)]])))
+
 (defn app-controls []
   [:div#sidebar
-   [transect-toggle]])
+   [transect-toggle]
+   [layer-group "Habitat"
+    [layer-card "one"]
+    [layer-card "four"]]])
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
