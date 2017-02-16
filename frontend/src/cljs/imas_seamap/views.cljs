@@ -94,6 +94,8 @@
 (defn percentage-to-x-pos [{:keys [percentage origin graph-domain]}]
   (+ (origin 0) (* (/ percentage 100) graph-domain)))
 
+(defn habitat-at-percentage [{:keys [habitat percentage]}]
+  (peek (filterv #(<= (nth % 0) percentage ) habitat)))
 
 (defn formatted-graph-line [{:keys [bathymetry origin buffer graph-domain graph-range offset min-depth max-depth spread] :as props}]
   (let [[first-depth & remaining] bathymetry
@@ -146,10 +148,10 @@
     (/ dist-from-y-axis graph-domain)))
 
 
-(defn mouse-move-graph [{:keys [bathymetry event mouse-loc tool-tip origin graph-domain] :as props}]
+(defn mouse-move-graph [{:keys [bathymetry event tooltip tooltip-width origin graph-domain graph-range buffer offset] :as props}]
   (let [pagex (gobj/get event "pageX")
         pagey (gobj/get event "pageY")
-        percentage (* 100 (mouse-pos-to-percentage (merge props {:pagex pagex})))
+        percentage (min (max (* 100 (mouse-pos-to-percentage (merge props {:pagex pagex}))) 0) 100)
         previous (peek (filterv #(<= (nth % 0) percentage) bathymetry))
         next ((filterv #(>= (nth % 0) percentage) bathymetry) 0)
         next-is-closest (< (- (nth next 0) percentage) (- percentage (nth previous 0)))
@@ -157,22 +159,28 @@
         pointx (percentage-to-x-pos (merge props {:percentage (nth closest 0)}))
         pointy (depth-to-y-pos (merge props {:depth (nth closest 1)}))
         tt-offset-x 10
-        tt-offset-y 10]
-    (swap! mouse-loc merge {:cx pointx
-                            :cy    pointy
-                            :style {:visibility "visible"}})
-    (swap! tool-tip merge {:x (+ pointx tt-offset-x)
-                           :style {:visibility "visible"
-                                   :opacity 0.7}})))
+        tt-offset-y 10
+        zone (habitat-at-percentage (merge props {:percentage (nth closest 0)}))]
+
+    (js/console.log percentage)
+    (swap! tooltip merge {:tooltip {:style {:visibility "visible"}}
+                          :textbox {:transform (str "translate("
+                                                    (+ (origin 0) (* (/ (nth closest 0) 100) (- graph-domain tooltip-width)))
+                                                    ", " (+ 10 (+ (nth buffer 1) (* graph-range (- 1 offset)))) ")")}
+                          :line    {:x1 pointx
+                                    :y1 (nth buffer 1)
+                                    :x2 pointx
+                                    :y2 (+ (nth buffer 1) graph-range)}
+                          :text    [(str "Depth: " (.toFixed (nth closest 1) 4)) (str "Habitat: " (nth zone 2))]
+                          :datapoint {:cx pointx
+                                      :cy pointy}})))
 
 
-(defn mouse-leave-graph [{:keys [mouse-loc tool-tip] :as props}]
-  (swap! mouse-loc merge {:style {:visibility "hidden"}})
-  (swap! tool-tip merge {:style {:visibility "hidden"}}))
+(defn mouse-leave-graph [{:keys [tooltip] :as props}]
+  (swap! tooltip merge {:tooltip {:style {:visibility "hidden"}}}))
 
 
 (defn draw-graph [{:keys [bathymetry habitat width height zone-color-mapping origin buffer offset]
-                   :or {width 500}
                    :as props}]
   (let [graph-range (- height (+ (buffer 1) (origin 1)))
         graph-domain (- width (+ (buffer 0) (origin 0)))
@@ -186,7 +194,14 @@
                                                               :spread       spread}))
         clip-path-string (str graph-line-string "L " (- width (buffer 0)) " " (+ graph-range (buffer 1)) "L " (origin 0) " " (+ (buffer 1) graph-range) " Z")
         mouse-loc (reagent/atom {:cx 0 :cy 0 :style {:visibility "hidden"}})
-        tool-tip (reagent/atom {})]
+        tooltip (reagent/atom {:tooltip {:style {:visibility "hidden"}}
+                               :datapoint {:cx 0 :cy 0 :r 5}
+                               :line {:x1 0 :y1 0 :x2 20 :y2 20}
+                               :textbox {:transform "translate(0, 0)"}
+                               :text ["Depth: " "Habitat: "]})
+        line-height 20
+        char-width 5
+        tooltip-width (* 30 char-width)]
     (fn []
       [:div#transect-plot
        [:svg {:width  width
@@ -203,7 +218,7 @@
                            :style  {:opacity 0.1}}]
 
         ;draw habitat zones
-        [:g
+        [:g#habitat-zones {:style {:opacity 0.5}}
          (for [zone habitat]
            [:rect {:key    zone
                    :x      (+ (origin 0) (* (/ (nth zone 0) 100) graph-domain))
@@ -225,7 +240,7 @@
         [draw-axes props]
 
         ;label axes
-        [label-axes (merge props {:line-height   10
+        [label-axes (merge props {:line-height   line-height
                                   :x-axis-offset 10
                                   :y-axis-offset 10
                                   :x-steps       10
@@ -236,37 +251,49 @@
                                   :graph-range   graph-range
                                   :spread        spread})]
 
-        [:circle#data-point (merge {:cx    0
-                                    :cy    0
-                                    :r     5
-                                    :fill  "red"
-                                    :style {:visibility "hidden"}}
-                                   @mouse-loc)]
+        [:g#tooltip (merge {:style {:visibility "hidden"}} (:tooltip @tooltip))
 
-        [:rect#tool-tip (merge {:x      0
-                                :y      (+ (nth buffer 1) (/ graph-range 2))
-                                :width  100
-                                :height 50
-                                :fill   "white"
-                                :style  {:visibility "hidden"}}
-                               @tool-tip)]
+         [:line (merge {:x1    0
+                        :y1    0
+                        :x2    0
+                        :y2    0
+                        :style {:stroke       "white"
+                                :stroke-width 2}}
+                       (:line @tooltip))]
+         [:circle (merge {:cx   0
+                          :cy   0
+                          :r    5
+                          :fill "red"}
+                         (:datapoint @tooltip))]
+         [:g#textbox (merge {:transform "translate(0, 0)"} (:textbox @tooltip))
+          [:rect {:x      0
+                  :y      0
+                  :width  tooltip-width
+                  :height (* 2.5 line-height)
 
-        [:rect {:x              (origin 0)
-                :y              (buffer 1)
-                :width          graph-domain
-                :height         graph-range
+                  :style  {:opacity 0.8
+                           :fill    "white"}}]
+          [:text
+           (doall (for [s (:text @tooltip)]
+                    [:tspan {:key s
+                             :x   10
+                             :y   (* line-height (+ 1 (.indexOf (:text @tooltip) s)))}
+                     s]))]]]
+
+        [:rect {:x              (- (origin 0) 20)
+                :y              0
+                :width          (+ 40 graph-domain)
+                :height         (+ 40 graph-range)
                 :style          {:opacity 0}
-                :on-mouse-move  #(mouse-move-graph (merge props {:mouse-loc    mouse-loc
-                                                                 :tool-tip     tool-tip
-                                                                 :event        %
-                                                                 :max-depth    max-depth
-                                                                 :min-depth    min-depth
-                                                                 :graph-domain graph-domain
-                                                                 :graph-range  graph-range
-                                                                 :spread       spread}))
-                :on-mouse-leave #(mouse-leave-graph {:mouse-loc mouse-loc
-                                                     :tool-tip tool-tip})}]
-        ]]))
+                :on-mouse-move  #(mouse-move-graph (merge props {:tooltip       tooltip
+                                                                 :tooltip-width tooltip-width
+                                                                 :event         %
+                                                                 :max-depth     max-depth
+                                                                 :min-depth     min-depth
+                                                                 :graph-domain  graph-domain
+                                                                 :graph-range   graph-range
+                                                                 :spread        spread}))
+                :on-mouse-leave #(mouse-leave-graph {:tooltip tooltip})}]]]))
   )
 
 (defn transect-plot []
@@ -278,5 +305,5 @@
                 :zone-color-mapping zone-color-mapping
                 :origin             [100 100]
                 :buffer             [20 20]
-                :offset             0.3}]])
+                :offset             0.4}]])
 
