@@ -9,12 +9,14 @@
 (def Button (reagent/adapt-react-class js/Blueprint.Button))
 
 (defn transect-toggle []
-  (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])]
-    (if drawing?
-      [:button {:on-click #(re-frame/dispatch [:transect.draw/disable])}
-       "Cancel Transect"]
-      [:button {:on-click #(re-frame/dispatch [:transect.draw/enable])}
-       "Draw Transect"])))
+  (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])
+        [dispatch-key label] (if drawing?
+                               [:transect.draw/disable "Cancel Transect"]
+                               [:transect.draw/enable  "Draw Transect"])]
+    [Button {:icon-name "edit"
+             :class-name "pt-fill"
+             :on-click #(re-frame/dispatch [dispatch-key])
+             :text label}]))
 
 (defn app-controls []
   [:div#sidebar
