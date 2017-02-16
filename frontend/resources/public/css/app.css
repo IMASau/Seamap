@@ -11,6 +11,7 @@ body { margin: 0; }
 }
 #sidebar {
     flex: 0 0 200px;
+    padding: 5px;
 }
 #content-wrapper {
     flex: 1 1 100%;
@@ -43,6 +44,9 @@ footer {
     height: 10px;
 }
 
+.layer-wrapper {
+    margin-bottom: 5px;
+}
 
 /* Map customisation */
 /* Don't display the edit toolbar: */

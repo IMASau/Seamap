@@ -7,17 +7,40 @@
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
+(def Button (reagent/adapt-react-class js/Blueprint.Button))
+(def Collapse (reagent/adapt-react-class js/Blueprint.Collapse))
+
 (defn transect-toggle []
-  (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])]
-    (if drawing?
-      [:button {:on-click #(re-frame/dispatch [:transect.draw/disable])}
-       "Cancel Transect"]
-      [:button {:on-click #(re-frame/dispatch [:transect.draw/enable])}
-       "Draw Transect"])))
+  (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])
+        [dispatch-key label] (if drawing?
+                               [:transect.draw/disable "Cancel Transect"]
+                               [:transect.draw/enable  "Draw Transect"])]
+    [Button {:icon-name "edit"
+             :class-name "pt-fill"
+             :on-click #(re-frame/dispatch [dispatch-key])
+             :text label}]))
+
+(defn layer-card [idx]
+  [:div.layer-wrapper
+   [:div.pt-card.pt-elevation-1
+    "Roar" idx]])
+
+(defn layer-group [{:keys [title expanded] :or {expanded false}} & children]
+  (let [expanded-state (reagent/atom expanded)]
+    (fn [props & children]
+      [:div.layer-group
+       [:span {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
+               :on-click #(swap! expanded-state not)}
+        (str title " (" (count children) ")")]
+       [Collapse {:is-open @expanded-state}
+        (map-indexed #(with-meta %2 {:key %1}) children)]])))
 
 (defn app-controls []
   [:div#sidebar
-   [transect-toggle]])
+   [transect-toggle]
+   [layer-group {:title "Habitat"}
+    [layer-card "one"]
+    [layer-card "four"]]])
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
