@@ -1,8 +1,10 @@
 from django.conf.urls import include, url
 from django.contrib import admin
+from rest_framework.routers import DefaultRouter
+
 from catalogue.viewsets import LayerViewset
 from habitat.viewsets import HabitatViewSet
-from rest_framework.routers import DefaultRouter
+
 
 router = DefaultRouter()
 router.register(r'layers', LayerViewset)
