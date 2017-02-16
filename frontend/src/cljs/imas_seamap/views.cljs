@@ -29,8 +29,8 @@
   (let [expanded-state (reagent/atom expanded)]
     (fn [props & children]
       [:div.layer-group
-       [:span {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
-               :on-click #(swap! expanded-state not)}
+       [:h1 {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
+             :on-click #(swap! expanded-state not)}
         (str title " (" (count children) ")")]
        [Collapse {:is-open @expanded-state}
         (map-indexed #(with-meta %2 {:key %1}) children)]])))
