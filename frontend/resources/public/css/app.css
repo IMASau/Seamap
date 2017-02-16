@@ -44,6 +44,9 @@ footer {
     height: 10px;
 }
 
+.layer-wrapper {
+    margin-bottom: 5px;
+}
 
 /* Map customisation */
 /* Don't display the edit toolbar: */
