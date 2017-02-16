@@ -12,7 +12,7 @@ router.register(r'layers', LayerViewset)
 router.register(r'habitat', HabitatViewSet, 'Habitat')
 
 urlpatterns = [
-    url(r'^', include(router.urls)),
+    url(r'^api/', include(router.urls)),
 ]
 
 if settings.DEBUG:

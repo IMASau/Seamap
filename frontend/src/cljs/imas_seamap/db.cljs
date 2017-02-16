@@ -8,4 +8,4 @@
          :markers [{:pos [51.505 -0.09] :title "One"}
                    {:pos [51.507 -0.10] :title "Two"}]}
    :transect nil
-   :config {:catalogue-url "http://localhost:8000/layers/"}})
+   :config {:catalogue-url "http://localhost:8000/api/layers/"}})
