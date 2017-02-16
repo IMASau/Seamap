@@ -44,6 +44,10 @@ footer {
     height: 10px;
 }
 
+.draw-transect {
+    margin-bottom: 5px;
+}
+
 .layer-wrapper {
     margin-bottom: 5px;
 }

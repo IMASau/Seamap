@@ -16,7 +16,7 @@
                                [:transect.draw/disable "Cancel Transect"]
                                [:transect.draw/enable  "Draw Transect"])]
     [Button {:icon-name "edit"
-             :class-name "pt-fill"
+             :class-name "pt-fill draw-transect"
              :on-click #(re-frame/dispatch [dispatch-key])
              :text label}]))
 
