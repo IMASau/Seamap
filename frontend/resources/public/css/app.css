@@ -11,6 +11,7 @@ body { margin: 0; }
 }
 #sidebar {
     flex: 0 0 200px;
+    padding: 5px;
 }
 #content-wrapper {
     flex: 1 1 100%;
