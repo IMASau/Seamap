@@ -24,20 +24,20 @@
    [:div.pt-card.pt-elevation-1
     "Roar" idx]])
 
-(defn layer-group [title & children]
-  (let [expanded (reagent/atom false)]
-    (fn [title & children]
+(defn layer-group [{:keys [title expanded] :or {expanded false}} & children]
+  (let [expanded-state (reagent/atom expanded)]
+    (fn [props & children]
       [:div.layer-group
-       [:span {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")
-               :on-click #(swap! expanded not)}
-        title]
-       [Collapse {:is-open @expanded}
+       [:span {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
+               :on-click #(swap! expanded-state not)}
+        (str title " (" (count children) ")")]
+       [Collapse {:is-open @expanded-state}
         (map-indexed #(with-meta %2 {:key %1}) children)]])))
 
 (defn app-controls []
   [:div#sidebar
    [transect-toggle]
-   [layer-group "Habitat"
+   [layer-group {:title "Habitat"}
     [layer-card "one"]
     [layer-card "four"]]])
 
