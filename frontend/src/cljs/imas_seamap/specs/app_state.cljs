@@ -9,19 +9,11 @@
 
 (s/def :map/layer-idx (s/and integer? (comp not neg?)))
 
-(s/def :map-marker/title string?)
-
-(s/def :map/marker-type
-  (s/keys :req-un [:map/pos :map-marker/title]))
-
-(s/def :map/markers
-  (s/coll-of :map/marker-type))
-
 (s/def :map.controls/transect boolean?)
 (s/def :map/controls (s/keys :req-un [:map.controls/transect]))
 
 (s/def ::map
-  (s/keys :req-un [:map/pos :map/zoom :map/layer-idx :map/markers :map/controls]))
+  (s/keys :req-un [:map/pos :map/zoom :map/layer-idx :map/controls]))
 
 (s/def :geojson/type string?)
 (s/def :geojson/geometry map?)

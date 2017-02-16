@@ -13,7 +13,7 @@
 (def edit-control  (r/adapt-react-class js/ReactLeaflet.EditControl))
 
 (defn map-component []
-  (let [{:keys [pos zoom markers controls layer-idx]} @(re-frame/subscribe [:map/props])
+  (let [{:keys [pos zoom controls layer-idx]} @(re-frame/subscribe [:map/props])
         {:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
         wl [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
                        :layers "nasa:bluemarble"
@@ -35,11 +35,4 @@
                        :on-mounted (fn [e]
                                      (.. e -_toolbars -draw -_modes -polyline -handler enable)
                                      (.. e -_map  (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
-                       :on-created #(re-frame/dispatch [:transect/query (-> % .-layer .toGeoJSON (js->clj :keywordize-keys true))])}]])
-     (for [{:keys [pos title]} markers]
-       ^{:key (str pos)}
-       [marker {:position pos}
-        [popup {:position pos}
-         [:div.classname
-          [:b title]
-          [:p "Testing testing, " [:i "one two three..."]]]]])]))
+                       :on-created #(re-frame/dispatch [:transect/query (-> % .-layer .toGeoJSON (js->clj :keywordize-keys true))])}]])]))
