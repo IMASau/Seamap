@@ -13,7 +13,7 @@
 (def edit-control  (r/adapt-react-class js/ReactLeaflet.EditControl))
 
 (defn map-component []
-  (let [{:keys [pos zoom controls layer-idx]} @(re-frame/subscribe [:map/props])
+  (let [{:keys [pos zoom controls]} @(re-frame/subscribe [:map/props])
         {:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
         wl [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
                        :layers "nasa:bluemarble"
@@ -22,7 +22,7 @@
                         :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
     [leaflet-map {:id "map" :center pos :zoom zoom}
      ;; Just hacking around, to test swapping layers in and out:
-     (if (odd? layer-idx) wl tl)
+     tl
      (when query
        [geojson-layer {:data (clj->js query)}])
      (when drawing?
