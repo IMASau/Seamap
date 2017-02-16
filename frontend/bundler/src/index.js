@@ -8,6 +8,8 @@ import CSSTransitionGroup from 'react-addons-css-transition-group';
 import * as ReactLeaflet from 'react-leaflet';
 import EditControl from './EditControl';
 
+import * as Blueprint from '@blueprintjs/core';
+
 window.L = L;
 
 React.addons = React.addons || {};
@@ -18,3 +20,5 @@ window.ReactDOM = ReactDOM;
 
 ReactLeaflet.EditControl = EditControl;
 window.ReactLeaflet = ReactLeaflet;
+
+window.Blueprint = Blueprint;
