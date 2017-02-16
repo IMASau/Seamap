@@ -1,8 +1,8 @@
 (ns imas-seamap.db)
 
 (def default-db
-  {:map {:pos [51.505 -0.09]
-         :zoom 3
+  {:map {:pos [-23.116667 132.133333]
+         :zoom 4
          :controls {:transect false}}
    :transect nil
    :config {:catalogue-url "http://localhost:8000/api/layers/"}})
