@@ -6,6 +6,8 @@
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
+(def Button (reagent/adapt-react-class js/Blueprint.Button))
+
 (defn transect-toggle []
   (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])]
     (if drawing?
