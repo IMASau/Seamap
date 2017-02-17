@@ -17,31 +17,36 @@
                                [:transect.draw/disable "Cancel Transect"]
                                [:transect.draw/enable  "Draw Transect"])]
     [Button {:icon-name "edit"
-             :class-name "pt-fill"
+             :class-name "pt-fill draw-transect"
              :on-click #(re-frame/dispatch [dispatch-key])
              :text label}]))
 
-(defn layer-card [idx]
+(defn layer-card [{:keys [name] :as layer-spec}]
   [:div.layer-wrapper
    [:div.pt-card.pt-elevation-1
-    "Roar" idx]])
+    {:on-click #(re-frame/dispatch [:map/toggle-layer layer-spec])}
+    [:span name]]])
 
-(defn layer-group [{:keys [title expanded] :or {expanded false}} & children]
+(defn layer-group [{:keys [title expanded] :or {expanded false}} layers]
   (let [expanded-state (reagent/atom expanded)]
-    (fn [props & children]
+    (fn [props layers]
       [:div.layer-group
-       [:span {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
-               :on-click #(swap! expanded-state not)}
-        (str title " (" (count children) ")")]
+       [:h1 {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
+             :on-click #(swap! expanded-state not)}
+        (str title " (" (count layers) ")")]
        [Collapse {:is-open @expanded-state}
-        (map-indexed #(with-meta %2 {:key %1}) children)]])))
+        (for [layer layers]
+          ^{:key (:layer_name layer)}
+          [layer-card layer])]])))
 
 (defn app-controls []
-  [:div#sidebar
-   [transect-toggle]
-   [layer-group {:title "Habitat"}
-    [layer-card "one"]
-    [layer-card "four"]]])
+  (let [{:keys [habitat bathymetry imagery third-party] :as groups} @(re-frame/subscribe [:map/layers])]
+    [:div#sidebar
+     [transect-toggle]
+     [layer-group {:title "Habitat"    :expanded true } habitat]
+     [layer-group {:title "Bathymetry" :expanded true } bathymetry]
+     [layer-group {:title "Imagery"    :expanded false} imagery]
+     [layer-group {:title "Other"      :expanded false} third-party]]))
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}

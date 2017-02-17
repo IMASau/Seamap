@@ -44,6 +44,10 @@ footer {
     height: 10px;
 }
 
+.draw-transect {
+    margin-bottom: 5px;
+}
+
 .layer-wrapper {
     margin-bottom: 5px;
 }
@@ -51,3 +55,9 @@ footer {
 /* Map customisation */
 /* Don't display the edit toolbar: */
 .leaflet-draw.leaflet-control > .leaflet-draw-section:nth-child(2) { display: none !important; }
+.layer-group > h1 {
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+

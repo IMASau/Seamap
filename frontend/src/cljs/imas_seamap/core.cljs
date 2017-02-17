@@ -5,6 +5,7 @@
             [re-frisk.core :refer [enable-re-frisk!]]
             [imas-seamap.events :as events]
             [imas-seamap.map.events :as mevents]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.subs :as subs]
             [imas-seamap.views :as views]
             [imas-seamap.config :as config]))
@@ -13,6 +14,7 @@
 (def config
   {:subs
    {:map/props                            subs/map-props
+    :map/layers                           msubs/map-layers
     :transect/info                        subs/transect-info}
 
    :events
@@ -25,6 +27,7 @@
     :transect.draw/enable                 events/transect-drawing-start
     :transect.draw/disable                events/transect-drawing-finish
     :transect.draw/clear                  events/not-yet-implemented
+    :map/toggle-layer                     mevents/toggle-layer
     :map/update-layers                    mevents/update-layers}})
 
 (def standard-interceptors
@@ -55,4 +58,8 @@
   (re-frame/dispatch-sync [:initialise-db])
   (re-frame/dispatch [:initialise-layers])
   (dev-setup)
+  (mount-root))
+
+(defn figwheel-reload []
+  (register-handlers! config)
   (mount-root))

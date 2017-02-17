@@ -10,8 +10,38 @@
 (s/def :map.controls/transect boolean?)
 (s/def :map/controls (s/keys :req-un [:map.controls/transect]))
 
+(s/def :map.layer/name string?)
+(s/def :map.layer/server_url string?)
+(s/def :map.layer/layer_name string?)
+(s/def :map.layer/category keyword?)
+(s/def :map.layer/bounding_box string?) ; TODO
+(s/def :map.layer/metadata_url string?)
+(s/def :map.layer/description string?)
+(s/def :map.layer/zoom_info string?)    ; TODO
+(s/def :map.layer/server_type keyword?)
+(s/def :map.layer/legend_url string?)
+(s/def :map.layer/date_start string?)   ; TODO
+(s/def :map.layer/date_end string?)     ; TODO
+(s/def :map/layer
+  (s/keys :req-un [:map.layer/name
+                   :map.layer/server_url
+                   :map.layer/layer_name
+                   :map.layer/category
+                   :map.layer/bounding_box
+                   :map.layer/metadata_url
+                   :map.layer/description
+                   :map.layer/zoom_info
+                   :map.layer/server_type
+                   :map.layer/legend_url
+                   :map.layer/date_start
+                   :map.layer/date_end]))
+(s/def :map/layers (s/coll-of :map/layer))
+
+(s/def :map/active-layers (s/coll-of :map/layer
+                                     :kind set?))
+
 (s/def ::map
-  (s/keys :req-un [:map/pos :map/zoom :map/controls]))
+  (s/keys :req-un [:map/pos :map/zoom :map/controls :map/layers :map/active-layers]))
 
 (s/def :geojson/type string?)
 (s/def :geojson/geometry map?)

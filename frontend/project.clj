@@ -38,7 +38,7 @@
   {:builds
    [{:id           "dev"
      :source-paths ["src/cljs"]
-     :figwheel     {:on-jsload "imas-seamap.core/mount-root"}
+     :figwheel     {:on-jsload "imas-seamap.core/figwheel-reload"}
      :compiler     {:main                 imas-seamap.core
                     :output-to            "resources/public/js/compiled/app.js"
                     :output-dir           "resources/public/js/compiled/out"
