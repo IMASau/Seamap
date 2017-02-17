@@ -25,22 +25,24 @@
    [:div.pt-card.pt-elevation-1
     "Roar" idx]])
 
-(defn layer-group [{:keys [title expanded] :or {expanded false}} & children]
+(defn layer-group [{:keys [title expanded] :or {expanded false}} layers]
   (let [expanded-state (reagent/atom expanded)]
-    (fn [props & children]
+    (fn [props layers]
       [:div.layer-group
        [:h1 {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
              :on-click #(swap! expanded-state not)}
-        (str title " (" (count children) ")")]
+        (str title " (" (count layers) ")")]
        [Collapse {:is-open @expanded-state}
-        (map-indexed #(with-meta %2 {:key %1}) children)]])))
+        (map #(^{:key %} (layer-card %)) layers)]])))
 
 (defn app-controls []
-  [:div#sidebar
-   [transect-toggle]
-   [layer-group {:title "Habitat"}
-    [layer-card "one"]
-    [layer-card "four"]]])
+  (let [{:strs [habitat bathymetry imagery third-party] :as groups} @(re-frame/subscribe [:map/layers])]
+    [:div#sidebar
+     [transect-toggle]
+     [layer-group {:title "Habitat"    :expanded true } habitat]
+     [layer-group {:title "Bathymetry" :expanded true } bathymetry]
+     [layer-group {:title "Imagery"    :expanded false} imagery]
+     [layer-group {:title "Other"      :expanded false} third-party]]))
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
