@@ -20,10 +20,10 @@
              :on-click #(re-frame/dispatch [dispatch-key])
              :text label}]))
 
-(defn layer-card [idx]
+(defn layer-card [layer-spec]
   [:div.layer-wrapper
    [:div.pt-card.pt-elevation-1
-    "Roar" idx]])
+    "Roar" layer-spec]])
 
 (defn layer-group [{:keys [title expanded] :or {expanded false}} layers]
   (let [expanded-state (reagent/atom expanded)]
