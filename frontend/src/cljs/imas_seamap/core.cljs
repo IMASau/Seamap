@@ -5,6 +5,7 @@
             [re-frisk.core :refer [enable-re-frisk!]]
             [imas-seamap.events :as events]
             [imas-seamap.map.events :as mevents]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.subs :as subs]
             [imas-seamap.views :as views]
             [imas-seamap.config :as config]))
@@ -13,6 +14,7 @@
 (def config
   {:subs
    {:map/props                            subs/map-props
+    :map/layers                           msubs/map-layers
     :transect/info                        subs/transect-info}
 
    :events
