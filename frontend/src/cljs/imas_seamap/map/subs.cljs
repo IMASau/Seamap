@@ -5,4 +5,4 @@
 
 (defn map-layers [db _]
   (let [layer-list (get-in db [:map :layers])]
-    (group-by :type layer-list)))
+    (group-by :category layer-list)))
