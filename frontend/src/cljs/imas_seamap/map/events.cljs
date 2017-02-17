@@ -1,5 +1,6 @@
 (ns imas-seamap.map.events
-  (:require [re-frame.core :as re-frame]))
+  (:require [re-frame.core :as re-frame]
+            [debux.cs.core :refer [dbg]]))
 
 
 (def ^:private test-layer-data
