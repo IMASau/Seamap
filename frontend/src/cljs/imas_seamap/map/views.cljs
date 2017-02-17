@@ -18,6 +18,10 @@
         base-layer-bluemarble [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
                                           :layers "nasa:bluemarble"
                                           :attribution "Made by Condense / Images by NASA"}]
+        ;; NOTE: this would require  :crs js/L.CRS.EPSG4326 in the leaflet-map props to render properly:
+        base-layer-bathy [wms-layer {:url "http://geoserver-static.aodn.org.au/geoserver/baselayers/wms?"
+                                     :layers "baselayers:default_bathy"
+                                     :transparent true :format "image/png"}]
         base-layer-osm [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                                     :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
     [leaflet-map {:id "map" :center pos :zoom zoom}
