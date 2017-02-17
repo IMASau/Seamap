@@ -60,4 +60,6 @@
   (dev-setup)
   (mount-root))
 
-(defn figwheel-reload [] (register-handlers! config))
+(defn figwheel-reload []
+  (register-handlers! config)
+  (mount-root))
