@@ -23,6 +23,7 @@
 (defn layer-card [{:keys [name] :as layer-spec}]
   [:div.layer-wrapper
    [:div.pt-card.pt-elevation-1
+    {:on-click #(re-frame/dispatch [:map/toggle-layer layer-spec])}
     [:span name]]])
 
 (defn layer-group [{:keys [title expanded] :or {expanded false}} layers]
