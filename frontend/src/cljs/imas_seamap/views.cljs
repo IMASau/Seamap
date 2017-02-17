@@ -33,10 +33,12 @@
              :on-click #(swap! expanded-state not)}
         (str title " (" (count layers) ")")]
        [Collapse {:is-open @expanded-state}
-        (map #(^{:key %} (layer-card %)) layers)]])))
+        (for [layer layers]
+          ^{:key (:layer_name layer)}
+          [layer-card layer])]])))
 
 (defn app-controls []
-  (let [{:strs [habitat bathymetry imagery third-party] :as groups} @(re-frame/subscribe [:map/layers])]
+  (let [{:keys [habitat bathymetry imagery third-party] :as groups} @(re-frame/subscribe [:map/layers])]
     [:div#sidebar
      [transect-toggle]
      [layer-group {:title "Habitat"    :expanded true } habitat]
