@@ -37,8 +37,11 @@
                    :map.layer/date_end]))
 (s/def :map/layers (s/coll-of :map/layer))
 
+(s/def :map/active-layers (s/coll-of :map/layer
+                                     :kind set?))
+
 (s/def ::map
-  (s/keys :req-un [:map/pos :map/zoom :map/controls :map/layers]))
+  (s/keys :req-un [:map/pos :map/zoom :map/controls :map/layers :map/active-layers]))
 
 (s/def :geojson/type string?)
 (s/def :geojson/geometry map?)
