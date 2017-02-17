@@ -59,3 +59,5 @@
   (re-frame/dispatch [:initialise-layers])
   (dev-setup)
   (mount-root))
+
+(defn figwheel-reload [] (register-handlers! config))
