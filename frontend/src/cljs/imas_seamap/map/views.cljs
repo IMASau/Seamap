@@ -15,13 +15,13 @@
 (defn map-component []
   (let [{:keys [pos zoom controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
-        wl [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
-                       :layers "nasa:bluemarble"
-                       :attribution "Made by Condense / Images by NASA"}]
-        tl [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-                        :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
+        base-layer-bluemarble [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
+                                          :layers "nasa:bluemarble"
+                                          :attribution "Made by Condense / Images by NASA"}]
+        base-layer-osm [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+                                    :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
     [leaflet-map {:id "map" :center pos :zoom zoom}
-     tl
+     base-layer-osm
      (for [{:keys [server_url layer_name] :as layer} active-layers]
        ^{:key (str server_url layer_name)}
        [wms-layer {:url server_url :layers layer_name
