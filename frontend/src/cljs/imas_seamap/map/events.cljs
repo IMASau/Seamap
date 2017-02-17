@@ -23,3 +23,9 @@
   (->> layers
        process-layers
        (assoc-in db [:map :layers])))
+
+(defn toggle-layer [db [_ layer]]
+  (update-in db [:map :active-layers]
+             #(if (% layer)
+                (disj % layer)
+                (conj % layer))))

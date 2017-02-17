@@ -27,6 +27,7 @@
     :transect.draw/enable                 events/transect-drawing-start
     :transect.draw/disable                events/transect-drawing-finish
     :transect.draw/clear                  events/not-yet-implemented
+    :map/toggle-layer                     mevents/toggle-layer
     :map/update-layers                    mevents/update-layers}})
 
 (def standard-interceptors
