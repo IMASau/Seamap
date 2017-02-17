@@ -11,6 +11,14 @@
    #_{:name "" :server_url "" :layer_name "" :category "imagery" :bounding_box "" :metadata_url "" :description "" :zoom_info "" :server_type "" :legend_url "" :date_start "" :date_end ""}
    #_{:name "" :server_url "" :layer_name "" :category "third-party" :bounding_box "" :metadata_url "" :description "" :zoom_info "" :server_type "" :legend_url "" :date_start "" :date_end ""}])
 
+(defn process-layers [layers]
+  (map #(-> %
+            ;; TODO: convert the dates, bounding box, too
+            (update :category keyword)
+            (update :server_type keyword))
+       layers))
 
 (defn update-layers [db [_ layers]]
-  (assoc-in db [:map :layers] layers))
+  (->> layers
+       process-layers
+       (assoc-in db [:map :layers])))
