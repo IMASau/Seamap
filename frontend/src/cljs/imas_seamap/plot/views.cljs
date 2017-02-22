@@ -45,13 +45,11 @@
 
 
 (defn min-depth [bathymetry]
-  ;; (apply min (map second bathymetry))
-  ;; (->> bathymetry (map second) (apply min))
-  (apply min (map (fn [[_ depth]] depth) bathymetry)))
+  (apply min (map second bathymetry))
 
 
 (defn max-depth [bathymetry]
-  (apply max (map (fn [[_ depth]] depth) bathymetry)))
+  (apply max (map second bathymetry)))
 
 
 (defn depth-to-y-pos [{:keys [depth graph-range offset min-depth spread margin] :as props}]
