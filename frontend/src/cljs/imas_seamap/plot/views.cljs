@@ -45,6 +45,8 @@
 
 
 (defn min-depth [bathymetry]
+  ;; (apply min (map second bathymetry))
+  ;; (->> bathymetry (map second) (apply min))
   (apply min (map (fn [[_ depth]] depth) bathymetry)))
 
 
