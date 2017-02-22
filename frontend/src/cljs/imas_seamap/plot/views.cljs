@@ -173,7 +173,7 @@
         percentage (min (max (* 100 (mouse-pos-to-percentage (merge props {:pagex pagex}))) 0) 100)
         [before after] (split-with #(< (first %) percentage) bathymetry)
         previous (if (seq before) (last before) (first after))
-        next (if (seq before) (first after) (second after))
+        next (if (seq after) (first after) (last before))
         next-is-closest (< (- (first next) percentage) (- percentage (first previous)))
         [closest-percentage closest-depth] (if next-is-closest next previous)
         pointx (percentage-to-x-pos (merge props {:percentage closest-percentage}))
