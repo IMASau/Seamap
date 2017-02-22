@@ -171,14 +171,14 @@
 (defn mouse-move-graph [{:keys [bathymetry event tooltip-content tooltip-width origin graph-domain graph-range margin offset on-mousemove] :as props}]
   (let [pagex (gobj/get event "pageX")
         percentage (min (max (* 100 (mouse-pos-to-percentage (merge props {:pagex pagex}))) 0) 100)
-        [before after] (split-with #(< (nth % 0) percentage) bathymetry)
-        previous (if (seq before) (last before) (nth after 0))
-        next (if (seq before) (nth after 0) (nth after 1))
-        next-is-closest (< (- (nth next 0) percentage) (- percentage (nth previous 0)))
+        [before after] (split-with #(< (first %) percentage) bathymetry)
+        previous (if (seq before) (last before) (first after))
+        next (if (seq before) (first after) (second after))
+        next-is-closest (< (- (first next) percentage) (- percentage (first previous)))
         [closest-percentage closest-depth] (if next-is-closest next previous)
         pointx (percentage-to-x-pos (merge props {:percentage closest-percentage}))
         pointy (depth-to-y-pos (merge props {:depth closest-depth}))
-        zone (nth (habitat-at-percentage (merge props {:percentage closest-percentage})) 2)
+        [_ _ zone] (habitat-at-percentage (merge props {:percentage closest-percentage}))
         [mx my] margin
         [ox oy] origin]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
