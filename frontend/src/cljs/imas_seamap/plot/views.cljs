@@ -39,8 +39,8 @@
         b (list* 0 100 a)
         c (sort b)
         d (distinct c)
-        habitat (for [i (take (- (count d) 1) (range))]
-                  (list (nth d i) (nth d (+ 1 i)) (name (nth (keys zone-color-mapping) (rand-int (count zone-color-mapping))))))]
+        habitat (for [[x1 x2] (map vector d (rest d))]
+                  [x1 x2 (-> habitat-zone-colours keys rand-nth name)])]
     habitat))
 
 
