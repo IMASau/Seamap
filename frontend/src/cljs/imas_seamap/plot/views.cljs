@@ -9,7 +9,7 @@
 
 
 (defn generate-bathymetry []
-  (let [a (iterate #(+ 1 %) 0)
+  (let [a (iterate inc 0)
         b (repeatedly 101 #(+ (rand 50) (rand 50)))
         c (map list a b)
         bathymetry (into [] c)]
