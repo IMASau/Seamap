@@ -243,7 +243,7 @@
                            :y      0
                            :width  width
                            :height height
-                           :style  {:fill "lightblue" :opacity 0.2}}]
+                           :style  {:opacity 0.2}}]
 
         ;draw habitat zones
         [:g#habitat-zones {:style {:opacity 0.5}}
