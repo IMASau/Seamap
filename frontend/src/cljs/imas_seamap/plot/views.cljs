@@ -1,4 +1,4 @@
-(ns imas-seamap.views
+(ns imas-seamap.plot.views
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [goog.object :as gobj]
