@@ -1,4 +1,7 @@
-body { margin: 0; }
+body {
+    margin: 0;
+    overflow: hidden;
+}
 #app {
     position: absolute;
     width: 100%;
@@ -17,6 +20,7 @@ body { margin: 0; }
     flex: 1 1 100%;
     display: flex;
     flex-direction: column;
+    width: 0; /* Makes it ignore child width, in particular won't be stretched by svg */
 }
 #map {
     flex: 1 1 100%;
