@@ -53,19 +53,20 @@
 
 
 (defn depth-to-y-pos [{:keys [depth graph-range offset min-depth spread margin] :as props}]
-  (+ (* graph-range (- 1 offset) (/ (- depth min-depth) spread)) (margin 1)))
+  (let [[m-left m-right m-top m-bottom] margin]
+    (+ (* graph-range (- 1 offset) (/ (- depth min-depth) spread)) m-top)))
 
 
 (defn percentage-to-x-pos [{:keys [percentage origin graph-domain margin]}]
-  (let [[mx my] margin
+  (let [[m-left m-right m-top m-bottom] margin
         [ox oy] origin]
-    (+ mx ox (* (/ percentage 100) graph-domain))))
+    (+ m-left ox (* (/ percentage 100) graph-domain))))
 
 
 (defn habitat-at-percentage [{:keys [habitat percentage]}]
   (peek (filterv (fn [[p]] (<= p percentage)) habitat)))
 
-(defn formatted-graph-line [{:keys [bathymetry origin margin graph-domain graph-range offset min-depth max-depth spread] :as props}]
+(defn formatted-graph-line [{:keys [bathymetry origin graph-domain graph-range offset min-depth max-depth spread] :as props}]
   (let [[[first-percentage first-depth] & remaining] bathymetry
         start-string (str "M " (percentage-to-x-pos (merge props {:percentage first-percentage})) " " (depth-to-y-pos (merge props {:depth first-depth})) " ")
         middle-string (clojure.string/join (for [[percentage depth] remaining]
@@ -74,14 +75,14 @@
 
 
 (defn axes [{:keys [width height origin margin]}]
-  (let [[mx my] margin
+  (let [[m-left m-right m-top m-bottom] margin
         [ox oy] origin]
     [:g {:fill         "none"
          :stroke       "black"
          :stroke-width "3"}
-     [:polyline {:points (str (+ mx ox) "," my " "
-                              (+ mx ox) "," (- height (+ my oy)) " "
-                              (- width mx) "," (- height (+ my oy)))}]]))
+     [:polyline {:points (str (+ m-left ox) "," m-top " "
+                              (+ m-left ox) "," (- height (+ m-bottom oy)) " "
+                              (- width m-right) "," (- height (+ m-bottom oy)))}]]))
 
 
 (defn axis-labels [{:keys [x-axis-offset y-axis-offset line-height font-size offset
@@ -90,7 +91,7 @@
         delta (- origin-depth min-depth)
         x-steps (int (/ graph-domain 50))
         y-steps (int (/ graph-range 30))
-        [mx my] margin
+        [m-left m-right m-top m-bottom] margin
         [ox oy] origin]
     [:g {:style {:line-height line-height
                  :font-size   font-size}}
@@ -98,23 +99,23 @@
      [:g {:style {:text-anchor "middle"}}
       (for [i (take (+ 1 x-steps) (range))]
         [:text {:key (hash (str "percentageLabel" i))
-                :x   (+ (* (/ i x-steps) graph-domain) ox mx)
-                :y   (+ my font-size x-axis-offset graph-range)}
+                :x   (+ (* (/ i x-steps) graph-domain) ox m-left)
+                :y   (+ m-top font-size x-axis-offset graph-range)}
          (str (int (* (/ i x-steps) 100)))])
-      [:text {:x     (+ mx ox (/ graph-domain 2))
-              :y     (+ line-height font-size x-axis-offset my graph-range)
+      [:text {:x     (+ m-left ox (/ graph-domain 2))
+              :y     (+ line-height font-size x-axis-offset m-top graph-range)
               :style {:font-weight "bold"}}
        "Percentage Along Transect (%)"]]
      ;y-axis labels
      [:g {:style {:text-anchor "end"}}
       (for [i (take (+ 1 y-steps) (range))]
         [:text {:key (hash (str "depthLabel" i))
-                :x   (- (+ mx ox) y-axis-offset)
-                :y   (+ my (/ font-size 2) (* (/ i y-steps) graph-range))}
+                :x   (- (+ m-left ox) y-axis-offset)
+                :y   (+ m-top (/ font-size 2) (* (/ i y-steps) graph-range))}
          (str (int (+ min-depth (* (/ i y-steps) delta))))])
-      [:text {:x         (- (+ mx ox) (+ line-height font-size y-axis-offset))
-              :y         (+ my (/ graph-range 2))
-              :transform (str "rotate(-90, " (- (+ my ox) (+ line-height font-size y-axis-offset)) ", " (+ my (/ graph-range 2)) ")")
+      [:text {:x         (- (+ m-left ox) (+ line-height font-size y-axis-offset))
+              :y         (+ m-top (/ graph-range 2))
+              :transform (str "rotate(-90, " (- (+ m-left ox) (+ line-height font-size y-axis-offset)) ", " (+ m-top (/ graph-range 2)) ")")
               :style     {:text-anchor "middle"
                           :font-weight "bold"}}
        "Depth (m)"]]]))
@@ -160,9 +161,9 @@
   (let [indent-from-client (gobj/get (.getBoundingClientRect (dom/getRequiredElement "transect-plot")) "left")
         horizontal-scroll (gobj/get (dom/getDocumentScroll) "x")
         indent-from-page (+ indent-from-client horizontal-scroll)
-        [mx my] margin
+        [m-left _ _ _] margin
         [ox oy] origin
-        dist-from-y-axis (- pagex (+ indent-from-page ox mx))]
+        dist-from-y-axis (- pagex (+ indent-from-page ox m-left))]
     (/ dist-from-y-axis graph-domain)))
 
 
@@ -177,16 +178,16 @@
         pointx (percentage-to-x-pos (merge props {:percentage closest-percentage}))
         pointy (depth-to-y-pos (merge props {:depth closest-depth}))
         [_ _ zone] (habitat-at-percentage (merge props {:percentage closest-percentage}))
-        [mx my] margin
+        [m-left m-right m-top m-bottom] margin
         [ox oy] origin]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
                                   :textbox   {:transform (str "translate("
-                                                              (+ mx ox (* (/ closest-percentage 100) (- graph-domain tooltip-width)))
-                                                              ", " (+ 10 (+ my (* graph-range (- 1 offset)))) ")")}
+                                                              (+ m-left ox (* (/ closest-percentage 100) (- graph-domain tooltip-width)))
+                                                              ", " (+ 10 (+ m-top (* graph-range (- 1 offset)))) ")")}
                                   :line      {:x1 pointx
-                                              :y1 my
+                                              :y1 m-top
                                               :x2 pointx
-                                              :y2 (+ my graph-range)}
+                                              :y2 (+ m-top graph-range)}
                                   :text      [(str "Depth: " (.toFixed closest-depth 4)) (str "Habitat: " zone)]
                                   :datapoint {:cx pointx
                                               :cy pointy}})
@@ -202,7 +203,8 @@
 (defn graph [{:keys [bathymetry habitat width height zone-color-mapping margin font-size-tooltip font-size-axes]
                    :as   props
                    :or   {font-size-tooltip 16
-                          font-size-axes    16}}]
+                          font-size-axes    16
+                          margin [5 15 15 5]}}]
   (let [tooltip-content (reagent/atom {:tooltip   {:style {:visibility "hidden"}}
                                        :datapoint {:cx 0 :cy 0 :r 5}
                                        :line      {:x1 0 :y1 0 :x2 20 :y2 20}
@@ -213,9 +215,9 @@
         tooltip-width 200
         origin [(* 3 line-height-axes) (* 3 line-height-axes)]
         [ox oy] origin
-        [mx my] margin
-        graph-range (- height (+ (* 2 my) oy))
-        graph-domain (- width (+ (* 2 mx) ox))
+        [m-left m-right m-top m-bottom] margin
+        graph-range (- height (+ m-top m-bottom oy))
+        graph-domain (- width (+ m-left m-right ox))
         max-depth (max-depth bathymetry)
         min-depth (min-depth bathymetry)
         spread (- max-depth min-depth)
@@ -226,8 +228,9 @@
                                                               :max-depth    max-depth
                                                               :spread       spread
                                                               :origin       origin
-                                                              :offset       graph-line-offset}))
-        clip-path-string (str graph-line-string "L " (- width mx) " " (+ graph-range my) "L " (+ mx ox) " " (+ my graph-range) " Z")]
+                                                              :offset       graph-line-offset
+                                                              :margin margin}))
+        clip-path-string (str graph-line-string "L " (- width m-right) " " (+ graph-range m-top) "L " (+ m-left ox) " " (+ graph-range m-top) " Z")]
     (fn []
       [:div#transect-plot
        [:svg {:width  width
@@ -250,8 +253,9 @@
              [:rect {:key    zone
                      :x      (percentage-to-x-pos (merge props {:percentage   start-percentage
                                                                 :graph-domain graph-domain
-                                                                :origin       origin}))
-                     :y      my
+                                                                :origin       origin
+                                                                :margin margin}))
+                     :y      m-top
                      :width  (* (/ (- end-percentage start-percentage) 100) graph-domain)
                      :height graph-range
                      :style  {:fill      ((keyword zone-name) zone-color-mapping)
@@ -265,7 +269,8 @@
                 :stroke-width 3}]
 
         ;draw axes
-        [axes (merge props {:origin origin})]
+        [axes (merge props {:origin origin
+                            :margin margin})]
 
         ;label axes
         [axis-labels (merge props {:line-height   line-height-axes
@@ -280,16 +285,18 @@
                                    :graph-range   graph-range
                                    :spread        spread
                                    :origin        origin
+                                   :margin margin
                                    :offset        graph-line-offset})]
 
         [tooltip (merge props {:tooltip-content tooltip-content
                                :line-height     line-height-tooltip
                                :tooltip-width   tooltip-width
-                               :font-size       font-size-tooltip})]
+                               :font-size       font-size-tooltip
+                               :margin margin})]
 
-        (let [buffer 20]
-          [:rect#mouse-move-area {:x              (- (+ mx ox) buffer)
-                                  :y              (- mx buffer)
+        (let [buffer 5]
+          [:rect#mouse-move-area {:x              (- (+ m-left ox) buffer)
+                                  :y              (- m-top buffer)
                                   :width          (+ (* 2 buffer) graph-domain)
                                   :height         (+ (* 2 buffer) graph-range)
                                   :style          {:opacity 0}
@@ -302,5 +309,15 @@
                                                                                    :graph-range     graph-range
                                                                                    :spread          spread
                                                                                    :origin          origin
+                                                                                   :margin margin
                                                                                    :offset          graph-line-offset}))
                                   :on-mouse-leave #(mouse-leave-graph {:tooltip-content tooltip-content})}])]])))
+
+(defn testGraph []
+  (graph {:bathymetry (generate-bathymetry)
+          :habitat (generate-habitat habitat-zone-colours)
+          :width (gobj/get (dom/getViewportSize) "width")
+          :height 300
+          :zone-color-mapping habitat-zone-colours
+          :font-size-tooltip 16
+          :font-size-axes 16}))
