@@ -294,7 +294,7 @@
                                :font-size       font-size-tooltip
                                :margin margin})]
 
-        (let [buffer 5]
+        (let [buffer (min 20 (min m-top m-right))]
           [:rect#mouse-move-area {:x              (- (+ m-left ox) buffer)
                                   :y              (- m-top buffer)
                                   :width          (+ (* 2 buffer) graph-domain)
