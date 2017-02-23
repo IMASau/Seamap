@@ -64,9 +64,8 @@
       [:div.plot-container
        [container-dimensions
         #(reagent/as-element [child-component
-                              (assoc child-props
-                                     :height (gobj/get % "height")
-                                     :width  (gobj/get % "width"))])]])}))
+                              (merge child-props
+                                     (js->clj % :keywordize-keys true))])]])}))
 
 (defn plot-component []
   (let [show-plot (reagent/atom true)
