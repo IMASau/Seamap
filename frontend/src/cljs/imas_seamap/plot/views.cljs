@@ -45,7 +45,7 @@
 
 
 (defn min-depth [bathymetry]
-  (apply min (map second bathymetry))
+  (apply min (map second bathymetry)))
 
 
 (defn max-depth [bathymetry]
