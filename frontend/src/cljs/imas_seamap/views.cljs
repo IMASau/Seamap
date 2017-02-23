@@ -52,12 +52,21 @@
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
-                                  :as   props}]
+                                  :as   props}
+                                 child-component
+                                 child-props]
   (reagent/create-class
    {:display-name           "plot-component-animatable"
     :component-will-unmount on-remove
     :component-did-mount    on-add
-    :reagent-render         (fn [props] [:div.plot-container])}))
+    :reagent-render
+    (fn [props child-component child-props]
+      [:div.plot-container
+       [container-dimensions
+        #(reagent/as-element [child-component
+                              (assoc child-props
+                                     :height (gobj/get % "height")
+                                     :width  (gobj/get % "width"))])]])}))
 
 (defn plot-component []
   (let [show-plot (reagent/atom true)
