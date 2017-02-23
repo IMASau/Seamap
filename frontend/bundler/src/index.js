@@ -5,6 +5,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import CSSTransitionGroup from 'react-addons-css-transition-group';
 
+import ContainerDimensions from 'react-container-dimensions';
+
 import * as ReactLeaflet from 'react-leaflet';
 import EditControl from './EditControl';
 
@@ -14,6 +16,8 @@ window.L = L;
 
 React.addons = React.addons || {};
 React.addons.CSSTransitionGroup = CSSTransitionGroup;
+
+React.ContainerDimensions = ContainerDimensions;
 
 window.React = React;
 window.ReactDOM = ReactDOM;
