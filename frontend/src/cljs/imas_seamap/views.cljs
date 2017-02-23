@@ -48,6 +48,8 @@
      [layer-group {:title "Imagery"    :expanded false} imagery]
      [layer-group {:title "Other"      :expanded false} third-party]]))
 
+(def container-dimensions (reagent/adapt-react-class js/React.ContainerDimensions))
+
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
                                   :as   props}]
