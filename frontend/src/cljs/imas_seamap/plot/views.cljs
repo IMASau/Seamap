@@ -40,8 +40,9 @@
         c (sort b)
         d (distinct c)
         habitat (for [[x1 x2] (map vector d (rest d))]
-                  [x1 x2 (-> zone-colour-mapping keys rand-nth name)])]
-    habitat))
+                  [x1 x2 (-> zone-colour-mapping keys rand-nth name)])
+        habitat-with-nil (map (fn [[start end zone]] (vector start end (if (< (rand) 0.33) nil zone))) habitat)]
+    habitat-with-nil))
 
 
 (defn min-depth [bathymetry]
@@ -204,7 +205,7 @@
                                               :y1 m-top
                                               :x2 pointx
                                               :y2 (+ m-top graph-range)}
-                                  :text      [(str "Depth: " (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))) (str "Habitat: " zone)]
+                                  :text      [(str "Depth: " (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))) (str "Habitat: " (if (nil? zone) "No data" zone))]
                                   :datapoint {:cx pointx
                                               :cy pointy}})
     (if on-mousemove (on-mousemove {:percentage closest-percentage
@@ -269,31 +270,33 @@
           [:g#habitat-zones {:style {:opacity 0.25}}
            (for [zone habitat]
              (let [[start-percentage end-percentage zone-name] zone]
-               [:rect {:key    zone
-                       :x      (percentage-to-x-pos (merge props {:percentage   start-percentage
-                                                                  :graph-domain graph-domain
-                                                                  :origin       origin
-                                                                  :margin       margin}))
-                       :y      m-top
-                       :width  (* (/ (- end-percentage start-percentage) 100) graph-domain)
-                       :height graph-range
-                       :style  {:fill ((keyword zone-name) zone-colour-mapping)
-                                }}]))]
+               (if (not (nil? zone-name))
+                 [:rect {:key    zone
+                         :x      (percentage-to-x-pos (merge props {:percentage   start-percentage
+                                                                    :graph-domain graph-domain
+                                                                    :origin       origin
+                                                                    :margin       margin}))
+                         :y      m-top
+                         :width  (* (/ (- end-percentage start-percentage) 100) graph-domain)
+                         :height graph-range
+                         :style  {:fill ((keyword zone-name) zone-colour-mapping)
+                                  }}])))]
 
-          [:g#habitat-zones {:style {:opacity 0.5}}
+          [:g#habitat-zones {:style {:opacity 0.75}}
            (for [zone habitat]
              (let [[start-percentage end-percentage zone-name] zone]
-               [:rect {:key    zone
-                       :x      (percentage-to-x-pos (merge props {:percentage   start-percentage
-                                                                  :graph-domain graph-domain
-                                                                  :origin       origin
-                                                                  :margin       margin}))
-                       :y      m-top
-                       :width  (* (/ (- end-percentage start-percentage) 100) graph-domain)
-                       :height graph-range
-                       :style  {:fill      ((keyword zone-name) zone-colour-mapping)
-                                :clip-path "url(#clipPath)"
-                                }}]))]
+               (if (not (nil? zone-name))
+                 [:rect {:key    zone
+                         :x      (percentage-to-x-pos (merge props {:percentage   start-percentage
+                                                                    :graph-domain graph-domain
+                                                                    :origin       origin
+                                                                    :margin       margin}))
+                         :y      m-top
+                         :width  (* (/ (- end-percentage start-percentage) 100) graph-domain)
+                         :height graph-range
+                         :style  {:fill      ((keyword zone-name) zone-colour-mapping)
+                                  :clip-path "url(#clipPath)"
+                                  }}])))]
 
           ;draw bathymetry line
           [:path {:d            graph-line-string
