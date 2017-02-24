@@ -8,15 +8,15 @@
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
-(def Button (reagent/adapt-react-class js/Blueprint.Button))
-(def Collapse (reagent/adapt-react-class js/Blueprint.Collapse))
+(def button (reagent/adapt-react-class js/Blueprint.Button))
+(def collapse (reagent/adapt-react-class js/Blueprint.Collapse))
 
 (defn transect-toggle []
   (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])
         [dispatch-key label] (if drawing?
                                [:transect.draw/disable "Cancel Transect"]
                                [:transect.draw/enable  "Draw Transect"])]
-    [Button {:icon-name "edit"
+    [button {:icon-name "edit"
              :class-name "pt-fill draw-transect"
              :on-click #(re-frame/dispatch [dispatch-key])
              :text label}]))
@@ -34,7 +34,7 @@
        [:h1 {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
              :on-click #(swap! expanded-state not)}
         (str title " (" (count layers) ")")]
-       [Collapse {:is-open @expanded-state}
+       [collapse {:is-open @expanded-state}
         (for [layer layers]
           ^{:key (:layer_name layer)}
           [layer-card layer])]])))
