@@ -73,21 +73,21 @@
         [[p1 d1] & remaining] bathymetry
         [p2 d2] remaining
         first-x-pos (percentage-to-x-pos (merge props {:percentage p1}))
-        graph-start (clojure.string/join (vector (str "M " first-x-pos " " (if (nil? d1) (+ m-top graph-range) (depth-to-y-pos (merge props {:depth d1}))) " ")
+        graph-start (clojure.string/join (vector (str "M " first-x-pos " " (if (nil? d1) (+ m-top graph-range) (depth-to-y-pos (merge props {:depth d1}))) " L ")
                                                  (if (and (not (nil? d1)) (nil? d2))
-                                                   (str "L " first-x-pos " " (+ m-top graph-range) " ")
+                                                   (str first-x-pos " " (+ m-top graph-range) " ")
                                                    "")))
         graph-middle (clojure.string/join (for [[[_ prev-d] [p d] [_ next-d]] (map vector bathymetry remaining (rest remaining))]
                                             (let [x-pos (percentage-to-x-pos (merge props {:percentage p}))]
                                               (if (nil? d)
-                                                (str "L " x-pos " " (+ m-top graph-range) " ")
+                                                (str "" x-pos " " (+ m-top graph-range) " ")
                                                 (clojure.string/join (vector (if (nil? prev-d)
-                                                                               (str "L " x-pos " " (+ m-top graph-range) " "))
-                                                                             (str "L " x-pos " " (depth-to-y-pos (merge props {:depth d})) " ")
+                                                                               (str x-pos " " (+ m-top graph-range) " "))
+                                                                             (str x-pos " " (depth-to-y-pos (merge props {:depth d})) " ")
                                                                              (if (nil? next-d)
-                                                                               (str "L " x-pos " " (+ m-top graph-range) " "))))))))
+                                                                               (str x-pos " " (+ m-top graph-range) " "))))))))
         [last-p last-d] (last bathymetry)
-        graph-end (str "L " (percentage-to-x-pos (merge props {:percentage last-p})) " " (if (nil? last-d) (+ m-top graph-range) (depth-to-y-pos (merge props {:depth last-d}))) " ")]
+        graph-end (str (percentage-to-x-pos (merge props {:percentage last-p})) " " (if (nil? last-d) (+ m-top graph-range) (depth-to-y-pos (merge props {:depth last-d}))) " ")]
     (str graph-start graph-middle graph-end)))
 
 
@@ -249,8 +249,8 @@
                                                  :offset       graph-line-offset
                                                  :margin       margin}))
         clip-path-string (str graph-line-string " "
-                              "L " (+ graph-domain ox m-left) " " (+ graph-range m-top) " "
-                              "L " (+ ox m-left) " " (+ graph-range m-top) " "
+                              (+ graph-domain ox m-left) " " (+ graph-range m-top) " "
+                              (+ ox m-left) " " (+ graph-range m-top) " "
                               "Z")]
         [:div#transect-plot
          [:svg {:width  width
