@@ -153,7 +153,7 @@
                     :r     5
                     :style {:fill         "white"
                             :stroke       "black"
-                            :stroke-width 3}}
+                            :stroke-width 2}}
                    (:datapoint @tooltip-content))]
    [:g#textbox (merge {:transform "translate(0, 0)"} (:textbox @tooltip-content))
     [:rect {:x      0
@@ -165,7 +165,7 @@
             :style  {:opacity      0.9
                      :fill         "white"
                      :stroke       "black"
-                     :stroke-width 3}}]
+                     :stroke-width 2}}]
     [:text {:style {:font-size font-size}}
      (doall (for [s (:text @tooltip-content)]
               [:tspan {:key s
@@ -230,7 +230,7 @@
                  margin [5 15 15 5]}}]
       (let [line-height-tooltip (* 1.6 font-size-tooltip)
             line-height-axes (* 1.6 font-size-axes)
-            tooltip-width 200
+            tooltip-width 175
             origin [(* 3 line-height-axes) (* 3 line-height-axes)]
             [ox oy] origin
             [m-left m-right m-top m-bottom] margin
@@ -297,7 +297,7 @@
           [:path {:d            graph-line-string
                   :fill         "none"
                   :stroke       "black"
-                  :stroke-width 3}]
+                  :stroke-width 2}]
 
           ;draw axes
           [axes (merge props {:origin origin
