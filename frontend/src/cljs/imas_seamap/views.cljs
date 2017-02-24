@@ -48,14 +48,24 @@
      [layer-group {:title "Imagery"    :expanded false} imagery]
      [layer-group {:title "Other"      :expanded false} third-party]]))
 
+(def container-dimensions (reagent/adapt-react-class js/React.ContainerDimensions))
+
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
-                                  :as   props}]
+                                  :as   props}
+                                 child-component
+                                 child-props]
   (reagent/create-class
    {:display-name           "plot-component-animatable"
     :component-will-unmount on-remove
     :component-did-mount    on-add
-    :reagent-render         (fn [props] [:div.plot-container])}))
+    :reagent-render
+    (fn [props child-component child-props]
+      [:div.plot-container
+       [container-dimensions
+        #(reagent/as-element [child-component
+                              (merge child-props
+                                     (js->clj % :keywordize-keys true))])]])}))
 
 (defn plot-component []
   (let [show-plot (reagent/atom true)

@@ -216,29 +216,30 @@
   (swap! tooltip-content merge {:tooltip {:style {:visibility "hidden"}}}))
 
 
-(defn graph [{:keys [bathymetry habitat width height zone-colour-mapping margin font-size-tooltip font-size-axes]
-                   :as   props
-                   :or   {font-size-tooltip 16
-                          font-size-axes    16
-                          margin [5 15 15 5]}}]
+(defn graph [props]
   (let [tooltip-content (reagent/atom {:tooltip   {:style {:visibility "hidden"}}
                                        :datapoint {:cx 0 :cy 0 :r 5}
                                        :line      {:x1 0 :y1 0 :x2 20 :y2 20}
                                        :textbox   {:transform "translate(0, 0)"}
-                                       :text      ["Depth: " "Habitat: "]})
-        line-height-tooltip (* 1.6 font-size-tooltip)
-        line-height-axes (* 1.6 font-size-axes)
-        tooltip-width 200
-        origin [(* 3 line-height-axes) (* 3 line-height-axes)]
-        [ox oy] origin
-        [m-left m-right m-top m-bottom] margin
-        graph-range (- height (+ m-top m-bottom oy))
-        graph-domain (- width (+ m-left m-right ox))
-        max-depth (max-depth bathymetry)
-        min-depth (min-depth bathymetry)
-        spread (- max-depth min-depth)
-        graph-line-offset 0.4
-        graph-line-string (graph-line-string (merge props {:graph-domain graph-domain
+                                       :text      ["Depth: " "Habitat: "]})]
+    (fn [{:keys [bathymetry habitat width height zone-color-mapping margin font-size-tooltip font-size-axes]
+          :as   props
+          :or   {font-size-tooltip 16
+                 font-size-axes    16
+                 margin [5 15 15 5]}}]
+      (let [line-height-tooltip (* 1.6 font-size-tooltip)
+            line-height-axes (* 1.6 font-size-axes)
+            tooltip-width 200
+            origin [(* 3 line-height-axes) (* 3 line-height-axes)]
+            [ox oy] origin
+            [m-left m-right m-top m-bottom] margin
+            graph-range (- height (+ m-top m-bottom oy))
+            graph-domain (- width (+ m-left m-right ox))
+            max-depth (max-depth bathymetry)
+            min-depth (min-depth bathymetry)
+            spread (- max-depth min-depth)
+            graph-line-offset 0.4
+            graph-line-string (graph-line-string (merge props {:graph-domain graph-domain
                                                  :graph-range  graph-range
                                                  :min-depth    min-depth
                                                  :max-depth    max-depth
@@ -249,21 +250,20 @@
         clip-path-string (str graph-line-string " "
                               "L " (+ graph-domain ox m-left) " " (+ graph-range m-top) " "
                               "L " (+ ox m-left) " " (+ graph-range m-top) " "
-                              "Z")]
-    (fn []
-      [:div#transect-plot
-       [:svg {:width  width
-              :height height}
+                              "Z")]        
+[:div#transect-plot
+         [:svg {:width  width
+                :height height}
 
-        [:defs
-         [:clipPath {:id "clipPath"}
-          [:path {:d clip-path-string}]]]
+          [:defs
+           [:clipPath {:id "clipPath"}
+            [:path {:d clip-path-string}]]]
 
-        [:rect#background {:x      0
-                           :y      0
-                           :width  width
-                           :height height
-                           :style  {:opacity 0.2}}]
+          [:rect#background {:x      0
+                             :y      0
+                             :width  width
+                             :height height
+                             :style  {:opacity 0.2}}]
 
         ;draw habitat zones
         [:g#habitat-zones {:style {:opacity 0.25}}
@@ -295,56 +295,56 @@
                               :clip-path "url(#clipPath)"
                               }}]))]
 
-        ;draw bathymetry line
-        [:path {:d            graph-line-string
-                :fill         "none"
-                :stroke       "black"
-                :stroke-width 3}]
+                                        ;draw bathymetry line
+          [:path {:d            graph-line-string
+                  :fill         "none"
+                  :stroke       "black"
+                  :stroke-width 3}]
 
-        ;draw axes
-        [axes (merge props {:origin origin
-                            :margin margin})]
+                                        ;draw axes
+          [axes (merge props {:origin origin
+                              :margin margin})]
 
-        ;label axes
-        [axis-labels (merge props {:line-height   line-height-axes
-                                   :font-size     font-size-axes
-                                   :x-axis-offset 10
-                                   :y-axis-offset 10
-                                   :x-steps       20
-                                   :y-steps       6
-                                   :max-depth     max-depth
-                                   :min-depth     min-depth
-                                   :graph-domain  graph-domain
-                                   :graph-range   graph-range
-                                   :spread        spread
-                                   :origin        origin
-                                   :margin margin
-                                   :offset        graph-line-offset})]
+                                        ;label axes
+          [axis-labels (merge props {:line-height   line-height-axes
+                                     :font-size     font-size-axes
+                                     :x-axis-offset 10
+                                     :y-axis-offset 10
+                                     :x-steps       20
+                                     :y-steps       6
+                                     :max-depth     max-depth
+                                     :min-depth     min-depth
+                                     :graph-domain  graph-domain
+                                     :graph-range   graph-range
+                                     :spread        spread
+                                     :origin        origin
+                                     :margin margin
+                                     :offset        graph-line-offset})]
 
-        [tooltip (merge props {:tooltip-content tooltip-content
-                               :line-height     line-height-tooltip
-                               :tooltip-width   tooltip-width
-                               :font-size       font-size-tooltip
-                               :margin margin})]
+          [tooltip (merge props {:tooltip-content tooltip-content
+                                 :line-height     line-height-tooltip
+                                 :tooltip-width   tooltip-width
+                                 :font-size       font-size-tooltip
+                                 :margin margin})]
 
-        (let [buffer (min 20 (min m-top m-right))]
-          [:rect#mouse-move-area {:x              (- (+ m-left ox) buffer)
-                                  :y              (- m-top buffer)
-                                  :width          (+ (* 2 buffer) graph-domain)
-                                  :height         (+ (* 2 buffer) graph-range)
-                                  :style          {:opacity 0}
-                                  :on-mouse-move  #(mouse-move-graph (merge props {:tooltip-content tooltip-content
-                                                                                   :tooltip-width   tooltip-width
-                                                                                   :event           %
-                                                                                   :max-depth       max-depth
-                                                                                   :min-depth       min-depth
-                                                                                   :graph-domain    graph-domain
-                                                                                   :graph-range     graph-range
-                                                                                   :spread          spread
-                                                                                   :origin          origin
-                                                                                   :margin margin
-                                                                                   :offset          graph-line-offset}))
-                                  :on-mouse-leave #(mouse-leave-graph {:tooltip-content tooltip-content})}])]])))
+          (let [buffer (min 20 (min m-top m-right))]
+            [:rect#mouse-move-area {:x              (- (+ m-left ox) buffer)
+                                    :y              (- m-top buffer)
+                                    :width          (+ (* 2 buffer) graph-domain)
+                                    :height         (+ (* 2 buffer) graph-range)
+                                    :style          {:opacity 0}
+                                    :on-mouse-move  #(mouse-move-graph (merge props {:tooltip-content tooltip-content
+                                                                                     :tooltip-width   tooltip-width
+                                                                                     :event           %
+                                                                                     :max-depth       max-depth
+                                                                                     :min-depth       min-depth
+                                                                                     :graph-domain    graph-domain
+                                                                                     :graph-range     graph-range
+                                                                                     :spread          spread
+                                                                                     :origin          origin
+                                                                                     :margin margin
+                                                                                     :offset          graph-line-offset}))
+                                    :on-mouse-leave #(mouse-leave-graph {:tooltip-content tooltip-content})}])]]))))
 
 (defn testGraph []
   (graph {:bathymetry          (generate-bathymetry)
