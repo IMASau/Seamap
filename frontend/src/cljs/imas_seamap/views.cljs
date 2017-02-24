@@ -23,18 +23,28 @@
                            rect (-> elem .getBoundingClientRect js->clj)
                            data (-> elem .-dataset js->clj)]
                        (merge rect data)))
+        posn->offsets (fn [posn props]
+                        (case posn
+                          "top"    {:top -30}
+                          "bottom" {:bottom -30}
+                          "left"   {:left -176}
+                          "right"  {:right -176}))
         open? @(re-frame/subscribe [:help-layer/open?])]
     [overlay {:is-open  open?
               :on-close #(re-frame/dispatch  [:help-layer/close])}
      (when open?
-      (doseq [id element-ids] (js/console.warn id "props:" (elem-props id)))
       (for [id element-ids
             :let [{:keys [top right bottom left width height
-                          helperText helperPosition]} (elem-props id)
+                          helperText helperPosition]
+                   :as eprops} (elem-props id)
                   posn-cls (str "helper-layer-" helperPosition)]]
         ^{:key id}
-        [:div.helper-layer-wrapper {:class-name posn-cls}
-         [:div.helper-layer-tooltip {:class-name posn-cls}
+        [:div.helper-layer-wrapper {:class-name posn-cls
+                                    :style {:width width
+                                            :height height
+                                            :top top
+                                            :left left}}
+         [:div.helper-layer-tooltip {:class-name posn-cls} ; TODO: needs positioning-offsets depending on position attribute
           [:div.helper-layer-tooltiptext id helperText]]]))]))
 
 (defn transect-toggle []
