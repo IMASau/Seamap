@@ -7,4 +7,5 @@
          :active-layers #{}
          :controls {:transect false}}
    :transect nil
+   :display {:help-overlay false}
    :config {:catalogue-url "http://localhost:8000/api/layers/"}})

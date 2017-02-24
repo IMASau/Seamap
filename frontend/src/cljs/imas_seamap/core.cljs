@@ -16,7 +16,8 @@
   {:subs
    {:map/props                            subs/map-props
     :map/layers                           msubs/map-layers
-    :transect/info                        subs/transect-info}
+    :transect/info                        subs/transect-info
+    :help-layer/open?                     subs/help-layer-open?}
 
    :events
    {:ajax                                 events/ajax
@@ -24,6 +25,9 @@
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     :initialise-db                        events/initialise-db
     :initialise-layers                    events/initialise-layers
+    :help-layer/toggle                    events/help-layer-toggle
+    :help-layer/open                      events/help-layer-open
+    :help-layer/close                     events/help-layer-close
     :transect/query                       events/transect-query
     :transect.draw/enable                 events/transect-drawing-start
     :transect.draw/disable                events/transect-drawing-finish

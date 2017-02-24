@@ -21,6 +21,15 @@
                         {:handler :map/update-layers}])
     db))
 
+(defn help-layer-toggle [db _]
+  (update-in db [:display :help-overlay] not))
+
+(defn help-layer-open [db _]
+  (assoc-in db [:display :help-overlay] true))
+
+(defn help-layer-close [db _]
+  (assoc-in db [:display :help-overlay] false))
+
 (defn transect-query [db [_ geojson]]
   (assoc db :transect geojson))
 
