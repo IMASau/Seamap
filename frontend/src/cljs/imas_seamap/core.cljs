@@ -6,6 +6,7 @@
             [imas-seamap.events :as events]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
+            [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
             [imas-seamap.views :as views]
             [imas-seamap.config :as config]))
