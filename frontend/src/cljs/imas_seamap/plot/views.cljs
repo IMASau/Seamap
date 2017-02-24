@@ -250,8 +250,8 @@
         clip-path-string (str graph-line-string " "
                               "L " (+ graph-domain ox m-left) " " (+ graph-range m-top) " "
                               "L " (+ ox m-left) " " (+ graph-range m-top) " "
-                              "Z")]        
-[:div#transect-plot
+                              "Z")]
+        [:div#transect-plot
          [:svg {:width  width
                 :height height}
 
@@ -265,47 +265,47 @@
                              :height height
                              :style  {:opacity 0.2}}]
 
-        ;draw habitat zones
-        [:g#habitat-zones {:style {:opacity 0.25}}
-         (for [zone habitat]
-           (let [[start-percentage end-percentage zone-name] zone]
-             [:rect {:key    zone
-                     :x      (percentage-to-x-pos (merge props {:percentage   start-percentage
-                                                                :graph-domain graph-domain
-                                                                :origin       origin
-                                                                :margin margin}))
-                     :y      m-top
-                     :width  (* (/ (- end-percentage start-percentage) 100) graph-domain)
-                     :height graph-range
-                     :style  {:fill      ((keyword zone-name) zone-colour-mapping)
-                              }}]))]
+          ;draw habitat zones
+          [:g#habitat-zones {:style {:opacity 0.25}}
+           (for [zone habitat]
+             (let [[start-percentage end-percentage zone-name] zone]
+               [:rect {:key    zone
+                       :x      (percentage-to-x-pos (merge props {:percentage   start-percentage
+                                                                  :graph-domain graph-domain
+                                                                  :origin       origin
+                                                                  :margin       margin}))
+                       :y      m-top
+                       :width  (* (/ (- end-percentage start-percentage) 100) graph-domain)
+                       :height graph-range
+                       :style  {:fill ((keyword zone-name) zone-colour-mapping)
+                                }}]))]
 
-        [:g#habitat-zones {:style {:opacity 0.5}}
-         (for [zone habitat]
-           (let [[start-percentage end-percentage zone-name] zone]
-             [:rect {:key    zone
-                     :x      (percentage-to-x-pos (merge props {:percentage   start-percentage
-                                                                :graph-domain graph-domain
-                                                                :origin       origin
-                                                                :margin margin}))
-                     :y      m-top
-                     :width  (* (/ (- end-percentage start-percentage) 100) graph-domain)
-                     :height graph-range
-                     :style  {:fill      ((keyword zone-name) zone-colour-mapping)
-                              :clip-path "url(#clipPath)"
-                              }}]))]
+          [:g#habitat-zones {:style {:opacity 0.5}}
+           (for [zone habitat]
+             (let [[start-percentage end-percentage zone-name] zone]
+               [:rect {:key    zone
+                       :x      (percentage-to-x-pos (merge props {:percentage   start-percentage
+                                                                  :graph-domain graph-domain
+                                                                  :origin       origin
+                                                                  :margin       margin}))
+                       :y      m-top
+                       :width  (* (/ (- end-percentage start-percentage) 100) graph-domain)
+                       :height graph-range
+                       :style  {:fill      ((keyword zone-name) zone-colour-mapping)
+                                :clip-path "url(#clipPath)"
+                                }}]))]
 
-                                        ;draw bathymetry line
+          ;draw bathymetry line
           [:path {:d            graph-line-string
                   :fill         "none"
                   :stroke       "black"
                   :stroke-width 3}]
 
-                                        ;draw axes
+          ;draw axes
           [axes (merge props {:origin origin
                               :margin margin})]
 
-                                        ;label axes
+          ;label axes
           [axis-labels (merge props {:line-height   line-height-axes
                                      :font-size     font-size-axes
                                      :x-axis-offset 10
@@ -318,14 +318,14 @@
                                      :graph-range   graph-range
                                      :spread        spread
                                      :origin        origin
-                                     :margin margin
+                                     :margin        margin
                                      :offset        graph-line-offset})]
 
           [tooltip (merge props {:tooltip-content tooltip-content
                                  :line-height     line-height-tooltip
                                  :tooltip-width   tooltip-width
                                  :font-size       font-size-tooltip
-                                 :margin margin})]
+                                 :margin          margin})]
 
           (let [buffer (min 20 (min m-top m-right))]
             [:rect#mouse-move-area {:x              (- (+ m-left ox) buffer)
@@ -342,15 +342,6 @@
                                                                                      :graph-range     graph-range
                                                                                      :spread          spread
                                                                                      :origin          origin
-                                                                                     :margin margin
+                                                                                     :margin          margin
                                                                                      :offset          graph-line-offset}))
                                     :on-mouse-leave #(mouse-leave-graph {:tooltip-content tooltip-content})}])]]))))
-
-(defn testGraph []
-  (graph {:bathymetry          (generate-bathymetry)
-          :habitat             (generate-habitat random-zone-colours)
-          :width               (gobj/get (dom/getViewportSize) "width")
-          :height              300
-          :zone-colour-mapping random-zone-colours
-          :font-size-tooltip   16
-          :font-size-axes      16}))
