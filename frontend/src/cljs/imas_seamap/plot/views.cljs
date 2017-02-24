@@ -9,11 +9,11 @@
 
 
 (defn generate-bathymetry []
-  (let [a (iterate inc 0)
-        b (repeatedly 101 #(+ (rand 50) (rand 50)))
-        c (map list a b)
-        bathymetry (into [] c)]
-    bathymetry))
+  (let [percentages (iterate inc 0)
+        depths (repeatedly 101 #(+ (rand 50) (rand 50)))
+        bathymetry (into [] (map list percentages depths))
+        bath-with-nil (map (fn [[p d]](vector p (if (or (< p 20) (> p 80)) nil d))) bathymetry)]
+    bath-with-nil))
 
 
 (def random-zone-colours
@@ -45,7 +45,7 @@
 
 
 (defn min-depth [bathymetry]
-  (apply min (map second bathymetry)))
+  (apply min (filterv #(not (nil? %)) (mapv second bathymetry))))
 
 
 (defn max-depth [bathymetry]
@@ -66,12 +66,28 @@
 (defn habitat-at-percentage [{:keys [habitat percentage]}]
   (peek (filterv (fn [[p]] (<= p percentage)) habitat)))
 
-(defn formatted-graph-line [{:keys [bathymetry origin graph-domain graph-range offset min-depth max-depth spread] :as props}]
-  (let [[[first-percentage first-depth] & remaining] bathymetry
-        start-string (str "M " (percentage-to-x-pos (merge props {:percentage first-percentage})) " " (depth-to-y-pos (merge props {:depth first-depth})) " ")
-        middle-string (clojure.string/join (for [[percentage depth] remaining]
-                                             (str "L " (percentage-to-x-pos (merge props {:percentage percentage})) " " (depth-to-y-pos (merge props {:depth depth})) " ")))]
-    (str start-string middle-string)))
+(defn graph-line-string [{:keys [bathymetry origin margin graph-domain graph-range offset min-depth max-depth spread] :as props}]
+  (let [[m-left m-right m-top m-bottom] margin
+        [ox oy] origin
+        [[p1 d1] & remaining] bathymetry
+        [p2 d2] remaining
+        first-x-pos (percentage-to-x-pos (merge props {:percentage p1}))
+        graph-start (clojure.string/join (vector (str "M " first-x-pos " " (if (nil? d1) (+ m-top graph-range) (depth-to-y-pos (merge props {:depth d1}))) " ")
+                                                 (if (and (not (nil? d1)) (nil? d2))
+                                                   (str "L " first-x-pos " " (+ m-top graph-range) " ")
+                                                   "")))
+        graph-middle (clojure.string/join (for [[[_ prev-d] [p d] [_ next-d]] (map vector bathymetry remaining (rest remaining))]
+                                            (let [x-pos (percentage-to-x-pos (merge props {:percentage p}))]
+                                              (if (nil? d)
+                                                (str "L " x-pos " " (+ m-top graph-range) " ")
+                                                (clojure.string/join (vector (if (nil? prev-d)
+                                                                               (str "L " x-pos " " (+ m-top graph-range) " "))
+                                                                             (str "L " x-pos " " (depth-to-y-pos (merge props {:depth d})) " ")
+                                                                             (if (nil? next-d)
+                                                                               (str "L " x-pos " " (+ m-top graph-range) " "))))))))
+        [last-p last-d] (last bathymetry)
+        graph-end (str "L " (percentage-to-x-pos (merge props {:percentage last-p})) " " (if (nil? last-d) (+ m-top graph-range) (depth-to-y-pos (merge props {:depth last-d}))) " ")]
+    (str graph-start graph-middle graph-end)))
 
 
 (defn axes [{:keys [width height origin margin]}]
@@ -169,6 +185,8 @@
 
 (defn mouse-move-graph [{:keys [bathymetry event tooltip-content tooltip-width origin graph-domain graph-range margin offset on-mousemove] :as props}]
   (let [pagex (gobj/get event "pageX")
+        [m-left m-right m-top m-bottom] margin
+        [ox oy] origin
         percentage (min (max (* 100 (mouse-pos-to-percentage (merge props {:pagex pagex}))) 0) 100)
         [before after] (split-with #(< (first %) percentage) bathymetry)
         previous (if (seq before) (last before) (first after))
@@ -176,10 +194,8 @@
         next-is-closest (< (- (first next) percentage) (- percentage (first previous)))
         [closest-percentage closest-depth] (if next-is-closest next previous)
         pointx (percentage-to-x-pos (merge props {:percentage closest-percentage}))
-        pointy (depth-to-y-pos (merge props {:depth closest-depth}))
-        [_ _ zone] (habitat-at-percentage (merge props {:percentage closest-percentage}))
-        [m-left m-right m-top m-bottom] margin
-        [ox oy] origin]
+        pointy (if (nil? closest-depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth closest-depth})))
+        [_ _ zone] (habitat-at-percentage (merge props {:percentage closest-percentage}))]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
                                   :textbox   {:transform (str "translate("
                                                               (+ m-left ox (* (/ closest-percentage 100) (- graph-domain tooltip-width)))
@@ -188,7 +204,7 @@
                                               :y1 m-top
                                               :x2 pointx
                                               :y2 (+ m-top graph-range)}
-                                  :text      [(str "Depth: " (.toFixed closest-depth 4)) (str "Habitat: " zone)]
+                                  :text      [(str "Depth: " (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))) (str "Habitat: " zone)]
                                   :datapoint {:cx pointx
                                               :cy pointy}})
     (if on-mousemove (on-mousemove {:percentage closest-percentage
@@ -222,15 +238,18 @@
         min-depth (min-depth bathymetry)
         spread (- max-depth min-depth)
         graph-line-offset 0.4
-        graph-line-string (formatted-graph-line (merge props {:graph-domain graph-domain
-                                                              :graph-range  graph-range
-                                                              :min-depth    min-depth
-                                                              :max-depth    max-depth
-                                                              :spread       spread
-                                                              :origin       origin
-                                                              :offset       graph-line-offset
-                                                              :margin margin}))
-        clip-path-string (str graph-line-string "L " (- width m-right) " " (+ graph-range m-top) "L " (+ m-left ox) " " (+ graph-range m-top) " Z")]
+        graph-line-string (graph-line-string (merge props {:graph-domain graph-domain
+                                                 :graph-range  graph-range
+                                                 :min-depth    min-depth
+                                                 :max-depth    max-depth
+                                                 :spread       spread
+                                                 :origin       origin
+                                                 :offset       graph-line-offset
+                                                 :margin       margin}))
+        clip-path-string (str graph-line-string " "
+                              "L " (+ graph-domain ox m-left) " " (+ graph-range m-top) " "
+                              "L " (+ ox m-left) " " (+ graph-range m-top) " "
+                              "Z")]
     (fn []
       [:div#transect-plot
        [:svg {:width  width
@@ -247,6 +266,20 @@
                            :style  {:opacity 0.2}}]
 
         ;draw habitat zones
+        [:g#habitat-zones {:style {:opacity 0.25}}
+         (for [zone habitat]
+           (let [[start-percentage end-percentage zone-name] zone]
+             [:rect {:key    zone
+                     :x      (percentage-to-x-pos (merge props {:percentage   start-percentage
+                                                                :graph-domain graph-domain
+                                                                :origin       origin
+                                                                :margin margin}))
+                     :y      m-top
+                     :width  (* (/ (- end-percentage start-percentage) 100) graph-domain)
+                     :height graph-range
+                     :style  {:fill      ((keyword zone-name) zone-colour-mapping)
+                              }}]))]
+
         [:g#habitat-zones {:style {:opacity 0.5}}
          (for [zone habitat]
            (let [[start-percentage end-percentage zone-name] zone]
