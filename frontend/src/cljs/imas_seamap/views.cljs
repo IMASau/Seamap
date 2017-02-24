@@ -10,6 +10,32 @@
 
 (def button (reagent/adapt-react-class js/Blueprint.Button))
 (def collapse (reagent/adapt-react-class js/Blueprint.Collapse))
+(def overlay (reagent/adapt-react-class js/Blueprint.Overlay))
+
+(defn ->helper-props [& {:keys [text position]
+                         :or   {position "right"}}]
+  {:data-helper-text     text
+   :data-helper-position position})
+
+(defn helper-overlay [& element-ids]
+  (let [elem-props (fn [id]
+                     (let [elem (dom/getElement id)
+                           rect (-> elem .getBoundingClientRect js->clj)
+                           data (-> elem .-dataset js->clj)]
+                       (merge rect data)))
+        open? @(re-frame/subscribe [:help-layer/open?])]
+    [overlay {:is-open  open?
+              :on-close #(re-frame/dispatch  [:help-layer/close])}
+     (when open?
+      (doseq [id element-ids] (js/console.warn id "props:" (elem-props id)))
+      (for [id element-ids
+            :let [{:keys [top right bottom left width height
+                          helperText helperPosition]} (elem-props id)
+                  posn-cls (str "helper-layer-" helperPosition)]]
+        ^{:key id}
+        [:div.helper-layer-wrapper {:class-name posn-cls}
+         [:div.helper-layer-tooltip {:class-name posn-cls}
+          [:div.helper-layer-tooltiptext id helperText]]]))]))
 
 (defn transect-toggle []
   (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])

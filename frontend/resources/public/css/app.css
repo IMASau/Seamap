@@ -30,6 +30,104 @@ footer {
     flex-basis: 10px;
 }
 
+.pt-overlay-backdrop {
+    z-index: 2000;              /* Must be greater than leaflet */
+}
+.pt-overlay-content {
+    z-index: 2001;
+}
+
+/* Helper overlay: */
+.helper-layer-wrapper {
+    position: absolute;
+    z-index: 9999998;
+    color: white;
+}
+
+.helper-layer-wrapper.helper-layer-left {
+    border-left: solid white 1px;
+    margin-left: -10px;
+}
+
+.helper-layer-wrapper.helper-layer-right {
+    border-right: solid white 1px;
+    padding-right: 10px;
+}
+
+.helper-layer-wrapper.helper-layer-bottom {
+    border-bottom: solid white 1px;
+    padding-bottom: 10px;
+}
+
+.helper-layer-wrapper.helper-layer-top {
+    border-top: solid white 1px;
+    padding-top: 10px;
+}
+
+.helper-layer-tooltip {
+    position: absolute;
+    max-width: 200px;
+}
+
+.helper-layer-tooltip.helper-layer-left {
+    margin-left: -135px;
+    padding-right: 10px;
+}
+
+.helper-layer-tooltip.helper-layer-right {
+    margin-right: -135px;
+    padding-left: 10px;
+}
+
+.helper-layer-tooltip.helper-layer-bottom {
+    margin-bottom: -50px;
+    padding-top: 10px;
+}
+
+.helper-layer-tooltip.helper-layer-top {
+    margin-top: -50px;
+    padding-bottom: 10px;
+}
+
+.helper-layer-tooltip.helper-layer-right:before, .helper-layer-tooltip.helper-layer-left:after, .helper-layer-tooltip.helper-layer-bottom:before, .helper-layer-tooltip.helper-layer-top:after {
+    content: ".";
+    display: inline-block;
+    background-color: white;
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+}
+
+.helper-layer-tooltip.helper-layer-right:before, .helper-layer-tooltip.helper-layer-left:after {
+    width: 100px;
+    top: 50%;
+}
+
+.helper-layer-tooltip.helper-layer-bottom:before, .helper-layer-tooltip.helper-layer-top:after {
+    width: 1px;
+    height: 50px;
+    left: 50%;
+}
+
+.helper-layer-tooltip.helper-layer-bottom:before {
+    top: -50px;
+}
+
+.helper-layer-tooltip.helper-layer-top:after {
+    bottom: -50px;
+}
+
+.helper-layer-tooltip.helper-layer-right:before {
+    left: -100px;
+}
+
+.helper-layer-tooltip.helper-layer-left:after {
+    right: -100px;
+}
+
+
+/* Plot animations: */
+
 .plot-container {
     height: 200px;
 }
