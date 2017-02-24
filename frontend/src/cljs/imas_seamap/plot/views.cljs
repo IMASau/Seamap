@@ -222,7 +222,7 @@
                                        :line      {:x1 0 :y1 0 :x2 20 :y2 20}
                                        :textbox   {:transform "translate(0, 0)"}
                                        :text      ["Depth: " "Habitat: "]})]
-    (fn [{:keys [bathymetry habitat width height zone-color-mapping margin font-size-tooltip font-size-axes]
+    (fn [{:keys [bathymetry habitat width height zone-colour-mapping margin font-size-tooltip font-size-axes]
           :as   props
           :or   {font-size-tooltip 16
                  font-size-axes    16
