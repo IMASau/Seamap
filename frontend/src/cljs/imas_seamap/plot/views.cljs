@@ -33,14 +33,14 @@
    :unknown     "grey"})
 
 
-(defn generate-habitat [zone-color-mapping]
+(defn generate-habitat [zone-colour-mapping]
   (let [num-zones (+ 3 (rand-int 7))
         a (repeatedly num-zones #(+ 10 (rand-int 90)))
         b (list* 0 100 a)
         c (sort b)
         d (distinct c)
         habitat (for [[x1 x2] (map vector d (rest d))]
-                  [x1 x2 (-> habitat-zone-colours keys rand-nth name)])]
+                  [x1 x2 (-> zone-colour-mapping keys rand-nth name)])]
     habitat))
 
 
@@ -216,7 +216,7 @@
   (swap! tooltip-content merge {:tooltip {:style {:visibility "hidden"}}}))
 
 
-(defn graph [{:keys [bathymetry habitat width height zone-color-mapping margin font-size-tooltip font-size-axes]
+(defn graph [{:keys [bathymetry habitat width height zone-colour-mapping margin font-size-tooltip font-size-axes]
                    :as   props
                    :or   {font-size-tooltip 16
                           font-size-axes    16
@@ -291,7 +291,7 @@
                      :y      m-top
                      :width  (* (/ (- end-percentage start-percentage) 100) graph-domain)
                      :height graph-range
-                     :style  {:fill      ((keyword zone-name) zone-color-mapping)
+                     :style  {:fill      ((keyword zone-name) zone-colour-mapping)
                               :clip-path "url(#clipPath)"
                               }}]))]
 
@@ -347,10 +347,10 @@
                                   :on-mouse-leave #(mouse-leave-graph {:tooltip-content tooltip-content})}])]])))
 
 (defn testGraph []
-  (graph {:bathymetry (generate-bathymetry)
-          :habitat (generate-habitat habitat-zone-colours)
-          :width (gobj/get (dom/getViewportSize) "width")
-          :height 300
-          :zone-color-mapping habitat-zone-colours
-          :font-size-tooltip 16
-          :font-size-axes 16}))
+  (graph {:bathymetry          (generate-bathymetry)
+          :habitat             (generate-habitat random-zone-colours)
+          :width               (gobj/get (dom/getViewportSize) "width")
+          :height              300
+          :zone-colour-mapping random-zone-colours
+          :font-size-tooltip   16
+          :font-size-axes      16}))
