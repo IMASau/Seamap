@@ -3,6 +3,7 @@
             [reagent.core :as reagent]
             [goog.dom :as dom]
             [goog.object :as gobj]
+            [goog.math :as gmaths]
             [debux.cs.core :refer [dbg]]))
 
 (defn randColour []
@@ -111,32 +112,34 @@
         y-steps (int (/ graph-range 30))
         [m-left m-right m-top m-bottom] margin
         [ox oy] origin]
-    [:g {:style {:line-height line-height
-                 :font-size   font-size}}
-     ;x-axis labels
-     [:g {:style {:text-anchor "middle"}}
-      (for [i (take (+ 1 x-steps) (range))]
-        [:text {:key (hash (str "percentageLabel" i))
-                :x   (+ (* (/ i x-steps) graph-domain) ox m-left)
-                :y   (+ m-top font-size x-axis-offset graph-range)}
-         (str (int (* (/ i x-steps) 100)))])
-      [:text {:x     (+ m-left ox (/ graph-domain 2))
-              :y     (+ line-height font-size x-axis-offset m-top graph-range)
-              :style {:font-weight "bold"}}
-       "Percentage Along Transect (%)"]]
-     ;y-axis labels
-     [:g {:style {:text-anchor "end"}}
-      (for [i (take (+ 1 y-steps) (range))]
-        [:text {:key (hash (str "depthLabel" i))
-                :x   (- (+ m-left ox) y-axis-offset)
-                :y   (+ m-top (/ font-size 2) (* (/ i y-steps) graph-range))}
-         (str (int (+ min-depth (* (/ i y-steps) delta))))])
-      [:text {:x         (- (+ m-left ox) (+ line-height font-size y-axis-offset))
-              :y         (+ m-top (/ graph-range 2))
-              :transform (str "rotate(-90, " (- (+ m-left ox) (+ line-height font-size y-axis-offset)) ", " (+ m-top (/ graph-range 2)) ")")
-              :style     {:text-anchor "middle"
-                          :font-weight "bold"}}
-       "Depth (m)"]]]))
+    (when (pos? y-steps)
+      [:g {:style {:line-height line-height
+                   :font-size   font-size}}
+       ;; x-axis labels
+       [:g {:style {:text-anchor "middle"}}
+        (for [i (take (+ 1 x-steps) (range))]
+          [:text {:key (hash (str "percentageLabel" i))
+                  :x   (+ (* (/ i x-steps) graph-domain) ox m-left)
+                  :y   (+ m-top font-size x-axis-offset graph-range)}
+           (str (int (* (/ i x-steps) 100)))])
+        [:text {:x     (+ m-left ox (/ graph-domain 2))
+                :y     (+ line-height font-size x-axis-offset m-top graph-range)
+                :style {:font-weight "bold"}}
+         "Percentage Along Transect (%)"]]
+       ;; y-axis labels
+       [:g {:style {:text-anchor "end"}}
+        (for [i (take (+ 1 y-steps) (range))]
+          [:text {:key (hash (str "depthLabel" i))
+                  :x   (- (+ m-left ox) y-axis-offset)
+                  :y   (+ m-top (/ font-size 2) (* (/ i y-steps) graph-range))
+                  }
+           (str (int (+ min-depth (* (/ i y-steps) delta))))])
+        [:text {:x         (- (+ m-left ox) (+ line-height font-size y-axis-offset))
+                :y         (+ m-top (/ graph-range 2))
+                :transform (str "rotate(-90, " (- (+ m-left ox) (+ line-height font-size y-axis-offset)) ", " (+ m-top (/ graph-range 2)) ")")
+                :style     {:text-anchor "middle"
+                            :font-weight "bold"}}
+         "Depth (m)"]]])))
 
 
 (defn tooltip [{:keys [tooltip-content tooltip-width line-height font-size]}]
@@ -242,105 +245,106 @@
             spread (- max-depth min-depth)
             graph-line-offset 0.4
             graph-line-string (graph-line-string (merge props {:graph-domain graph-domain
-                                                 :graph-range  graph-range
-                                                 :min-depth    min-depth
-                                                 :max-depth    max-depth
-                                                 :spread       spread
-                                                 :origin       origin
-                                                 :offset       graph-line-offset
-                                                 :margin       margin}))
-        clip-path-string (str graph-line-string " "
-                              (+ graph-domain ox m-left) " " (+ graph-range m-top) " "
-                              (+ ox m-left) " " (+ graph-range m-top) " "
-                              "Z")]
-        [:div#transect-plot
-         [:svg {:width  width
-                :height height}
+                                                               :graph-range  graph-range
+                                                               :min-depth    min-depth
+                                                               :max-depth    max-depth
+                                                               :spread       spread
+                                                               :origin       origin
+                                                               :offset       graph-line-offset
+                                                               :margin       margin}))
+            clip-path-string (str graph-line-string " "
+                                  (+ graph-domain ox m-left) " " (+ graph-range m-top) " "
+                                  (+ ox m-left) " " (+ graph-range m-top) " "
+                                  "Z")]
+        (when (and (pos? graph-range)  (gmaths/isFiniteNumber graph-range))
+          [:div#transect-plot
+           [:svg {:width  width
+                  :height height}
 
-          [:defs
-           [:clipPath {:id "clipPath"}
-            [:path {:d clip-path-string}]]]
+            [:defs
+             [:clipPath {:id "clipPath"}
+              [:path {:d clip-path-string}]]]
 
-          [:rect#background {:x      0
-                             :y      0
-                             :width  width
-                             :height height
-                             :style  {:opacity 0.2}}]
+            [:rect#background {:x      0
+                               :y      0
+                               :width  width
+                               :height height
+                               :style  {:opacity 0.2}}]
 
-          ;draw habitat zones
-          [:g#habitat-zones
-           (for [zone habitat]
-             (let [[start-percentage end-percentage zone-name] zone]
-               (if (not (nil? zone-name))
-                 (let [x-pos (percentage-to-x-pos (merge props {:percentage   start-percentage
-                                                                :graph-domain graph-domain
-                                                                :origin       origin
-                                                                :margin       margin}))
-                       width (* (/ (- end-percentage start-percentage) 100) graph-domain)]
-                   [:g {:key zone}
-                    [:rect {:x      x-pos
-                            :y      m-top
-                            :width  width
-                            :height graph-range
-                            :style  {:opacity 0.25
-                                     :fill    ((keyword zone-name) zone-colour-mapping)
-                                     }}]
-                    [:rect {:x      x-pos
-                            :y      m-top
-                            :width  width
-                            :height graph-range
-                            :style  {:opacity   0.75
-                                     :fill      ((keyword zone-name) zone-colour-mapping)
-                                     :clip-path "url(#clipPath)"
-                                     }}]]))))]
+            ;; draw habitat zones
+            [:g#habitat-zones
+             (for [zone habitat]
+               (let [[start-percentage end-percentage zone-name] zone]
+                 (if (not (nil? zone-name))
+                   (let [x-pos (percentage-to-x-pos (merge props {:percentage   start-percentage
+                                                                  :graph-domain graph-domain
+                                                                  :origin       origin
+                                                                  :margin       margin}))
+                         width (* (/ (- end-percentage start-percentage) 100) graph-domain)]
+                     [:g {:key zone}
+                      [:rect {:x      x-pos
+                              :y      m-top
+                              :width  width
+                              :height graph-range
+                              :style  {:opacity 0.25
+                                       :fill    ((keyword zone-name) zone-colour-mapping)
+                                       }}]
+                      [:rect {:x      x-pos
+                              :y      m-top
+                              :width  width
+                              :height graph-range
+                              :style  {:opacity   0.75
+                                       :fill      ((keyword zone-name) zone-colour-mapping)
+                                       :clip-path "url(#clipPath)"
+                                       }}]]))))]
 
-          ;draw bathymetry line
-          [:path {:d            graph-line-string
-                  :fill         "none"
-                  :stroke       "black"
-                  :stroke-width 2}]
+            ;; draw bathymetry line
+            [:path {:d            graph-line-string
+                    :fill         "none"
+                    :stroke       "black"
+                    :stroke-width 2}]
 
-          ;draw axes
-          [axes (merge props {:origin origin
-                              :margin margin})]
+            ;; draw axes
+            [axes (merge props {:origin origin
+                                :margin margin})]
 
-          ;label axes
-          [axis-labels (merge props {:line-height   line-height-axes
-                                     :font-size     font-size-axes
-                                     :x-axis-offset 10
-                                     :y-axis-offset 10
-                                     :x-steps       20
-                                     :y-steps       6
-                                     :max-depth     max-depth
-                                     :min-depth     min-depth
-                                     :graph-domain  graph-domain
-                                     :graph-range   graph-range
-                                     :spread        spread
-                                     :origin        origin
-                                     :margin        margin
-                                     :offset        graph-line-offset})]
+            ;; label axes
+            [axis-labels (merge props {:line-height   line-height-axes
+                                       :font-size     font-size-axes
+                                       :x-axis-offset 10
+                                       :y-axis-offset 10
+                                       :x-steps       20
+                                       :y-steps       6
+                                       :max-depth     max-depth
+                                       :min-depth     min-depth
+                                       :graph-domain  graph-domain
+                                       :graph-range   graph-range
+                                       :spread        spread
+                                       :origin        origin
+                                       :margin        margin
+                                       :offset        graph-line-offset})]
 
-          [tooltip (merge props {:tooltip-content tooltip-content
-                                 :line-height     line-height-tooltip
-                                 :tooltip-width   tooltip-width
-                                 :font-size       font-size-tooltip
-                                 :margin          margin})]
+            [tooltip (merge props {:tooltip-content tooltip-content
+                                   :line-height     line-height-tooltip
+                                   :tooltip-width   tooltip-width
+                                   :font-size       font-size-tooltip
+                                   :margin          margin})]
 
-          (let [buffer (min 20 (min m-top m-right))]
-            [:rect#mouse-move-area {:x              (- (+ m-left ox) buffer)
-                                    :y              (- m-top buffer)
-                                    :width          (+ (* 2 buffer) graph-domain)
-                                    :height         (+ (* 2 buffer) graph-range)
-                                    :style          {:opacity 0}
-                                    :on-mouse-move  #(mouse-move-graph (merge props {:tooltip-content tooltip-content
-                                                                                     :tooltip-width   tooltip-width
-                                                                                     :event           %
-                                                                                     :max-depth       max-depth
-                                                                                     :min-depth       min-depth
-                                                                                     :graph-domain    graph-domain
-                                                                                     :graph-range     graph-range
-                                                                                     :spread          spread
-                                                                                     :origin          origin
-                                                                                     :margin          margin
-                                                                                     :offset          graph-line-offset}))
-                                    :on-mouse-leave #(mouse-leave-graph {:tooltip-content tooltip-content})}])]]))))
+            (let [buffer (min 20 (min m-top m-right))]
+              [:rect#mouse-move-area {:x              (- (+ m-left ox) buffer)
+                                      :y              (- m-top buffer)
+                                      :width          (+ (* 2 buffer) graph-domain)
+                                      :height         (+ (* 2 buffer) graph-range)
+                                      :style          {:opacity 0}
+                                      :on-mouse-move  #(mouse-move-graph (merge props {:tooltip-content tooltip-content
+                                                                                       :tooltip-width   tooltip-width
+                                                                                       :event           %
+                                                                                       :max-depth       max-depth
+                                                                                       :min-depth       min-depth
+                                                                                       :graph-domain    graph-domain
+                                                                                       :graph-range     graph-range
+                                                                                       :spread          spread
+                                                                                       :origin          origin
+                                                                                       :margin          margin
+                                                                                       :offset          graph-line-offset}))
+                                      :on-mouse-leave #(mouse-leave-graph {:tooltip-content tooltip-content})}])]])))))
