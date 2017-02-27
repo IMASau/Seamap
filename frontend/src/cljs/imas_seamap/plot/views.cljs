@@ -1,8 +1,9 @@
 (ns imas-seamap.plot.views
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
+            [goog.dom :as dom]
             [goog.object :as gobj]
-            [goog.dom :as dom]))
+            [debux.cs.core :refer [dbg]]))
 
 (defn randColour []
   (str "rgb(" (rand-int 255) "," (rand-int 255) "," (rand-int 255) ")"))
