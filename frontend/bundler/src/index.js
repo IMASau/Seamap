@@ -8,7 +8,7 @@ import CSSTransitionGroup from 'react-addons-css-transition-group';
 import ContainerDimensions from 'react-container-dimensions';
 
 import * as ReactLeaflet from 'react-leaflet';
-import EditControl from './EditControl';
+import { EditControl } from 'react-leaflet-draw';
 
 import * as Blueprint from '@blueprintjs/core';
 
