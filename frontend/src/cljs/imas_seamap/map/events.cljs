@@ -41,8 +41,27 @@
                 (disj % layer)
                 (conj % layer))))
 
+(defn visible-layers [{:keys [west south east north] :as bounds} layers]
+  (filter
+   (fn [{:keys [bounding_box]}]
+     (not (or (> (:south bounding_box) north)
+              (< (:north bounding_box) south)
+              (> (:west  bounding_box) east)
+              (< (:east  bounding_box) west))))
+   layers))
+
+(defn update-active-layers
+  "Utility to recalculate layers that are displayed.  When the
+  viewport or zoom changes, we may need to switch out a layer for a
+  coarser/finer resolution one.  Only applies to habitat layers."
+  [{:keys [map] :as db}]
+  (js/console.warn "visible:" (visible-layers (:bounds map) (:layers map)))
+  db)
+
 (defn map-view-updated [db [_ {:keys [zoom center bounds]}]]
-  (update-in db [:map] assoc
-             :zoom zoom
-             :center center
-             :bounds bounds))
+  (-> db
+      (update-in [:map] assoc
+                 :zoom zoom
+                 :center center
+                 :bounds bounds)
+      update-active-layers))
