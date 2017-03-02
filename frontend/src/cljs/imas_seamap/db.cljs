@@ -1,7 +1,7 @@
 (ns imas-seamap.db)
 
 (def default-db
-  {:map {:pos [-23.116667 132.133333]
+  {:map {:center [-23.116667 132.133333]
          :zoom 4
          :bounds {}
          :layers []

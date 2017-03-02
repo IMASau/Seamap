@@ -1,6 +1,8 @@
 (ns imas-seamap.map.views
   (:require [reagent.core :as r]
-            [re-frame.core :as re-frame]))
+            [re-frame.core :as re-frame]
+            [imas-seamap.utils :refer [select-values]]
+            [debux.cs.core :refer-macros [dbg]]))
 
 
 (def tile-layer    (r/adapt-react-class js/ReactLeaflet.TileLayer))
@@ -18,13 +20,19 @@
    :east  (.. bounds getEast)
    :west  (.. bounds getWest)})
 
+(defn latlng->vec [ll]
+  (-> ll
+      js->clj
+      (select-values ["lat" "lng"])))
+
 (defn leaflet-props [e]
   (let [m (.. e -target)]
     {:zoom (.. m getZoom)
+     :center (-> m .getCenter latlng->vec)
      :bounds (-> m .getBounds bounds->map)}))
 
 (defn map-component []
-  (let [{:keys [pos zoom controls active-layers]} @(re-frame/subscribe [:map/props])
+  (let [{:keys [center zoom controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
         base-layer-bluemarble [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
                                           :layers "nasa:bluemarble"
@@ -35,7 +43,7 @@
                                      :transparent true :format "image/png"}]
         base-layer-osm [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                                     :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
-    [leaflet-map {:id "map" :center pos :zoom zoom
+    [leaflet-map {:id "map" :center center :zoom zoom
                   :on-zoomend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])
                   :on-dragend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])}
      base-layer-osm

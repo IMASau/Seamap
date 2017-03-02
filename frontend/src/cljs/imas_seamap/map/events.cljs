@@ -1,6 +1,6 @@
 (ns imas-seamap.map.events
   (:require [re-frame.core :as re-frame]
-            [debux.cs.core :refer [dbg]]))
+            [debux.cs.core :refer-macros [dbg]]))
 
 
 (def ^:private test-layer-data
@@ -30,7 +30,8 @@
                 (disj % layer)
                 (conj % layer))))
 
-(defn map-view-updated [db [_ {:keys [zoom bounds]}]]
+(defn map-view-updated [db [_ {:keys [zoom center bounds]}]]
   (update-in db [:map] assoc
              :zoom zoom
+             :center center
              :bounds bounds))
