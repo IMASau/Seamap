@@ -1,5 +1,6 @@
 (ns imas-seamap.map.events
-  (:require [re-frame.core :as re-frame]
+  (:require [clojure.string :as string]
+            [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
 
 
@@ -12,14 +13,22 @@
    #_{:name "" :server_url "" :layer_name "" :category "imagery" :bounding_box "" :metadata_url "" :description "" :zoom_info "" :server_type "" :legend_url "" :date_start "" :date_end ""}
    #_{:name "" :server_url "" :layer_name "" :category "third-party" :bounding_box "" :metadata_url "" :description "" :zoom_info "" :server_type "" :legend_url "" :date_start "" :date_end ""}])
 
+(defn str->bounds [bounds-str]
+  (as-> bounds-str bnds
+      (string/split bnds ",")
+      (map js/parseFloat bnds)
+      (map vector [:west :south :east :north] bnds)
+      (into {} bnds)))
+
 (defn process-layer [layer]
-  (-> %
-      ;; TODO: convert the dates, bounding box, too
+  (-> layer
+      ;; TODO: convert the dates, etc too
+      (update :bounding_box str->bounds)
       (update :category keyword)
       (update :server_type keyword)))
 
 (defn process-layers [layers]
-  (map process-layers layers))
+  (mapv process-layer layers))
 
 (defn update-layers [db [_ layers]]
   (->> layers
