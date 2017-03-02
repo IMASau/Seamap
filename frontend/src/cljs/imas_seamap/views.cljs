@@ -57,15 +57,15 @@
              :on-click #(re-frame/dispatch [dispatch-key])
              :text label}]))
 
-(defn layer-card [{:keys [name] :as layer-spec}]
+(defn layer-card [{:keys [name] :as layer-spec} {:keys [active?] :as other-props}]
   [:div.layer-wrapper
    [:div.pt-card.pt-elevation-1
     {:on-click #(re-frame/dispatch [:map/toggle-layer layer-spec])}
-    [:span name]]])
+    [:span name (if active? [:span " " [:i.pt-icon-tick]])]]])
 
-(defn layer-group [{:keys [title expanded] :or {expanded false}} layers]
+(defn layer-group [{:keys [expanded] :or {expanded false}} layers active-layers]
   (let [expanded-state (reagent/atom expanded)]
-    (fn [props layers]
+    (fn [{:keys [title] :as props} layers active-layers]
       [:div.layer-group
        [:h1 {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
              :on-click #(swap! expanded-state not)}
@@ -73,16 +73,16 @@
        [collapse {:is-open @expanded-state}
         (for [layer layers]
           ^{:key (:layer_name layer)}
-          [layer-card layer])]])))
+          [layer-card layer {:active? (active-layers layer)}])]])))
 
 (defn app-controls []
-  (let [{:keys [habitat bathymetry imagery third-party] :as groups} @(re-frame/subscribe [:map/layers])]
-    [:div#sidebar
+  (let [{:keys [groups active-layers]} @(re-frame/subscribe [:map/layers])
+        {:keys [habitat bathymetry imagery third-party]} groups]
      [transect-toggle]
-     [layer-group {:title "Habitat"    :expanded true } habitat]
-     [layer-group {:title "Bathymetry" :expanded true } bathymetry]
-     [layer-group {:title "Imagery"    :expanded false} imagery]
-     [layer-group {:title "Other"      :expanded false} third-party]]))
+     [layer-group {:title "Habitat"    :expanded true } habitat     active-layers]
+     [layer-group {:title "Bathymetry" :expanded true } bathymetry  active-layers]
+     [layer-group {:title "Imagery"    :expanded false} imagery     active-layers]
+     [layer-group {:title "Other"      :expanded false} third-party active-layers]]))
 
 (def container-dimensions (reagent/adapt-react-class js/React.ContainerDimensions))
 
