@@ -41,14 +41,15 @@
                 (disj % layer)
                 (conj % layer))))
 
+(defn layer-visible? [{:keys [west south east north] :as bounds}
+                      {:keys [bounding_box]          :as layer}]
+  (not (or (> (:south bounding_box) north)
+           (< (:north bounding_box) south)
+           (> (:west  bounding_box) east)
+           (< (:east  bounding_box) west))))
+
 (defn visible-layers [{:keys [west south east north] :as bounds} layers]
-  (filter
-   (fn [{:keys [bounding_box]}]
-     (not (or (> (:south bounding_box) north)
-              (< (:north bounding_box) south)
-              (> (:west  bounding_box) east)
-              (< (:east  bounding_box) west))))
-   layers))
+  (filter (partial layer-visible? bounds) layers))
 
 (defn update-active-layers
   "Utility to recalculate layers that are displayed.  When the
