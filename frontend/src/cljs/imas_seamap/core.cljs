@@ -33,7 +33,8 @@
     :transect.draw/disable                events/transect-drawing-finish
     :transect.draw/clear                  events/not-yet-implemented
     :map/toggle-layer                     mevents/toggle-layer
-    :map/update-layers                    mevents/update-layers}})
+    :map/update-layers                    mevents/update-layers
+    :map/view-updated                     mevents/map-view-updated}})
 
 (def standard-interceptors
   [(when ^boolean goog.DEBUG debug)])

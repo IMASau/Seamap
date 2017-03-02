@@ -12,6 +12,17 @@
 (def feature-group (r/adapt-react-class js/ReactLeaflet.FeatureGroup))
 (def edit-control  (r/adapt-react-class js/ReactLeaflet.EditControl))
 
+(defn bounds->map [bounds]
+  {:north (.. bounds getNorth)
+   :south (.. bounds getSouth)
+   :east  (.. bounds getEast)
+   :west  (.. bounds getWest)})
+
+(defn leaflet-props [e]
+  (let [m (.. e -target)]
+    {:zoom (.. m getZoom)
+     :bounds (-> m .getBounds bounds->map)}))
+
 (defn map-component []
   (let [{:keys [pos zoom controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -24,7 +35,9 @@
                                      :transparent true :format "image/png"}]
         base-layer-osm [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                                     :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
-    [leaflet-map {:id "map" :center pos :zoom zoom}
+    [leaflet-map {:id "map" :center pos :zoom zoom
+                  :on-zoomend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])
+                  :on-dragend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])}
      base-layer-osm
      (for [{:keys [server_url layer_name] :as layer} active-layers]
        ^{:key (str server_url layer_name)}

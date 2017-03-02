@@ -29,3 +29,8 @@
              #(if (% layer)
                 (disj % layer)
                 (conj % layer))))
+
+(defn map-view-updated [db [_ {:keys [zoom bounds]}]]
+  (update-in db [:map] assoc
+             :zoom zoom
+             :bounds bounds))
