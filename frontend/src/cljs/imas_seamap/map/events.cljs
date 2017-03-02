@@ -56,6 +56,7 @@
   coarser/finer resolution one.  Only applies to habitat layers."
   [{:keys [map] :as db}]
   ;; Basic idea:
+  ;; * check that any habitat layer is currently displayed (ie, don't start with no habitats, then zoom in and suddenly display one!)
   ;; * filter out habitat layers from actives
   ;; * add back in those that are visible, and past the zoom cutoff
   ;; * assoc back onto the db
