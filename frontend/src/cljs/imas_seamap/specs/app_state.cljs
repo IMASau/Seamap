@@ -2,7 +2,7 @@
   (:require [cljs.spec :as s]))
 
 
-(s/def :map/pos
+(s/def :map/center
   (s/coll-of number? :count 2 :kind vector?))
 
 (s/def :map/zoom integer?)
@@ -14,7 +14,15 @@
 (s/def :map.layer/server_url string?)
 (s/def :map.layer/layer_name string?)
 (s/def :map.layer/category keyword?)
-(s/def :map.layer/bounding_box string?) ; TODO
+
+(s/def :map.layer.bb/west  float?)
+(s/def :map.layer.bb/south float?)
+(s/def :map.layer.bb/east  float?)
+(s/def :map.layer.bb/north float?)
+(s/def :map.layer/bounding_box (s/keys :req-un [:map.layer.bb/west
+                                                :map.layer.bb/south
+                                                :map.layer.bb/east
+                                                :map.layer.bb/north]))
 (s/def :map.layer/metadata_url string?)
 (s/def :map.layer/description string?)
 (s/def :map.layer/zoom_info string?)    ; TODO
@@ -41,7 +49,7 @@
                                      :kind set?))
 
 (s/def ::map
-  (s/keys :req-un [:map/pos :map/zoom :map/controls :map/layers :map/active-layers]))
+  (s/keys :req-un [:map/center :map/zoom :map/controls :map/layers :map/active-layers]))
 
 (s/def :geojson/type string?)
 (s/def :geojson/geometry map?)
