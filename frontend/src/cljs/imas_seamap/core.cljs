@@ -14,7 +14,7 @@
 
 (def config
   {:subs
-   {:map/props                            subs/map-props
+   {:map/props                            msubs/map-props
     :map/layers                           msubs/map-layers
     :transect/info                        subs/transect-info
     :help-layer/open?                     subs/help-layer-open?}
