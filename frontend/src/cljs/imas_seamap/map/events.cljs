@@ -55,6 +55,10 @@
   viewport or zoom changes, we may need to switch out a layer for a
   coarser/finer resolution one.  Only applies to habitat layers."
   [{:keys [map] :as db}]
+  ;; Basic idea:
+  ;; * filter out habitat layers from actives
+  ;; * add back in those that are visible, and past the zoom cutoff
+  ;; * assoc back onto the db
   (js/console.warn "visible:" (visible-layers (:bounds map) (:layers map)))
   db)
 
