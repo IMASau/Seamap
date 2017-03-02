@@ -6,6 +6,7 @@
   (s/coll-of number? :count 2 :kind vector?))
 
 (s/def :map/zoom integer?)
+(s/def :map/zoom-cutover integer?)
 
 (s/def :map.controls/transect boolean?)
 (s/def :map/controls (s/keys :req-un [:map.controls/transect]))
@@ -49,7 +50,7 @@
                                      :kind set?))
 
 (s/def ::map
-  (s/keys :req-un [:map/center :map/zoom :map/controls :map/layers :map/active-layers]))
+  (s/keys :req-un [:map/center :map/zoom :map/zoom-cutover :map/controls :map/layers :map/active-layers]))
 
 (s/def :geojson/type string?)
 (s/def :geojson/geometry map?)
