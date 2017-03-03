@@ -36,7 +36,7 @@
      :bounds (-> m .getBounds bounds->map)}))
 
 (defn map-component []
-  (let [{:keys [center zoom controls active-layers]} @(re-frame/subscribe [:map/props])
+  (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
         base-layer-bluemarble [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
                                           :layers "nasa:bluemarble"
@@ -47,9 +47,12 @@
                                      :transparent true :format "image/png"}]
         base-layer-osm [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                                     :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
-    [leaflet-map {:id "map" :center center :zoom zoom
-                  :on-zoomend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])
-                  :on-dragend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])}
+    [leaflet-map (merge
+                  {:id "map" :use-fly-to true
+                   :center center :zoom zoom
+                   :on-zoomend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])
+                   :on-dragend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])}
+                  (when (seq bounds) {:bounds (map->bounds bounds)}))
      base-layer-osm
      (for [{:keys [server_url layer_name] :as layer} active-layers]
        ^{:key (str server_url layer_name)}
