@@ -30,6 +30,7 @@ class Layer(models.Model):
     metadata_url = models.URLField(max_length = 200)
     description = models.CharField(max_length = 500)
     zoom_info = models.CharField(validators=[validate_comma_separated_integer_list], max_length = 200)
+    detail_resolution = models.BooleanField()
     server_type = models.ForeignKey(ServerType)
     legend_url = models.URLField(max_length=200)
     date_start = models.DateField()
