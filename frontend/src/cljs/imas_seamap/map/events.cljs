@@ -51,6 +51,8 @@
 (defn visible-layers [{:keys [west south east north] :as bounds} layers]
   (filter (partial layer-visible? bounds) layers))
 
+(defn habitat-layer? [layer] (-> layer :category (= :habitat)))
+
 (defn update-active-layers
   "Utility to recalculate layers that are displayed.  When the
   viewport or zoom changes, we may need to switch out a layer for a
@@ -61,15 +63,14 @@
   ;; * filter out habitat layers from actives
   ;; * add back in those that are visible, and past the zoom cutoff
   ;; * assoc back onto the db
-  (let [is-habitat #(-> % :category (= :habitat))
-        habitat-displayed? (seq (filter is-habitat active-layers))]
+  (let [habitat-displayed? (seq (filter habitat-layer? active-layers))]
     (if habitat-displayed?
       (let [display-more-detail? (> zoom zoom-cutover)
-            habitat-layers (filter is-habitat layers)
+            habitat-layers (filter habitat-layer? layers)
             {detailed-layers true
              national-resolution false} (group-by :detail_resolution habitat-layers)
             visible-detailed (visible-layers bounds detailed-layers)
-            filtered-actives (remove is-habitat active-layers)]
+            filtered-actives (remove habitat-layer? active-layers)]
         (assoc-in db [:map :active-layers]
                   (->> (if (and display-more-detail? (seq visible-detailed))
                          visible-detailed
