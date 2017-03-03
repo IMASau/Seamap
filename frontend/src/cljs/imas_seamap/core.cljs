@@ -34,6 +34,7 @@
     :transect.draw/clear                  events/not-yet-implemented
     :map/toggle-layer                     mevents/toggle-layer
     :map/update-layers                    mevents/update-layers
+    :map/pan-to-layer                     mevents/zoom-to-layer
     :map/view-updated                     mevents/map-view-updated}})
 
 (def standard-interceptors

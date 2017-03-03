@@ -41,6 +41,13 @@
                 (disj % layer)
                 (conj % layer))))
 
+(defn zoom-to-layer
+  "Zoom to the layer's extent, adding it if it wasn't already."
+  [db [_ {:keys [bounding_box] :as layer}]]
+  (-> db
+      (assoc-in [:map :bounds] bounding_box)
+      (update-in [:map :active-layers] conj layer)))
+
 (defn layer-visible? [{:keys [west south east north] :as bounds}
                       {:keys [bounding_box]          :as layer}]
   (not (or (> (:south bounding_box) north)
