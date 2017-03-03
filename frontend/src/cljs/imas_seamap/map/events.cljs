@@ -55,14 +55,28 @@
   "Utility to recalculate layers that are displayed.  When the
   viewport or zoom changes, we may need to switch out a layer for a
   coarser/finer resolution one.  Only applies to habitat layers."
-  [{:keys [map] :as db}]
+  [{{:keys [layers active-layers zoom zoom-cutover bounds]} :map :as db}]
   ;; Basic idea:
   ;; * check that any habitat layer is currently displayed (ie, don't start with no habitats, then zoom in and suddenly display one!)
   ;; * filter out habitat layers from actives
   ;; * add back in those that are visible, and past the zoom cutoff
   ;; * assoc back onto the db
-  (js/console.warn "visible:" (visible-layers (:bounds map) (:layers map)))
-  db)
+  (let [is-habitat #(-> % :category (= :habitat))
+        habitat-displayed? (seq (filter is-habitat active-layers))]
+    (if habitat-displayed?
+      (let [display-more-detail? (> zoom zoom-cutover)
+            habitat-layers (filter is-habitat layers)
+            {detailed-layers true
+             national-resolution false} (group-by :detail_resolution habitat-layers)
+            visible-detailed (visible-layers bounds detailed-layers)
+            filtered-actives (remove is-habitat active-layers)]
+        (assoc-in db [:map :active-layers]
+                  (->> (if (and display-more-detail? (seq visible-detailed))
+                         visible-detailed
+                         (take 1 national-resolution))
+                       (into filtered-actives)
+                       (into #{}))))
+      db)))
 
 (defn map-view-updated [db [_ {:keys [zoom center bounds]}]]
   (-> db
