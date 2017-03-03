@@ -20,6 +20,10 @@
    :east  (.. bounds getEast)
    :west  (.. bounds getWest)})
 
+(defn map->bounds [{:keys [west south east north] :as bounds}]
+  [[south west]
+   [north east]])
+
 (defn latlng->vec [ll]
   (-> ll
       js->clj
