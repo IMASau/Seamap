@@ -3,7 +3,7 @@
 (def default-db
   {:map {:center [-23.116667 132.133333]
          :zoom 4
-         :zoom-cutover 6
+         :zoom-cutover 5
          :bounds {}
          :layers []
          :active-layers #{}
