@@ -60,8 +60,14 @@
 (defn layer-card [{:keys [name] :as layer-spec} {:keys [active?] :as other-props}]
   [:div.layer-wrapper
    [:div.pt-card.pt-elevation-1
-    {:on-click #(re-frame/dispatch [:map/toggle-layer layer-spec])}
-    [:span name (if active? [:span " " [:i.pt-icon-tick]])]]])
+    [:div.header-row
+     [:span.header-text name]
+     [:div.layer-controls.pt-ui-text-large
+      [:span.control.pt-text-muted
+       {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
+        :on-click #(re-frame/dispatch [:map/toggle-layer layer-spec])}]
+      [:span.control.pt-text-muted.pt-icon-zoom-to-fit
+       {:on-click #(re-frame/dispatch [:map/pan-to-layer layer-spec])}]]]]])
 
 (defn layer-group [{:keys [expanded] :or {expanded false}} layers active-layers]
   (let [expanded-state (reagent/atom expanded)]

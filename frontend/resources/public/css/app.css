@@ -37,6 +37,26 @@ footer {
     z-index: 2001;
 }
 
+/* Layer cards */
+.layer-wrapper .header-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.layer-wrapper .header-text {
+    flex: 1 1 auto;
+}
+
+.layer-wrapper .header-row .layer-controls {
+    flex: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.layer-controls .control:hover {
+    color: inherit;
+}
+
 /* Helper overlay: */
 .helper-layer-wrapper {
     position: absolute;
