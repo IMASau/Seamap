@@ -61,7 +61,9 @@
   [:div.layer-wrapper
    [:div.pt-card.pt-elevation-1
     [:div.header-row
-     [:span.header-text name]
+     [:span.header-text.pt-text-overflow-ellipsis
+      {:title name}
+      name]
      [:div.layer-controls.pt-ui-text-large
       [:span.control.pt-text-muted
        {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")

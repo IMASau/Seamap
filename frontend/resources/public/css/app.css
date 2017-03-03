@@ -15,6 +15,7 @@ body {
 #sidebar {
     flex: 0 0 200px;
     padding: 5px;
+    width: 0;
 }
 #content-wrapper {
     flex: 1 1 100%;
@@ -51,6 +52,7 @@ footer {
     flex: 0;
     display: flex;
     flex-direction: column;
+    margin-left: 10px;
 }
 
 .layer-controls .control:hover {
