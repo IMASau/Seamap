@@ -24,8 +24,8 @@
   (-> layer
       ;; TODO: convert the dates, etc too
       (update :bounding_box str->bounds)
-      (update :category keyword)
-      (update :server_type keyword)))
+      (update :category (comp keyword string/lower-case))
+      (update :server_type (comp keyword string/lower-case))))
 
 (defn process-layers [layers]
   (mapv process-layer layers))
