@@ -31,7 +31,15 @@
   (assoc-in db [:display :help-overlay] false))
 
 (defn transect-query [db [_ geojson]]
+  (re-frame/dispatch [:transect.query/habitat])
+  (re-frame/dispatch [:transect.query/bathymetry])
   (assoc db :transect geojson))
+
+(defn transect-query-habitat [db _]
+  db)
+
+(defn transect-query-bathymetry [db _]
+  db)
 
 (defn transect-drawing-start [db _]
   (-> db
