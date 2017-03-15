@@ -42,8 +42,8 @@ class Layer(models.Model):
     detail_resolution = models.BooleanField()
     server_type = models.ForeignKey(ServerType)
     legend_url = models.URLField(max_length=200)
-    date_start = models.DateField()
-    date_end = models.DateField()
+    date_start = models.DateField(blank=True, null=True)
+    date_end = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return self.name

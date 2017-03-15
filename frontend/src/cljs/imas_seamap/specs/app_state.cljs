@@ -29,8 +29,8 @@
 (s/def :map.layer/zoom_info string?)    ; TODO
 (s/def :map.layer/server_type keyword?)
 (s/def :map.layer/legend_url string?)
-(s/def :map.layer/date_start string?)   ; TODO
-(s/def :map.layer/date_end string?)     ; TODO
+(s/def :map.layer/date_start (s/nilable string?)) ; TODO
+(s/def :map.layer/date_end (s/nilable string?))   ; TODO
 (s/def :map/layer
   (s/keys :req-un [:map.layer/name
                    :map.layer/server_url
