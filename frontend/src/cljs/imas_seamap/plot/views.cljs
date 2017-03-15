@@ -1,6 +1,7 @@
 (ns imas-seamap.plot.views
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
+            [imas-seamap.blueprint :refer [non-ideal-state spinner]]
             [goog.dom :as dom]
             [goog.object :as gobj]
             [goog.math :as gmaths]
@@ -347,9 +348,6 @@
                                                                                        :margin          margin
                                                                                        :offset          graph-line-offset}))
                                       :on-mouse-leave #(mouse-leave-graph {:tooltip-content tooltip-content})}])]])))))
-
-(def non-ideal-state (reagent/adapt-react-class js/Blueprint.NonIdealState))
-(def spinner (reagent/adapt-react-class js/Blueprint.Spinner))
 
 (defn- transect-no-data []
   [non-ideal-state

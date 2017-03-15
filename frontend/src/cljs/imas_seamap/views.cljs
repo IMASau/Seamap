@@ -1,6 +1,7 @@
 (ns imas-seamap.views
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
+            [imas-seamap.blueprint :as b]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [goog.object :as gobj]
@@ -8,11 +9,6 @@
 
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
-
-(def button (reagent/adapt-react-class js/Blueprint.Button))
-(def clipped-text (reagent/adapt-react-class js/Blueprint.Text))
-(def collapse (reagent/adapt-react-class js/Blueprint.Collapse))
-(def overlay (reagent/adapt-react-class js/Blueprint.Overlay))
 
 (defn ->helper-props [& {:keys [text position]
                          :or   {position "right"}}]
@@ -32,8 +28,8 @@
                           "left"   {:left -176}
                           "right"  {:right -176}))
         open? @(re-frame/subscribe [:help-layer/open?])]
-    [overlay {:is-open  open?
-              :on-close #(re-frame/dispatch  [:help-layer/close])}
+    [b/overlay {:is-open  open?
+                :on-close #(re-frame/dispatch  [:help-layer/close])}
      (when open?
       (for [id element-ids
             :let [{:keys [top right bottom left width height
@@ -54,16 +50,16 @@
         [dispatch-key label] (if drawing?
                                [:transect.draw/disable "Cancel Transect"]
                                [:transect.draw/enable  "Draw Transect"])]
-    [button {:icon-name "edit"
-             :class-name "pt-fill draw-transect"
-             :on-click #(re-frame/dispatch [dispatch-key])
-             :text label}]))
+    [b/button {:icon-name "edit"
+               :class-name "pt-fill draw-transect"
+               :on-click #(re-frame/dispatch [dispatch-key])
+               :text label}]))
 
 (defn layer-card [{:keys [name] :as layer-spec} {:keys [active?] :as other-props}]
   [:div.layer-wrapper
    [:div.pt-card.pt-elevation-1
     [:div.header-row
-     [clipped-text {:ellipses true :class-name "header-text"} name]
+     [b/clipped-text {:ellipses true :class-name "header-text"} name]
      [:div.layer-controls.pt-ui-text-large
       [:span.control.pt-text-muted
        {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
@@ -78,7 +74,7 @@
        [:h1 {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
              :on-click #(swap! expanded-state not)}
         (str title " (" (count layers) ")")]
-       [collapse {:is-open @expanded-state}
+       [b/collapse {:is-open @expanded-state}
         (for [layer layers]
           ^{:key (:layer_name layer)}
           [layer-card layer {:active? (active-layers layer)}])]])))
