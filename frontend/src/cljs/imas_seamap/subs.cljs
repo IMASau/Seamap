@@ -6,5 +6,12 @@
   {:drawing? (boolean (get-in map [:controls :transect]))
    :query transect})
 
+(defn transect-results [db _]
+  {:transect.results/query {}
+   :transect.results/status :transect.results.status/empty
+   :transect.results/habitat []
+   :transect.results/bathymetry []
+   :transect.results/zone-colours {}})
+
 (defn help-layer-open? [db _]
   (get-in db [:display :help-overlay]))

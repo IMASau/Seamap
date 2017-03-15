@@ -17,6 +17,7 @@
    {:map/props                            msubs/map-props
     :map/layers                           msubs/map-layers
     :transect/info                        subs/transect-info
+    :transect/results                     subs/transect-results
     :help-layer/open?                     subs/help-layer-open?}
 
    :events

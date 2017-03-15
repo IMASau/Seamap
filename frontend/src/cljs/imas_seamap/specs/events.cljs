@@ -1,7 +1,8 @@
 (ns imas-seamap.specs.events
   (:require [cljs.spec :as s]
             [imas-seamap.specs.app-state]
-            [imas-seamap.events :as events]))
+            [imas-seamap.events :as events]
+            [imas-seamap.subs :as subs]))
 
 ;;; convenience; event-vector for a no-args event handler:
 (s/def ::event-v (s/coll-of keyword? :count 1))
@@ -47,3 +48,22 @@
                                      :opt-un [:ajax/err-handler :ajax/override-opts]))))
   :ret :seamap/app-state)
 
+(s/def :transect.results/query :imas-seamap.specs.app-state/geojson)
+(s/def :transect.results/status #{:transect.results.status/empty
+                                  :transect.results.status/loading
+                                  :transect.results.status/ready
+                                  :transect.results.status/error})
+(s/def :transect.results/habitat seq?)  ; TODO
+(s/def :transect.results/bathymetry seq?)
+(s/def :transect.results/zone-colours map?)
+(s/def :transect/results
+  (s/keys :req [:transect.results/query
+                :transect.results/status
+                :transect.results/habitat
+                :transect.results/bathymetry
+                :transect.results/zone-colours]))
+
+(s/fdef subs/transect-results
+  :args (s/cat :db :seamap/app-state
+               :event-v vector?)
+  :ret :transect/results)
