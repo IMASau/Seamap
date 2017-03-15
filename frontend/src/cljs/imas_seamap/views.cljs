@@ -113,7 +113,7 @@
                                      (js->clj % :keywordize-keys true))])]])}))
 
 (defn plot-component []
-  (let [show-plot (reagent/atom true)
+  (let [show-plot (reagent/atom false)
         force-resize #(js/window.dispatchEvent (js/Event. "resize"))
         transect-results (re-frame/subscribe [:transect/results])]
     (fn []
