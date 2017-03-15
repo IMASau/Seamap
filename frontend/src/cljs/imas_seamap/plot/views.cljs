@@ -347,3 +347,36 @@
                                                                                        :margin          margin
                                                                                        :offset          graph-line-offset}))
                                       :on-mouse-leave #(mouse-leave-graph {:tooltip-content tooltip-content})}])]])))))
+
+(def non-ideal-state (reagent/adapt-react-class js/Blueprint.NonIdealState))
+(def spinner (reagent/adapt-react-class js/Blueprint.Spinner))
+
+(defn- transect-no-data []
+  [non-ideal-state
+   {:title "No Data to Display"
+    :description "Try the \"Draw Transect\" button above!"}])
+
+(defn- transect-loading []
+  [non-ideal-state
+   {:title "Loading..."
+    :visual (reagent/as-element [spinner {:intent "success"}])}])
+
+(defn- transect-error []
+  [non-ideal-state
+   {:title "Error"
+    :description "There was an error querying the data"
+    :visual "pt-icon-error"}])
+
+(def test-data
+  {:bathymetry (generate-bathymetry)
+   :habitat (generate-habitat habitat-zone-colours)
+   :zone-colour-mapping habitat-zone-colours})
+(defn transect-display-component [{:keys [:transect.results/status] :as results}]
+  (case status
+    :transect.results.status/empty [transect-no-data]
+    :transect.results.status/loading [transect-loading]
+    :transect.results.status/error [transect-error]
+    ;; default (FIXME - hack to display temp data!):
+    [transect-graph (merge results
+                           test-data)]))
+

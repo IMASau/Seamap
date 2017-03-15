@@ -2,6 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.plot.views :refer [transect-display-component]]
             [goog.object :as gobj]
             [goog.dom :as dom]))
 
@@ -113,7 +114,8 @@
 
 (defn plot-component []
   (let [show-plot (reagent/atom true)
-        force-resize #(js/window.dispatchEvent (js/Event. "resize"))]
+        force-resize #(js/window.dispatchEvent (js/Event. "resize"))
+        transect-results (re-frame/subscribe [:transect/results])]
     (fn []
       [:footer {:on-click #(swap! show-plot not)}
        [:div.drag-handle [:span.pt-icon-drag-handle-horizontal]]
@@ -121,7 +123,8 @@
                               :transition-enter-timeout 300
                               :transition-leave-timeout 300}
         (if @show-plot
-          [plot-component-animatable {:on-add force-resize :on-remove force-resize}])]])))
+          [plot-component-animatable {:on-add force-resize :on-remove force-resize}
+           transect-display-component @transect-results])]])))
 
 (defn layout-app []
   [:div#main-wrapper
