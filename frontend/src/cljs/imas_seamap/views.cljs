@@ -85,6 +85,7 @@
 (defn app-controls []
   (let [{:keys [groups active-layers]} @(re-frame/subscribe [:map/layers])
         {:keys [habitat bathymetry imagery third-party]} groups]
+    [:div#sidebar
      [transect-toggle]
      [layer-group {:title "Habitat"    :expanded true } habitat     active-layers]
      [layer-group {:title "Bathymetry" :expanded true } bathymetry  active-layers]
