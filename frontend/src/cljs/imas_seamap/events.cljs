@@ -49,6 +49,15 @@
 (defn transect-drawing-finish [db _]
   (assoc-in db [:map :controls :transect] false))
 
+(defn transect-visibility-toggle [db _]
+  (update-in db [:transect :show?] not))
+
+(defn transect-visibility-show [db _]
+  (assoc-in db [:transect :show?] true))
+
+(defn transect-visibility-hide [db _]
+  (assoc-in db [:transect :show?] false))
+
 (defn ajax [db [_ url {:keys [handler err-handler override-opts]
                        :or   {handler     :ajax/default-success-handler
                               err-handler :ajax/default-err-handler}

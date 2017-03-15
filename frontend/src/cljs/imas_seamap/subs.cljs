@@ -13,5 +13,8 @@
    :transect.results/bathymetry []
    :transect.results/zone-colours {}})
 
+(defn transect-show? [db _]
+  (get-in db [:transect :show?] false))
+
 (defn help-layer-open? [db _]
   (get-in db [:display :help-overlay]))

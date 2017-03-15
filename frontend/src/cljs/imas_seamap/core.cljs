@@ -18,6 +18,7 @@
     :map/layers                           msubs/map-layers
     :transect/info                        subs/transect-info
     :transect/results                     subs/transect-results
+    :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?}
 
    :events
@@ -35,6 +36,9 @@
     :transect.draw/enable                 events/transect-drawing-start
     :transect.draw/disable                events/transect-drawing-finish
     :transect.draw/clear                  events/not-yet-implemented
+    :transect.plot/show                   events/transect-visibility-show
+    :transect.plot/hide                   events/transect-visibility-hide
+    :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map/toggle-layer                     mevents/toggle-layer
     :map/update-layers                    mevents/update-layers
     :map/pan-to-layer                     mevents/zoom-to-layer

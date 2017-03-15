@@ -109,11 +109,11 @@
                                      (js->clj % :keywordize-keys true))])]])}))
 
 (defn plot-component []
-  (let [show-plot (reagent/atom false)
+  (let [show-plot (re-frame/subscribe [:transect.plot/show?])
         force-resize #(js/window.dispatchEvent (js/Event. "resize"))
         transect-results (re-frame/subscribe [:transect/results])]
     (fn []
-      [:footer {:on-click #(swap! show-plot not)}
+      [:footer {:on-click #(re-frame/dispatch [:transect.plot/toggle-visibility])}
        [:div.drag-handle [:span.pt-icon-drag-handle-horizontal]]
        [css-transition-group {:transition-name "plot-height"
                               :transition-enter-timeout 300
