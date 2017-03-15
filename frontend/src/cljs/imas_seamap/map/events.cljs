@@ -28,7 +28,7 @@
   (mapv process-layer layers))
 
 (defn update-layers [db [_ layers]]
-  (->> layers
+  (->> layers ;test-layer-data
        process-layers
        (assoc-in db [:map :layers])))
 
