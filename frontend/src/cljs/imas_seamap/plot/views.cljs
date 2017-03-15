@@ -221,7 +221,7 @@
   (swap! tooltip-content merge {:tooltip {:style {:visibility "hidden"}}}))
 
 
-(defn graph [props]
+(defn transect-graph [props]
   (let [tooltip-content (reagent/atom {:tooltip   {:style {:visibility "hidden"}}
                                        :datapoint {:cx 0 :cy 0 :r 5}
                                        :line      {:x1 0 :y1 0 :x2 20 :y2 20}
