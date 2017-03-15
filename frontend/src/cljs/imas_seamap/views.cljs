@@ -9,6 +9,7 @@
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
 (def button (reagent/adapt-react-class js/Blueprint.Button))
+(def clipped-text (reagent/adapt-react-class js/Blueprint.Text))
 (def collapse (reagent/adapt-react-class js/Blueprint.Collapse))
 (def overlay (reagent/adapt-react-class js/Blueprint.Overlay))
 
