@@ -115,6 +115,7 @@
         force-resize #(js/window.dispatchEvent (js/Event. "resize"))]
     (fn []
       [:footer {:on-click #(swap! show-plot not)}
+       [:div.drag-handle [:span.pt-icon-drag-handle-horizontal]]
        [css-transition-group {:transition-name "plot-height"
                               :transition-enter-timeout 300
                               :transition-leave-timeout 300}

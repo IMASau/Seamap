@@ -31,6 +31,14 @@ footer {
     flex-basis: 10px;
 }
 
+.drag-handle {
+    display: flex;
+    justify-content: center;
+}
+.drag-handle:hover {
+    background-color: #F5F8FA;
+}
+
 .pt-overlay-backdrop {
     z-index: 2000;              /* Must be greater than leaflet */
 }
