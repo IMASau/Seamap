@@ -8,6 +8,6 @@
          :layers []
          :active-layers #{}
          :controls {:transect false}}
-   :transect nil
+   :transect {:query nil, :show? false}
    :display {:help-overlay false}
    :config {:catalogue-url "http://localhost:8000/api/layers/"}})

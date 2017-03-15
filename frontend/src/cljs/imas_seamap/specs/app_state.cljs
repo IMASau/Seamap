@@ -56,7 +56,9 @@
 (s/def :geojson/geometry map?)
 (s/def :geojson/properties map?)
 (s/def ::geojson (s/keys :req-un [:geojson/type :geojson/geometry :geojson/properties]))
-(s/def ::transect (s/nilable ::geojson))
+(s/def :transect/query (s/nilable ::geojson))
+(s/def :transect/show? (s/nilable boolean?))
+(s/def ::transect (s/keys :req-un [:transect/query :transect/show?]))
 
 (s/def ::config map?)
 

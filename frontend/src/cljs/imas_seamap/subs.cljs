@@ -4,7 +4,7 @@
 
 (defn transect-info [{:keys [map transect] :as db} _]
   {:drawing? (boolean (get-in map [:controls :transect]))
-   :query transect})
+   :query (:query transect)})
 
 (defn transect-results [db _]
   {:transect.results/query {}

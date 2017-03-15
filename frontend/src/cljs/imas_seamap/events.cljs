@@ -33,7 +33,7 @@
 (defn transect-query [db [_ geojson]]
   (re-frame/dispatch [:transect.query/habitat])
   (re-frame/dispatch [:transect.query/bathymetry])
-  (assoc db :transect geojson))
+  (assoc-in db [:transect :query] geojson))
 
 (defn transect-query-habitat [db _]
   db)
