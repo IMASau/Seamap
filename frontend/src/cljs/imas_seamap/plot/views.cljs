@@ -295,8 +295,7 @@
                               :height graph-range
                               :style  {:opacity   0.75
                                        :fill      ((keyword zone-name) zone-colour-mapping)
-                                       :clip-path "url(#clipPath)"
-                                       }}]]))))]
+                                       :clip-path "url(#clipPath)"}}]]))))]
 
             ;; draw bathymetry line
             [:path {:d            graph-line-string
