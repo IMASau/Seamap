@@ -55,5 +55,24 @@
   },
   "model": "catalogue.layer",
   "pk": 3
+},
+{
+  "fields": {
+    "category": 2,
+    "date_start": null,
+    "name": "Australia 50m Resolution",
+    "server_type": 1,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "date_end": null,
+    "legend_url": "http://thredds.imas.utas.edu.au/ncwms/wms?SERVICE=WMS&REQUEST=GetLegendGraphic&LAYER=SeamapAus_Bathymetry_National_50m/DEPTH",
+    "server_url": "http://thredds.imas.utas.edu.au/ncwms/wms",
+    "detail_resolution": false,
+    "bounding_box": "91.99875,-59.99374999999999,171.99875000000003,-7.993749999999984",
+    "layer_name": "SeamapAus_Bathymetry_National_50m/DEPTH",
+    "zoom_info": "-",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 4
 }
 ]
