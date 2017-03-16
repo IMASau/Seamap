@@ -52,13 +52,21 @@
 (s/def ::map
   (s/keys :req-un [:map/center :map/zoom :map/zoom-cutover :map/controls :map/layers :map/active-layers]))
 
+(s/def ::transect-results-format
+  (s/or :empty   nil?
+        :state   #{:empty :loading}
+        :error   string?
+        :results seq?))
+
 (s/def :geojson/type string?)
 (s/def :geojson/geometry map?)
 (s/def :geojson/properties map?)
 (s/def ::geojson (s/keys :req-un [:geojson/type :geojson/geometry :geojson/properties]))
 (s/def :transect/query (s/nilable ::geojson))
 (s/def :transect/show? (s/nilable boolean?))
-(s/def ::transect (s/keys :req-un [:transect/query :transect/show?]))
+(s/def :transect/habitat ::transect-results-format)
+(s/def :transect/bathymetry ::transect-results-format)
+(s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]))
 
 (s/def ::config map?)
 

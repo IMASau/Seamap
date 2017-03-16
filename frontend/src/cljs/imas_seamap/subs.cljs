@@ -6,11 +6,19 @@
   {:drawing? (boolean (get-in map [:controls :transect]))
    :query (:query transect)})
 
-(defn transect-results [db _]
-  {:transect.results/query {}
-   :transect.results/status :transect.results.status/empty
-   :transect.results/habitat []
-   :transect.results/bathymetry []
+(defn- transect-query-status [{:keys [habitat bathymetry] :as args}]
+  (cond
+    (every? nil? [habitat bathymetry]) :transect.results.status/empty
+    (some string? [habitat bathymetry]) :transect.results.status/error
+    (#{habitat bathymetry} :loading) :transect.results.status/loading
+    ;; Any cases missed?? (We're assuming things are reset to nil/loading on clear/query)
+    :default :transect.results.status/ready))
+
+(defn transect-results [{{:keys [query habitat bathymetry] :as transect} :transect :as db} _]
+  {:transect.results/query (:query transect)
+   :transect.results/status (transect-query-status transect)
+   :transect.results/habitat habitat
+   :transect.results/bathymetry bathymetry
    :transect.results/zone-colours {}})
 
 (defn transect-show? [db _]

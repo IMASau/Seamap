@@ -53,8 +53,8 @@
                                   :transect.results.status/loading
                                   :transect.results.status/ready
                                   :transect.results.status/error})
-(s/def :transect.results/habitat seq?)  ; TODO
-(s/def :transect.results/bathymetry seq?)
+(s/def :transect.results/habitat    :imas-seamap.specs.app-state/transect-results-format)
+(s/def :transect.results/bathymetry :imas-seamap.specs.app-state/transect-results-format)
 (s/def :transect.results/zone-colours map?)
 (s/def :transect/results
   (s/keys :req [:transect.results/query

@@ -44,7 +44,7 @@
 (defn transect-drawing-start [db _]
   (-> db
       (assoc-in [:map :controls :transect] true)
-      (assoc-in [:transect] nil)))
+      (assoc-in [:transect :query] nil)))
 
 (defn transect-drawing-finish [db _]
   (assoc-in db [:map :controls :transect] false))
