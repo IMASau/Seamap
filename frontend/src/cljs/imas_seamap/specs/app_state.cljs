@@ -56,7 +56,7 @@
   (s/or :empty   nil?
         :state   #{:empty :loading}
         :error   string?
-        :results seq?))
+        :results vector?))
 
 (s/def :geojson/type string?)
 (s/def :geojson/geometry map?)
