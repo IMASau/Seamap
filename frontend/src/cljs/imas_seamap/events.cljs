@@ -54,6 +54,7 @@
 (defn transect-query-habitat [db [_ linestring]]
   db)
 
+;;; TODO: for this, we'll need to know the current bathy layer... can we assume there's just one?
 (defn transect-query-bathymetry [db [_ linestring]]
   db)
 
