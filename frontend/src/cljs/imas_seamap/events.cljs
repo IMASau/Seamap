@@ -1,5 +1,6 @@
 (ns imas-seamap.events
   (:require [ajax.core :as ajax]
+            [clojure.string :as string]
             [imas-seamap.db :as db]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
@@ -30,22 +31,30 @@
 (defn help-layer-close [db _]
   (assoc-in db [:display :help-overlay] false))
 
+(defn- geojson->linestring [geojson]
+  ;; No assertions or anything for now (could make the geojson spec more explicit, but this will be fine)
+  (let [coords (get-in geojson [:geometry :coordinates])]
+    (->> coords
+         (map (partial string/join " "))
+         (string/join ","))))
+
 (defn transect-query [db [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
   ;; unlikely race conditions; do this before dispatching)
   (let [db (assoc db :transect {:query geojson
                                 :show? true
                                 :habitat :loading
-                                :bathymetry :loading})]
+                                :bathymetry :loading})
+        linestring (geojson->linestring geojson)]
     (re-frame/dispatch [:transect.plot/show]) ; A bit redundant since we set the :show key above
-    (re-frame/dispatch [:transect.query/habitat geojson])
-    (re-frame/dispatch [:transect.query/bathymetry geojson])
+    (re-frame/dispatch [:transect.query/habitat linestring])
+    (re-frame/dispatch [:transect.query/bathymetry linestring])
     db))
 
-(defn transect-query-habitat [db [_ query]]
+(defn transect-query-habitat [db [_ linestring]]
   db)
 
-(defn transect-query-bathymetry [db [_ query]]
+(defn transect-query-bathymetry [db [_ linestring]]
   db)
 
 (defn transect-drawing-start [db _]
