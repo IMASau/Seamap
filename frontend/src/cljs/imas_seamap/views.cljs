@@ -112,15 +112,14 @@
   (let [show-plot (re-frame/subscribe [:transect.plot/show?])
         force-resize #(js/window.dispatchEvent (js/Event. "resize"))
         transect-results (re-frame/subscribe [:transect/results])]
-    (fn []
-      [:footer {:on-click #(re-frame/dispatch [:transect.plot/toggle-visibility])}
-       [:div.drag-handle [:span.pt-icon-drag-handle-horizontal]]
-       [css-transition-group {:transition-name "plot-height"
-                              :transition-enter-timeout 300
-                              :transition-leave-timeout 300}
-        (if @show-plot
-          [plot-component-animatable {:on-add force-resize :on-remove force-resize}
-           transect-display-component @transect-results])]])))
+    [:footer {:on-click #(re-frame/dispatch [:transect.plot/toggle-visibility])}
+     [:div.drag-handle [:span.pt-icon-drag-handle-horizontal]]
+     [css-transition-group {:transition-name "plot-height"
+                            :transition-enter-timeout 300
+                            :transition-leave-timeout 300}
+      (if @show-plot
+        [plot-component-animatable {:on-add force-resize :on-remove force-resize}
+         transect-display-component @transect-results])]]))
 
 (defn layout-app []
   [:div#main-wrapper
