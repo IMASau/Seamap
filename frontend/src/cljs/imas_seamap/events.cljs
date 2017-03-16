@@ -31,14 +31,21 @@
   (assoc-in db [:display :help-overlay] false))
 
 (defn transect-query [db [_ geojson]]
-  (re-frame/dispatch [:transect.query/habitat])
-  (re-frame/dispatch [:transect.query/bathymetry])
-  (assoc-in db [:transect :query] geojson))
+  ;; Reset the transect before querying (and paranoia to avoid
+  ;; unlikely race conditions; do this before dispatching)
+  (let [db (assoc db :transect {:query geojson
+                                :show? true
+                                :habitat :loading
+                                :bathymetry :loading})]
+    (re-frame/dispatch [:transect.plot/show]) ; A bit redundant since we set the :show key above
+    (re-frame/dispatch [:transect.query/habitat geojson])
+    (re-frame/dispatch [:transect.query/bathymetry geojson])
+    db))
 
-(defn transect-query-habitat [db _]
+(defn transect-query-habitat [db [_ query]]
   db)
 
-(defn transect-query-bathymetry [db _]
+(defn transect-query-bathymetry [db [_ query]]
   db)
 
 (defn transect-drawing-start [db _]
