@@ -70,7 +70,7 @@
 (defn habitat-at-percentage [{:keys [habitat percentage]}]
   (peek (filterv (fn [[p]] (<= p percentage)) habitat)))
 
-(defn graph-line-string [{:keys [bathymetry origin margin graph-domain graph-range offset min-depth max-depth spread] :as props}]
+(defn graph-line-string [{:keys [:transect.results/bathymetry origin margin graph-domain graph-range offset min-depth max-depth spread] :as props}]
   (let [[m-left m-right m-top m-bottom] margin
         [ox oy] origin
         [[p1 d1] & remaining] bathymetry
@@ -226,7 +226,7 @@
                                        :line      {:x1 0 :y1 0 :x2 20 :y2 20}
                                        :textbox   {:transform "translate(0, 0)"}
                                        :text      ["Depth: " "Habitat: "]})]
-    (fn [{:keys [bathymetry habitat width height zone-colour-mapping margin font-size-tooltip font-size-axes]
+    (fn [{:keys [:transect.results/bathymetry :transect.results/habitat width height zone-colour-mapping margin font-size-tooltip font-size-axes]
           :as   props
           :or   {font-size-tooltip 16
                  font-size-axes    16
@@ -364,8 +364,8 @@
     :visual "pt-icon-error"}])
 
 (def test-data
-  {:bathymetry (generate-bathymetry)
-   :habitat (generate-habitat habitat-zone-colours)
+  {:transect.resuults/bathymetry (generate-bathymetry)
+   :transect.resuults/habitat (generate-habitat habitat-zone-colours)
    :zone-colour-mapping habitat-zone-colours})
 (defn transect-display-component [{:keys [:transect.results/status] :as results}]
   (case status
