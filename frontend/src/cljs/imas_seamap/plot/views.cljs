@@ -14,8 +14,8 @@
 (defn generate-bathymetry []
   (let [percentages (iterate inc 0)
         depths (repeatedly 101 #(+ (rand 50) (rand 50)))
-        bathymetry (into [] (map list percentages depths))
-        bath-with-nil (map (fn [[p d]](vector p (if (or (< p 20) (> p 80)) nil d))) bathymetry)]
+        bathymetry (mapv vector percentages depths)
+        bath-with-nil (mapv (fn [[p d]](vector p (if (or (< p 20) (> p 80)) nil d))) bathymetry)]
     bath-with-nil))
 
 
@@ -84,11 +84,9 @@
                                             (let [x-pos (percentage-to-x-pos (merge props {:percentage p}))]
                                               (if (nil? d)
                                                 (str "" x-pos " " (+ m-top graph-range) " ")
-                                                (clojure.string/join (vector (if (nil? prev-d)
-                                                                               (str x-pos " " (+ m-top graph-range) " "))
+                                                (clojure.string/join (vector (when-not prev-d (str x-pos " " (+ m-top graph-range) " "))
                                                                              (str x-pos " " (depth-to-y-pos (merge props {:depth d})) " ")
-                                                                             (if (nil? next-d)
-                                                                               (str x-pos " " (+ m-top graph-range) " "))))))))
+                                                                             (when-not next-d (str x-pos " " (+ m-top graph-range) " "))))))))
         [last-p last-d] (last bathymetry)
         graph-end (str (percentage-to-x-pos (merge props {:percentage last-p})) " " (if (nil? last-d) (+ m-top graph-range) (depth-to-y-pos (merge props {:depth last-d}))) " ")]
     (str graph-start graph-middle graph-end)))
