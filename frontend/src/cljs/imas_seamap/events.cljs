@@ -83,18 +83,14 @@
     ;; Otherwise, don't bother with ajax; immediately return no results
     (assoc-in db [:transect :bathymetry] [])))
 
-(defn- safe-parse [num-str]
-  (let [n (js/parseFloat num-str)]
-    (if (js/isNaN n) nil n)))
-
 (defn transect-query-bathymetry-success [db [_ response]]
   (let [zipped (->> response xml/parse-str zip/xml-zip)
         data-points (zx/xml1-> zipped :transect :transectData)
         num-points (zx/xml1->  data-points (zx/attr :numPoints) js/parseInt)
-        values (zx/xml-> data-points :dataPoint :value zx/text safe-parse)
+        values (zx/xml-> data-points :dataPoint :value zx/text js/parseFloat)
         increment (/ 100 num-points)]
     (assoc-in db [:transect :bathymetry]
-              (vec (map-indexed (fn [i v] [(* i increment) (- v)]) values)))))
+              (vec (map-indexed (fn [i v] [(* i increment) (if (js/isNaN v) nil (- v))]) values)))))
 
 (defn transect-drawing-start [db _]
   (-> db
