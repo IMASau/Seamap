@@ -373,6 +373,5 @@
     :transect.results.status/loading [transect-loading]
     :transect.results.status/error [transect-error]
     ;; default (FIXME - hack to display temp data!):
-    [transect-graph (merge results
-                           test-data)]))
+    [transect-graph results]))
 
