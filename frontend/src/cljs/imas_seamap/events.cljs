@@ -54,9 +54,27 @@
 (defn transect-query-habitat [db [_ linestring]]
   db)
 
-;;; TODO: for this, we'll need to know the current bathy layer... can we assume there's just one?
+(defn handler [response]
+  (.log js/console (str response)))
+
+(defn error-handler [{:keys [status status-text]}]
+  (.log js/console (str "something bad happened: " status " " status-text)))
+
 (defn transect-query-bathymetry [db [_ linestring]]
-  db)
+  (if-let [{:keys [server_url layer_name] :as bathy-layer} (get-in @(re-frame/subscribe [:map/layers]) [:groups :bathymetry 0])]
+    (do
+      (ajax/GET server_url
+                {:params {:REQUEST "GetTransect"
+                          :LAYER layer_name
+                          :CRS "EPSG:4326"
+                          :format "text/xml"
+                          :VERSION "1.1.1"
+                          :LINESTRING linestring}
+                 :handler handler
+                 :error-handler error-handler})
+      db)
+    ;; Otherwise, don't bother with ajax; immediately return no results
+    (assoc-in db [:transect :bathymetry] [])))
 
 (defn transect-drawing-start [db _]
   (-> db
