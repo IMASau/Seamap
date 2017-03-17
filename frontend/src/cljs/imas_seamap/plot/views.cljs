@@ -187,7 +187,7 @@
     (/ dist-from-y-axis graph-domain)))
 
 
-(defn mouse-move-graph [{:keys [bathymetry event tooltip-content tooltip-width origin graph-domain graph-range margin offset on-mousemove] :as props}]
+(defn mouse-move-graph [{:keys [:transect.results/bathymetry event tooltip-content tooltip-width origin graph-domain graph-range margin offset on-mousemove] :as props}]
   (let [pagex (gobj/get event "pageX")
         [m-left m-right m-top m-bottom] margin
         [ox oy] origin
