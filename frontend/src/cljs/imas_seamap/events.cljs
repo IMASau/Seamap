@@ -51,30 +51,37 @@
     (re-frame/dispatch [:transect.query/bathymetry linestring])
     db))
 
+(defn- transect-error-handler [type {:keys [status-text failure]}]
+  (let [status-text (if (= failure :timeout)
+                      (str "Remote server timed out querying " (name type))
+                      status-text)]
+   (re-frame/dispatch [:transect.query/failure type status-text])))
+
+(defn transect-query-error [db [_ type text]]
+  (assoc-in db [:transect type] text))
+
 (defn transect-query-habitat [db [_ linestring]]
-  db)
-
-(defn handler [response]
-  (.log js/console (str response)))
-
-(defn error-handler [{:keys [status status-text]}]
-  (.log js/console (str "something bad happened: " status " " status-text)))
+  ;; Mock for now, so it finishes
+  (assoc-in db [:transect :habitat] []))
 
 (defn transect-query-bathymetry [db [_ linestring]]
   (if-let [{:keys [server_url layer_name] :as bathy-layer} (get-in @(re-frame/subscribe [:map/layers]) [:groups :bathymetry 0])]
     (do
       (ajax/GET server_url
-                {:params {:REQUEST "GetTransect"
-                          :LAYER layer_name
-                          :CRS "EPSG:4326"
-                          :format "text/xml"
-                          :VERSION "1.1.1"
-                          :LINESTRING linestring}
-                 :handler handler
-                 :error-handler error-handler})
+                {:params        {:REQUEST    "GetTransect"
+                                 :LAYER      layer_name
+                                 :LINESTRING linestring
+                                 :CRS        "EPSG:4326"
+                                 :format     "text/xml"
+                                 :VERSION    "1.1.1"}
+                 :handler       #(re-frame/dispatch [:transect.query.bathymetry/success %])
+                 :error-handler (partial transect-error-handler :bathymetry)})
       db)
     ;; Otherwise, don't bother with ajax; immediately return no results
     (assoc-in db [:transect :bathymetry] [])))
+
+(defn transect-query-bathymetry-success [db [_ response]]
+  (assoc-in db [:transect :bathymetry] []))
 
 (defn transect-drawing-start [db _]
   (-> db
