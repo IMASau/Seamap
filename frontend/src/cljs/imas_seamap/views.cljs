@@ -5,7 +5,8 @@
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [goog.object :as gobj]
-            [goog.dom :as dom]))
+            [goog.dom :as dom]
+            [debux.cs.core :refer [dbg]]))
 
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
