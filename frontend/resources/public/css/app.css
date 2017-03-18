@@ -67,6 +67,10 @@ footer {
     color: inherit;
 }
 
+.layer-wrapper .legend-wrapper {
+    overflow-x: hidden;
+}
+
 /* Helper overlay: */
 .helper-layer-wrapper {
     position: absolute;
