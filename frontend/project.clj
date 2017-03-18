@@ -1,6 +1,6 @@
 (defproject imas-seamap "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
-                 [org.clojure/clojurescript "1.9.456"]
+                 [org.clojure/clojurescript "1.9.495"]
                  [cljs-ajax "0.5.5"]
                  [com.cemerick/url "0.1.1"]
                  [org.clojure/data.xml "0.2.0-alpha2"]
