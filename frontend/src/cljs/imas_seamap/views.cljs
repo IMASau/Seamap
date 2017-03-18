@@ -4,6 +4,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
+            [goog]
             [goog.object :as gobj]
             [goog.dom :as dom]
             [debux.cs.core :refer [dbg]]))
@@ -15,6 +16,12 @@
                          :or   {position "right"}}]
   {:data-helper-text     text
    :data-helper-position position})
+
+(defn with-params [url params]
+  (let [u (goog/Uri. url)]
+    (doseq [[k v] params]
+      (.setParameterValue u (name k) v))
+    (str u)))
 
 (defn helper-overlay [& element-ids]
   (let [elem-props (fn [id]
