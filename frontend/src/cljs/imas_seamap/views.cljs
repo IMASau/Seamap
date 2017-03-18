@@ -63,17 +63,31 @@
                :on-click #(re-frame/dispatch [dispatch-key])
                :text label}]))
 
-(defn layer-card [{:keys [name] :as layer-spec} {:keys [active?] :as other-props}]
-  [:div.layer-wrapper
-   [:div.pt-card.pt-elevation-1
-    [:div.header-row
-     [b/clipped-text {:ellipses true :class-name "header-text"} name]
-     [:div.layer-controls.pt-ui-text-large
-      [:span.control.pt-text-muted.pt-icon-large
-       {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
-        :on-click #(re-frame/dispatch [:map/toggle-layer layer-spec])}]
-      [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
-       {:on-click #(re-frame/dispatch [:map/pan-to-layer layer-spec])}]]]]])
+(defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
+  (let [legend-url (with-params server_url
+                     {:request "GetLegendGraphic"
+                      :layer layer_name
+                      :format "image/png"
+                      :service "WMS"
+                      :version "1.1.1"})]
+    [:div.legend-wrapper
+     [:img {:src legend-url}]]))
+
+(defn layer-card [layer-spec other-props]
+  (let [show-legend (reagent/atom false)]
+    (fn [{:keys [name] :as layer-spec} {:keys [active?] :as other-props}]
+      [:div.layer-wrapper {:on-click #(when active? (swap! show-legend not))}
+       [:div.pt-card.pt-elevation-1 {:class-name (when active? "pt-interactive")}
+        [:div.header-row
+         [b/clipped-text {:ellipses true :class-name "header-text"} name]
+         [:div.layer-controls.pt-ui-text-large
+          [:span.control.pt-text-muted.pt-icon-large
+           {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
+            :on-click #(re-frame/dispatch [:map/toggle-layer layer-spec])}]
+          [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
+           {:on-click #(re-frame/dispatch [:map/pan-to-layer layer-spec])}]]]
+        [b/collapse {:is-open (and active? @show-legend)}
+         [legend-display layer-spec]]]])))
 
 (defn layer-group [{:keys [expanded] :or {expanded false}} layers active-layers]
   (let [expanded-state (reagent/atom expanded)]
