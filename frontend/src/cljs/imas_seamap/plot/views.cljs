@@ -67,7 +67,7 @@
     (+ m-left ox (* (/ percentage 100) graph-domain))))
 
 
-(defn habitat-at-percentage [{:keys [habitat percentage]}]
+(defn habitat-at-percentage [{:keys [:transect.results/habitat percentage]}]
   (peek (filterv (fn [[p]] (<= p percentage)) habitat)))
 
 (defn graph-line-string [{:keys [:transect.results/bathymetry origin margin graph-domain graph-range offset min-depth max-depth spread] :as props}]
