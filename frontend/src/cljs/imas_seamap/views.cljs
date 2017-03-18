@@ -61,17 +61,17 @@
     [:div.header-row
      [b/clipped-text {:ellipses true :class-name "header-text"} name]
      [:div.layer-controls.pt-ui-text-large
-      [:span.control.pt-text-muted
+      [:span.control.pt-text-muted.pt-icon-large
        {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
         :on-click #(re-frame/dispatch [:map/toggle-layer layer-spec])}]
-      [:span.control.pt-text-muted.pt-icon-zoom-to-fit
+      [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
        {:on-click #(re-frame/dispatch [:map/pan-to-layer layer-spec])}]]]]])
 
 (defn layer-group [{:keys [expanded] :or {expanded false}} layers active-layers]
   (let [expanded-state (reagent/atom expanded)]
     (fn [{:keys [title] :as props} layers active-layers]
       [:div.layer-group
-       [:h1 {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
+       [:h1.pt-icon-standard {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
              :on-click #(swap! expanded-state not)}
         (str title " (" (count layers) ")")]
        [b/collapse {:is-open @expanded-state}
@@ -113,7 +113,7 @@
         force-resize #(js/window.dispatchEvent (js/Event. "resize"))
         transect-results (re-frame/subscribe [:transect/results])]
     [:footer {:on-click #(re-frame/dispatch [:transect.plot/toggle-visibility])}
-     [:div.drag-handle [:span.pt-icon-drag-handle-horizontal]]
+     [:div.drag-handle [:span.pt-icon-large.pt-icon-drag-handle-horizontal]]
      [css-transition-group {:transition-name "plot-height"
                             :transition-enter-timeout 300
                             :transition-leave-timeout 300}
