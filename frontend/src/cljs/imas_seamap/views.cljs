@@ -65,11 +65,12 @@
 
 (defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
   (let [legend-url (with-params server_url
-                     {:request "GetLegendGraphic"
-                      :layer layer_name
-                      :format "image/png"
-                      :service "WMS"
-                      :version "1.1.1"})]
+                     {:REQUEST "GetLegendGraphic"
+                      :LAYER layer_name
+                      :FORMAT "image/png"
+                      :TRANSPARENT true
+                      :SERVICE "WMS"
+                      :VERSION "1.1.1"})]
     [:div.legend-wrapper
      [:img {:src legend-url}]]))
 
