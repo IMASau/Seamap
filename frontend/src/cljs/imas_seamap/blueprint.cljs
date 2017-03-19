@@ -9,6 +9,8 @@
 
 (def collapse (reagent/adapt-react-class js/Blueprint.Collapse))
 
+(def dialogue (reagent/adapt-react-class js/Blueprint.Dialog))
+
 (def non-ideal-state (reagent/adapt-react-class js/Blueprint.NonIdealState))
 
 (def overlay (reagent/adapt-react-class js/Blueprint.Overlay))

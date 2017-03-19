@@ -39,6 +39,10 @@ footer {
     background-color: #F5F8FA;
 }
 
+.pt-portal {
+    z-index: 2000;              /* Must be greater than leaflet */
+}
+
 .pt-overlay-backdrop {
     z-index: 2000;              /* Must be greater than leaflet */
 }

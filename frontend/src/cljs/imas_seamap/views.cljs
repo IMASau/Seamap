@@ -53,6 +53,14 @@
          [:div.helper-layer-tooltip {:class-name posn-cls} ; TODO: needs positioning-offsets depending on position attribute
           [:div.helper-layer-tooltiptext id helperText]]]))]))
 
+;;; FIXME: Mocked-up for now:
+(defn layer-catalogue []
+  [:div.layer-catalogue.pt-dialog-body
+   [:ol.pt-list-unstyled
+    [:li [:h2.pt-icon-standard.pt-icon-chevron-right "CSIRO"]]
+    [:li [:h2.pt-icon-standard.pt-icon-chevron-right "IMAS"]]
+    [:li [:h2.pt-icon-standard.pt-icon-chevron-right "BoM"]]]])
+
 (defn transect-toggle []
   (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])
         [dispatch-key label] (if drawing?
@@ -98,9 +106,26 @@
              :on-click #(swap! expanded-state not)}
         (str title " (" (count layers) ")")]
        [b/collapse {:is-open @expanded-state}
+        (when-let [extra-component (:extra-component props)]
+          extra-component)
         (for [layer layers]
           ^{:key (:layer_name layer)}
           [layer-card layer {:active? (active-layers layer)}])]])))
+
+(defn third-party-layer-group [props layers active-layers]
+  (let [show-dialogue? (reagent/atom false)]
+    (fn [props layer active-layers]
+      (let [catalogue [:div
+                       [b/button  {:icon-name "pt-icon-add-to-artifact"
+                                   :class-name "pt-fill catalogue-add"
+                                   :on-click #(swap! show-dialogue? not)
+                                   :text "Catalogue"}]
+                       [b/dialogue {:is-open @show-dialogue?
+                                    :on-close #(reset! show-dialogue? false)
+                                    :icon-name "pt-icon-add-to-artifact"
+                                    :title "Add from catalogue"}
+                        [layer-catalogue]]]]
+        [layer-group (assoc props :extra-component catalogue) layers active-layers]))))
 
 (defn app-controls []
   (let [{:keys [groups active-layers]} @(re-frame/subscribe [:map/layers])
@@ -110,7 +135,8 @@
      [layer-group {:title "Habitat"    :expanded true } habitat     active-layers]
      [layer-group {:title "Bathymetry" :expanded true } bathymetry  active-layers]
      [layer-group {:title "Imagery"    :expanded false} imagery     active-layers]
-     [layer-group {:title "Other"      :expanded false} third-party active-layers]]))
+     [third-party-layer-group
+                  {:title "Other"      :expanded false} third-party active-layers]]))
 
 (def container-dimensions (reagent/adapt-react-class js/React.ContainerDimensions))
 
