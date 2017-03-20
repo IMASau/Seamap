@@ -364,8 +364,8 @@
     :visual "pt-icon-error"}])
 
 (def test-data
-  {:transect.resuults/bathymetry (generate-bathymetry)
-   :transect.resuults/habitat (generate-habitat habitat-zone-colours)
+  {:transect.results/bathymetry (generate-bathymetry)
+   :transect.results/habitat (generate-habitat habitat-zone-colours)
    :zone-colour-mapping habitat-zone-colours})
 (defn transect-display-component [{:keys [:transect.results/status] :as results}]
   (case status
