@@ -8,6 +8,17 @@ from django.utils.encoding import python_2_unicode_compatible
 
 @python_2_unicode_compatible
 class Category(models.Model):
+    "Category for semantic grouping in the UI; eg bathymetry or habitat"
+    name = models.CharField(max_length = 200)
+
+    def __str__(self):
+        return self.name
+
+
+@python_2_unicode_compatible
+class DataClassification(models.Model):
+    """Category for data-type grouping; eg SST, chlorophyll, etc (relevant
+    for third-party layers)"""
     name = models.CharField(max_length = 200)
 
     def __str__(self):
@@ -35,6 +46,7 @@ class Layer(models.Model):
     server_url = models.URLField(max_length = 200)
     layer_name = models.CharField(max_length = 200)
     category = models.ForeignKey(Category)
+    data_classification = models.ForeignKey(DataClassification, null=True)
     bounding_box = models.CharField(validators=[validate_comma_separated_float_list], max_length = 200)
     metadata_url = models.URLField(max_length = 200)
     description = models.CharField(max_length = 500)
