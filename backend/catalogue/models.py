@@ -33,6 +33,14 @@ class ServerType(models.Model):
         return self.name
 
 
+@python_2_unicode_compatible
+class Organisation(models.Model):
+    name = models.CharField(max_length = 200)
+
+    def __str__(self):
+        return self.name
+
+
 comma_separated_float_list_re = re.compile(r'^[-\.\d,]+\Z')  # no, not very sophisticated
 validate_comma_separated_float_list = RegexValidator(
     comma_separated_float_list_re,
@@ -47,6 +55,7 @@ class Layer(models.Model):
     layer_name = models.CharField(max_length = 200)
     category = models.ForeignKey(Category)
     data_classification = models.ForeignKey(DataClassification, null=True)
+    organisation = models.ForeignKey(Organisation, null=True)
     bounding_box = models.CharField(validators=[validate_comma_separated_float_list], max_length = 200)
     metadata_url = models.URLField(max_length = 200)
     description = models.CharField(max_length = 500)
