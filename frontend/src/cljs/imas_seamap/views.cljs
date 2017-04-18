@@ -85,7 +85,7 @@
                      (swap! expanded-states assoc (:id node) false)))]
     (fn [layers ordering id]
       [:div.tab-body {:id id}
-       [b/tree {:contents (layers->nodes layers ordering expanded-states id)
+       [b/tree {:contents (layers->nodes layers ordering @expanded-states id)
                 :onNodeClick dbg-callback
                 :onNodeCollapse on-close
                 :onNodeExpand on-open}]])))
