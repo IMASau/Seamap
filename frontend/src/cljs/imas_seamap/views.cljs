@@ -59,25 +59,23 @@
 
 (defn layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
-  ([layers [ordering & ordering-remainder :as group-ordering] expanded-states]
-   (layers->nodes layers group-ordering expanded-states ""))
-  ([layers [ordering & ordering-remainder :as group-ordering] expanded-states id-base]
-   (for [[val layer-subset] (group-by ordering layers)
-         :let [id-str (str id-base val)]]
-     {:id id-str
-      :label val ; (Implicit assumption that the group-by value is a string)
-      :isExpanded (get expanded-states id-str false)
-      :childNodes (if (seq ordering-remainder)
-                    (layers->nodes layer-subset (pop group-ordering) expanded-states id-str)
-                    (map-indexed
-                     (fn [i layer]
-                       {:id (str id-str "-" i)
-                        :label (:name layer)
-                        ;; the layer itself added to be accessible to event handlers; ignored by the tree component:
-                        :layer layer})
-                     layer-subset))})))
+  [layers [ordering & ordering-remainder :as group-ordering] expanded-states id-base]
+  (for [[val layer-subset] (group-by ordering layers)
+        :let [id-str (str id-base val)]]
+    {:id id-str
+     :label val ; (Implicit assumption that the group-by value is a string)
+     :isExpanded (get expanded-states id-str false)
+     :childNodes (if (seq ordering-remainder)
+                   (layers->nodes layer-subset (pop group-ordering) expanded-states id-str)
+                   (map-indexed
+                    (fn [i layer]
+                      {:id (str id-str "-" i)
+                       :label (:name layer)
+                       ;; the layer itself added to be accessible to event handlers; ignored by the tree component:
+                       :layer layer})
+                    layer-subset))}))
 
-(defn layer-catalogue [layers]
+(defn layer-catalogue-tree [layers ordering id]
   (let [expanded-states (reagent/atom {})
         on-open (fn [node]
                   (let [node (js->clj node :keywordize-keys true)]
@@ -85,20 +83,22 @@
         on-close (fn [node]
                    (let [node (js->clj node :keywordize-keys true)]
                      (swap! expanded-states assoc (:layer node) false)))]
-    (fn [layers]
-      [:div.layer-catalogue.pt-dialog-body
-       [b/tabs
-        [b/tab {:id "org" :title "By Organisation"}]
-        [b/tab {:id "cat" :title "By Category"}]]
-       [:div.tab-body
-        [b/tree {:contents [{:id 0 :label "CSIRO" :layer {:name "SST stuff"} :isExpanded (get @expanded-states {:name "SST stuff"})}
-                            {:id 1 :label "AODN" :layer {:name "AODN stuff"} :isExpanded (get @expanded-states {:name "AODN stuff"})}
-                            {:id 2 :label "BoM" :layer {:name "BoM parent node stuff"}
-                             :isExpanded (get @expanded-states {:name "BoM parent node stuff"})
-                             :childNodes [{:label "Roar?"}]}]
-                 :onNodeClick dbg-callback
-                 :onNodeCollapse on-close
-                 :onNodeExpand on-open}]]])))
+    (fn [layers ordering id]
+      [:div.tab-body {:id id}
+       [b/tree {:contents (layers->nodes layers ordering expanded-states id)
+                :onNodeClick dbg-callback
+                :onNodeCollapse on-close
+                :onNodeExpand on-open}]])))
+
+(defn layer-catalogue [layers]
+  [:div.layer-catalogue.pt-dialog-body
+   [b/tabs
+    [b/tab {:id "org" :title "By Organisation"
+            :panel (reagent/as-component
+                    [layer-catalogue-tree layers [:organisation :data_classification] "org"])}]
+    [b/tab {:id "cat" :title "By Category"
+            :panel (reagent/as-component
+                    [layer-catalogue-tree layers [:data_classification :organisation] "cat"])}]]])
 
 (defn transect-toggle []
   (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])
