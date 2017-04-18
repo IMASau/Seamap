@@ -54,12 +54,30 @@
           [:div.helper-layer-tooltiptext id helperText]]]))]))
 
 ;;; FIXME: Mocked-up for now:
+(defn- dbg-callback [& args] (js/console.warn "args:" args))
+
 (defn layer-catalogue []
-  [:div.layer-catalogue.pt-dialog-body
-   [:ol.pt-list-unstyled
-    [:li [:h2.pt-icon-standard.pt-icon-chevron-right "CSIRO"]]
-    [:li [:h2.pt-icon-standard.pt-icon-chevron-right "IMAS"]]
-    [:li [:h2.pt-icon-standard.pt-icon-chevron-right "BoM"]]]])
+  (let [expanded-states (reagent/atom {})
+        on-open (fn [node]
+                  (let [node (js->clj node :keywordize-keys true)]
+                    (swap! expanded-states assoc (:layer node) true)) "after open")
+        on-close (fn [node]
+                   (let [node (js->clj node :keywordize-keys true)]
+                     (swap! expanded-states assoc (:layer node) false)))]
+    (fn []
+      [:div.layer-catalogue.pt-dialog-body
+       [b/tabs
+        [b/tab {:id "org" :title "By Organisation"}]
+        [b/tab {:id "cat" :title "By Category"}]]
+       [:div.tab-body
+        [b/tree {:contents [{:id 0 :label "CSIRO" :layer {:name "SST stuff"} :isExpanded (get @expanded-states {:name "SST stuff"})}
+                            {:id 1 :label "AODN" :layer {:name "AODN stuff"} :isExpanded (get @expanded-states {:name "AODN stuff"})}
+                            {:id 2 :label "BoM" :layer {:name "BoM parent node stuff"}
+                             :isExpanded (get @expanded-states {:name "BoM parent node stuff"})
+                             :childNodes [{:label "Roar?"}]}]
+                 :onNodeClick dbg-callback
+                 :onNodeCollapse on-close
+                 :onNodeExpand on-open}]]])))
 
 (defn transect-toggle []
   (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])
