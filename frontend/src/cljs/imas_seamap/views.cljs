@@ -164,7 +164,10 @@
                                     :icon-name "pt-icon-add-to-artifact"
                                     :title "Add from catalogue"}
                         [layer-catalogue (seq (difference (set layers) (set active-layers)))]]]]
-        [layer-group (assoc props :extra-component catalogue) layers active-layers]))))
+        [layer-group (assoc props :extra-component catalogue)
+         ;; Only display active (third-party) layers in this group:
+         (filter #(= :third-party (:category %)) active-layers)
+         active-layers]))))
 
 (defn app-controls []
   (let [{:keys [groups active-layers]} @(re-frame/subscribe [:map/layers])
