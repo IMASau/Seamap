@@ -6,6 +6,7 @@ class LayerSerializer(serializers.ModelSerializer):
     category = serializers.SerializerMethodField()
     server_type = serializers.SerializerMethodField()
     data_classification = serializers.SerializerMethodField()
+    organisation = serializers.SerializerMethodField()
 
     def get_category(self, obj):
         return obj.category.name
@@ -15,6 +16,9 @@ class LayerSerializer(serializers.ModelSerializer):
 
     def get_data_classification(self, obj):
         return getattr(obj.data_classification, 'name', None)
+
+    def get_organisation(self, obj):
+        return getattr(obj.organisation, 'name', None)
 
     class Meta:
         model = Layer
