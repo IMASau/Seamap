@@ -5,7 +5,7 @@
             [goog.dom :as dom]
             [goog.object :as gobj]
             [goog.math :as gmaths]
-            [debux.cs.core :refer [dbg]]))
+            [debux.cs.core :refer-macros [dbg]]))
 
 (defn randColour []
   (str "rgb(" (rand-int 255) "," (rand-int 255) "," (rand-int 255) ")"))
