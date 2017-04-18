@@ -66,7 +66,7 @@
      :label val ; (Implicit assumption that the group-by value is a string)
      :isExpanded (get expanded-states id-str false)
      :childNodes (if (seq ordering-remainder)
-                   (layers->nodes layer-subset (pop group-ordering) expanded-states id-str)
+                   (layers->nodes layer-subset (rest group-ordering) expanded-states id-str)
                    (map-indexed
                     (fn [i layer]
                       {:id (str id-str "-" i)
