@@ -79,10 +79,10 @@
   (let [expanded-states (reagent/atom {})
         on-open (fn [node]
                   (let [node (js->clj node :keywordize-keys true)]
-                    (swap! expanded-states assoc (:layer node) true)) "after open")
+                    (swap! expanded-states assoc (:id node) true)))
         on-close (fn [node]
                    (let [node (js->clj node :keywordize-keys true)]
-                     (swap! expanded-states assoc (:layer node) false)))]
+                     (swap! expanded-states assoc (:id node) false)))]
     (fn [layers ordering id]
       [:div.tab-body {:id id}
        [b/tree {:contents (layers->nodes layers ordering expanded-states id)
