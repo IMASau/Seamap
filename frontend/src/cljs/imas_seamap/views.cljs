@@ -1,5 +1,6 @@
 (ns imas-seamap.views
-  (:require [re-frame.core :as re-frame]
+  (:require [clojure.set :refer [difference]]
+            [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b]
             [imas-seamap.map.views :refer [map-component]]
@@ -76,7 +77,7 @@
                         :layer layer})
                      layer-subset))})))
 
-(defn layer-catalogue []
+(defn layer-catalogue [layers]
   (let [expanded-states (reagent/atom {})
         on-open (fn [node]
                   (let [node (js->clj node :keywordize-keys true)]
@@ -84,7 +85,7 @@
         on-close (fn [node]
                    (let [node (js->clj node :keywordize-keys true)]
                      (swap! expanded-states assoc (:layer node) false)))]
-    (fn []
+    (fn [layers]
       [:div.layer-catalogue.pt-dialog-body
        [b/tabs
         [b/tab {:id "org" :title "By Organisation"}]
@@ -152,7 +153,7 @@
 
 (defn third-party-layer-group [props layers active-layers]
   (let [show-dialogue? (reagent/atom false)]
-    (fn [props layer active-layers]
+    (fn [props layers active-layers]
       (let [catalogue [:div
                        [b/button  {:icon-name "pt-icon-add-to-artifact"
                                    :class-name "pt-fill catalogue-add"
@@ -162,7 +163,7 @@
                                     :on-close #(reset! show-dialogue? false)
                                     :icon-name "pt-icon-add-to-artifact"
                                     :title "Add from catalogue"}
-                        [layer-catalogue]]]]
+                        [layer-catalogue (seq (difference (set layers) (set active-layers)))]]]]
         [layer-group (assoc props :extra-component catalogue) layers active-layers]))))
 
 (defn app-controls []
