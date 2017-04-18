@@ -56,6 +56,26 @@
 ;;; FIXME: Mocked-up for now:
 (defn- dbg-callback [& args] (js/console.warn "args:" args))
 
+(defn layers->nodes
+  "group-ordering is the category keys to order by, eg [:organisation :data_category]"
+  ([layers [ordering & ordering-remainder :as group-ordering] expanded-states]
+   (layers->nodes layers group-ordering expanded-states ""))
+  ([layers [ordering & ordering-remainder :as group-ordering] expanded-states id-base]
+   (for [[val layer-subset] (group-by ordering layers)
+         :let [id-str (str id-base val)]]
+     {:id id-str
+      :label val ; (Implicit assumption that the group-by value is a string)
+      :isExpanded (get expanded-states id-str false)
+      :childNodes (if (seq ordering-remainder)
+                    (layers->nodes layer-subset (pop group-ordering) expanded-states id-str)
+                    (map-indexed
+                     (fn [i layer]
+                       {:id (str id-str "-" i)
+                        :label (:name layer)
+                        ;; the layer itself added to be accessible to event handlers; ignored by the tree component:
+                        :layer layer})
+                     layer-subset))})))
+
 (defn layer-catalogue []
   (let [expanded-states (reagent/atom {})
         on-open (fn [node]
