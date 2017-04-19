@@ -55,16 +55,6 @@
          [:div.helper-layer-tooltip {:class-name posn-cls} ; TODO: needs positioning-offsets depending on position attribute
           [:div.helper-layer-tooltiptext id helperText]]]))]))
 
-;;; FIXME: Mocked-up for now:
-(defn- dbg-callback [& args] (js/console.warn "args:" args))
-
-(defn node-obj->layer
-  "Convert a js object to a layer representation (keywords in the
-  appropriate places, etc).  Necessary because as well as using
-  js->clj we also keword-ise a few *values*, not just keys."
-  [obj]
-  (-> obj (js->clj :keywordize-keys true) :layer process-layer))
-
 (defn add-to-layer [layer]
   [b/tooltip {:content "Add to map"}
    [:span.pt-icon-standard.pt-icon-send-to-map
@@ -84,9 +74,7 @@
                     (fn [i layer]
                       {:id (str id-str "-" i)
                        :label (:name layer)
-                       :secondaryLabel (reagent/as-component (add-to-layer layer))
-                       ;; the layer itself added to be accessible to event handlers; ignored by the tree component:
-                       :layer layer})
+                       :secondaryLabel (reagent/as-component (add-to-layer layer))})
                     layer-subset))}))
 
 (defn layer-catalogue-tree [layers ordering id]
@@ -100,8 +88,6 @@
     (fn [layers ordering id]
       [:div.tab-body {:id id}
        [b/tree {:contents (layers->nodes layers ordering @expanded-states id)
-                :onNodeClick dbg-callback
-                :onNodeDoubleClick #(re-frame/dispatch [:map/toggle-layer (node-obj->layer %)])
                 :onNodeCollapse on-close
                 :onNodeExpand on-open}]])))
 
