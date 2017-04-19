@@ -130,11 +130,13 @@
         [:div.header-row
          [b/clipped-text {:ellipses true :class-name "header-text"} name]
          [:div.layer-controls.pt-ui-text-large
-          [:span.control.pt-text-muted.pt-icon-large
-           {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
-            :on-click #(re-frame/dispatch [:map/toggle-layer layer-spec])}]
-          [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
-           {:on-click #(re-frame/dispatch [:map/pan-to-layer layer-spec])}]]]
+          [b/tooltip {:content (if active? "Hide layer" "Show layer")}
+           [:span.control.pt-text-muted.pt-icon-large
+            {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
+             :on-click #(re-frame/dispatch [:map/toggle-layer layer-spec])}]]
+          [b/tooltip {:content "Show entire layer"}
+           [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
+            {:on-click #(re-frame/dispatch [:map/pan-to-layer layer-spec])}]]]]
         [b/collapse {:is-open (and active? @show-legend)}
          [legend-display layer-spec]]]])))
 
