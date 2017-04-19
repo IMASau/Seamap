@@ -65,6 +65,11 @@
   [obj]
   (-> obj (js->clj :keywordize-keys true) :layer process-layer))
 
+(defn add-to-layer [layer]
+  [b/tooltip {:content "Add to map"}
+   [:span.pt-icon-standard.pt-icon-send-to-map
+    {:on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
+
 (defn layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] expanded-states id-base]
@@ -79,6 +84,7 @@
                     (fn [i layer]
                       {:id (str id-str "-" i)
                        :label (:name layer)
+                       :secondaryLabel (reagent/as-component (add-to-layer layer))
                        ;; the layer itself added to be accessible to event handlers; ignored by the tree component:
                        :layer layer})
                     layer-subset))}))
