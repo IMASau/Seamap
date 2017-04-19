@@ -135,11 +135,13 @@
                       :isDisabled (not active?)}
            name]]
          [:div.layer-controls.pt-ui-text-large
-          [b/tooltip {:content (if active? "Hide layer" "Show layer")}
+          [b/tooltip {:content (if active? "Hide layer" "Show layer")
+                      :position js/Blueprint.Position.RIGHT}
            [:span.control.pt-text-muted.pt-icon-large
             {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
              :on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer-spec]))}]]
-          [b/tooltip {:content "Show entire layer"}
+          [b/tooltip {:content "Show entire layer"
+                      :position js/Blueprint.Position.RIGHT}
            [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
             {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer-spec]))}]]]]
         [b/collapse {:is-open (and active? @show-legend)}
