@@ -51,6 +51,10 @@ footer {
 }
 
 /* Layer cards */
+.layer-wrapper .pt-card {
+    padding: 10px;
+}
+
 .layer-wrapper .header-row {
     display: flex;
     flex-direction: row;
