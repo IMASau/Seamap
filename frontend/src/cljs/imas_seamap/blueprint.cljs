@@ -21,4 +21,6 @@
 
 (def tab (reagent/adapt-react-class js/Blueprint.Tab2))
 
+(def tooltip (reagent/adapt-react-class js/Blueprint.Tooltip))
+
 (def tree (reagent/adapt-react-class js/Blueprint.Tree))
