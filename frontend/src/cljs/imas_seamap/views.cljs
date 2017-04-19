@@ -3,6 +3,7 @@
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b]
+            [imas-seamap.map.events :refer [process-layer]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [goog]
@@ -56,6 +57,13 @@
 
 ;;; FIXME: Mocked-up for now:
 (defn- dbg-callback [& args] (js/console.warn "args:" args))
+
+(defn node-obj->layer
+  "Convert a js object to a layer representation (keywords in the
+  appropriate places, etc).  Necessary because as well as using
+  js->clj we also keword-ise a few *values*, not just keys."
+  [obj]
+  (-> obj (js->clj :keywordize-keys true) :layer process-layer))
 
 (defn layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
