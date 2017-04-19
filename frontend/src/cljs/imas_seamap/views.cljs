@@ -15,6 +15,9 @@
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
+(def container-dimensions
+  (reagent/adapt-react-class js/React.ContainerDimensions))
+
 (defn ->helper-props [& {:keys [text position]
                          :or   {position "right"}}]
   {:data-helper-text     text
@@ -196,8 +199,6 @@
          [layer-group {:title "Imagery"    :on-toggle (callback :img) :expanded img} imagery     active-layers]
          [third-party-layer-group
                       {:title "Other"      :on-toggle (callback :oth) :expanded oth} third-party active-layers]]))))
-
-(def container-dimensions (reagent/adapt-react-class js/React.ContainerDimensions))
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
