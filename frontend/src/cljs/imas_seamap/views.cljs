@@ -6,6 +6,7 @@
             [imas-seamap.map.events :refer [process-layer]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
+            [imas-seamap.utils :refer [handler-fn]]
             [goog]
             [goog.object :as gobj]
             [goog.dom :as dom]
@@ -133,10 +134,10 @@
           [b/tooltip {:content (if active? "Hide layer" "Show layer")}
            [:span.control.pt-text-muted.pt-icon-large
             {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
-             :on-click #(re-frame/dispatch [:map/toggle-layer layer-spec])}]]
+             :on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer-spec]))}]]
           [b/tooltip {:content "Show entire layer"}
            [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
-            {:on-click #(re-frame/dispatch [:map/pan-to-layer layer-spec])}]]]]
+            {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer-spec]))}]]]]
         [b/collapse {:is-open (and active? @show-legend)}
          [legend-display layer-spec]]]])))
 
