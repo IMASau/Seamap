@@ -129,7 +129,11 @@
       [:div.layer-wrapper {:on-click #(when active? (swap! show-legend not))}
        [:div.pt-card.pt-elevation-1 {:class-name (when active? "pt-interactive")}
         [:div.header-row
-         [b/clipped-text {:ellipses true :class-name "header-text"} name]
+         [b/clipped-text {:ellipses true :class-name "header-text"}
+          [b/tooltip {:content (if @show-legend "Click to hide legend" "Click to show legend")
+                      :position js/Blueprint.Position.RIGHT
+                      :isDisabled (not active?)}
+           name]]
          [:div.layer-controls.pt-ui-text-large
           [b/tooltip {:content (if active? "Hide layer" "Show layer")}
            [:span.control.pt-text-muted.pt-icon-large
