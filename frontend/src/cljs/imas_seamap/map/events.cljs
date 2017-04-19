@@ -11,11 +11,13 @@
    {:name "Tasmania" :server_url "http://geoserver.imas.utas.edu.au/geoserver/wms?" :layer_name "cite:SEAMAP_habitats_Geo" :category "habitat" :bounding_box "144.78718799604167,-43.598255819880706,148.4394445006124,-39.36679642738305" :metadata_url "" :description "" :zoom_info "" :server_type "geoserver" :legend_url "" :date_start "" :date_end "" :detail_resolution true}])
 
 (defn str->bounds [bounds-str]
-  (as-> bounds-str bnds
+  (if-not (string? bounds-str)
+    bounds-str
+    (as-> bounds-str bnds
       (string/split bnds ",")
       (map js/parseFloat bnds)
       (map vector [:west :south :east :north] bnds)
-      (into {} bnds)))
+      (into {} bnds))))
 
 (defn process-layer [layer]
   (-> layer
