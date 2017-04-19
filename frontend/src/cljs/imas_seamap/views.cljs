@@ -180,7 +180,7 @@
          (filter #(= :third-party (:category %)) active-layers)
          active-layers]))))
 
-(defn app-controls []
+(defn app-controls [props]
   (let [layer-sub (re-frame/subscribe [:map/layers])
         expanded-states (reagent/atom {:hab true
                                        :bat true
@@ -188,7 +188,7 @@
                                        :oth false})
         callback (fn [k]
                    (fn [] (swap! expanded-states update k not)))]
-    (fn []
+    (fn [{:keys [height] :as props}]
       (let [{:keys [groups active-layers]} @layer-sub
             {:keys [habitat bathymetry imagery third-party]} groups
             {:keys [hab bat img oth]} @expanded-states]
@@ -232,7 +232,9 @@
 
 (defn layout-app []
   [:div#main-wrapper
-   [app-controls]
+   [container-dimensions
+    #(reagent/as-element
+      [app-controls (js->clj % :keywordize-keys true)])]
    [:div#content-wrapper
     [map-component]
     [plot-component]]])
