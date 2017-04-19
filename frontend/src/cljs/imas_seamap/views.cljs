@@ -95,6 +95,7 @@
       [:div.tab-body {:id id}
        [b/tree {:contents (layers->nodes layers ordering @expanded-states id)
                 :onNodeClick dbg-callback
+                :onNodeDoubleClick #(re-frame/dispatch [:map/toggle-layer (node-obj->layer %)])
                 :onNodeCollapse on-close
                 :onNodeExpand on-open}]])))
 
