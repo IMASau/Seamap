@@ -182,6 +182,34 @@
          (filter #(= :third-party (:category %)) active-layers)
          active-layers]))))
 
+;;; TODO: big WIP, no testing at all yet!
+(defn -calc-group-heights [vertical-height expanded-states groups]
+  (let [expanded-count (->> expanded-states vals (filter identity) count)
+        group-height (/ (- vertical-height
+                           35           ; button
+                           (* 4 23)     ; 4 group headers
+                           10)          ; magic (random padding)
+                        (if (zero? expanded-count) 1 expanded-count))
+        requirements (reduce-kv (fn [m k v]
+                                  (let [cnt (count v)
+                                        required-height (* cnt 67)
+                                        relinquished-height (- group-height required-height)
+                                        surplus? (pos? relinquished-height)]
+                                    (assoc m k {:surplus? surplus?
+                                                :required required-height
+                                                :surplus-height (max 0 relinquished-height)})))
+                                {} groups)
+        available-surplus (->> requirements vals (map :surplus-height) (apply +))
+        need-more-count (->> available-surplus vals (remove :surplus?) count)
+        height-to-distribute (+ group-height (/ available-surplus need-more-count))]
+    (reduce-kv (fn [m k v]
+                 (let [group-requirements (k requirements)
+                       height (if (:surplus? group-requirements)
+                                (:required group-requirements)
+                                height-to-distribute)]
+                   (assoc m k height)))
+               {} groups)))
+
 (defn app-controls [props]
   (let [layer-sub (re-frame/subscribe [:map/layers])
         expanded-states (reagent/atom {:hab true
