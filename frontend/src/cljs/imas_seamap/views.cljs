@@ -147,19 +147,17 @@
         [b/collapse {:is-open (and active? @show-legend)}
          [legend-display layer-spec]]]])))
 
-(defn layer-group [{:keys [expanded] :or {expanded false}} layers active-layers]
-  (let [expanded-state (reagent/atom expanded)]
-    (fn [{:keys [title] :as props} layers active-layers]
-      [:div.layer-group
-       [:h1.pt-icon-standard {:class (if @expanded-state "pt-icon-chevron-down" "pt-icon-chevron-right")
-             :on-click #(swap! expanded-state not)}
-        (str title " (" (count layers) ")")]
-       [b/collapse {:is-open @expanded-state}
-        (when-let [extra-component (:extra-component props)]
-          extra-component)
-        (for [layer layers]
-          ^{:key (:layer_name layer)}
-          [layer-card layer {:active? (active-layers layer)}])]])))
+(defn layer-group [{:keys [title expanded on-toggle] :as props} layers active-layers]
+  [:div.layer-group
+   [:h1.pt-icon-standard {:class (if expanded "pt-icon-chevron-down" "pt-icon-chevron-right")
+                          :on-click #(on-toggle)}
+    (str title " (" (count layers) ")")]
+   [b/collapse {:is-open expanded}
+    (when-let [extra-component (:extra-component props)]
+      extra-component)
+    (for [layer layers]
+      ^{:key (:layer_name layer)}
+      [layer-card layer {:active? (active-layers layer)}])]])
 
 (defn third-party-layer-group [props layers active-layers]
   (let [show-dialogue? (reagent/atom false)]
@@ -180,15 +178,24 @@
          active-layers]))))
 
 (defn app-controls []
-  (let [{:keys [groups active-layers]} @(re-frame/subscribe [:map/layers])
-        {:keys [habitat bathymetry imagery third-party]} groups]
-    [:div#sidebar
-     [transect-toggle]
-     [layer-group {:title "Habitat"    :expanded true } habitat     active-layers]
-     [layer-group {:title "Bathymetry" :expanded true } bathymetry  active-layers]
-     [layer-group {:title "Imagery"    :expanded false} imagery     active-layers]
-     [third-party-layer-group
-                  {:title "Other"      :expanded false} third-party active-layers]]))
+  (let [layer-sub (re-frame/subscribe [:map/layers])
+        expanded-states (reagent/atom {:hab true
+                                       :bat true
+                                       :img false
+                                       :oth false})
+        callback (fn [k]
+                   (fn [] (swap! expanded-states update k not)))]
+    (fn []
+      (let [{:keys [groups active-layers]} @layer-sub
+            {:keys [habitat bathymetry imagery third-party]} groups
+            {:keys [hab bat img oth]} @expanded-states]
+        [:div#sidebar
+         [transect-toggle]
+         [layer-group {:title "Habitat"    :on-toggle (callback :hab) :expanded hab} habitat     active-layers]
+         [layer-group {:title "Bathymetry" :on-toggle (callback :bat) :expanded bat} bathymetry  active-layers]
+         [layer-group {:title "Imagery"    :on-toggle (callback :img) :expanded img} imagery     active-layers]
+         [third-party-layer-group
+                      {:title "Other"      :on-toggle (callback :oth) :expanded oth} third-party active-layers]]))))
 
 (def container-dimensions (reagent/adapt-react-class js/React.ContainerDimensions))
 
