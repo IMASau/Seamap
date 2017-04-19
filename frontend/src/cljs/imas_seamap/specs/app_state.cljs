@@ -26,9 +26,7 @@
                                                 :map.layer.bb/north]))
 (s/def :map.layer/metadata_url string?)
 (s/def :map.layer/description string?)
-(s/def :map.layer/zoom_info string?)    ; TODO
 (s/def :map.layer/server_type keyword?)
-(s/def :map.layer/legend_url string?)
 (s/def :map.layer/date_start (s/nilable string?)) ; TODO
 (s/def :map.layer/date_end (s/nilable string?))   ; TODO
 (s/def :map/layer
@@ -39,9 +37,7 @@
                    :map.layer/bounding_box
                    :map.layer/metadata_url
                    :map.layer/description
-                   :map.layer/zoom_info
                    :map.layer/server_type
-                   :map.layer/legend_url
                    :map.layer/date_start
                    :map.layer/date_end]))
 (s/def :map/layers (s/coll-of :map/layer))

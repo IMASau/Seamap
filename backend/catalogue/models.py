@@ -59,10 +59,8 @@ class Layer(models.Model):
     bounding_box = models.CharField(validators=[validate_comma_separated_float_list], max_length = 200)
     metadata_url = models.URLField(max_length = 200)
     description = models.CharField(max_length = 500)
-    zoom_info = models.CharField(validators=[validate_comma_separated_float_list], max_length = 200)
     detail_resolution = models.BooleanField()
     server_type = models.ForeignKey(ServerType)
-    legend_url = models.URLField(max_length=200)
     date_start = models.DateField(blank=True, null=True)
     date_end = models.DateField(blank=True, null=True)
 
