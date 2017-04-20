@@ -182,7 +182,12 @@
          (filter #(= :third-party (:category %)) active-layers)
          active-layers]))))
 
-(defn -calc-group-heights [vertical-height expanded-states groups active-layers]
+(defn -calc-group-heights
+  "Calculate some vaguely preferable distribution of max-heights for
+  each group.  First evenly splits up the available space among open
+  groups, then deducts space from those that don't need as much and
+  distributes it amongst those that need more."
+  [vertical-height expanded-states groups active-layers]
   (let [;; Need to special-case third-party; only calc height for those displayed:
         groups (assoc groups :third-party (filter #(= :third-party (:category %)) active-layers))
         expanded-count (->> expanded-states vals (filter identity) count)
