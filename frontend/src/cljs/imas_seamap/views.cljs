@@ -204,7 +204,7 @@
                                                 :surplus-height (max 0 relinquished-height)})))
                                 {} groups)
         available-surplus (->> requirements vals (map :surplus-height) (apply +))
-        need-more-count (->> requirements vals (remove :surplus?) count)
+        need-more-count (->> requirements vals (remove :surplus?) count (max 1))
         height-to-distribute (+ group-height (/ available-surplus need-more-count))]
     (reduce-kv (fn [m k v]
                  (let [group-requirements (k requirements)
