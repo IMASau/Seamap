@@ -6,7 +6,7 @@
             [imas-seamap.map.events :refer [process-layer]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer [handler-fn]]
+            [imas-seamap.utils :refer-macros [handler-fn]]
             [goog]
             [goog.object :as gobj]
             [goog.dom :as dom]
