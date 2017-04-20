@@ -223,19 +223,18 @@
       (let [{:keys [groups active-layers]} @layer-sub
             {:keys [habitat bathymetry imagery third-party]} groups
             {:keys [hab bat img oth] :as es} @expanded-states
-            expanded-count (->> es vals (filter identity) count)
-            group-height (/ (- height
-                               35       ; button
-                               (* 4 23) ; 4 group headers
-                               10)      ; magic (random padding)
-                            (if (zero? expanded-count) 1 expanded-count))]
+            group-heights (-calc-group-heights height @expanded-states groups active-layers)
+            h (:habitat group-heights 0)
+            b (:bathymetry group-heights 0)
+            i (:imagery group-heights 0)
+            o (:third-party group-heights 0)]
         [:div#sidebar
          [transect-toggle]
-         [layer-group {:title "Habitat"    :on-toggle (callback :hab) :expanded hab :max-height group-height} habitat     active-layers]
-         [layer-group {:title "Bathymetry" :on-toggle (callback :bat) :expanded bat :max-height group-height} bathymetry  active-layers]
-         [layer-group {:title "Imagery"    :on-toggle (callback :img) :expanded img :max-height group-height} imagery     active-layers]
+         [layer-group {:title "Habitat"    :on-toggle (callback :hab) :expanded hab :max-height h} habitat     active-layers]
+         [layer-group {:title "Bathymetry" :on-toggle (callback :bat) :expanded bat :max-height b} bathymetry  active-layers]
+         [layer-group {:title "Imagery"    :on-toggle (callback :img) :expanded img :max-height i} imagery     active-layers]
          [third-party-layer-group
-                      {:title "Other"      :on-toggle (callback :oth) :expanded oth :max-height group-height} third-party active-layers]]))))
+                      {:title "Other"      :on-toggle (callback :oth) :expanded oth :max-height o} third-party active-layers]]))))
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
