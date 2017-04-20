@@ -182,9 +182,10 @@
          (filter #(= :third-party (:category %)) active-layers)
          active-layers]))))
 
-;;; TODO: big WIP, no testing at all yet!
-(defn -calc-group-heights [vertical-height expanded-states groups]
-  (let [expanded-count (->> expanded-states vals (filter identity) count)
+(defn -calc-group-heights [vertical-height expanded-states groups active-layers]
+  (let [;; Need to special-case third-party; only calc height for those displayed:
+        groups (update groups :third-party #(-> % set (difference (set active-layers)) seq))
+        expanded-count (->> expanded-states vals (filter identity) count)
         group-height (/ (- vertical-height
                            35           ; button
                            (* 4 23)     ; 4 group headers
