@@ -193,7 +193,10 @@
                         (if (zero? expanded-count) 1 expanded-count))
         requirements (reduce-kv (fn [m k v]
                                   (let [cnt (count v)
-                                        required-height (* cnt 67)
+                                        required-height (cond-> cnt
+                                                          true (* 67)
+                                                          ;; Again, third-party has an extra button we need to consider:
+                                                          (= k :third-party) (+ 30))
                                         relinquished-height (- group-height required-height)
                                         surplus? (pos? relinquished-height)]
                                     (assoc m k {:surplus? surplus?
