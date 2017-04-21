@@ -157,9 +157,8 @@
                           :on-click #(on-toggle)}
     (str title " (" (count layers) ")")]
    [b/collapse {:is-open expanded :className "height-managed"}
-    [:div.height-managed {:style { ;:max-height (str max-height "px")
-                                    :overflow-y "auto"
-                                    :padding 2}}
+    [:div.height-managed {:style {:overflow-y "auto"
+                                  :padding 2}}
      (when-let [extra-component (:extra-component props)]
        extra-component)
      (for [layer layers]
@@ -184,44 +183,7 @@
          (filter #(= :third-party (:category %)) active-layers)
          active-layers]))))
 
-(defn -calc-group-heights
-  "Calculate some vaguely preferable distribution of max-heights for
-  each group.  First evenly splits up the available space among open
-  groups, then deducts space from those that don't need as much and
-  distributes it amongst those that need more."
-  [vertical-height expanded-states groups active-layers]
-  (let [;; Need to special-case third-party; only calc height for those displayed:
-        groups (assoc groups :third-party (filter #(= :third-party (:category %)) active-layers))
-        expanded-count (->> expanded-states vals (filter identity) count)
-        group-height (/ (- vertical-height
-                           35           ; button
-                           (* 4 23)     ; 4 group headers
-                           10)          ; magic (random padding)
-                        (if (zero? expanded-count) 1 expanded-count))
-        requirements (reduce-kv (fn [m k v]
-                                  (let [required-height (cond-> (count v)
-                                                          true (* 67)
-                                                          true (+ 2 2) ; padding top and bottom
-                                                          ;; Again, third-party has an extra button we need to consider:
-                                                          (= k :third-party) (+ 30))
-                                        relinquished-height (- group-height required-height)
-                                        surplus? (pos? relinquished-height)]
-                                    (assoc m k {:surplus? surplus?
-                                                :required required-height
-                                                :surplus-height (max 0 relinquished-height)})))
-                                {} groups)
-        available-surplus (->> requirements vals (map :surplus-height) (apply +))
-        need-more-count (->> requirements vals (remove :surplus?) count (max 1))
-        height-to-distribute (+ group-height (/ available-surplus need-more-count))]
-    (reduce-kv (fn [m k v]
-                 (let [group-requirements (k requirements)
-                       height (if (:surplus? group-requirements)
-                                (:required group-requirements)
-                                height-to-distribute)]
-                   (assoc m k height)))
-               {} groups)))
-
-(defn app-controls [props]
+(defn app-controls []
   (let [layer-sub (re-frame/subscribe [:map/layers])
         expanded-states (reagent/atom {:hab true
                                        :bat true
@@ -229,22 +191,17 @@
                                        :oth false})
         callback (fn [k]
                    (fn [] (swap! expanded-states update k not)))]
-    (fn [{:keys [height] :as props}]
+    (fn []
       (let [{:keys [groups active-layers]} @layer-sub
             {:keys [habitat bathymetry imagery third-party]} groups
-            {:keys [hab bat img oth] :as es} @expanded-states
-            group-heights (-calc-group-heights height @expanded-states groups active-layers)
-            h (:habitat group-heights 0)
-            b (:bathymetry group-heights 0)
-            i (:imagery group-heights 0)
-            o (:third-party group-heights 0)]
+            {:keys [hab bat img oth] :as es} @expanded-states]
         [:div#sidebar
          [transect-toggle]
-         [layer-group {:title "Habitat"    :on-toggle (callback :hab) :expanded hab :max-height h} habitat     active-layers]
-         [layer-group {:title "Bathymetry" :on-toggle (callback :bat) :expanded bat :max-height b} bathymetry  active-layers]
-         [layer-group {:title "Imagery"    :on-toggle (callback :img) :expanded img :max-height i} imagery     active-layers]
+         [layer-group {:title "Habitat"    :on-toggle (callback :hab) :expanded hab} habitat     active-layers]
+         [layer-group {:title "Bathymetry" :on-toggle (callback :bat) :expanded bat} bathymetry  active-layers]
+         [layer-group {:title "Imagery"    :on-toggle (callback :img) :expanded img} imagery     active-layers]
          [third-party-layer-group
-                      {:title "Other"      :on-toggle (callback :oth) :expanded oth :max-height o} third-party active-layers]]))))
+                      {:title "Other"      :on-toggle (callback :oth) :expanded oth} third-party active-layers]]))))
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
@@ -278,9 +235,7 @@
 
 (defn layout-app []
   [:div#main-wrapper
-   [container-dimensions
-    #(reagent/as-element
-      [app-controls (js->clj % :keywordize-keys true)])]
+   [app-controls]
    [:div#content-wrapper
     [map-component]
     [plot-component]]])
