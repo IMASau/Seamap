@@ -35,6 +35,16 @@
      :center (-> m .getCenter latlng->vec)
      :bounds (-> m .getBounds bounds->map)}))
 
+(def ^:private *category-ordering*
+  (into {} (map vector [:bathymetry :habitat :imagery :third-party] (range))))
+
+(defn sort-layers
+  "Return layers in an order suitable for presentation (essentially,
+  bathymetry at the bottom, third-party on top)"
+  [layers]
+  (let [comparator #(< (get *category-ordering* %1 99) (get *category-ordering* %2 99))]
+    (sort-by :category comparator layers)))
+
 (defn map-component []
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -54,7 +64,7 @@
                    :on-dragend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])}
                   (when (seq bounds) {:bounds (map->bounds bounds)}))
      base-layer-osm
-     (for [{:keys [server_url layer_name] :as layer} active-layers]
+     (for [{:keys [server_url layer_name] :as layer} (sort-layers active-layers)]
        ^{:key (str server_url layer_name)}
        [wms-layer {:url server_url :layers layer_name
                    :transparent true :format "image/png"}])
