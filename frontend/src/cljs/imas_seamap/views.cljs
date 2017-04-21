@@ -157,7 +157,8 @@
     (str title " (" (count layers) ")")]
    [b/collapse {:is-open expanded}
     [:div {:style {:max-height (str max-height "px")
-                   :overflow-y "auto"}}
+                   :overflow-y "auto"
+                   :padding 2}}
      (when-let [extra-component (:extra-component props)]
        extra-component)
      (for [layer layers]
@@ -200,6 +201,7 @@
                                   (let [cnt (count v)
                                         required-height (cond-> cnt
                                                           true (* 67)
+                                                          true (+ 2 2) ; padding top and bottom
                                                           ;; Again, third-party has an extra button we need to consider:
                                                           (= k :third-party) (+ 30))
                                         relinquished-height (- group-height required-height)
