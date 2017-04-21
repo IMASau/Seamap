@@ -159,9 +159,9 @@
                               :on-click (handler-fn (swap! expanded not))}
         (str title " (" (count layers) ")")]
        [b/collapse {:is-open @expanded :className "height-managed"}
+        (when-let [extra-component (:extra-component props)]
+          extra-component)
         [:div.height-managed.group-scrollable
-         (when-let [extra-component (:extra-component props)]
-           extra-component)
          (for [layer layers]
            ^{:key (:layer_name layer)}
            [layer-card layer {:active? (active-layers layer)}])]]])))
