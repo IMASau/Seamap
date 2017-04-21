@@ -104,6 +104,10 @@ footer {
     overflow-x: hidden;
 }
 
+.catalogue-add {
+    margin-bottom: 5px;
+}
+
 /* Helper overlay: */
 .helper-layer-wrapper {
     position: absolute;
