@@ -67,9 +67,13 @@ footer {
 }
 
 /* Layer cards */
+.layer-group {
+    padding-top: 10px;
+}
+
 .group-scrollable{
     overflow-y: auto;
-    padding: 2px;
+    padding: 2px 2px 20px 2px;
 }
 
 .layer-wrapper .pt-card {
