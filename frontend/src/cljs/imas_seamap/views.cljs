@@ -157,8 +157,7 @@
                           :on-click #(on-toggle)}
     (str title " (" (count layers) ")")]
    [b/collapse {:is-open expanded :className "height-managed"}
-    [:div.height-managed {:style {:overflow-y "auto"
-                                  :padding 2}}
+    [:div.height-managed.group-scrollable
      (when-let [extra-component (:extra-component props)]
        extra-component)
      (for [layer layers]
