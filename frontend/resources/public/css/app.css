@@ -34,15 +34,6 @@ footer {
     flex-basis: 10px;
 }
 
-/* .draw-transect { */
-/*     flex-grow: 0; */
-/*     flex-shrink: 0; */
-/* } */
-/* .layer-group { */
-/*     flex-grow: 0; */
-/*     flex-shrink: 1; */
-/*     min-height: 0;              /\* http://stackoverflow.com/a/36247448 *\/ */
-/* } */
 .height-static {
     flex-grow: 0;
     flex-shrink: 0;
@@ -53,22 +44,8 @@ footer {
     flex-direction: column;
     flex-grow: 0;
     flex-shrink: 1;
-    min-height: 0;
+    min-height: 0;              /* http://stackoverflow.com/a/36247448 */
 }
-
-/* .layer-card { */
-/*     display: flex; */
-/*     flex-direction: column; */
-/* } */
-/* .layer-card .header-row { */
-/*     flex-grow: 0; */
-/*     flex-shrink: 0; */
-/* } */
-/* .layer-card .layer-legend { */
-/*     flex-grow: 0; */
-/*     flex-shrink: 1; */
-/*     min-height: 0; */
-/* } */
 
 .drag-handle {
     display: flex;
