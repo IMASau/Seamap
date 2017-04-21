@@ -111,7 +111,7 @@
                                [:transect.draw/disable "Cancel Transect"]
                                [:transect.draw/enable  "Draw Transect"])]
     [b/button {:icon-name "edit"
-               :class-name "pt-fill draw-transect"
+               :class-name "pt-fill draw-transect height-static"
                :on-click #(re-frame/dispatch [dispatch-key])
                :text label}]))
 
@@ -130,8 +130,8 @@
   (let [show-legend (reagent/atom false)]
     (fn [{:keys [name] :as layer-spec} {:keys [active?] :as other-props}]
       [:div.layer-wrapper {:on-click #(when active? (swap! show-legend not))}
-       [:div.pt-card.pt-elevation-1 {:class-name (when active? "pt-interactive")}
-        [:div.header-row
+       [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "pt-interactive")}
+        [:div.header-row.height-static
          [b/clipped-text {:ellipses true :class-name "header-text"}
           [b/tooltip {:content (if @show-legend "Click to hide legend" "Click to show legend")
                       :position js/Blueprint.Position.RIGHT
@@ -147,18 +147,19 @@
                       :position js/Blueprint.Position.RIGHT}
            [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
             {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer-spec]))}]]]]
-        [b/collapse {:is-open (and active? @show-legend)}
+        [b/collapse {:is-open (and active? @show-legend)
+                     :className "layer-legend"}
          [legend-display layer-spec]]]])))
 
 (defn layer-group [{:keys [title expanded on-toggle max-height] :as props} layers active-layers]
-  [:div.layer-group
+  [:div.layer-group.height-managed
    [:h1.pt-icon-standard {:class (if expanded "pt-icon-chevron-down" "pt-icon-chevron-right")
                           :on-click #(on-toggle)}
     (str title " (" (count layers) ")")]
-   [b/collapse {:is-open expanded}
-    [:div {:style {:max-height (str max-height "px")
-                   :overflow-y "auto"
-                   :padding 2}}
+   [b/collapse {:is-open expanded :className "height-managed"}
+    [:div.height-managed {:style { ;:max-height (str max-height "px")
+                                    :overflow-y "auto"
+                                    :padding 2}}
      (when-let [extra-component (:extra-component props)]
        extra-component)
      (for [layer layers]
@@ -198,8 +199,7 @@
                            10)          ; magic (random padding)
                         (if (zero? expanded-count) 1 expanded-count))
         requirements (reduce-kv (fn [m k v]
-                                  (let [cnt (count v)
-                                        required-height (cond-> cnt
+                                  (let [required-height (cond-> (count v)
                                                           true (* 67)
                                                           true (+ 2 2) ; padding top and bottom
                                                           ;; Again, third-party has an extra button we need to consider:

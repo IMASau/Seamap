@@ -14,6 +14,9 @@ body {
 }
 #sidebar {
     flex: 0 0 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
     padding: 5px;
     width: 0;
 }
@@ -30,6 +33,42 @@ footer {
     flex: 0 0;
     flex-basis: 10px;
 }
+
+/* .draw-transect { */
+/*     flex-grow: 0; */
+/*     flex-shrink: 0; */
+/* } */
+/* .layer-group { */
+/*     flex-grow: 0; */
+/*     flex-shrink: 1; */
+/*     min-height: 0;              /\* http://stackoverflow.com/a/36247448 *\/ */
+/* } */
+.height-static {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+.pt-collapse>.pt-collapse-body,
+.height-managed {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 0;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+/* .layer-card { */
+/*     display: flex; */
+/*     flex-direction: column; */
+/* } */
+/* .layer-card .header-row { */
+/*     flex-grow: 0; */
+/*     flex-shrink: 0; */
+/* } */
+/* .layer-card .layer-legend { */
+/*     flex-grow: 0; */
+/*     flex-shrink: 1; */
+/*     min-height: 0; */
+/* } */
 
 .drag-handle {
     display: flex;
