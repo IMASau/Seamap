@@ -62,7 +62,7 @@
 (defn add-to-layer [layer]
   [b/tooltip {:content "Add to map"}
    [:span.pt-icon-standard.pt-icon-send-to-map
-    {:on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
+    {:on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer]))}]])
 
 (defn layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
@@ -112,7 +112,7 @@
                                [:transect.draw/enable  "Draw Transect"])]
     [b/button {:icon-name "edit"
                :class-name "pt-fill draw-transect height-static"
-               :on-click #(re-frame/dispatch [dispatch-key])
+               :on-click (handler-fn (re-frame/dispatch [dispatch-key]))
                :text label}]))
 
 (defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
@@ -129,7 +129,7 @@
 (defn layer-card [layer-spec other-props]
   (let [show-legend (reagent/atom false)]
     (fn [{:keys [name] :as layer-spec} {:keys [active?] :as other-props}]
-      [:div.layer-wrapper {:on-click #(when active? (swap! show-legend not))}
+      [:div.layer-wrapper {:on-click (handler-fn (when active? (swap! show-legend not)))}
        [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "pt-interactive")}
         [:div.header-row.height-static
          [b/clipped-text {:ellipses true :class-name "header-text"}
@@ -156,7 +156,7 @@
     (fn [{:keys [title] :as props} layers active-layers]
       [:div.layer-group.height-managed
        [:h1.pt-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")
-                              :on-click #(swap! expanded not)}
+                              :on-click (handler-fn (swap! expanded not))}
         (str title " (" (count layers) ")")]
        [b/collapse {:is-open @expanded :className "height-managed"}
         [:div.height-managed.group-scrollable
@@ -172,7 +172,7 @@
       (let [catalogue [:div
                        [b/button  {:icon-name "pt-icon-add-to-artifact"
                                    :class-name "pt-fill catalogue-add"
-                                   :on-click #(swap! show-dialogue? not)
+                                   :on-click (handler-fn (swap! show-dialogue? not))
                                    :text "Catalogue"}]
                        [b/dialogue {:is-open @show-dialogue?
                                     :on-close #(reset! show-dialogue? false)
@@ -216,7 +216,7 @@
   (let [show-plot (re-frame/subscribe [:transect.plot/show?])
         force-resize #(js/window.dispatchEvent (js/Event. "resize"))
         transect-results (re-frame/subscribe [:transect/results])]
-    [:footer {:on-click #(re-frame/dispatch [:transect.plot/toggle-visibility])}
+    [:footer {:on-click (handler-fn (re-frame/dispatch [:transect.plot/toggle-visibility]))}
      [:div.drag-handle [:span.pt-icon-large.pt-icon-drag-handle-horizontal]]
      [css-transition-group {:transition-name "plot-height"
                             :transition-enter-timeout 300
