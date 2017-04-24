@@ -225,7 +225,9 @@
         [plot-component-animatable {:on-add force-resize :on-remove force-resize}
          transect-display-component (assoc @transect-results
                                            :on-mousemove
-                                           #(re-frame/dispatch [:transect.plot/mousemove %]))])]]))
+                                           #(re-frame/dispatch [:transect.plot/mousemove %])
+                                           :on-mouseout
+                                           #(re-frame/dispatch [:transect.plot/mouseout]))])]]))
 
 (defn layout-app []
   [:div#main-wrapper

@@ -112,6 +112,9 @@
 (defn transect-onmousemove [db [_ {:keys [percentage]}]]
   (assoc-in db [:transect :mouse-percentage] percentage))
 
+(defn transect-onmouseout [db _]
+  (assoc-in db [:transect :mouse-percentage] nil))
+
 (defn ajax [db [_ url {:keys [handler err-handler override-opts]
                        :or   {handler     :ajax/default-success-handler
                               err-handler :ajax/default-err-handler}
