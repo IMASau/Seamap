@@ -38,11 +38,13 @@
     (scale-distance s1 s2 remainder-pct)))
 
 (defn transect-info [{:keys [map transect] :as db} _]
-  {:drawing? (boolean (get-in map [:controls :transect]))
-   :query (:query transect)
-   :mouse-loc (point->latlng
-               (point-along-line (-> transect :query :geometry :coordinates)
-                                 (:mouse-percentage transect)))})
+  (merge
+   {:drawing? (boolean (get-in map [:controls :transect]))
+    :query (:query transect)}
+   (when-let [pctg (:mouse-percentage transect)]
+     {:mouse-loc (point->latlng
+                  (point-along-line (-> transect :query :geometry :coordinates)
+                                    pctg))})))
 
 (defn- transect-query-status [{:keys [habitat bathymetry] :as args}]
   (cond
