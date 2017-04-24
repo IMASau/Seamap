@@ -7,7 +7,6 @@
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer-macros [handler-fn]]
-            [goog]
             [goog.object :as gobj]
             [goog.dom :as dom]
             [debux.cs.core :refer [dbg]]))
