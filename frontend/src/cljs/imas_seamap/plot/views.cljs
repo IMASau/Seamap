@@ -216,8 +216,9 @@
                                     :depth      closest-depth}))))
 
 
-(defn mouse-leave-graph [{:keys [tooltip-content] :as props}]
-  (swap! tooltip-content merge {:tooltip {:style {:visibility "hidden"}}}))
+(defn mouse-leave-graph [{:keys [tooltip-content on-mouseout] :as props}]
+  (swap! tooltip-content merge {:tooltip {:style {:visibility "hidden"}}})
+  (when on-mouseout (on-mouseout)))
 
 
 (defn transect-graph [props]
@@ -345,7 +346,8 @@
                                                                                        :origin          origin
                                                                                        :margin          margin
                                                                                        :offset          graph-line-offset}))
-                                      :on-mouse-leave #(mouse-leave-graph {:tooltip-content tooltip-content})}])]])))))
+                                      :on-mouse-leave #(mouse-leave-graph (assoc props
+                                                                                 :tooltip-content tooltip-content))}])]])))))
 
 (defn- transect-no-data []
   [non-ideal-state
