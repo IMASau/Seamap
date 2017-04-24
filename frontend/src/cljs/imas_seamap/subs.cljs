@@ -1,10 +1,15 @@
 (ns imas-seamap.subs
     (:require-macros [reagent.ratom :refer [reaction]])
-    (:require [re-frame.core :as re-frame]))
+    (:require [imas-seamap.map.views :refer [point-along-line point->latlng]]
+              [re-frame.core :as re-frame]
+              [debux.cs.core :refer-macros [dbg]]))
 
 (defn transect-info [{:keys [map transect] :as db} _]
   {:drawing? (boolean (get-in map [:controls :transect]))
-   :query (:query transect)})
+   :query (:query transect)
+   :mouse-loc (point->latlng
+               (point-along-line (-> transect :query :geometry :coordinates)
+                                 (:mouse-percentage transect)))})
 
 (defn- transect-query-status [{:keys [habitat bathymetry] :as args}]
   (cond
