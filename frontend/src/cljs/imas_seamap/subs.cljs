@@ -34,7 +34,7 @@
         pct (/ pct 100)
         pct-distances (map (fn [[d1 d2 seg]] [(->pctg d1) (->pctg d2) seg]) seg-distances)
         [lower upper [s1 s2]] (first (filter (fn [[p1 p2 s]] (<= p1 pct p2)) pct-distances))
-        remainder-pct (+ lower (* (- pct lower) (- upper lower)))]
+        remainder-pct (/ (- pct lower) (- upper lower))]
     (scale-distance s1 s2 remainder-pct)))
 
 (defn transect-info [{:keys [map transect] :as db} _]
