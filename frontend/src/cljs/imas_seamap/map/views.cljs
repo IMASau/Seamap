@@ -13,6 +13,7 @@
 (def popup         (r/adapt-react-class js/ReactLeaflet.Popup))
 (def feature-group (r/adapt-react-class js/ReactLeaflet.FeatureGroup))
 (def edit-control  (r/adapt-react-class js/ReactLeaflet.EditControl))
+(def circle-marker (r/adapt-react-class js/ReactLeaflet.CircleMarker))
 
 (defn ->point [p] (js/L.point (clj->js p)))
 
@@ -83,7 +84,7 @@
 
 (defn map-component []
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
-        {:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
+        {:keys [drawing? query mouse-loc]} @(re-frame/subscribe [:transect/info])
         base-layer-bluemarble [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
                                           :layers "nasa:bluemarble"
                                           :attribution "Made by Condense / Images by NASA"}]
@@ -105,7 +106,14 @@
        [wms-layer {:url server_url :layers layer_name
                    :transparent true :format "image/png"}])
      (when query
-       [geojson-layer {:data (clj->js query)}])
+       [geojson-layer {:data (clj->js query)}]
+       (when mouse-loc
+         [circle-marker {:center      mouse-loc
+                         :radius      20
+                         :fillColor   "#ff7800"
+                         :color       "#000"
+                         :opacity     1
+                         :fillOpacity 1}]))
      (when drawing?
        [feature-group
         [edit-control {:draw {:rectangle false
