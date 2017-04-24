@@ -15,42 +15,6 @@
 (def edit-control  (r/adapt-react-class js/ReactLeaflet.EditControl))
 (def circle-marker (r/adapt-react-class js/ReactLeaflet.CircleMarker))
 
-(defn ->point [p] (js/L.point (clj->js p)))
-
-(defn point->latlng [[x y]] {:lat y :lng x})
-
-(defn point-distance [p1 p2] (.distanceTo (->point p1) (->point p2)))
-
-(defn scale-distance [[x1 y1] [x2 y2] pct]
-  [(+ x1 (* pct (- x2 x1)))
-   (+ y1 (* pct (- y2 y1)))])
-
-(defn point-along-line
-  "Given a series of coordinates representing a line, and a
-  percentage (assumed to be between 0 and 100), return a point as
-  two-element vector that occurs at that percentage distance along the
-  line."
-  [coords pct]
-  (let [pairs (map vector coords (rest coords))
-        seg-distances (loop [[[p1 p2 :as seg] & rest-pairs] pairs
-                             acc-len 0
-                             acc ()] ; accumlator has tuples of start-len, end-len, pair (segment)
-                        (if-not p1
-                          acc
-                          (let [distance (point-distance p1 p2)
-                                end-len (+ acc-len distance)]
-                            (recur rest-pairs
-                                   end-len
-                                   ;; Note, we cons, so the last entry is first on the list:
-                                   (cons [acc-len end-len seg] acc)))))
-        [_ total-distance _] (first seg-distances)
-        ->pctg #(/ % total-distance)
-        pct (/ pct 100)
-        pct-distances (map (fn [[d1 d2 seg]] [(->pctg d1) (->pctg d2) seg]) seg-distances)
-        [lower upper [s1 s2]] (first (filter (fn [[p1 p2 s]] (<= p1 pct p2)) pct-distances))
-        remainder-pct (+ lower (* (- pct lower) (- upper lower)))]
-    (scale-distance s1 s2 remainder-pct)))
-
 (defn bounds->map [bounds]
   {:north (.. bounds getNorth)
    :south (.. bounds getSouth)
@@ -60,6 +24,12 @@
 (defn map->bounds [{:keys [west south east north] :as bounds}]
   [[south west]
    [north east]])
+
+(defn point->latlng [[x y]] {:lat y :lng x})
+
+(defn point-distance [[x1 y1 :as p1] [x2 y2 :as p2]]
+  (let [xd (- x2 x1) yd (- y2 y1)]
+    (js/Math.sqrt (+ (* xd xd) (* yd yd)))))
 
 (defn latlng->vec [ll]
   (-> ll
@@ -106,14 +76,14 @@
        [wms-layer {:url server_url :layers layer_name
                    :transparent true :format "image/png"}])
      (when query
-       [geojson-layer {:data (clj->js query)}]
-       (when mouse-loc
-         [circle-marker {:center      mouse-loc
-                         :radius      20
-                         :fillColor   "#ff7800"
-                         :color       "#000"
-                         :opacity     1
-                         :fillOpacity 1}]))
+       [geojson-layer {:data (clj->js query)}])
+     (when (and query mouse-loc)
+       [circle-marker {:center      mouse-loc
+                       :radius      20
+                       :fillColor   "#ff7800"
+                       :color       "#000"
+                       :opacity     1
+                       :fillOpacity 1}])
      (when drawing?
        [feature-group
         [edit-control {:draw {:rectangle false
