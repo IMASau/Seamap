@@ -7,6 +7,7 @@
                  [org.clojure/test.check "0.9.0"]
                  [figwheel-sidecar "0.5.10"]
                  [com.cemerick/piggieback "0.2.1"]
+                 [binaryage/oops "0.5.3"]
                  [reagent "0.6.0"]
                  [re-frame "0.9.1"]
                  [re-frisk "0.3.2"]
@@ -52,9 +53,16 @@
                     :external-config      {:devtools/config {:features-to-install :all}}}}
 
     {:id           "min"
-     :source-paths ["src/cljs"]
+     :source-paths ["src/cljs" "resources/ext"]
      :compiler     {:main            imas-seamap.core
                     :output-to       "resources/public/js/compiled/app.js"
+                    :output-dir      "resources/public/js/compiled/app"
+                    :source-map      "resources/public/js/compiled/app.js.map"
+                    :externs         ["leaflet.ext.js"
+                                      "react.ext.js"
+                                      ;; "react-leaflet.ext.js"
+                                      "externs-bak.js"]
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
+                    :pseudo-names    true
                     :pretty-print    false}}]})

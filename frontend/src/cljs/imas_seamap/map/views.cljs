@@ -2,8 +2,8 @@
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
             [imas-seamap.utils :refer [select-values]]
+            [oops.core :refer [ocall]]
             [debux.cs.core :refer-macros [dbg]]))
-
 
 (def tile-layer    (r/adapt-react-class js/ReactLeaflet.TileLayer))
 (def wms-layer     (r/adapt-react-class js/ReactLeaflet.WMSTileLayer))
@@ -92,6 +92,6 @@
                               :polygon   false
                               :polyline  {:allowIntersection false}}
                        :on-mounted (fn [e]
-                                     (.. e -_toolbars -draw -_modes -polyline -handler enable)
-                                     (.. e -_map  (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
+                                     (ocall e "_toolbars.draw._modes.polyline.handler.enable")
+                                     (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
                        :on-created #(re-frame/dispatch [:transect/query (-> % .-layer .toGeoJSON (js->clj :keywordize-keys true))])}]])]))
