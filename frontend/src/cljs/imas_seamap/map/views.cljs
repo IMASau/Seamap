@@ -79,9 +79,9 @@
        [geojson-layer {:data (clj->js query)}])
      (when (and query mouse-loc)
        [circle-marker {:center      mouse-loc
-                       :radius      20
-                       :fillColor   "#ff7800"
-                       :color       "#000"
+                       :radius      3
+                       :fillColor   "#3f8ffa"
+                       :color       "#3f8ffa"
                        :opacity     1
                        :fillOpacity 1}])
      (when drawing?
