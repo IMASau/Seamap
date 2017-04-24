@@ -109,6 +109,9 @@
 (defn transect-visibility-hide [db _]
   (assoc-in db [:transect :show?] false))
 
+(defn transect-onmousemove [db [_ {:keys [percentage]}]]
+  (assoc-in db [:transect :mouse-percentage] percentage))
+
 (defn ajax [db [_ url {:keys [handler err-handler override-opts]
                        :or   {handler     :ajax/default-success-handler
                               err-handler :ajax/default-err-handler}

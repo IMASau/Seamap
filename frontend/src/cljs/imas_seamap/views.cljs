@@ -223,7 +223,9 @@
                             :transition-leave-timeout 300}
       (if @show-plot
         [plot-component-animatable {:on-add force-resize :on-remove force-resize}
-         transect-display-component @transect-results])]]))
+         transect-display-component (assoc @transect-results
+                                           :on-mousemove
+                                           #(re-frame/dispatch [:transect.plot/mousemove %]))])]]))
 
 (defn layout-app []
   [:div#main-wrapper

@@ -40,6 +40,7 @@
     :transect.draw/clear                  events/not-yet-implemented
     :transect.plot/show                   events/transect-visibility-show
     :transect.plot/hide                   events/transect-visibility-hide
+    :transect.plot/mousemove              events/transect-onmousemove
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map/toggle-layer                     mevents/toggle-layer
     :map/update-layers                    mevents/update-layers
