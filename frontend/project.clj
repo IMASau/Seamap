@@ -58,11 +58,7 @@
                     :output-to       "resources/public/js/compiled/app.js"
                     :output-dir      "resources/public/js/compiled/app"
                     :source-map      "resources/public/js/compiled/app.js.map"
-                    :externs         ["leaflet.ext.js"
-                                      "react.ext.js"
-                                      ;; "react-leaflet.ext.js"
-                                      "externs-bak.js"]
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
-                    :pseudo-names    true
+                    :pseudo-names    false
                     :pretty-print    false}}]})

@@ -2,24 +2,24 @@
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
             [imas-seamap.utils :refer [select-values]]
-            [oops.core :refer [ocall]]
+            [oops.core :refer [ocall oget]]
             [debux.cs.core :refer-macros [dbg]]))
 
-(def tile-layer    (r/adapt-react-class js/ReactLeaflet.TileLayer))
-(def wms-layer     (r/adapt-react-class js/ReactLeaflet.WMSTileLayer))
-(def geojson-layer (r/adapt-react-class js/ReactLeaflet.GeoJSON))
-(def leaflet-map   (r/adapt-react-class js/ReactLeaflet.Map))
-(def marker        (r/adapt-react-class js/ReactLeaflet.Marker))
-(def popup         (r/adapt-react-class js/ReactLeaflet.Popup))
-(def feature-group (r/adapt-react-class js/ReactLeaflet.FeatureGroup))
-(def edit-control  (r/adapt-react-class js/ReactLeaflet.EditControl))
-(def circle-marker (r/adapt-react-class js/ReactLeaflet.CircleMarker))
+(def tile-layer    (r/adapt-react-class (oget js/window "ReactLeaflet.TileLayer")))
+(def wms-layer     (r/adapt-react-class (oget js/window "ReactLeaflet.WMSTileLayer")))
+(def geojson-layer (r/adapt-react-class (oget js/window "ReactLeaflet.GeoJSON")))
+(def leaflet-map   (r/adapt-react-class (oget js/window "ReactLeaflet.Map")))
+(def marker        (r/adapt-react-class (oget js/window "ReactLeaflet.Marker")))
+(def popup         (r/adapt-react-class (oget js/window "ReactLeaflet.Popup")))
+(def feature-group (r/adapt-react-class (oget js/window "ReactLeaflet.FeatureGroup")))
+(def edit-control  (r/adapt-react-class (oget js/window "ReactLeaflet.EditControl")))
+(def circle-marker (r/adapt-react-class (oget js/window "ReactLeaflet.CircleMarker")))
 
 (defn bounds->map [bounds]
-  {:north (.. bounds getNorth)
-   :south (.. bounds getSouth)
-   :east  (.. bounds getEast)
-   :west  (.. bounds getWest)})
+  {:north (ocall bounds :getNorth)
+   :south (ocall bounds :getSouth)
+   :east  (ocall bounds :getEast)
+   :west  (ocall bounds :getWest)})
 
 (defn map->bounds [{:keys [west south east north] :as bounds}]
   [[south west]
@@ -38,9 +38,9 @@
 
 (defn leaflet-props [e]
   (let [m (.. e -target)]
-    {:zoom (.. m getZoom)
-     :center (-> m .getCenter latlng->vec)
-     :bounds (-> m .getBounds bounds->map)}))
+    {:zoom (ocall m :getZoom)
+     :center (-> m (ocall :getCenter) latlng->vec)
+     :bounds (-> m (ocall :getBounds) bounds->map)}))
 
 (def ^:private *category-ordering*
   (into {} (map vector [:bathymetry :habitat :imagery :third-party] (range))))
@@ -94,4 +94,4 @@
                        :on-mounted (fn [e]
                                      (ocall e "_toolbars.draw._modes.polyline.handler.enable")
                                      (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
-                       :on-created #(re-frame/dispatch [:transect/query (-> % .-layer .toGeoJSON (js->clj :keywordize-keys true))])}]])]))
+                       :on-created #(re-frame/dispatch [:transect/query (-> % (ocall "layer.toGeoJSON") (js->clj :keywordize-keys true))])}]])]))

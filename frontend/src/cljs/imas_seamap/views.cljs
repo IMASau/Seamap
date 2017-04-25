@@ -9,13 +9,14 @@
             [imas-seamap.utils :refer-macros [handler-fn]]
             [goog.object :as gobj]
             [goog.dom :as dom]
+            [oops.core :refer [oget]]
             [debux.cs.core :refer [dbg]]))
 
 (def css-transition-group
-  (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
+  (reagent/adapt-react-class (oget js/window "React.addons.CSSTransitionGroup")))
 
 (def container-dimensions
-  (reagent/adapt-react-class js/React.ContainerDimensions))
+  (reagent/adapt-react-class (oget js/window "React.ContainerDimensions")))
 
 (defn ->helper-props [& {:keys [text position]
                          :or   {position "right"}}]
@@ -125,6 +126,8 @@
     [:div.legend-wrapper
      [:img {:src legend-url}]]))
 
+(def ^:private *RIGHT* (oget js/window "Blueprint.Position.RIGHT"))
+
 (defn layer-card [layer-spec other-props]
   (let [show-legend (reagent/atom false)]
     (fn [{:keys [name] :as layer-spec} {:keys [active?] :as other-props}]
@@ -133,17 +136,17 @@
         [:div.header-row.height-static
          [b/clipped-text {:ellipses true :class-name "header-text"}
           [b/tooltip {:content (if @show-legend "Click to hide legend" "Click to show legend")
-                      :position js/Blueprint.Position.RIGHT
+                      :position *RIGHT*
                       :isDisabled (not active?)}
            name]]
          [:div.layer-controls.pt-ui-text-large
           [b/tooltip {:content (if active? "Hide layer" "Show layer")
-                      :position js/Blueprint.Position.RIGHT}
+                      :position *RIGHT*}
            [:span.control.pt-text-muted.pt-icon-large
             {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
              :on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer-spec]))}]]
           [b/tooltip {:content "Show entire layer"
-                      :position js/Blueprint.Position.RIGHT}
+                      :position *RIGHT*}
            [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
             {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer-spec]))}]]]]
         [b/collapse {:is-open (and active? @show-legend)
