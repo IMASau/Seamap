@@ -55,7 +55,7 @@
     :default :transect.results.status/ready))
 
 (defn transect-results [{{:keys [query habitat bathymetry] :as transect} :transect :as db} _]
-  {:transect.results/query (:query transect)
+  {:transect.results/query query
    :transect.results/status (transect-query-status transect)
    :transect.results/habitat habitat
    :transect.results/bathymetry bathymetry
