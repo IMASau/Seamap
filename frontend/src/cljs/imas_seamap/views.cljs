@@ -254,5 +254,7 @@
    [app-controls]
    [:div#content-wrapper
     [map-component]
-    [plot-component]]])
+    [plot-component]]
+   ;; needs the ids of components to helper-annotate:
+   [helper-overlay]])
 
