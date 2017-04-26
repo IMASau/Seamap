@@ -196,6 +196,13 @@ footer {
     right: -100px;
 }
 
+.helper-layer-top .helper-layer-tooltiptext,
+.helper-layer-bottom .helper-layer-tooltiptext {
+    text-align: center;
+}
+.helper-layer-left .helper-layer-tooltiptext {
+    text-align: right;
+}
 
 /* Plot animations: */
 
@@ -217,7 +224,7 @@ footer {
     height: 10px;
 }
 
-.draw-transect {
+.draw-transect::after {
     margin-bottom: 5px;
 }
 

@@ -1,5 +1,6 @@
 (ns imas-seamap.views
   (:require [clojure.set :refer [difference]]
+            [clojure.string :as string]
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b]
@@ -18,11 +19,6 @@
 (def container-dimensions
   (reagent/adapt-react-class (oget js/window "React.ContainerDimensions")))
 
-(defn ->helper-props [& {:keys [text position]
-                         :or   {position "right"}}]
-  {:data-helper-text     text
-   :data-helper-position position})
-
 (defn with-params [url params]
   (let [u (goog/Uri. url)]
     (doseq [[k v] params]
@@ -30,34 +26,49 @@
     (str u)))
 
 (defn helper-overlay [& element-ids]
-  (let [elem-props (fn [id]
+  (let [*line-height* 17.6 *padding* 10 *text-width* 200 ;; hard-code
+        *vertical-bar* 50 *horiz-bar* 100
+        elem-props (fn [id]
                      (let [elem (dom/getElement id)
                            rect (-> elem .getBoundingClientRect js->clj)
                            data (-> elem .-dataset js->clj)]
                        (merge rect data)))
-        posn->offsets (fn [posn props]
+        posn->offsets (fn [posn width height]
                         (case posn
-                          "top"    {:top -30}
-                          "bottom" {:bottom -30}
-                          "left"   {:left -176}
-                          "right"  {:right -176}))
+                          "top"    {:bottom (+ height *vertical-bar* *padding*)
+                                    :left (- (/ width 2) (/ *text-width* 2))}
+                          "bottom" {:top (+ height *vertical-bar* *padding*)
+                                    :left (- (/ width 2) (/ *text-width* 2))}
+                          "left"   {:right (+ width *horiz-bar* *padding*)
+                                    :top (- (/ height 2) (/ *line-height* 2))}
+                          "right"  {:left (+ width *horiz-bar* *padding*)
+                                    :top (- (/ height 2) (/ *line-height* 2))}))
+        wrapper-props (fn [posn {:keys [top left width height] :as elem-props}]
+                        (let [vertical-padding   (when (#{"top" "bottom"} posn) *padding*)
+                              horizontal-padding (when (#{"left" "right"} posn) *padding*)]
+                          {:width  (+ width horizontal-padding) ; allow for css padding
+                           :height (+ height vertical-padding)
+                           :top    (if (= posn "top")  (- top *padding*)  top)
+                           :left   (if (= posn "left") (- left *padding*) left)}))
         open? @(re-frame/subscribe [:help-layer/open?])]
     [b/overlay {:is-open  open?
-                :on-close #(re-frame/dispatch  [:help-layer/close])}
+                :on-close #(re-frame/dispatch [:help-layer/close])}
      (when open?
-      (for [id element-ids
-            :let [{:keys [top right bottom left width height
-                          helperText helperPosition]
-                   :as eprops} (elem-props id)
-                  posn-cls (str "helper-layer-" helperPosition)]]
-        ^{:key id}
-        [:div.helper-layer-wrapper {:class-name posn-cls
-                                    :style {:width width
-                                            :height height
-                                            :top top
-                                            :left left}}
-         [:div.helper-layer-tooltip {:class-name posn-cls} ; TODO: needs positioning-offsets depending on position attribute
-          [:div.helper-layer-tooltiptext id helperText]]]))]))
+       (for [id element-ids
+             :let [id (-> id name (string/replace #"^#" "")) ; allow "id", "#id", :id, :#id
+                   {:keys [top right bottom left width height
+                           helperText helperPosition]
+                    :or {helperPosition "right"}
+                    :as eprops} (elem-props id)
+                   posn-cls (str "helper-layer-" helperPosition)]
+             :when (not (string/blank? helperText))]
+         ^{:key id}
+         [:div.helper-layer-wrapper {:class-name posn-cls
+                                     :style (wrapper-props helperPosition eprops)}
+          [:div.helper-layer-tooltip {:class-name posn-cls
+                                      :style (posn->offsets helperPosition width height)}
+           [:div.helper-layer-tooltiptext {:style {:width *text-width*}}
+            helperText]]]))]))
 
 (defn add-to-layer [layer]
   [b/tooltip {:content "Add to map"}
