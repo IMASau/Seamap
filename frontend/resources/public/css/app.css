@@ -108,6 +108,11 @@ footer {
     margin-bottom: 5px;
 }
 
+.help-button {
+    margin-top: auto;           /* stick to bottom */
+    text-align: center;
+}
+
 /* Helper overlay: */
 .helper-layer-wrapper {
     position: absolute;

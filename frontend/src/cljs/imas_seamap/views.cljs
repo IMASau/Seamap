@@ -70,6 +70,12 @@
            [:div.helper-layer-tooltiptext {:style {:width *text-width*}}
             helperText]]]))]))
 
+(defn help-button []
+  [:div.layer-controls.help-button
+   [b/tooltip {:content "Show the quick-help guide"}
+    [:span.control.pt-icon-large.pt-icon-help.pt-text-muted
+     {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
+
 (defn add-to-layer [layer]
   [b/tooltip {:content "Add to map"}
    [:span.pt-icon-standard.pt-icon-send-to-map
@@ -206,7 +212,8 @@
      [layer-group {:title "Bathymetry":expanded true } bathymetry  active-layers]
      [layer-group {:title "Imagery"   :expanded false} imagery     active-layers]
      [third-party-layer-group
-                  {:title "Other"     :expanded false} third-party active-layers]]))
+      {:title "Other"     :expanded false} third-party active-layers]
+     [help-button]]))
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
