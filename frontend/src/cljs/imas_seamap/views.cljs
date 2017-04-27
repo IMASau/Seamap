@@ -28,11 +28,10 @@
 (defn helper-overlay [& element-ids]
   (let [*line-height* 17.6 *padding* 10 *text-width* 200 ;; hard-code
         *vertical-bar* 50 *horiz-bar* 100
-        elem-props (fn [id]
-                     (let [elem (dom/getElement id)
-                           rect (-> elem .getBoundingClientRect js->clj)
-                           data (-> elem .-dataset js->clj)]
-                       (merge rect data)))
+        elem-props #(when-let [elem (dom/getElement %)]
+                      (merge
+                       (-> elem .getBoundingClientRect js->clj)
+                       (-> elem .-dataset js->clj)))
         posn->offsets (fn [posn width height]
                         (case posn
                           "top"    {:bottom (+ height *vertical-bar* *padding*)
