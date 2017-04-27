@@ -62,7 +62,9 @@
 (s/def :transect/show? (s/nilable boolean?))
 (s/def :transect/habitat ::transect-results-format)
 (s/def :transect/bathymetry ::transect-results-format)
-(s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]))
+(s/def :transect/mouse-percentage (s/nilable number?))
+(s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]
+                          :opt-un [:transect/mouse-percentage]))
 
 (s/def ::config map?)
 
