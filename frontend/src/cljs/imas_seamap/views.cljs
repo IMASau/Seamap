@@ -77,7 +77,7 @@
 
 (defn add-to-layer [layer]
   [b/tooltip {:content "Add to map"}
-   [:span.pt-icon-standard.pt-icon-send-to-map
+   [:span.pt-icon-standard.pt-icon-send-to-map.pt-text-muted.control
     {:on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer]))}]])
 
 (defn layers->nodes
@@ -106,7 +106,7 @@
                    (let [node (js->clj node :keywordize-keys true)]
                      (swap! expanded-states assoc (:id node) false)))]
     (fn [layers ordering id]
-      [:div.tab-body {:id id}
+      [:div.tab-body.layer-controls {:id id}
        [b/tree {:contents (layers->nodes layers ordering @expanded-states id)
                 :onNodeCollapse on-close
                 :onNodeExpand on-open}]])))
