@@ -17,6 +17,7 @@
   {:subs
    {:map/props                            msubs/map-props
     :map/layers                           msubs/map-layers
+    :map.feature/info                     subs/feature-info
     :transect/info                        subs/transect-info
     :transect/results                     subs/transect-results
     :transect.plot/show?                  subs/transect-show?

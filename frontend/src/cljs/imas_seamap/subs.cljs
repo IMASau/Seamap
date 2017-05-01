@@ -37,6 +37,13 @@
         remainder-pct (/ (- pct lower) (- upper lower))]
     (scale-distance s1 s2 remainder-pct)))
 
+(defn feature-info [{:keys [feature] :as db} _]
+  (if-let [{:keys [info location]} feature]
+    {:has-info? true
+     :info-body info
+     :location ((juxt :lat :lng) location)}
+    {:has-info? false}))
+
 (defn transect-info [{:keys [map transect] :as db} _]
   (merge
    {:drawing? (boolean (get-in map [:controls :transect]))
