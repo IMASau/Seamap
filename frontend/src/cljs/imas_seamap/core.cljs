@@ -23,11 +23,10 @@
     :help-layer/open?                     subs/help-layer-open?}
 
    :events
-   {:ajax                                 events/ajax
-    :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
+   {:ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     :initialise-db                        events/initialise-db
-    :initialise-layers                    events/initialise-layers
+    :initialise-layers                    [events/initialise-layers]
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
