@@ -36,11 +36,16 @@
       js->clj
       (select-values ["lat" "lng"])))
 
-(defn mouseevent->xy [e]
-  (-> e
-      (oget "layerPoint")
-      (js->clj :keywordize-keys true)
-      (select-keys [:x :y])))
+(defn mouseevent->coords [e]
+  (merge
+   (-> e
+       (oget "layerPoint")
+       (js->clj :keywordize-keys true)
+       (select-keys [:x :y]))
+   (-> e
+       (oget "latlng")
+       (js->clj :keywordize-keys true)
+       (select-keys [:lat :lng]))))
 
 (defn leaflet-props [e]
   (let [m (oget e :target)]
@@ -52,7 +57,7 @@
 (defn on-map-clicked
   "Initial handler for map click events; intent is these only apply to image layers"
   [e]
-  (re-frame/dispatch [:map/clicked (leaflet-props e) (mouseevent->xy e)]))
+  (re-frame/dispatch [:map/clicked (leaflet-props e) (mouseevent->coords e)]))
 
 (def ^:private *category-ordering*
   (into {} (map vector [:bathymetry :habitat :imagery :third-party] (range))))
