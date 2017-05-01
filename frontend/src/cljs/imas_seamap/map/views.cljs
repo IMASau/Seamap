@@ -36,12 +36,23 @@
       js->clj
       (select-values ["lat" "lng"])))
 
+(defn mouseevent->xy [e]
+  (-> e
+      (oget "layerPoint")
+      (js->clj :keywordize-keys true)
+      (select-keys [:x :y])))
+
 (defn leaflet-props [e]
   (let [m (oget e :target)]
     {:zoom   (ocall m :getZoom)
      :size   (-> m (ocall :getSize) (js->clj :keywordize-keys true) (select-keys [:x :y]))
      :center (-> m (ocall :getCenter) latlng->vec)
      :bounds (-> m (ocall :getBounds) bounds->map)}))
+
+(defn on-map-clicked
+  "Initial handler for map click events; intent is these only apply to image layers"
+  [e]
+  (re-frame/dispatch [:map/clicked (leaflet-props e) (mouseevent->xy e)]))
 
 (def ^:private *category-ordering*
   (into {} (map vector [:bathymetry :habitat :imagery :third-party] (range))))
@@ -69,7 +80,8 @@
                   {:id "map" :use-fly-to true
                    :center center :zoom zoom
                    :on-zoomend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])
-                   :on-dragend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])}
+                   :on-dragend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])
+                   :on-click on-map-clicked}
                   (when (seq bounds) {:bounds (map->bounds bounds)}))
      base-layer-osm
      (for [{:keys [server_url layer_name] :as layer} (sort-layers active-layers)]
