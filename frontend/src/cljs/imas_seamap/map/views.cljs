@@ -39,7 +39,7 @@
 (defn leaflet-props [e]
   (let [m (oget e :target)]
     {:zoom   (ocall m :getZoom)
-     :size   (-> m (ocall :getSize) (js->clj {:keywordize-keys true}) (select-keys [:x :y]))
+     :size   (-> m (ocall :getSize) (js->clj :keywordize-keys true) (select-keys [:x :y]))
      :center (-> m (ocall :getCenter) latlng->vec)
      :bounds (-> m (ocall :getBounds) bounds->map)}))
 
