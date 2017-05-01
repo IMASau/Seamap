@@ -55,10 +55,15 @@
   (doseq [[sym handler] subs]
     (re-frame/reg-sub sym handler))
   (doseq [[sym handler] events]
-    (re-frame/reg-event-db
-     sym
-     standard-interceptors
-     handler)))
+    (if (sequential? handler)
+      (re-frame/reg-event-fx
+       sym
+       standard-interceptors
+       (first handler))
+      (re-frame/reg-event-db
+       sym
+       standard-interceptors
+       handler))))
 
 (defn dev-setup []
   (when config/debug?
