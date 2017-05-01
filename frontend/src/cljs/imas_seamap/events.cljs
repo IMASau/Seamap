@@ -44,7 +44,7 @@
          (map (partial string/join " "))
          (string/join ","))))
 
-(defn transect-query [db [_ geojson]]
+(defn transect-query [{:keys [db]} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
   ;; unlikely race conditions; do this before dispatching)
   (let [db (assoc db :transect {:query geojson
@@ -52,10 +52,10 @@
                                 :habitat :loading
                                 :bathymetry :loading})
         linestring (geojson->linestring geojson)]
-    (re-frame/dispatch [:transect.plot/show]) ; A bit redundant since we set the :show key above
-    (re-frame/dispatch [:transect.query/habitat linestring])
-    (re-frame/dispatch [:transect.query/bathymetry linestring])
-    db))
+    {:db db
+     :dispatch-n [[:transect.plot/show] ; A bit redundant since we set the :show key above
+                  [:transect.query/habitat linestring]
+                  [:transect.query/bathymetry linestring]]}))
 
 (defn- transect-error-handler [type {:keys [status-text failure]}]
   (let [status-text (if (= failure :timeout)
