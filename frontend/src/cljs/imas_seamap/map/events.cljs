@@ -1,5 +1,9 @@
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
+            [clojure.data.xml :as xml]
+            [clojure.data.zip.xml :as zx]
+            [clojure.string :as string]
+            [clojure.zip :as zip]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]
             [ajax.core :as ajax]))
@@ -21,7 +25,7 @@
 (defn bounds->str [{:keys [north south east west] :as bounds}]
   (string/join "," [south west north east]))
 
-(defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y]}]]
+(defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y] :as point}]]
   ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
   (merge {:db db}
          (when-not (boolean (get-in db [:map :controls :transect]))
@@ -45,8 +49,17 @@
                            :uri "http://geoserver.imas.utas.edu.au/geoserver/wms"
                            :params params
                            :response-format (ajax/text-response-format)
-                           :on-success [:ajax/default-success-handler]
+                           :on-success [:map/got-featureinfo point]
                            :on-failure [:ajax/default-err-handler]}}))))
+
+(defn got-feature-info [db [_ point response]]
+  (let [zipped (->> response xml/parse-str zip/xml-zip)
+        body (zx/xml1-> zipped :html :body)]
+    (if (-> body zx/text string/blank?)
+      (assoc db :feature nil)
+      (assoc db :feature
+             {:location point
+              :info (xml/emit-str (zip/node body))}))))
 
 (defn process-layer [layer]
   (-> layer

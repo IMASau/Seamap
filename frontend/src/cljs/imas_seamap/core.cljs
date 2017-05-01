@@ -44,7 +44,7 @@
     :transect.plot/mouseout               events/transect-onmouseout
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map/clicked                          [mevents/get-feature-info]
-    ;; :map/got-featureinfo                  js/console.warn
+    :map/got-featureinfo                  mevents/got-feature-info
     :map/toggle-layer                     mevents/toggle-layer
     :map/update-layers                    mevents/update-layers
     :map/pan-to-layer                     mevents/zoom-to-layer
