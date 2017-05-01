@@ -70,21 +70,22 @@
   ;; Mock for now, so it finishes
   (assoc-in db [:transect :habitat] []))
 
-(defn transect-query-bathymetry [db [_ linestring]]
+(defn transect-query-bathymetry [{:keys [db]} [_ linestring]]
   (if-let [{:keys [server_url layer_name] :as bathy-layer} (get-in @(re-frame/subscribe [:map/layers]) [:groups :bathymetry 0])]
-    (do
-      (ajax/GET server_url
-                {:params        {:REQUEST    "GetTransect"
-                                 :LAYER      layer_name
-                                 :LINESTRING linestring
-                                 :CRS        "EPSG:4326"
-                                 :format     "text/xml"
-                                 :VERSION    "1.1.1"}
-                 :handler       #(re-frame/dispatch [:transect.query.bathymetry/success %])
-                 :error-handler (partial transect-error-handler :bathymetry)})
-      db)
+    {:db db
+     :http-xhrio {:method :get
+                  :uri server_url
+                  :params {:REQUEST    "GetTransect"
+                           :LAYER      layer_name
+                           :LINESTRING linestring
+                           :CRS        "EPSG:4326"
+                           :format     "text/xml"
+                           :VERSION    "1.1.1"}
+                  :response-format (ajax/text-response-format)
+                  :on-success [:transect.query.bathymetry/success]
+                  :on-failure [:transect.query/failure :bathymetry]}}
     ;; Otherwise, don't bother with ajax; immediately return no results
-    (assoc-in db [:transect :bathymetry] [])))
+    {:db (assoc-in db [:transect :bathymetry] [])}))
 
 (defn transect-query-bathymetry-success [db [_ response]]
   (let [zipped (->> response xml/parse-str zip/xml-zip)

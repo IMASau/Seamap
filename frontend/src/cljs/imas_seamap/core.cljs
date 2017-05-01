@@ -32,7 +32,7 @@
     :help-layer/close                     events/help-layer-close
     :transect/query                       events/transect-query
     :transect.query/habitat               events/transect-query-habitat
-    :transect.query/bathymetry            events/transect-query-bathymetry
+    :transect.query/bathymetry            [events/transect-query-bathymetry]
     :transect.query.bathymetry/success    events/transect-query-bathymetry-success
     :transect.query/error                 events/transect-query-error
     :transect.draw/enable                 events/transect-drawing-start
