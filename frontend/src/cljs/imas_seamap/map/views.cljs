@@ -71,6 +71,7 @@
 
 (defn map-component []
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
+        {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]} @(re-frame/subscribe [:transect/info])
         base-layer-bluemarble [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
                                           :layers "nasa:bluemarble"
@@ -112,4 +113,7 @@
                        :on-mounted (fn [e]
                                      (ocall e "_toolbars.draw._modes.polyline.handler.enable")
                                      (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
-                       :on-created #(re-frame/dispatch [:transect/query (-> % (ocall "layer.toGeoJSON") (js->clj :keywordize-keys true))])}]])]))
+                       :on-created #(re-frame/dispatch [:transect/query (-> % (ocall "layer.toGeoJSON") (js->clj :keywordize-keys true))])}]])
+     (when has-info?
+       [popup {:position location}
+        [:div "Roar"]])]))
