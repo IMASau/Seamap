@@ -7,6 +7,9 @@
 ;;; convenience; event-vector for a no-args event handler:
 (s/def ::event-v (s/coll-of keyword? :count 1))
 
+(s/def :seamap.fx/db :seamap/app-state)
+(s/def :seamap/fx-appstate (s/keys :req-un [:seamap.fx/db]))
+
 (s/fdef events/not-yet-implemented
   :args (s/cat :db :seamap/app-state
                :event-v vector?)
@@ -18,12 +21,12 @@
   :ret :seamap/app-state)
 
 (s/fdef events/transect-query
-  :args (s/cat :db :seamap/app-state
+  :args (s/cat :db :seamap/fx-appstate
                :event-v
                (s/spec
                 (s/cat :event-id keyword?
                        :geojson :imas-seamap.specs.app-state/geojson)))
-  :ret :seamap/app-state)
+  :ret :seamap/fx-appstate)
 
 (s/fdef events/transect-drawing-start
   :args (s/cat :db :seamap/app-state
