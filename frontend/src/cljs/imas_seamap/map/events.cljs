@@ -26,31 +26,35 @@
   (string/join "," [south west north east]))
 
 (defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y] :as point}]]
-  ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
-  (merge {:db db}
-         (when-not (boolean (get-in db [:map :controls :transect]))
-           (let [params {:REQUEST "GetFeatureInfo"
-                         :LAYERS "imas:NERP_NBarrett_Flinders_CMR_AUV_GV"
-                         :QUERY_layers "imas:NERP_NBarrett_Flinders_CMR_AUV_GV"
-                         :WIDTH (:x size)
-                         :HEIGHT (:y size)
-                         :BBOX (bounds->str bounds)
-                         :X x
-                         :Y y
-                         :I x
-                         :J y
-                         :SRS "EPSG:4326"
-                         :CRS "EPSG:4326"
-                         :FORMAT "text/html"
-                         :INFO_format "text/html"
-                         :SERVICE "WMS"
-                         :VERSION "1.3.0"}]
-             {:http-xhrio {:method :get
-                           :uri "http://geoserver.imas.utas.edu.au/geoserver/wms"
-                           :params params
-                           :response-format (ajax/text-response-format)
-                           :on-success [:map/got-featureinfo point]
-                           :on-failure [:ajax/default-err-handler]}}))))
+  ;; FIXME: We assume that all img layers are on the same server
+  (let [img-layers (->> db :map :active-layers (filter #(= :imagery (:category %))))
+        server-url (-> img-layers first :server_url)
+        layers (->> img-layers (map :layer_name) (string/join ","))]
+   (merge {:db db}
+          (when-not (boolean (get-in db [:map :controls :transect]))
+            ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
+            (let [params {:REQUEST "GetFeatureInfo"
+                          :LAYERS layers
+                          :QUERY_layers layers
+                          :WIDTH (:x size)
+                          :HEIGHT (:y size)
+                          :BBOX (bounds->str bounds)
+                          :X x
+                          :Y y
+                          :I x
+                          :J y
+                          :SRS "EPSG:4326"
+                          :CRS "EPSG:4326"
+                          :FORMAT "text/html"
+                          :INFO_format "text/html"
+                          :SERVICE "WMS"
+                          :VERSION "1.3.0"}]
+              {:http-xhrio {:method :get
+                            :uri server-url
+                            :params params
+                            :response-format (ajax/text-response-format)
+                            :on-success [:map/got-featureinfo point]
+                            :on-failure [:ajax/default-err-handler]}})))))
 
 (defn got-feature-info [db [_ point response]]
   (let [zipped (->> response xml/parse-str zip/xml-zip)
