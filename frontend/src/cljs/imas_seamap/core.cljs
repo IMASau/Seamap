@@ -2,6 +2,7 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [re-frame.std-interceptors :refer [debug]]
+            [day8.re-frame.http-fx]
             [re-frisk.core :refer [enable-re-frisk!]]
             [imas-seamap.events :as events]
             [imas-seamap.map.events :as mevents]

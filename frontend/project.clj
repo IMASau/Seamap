@@ -10,6 +10,7 @@
                  [binaryage/oops "0.5.3"]
                  [reagent "0.6.0"]
                  [re-frame "0.9.1"]
+                 [day8.re-frame/http-fx "0.1.3"]
                  [re-frisk "0.3.2"]
                  [philoskim/debux "0.2.1"]]
 
