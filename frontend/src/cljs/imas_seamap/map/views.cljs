@@ -115,5 +115,7 @@
                                      (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
                        :on-created #(re-frame/dispatch [:transect/query (-> % (ocall "layer.toGeoJSON") (js->clj :keywordize-keys true))])}]])
      (when has-info?
+       ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
+       ^{:key (str location)}
        [popup {:position location}
-        [:div "Roar"]])]))
+        [:div {:dangerouslySetInnerHTML {:__html info-body}}]])]))
