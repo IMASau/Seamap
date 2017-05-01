@@ -1,7 +1,8 @@
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
-            [debux.cs.core :refer-macros [dbg]]))
+            [debux.cs.core :refer-macros [dbg]]
+            [ajax.core :as ajax]))
 
 
 (def ^:private test-layer-data
@@ -16,6 +17,35 @@
     (map js/parseFloat bnds)
     (map vector [:west :south :east :north] bnds)
     (into {} bnds)))
+
+(defn bounds->str [{:keys [north south east west] :as bounds}]
+  (string/join "," [south west north east]))
+
+(defn get-feature-info [{:keys [db]} [_ {:keys [size bounds] :as props} {:keys [x y]}]]
+  ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
+  (let [params {:REQUEST "GetFeatureInfo"
+                :LAYERS "imas:NERP_NBarrett_Flinders_CMR_AUV_GV"
+                :QUERY_layers "imas:NERP_NBarrett_Flinders_CMR_AUV_GV"
+                :WIDTH (:x size)
+                :HEIGHT (:y size)
+                :BBOX (bounds->str bounds)
+                :X x
+                :Y y
+                :I x
+                :J y
+                :SRS "EPSG:4326"
+                :CRS "EPSG:4326"
+                :FORMAT "text/html"
+                :INFO_format "text/html"
+                :SERVICE "WMS"
+                :VERSION "1.3.0"}]
+   {:db db
+    :http-xhrio {:method :get
+                 :uri "http://geoserver.imas.utas.edu.au/geoserver/wms"
+                 :params params
+                 :response-format (ajax/text-response-format)
+                 :on-success [:ajax/default-success-handler]
+                 :on-failure [:ajax/default-err-handler]}}))
 
 (defn process-layer [layer]
   (-> layer
