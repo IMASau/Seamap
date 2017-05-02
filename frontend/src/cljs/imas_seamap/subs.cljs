@@ -78,3 +78,6 @@
 
 (defn help-layer-open? [db _]
   (get-in db [:display :help-overlay]))
+
+(defn user-message [db _]
+  (get-in db [:info :message]))

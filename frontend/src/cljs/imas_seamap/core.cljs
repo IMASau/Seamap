@@ -21,7 +21,8 @@
     :transect/info                        subs/transect-info
     :transect/results                     subs/transect-results
     :transect.plot/show?                  subs/transect-show?
-    :help-layer/open?                     subs/help-layer-open?}
+    :help-layer/open?                     subs/help-layer-open?
+    :info/message                         subs/user-message}
 
    :events
    {:ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
@@ -31,6 +32,7 @@
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
+    :info/show-message                    events/show-message
     :transect/query                       [events/transect-query]
     :transect.query/habitat               events/transect-query-habitat
     :transect.query/bathymetry            [events/transect-query-bathymetry]

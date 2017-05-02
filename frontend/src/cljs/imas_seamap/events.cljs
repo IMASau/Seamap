@@ -4,6 +4,7 @@
             [clojure.data.xml :as xml]
             [clojure.data.zip.xml :as zx]
             [clojure.zip :as zip]
+            [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
@@ -138,3 +139,9 @@
 (defn default-err-handler [db [_ response]]
   (js/console.info "AJAX error response" response)
   db)
+
+(defn show-message [db [_ message intent]]
+  (assoc-in db [:info :message]
+            {:message message
+             :intent (or intent b/*intent-warning*)
+             :__cache-buster (js/Date.now)}))
