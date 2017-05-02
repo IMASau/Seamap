@@ -10,7 +10,7 @@
             [imas-seamap.utils :refer-macros [handler-fn]]
             [goog.object :as gobj]
             [goog.dom :as dom]
-            [oops.core :refer [oget]]
+            [oops.core :refer [oget ocall]]
             [debux.cs.core :refer [dbg]]))
 
 (def css-transition-group
@@ -247,6 +247,16 @@
                                            #(re-frame/dispatch [:transect.plot/mousemove %])
                                            :on-mouseout
                                            #(re-frame/dispatch [:transect.plot/mouseout]))])]]))
+
+(defn show-messages []
+  (let [info-message (re-frame/subscribe [:info/message])
+        toaster      (ocall (oget js/window "Blueprint.Toaster") "create")]
+    (fn []
+      (let [{:keys [message intent] :or {intent b/*intent-warning*} :as msg} @info-message]
+        (when message
+          (ocall toaster "show" (clj->js msg))))
+      nil)))
+
 
 (defn layout-app []
   [:div#main-wrapper

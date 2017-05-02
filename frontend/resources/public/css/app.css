@@ -66,6 +66,10 @@ footer {
     z-index: 2001;
 }
 
+.pt-toast-container {
+    z-index: 2001;
+}
+
 /* Layer cards */
 .layer-group {
     padding-top: 10px;
