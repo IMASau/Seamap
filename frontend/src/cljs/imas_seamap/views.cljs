@@ -265,5 +265,6 @@
     [map-component]
     [plot-component]]
    ;; needs the ids of components to helper-annotate:
-   [helper-overlay]])
+   [helper-overlay]
+   [show-messages]])
 
