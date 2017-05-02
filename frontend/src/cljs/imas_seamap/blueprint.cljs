@@ -25,3 +25,12 @@
 (def tooltip         (reagent/adapt-react-class (gget "Blueprint.Tooltip")))
 
 (def tree            (reagent/adapt-react-class (gget "Blueprint.Tree")))
+
+
+;;; Intents:
+
+(def *intent-none*    (gget "Blueprint.Intent.NONE"))
+(def *intent-primary* (gget "Blueprint.Intent.PRIMARY"))
+(def *intent-success* (gget "Blueprint.Intent.SUCCESS"))
+(def *intent-warning* (gget "Blueprint.Intent.WARNING"))
+(def *intent-danger*  (gget "Blueprint.Intent.DANGER"))
