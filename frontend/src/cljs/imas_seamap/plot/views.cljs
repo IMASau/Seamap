@@ -287,14 +287,14 @@
                               :width  width
                               :height graph-range
                               :style  {:opacity 0.25
-                                       :fill    ((keyword zone-name) zone-colour-mapping)
+                                       :fill    (get zone-colour-mapping zone-name)
                                        }}]
                       [:rect {:x      x-pos
                               :y      m-top
                               :width  width
                               :height graph-range
                               :style  {:opacity   0.75
-                                       :fill      ((keyword zone-name) zone-colour-mapping)
+                                       :fill      (get zone-colour-mapping zone-name)
                                        :clip-path "url(#clipPath)"}}]]))))]
 
             ;; draw bathymetry line
