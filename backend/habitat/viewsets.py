@@ -3,6 +3,7 @@ from django.db import connection, ProgrammingError
 from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
 from habitat.models import Transect
 from habitat.serializers import TransectSerializer
 
@@ -57,6 +58,11 @@ class HabitatViewSet(viewsets.ViewSet):
     # request as .../transect/?line= x1, y1, x2, y2, ..., xn, yn&layers=layer1,layer2..
     @list_route()
     def transect(self, request):
+        if 'line' not in request.query_params:
+            raise ValidationError("Required parameter 'line' is missing")
+        if 'layers' not in request.query_params:
+            raise ValidationError("Required parameter 'layers' is missing")
+
         tolerance = 0.0001  # minimum length for non-zero line in sql query
         starts = {}
         ends = {}
