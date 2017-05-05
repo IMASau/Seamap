@@ -6,11 +6,22 @@ from rest_framework.response import Response
 from habitat.models import Transect
 from habitat.serializers import TransectSerializer
 
+
+# SQL Template to invoke the habitat transect intersection procedure.
+# There's an awkward situation of two types of parameters involved
+# here; "%s" and "{}".  The former is used by ODBC for parameters
+# (avoiding injection attacks, etc).  The latter is because we want to
+# do a where-in clause against an unknown number of parameters, so for
+# safety we construct the sequence "%s,%s,..." matching the number of
+# user parameters, include that in the template by substituting for
+# {}.
 SQL_GET_TRANSECT = """
 declare @line geometry = %s;
 declare @tmphabitat as HabitatTableType;
 
-insert into @tmphabitat select name, geom from Polygons;
+insert into @tmphabitat
+    select habitat as name, geom from SeamapAus_Regions_VIEW
+    where lower(layer_name) in ({});
 
 SELECT segments.segment.STStartPoint().STX as 'start x',
         segments.segment.STStartPoint().STY as 'start y',
@@ -55,8 +66,12 @@ class HabitatViewSet(viewsets.ViewSet):
         coords = list_to_coords(request.query_params.get('line').split(","))
         linestring = coords_to_linsestring(coords)
 
+        layers = request.query_params.get('layers').lower().split(',')
+        layers_placeholder = ','.join(['%s'] * len(layers))
+
         with connection.cursor() as cursor:
-            cursor.execute(SQL_GET_TRANSECT, [linestring, tolerance])
+            cursor.execute(SQL_GET_TRANSECT.format(layers_placeholder),
+                           [linestring] + layers + [tolerance])
             while True:
                 try:
                     for row in cursor.fetchall():
