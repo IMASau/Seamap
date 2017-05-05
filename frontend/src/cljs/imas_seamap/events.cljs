@@ -6,6 +6,7 @@
             [clojure.zip :as zip]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
+            [oops.core :refer [gcall ocall]]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
 
@@ -45,6 +46,21 @@
          (map (partial string/join " "))
          (string/join ","))))
 
+(def ^:private *epsg-3112*
+  (gcall "proj4"
+         "+proj=lcc +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=134 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+
+(defn- wgs48->epsg3112 [pt]
+  (ocall *epsg-3112* :forward (clj->js pt)))
+
+(defn- geojson->native-linestring [geojson]
+  (let [coords (get-in geojson [:geometry :coordinates])]
+    (->> coords
+         (map wgs48->epsg3112)
+         dbg
+         (map (partial string/join " "))
+         (string/join ","))))
+
 (defn transect-query [{:keys [db]} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
   ;; unlikely race conditions; do this before dispatching)
@@ -52,10 +68,11 @@
                                 :show? true
                                 :habitat :loading
                                 :bathymetry :loading})
-        linestring (geojson->linestring geojson)]
+        linestring (geojson->linestring geojson)
+        native-linestring (geojson->native-linestring geojson)]
     {:db db
      :dispatch-n [[:transect.plot/show] ; A bit redundant since we set the :show key above
-                  [:transect.query/habitat linestring]
+                  [:transect.query/habitat native-linestring]
                   [:transect.query/bathymetry linestring]]}))
 
 (defn- transect-error-handler [type {:keys [status-text failure]}]

@@ -39,7 +39,9 @@ FROM(
 def my_decimal(number):
     return Decimal(number) * 1
 
-
+# FIXME: most of this isn't actually needed, since the coords come in
+# in the format we expect already (ie, leave it as a string, don't
+# need to reformat)
 def list_to_coords(list):
     decimals = map(my_decimal, list)
     return zip(*[iter(decimals)]*2)
@@ -52,7 +54,7 @@ def coords_to_linsestring(coords):
 
 class HabitatViewSet(viewsets.ViewSet):
 
-    # request as .../transect/?line= x1, y1, x2, y2, ..., xn, yn
+    # request as .../transect/?line= x1, y1, x2, y2, ..., xn, yn&layers=layer1,layer2..
     @list_route()
     def transect(self, request):
         tolerance = 0.0001  # minimum length for non-zero line in sql query
@@ -63,8 +65,9 @@ class HabitatViewSet(viewsets.ViewSet):
 
         getcontext().prec = precision
 
-        coords = list_to_coords(request.query_params.get('line').split(","))
-        linestring = coords_to_linsestring(coords)
+        # coords = list_to_coords(request.query_params.get('line').split(","))
+        # linestring = coords_to_linsestring(coords)
+        linestring = "LINESTRING(" + request.query_params.get('line') + ")"
 
         layers = request.query_params.get('layers').lower().split(',')
         layers_placeholder = ','.join(['%s'] * len(layers))
