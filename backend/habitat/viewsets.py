@@ -68,6 +68,7 @@ class HabitatViewSet(viewsets.ViewSet):
         starts = {}
         ends = {}
         orderedModels = []
+        distance = 0
         precision = 6       # significant figures for floating point comparison
 
         getcontext().prec = precision
@@ -85,9 +86,10 @@ class HabitatViewSet(viewsets.ViewSet):
             while True:
                 try:
                     for row in cursor.fetchall():
-                        [startx, starty, endx, endy, name] = row
-                        starts[(my_decimal(startx) * 1, my_decimal(starty) * 1)] = (endx, endy, name)
-                        ends[(my_decimal(endx) * 1, my_decimal(endy) * 1)] = (startx, starty, name)
+                        [startx, starty, endx, endy, length, name] = row
+                        starts[(my_decimal(startx) * 1, my_decimal(starty) * 1)] = (endx, endy, name, length)
+                        ends[(my_decimal(endx) * 1, my_decimal(endy) * 1)] = (startx, starty, name, length)
+                        distance += my_decimal(length)
                     break
                 except ProgrammingError:
                     if not cursor.nextset():
@@ -100,10 +102,10 @@ class HabitatViewSet(viewsets.ViewSet):
         for i in range(0, len(starts)):
             (startx, starty) = start
             if start in starts:
-                (endx, endy, name) = starts[start]
+                (endx, endy, name, length) = starts[start]
             else:
-                (endx, endy, name) = ends[start]
-            model = Transect(name=name, startx=startx, starty=starty, endx=endx, endy=endy)
+                (endx, endy, name, length) = ends[start]
+            model = Transect(name=name, startx=startx, starty=starty, endx=endx, endy=endy, percentage=100*length/distance)
             orderedModels.append(model)
             start = (my_decimal(endx) * 1, my_decimal(endy) * 1)
 
