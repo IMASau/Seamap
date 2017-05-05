@@ -28,6 +28,7 @@ SELECT segments.segment.STStartPoint().STX as 'start x',
         segments.segment.STStartPoint().STY as 'start y',
         segments.segment.STEndPoint().STX as 'end x',
         segments.segment.STEndPoint().STY as 'start y',
+        segments.segment.STLength() as 'length',
         segments.name
 FROM(
     SELECT segment, name
