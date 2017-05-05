@@ -1,5 +1,5 @@
 from decimal import *
-from django.db import connection, ProgrammingError
+from django.db import connections, ProgrammingError
 from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
@@ -79,7 +79,7 @@ class HabitatViewSet(viewsets.ViewSet):
         layers = request.query_params.get('layers').lower().split(',')
         layers_placeholder = ','.join(['%s'] * len(layers))
 
-        with connection.cursor() as cursor:
+        with connections['transects'].cursor() as cursor:
             cursor.execute(SQL_GET_TRANSECT.format(layers_placeholder),
                            [linestring] + layers + [tolerance])
             while True:
