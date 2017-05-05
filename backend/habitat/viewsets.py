@@ -17,7 +17,7 @@ from habitat.serializers import TransectSerializer
 # user parameters, include that in the template by substituting for
 # {}.
 SQL_GET_TRANSECT = """
-declare @line geometry = %s;
+declare @line geometry = geometry::STGeomFromText(%s, 3112);
 declare @tmphabitat as HabitatTableType;
 
 insert into @tmphabitat
