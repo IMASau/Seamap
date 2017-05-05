@@ -8,7 +8,8 @@ RETURNS @TransectSegments TABLE (
 )
 AS
 BEGIN
-  DECLARE @buffered geometry = @transect.STBuffer(0.0000001);
+  DECLARE @buffered geometry = @transect.STBuffer(0.0000001),
+          @emptyshape geometry = geometry::STGeomFromText('GEOMETRYCOLLECTION EMPTY', 3112);
 
   WITH
   -- first narrow to polygons we care about (those that intersect our line of interest):
@@ -18,7 +19,9 @@ BEGIN
     WHERE geom.STIntersects(@transect) = 1)
   ,
   total_extent AS (
-    SELECT geometry::UnionAggregate(geom) AS agg FROM valid_polygons
+    SELECT @emptyshape.STUnion(geom) AS agg FROM valid_polygons
+    -- SELECT geometry::UnionAggregate(geom) AS agg FROM valid_polygons
+    -- UnionAggregate isn't available in SQL Server <2012; currently running 2010.  Can be re-instanted when server is upgraded.
   )
   ,
   -- Polygons may not cover the entire length of the line; the difference gives us the bits outside our habitat data:
