@@ -96,7 +96,7 @@ class HabitatViewSet(viewsets.ViewSet):
         # about how they will be returned
         start = coords[0]
 
-        for i in range(0, len(starts)):
+        for _ in starts:
             (startx, starty) = start
             if start in starts:
                 (endx, endy, name, length) = starts[start]
