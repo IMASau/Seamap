@@ -57,7 +57,6 @@
   (let [coords (get-in geojson [:geometry :coordinates])]
     (->> coords
          (map wgs48->epsg3112)
-         dbg
          (map (partial string/join " "))
          (string/join ","))))
 
