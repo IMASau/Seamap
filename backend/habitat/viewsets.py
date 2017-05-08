@@ -83,8 +83,8 @@ class HabitatViewSet(viewsets.ViewSet):
                 try:
                     for row in cursor.fetchall():
                         [startx, starty, endx, endy, length, name] = row
-                        starts[(my_decimal(startx) * 1, my_decimal(starty) * 1)] = (endx, endy, name, length)
-                        ends[(my_decimal(endx) * 1, my_decimal(endy) * 1)] = (startx, starty, name, length)
+                        starts[(my_decimal(startx) * 1, my_decimal(starty) * 1)] = (my_decimal(endx), my_decimal(endy), name, length)
+                        ends[(my_decimal(endx) * 1, my_decimal(endy) * 1)] = (my_decimal(startx), my_decimal(starty), name, length)
                         distance += my_decimal(length)
                     break
                 except ProgrammingError:
