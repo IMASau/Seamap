@@ -86,7 +86,8 @@ class HabitatViewSet(viewsets.ViewSet):
                         starts[(my_decimal(startx) * 1, my_decimal(starty) * 1)] = (my_decimal(endx), my_decimal(endy), name, length)
                         ends[(my_decimal(endx) * 1, my_decimal(endy) * 1)] = (my_decimal(startx), my_decimal(starty), name, length)
                         distance += my_decimal(length)
-                    break
+                    if not cursor.nextset():
+                        break
                 except ProgrammingError:
                     if not cursor.nextset():
                         break
