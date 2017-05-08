@@ -46,7 +46,7 @@ def line_to_coords(line):
     return [tuple( map(my_decimal, p.split(' ')) ) for p in pairs]
 
 
-def coords_to_linsestring(coords):
+def coords_to_linestring(coords):
     linestring = ','.join(' '.join(map(str, pair)) for pair in coords)
     return "LINESTRING(" + linestring + ")"
 
@@ -71,7 +71,7 @@ class HabitatViewSet(viewsets.ViewSet):
         getcontext().prec = precision
 
         coords = line_to_coords(request.query_params.get('line'))
-        linestring = coords_to_linsestring(coords)
+        linestring = coords_to_linestring(coords)
 
         layers = request.query_params.get('layers').lower().split(',')
         layers_placeholder = ','.join(['%s'] * len(layers))
