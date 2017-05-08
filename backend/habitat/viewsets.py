@@ -101,7 +101,7 @@ class HabitatViewSet(viewsets.ViewSet):
                 (endx, endy, name, length) = starts[start]
             else:
                 (endx, endy, name, length) = ends[start]
-            model = Transect(name=name, startx=startx, starty=starty, endx=endx, endy=endy, percentage=100*length/distance)
+            model = Transect(name=name, startx=startx, starty=starty, endx=endx, endy=endy, percentage=100*length/float(distance))
             orderedModels.append(model)
             start = (my_decimal(endx) * 1, my_decimal(endy) * 1)
 
