@@ -1,4 +1,4 @@
-from decimal import *
+from decimal import Decimal, getcontext
 from django.db import connections, ProgrammingError
 from rest_framework import viewsets
 from rest_framework.decorators import list_route
