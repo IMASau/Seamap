@@ -39,7 +39,7 @@ FROM(
 
 
 def my_decimal(number):
-    return Decimal(number) * 1
+    return Decimal(number)
 
 def line_to_coords(line):
     pairs = line.split(',')
@@ -83,8 +83,8 @@ class HabitatViewSet(viewsets.ViewSet):
                 try:
                     for row in cursor.fetchall():
                         [startx, starty, endx, endy, length, name] = row
-                        starts[(my_decimal(startx) * 1, my_decimal(starty) * 1)] = (my_decimal(endx), my_decimal(endy), name, length)
-                        ends[(my_decimal(endx) * 1, my_decimal(endy) * 1)] = (my_decimal(startx), my_decimal(starty), name, length)
+                        starts[(my_decimal(startx), my_decimal(starty))] = (my_decimal(endx), my_decimal(endy), name, length)
+                        ends[(my_decimal(endx), my_decimal(endy))] = (my_decimal(startx), my_decimal(starty), name, length)
                         distance += my_decimal(length)
                     if not cursor.nextset():
                         break
@@ -104,7 +104,7 @@ class HabitatViewSet(viewsets.ViewSet):
                 (endx, endy, name, length) = ends[start]
             model = Transect(name=name, startx=startx, starty=starty, endx=endx, endy=endy, percentage=100*length/float(distance))
             orderedModels.append(model)
-            start = (my_decimal(endx) * 1, my_decimal(endy) * 1)
+            start = (my_decimal(endx), my_decimal(endy))
 
         serializer = TransectSerializer(orderedModels, many=True)
         return Response(serializer.data)
