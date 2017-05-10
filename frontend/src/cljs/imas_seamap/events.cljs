@@ -83,9 +83,21 @@
 (defn transect-query-error [db [_ type text]]
   (assoc-in db [:transect type] text))
 
-(defn transect-query-habitat [db [_ linestring]]
-  ;; Mock for now, so it finishes
-  (assoc-in db [:transect :habitat] []))
+(defn transect-query-habitat [{:keys [db]} [_ linestring]]
+  {:db db
+   :http-xhrio {:method :get
+                ;; FIXME: url and layers should be dynamically constructed
+                :uri "http://localhost:8000/api/habitat/transect"
+                :params {:layers "seamap:SeamapAus_NSW_ocean_ecosystems_2002"
+                         :line linestring}
+                :response-format (ajax/json-response-format {:keywords? true})
+                :on-success [:transect.query.habitat/success]
+                :on-failure [:transect.query/failure :habitat]}})
+
+(defn transect-query-habitat-success [db [_ response]]
+  (let [habitats (mapv (juxt :start_percentage :end_percentage :name) response)]
+    (assoc-in db [:transect :habitat]
+              habitats)))
 
 (defn transect-query-bathymetry [{:keys [db]} [_ linestring]]
   (if-let [{:keys [server_url layer_name] :as bathy-layer} (get-in @(re-frame/subscribe [:map/layers]) [:groups :bathymetry 0])]
