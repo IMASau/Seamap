@@ -43,16 +43,6 @@ def D(number):
     return Decimal(number).quantize(Decimal('0.01'))
 
 
-def line_to_coords(line):
-    pairs = line.split(',')
-    return [tuple( map(D, p.split(' ')) ) for p in pairs]
-
-
-def coords_to_linestring(coords):
-    linestring = ','.join(' '.join(map(str, pair)) for pair in coords)
-    return "LINESTRING(" + linestring + ")"
-
-
 class HabitatViewSet(viewsets.ViewSet):
 
     # request as .../transect/?line= x1 y1,x2 y2, ...,xn yn&layers=layer1,layer2..
@@ -69,8 +59,8 @@ class HabitatViewSet(viewsets.ViewSet):
         orderedModels = []
         distance = 0
 
-        coords = line_to_coords(request.query_params.get('line'))
-        linestring = coords_to_linestring(coords)
+        line = request.query_params.get('line')
+        linestring = 'LINESTRING(' + line + ')'
 
         layers = request.query_params.get('layers').lower().split(',')
         layers_placeholder = ','.join(['%s'] * len(layers))
@@ -84,7 +74,7 @@ class HabitatViewSet(viewsets.ViewSet):
                         [startx, starty, endx, endy, length, name] = row
                         starts[(D(startx), D(starty))] = (D(endx), D(endy), name, length)
                         ends[(D(endx), D(endy))] = (D(startx), D(starty), name, length)
-                        distance += D(length)
+                        distance += length
                     if not cursor.nextset():
                         break
                 except ProgrammingError:
@@ -93,7 +83,7 @@ class HabitatViewSet(viewsets.ViewSet):
 
         # Lines don't really have a direction, so we can't make assumptions
         # about how they will be returned
-        start = coords[0]
+        start = tuple(map(D, line.split(',', 1)[0].split(' ')))
 
         for _ in starts:
             (startx, starty) = start
@@ -103,7 +93,7 @@ class HabitatViewSet(viewsets.ViewSet):
                 (endx, endy, name, length) = ends[start]
             model = Transect(name=name, startx=startx, starty=starty, endx=endx, endy=endy, percentage=100*length/float(distance))
             orderedModels.append(model)
-            start = (D(endx), D(endy))
+            start = endx, endy
 
         serializer = TransectSerializer(orderedModels, many=True)
         return Response(serializer.data)
