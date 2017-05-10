@@ -84,6 +84,7 @@ class HabitatViewSet(viewsets.ViewSet):
         # Lines don't really have a direction, so we can't make assumptions
         # about how they will be returned
         start = tuple(map(D, line.split(',', 1)[0].split(' ')))
+        start_percentage = 0
 
         for _ in starts:
             (startx, starty) = start
@@ -91,9 +92,17 @@ class HabitatViewSet(viewsets.ViewSet):
                 (endx, endy, name, length) = starts[start]
             else:
                 (endx, endy, name, length) = ends[start]
-            model = Transect(name=name, startx=startx, starty=starty, endx=endx, endy=endy, percentage=100*length/float(distance))
+            end_percentage = start_percentage + 100*length/float(distance)
+            model = Transect(name=name,
+                             start_percentage=start_percentage,
+                             end_percentage=end_percentage,
+                             startx=startx,
+                             starty=starty,
+                             endx=endx,
+                             endy=endy)
             orderedModels.append(model)
             start = endx, endy
+            start_percentage = end_percentage
 
         serializer = TransectSerializer(orderedModels, many=True)
         return Response(serializer.data)
