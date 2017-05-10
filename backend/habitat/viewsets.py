@@ -39,7 +39,9 @@ FROM(
 
 
 def my_decimal(number):
-    return Decimal(number)
+    "Return the (probably) string, quantized to an acceptable number of decimal places"
+    return Decimal(number).quantize(Decimal('0.01'))
+
 
 def line_to_coords(line):
     pairs = line.split(',')
@@ -66,9 +68,6 @@ class HabitatViewSet(viewsets.ViewSet):
         ends = {}
         orderedModels = []
         distance = 0
-        precision = 6       # significant figures for floating point comparison
-
-        getcontext().prec = precision
 
         coords = line_to_coords(request.query_params.get('line'))
         linestring = coords_to_linestring(coords)
