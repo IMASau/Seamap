@@ -3,6 +3,7 @@
             [re-frame.core :as re-frame]
             [re-frame.std-interceptors :refer [debug]]
             [day8.re-frame.http-fx]
+            [oops.core :refer [gcall]]
             [re-frisk.core :refer [enable-re-frisk!]]
             [imas-seamap.events :as events]
             [imas-seamap.map.events :as mevents]
@@ -78,6 +79,7 @@
 
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
+  (gcall "Blueprint.FocusStyleManager.onlyShowFocusOnTabs")
   (reagent/render [views/layout-app]
                   (.getElementById js/document "app")))
 
