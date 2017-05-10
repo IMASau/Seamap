@@ -38,14 +38,14 @@ FROM(
 """
 
 
-def my_decimal(number):
+def D(number):
     "Return the (probably) string, quantized to an acceptable number of decimal places"
     return Decimal(number).quantize(Decimal('0.01'))
 
 
 def line_to_coords(line):
     pairs = line.split(',')
-    return [tuple( map(my_decimal, p.split(' ')) ) for p in pairs]
+    return [tuple( map(D, p.split(' ')) ) for p in pairs]
 
 
 def coords_to_linestring(coords):
@@ -82,9 +82,9 @@ class HabitatViewSet(viewsets.ViewSet):
                 try:
                     for row in cursor.fetchall():
                         [startx, starty, endx, endy, length, name] = row
-                        starts[(my_decimal(startx), my_decimal(starty))] = (my_decimal(endx), my_decimal(endy), name, length)
-                        ends[(my_decimal(endx), my_decimal(endy))] = (my_decimal(startx), my_decimal(starty), name, length)
-                        distance += my_decimal(length)
+                        starts[(D(startx), D(starty))] = (D(endx), D(endy), name, length)
+                        ends[(D(endx), D(endy))] = (D(startx), D(starty), name, length)
+                        distance += D(length)
                     if not cursor.nextset():
                         break
                 except ProgrammingError:
@@ -103,7 +103,7 @@ class HabitatViewSet(viewsets.ViewSet):
                 (endx, endy, name, length) = ends[start]
             model = Transect(name=name, startx=startx, starty=starty, endx=endx, endy=endy, percentage=100*length/float(distance))
             orderedModels.append(model)
-            start = (my_decimal(endx), my_decimal(endy))
+            start = (D(endx), D(endy))
 
         serializer = TransectSerializer(orderedModels, many=True)
         return Response(serializer.data)
