@@ -31,17 +31,23 @@
   :figwheel {:http-server-root "public"
              :server-port      3451
              :nrepl-port       7892
+             :ring-handler     imas-seamap.dev-handlers/app
              :css-dirs         ["resources/public/css"]}
   :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
 
   :profiles
   {:dev
-   {:dependencies [[binaryage/devtools "0.9.4"]]}}
+   {:dependencies [[binaryage/devtools "0.9.4"]
+                   [tailrecursion/ring-proxy "2.0.0-SNAPSHOT"]
+                   [ring "1.5.1"]
+                   [potemkin "0.4.3"]   ; Was getting a weird error with the ring-proxy dependency version
+                   [ring/ring-defaults "0.2.1"]
+                   [compojure "1.5.0"]]}}
 
   :cljsbuild
   {:builds
    [{:id           "dev"
-     :source-paths ["src/cljs"]
+     :source-paths ["src/cljs" "src/clj"]
      :figwheel     {:on-jsload "imas-seamap.core/figwheel-reload"}
      :compiler     {:main                 imas-seamap.core
                     :output-to            "resources/public/js/compiled/app.js"
