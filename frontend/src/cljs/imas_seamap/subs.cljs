@@ -1,6 +1,7 @@
 (ns imas-seamap.subs
     (:require-macros [reagent.ratom :refer [reaction]])
     (:require [imas-seamap.map.views :refer [point->latlng point-distance]]
+              [imas-seamap.plot.colours :refer [*habitat-colours*]]
               [re-frame.core :as re-frame]
               [debux.cs.core :refer-macros [dbg]]))
 
@@ -60,18 +61,13 @@
     (= habitat bathymetry :loading)       :transect.results.status/loading
     :default                              :transect.results.status/ready))
 
-;;; TODO: This needs to map the values from the SM_HAB_CLS common
-;;; column from the database tables into a colour scheme
-(def ^:private habitat-mapping-colours
-  {})
-
 (defn transect-results [{{:keys [query habitat bathymetry] :as transect} :transect :as db} _]
   (letfn [(always-vec [d] (if (vector? d) d []))]
     {:transect.results/query        query
      :transect.results/status       (transect-query-status transect)
      :transect.results/habitat      (always-vec habitat)
      :transect.results/bathymetry   (always-vec bathymetry)
-     :transect.results/zone-colours habitat-mapping-colours}))
+     :transect.results/zone-colours *habitat-colours*}))
 
 (defn transect-show? [db _]
   (get-in db [:transect :show?] false))
