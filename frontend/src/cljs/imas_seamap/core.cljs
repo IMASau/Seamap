@@ -1,11 +1,11 @@
 (ns imas-seamap.core
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
-            [re-frame.std-interceptors :refer [debug]]
             [day8.re-frame.http-fx]
             [oops.core :refer [gcall]]
             [re-frisk.core :refer [enable-re-frisk!]]
             [imas-seamap.events :as events]
+            [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
             [imas-seamap.protocols]
@@ -56,7 +56,7 @@
     :map/view-updated                     mevents/map-view-updated}})
 
 (def standard-interceptors
-  [(when ^boolean goog.DEBUG debug)])
+  [(when ^boolean goog.DEBUG (debug-excluding :transect.plot/mousemove))])
 
 (defn register-handlers! [{:keys [subs events]}]
   (doseq [[sym handler] subs]
