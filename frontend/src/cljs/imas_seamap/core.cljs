@@ -35,6 +35,7 @@
     :help-layer/close                     events/help-layer-close
     :info/show-message                    events/show-message
     :transect/query                       [events/transect-query]
+    :transect.query/failure               [events/transect-query-error]
     :transect.query/habitat               [events/transect-query-habitat]
     :transect.query/bathymetry            [events/transect-query-bathymetry]
     :transect.query.bathymetry/success    events/transect-query-bathymetry-success
