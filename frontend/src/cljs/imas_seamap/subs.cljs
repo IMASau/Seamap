@@ -55,11 +55,11 @@
 
 (defn- transect-query-status [{:keys [habitat bathymetry] :as args}]
   (cond
-    (every? nil? [habitat bathymetry]) :transect.results.status/empty
+    (every? nil? [habitat bathymetry])  :transect.results.status/empty
     (some string? [habitat bathymetry]) :transect.results.status/error
-    (#{habitat bathymetry} :loading) :transect.results.status/loading
+    (#{habitat bathymetry} :loading)    :transect.results.status/loading
     ;; Any cases missed?? (We're assuming things are reset to nil/loading on clear/query)
-    :default :transect.results.status/ready))
+    :default                            :transect.results.status/ready))
 
 ;;; TODO: This needs to map the values from the SM_HAB_CLS common
 ;;; column from the database tables into a colour scheme
@@ -67,10 +67,10 @@
   {})
 
 (defn transect-results [{{:keys [query habitat bathymetry] :as transect} :transect :as db} _]
-  {:transect.results/query query
-   :transect.results/status (transect-query-status transect)
-   :transect.results/habitat habitat
-   :transect.results/bathymetry bathymetry
+  {:transect.results/query        query
+   :transect.results/status       (transect-query-status transect)
+   :transect.results/habitat      habitat
+   :transect.results/bathymetry   bathymetry
    :transect.results/zone-colours habitat-mapping-colours})
 
 (defn transect-show? [db _]

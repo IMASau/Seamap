@@ -351,28 +351,29 @@
 
 (defn- transect-no-data []
   [non-ideal-state
-   {:title "No Data to Display"
+   {:title       "No Data to Display"
     :description "Try the \"Draw Transect\" button above!"}])
 
 (defn- transect-loading []
   [non-ideal-state
-   {:title "Loading..."
+   {:title  "Loading..."
     :visual (reagent/as-element [spinner {:intent "success"}])}])
 
 (defn- transect-error []
   [non-ideal-state
-   {:title "Error"
+   {:title       "Error"
     :description "There was an error querying the data"
-    :visual "pt-icon-error"}])
+    :visual      "pt-icon-error"}])
 
 (def test-data
   {:transect.results/bathymetry (generate-bathymetry)
-   :transect.results/habitat (generate-habitat habitat-zone-colours)
-   :zone-colour-mapping habitat-zone-colours})
+   :transect.results/habitat    (generate-habitat habitat-zone-colours)
+   :zone-colour-mapping         habitat-zone-colours})
+
 (defn transect-display-component [{:keys [:transect.results/status] :as results}]
   (case status
-    :transect.results.status/empty [transect-no-data]
+    :transect.results.status/empty   [transect-no-data]
     :transect.results.status/loading [transect-loading]
-    :transect.results.status/error [transect-error]
+    :transect.results.status/error   [transect-error]
     [transect-graph results]))
 
