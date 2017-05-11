@@ -227,7 +227,7 @@
                                        :line      {:x1 0 :y1 0 :x2 20 :y2 20}
                                        :textbox   {:transform "translate(0, 0)"}
                                        :text      ["Depth: " "Habitat: "]})]
-    (fn [{:keys [:transect.results/bathymetry :transect.results/habitat width height zone-colour-mapping margin font-size-tooltip font-size-axes]
+    (fn [{:keys [:transect.results/bathymetry :transect.results/habitat width height :transect.results/zone-colours margin font-size-tooltip font-size-axes]
           :as   props
           :or   {font-size-tooltip 16
                  font-size-axes    16
@@ -287,14 +287,14 @@
                               :width  width
                               :height graph-range
                               :style  {:opacity 0.25
-                                       :fill    (get zone-colour-mapping zone-name)
+                                       :fill    (get zone-colours zone-name)
                                        }}]
                       [:rect {:x      x-pos
                               :y      m-top
                               :width  width
                               :height graph-range
                               :style  {:opacity   0.75
-                                       :fill      (get zone-colour-mapping zone-name)
+                                       :fill      (get zone-colours zone-name)
                                        :clip-path "url(#clipPath)"}}]]))))]
 
             ;; draw bathymetry line
