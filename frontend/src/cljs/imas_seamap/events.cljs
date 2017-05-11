@@ -100,28 +100,29 @@
               habitats)))
 
 (defn transect-query-bathymetry [{:keys [db]} [_ linestring]]
-  (if-let [{:keys [server_url layer_name] :as bathy-layer} (get-in @(re-frame/subscribe [:map/layers]) [:groups :bathymetry 0])]
-    {:db db
-     :http-xhrio {:method :get
-                  :uri server_url
-                  :params {:REQUEST    "GetTransect"
-                           :LAYER      layer_name
-                           :LINESTRING linestring
-                           :CRS        "EPSG:4326"
-                           :format     "text/xml"
-                           :VERSION    "1.1.1"}
+  (if-let [{:keys [server_url layer_name] :as bathy-layer}
+           (get-in @(re-frame/subscribe [:map/layers]) [:groups :bathymetry 0])]
+    {:db         db
+     :http-xhrio {:method          :get
+                  :uri             server_url
+                  :params          {:REQUEST    "GetTransect"
+                                    :LAYER      layer_name
+                                    :LINESTRING linestring
+                                    :CRS        "EPSG:4326"
+                                    :format     "text/xml"
+                                    :VERSION    "1.1.1"}
                   :response-format (ajax/text-response-format)
-                  :on-success [:transect.query.bathymetry/success]
-                  :on-failure [:transect.query/failure :bathymetry]}}
+                  :on-success      [:transect.query.bathymetry/success]
+                  :on-failure      [:transect.query/failure :bathymetry]}}
     ;; Otherwise, don't bother with ajax; immediately return no results
     {:db (assoc-in db [:transect :bathymetry] [])}))
 
 (defn transect-query-bathymetry-success [db [_ response]]
-  (let [zipped (->> response xml/parse-str zip/xml-zip)
+  (let [zipped      (->> response xml/parse-str zip/xml-zip)
         data-points (zx/xml1-> zipped :transect :transectData)
-        num-points (zx/xml1->  data-points (zx/attr :numPoints) js/parseInt)
-        values (zx/xml-> data-points :dataPoint :value zx/text js/parseFloat)
-        increment (/ 100 num-points)]
+        num-points  (zx/xml1->  data-points (zx/attr :numPoints) js/parseInt)
+        values      (zx/xml-> data-points :dataPoint :value zx/text js/parseFloat)
+        increment   (/ 100 num-points)]
     (assoc-in db [:transect :bathymetry]
               (vec (map-indexed (fn [i v] [(* i increment) (if (js/isNaN v) nil (- v))]) values)))))
 
