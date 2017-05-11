@@ -13,4 +13,4 @@
               :habitat nil
               :bathymetry nil}
    :display {:help-overlay false}
-   :config {:catalogue-url "http://localhost:8000/api/layers/"}})
+   :config {:catalogue-url "/api/layers/"}})
