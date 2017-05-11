@@ -74,25 +74,28 @@
                   [:transect.query/habitat native-linestring]
                   [:transect.query/bathymetry linestring]]}))
 
-(defn- transect-error-handler [type {:keys [status-text failure]}]
+(defn transect-query-error [{:keys [db]} [_ type {:keys [last-error failure] :as response}]]
   (let [status-text (if (= failure :timeout)
                       (str "Remote server timed out querying " (name type))
-                      status-text)]
-   (re-frame/dispatch [:transect.query/failure type status-text])))
-
-(defn transect-query-error [db [_ type text]]
-  (assoc-in db [:transect type] text))
+                      (str "Error querying " (name type) ": " last-error))]
+    {:db       (assoc-in db [:transect type] status-text)
+     :dispatch [:info/show-message status-text b/*intent-danger*]}))
 
 (defn transect-query-habitat [{:keys [db]} [_ linestring]]
-  {:db db
-   :http-xhrio {:method :get
-                ;; FIXME: url and layers should be dynamically constructed
-                :uri "http://localhost:8000/api/habitat/transect"
-                :params {:layers "seamap:SeamapAus_NSW_ocean_ecosystems_2002"
-                         :line linestring}
-                :response-format (ajax/json-response-format {:keywords? true})
-                :on-success [:transect.query.habitat/success]
-                :on-failure [:transect.query/failure :habitat]}})
+  (let [{:keys [active-layers]} @(re-frame/subscribe [:map/props])
+        habitat-layers          (filter #(= :habitat (:category %)) active-layers)
+        layer-names             (->> habitat-layers (map :layer_name) (string/join ","))]
+    (if (seq habitat-layers)
+      {:db         db
+       :http-xhrio {:method          :get
+                    :uri             "http://localhost:8000/api/habitat/transect"
+                    :params          {:layers layer-names ;"seamap:SeamapAus_NSW_ocean_ecosystems_2002"
+                                      :line   linestring}
+                    :response-format (ajax/json-response-format {:keywords? true})
+                    :on-success      [:transect.query.habitat/success]
+                    :on-failure      [:transect.query/failure :habitat]}}
+      ;; No layers to query; reset habitat to no-results:
+      {:db (assoc-in db [:transect :habitat] [])})))
 
 (defn transect-query-habitat-success [db [_ response]]
   (let [habitats (mapv (juxt :start_percentage :end_percentage :name) response)]
