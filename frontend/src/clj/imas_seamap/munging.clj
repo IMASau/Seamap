@@ -1,4 +1,4 @@
-(ns imas-seamap.utils
+(ns imas-seamap.munging
   "We need to automatically extract colours mapped against different
   SM_HAB_CLS values for the plot.  We do this by parsing the geoserver
   SLD (styled layer descriptor) files.  Designed to be used
@@ -7,7 +7,8 @@
   (:require [clojure.data.xml :as xml]
             [clojure.data.zip.xml :as zx]
             [clojure.java.io :as io]
-            [clojure.zip :as zip]))
+            [clojure.zip :as zip]
+            [globber.glob :refer [glob]]))
 
 
 (xml/alias-uri 'sld "http://www.opengis.net/sld")
@@ -39,3 +40,9 @@
       xml/parse-str
       zip/xml-zip
       sld->colour-map))
+
+;;; TODO:
+;;; * Extract all of sld:Title, ogc:Literal, and the fill colour (keyed by literal?)
+;;; * Warn about nodes that have no fill (it's probably an image), or a complex-expression (ogc:Or, ogc:And; 16 items)
+;;; * expand out globs against the habitats list
+;;; * Another lookup, SM_HAB_CLS -> Title (matches legend)
