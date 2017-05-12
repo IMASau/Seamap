@@ -34,7 +34,7 @@ BEGIN
     FROM
       (SELECT name, geom FROM valid_polygons
       UNION ALL
-      SELECT 'External' AS name, diff AS geom FROM external_area
+      SELECT null AS name, diff AS geom FROM external_area
       ) AS results
   )
 
