@@ -19,9 +19,7 @@ BEGIN
     WHERE geom.STIntersects(@transect) = 1)
   ,
   total_extent AS (
-    SELECT @emptyshape.STUnion(geom) AS agg FROM valid_polygons
-    -- SELECT geometry::UnionAggregate(geom) AS agg FROM valid_polygons
-    -- UnionAggregate isn't available in SQL Server <2012; currently running 2010.  Can be re-instanted when server is upgraded.
+    SELECT geometry::UnionAggregate(geom) AS agg FROM valid_polygons
   )
   ,
   -- Polygons may not cover the entire length of the line; the difference gives us the bits outside our habitat data:
