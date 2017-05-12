@@ -42,7 +42,8 @@
                    [ring "1.5.1"]
                    [potemkin "0.4.3"]   ; Was getting a weird error with the ring-proxy dependency version
                    [ring/ring-defaults "0.2.1"]
-                   [compojure "1.5.0"]]}}
+                   [compojure "1.5.0"]
+                   [spootnik/globber "0.4.1"]]}}
 
   :cljsbuild
   {:builds
