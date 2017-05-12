@@ -1067,3 +1067,8 @@
   "Mapping the habitat zones, keyed by strings obtained from the
   SM_HAB_CLS column in the different habitat tables."
   (into {} (map vector -habitats -colours)))
+
+(def *habitat-titles*
+  "Maps habitat classifications to their titles, as they appear in the
+  legend (often, but not always, the same as the SM_HAB_CLS value)."
+  {})
