@@ -130,3 +130,59 @@
 ;;; investigation that happens a fair bit (100 classes with
 ;;; overlapping legends, 113 colours).  To investigate a bit I've
 ;;; changed the merge-s above to merge-with (comp flatten vector)
+
+
+;;; Exceptions reported:
+;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_NAT_CoastalGeomorph_Smartline.sld
+;; **** Coral communities  No colour (assumed background image)
+;; **** Fringing coral reefs  No colour (assumed background image)
+;; **** Boulder/cobble/shingle/pebble/sand  No colour (assumed background image)
+;; **** Sediment bottom  No colour (assumed background image)
+;; **** Mixed sandy bottom  No colour (assumed background image)
+;; **** Muddy bottom  No colour (assumed background image)
+;; **** Hard rocky reefs  No colour (assumed background image)
+;; **** Patchy hard rocky reefs / exposed rock  No colour (assumed background image)
+;; **** Sandy lagoon (protected)  No colour (assumed background image)
+;; **** Rocky platform  No colour (assumed background image)
+;; **** Rock wall  No colour (assumed background image)
+;; **** Plunging cliff  No colour (assumed background image)
+;; **** Artificial substrate  No colour (assumed background image)
+;; **** Unclassified  No colour (assumed background image)
+
+;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_NSW_2002.sld
+;; **** Rocky intertidal  No colour (assumed background image)
+
+;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_NSW_estuarine_inventory.sld
+;; **** Aegiceras corniculatum ± A. marina, Saltmarsh Communities  Complex expression
+;; **** Posidona australis ± Halophila sp., Zostera sp.  Complex expression
+;; **** Halophila sp. ± Ruppia sp., Zostera sp.  No colour (assumed background image)
+
+;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_NT_OceanicShoals.sld
+;; **** Scarp  No colour (assumed background image)
+
+;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_NT_PetrelBasin.sld
+;; **** Ridge  No colour (assumed background image)
+
+;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_NT_seagrass.sld
+;; **** Halodule uninervis  Complex expression
+;; **** Halodule uninervis with Enhalus acoroides  Complex expression
+;; **** Halodule uninervis with Halophila ovalis  Complex expression
+;; **** Halodule uninervis with mixed species  Complex expression
+
+;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_QLD_GoldCoast_seagrass.sld
+;; **** Zostera meulleri & Cymodocea serrulata  Complex expression
+
+;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_TAS_SeamapTas.sld
+;; **** Cobble  No colour (assumed background image)
+;; **** Patchy Reef  No colour (assumed background image)
+;; **** Patchy Seagrass  No colour (assumed background image)
+;; **** Sparse Patchy Seagrass  No colour (assumed background image)
+;; **** Unknown  No colour (assumed background image)
+
+;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_WA_MarineFutures_biota1.sld
+;; **** Mixed vegetation  Complex expression
+;; **** SITE  No colour (assumed background image)
+
+;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_WA_MarineFutures_reef.sld
+;; **** SITE  No colour (assumed background image)
+
