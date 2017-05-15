@@ -59,12 +59,14 @@
 (s/def :transect.results/habitat    :imas-seamap.specs.app-state/transect-results-format)
 (s/def :transect.results/bathymetry :imas-seamap.specs.app-state/transect-results-format)
 (s/def :transect.results/zone-colours map?)
+(s/def :transect.results/zone-legend map?)
 (s/def :transect/results
   (s/keys :req [:transect.results/query
                 :transect.results/status
                 :transect.results/habitat
                 :transect.results/bathymetry
-                :transect.results/zone-colours]))
+                :transect.results/zone-colours
+                :transect.results/zone-legend]))
 
 (s/fdef subs/transect-results
   :args (s/cat :db :seamap/app-state
