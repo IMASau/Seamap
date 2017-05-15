@@ -14,10 +14,6 @@
 (xml/alias-uri 'sld "http://www.opengis.net/sld")
 (xml/alias-uri 'ogc "http://www.opengis.net/ogc")
 
-(defn rule->mapping [rule]
-  [[(zx/xml1-> rule ::sld/Title zx/text)
-    (zx/xml1-> rule ::sld/PolygonSymbolizer ::sld/Fill ::sld/CssParameter (zx/attr= :name "fill") zx/text)]])
-
 (defn rule->info [rule]
   (let [legend      (zx/xml1-> rule ::sld/Title zx/text)
         literal     (zx/xml1-> rule ::ogc/Filter ::ogc/PropertyIsEqualTo ::ogc/Literal zx/text)
@@ -57,29 +53,6 @@
         legend-mapping (apply merge
                               (map (partial info->legend-map habitat-classes) rule-info))]
     [colour-mapping legend-mapping]))
-
-(defn sld->colour-map [zipped-sld]
-  (let [rules (zx/xml-> zipped-sld
-                        ::sld/StyledLayerDescriptor
-                        ::sld/NamedLayer
-                        ::sld/UserStyle
-                        ::sld/FeatureTypeStyle
-                        ::sld/Rule
-                        rule->mapping)]
-    (into {} rules)))
-
-(defn colour-scheme-from-sld
-  "We need a colour scheme, mapping habitat classifications to
-  colours. This also needs to match the same scheme used in the
-  geoserver layers.  We achieve this by this utility, which parses a
-  geoserver .sld file and extracting the colour mapping from it."
-  [filename]
-  (-> filename
-      io/resource
-      slurp
-      xml/parse-str
-      zip/xml-zip
-      sld->colour-map))
 
 (def style-files-dir
   "/users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/")
@@ -152,3 +125,8 @@
         (merge cls-titles new-titles)]))
    [{} {}]
    (map #(str style-files-dir %) style-files)))
+
+;;; Note, this silently over-writes overlapping values, and on initial
+;;; investigation that happens a fair bit (100 classes with
+;;; overlapping legends, 113 colours).  To investigate a bit I've
+;;; changed the merge-s above to merge-with (comp flatten vector)
