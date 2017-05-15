@@ -19,13 +19,16 @@
     (zx/xml1-> rule ::sld/PolygonSymbolizer ::sld/Fill ::sld/CssParameter (zx/attr= :name "fill") zx/text)]])
 
 (defn rule->info [rule]
-  (let [legend   (zx/xml1-> rule ::sld/Title zx/text)
-        literal  (zx/xml1-> rule ::ogc/Filter ::ogc/PropertyIsEqualTo ::ogc/Literal zx/text)
-        wildcard (zx/xml1-> rule ::ogc/Filter ::ogc/PropertyIsLike ::ogc/Literal zx/text)
-        key      (or literal wildcard)
-        colour   (zx/xml1-> rule ::sld/PolygonSymbolizer ::sld/Fill ::sld/CssParameter (zx/attr= :name "fill") zx/text)]
-    (when-not legend (println "****" legend " Complex expression"))
-    (when-not colour (println "****" legend " No colour (assumed background image)"))
+  (let [legend      (zx/xml1-> rule ::sld/Title zx/text)
+        literal     (zx/xml1-> rule ::ogc/Filter ::ogc/PropertyIsEqualTo ::ogc/Literal zx/text)
+        wildcard    (zx/xml1-> rule ::ogc/Filter ::ogc/PropertyIsLike ::ogc/Literal zx/text)
+        complex-and (zx/xml1-> rule ::ogc/Filter ::ogc/And)
+        complex-or  (zx/xml1-> rule ::ogc/Filter ::ogc/Or)
+        key         (or literal wildcard)
+        colour      (zx/xml1-> rule ::sld/PolygonSymbolizer ::sld/Fill ::sld/CssParameter (zx/attr= :name "fill") zx/text)]
+    (if (or complex-or complex-and)
+      (println "****" legend " Complex expression")
+      (when-not colour (println "****" legend " No colour (assumed background image)")))
     [key legend colour]))
 
 (defn sld->rules [zipped-sld]
@@ -78,8 +81,74 @@
       zip/xml-zip
       sld->colour-map))
 
-;;; TODO:
-;;; * Extract all of sld:Title, ogc:Literal, and the fill colour (keyed by literal?)
-;;; * Warn about nodes that have no fill (it's probably an image), or a complex-expression (ogc:Or, ogc:And; 16 items, + 1 <Or>)
-;;; * expand out globs against the habitats list
-;;; * Another lookup, SM_HAB_CLS -> Title (matches legend)
+(def style-files-dir
+  "/users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/")
+
+(def style-files
+  ["SeamapAus_NAT_Aus_margin_geomorph.sld"
+   "SeamapAus_NAT_CAMRIS_benthic_substrate.sld"
+   "SeamapAus_NAT_CAMRIS_seagrass.sld"
+   "SeamapAus_NAT_CoastalGeomorph_Smartline.sld"
+   "SeamapAus_NAT_CoastalGeomorph_eco.sld"
+   "SeamapAus_NAT_CoastalGeomorph_substrate.sld"
+   "SeamapAus_NAT_CoastalGeomorph_surface_eco.sld"
+   "SeamapAus_NAT_CoastalWaterways_geomorphic.sld"
+   "SeamapAus_NSW_2002.sld"
+   "SeamapAus_NSW_2013.sld"
+   "SeamapAus_NSW_estuarine_inventory.sld"
+   "SeamapAus_NSW_estuarine_macrophytes.sld"
+   "SeamapAus_NSW_estuary_ecosystems.sld"
+   "SeamapAus_NSW_ocean_ecosystems.sld"
+   "SeamapAus_NT_Bynoe_mangrove.sld"
+   "SeamapAus_NT_DarwinHarbour_mangrove.sld"
+   "SeamapAus_NT_DarwinHarbour_seabed.sld"
+   "SeamapAus_NT_EastMiddleArms_communities.sld"
+   "SeamapAus_NT_EastMiddleArms_habitats.sld"
+   "SeamapAus_NT_OceanicShoals.sld"
+   "SeamapAus_NT_PetrelBasin.sld"
+   "SeamapAus_NT_mangroves_100.sld"
+   "SeamapAus_NT_mangroves_LudmillaCreek.sld"
+   "SeamapAus_NT_seagrass.sld"
+   "SeamapAus_QLD_EasternBanks_seagrassbiom.sld"
+   "SeamapAus_QLD_EasternBanks_seagrasscov.sld"
+   "SeamapAus_QLD_EasternBanks_seagrassspec.sld"
+   "SeamapAus_QLD_GBRWHA_seagrass.sld"
+   "SeamapAus_QLD_GBR_features.sld"
+   "SeamapAus_QLD_GoldCoast_seagrass.sld"
+   "SeamapAus_QLD_HeronReef_benthiccomm.sld"
+   "SeamapAus_QLD_HeronReef_geomorph.sld"
+   "SeamapAus_QLD_LowIsles_seagrass.sld"
+   "SeamapAus_QLD_MoretonBay_broadscale.sld"
+   "SeamapAus_QLD_MoretonBay_coral.sld"
+   "SeamapAus_QLD_MoretonBay_seagrass2004.sld"
+   "SeamapAus_QLD_MoretonBay_seagrass2011.sld"
+   "SeamapAus_QLD_NWTorresStrait_seagrass.sld"
+   "SeamapAus_QLD_PointLookout.sld"
+   "SeamapAus_QLD_TorresStrait_seagrass_intsub.sld"
+   "SeamapAus_QLD_coastal_wetlands.sld"
+   "SeamapAus_QLD_reefs_shoals.sld"
+   "SeamapAus_QLD_wetland.sld"
+   "SeamapAus_SA.sld"
+   "SeamapAus_TAS_SeamapTas.sld"
+   "SeamapAus_WA_CockburnSound_mapping.sld"
+   "SeamapAus_WA_CockburnSound_seagrass.sld"
+   "SeamapAus_WA_DPAW.sld"
+   "SeamapAus_WA_MOU74.sld"
+   "SeamapAus_WA_MarineFutures_biota.sld"
+   "SeamapAus_WA_MarineFutures_biota1.sld"
+   "SeamapAus_WA_MarineFutures_biota_d.sld"
+   "SeamapAus_WA_MarineFutures_reef.sld"
+   "SeamapAus_WA_SeagrassSynthesis_labels.sld"
+   "SeamapAus_WA_SeagrassSynthesis_pct.sld"
+   "SeamapAus_WA_ecosystem_NWShelf.sld"])
+
+(defn slurp-style-files [habitat-classes]
+  (reduce
+   (fn [[cls-colour cls-titles] filename]
+     (println filename)
+     (let [rules (-> filename slurp xml/parse-str zip/xml-zip sld->rules)
+           [new-colours new-titles] (rules->mappings rules habitat-classes)]
+       [(merge cls-colour new-colours)
+        (merge cls-titles new-titles)]))
+   [{} {}]
+   (map #(str style-files-dir %) style-files)))
