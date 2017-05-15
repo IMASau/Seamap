@@ -187,21 +187,26 @@
     (/ dist-from-y-axis graph-domain)))
 
 
-(defn mouse-move-graph [{:keys [:transect.results/bathymetry :transect.results/zone-legend event tooltip-content tooltip-width origin graph-domain graph-range margin offset on-mousemove] :as props}]
-  (let [pagex (gobj/get event "pageX")
-        [m-left m-right m-top m-bottom] margin
-        [ox oy] origin
-        percentage (min (max (* 100 (mouse-pos-to-percentage (merge props {:pagex pagex}))) 0) 100)
-        [before after] (split-with #(< (first %) percentage) bathymetry)
-        previous (if (seq before) (last before) (first after))
-        next (if (seq after) (first after) (last before))
-        next-is-closest (< (- (first next) percentage) (- percentage (first previous)))
+(defn mouse-move-graph [{:keys [:transect.results/bathymetry
+                                :transect.results/zone-legend
+                                graph-domain graph-range
+                                tooltip-content tooltip-width
+                                origin margin offset
+                                event on-mousemove] :as props}]
+  (let [pagex                              (gobj/get event "pageX")
+        [m-left m-right m-top m-bottom]    margin
+        [ox oy]                            origin
+        percentage                         (min (max (* 100 (mouse-pos-to-percentage (merge props {:pagex pagex}))) 0) 100)
+        [before after]                     (split-with #(< (first %) percentage) bathymetry)
+        previous                           (if (seq before) (last before) (first after))
+        next                               (if (seq after) (first after) (last before))
+        next-is-closest                    (< (- (first next) percentage) (- percentage (first previous)))
         [closest-percentage closest-depth] (if next-is-closest next previous)
-        pointx (percentage-to-x-pos (merge props {:percentage closest-percentage}))
-        pointy (if (nil? closest-depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth closest-depth})))
-        [_ _ zone] (habitat-at-percentage (merge props {:percentage closest-percentage}))
-        depth-label (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))
-        zone-label (if (nil? zone) "No data" (get zone-legend zone "No data"))]
+        pointx                             (percentage-to-x-pos (merge props {:percentage closest-percentage}))
+        pointy                             (if (nil? closest-depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth closest-depth})))
+        [_ _ zone]                         (habitat-at-percentage (merge props {:percentage closest-percentage}))
+        depth-label                        (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))
+        zone-label                         (if (nil? zone) "No data" (get zone-legend zone "No data"))]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
                                   :textbox   {:transform (str "translate("
                                                               (+ m-left ox (* (/ closest-percentage 100) (- graph-domain tooltip-width)))
@@ -229,35 +234,39 @@
                                        :line      {:x1 0 :y1 0 :x2 20 :y2 20}
                                        :textbox   {:transform "translate(0, 0)"}
                                        :text      ["Depth: " "Habitat: "]})]
-    (fn [{:keys [:transect.results/bathymetry :transect.results/habitat width height :transect.results/zone-colours margin font-size-tooltip font-size-axes]
+    (fn [{:keys [:transect.results/bathymetry
+                 :transect.results/habitat
+                 :transect.results/zone-colours
+                 width height margin
+                 font-size-tooltip font-size-axes]
           :as   props
           :or   {font-size-tooltip 16
                  font-size-axes    16
-                 margin [5 15 15 5]}}]
-      (let [line-height-tooltip (* 1.6 font-size-tooltip)
-            line-height-axes (* 1.6 font-size-axes)
-            tooltip-width 175
-            origin [(* 3 line-height-axes) (* 3 line-height-axes)]
-            [ox oy] origin
+                 margin            [5 15 15 5]}}]
+      (let [line-height-tooltip             (* 1.6 font-size-tooltip)
+            line-height-axes                (* 1.6 font-size-axes)
+            tooltip-width                   175
+            origin                          [(* 3 line-height-axes) (* 3 line-height-axes)]
+            [ox oy]                         origin
             [m-left m-right m-top m-bottom] margin
-            graph-range (- height (+ m-top m-bottom oy))
-            graph-domain (- width (+ m-left m-right ox))
-            max-depth (max-depth bathymetry)
-            min-depth (min-depth bathymetry)
-            spread (- max-depth min-depth)
-            graph-line-offset 0.4
-            graph-line-string (graph-line-string (merge props {:graph-domain graph-domain
-                                                               :graph-range  graph-range
-                                                               :min-depth    min-depth
-                                                               :max-depth    max-depth
-                                                               :spread       spread
-                                                               :origin       origin
-                                                               :offset       graph-line-offset
-                                                               :margin       margin}))
-            clip-path-string (str graph-line-string " "
-                                  (+ graph-domain ox m-left) " " (+ graph-range m-top) " "
-                                  (+ ox m-left) " " (+ graph-range m-top) " "
-                                  "Z")]
+            graph-range                     (- height (+ m-top m-bottom oy))
+            graph-domain                    (- width (+ m-left m-right ox))
+            max-depth                       (max-depth bathymetry)
+            min-depth                       (min-depth bathymetry)
+            spread                          (- max-depth min-depth)
+            graph-line-offset               0.4
+            graph-line-string               (graph-line-string (merge props {:graph-domain graph-domain
+                                                                             :graph-range  graph-range
+                                                                             :min-depth    min-depth
+                                                                             :max-depth    max-depth
+                                                                             :spread       spread
+                                                                             :origin       origin
+                                                                             :offset       graph-line-offset
+                                                                             :margin       margin}))
+            clip-path-string                (str graph-line-string " "
+                                                 (+ graph-domain ox m-left) " " (+ graph-range m-top) " "
+                                                 (+ ox m-left) " " (+ graph-range m-top) " "
+                                                 "Z")]
         (when (and (pos? graph-range)  (gmaths/isFiniteNumber graph-range))
           [:div#transect-plot
            [:svg {:width  width
@@ -277,7 +286,7 @@
             [:g#habitat-zones
              (for [zone habitat]
                (let [[start-percentage end-percentage zone-name] zone
-                     zone-colour (get zone-colours zone-name)]
+                     zone-colour                                 (get zone-colours zone-name)]
                  (when (and zone-name zone-colour)
                    (let [x-pos (percentage-to-x-pos (merge props {:percentage   start-percentage
                                                                   :graph-domain graph-domain
