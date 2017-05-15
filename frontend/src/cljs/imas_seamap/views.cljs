@@ -150,7 +150,7 @@
       [:div.layer-wrapper {:on-click (handler-fn (when active? (swap! show-legend not)))}
        [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "pt-interactive")}
         [:div.header-row.height-static
-         [b/clipped-text {:ellipses true :class-name "header-text"}
+         [b/clipped-text {:ellipsize true :class-name "header-text"}
           [b/tooltip {:content (if @show-legend "Click to hide legend" "Click to show legend")
                       :position *RIGHT*
                       :isDisabled (not active?)}
