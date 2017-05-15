@@ -199,7 +199,9 @@
         [closest-percentage closest-depth] (if next-is-closest next previous)
         pointx (percentage-to-x-pos (merge props {:percentage closest-percentage}))
         pointy (if (nil? closest-depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth closest-depth})))
-        [_ _ zone] (habitat-at-percentage (merge props {:percentage closest-percentage}))]
+        [_ _ zone] (habitat-at-percentage (merge props {:percentage closest-percentage}))
+        depth-label (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))
+        zone-label (if (nil? zone) "No data" zone)]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
                                   :textbox   {:transform (str "translate("
                                                               (+ m-left ox (* (/ closest-percentage 100) (- graph-domain tooltip-width)))
@@ -208,7 +210,7 @@
                                               :y1 m-top
                                               :x2 pointx
                                               :y2 (+ m-top graph-range)}
-                                  :text      [(str "Depth: " (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))) (str "Habitat: " (if (nil? zone) "No data" zone))]
+                                  :text      [(str "Depth: " depth-label) (str "Habitat: " zone-label)]
                                   :datapoint {:cx pointx
                                               :cy pointy}})
     (if on-mousemove (on-mousemove {:percentage closest-percentage
