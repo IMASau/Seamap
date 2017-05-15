@@ -94,6 +94,10 @@
                     (fn [i layer]
                       {:id (str id-str "-" i)
                        :label (:name layer)
+                       ;; A hack, but if we just add the layer it gets
+                       ;; warped in the js->clj conversion
+                       ;; (specifically, values that were keywords become strings)
+                       :do-add #(re-frame/dispatch [:map/toggle-layer layer])
                        :secondaryLabel (reagent/as-component (add-to-layer layer))})
                     layer-subset))}))
 
@@ -104,12 +108,19 @@
                     (swap! expanded-states assoc (:id node) true)))
         on-close (fn [node]
                    (let [node (js->clj node :keywordize-keys true)]
-                     (swap! expanded-states assoc (:id node) false)))]
+                     (swap! expanded-states assoc (:id node) false)))
+        on-dblclick (fn [node]
+                      (let [{:keys [childNodes do-add id] :as node} (js->clj node :keywordize-keys true)]
+                        (if (seq childNodes )
+                          ;; If we have children, toggle expanded state, else add to map
+                          (swap! expanded-states update id not)
+                          (do-add))))]
     (fn [layers ordering id]
       [:div.tab-body.layer-controls {:id id}
        [b/tree {:contents (layers->nodes layers ordering @expanded-states id)
                 :onNodeCollapse on-close
-                :onNodeExpand on-open}]])))
+                :onNodeExpand on-open
+                :onNodeDoubleClick on-dblclick}]])))
 
 (defn layer-catalogue [layers]
   [:div.layer-catalogue.pt-dialog-body
