@@ -43,7 +43,9 @@
                    [potemkin "0.4.3"]   ; Was getting a weird error with the ring-proxy dependency version
                    [ring/ring-defaults "0.2.1"]
                    [compojure "1.5.0"]
-                   [spootnik/globber "0.4.1"]]}}
+                   [spootnik/globber "0.4.1"]
+                   [org.clojure/data.json "0.2.6"]
+                   [org.osgeo/proj4j "0.1.0"]]}}
 
   :cljsbuild
   {:builds
