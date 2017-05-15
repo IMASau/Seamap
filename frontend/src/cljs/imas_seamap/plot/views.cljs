@@ -187,7 +187,7 @@
     (/ dist-from-y-axis graph-domain)))
 
 
-(defn mouse-move-graph [{:keys [:transect.results/bathymetry event tooltip-content tooltip-width origin graph-domain graph-range margin offset on-mousemove] :as props}]
+(defn mouse-move-graph [{:keys [:transect.results/bathymetry :transect.results/zone-legend event tooltip-content tooltip-width origin graph-domain graph-range margin offset on-mousemove] :as props}]
   (let [pagex (gobj/get event "pageX")
         [m-left m-right m-top m-bottom] margin
         [ox oy] origin
@@ -201,7 +201,7 @@
         pointy (if (nil? closest-depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth closest-depth})))
         [_ _ zone] (habitat-at-percentage (merge props {:percentage closest-percentage}))
         depth-label (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))
-        zone-label (if (nil? zone) "No data" zone)]
+        zone-label (if (nil? zone) "No data" (get zone-legend zone "No data"))]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
                                   :textbox   {:transform (str "translate("
                                                               (+ m-left ox (* (/ closest-percentage 100) (- graph-domain tooltip-width)))
@@ -276,8 +276,9 @@
             ;; draw habitat zones
             [:g#habitat-zones
              (for [zone habitat]
-               (let [[start-percentage end-percentage zone-name] zone]
-                 (if (not (nil? zone-name))
+               (let [[start-percentage end-percentage zone-name] zone
+                     zone-colour (get zone-colours zone-name)]
+                 (when (and zone-name zone-colour)
                    (let [x-pos (percentage-to-x-pos (merge props {:percentage   start-percentage
                                                                   :graph-domain graph-domain
                                                                   :origin       origin
@@ -289,14 +290,13 @@
                               :width  width
                               :height graph-range
                               :style  {:opacity 0.25
-                                       :fill    (get zone-colours zone-name)
-                                       }}]
+                                       :fill    zone-colour}}]
                       [:rect {:x      x-pos
                               :y      m-top
                               :width  width
                               :height graph-range
                               :style  {:opacity   0.75
-                                       :fill      (get zone-colours zone-name)
+                                       :fill      zone-colour
                                        :clip-path "url(#clipPath)"}}]]))))]
 
             ;; draw bathymetry line
