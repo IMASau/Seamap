@@ -97,7 +97,7 @@
                        ;; A hack, but if we just add the layer it gets
                        ;; warped in the js->clj conversion
                        ;; (specifically, values that were keywords become strings)
-                       :do-add #(re-frame/dispatch [:map/toggle-layer layer])
+                       :do-layer-toggle #(re-frame/dispatch [:map/toggle-layer layer])
                        :secondaryLabel (reagent/as-component (add-to-layer layer))})
                     layer-subset))}))
 
@@ -110,11 +110,11 @@
                    (let [node (js->clj node :keywordize-keys true)]
                      (swap! expanded-states assoc (:id node) false)))
         on-dblclick (fn [node]
-                      (let [{:keys [childNodes do-add id] :as node} (js->clj node :keywordize-keys true)]
+                      (let [{:keys [childNodes do-layer-toggle id] :as node} (js->clj node :keywordize-keys true)]
                         (if (seq childNodes )
                           ;; If we have children, toggle expanded state, else add to map
                           (swap! expanded-states update id not)
-                          (do-add))))]
+                          (do-layer-toggle))))]
     (fn [layers ordering id]
       [:div.tab-body.layer-controls {:id id}
        [b/tree {:contents (layers->nodes layers ordering @expanded-states id)
