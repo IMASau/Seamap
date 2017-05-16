@@ -88,7 +88,7 @@
     (if (seq habitat-layers)
       {:db         db
        :http-xhrio {:method          :get
-                    :uri             "/api/habitat/transect"
+                    :uri             "/api/habitat/transect/"
                     :params          {:layers layer-names ;"seamap:SeamapAus_NSW_ocean_ecosystems_2002"
                                       :line   linestring}
                     :response-format (ajax/json-response-format {:keywords? true})
