@@ -63,7 +63,13 @@
        (map (partial string/join " "))
        (string/join ",")))
 
-;(defn- geojson-linestring->bbox)
+(defn- geojson-linestring->bbox [coords]
+  (reduce
+   (fn [[[minx miny] [maxx maxy]] [x y]]
+     [[(min minx x) (min miny y)]
+      [(max maxx x) (max maxy y)]])
+   [[js/Number.POSTIVE_INFINITY js/Number.POSTIVE_INFINITY] [js/Number.NEGATIVE_INFINITY js/Number.NEGATIVE_INFINITY]]
+   coords))
 
 (defn transect-query [{:keys [db]} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
