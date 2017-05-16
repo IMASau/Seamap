@@ -89,7 +89,7 @@
       {:db         db
        :http-xhrio {:method          :get
                     :uri             "/api/habitat/transect/"
-                    :params          {:layers layer-names ;"seamap:SeamapAus_NSW_ocean_ecosystems_2002"
+                    :params          {:layers layer-names
                                       :line   linestring}
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success      [:transect.query.habitat/success]
