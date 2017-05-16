@@ -41,24 +41,29 @@
 
 (defn- geojson->linestring [geojson]
   ;; No assertions or anything for now (could make the geojson spec more explicit, but this will be fine)
-  (let [coords (get-in geojson [:geometry :coordinates])]
-    (->> coords
-         (map (partial string/join " "))
-         (string/join ","))))
+  (get-in geojson [:geometry :coordinates]))
 
 (def ^:private *epsg-3112*
   (gcall "proj4"
          "+proj=lcc +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=134 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
 
 (defn- wgs48->epsg3112 [pt]
-  (ocall *epsg-3112* :forward (clj->js pt)))
+  (js->clj
+   (ocall *epsg-3112* :forward (clj->js pt))))
 
 (defn- geojson->native-linestring [geojson]
   (let [coords (get-in geojson [:geometry :coordinates])]
-    (->> coords
-         (map wgs48->epsg3112)
-         (map (partial string/join " "))
-         (string/join ","))))
+    (map wgs48->epsg3112 coords)))
+
+(defn- coords->linestring
+  "Turn a list of coords into a formatted linestring parameter, ie
+  comma-separated pairs of space-separated coords."
+  [coords]
+  (->> coords
+       (map (partial string/join " "))
+       (string/join ",")))
+
+;(defn- geojson-linestring->bbox)
 
 (defn transect-query [{:keys [db]} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
@@ -90,7 +95,7 @@
        :http-xhrio {:method          :get
                     :uri             "/api/habitat/transect/"
                     :params          {:layers layer-names
-                                      :line   linestring}
+                                      :line   (coords->linestring linestring)}
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success      [:transect.query.habitat/success]
                     :on-failure      [:transect.query/failure :habitat]}}
@@ -110,7 +115,7 @@
                   :uri             server_url
                   :params          {:REQUEST    "GetTransect"
                                     :LAYER      layer_name
-                                    :LINESTRING linestring
+                                    :LINESTRING (coords->linestring linestring)
                                     :CRS        "EPSG:4326"
                                     :format     "text/xml"
                                     :VERSION    "1.1.1"}
