@@ -73,6 +73,13 @@ footer {
 /* Layer cards */
 .layer-group {
     padding-top: 10px;
+    overflow-y: hidden;
+}
+.layer-group.collapsed {
+    min-height: 30px;
+}
+.layer-group.expanded {
+    min-height: 80px;
 }
 
 .group-scrollable{

@@ -184,6 +184,7 @@
   (let [expanded (reagent/atom expanded)]
     (fn [{:keys [title] :as props} layers active-layers]
       [:div.layer-group.height-managed
+       {:class-name (if @expanded "expanded" "collapsed")}
        [:h1.pt-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")
                               :on-click (handler-fn (swap! expanded not))}
         (str title " (" (count layers) ")")]
