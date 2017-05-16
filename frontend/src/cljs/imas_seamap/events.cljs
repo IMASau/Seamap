@@ -64,12 +64,23 @@
        (string/join ",")))
 
 (defn- geojson-linestring->bbox [coords]
-  (reduce
-   (fn [[[minx miny] [maxx maxy]] [x y]]
-     [[(min minx x) (min miny y)]
-      [(max maxx x) (max maxy y)]])
-   [[js/Number.POSTIVE_INFINITY js/Number.POSTIVE_INFINITY] [js/Number.NEGATIVE_INFINITY js/Number.NEGATIVE_INFINITY]]
-   coords))
+  (let [[minx miny maxx maxy]
+        (reduce
+         (fn [[minx miny maxx maxy] [x y]]
+           [(min minx x) (min miny y) (max maxx x) (max maxy y)])
+         [js/Number.POSTIVE_INFINITY js/Number.POSTIVE_INFINITY js/Number.NEGATIVE_INFINITY js/Number.NEGATIVE_INFINITY]
+         coords)]
+    {:west  minx
+     :south miny
+     :east  maxx
+     :north maxy}))
+
+(defn- bbox-intersects? [b1 b2]
+  (not
+   (or (> (:west b1)  (:east b2))
+       (< (:east b1)  (:west b2))
+       (> (:south b1) (:north b2))
+       (< (:north b1) (:south b2)))))
 
 (defn transect-query [{:keys [db]} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
