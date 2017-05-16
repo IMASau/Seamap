@@ -19,8 +19,6 @@ select 'seamap:seamapaus_nat_coastalgeomorph_regolith25k'       as layer_name, S
 union all
 select 'seamap:seamapaus_nat_coastalgeomorph_smartline100k'     as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_CoastalGeomorph_Smartline100K
 union all
-select 'seamap:seamapaus_nat_coastalgeomorph_smartline100k_map' as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_CoastalGeomorph_Smartline100K_MAP
-union all
 select 'seamap:seamapaus_nat_coastalgeomorph_surfacegeorc100k'  as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_CoastalGeomorph_SurfaceGeoRC100K
 union all
 select 'seamap:seamapaus_nat_coastalgeomorph_surfacegeorc250k'  as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_CoastalGeomorph_SurfaceGeoRC250K
@@ -46,8 +44,6 @@ union all
 select 'seamap:seamapaus_nt_darwinharbour_mangrove'             as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NT_DarwinHarbour_mangrove
 union all
 select 'seamap:seamapaus_nt_darwinharbour_seabed_mapping'       as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NT_DarwinHarbour_seabed_mapping
-union all
-select 'seamap:seamapaus_nt_darwinharbour_seabed_mapping_map'   as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NT_DarwinHarbour_seabed_mapping_MAP
 union all
 select 'seamap:seamapaus_nt_eastmiddlearms_communities'         as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NT_EastMiddleArms_communities
 union all
@@ -119,43 +115,7 @@ select 'seamap:seamapaus_wa_mou74_scottreef'                    as layer_name, S
 union all
 select 'seamap:seamapaus_wa_marinefutures_biota'                as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota
 union all
-select 'seamap:seamapaus_wa_marinefutures_biota_albrolhos'      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota_Albrolhos
-union all
-select 'seamap:seamapaus_wa_marinefutures_biota_brokeinlet'     as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota_BrokeInlet
-union all
-select 'seamap:seamapaus_wa_marinefutures_biota_capes'          as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota_Capes
-union all
-select 'seamap:seamapaus_wa_marinefutures_biota_geographebay'   as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota_GeographeBay
-union all
-select 'seamap:seamapaus_wa_marinefutures_biota_jurienbay'      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota_JurienBay
-union all
-select 'seamap:seamapaus_wa_marinefutures_biota_middleisland'   as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota_MiddleIsland
-union all
-select 'seamap:seamapaus_wa_marinefutures_biota_mountgardner'   as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota_MountGardner
-union all
-select 'seamap:seamapaus_wa_marinefutures_biota_pointann'       as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota_PointAnn
-union all
-select 'seamap:seamapaus_wa_marinefutures_biota_rottnest'       as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota_Rottnest
-union all
 select 'seamap:seamapaus_wa_marinefutures_reef'                 as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef
-union all
-select 'seamap:seamapaus_wa_marinefutures_reef_albrolhos'       as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef_Albrolhos
-union all
-select 'seamap:seamapaus_wa_marinefutures_reef_brokeinlet'      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef_BrokeInlet
-union all
-select 'seamap:seamapaus_wa_marinefutures_reef_capes'           as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef_Capes
-union all
-select 'seamap:seamapaus_wa_marinefutures_reef_geographebay'    as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef_GeographeBay
-union all
-select 'seamap:seamapaus_wa_marinefutures_reef_jurienbay'       as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef_JurienBay
-union all
-select 'seamap:seamapaus_wa_marinefutures_reef_middleisland'    as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef_MiddleIsland
-union all
-select 'seamap:seamapaus_wa_marinefutures_reef_mountgardner'    as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef_MountGardner
-union all
-select 'seamap:seamapaus_wa_marinefutures_reef_pointann'        as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef_PointAnn
-union all
-select 'seamap:seamapaus_wa_marinefutures_reef_rottnest'        as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef_Rottnest
 union all
 select 'seamap:seamapaus_wa_ecosystem_nwshelf'                  as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_ecosystem_NWShelf
 union all
