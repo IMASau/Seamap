@@ -51,10 +51,6 @@
   (js->clj
    (ocall *epsg-3112* :forward (clj->js pt))))
 
-(defn- geojson->native-linestring [geojson]
-  (let [coords (get-in geojson [:geometry :coordinates])]
-    (map wgs48->epsg3112 coords)))
-
 (defn- coords->linestring
   "Turn a list of coords into a formatted linestring parameter, ie
   comma-separated pairs of space-separated coords."
@@ -89,11 +85,10 @@
                                 :show? true
                                 :habitat :loading
                                 :bathymetry :loading})
-        linestring (geojson->linestring geojson)
-        native-linestring (geojson->native-linestring geojson)]
+        linestring (geojson->linestring geojson)]
     {:db db
      :dispatch-n [[:transect.plot/show] ; A bit redundant since we set the :show key above
-                  [:transect.query/habitat native-linestring]
+                  [:transect.query/habitat linestring]
                   [:transect.query/bathymetry linestring]]}))
 
 (defn transect-query-error [{:keys [db]} [_ type {:keys [last-error failure] :as response}]]
@@ -104,15 +99,21 @@
      :dispatch [:info/show-message status-text b/*intent-danger*]}))
 
 (defn transect-query-habitat [{:keys [db]} [_ linestring]]
-  (let [{:keys [active-layers]} @(re-frame/subscribe [:map/props])
-        habitat-layers          (filter #(= :habitat (:category %)) active-layers)
-        layer-names             (->> habitat-layers (map :layer_name) (string/join ","))]
+  (let [bbox             (geojson-linestring->bbox linestring)
+        {:keys [layers]} @(re-frame/subscribe [:map/props])
+        habitat-layers   (filter #(and (:detail_resolution %)
+                                       (= :habitat (:category %))
+                                       (bbox-intersects? bbox (:bounding_box %)))
+                                 layers)
+        layer-names      (->> habitat-layers (map :layer_name) (string/join ","))]
     (if (seq habitat-layers)
       {:db         db
        :http-xhrio {:method          :get
                     :uri             "/api/habitat/transect/"
                     :params          {:layers layer-names
-                                      :line   (coords->linestring linestring)}
+                                      :line   (->> linestring
+                                                   (map wgs48->epsg3112)
+                                                   coords->linestring)}
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success      [:transect.query.habitat/success]
                     :on-failure      [:transect.query/failure :habitat]}}
