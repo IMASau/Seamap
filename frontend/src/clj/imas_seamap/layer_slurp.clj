@@ -112,7 +112,7 @@
   (let [title                          (zx/xml1-> zipped-xml :featureType :title zx/text)
         name                           (zx/xml1-> zipped-xml :featureType :name zx/text)
         [[llx lly] [urx ury] :as bbox] (zx/xml1-> zipped-xml :featureType :nativeBoundingBox ->geobbox)]
-    {:name                title
+    {:name                (string/replace title #"^Seamap Australia - " "")
      :layer_name          (str "seamap:" name)
      :bounding_box        (str llx "," lly "," urx "," ury)
      :server_url          "http://geoserver.imas.utas.edu.au/geoserver/wms"
@@ -144,3 +144,5 @@
          :pk     (+ offset i)}))
     layer-dirs))
   ([] (layerfiles->json 10)))
+
+;;; To use: (spit "layers.json" (json/write-str (layerfiles->json)))
