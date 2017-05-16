@@ -152,9 +152,13 @@
       extract-layer-defn))
 
 ;;; The global-variables top-level worker:
-(defn layerfiles->json []
-  (map-indexed
-   (fn [i layername]
-     (let [layer-defn (file->layer (str base-dir layername "/featuretype.xml"))]
-       (assoc layer-defn :id i)))
-   layer-dirs))
+(defn layerfiles->json
+  ([offset]
+   (map-indexed
+    (fn [i layername]
+      (let [layer-defn (file->layer (str base-dir layername "/featuretype.xml"))]
+        {:fields layer-defn
+         :model  "catalogue.layer"
+         :pk     (+ offset i)}))
+    layer-dirs))
+  ([] (layerfiles->json 10)))
