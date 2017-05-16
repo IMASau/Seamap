@@ -1,0 +1,30 @@
+[
+{
+  "fields": {
+    "name": "CSIRO"
+  },
+  "model": "catalogue.organisation",
+  "pk": 1
+},
+{
+  "fields": {
+    "name": "Bureau of Meterology"
+  },
+  "model": "catalogue.organisation",
+  "pk": 2
+},
+{
+  "fields": {
+    "name": "SST"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 1
+},
+{
+  "fields": {
+    "name": "Chl.A"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 2
+}
+]

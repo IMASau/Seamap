@@ -1,63 +1,6 @@
 [
 {
   "fields": {
-    "category": 1,
-    "name": "National",
-    "server_type": 2,
-    "data_classification": null,
-    "metadata_url": "http://metadata.imas.utas.edu.au/",
-    "organisation": null,
-    "date_start": null,
-    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
-    "detail_resolution": false,
-    "bounding_box": "109.55225803197766,-44.06642289001932,156.87812778669465,-9.808712193457605",
-    "layer_name": "seamap:SeamapAus_NAT_CoastalWaterways_geomorphic",
-    "date_end": null,
-    "description": "-"
-  },
-  "model": "catalogue.layer",
-  "pk": 1
-},
-{
-  "fields": {
-    "category": 1,
-    "name": "NSW",
-    "server_type": 2,
-    "data_classification": null,
-    "metadata_url": "http://metadata.imas.utas.edu.au/",
-    "organisation": null,
-    "date_start": null,
-    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
-    "detail_resolution": true,
-    "bounding_box": "148.67929118103902,-37.557900847858605,155.62623003773396,-28.01778192721625",
-    "layer_name": "seamap:SeamapAus_NSW_ocean_ecosystems_2002",
-    "date_end": null,
-    "description": "-"
-  },
-  "model": "catalogue.layer",
-  "pk": 2
-},
-{
-  "fields": {
-    "category": 1,
-    "name": "Tasmania",
-    "server_type": 2,
-    "data_classification": null,
-    "metadata_url": "http://metadata.imas.utas.edu.au/",
-    "organisation": null,
-    "date_start": null,
-    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
-    "detail_resolution": true,
-    "bounding_box": "144.75108493871028,-43.71708754918128,148.75047738505756,-39.31359803529814",
-    "layer_name": "imas:DEMO_SeamapTas",
-    "date_end": null,
-    "description": "-"
-  },
-  "model": "catalogue.layer",
-  "pk": 3
-},
-{
-  "fields": {
     "category": 2,
     "name": "Australia 50m Resolution",
     "server_type": 1,
