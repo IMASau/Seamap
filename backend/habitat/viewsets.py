@@ -5,8 +5,6 @@ from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
-from habitat.models import Transect
-from habitat.serializers import TransectSerializer
 
 
 # SQL Template to invoke the habitat transect intersection procedure.
@@ -98,11 +96,13 @@ class HabitatViewSet(viewsets.ViewSet):
         while True:
             _, _, name, length = segments[p1][p2]
             end_percentage = start_percentage + 100*length/float(distance)
-            orderedModels.append(Transect(name=name,
-                                          start_percentage=start_percentage,
-                                          end_percentage=end_percentage,
-                                          startx=p1[0], starty=p1[1],
-                                          endx=p2[0], endy=p2[1]))
+            orderedModels.append({'name': name,
+                                  'start_percentage': start_percentage,
+                                  'end_percentage': end_percentage,
+                                  'startx': p1[0],
+                                  'starty': p1[1],
+                                  'endx': p2[0],
+                                  'endy': p2[1]})
             start_percentage = end_percentage
             del segments[p1][p2]
             if not segments[p1]: del segments[p1]
@@ -113,5 +113,4 @@ class HabitatViewSet(viewsets.ViewSet):
                 break
             p1, p2 = p2, segments[p2].keys()[0]
 
-        serializer = TransectSerializer(orderedModels, many=True)
-        return Response(serializer.data)
+        return Response(orderedModels)
