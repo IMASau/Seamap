@@ -53,7 +53,7 @@ class HabitatViewSet(viewsets.ViewSet):
             raise ValidationError("Required parameter 'layers' is missing")
 
         tolerance = 0.0001  # minimum length for non-zero line in sql query
-        orderedModels = []
+        ordered_segments = []
         distance = 0
         segments = defaultdict(dict)
         start_segment = None
@@ -96,13 +96,13 @@ class HabitatViewSet(viewsets.ViewSet):
         while True:
             _, _, name, length = segments[p1][p2]
             end_percentage = start_percentage + 100*length/float(distance)
-            orderedModels.append({'name': name,
-                                  'start_percentage': start_percentage,
-                                  'end_percentage': end_percentage,
-                                  'startx': p1[0],
-                                  'starty': p1[1],
-                                  'endx': p2[0],
-                                  'endy': p2[1]})
+            ordered_segments.append({'name': name,
+                                     'start_percentage': start_percentage,
+                                     'end_percentage': end_percentage,
+                                     'startx': p1[0],
+                                     'starty': p1[1],
+                                     'endx': p2[0],
+                                     'endy': p2[1]})
             start_percentage = end_percentage
             del segments[p1][p2]
             if not segments[p1]: del segments[p1]
@@ -113,4 +113,4 @@ class HabitatViewSet(viewsets.ViewSet):
                 break
             p1, p2 = p2, segments[p2].keys()[0]
 
-        return Response(orderedModels)
+        return Response(ordered_segments)
