@@ -7,6 +7,7 @@ class LayerSerializer(serializers.ModelSerializer):
     server_type = serializers.SerializerMethodField()
     data_classification = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
+    bounding_box = serializers.SerializerMethodField()
 
     def get_category(self, obj):
         return obj.category.name
@@ -20,6 +21,12 @@ class LayerSerializer(serializers.ModelSerializer):
     def get_organisation(self, obj):
         return getattr(obj.organisation, 'name', None)
 
+    def get_bounding_box(self, obj):
+        return {'west': obj.minx,
+                'south': obj.miny,
+                'east': obj.maxx,
+                'north': obj.maxy}
+
     class Meta:
         model = Layer
-        fields = '__all__'
+        exclude = ('minx', 'miny', 'maxx', 'maxy',)

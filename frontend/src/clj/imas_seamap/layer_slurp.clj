@@ -32,7 +32,6 @@
    "SeamapAus_NT_BynoeHarbour_mangrove"
    "SeamapAus_NT_DarwinHarbour_mangrove"
    "SeamapAus_NT_DarwinHarbour_seabed_mapping"
-   "SeamapAus_NT_DarwinHarbour_seabed_mapping_MAP"
    "SeamapAus_NT_EastMiddleArms_communities"
    "SeamapAus_NT_EastMiddleArms_habitats"
    "SeamapAus_NT_OceanicShoals_geomorphology"
@@ -114,7 +113,10 @@
         [[llx lly] [urx ury] :as bbox] (zx/xml1-> zipped-xml :featureType :nativeBoundingBox ->geobbox)]
     {:name                (string/replace title #"^Seamap Australia - " "")
      :layer_name          (str "seamap:" name)
-     :bounding_box        (str llx "," lly "," urx "," ury)
+     :minx                llx
+     :miny                lly
+     :maxx                urx
+     :maxy                ury
      :server_url          "http://geoserver.imas.utas.edu.au/geoserver/wms"
      :detail_resolution   (not (string/starts-with? name "SeamapAus_NAT"))
      :category            1 ; habitat

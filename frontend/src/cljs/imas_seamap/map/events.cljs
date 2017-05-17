@@ -9,13 +9,6 @@
             [ajax.core :as ajax]))
 
 
-(defn str->bounds [bounds-str]
-  (as-> bounds-str bnds
-    (string/split bnds ",")
-    (map js/parseFloat bnds)
-    (map vector [:west :south :east :north] bnds)
-    (into {} bnds)))
-
 (defn bounds->str [{:keys [north south east west] :as bounds}]
   (string/join "," [south west north east]))
 
@@ -62,7 +55,6 @@
 (defn process-layer [layer]
   (-> layer
       ;; TODO: convert the dates, etc too
-      (update :bounding_box str->bounds)
       (update :category (comp keyword string/lower-case))
       (update :server_type (comp keyword string/lower-case))))
 

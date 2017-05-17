@@ -41,13 +41,6 @@ class Organisation(models.Model):
         return self.name
 
 
-comma_separated_float_list_re = re.compile(r'^[-\.\d,]+\Z')  # no, not very sophisticated
-validate_comma_separated_float_list = RegexValidator(
-    comma_separated_float_list_re,
-    'Must be a comma-separated list of floating-point numbers',
-    'invalid'
-)
-
 @python_2_unicode_compatible
 class Layer(models.Model):
     name = models.CharField(max_length = 200)
@@ -56,7 +49,11 @@ class Layer(models.Model):
     category = models.ForeignKey(Category)
     data_classification = models.ForeignKey(DataClassification, blank=True, null=True)
     organisation = models.ForeignKey(Organisation, blank=True, null=True)
-    bounding_box = models.CharField(validators=[validate_comma_separated_float_list], max_length = 200)
+    # Bounding box; store as four separate fields
+    minx = models.DecimalField(max_digits=20, decimal_places=17)
+    miny = models.DecimalField(max_digits=20, decimal_places=17)
+    maxx = models.DecimalField(max_digits=20, decimal_places=17)
+    maxy = models.DecimalField(max_digits=20, decimal_places=17)
     metadata_url = models.URLField(max_length = 200)
     description = models.CharField(max_length = 500)
     detail_resolution = models.BooleanField()
