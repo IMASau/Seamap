@@ -182,9 +182,9 @@
 
 (defn layer-group [{:keys [expanded] :or {:expanded false} :as props} layers active-layers]
   (let [expanded (reagent/atom expanded)]
-    (fn [{:keys [title] :as props} layers active-layers]
+    (fn [{:keys [title classes] :as props} layers active-layers]
       [:div.layer-group.height-managed
-       {:class-name (if @expanded "expanded" "collapsed")}
+       {:class-name (str classes (if @expanded " expanded" " collapsed"))}
        [:h1.pt-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")
                               :on-click (handler-fn (swap! expanded not))}
         (str title " (" (count layers) ")")]
@@ -208,10 +208,13 @@
                                     :on-close #(reset! show-dialogue? false)
                                     :icon-name "pt-icon-add-to-artifact"
                                     :title "Add from catalogue"}
-                        [layer-catalogue (seq (difference (set layers) (set active-layers)))]]]]
-        [layer-group (assoc props :extra-component catalogue)
-         ;; Only display active (third-party) layers in this group:
-         (filter #(= :third-party (:category %)) active-layers)
+                        [layer-catalogue (seq (difference (set layers) (set active-layers)))]]]
+            ;; Only display active (third-party) layers in this group:
+            third-party-actives (filter #(= :third-party (:category %)) active-layers)]
+        [layer-group (-> props
+                         (assoc :extra-component catalogue)
+                         (update :classes str (when (seq third-party-actives) " needs-extra")))
+         third-party-actives
          active-layers]))))
 
 (defn app-controls []

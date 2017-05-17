@@ -79,12 +79,16 @@ footer {
     min-height: 30px;
 }
 .layer-group.expanded {
-    min-height: 80px;
+    min-height: 115px;
+}
+.layer-group.expanded.needs-extra {
+    min-height: 150px;
 }
 
 .group-scrollable{
     overflow-y: auto;
-    padding: 2px 2px 20px 2px;
+    padding: 2px;
+    margin-bottom: 10px;
 }
 
 .layer-wrapper .pt-card {
