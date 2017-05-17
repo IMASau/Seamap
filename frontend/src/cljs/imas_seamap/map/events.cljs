@@ -9,12 +9,6 @@
             [ajax.core :as ajax]))
 
 
-(def ^:private test-layer-data
-  "Just for offline testing"
-  [{:name "National" :server_url "http://geoserver.imas.utas.edu.au/geoserver/wms?" :layer_name "seamap:SeamapAus_NAT_CoastalWaterways_geomorphic" :category "habitat" :bounding_box "109.55225803197766,-44.06642289001932,156.87812778669465,-9.808712193457605" :metadata_url "" :description "" :server_type "geoserver" :date_start "" :date_end "" :detail_resolution false}
-   {:name "NSW" :server_url "http://geoserver.imas.utas.edu.au/geoserver/wms?" :layer_name "seamap:SeamapAus_NSW_ocean_ecosystems_2002" :category "habitat" :bounding_box "148.67929118103902,-37.557900847858605,155.62623003773396,-28.01778192721625" :metadata_url "" :description "" :server_type "geoserver" :date_start "" :date_end "" :detail_resolution true}
-   {:name "Tasmania" :server_url "http://geoserver.imas.utas.edu.au/geoserver/wms?" :layer_name "cite:SEAMAP_habitats_Geo" :category "habitat" :bounding_box "144.78718799604167,-43.598255819880706,148.4394445006124,-39.36679642738305" :metadata_url "" :description "" :server_type "geoserver" :date_start "" :date_end "" :detail_resolution true}])
-
 (defn str->bounds [bounds-str]
   (as-> bounds-str bnds
     (string/split bnds ",")
@@ -76,7 +70,7 @@
   (mapv process-layer layers))
 
 (defn update-layers [db [_ layers]]
-  (->> layers ;test-layer-data
+  (->> layers
        process-layers
        (assoc-in db [:map :layers])))
 
