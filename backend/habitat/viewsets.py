@@ -1,3 +1,4 @@
+from collections import defaultdict
 from decimal import Decimal, getcontext
 from django.db import connections, ProgrammingError
 from rest_framework import viewsets
@@ -54,13 +55,18 @@ class HabitatViewSet(viewsets.ViewSet):
             raise ValidationError("Required parameter 'layers' is missing")
 
         tolerance = 0.0001  # minimum length for non-zero line in sql query
-        starts = {}
-        ends = {}
         orderedModels = []
         distance = 0
+        segments = defaultdict(dict)
+        start_segment = None
 
         line = request.query_params.get('line')
         linestring = 'LINESTRING(' + line + ')'
+
+        # Lines don't really have a direction, so we can't make assumptions
+        # about how they will be returned
+        start_pt = tuple(map(D, line.split(',', 1)[0].split(' ')))
+        start_percentage = 0
 
         layers = request.query_params.get('layers').lower().split(',')
         layers_placeholder = ','.join(['%s'] * len(layers))
@@ -72,37 +78,40 @@ class HabitatViewSet(viewsets.ViewSet):
                 try:
                     for row in cursor.fetchall():
                         [startx, starty, endx, endy, length, name] = row
-                        starts[(D(startx), D(starty))] = (D(endx), D(endy), name, length)
-                        ends[(D(endx), D(endy))] = (D(startx), D(starty), name, length)
+                        p1, p2 = (D(startx), D(starty)), (D(endx), D(endy))
+                        segment = p1, p2, name, length
                         distance += length
+                        segments[p1][p2] = segment
+                        segments[p2][p1] = segment
+                        if p1 == start_pt or p2 == start_pt:
+                            start_segment = segment
                     if not cursor.nextset():
                         break
                 except ProgrammingError:
                     if not cursor.nextset():
                         break
 
-        # Lines don't really have a direction, so we can't make assumptions
-        # about how they will be returned
-        start = tuple(map(D, line.split(',', 1)[0].split(' ')))
-        start_percentage = 0
-
-        for _ in starts:
-            (startx, starty) = start
-            if start in starts:
-                (endx, endy, name, length) = starts[start]
-            else:
-                (endx, endy, name, length) = ends[start]
+        p1, p2, _, _ = start_segment
+        if p1 != start_pt:
+            p1, p2 = p2, p1
+        # p1 is the start point; it will always be the "known" point, and p2 is the next one to find:
+        while True:
+            _, _, name, length = segments[p1][p2]
             end_percentage = start_percentage + 100*length/float(distance)
-            model = Transect(name=name,
-                             start_percentage=start_percentage,
-                             end_percentage=end_percentage,
-                             startx=startx,
-                             starty=starty,
-                             endx=endx,
-                             endy=endy)
-            orderedModels.append(model)
-            start = endx, endy
+            orderedModels.append(Transect(name=name,
+                                          start_percentage=start_percentage,
+                                          end_percentage=end_percentage,
+                                          startx=p1[0], starty=p1[1],
+                                          endx=p2[0], endy=p2[1]))
             start_percentage = end_percentage
+            del segments[p1][p2]
+            if not segments[p1]: del segments[p1]
+            del segments[p2][p1]
+            if not segments[p2]: del segments[p2]
+
+            if not segments:
+                break
+            p1, p2 = p2, segments[p2].keys()[0]
 
         serializer = TransectSerializer(orderedModels, many=True)
         return Response(serializer.data)
