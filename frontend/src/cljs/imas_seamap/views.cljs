@@ -161,7 +161,7 @@
   (let [show-legend (reagent/atom false)]
     (fn [{:keys [name] :as layer-spec} {:keys [active?] :as other-props}]
       [:div.layer-wrapper {:on-click (handler-fn (when active? (swap! show-legend not)))}
-       [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "pt-interactive")}
+       [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "layer-active pt-interactive")}
         [:div.header-row.height-static
          [b/clipped-text {:ellipsize true :class-name "header-text"}
           [b/tooltip {:content (if @show-legend "Click to hide legend" "Click to show legend")
