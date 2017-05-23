@@ -137,10 +137,12 @@
         [dispatch-key label] (if drawing?
                                [:transect.draw/disable "Cancel Transect"]
                                [:transect.draw/enable  "Draw Transect"])]
-    [b/button {:icon-name "edit"
-               :class-name "pt-fill draw-transect height-static"
-               :on-click (handler-fn (re-frame/dispatch [dispatch-key]))
-               :text label}]))
+    [:div#transect-btn-wrapper {:data-helper-text "Click to draw a transect"}
+     [b/button {:id "transect-button"
+                :icon-name "edit"
+                :class-name "pt-fill draw-transect height-static"
+                :on-click (handler-fn (re-frame/dispatch [dispatch-key]))
+                :text label}]]))
 
 (defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
   (let [legend-url (with-params server_url
@@ -250,7 +252,10 @@
   (let [show-plot (re-frame/subscribe [:transect.plot/show?])
         force-resize #(js/window.dispatchEvent (js/Event. "resize"))
         transect-results (re-frame/subscribe [:transect/results])]
-    [:footer {:on-click (handler-fn (re-frame/dispatch [:transect.plot/toggle-visibility]))}
+    [:footer#plot-footer
+     {:on-click (handler-fn (re-frame/dispatch [:transect.plot/toggle-visibility]))
+      :data-helper-text "This shows the data along a transect you can draw"
+      :data-helper-position "top"}
      [:div.drag-handle [:span.pt-icon-large.pt-icon-drag-handle-horizontal]]
      [css-transition-group {:transition-name "plot-height"
                             :transition-enter-timeout 300
@@ -280,6 +285,6 @@
     [map-component]
     [plot-component]]
    ;; needs the ids of components to helper-annotate:
-   [helper-overlay]
+   [helper-overlay :plot-footer :transect-btn-wrapper]
    [show-messages]])
 
