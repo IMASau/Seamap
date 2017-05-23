@@ -60,12 +60,12 @@
 (def style-files
   ["SeamapAus_NAT_Aus_margin_geomorph.sld"
    "SeamapAus_NAT_CAMRIS_benthic_substrate.sld"
-   "SeamapAus_NAT_CAMRIS_seagrass.sld"
    "SeamapAus_NAT_CoastalGeomorph_Smartline.sld"
    "SeamapAus_NAT_CoastalGeomorph_eco.sld"
    "SeamapAus_NAT_CoastalGeomorph_substrate.sld"
    "SeamapAus_NAT_CoastalGeomorph_surface_eco.sld"
    "SeamapAus_NAT_CoastalWaterways_geomorphic.sld"
+   "SeamapAus_NAT_seagrass.sld"
    "SeamapAus_NSW_2002.sld"
    "SeamapAus_NSW_2013.sld"
    "SeamapAus_NSW_estuarine_inventory.sld"
@@ -108,14 +108,15 @@
    "SeamapAus_WA_DPAW.sld"
    "SeamapAus_WA_MOU74.sld"
    "SeamapAus_WA_MarineFutures_biota.sld"
-   "SeamapAus_WA_MarineFutures_biota1.sld"
-   "SeamapAus_WA_MarineFutures_biota_d.sld"
    "SeamapAus_WA_MarineFutures_reef.sld"
    "SeamapAus_WA_SeagrassSynthesis_labels.sld"
    "SeamapAus_WA_SeagrassSynthesis_pct.sld"
    "SeamapAus_WA_ecosystem_NWShelf.sld"])
 
-(defn slurp-style-files [habitat-classes]
+(defn slurp-style-files
+  "Arg habitat-classes is a list of the distinct values of SM_HAB_CLS;
+  see imas-seamap.plot.colours/-habitats"
+  [habitat-classes]
   (reduce
    (fn [[cls-colour cls-titles] filename]
      (println filename)
@@ -129,7 +130,8 @@
 ;;; Note, this silently over-writes overlapping values, and on initial
 ;;; investigation that happens a fair bit (100 classes with
 ;;; overlapping legends, 113 colours).  To investigate a bit I've
-;;; changed the merge-s above to merge-with (comp flatten vector)
+;;; changed the merge-s above to merge-with (comp flatten vector),
+;;; then can look for how many have conflicts.
 
 
 ;;; Exceptions reported:
@@ -149,29 +151,6 @@
 ;; **** Artificial substrate  No colour (assumed background image)
 ;; **** Unclassified  No colour (assumed background image)
 
-;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_NSW_2002.sld
-;; **** Rocky intertidal  No colour (assumed background image)
-
-;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_NSW_estuarine_inventory.sld
-;; **** Aegiceras corniculatum ± A. marina, Saltmarsh Communities  Complex expression
-;; **** Posidona australis ± Halophila sp., Zostera sp.  Complex expression
-;; **** Halophila sp. ± Ruppia sp., Zostera sp.  No colour (assumed background image)
-
-;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_NT_OceanicShoals.sld
-;; **** Scarp  No colour (assumed background image)
-
-;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_NT_PetrelBasin.sld
-;; **** Ridge  No colour (assumed background image)
-
-;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_NT_seagrass.sld
-;; **** Halodule uninervis  Complex expression
-;; **** Halodule uninervis with Enhalus acoroides  Complex expression
-;; **** Halodule uninervis with Halophila ovalis  Complex expression
-;; **** Halodule uninervis with mixed species  Complex expression
-
-;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_QLD_GoldCoast_seagrass.sld
-;; **** Zostera meulleri & Cymodocea serrulata  Complex expression
-
 ;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_TAS_SeamapTas.sld
 ;; **** Cobble  No colour (assumed background image)
 ;; **** Patchy Reef  No colour (assumed background image)
@@ -180,7 +159,6 @@
 ;; **** Unknown  No colour (assumed background image)
 
 ;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_WA_MarineFutures_biota1.sld
-;; **** Mixed vegetation  Complex expression
 ;; **** SITE  No colour (assumed background image)
 
 ;; /users/mark_2/projects/geoserver-config-imas/workspaces/seamap/styles/SeamapAus_WA_MarineFutures_reef.sld
