@@ -6,6 +6,7 @@
             [clojure.zip :as zip]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
+            [imas-seamap.utils :refer [bbox-intersects?]]
             [oops.core :refer [gcall ocall]]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
@@ -70,13 +71,6 @@
      :south miny
      :east  maxx
      :north maxy}))
-
-(defn- bbox-intersects? [b1 b2]
-  (not
-   (or (> (:west b1)  (:east b2))
-       (< (:east b1)  (:west b2))
-       (> (:south b1) (:north b2))
-       (< (:north b1) (:south b2)))))
 
 (defn transect-query [{:keys [db]} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
