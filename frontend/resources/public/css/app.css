@@ -111,27 +111,21 @@ footer {
     margin-left: 10px;
 }
 
-.layer-controls .control:hover {
-    color: inherit;
+.layer-controls .control:hover,
+.layer-active .header-text,
+.layer-active .pt-icon-eye-on {
+    color: #0F9960;
+}
+
+.layer-active .pt-icon-eye-on:hover {
+    color: #C23030;
+}
+.layer-active .header-text {
+    font-style: italic;
 }
 
 .layer-wrapper .legend-wrapper {
     overflow-x: hidden;
-}
-
-.layer-wrapper .pt-icon-eye-off:hover {
-    color: #0F9960;
-}
-
-.layer-active .header-text {
-    font-style: italic;
-    color: #0F9960;
-}
-.layer-active .pt-icon-eye-on {
-    color: #0F9960;
-}
-.layer-active .pt-icon-eye-on:hover {
-    color: #C23030;
 }
 
 .catalogue-add {
