@@ -10,3 +10,6 @@
         visible-layers                        (filter #(bbox-intersects? bounds (:bounding_box %)) layers)]
     {:groups        (group-by :category visible-layers)
      :active-layers active-layers}))
+
+(defn map-layer-logic [db _]
+  (get-in db [:map :logic] :map.layer-logic/automatic))

@@ -7,6 +7,7 @@
          :bounds {}
          :layers []
          :active-layers #{}
+         :logic :map.layer-logic/automatic
          :controls {:transect false}}
    :transect {:query nil
               :show? false

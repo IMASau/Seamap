@@ -45,8 +45,10 @@
 (s/def :map/active-layers (s/coll-of :map/layer
                                      :kind set?))
 
+(s/def :map/logic #{:map.layer-logic/automatic :map.layer-logic/manual})
+
 (s/def ::map
-  (s/keys :req-un [:map/center :map/zoom :map/zoom-cutover :map/controls :map/layers :map/active-layers]))
+  (s/keys :req-un [:map/center :map/zoom :map/zoom-cutover :map/controls :map/layers :map/active-layers :map/logic]))
 
 (s/def ::transect-results-format
   (s/or :empty   nil?

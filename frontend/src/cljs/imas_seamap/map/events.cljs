@@ -118,6 +118,18 @@
                        (into #{}))))
       db)))
 
+(defn map-layer-logic-manual [db _]
+  (assoc-in db [:map :logic] :map.layer-logic/manual))
+
+(defn map-layer-logic-automatic [db _]
+  (assoc-in db [:map :logic] :map.layer-logic/automatic))
+
+(defn map-layer-logic-toggle [{:keys [map] :as db} _]
+  (if (= :map.layer-logic/manual
+         (:logic map))
+    (assoc-in db [:map :logic] :map.layer-logic/automatic)
+    (assoc-in db [:map :logic] :map.layer-logic/manual)))
+
 (defn map-view-updated [db [_ {:keys [zoom center bounds]}]]
   (-> db
       (update-in [:map] assoc
