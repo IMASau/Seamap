@@ -14,7 +14,7 @@ BEGIN
   WITH
   -- first narrow to polygons we care about (those that intersect our line of interest):
   valid_polygons AS (
-    SELECT name, geom
+    SELECT id, name, geom
     FROM @habitat
     WHERE geom.STIntersects(@transect) = 1)
   ,
@@ -28,11 +28,30 @@ BEGIN
     SELECT ISNULL(@buffered.STDifference(agg), @buffered) AS diff FROM total_extent
   )
   ,
+  -- We have to handle overlaps (both in the datasets, and when using multiple datasets)
+  overlappers (id, name, geom) AS (
+    SELECT vl.id, vl.name, vr.geom
+	FROM valid_polygons vl
+	LEFT JOIN valid_polygons vr ON vl.geom.STIntersects(vr.geom) = 1 AND vl.id > vr.id
+  )
+  ,
+  aggregated_overlappers (id, geom) AS (
+    SELECT id, COALESCE(geometry::UnionAggregate(geom), geometry::STGeomFromText('POLYGON EMPTY', 3112))
+	FROM overlappers
+	GROUP BY id
+  )
+  ,
+  valid_flattened_polygons (id, name, geom) AS (
+    SELECT p.id, p.name, p.geom.STDifference(agg.geom)
+	FROM valid_polygons p JOIN aggregated_overlappers agg
+	ON p.id = agg.id
+  )
+  ,
   -- Intermediate results are just all the intersections; we'll flatten them as the final step:
   intermediate_results AS (
     SELECT name, geom.STIntersection(@transect) AS intersections
     FROM
-      (SELECT name, geom FROM valid_polygons
+      (SELECT name, geom FROM valid_flattened_polygons
       UNION ALL
       SELECT null AS name, diff AS geom FROM external_area
       ) AS results
