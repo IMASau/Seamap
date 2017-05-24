@@ -15,7 +15,7 @@
     "react-transition-group": "^1.1.3",
     "react-container-dimensions": "^1.3.0",
     "react-dom": "^15.5.1",
-    "react-leaflet": "^1.1.7",
+    "react-leaflet": "^1.2.0",
     "react-leaflet-draw": "^0.14.0"
   },
   "scripts": {
