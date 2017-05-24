@@ -59,6 +59,9 @@
   [e]
   (re-frame/dispatch [:map/clicked (leaflet-props e) (mouseevent->coords e)]))
 
+(defn on-map-view-changed [e]
+  (re-frame/dispatch [:map/view-updated (leaflet-props e)]))
+
 (def ^:private *category-ordering*
   (into {} (map vector [:bathymetry :habitat :imagery :third-party] (range))))
 
@@ -85,9 +88,11 @@
     [leaflet-map (merge
                   {:id "map" :use-fly-to true
                    :center center :zoom zoom
-                   :on-zoomend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])
-                   :on-dragend #(re-frame/dispatch [:map/view-updated (leaflet-props %)])
-                   :on-click on-map-clicked}
+                   :on-zoomend on-map-view-changed
+                   :on-dragend on-map-view-changed
+                   ;; 'load' is triggered before react-leaflet adds the handler; we use layeradd as a proxy instead:
+                   :on-layeradd on-map-view-changed
+                   :on-click   on-map-clicked}
                   (when (seq bounds) {:bounds (map->bounds bounds)}))
      base-layer-osm
      (for [{:keys [server_url layer_name] :as layer} (sort-layers active-layers)]
