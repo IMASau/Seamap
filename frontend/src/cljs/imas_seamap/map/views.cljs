@@ -90,8 +90,7 @@
                    :center center :zoom zoom
                    :on-zoomend on-map-view-changed
                    :on-dragend on-map-view-changed
-                   ;; 'load' is triggered before react-leaflet adds the handler; we use layeradd as a proxy instead:
-                   :on-layeradd on-map-view-changed
+                   :when-ready on-map-view-changed
                    :on-click   on-map-clicked}
                   (when (seq bounds) {:bounds (map->bounds bounds)}))
      base-layer-osm
