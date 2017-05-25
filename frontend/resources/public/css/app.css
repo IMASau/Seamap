@@ -265,6 +265,14 @@ footer {
     margin-bottom: 5px;
 }
 
+@keyframes yellowfade {
+    from { background: #FFFF88;     }
+    to   { background: transparent; }
+}
+.external-trigger {
+    animation: yellowfade 1s;
+}
+
 /* SVG styling */
 rect#background {
     fill: lightblue;

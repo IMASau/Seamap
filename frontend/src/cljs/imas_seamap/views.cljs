@@ -151,6 +151,8 @@
                                  [true  " Automatic Layers" [:i.fa.fa-magic]]
                                  [false " Choose Layers"    [:span.pt-icon-standard.pt-icon-hand]])]
     [:div.logic-toggle
+     (when-not (or checked? user-triggered?)
+       {:class-name "external-trigger"})
      [b/switch {:checked   checked?
                 :label     (reagent/as-element [:span icon label])
                 :on-change (handler-fn (re-frame/dispatch [:map.layers.logic/toggle true]))}]]))
