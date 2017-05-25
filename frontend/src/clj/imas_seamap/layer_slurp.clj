@@ -18,7 +18,6 @@
    "SeamapAus_NAT_CoastalGeomorph_RC50K"
    "SeamapAus_NAT_CoastalGeomorph_Regolith25K"
    "SeamapAus_NAT_CoastalGeomorph_Smartline100K"
-   "SeamapAus_NAT_CoastalGeomorph_Smartline100K_MAP"
    "SeamapAus_NAT_CoastalGeomorph_SurfaceGeoRC100K"
    "SeamapAus_NAT_CoastalGeomorph_SurfaceGeoRC250K"
    "SeamapAus_NAT_CoastalGeomorph_SurfaceGeoRC25K"
@@ -107,12 +106,23 @@
         ur       (coords->geo maxx maxy)]
     [[ll ur]]))
 
+(def -group-ids
+  {"NATIONAL" 1
+   "NSW"      2
+   "NT"       3
+   "QLD"      4
+   "SA"       5
+   "TAS"      6
+   "WA"       7})
+
 (defn extract-layer-defn [zipped-xml]
   (let [title                          (zx/xml1-> zipped-xml :featureType :title zx/text)
         name                           (zx/xml1-> zipped-xml :featureType :name zx/text)
-        [[llx lly] [urx ury] :as bbox] (zx/xml1-> zipped-xml :featureType :nativeBoundingBox ->geobbox)]
+        [[llx lly] [urx ury] :as bbox] (zx/xml1-> zipped-xml :featureType :nativeBoundingBox ->geobbox)
+        layer-group                    (second (string/split title #" - "))]
     {:name                (string/replace title #"^Seamap Australia - " "")
      :layer_name          (str "seamap:" name)
+     :layer_group         (get -group-ids layer-group)
      :minx                llx
      :miny                lly
      :maxx                urx
@@ -138,13 +148,23 @@
 ;;; The global-variables top-level worker:
 (defn layerfiles->json
   ([offset]
-   (map-indexed
-    (fn [i layername]
-      (let [layer-defn (file->layer (str base-dir layername "/featuretype.xml"))]
-        {:fields layer-defn
-         :model  "catalogue.layer"
-         :pk     (+ offset i)}))
-    layer-dirs))
+   (loop [idx              offset
+          group-priorities {}
+          layer-models     []
+          layer-dirs       layer-dirs]
+     (if (seq layer-dirs)
+       (let [layername                            (first layer-dirs)
+             {:keys [layer_group] :as layer-defn} (file->layer (str base-dir layername "/featuretype.xml"))
+             ;; Fake the priority just by ordering by group:
+             django-model                         {:fields (assoc layer-defn
+                                                                  :layer_priority (get group-priorities layer_group 1))
+                                                   :model  "catalogue.layer"
+                                                   :pk     idx}]
+         (recur (inc idx)
+                (update group-priorities layer_group (fnil inc 1))
+                (conj layer-models django-model)
+                (rest layer-dirs)))
+       layer-models)))
   ([] (layerfiles->json 10)))
 
 ;;; To use: (spit "layers.json" (json/write-str (layerfiles->json)))

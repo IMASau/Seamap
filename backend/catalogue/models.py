@@ -42,6 +42,14 @@ class Organisation(models.Model):
 
 
 @python_2_unicode_compatible
+class LayerGroup(models.Model):
+    name = models.CharField(max_length = 200)
+
+    def __str__(self):
+        return self.name
+
+
+@python_2_unicode_compatible
 class Layer(models.Model):
     name = models.CharField(max_length = 200)
     server_url = models.URLField(max_length = 200)
@@ -49,6 +57,8 @@ class Layer(models.Model):
     category = models.ForeignKey(Category)
     data_classification = models.ForeignKey(DataClassification, blank=True, null=True)
     organisation = models.ForeignKey(Organisation, blank=True, null=True)
+    layer_priority = models.IntegerField(default=1)
+    layer_group = models.ForeignKey(LayerGroup, default=1)
     # Bounding box; store as four separate fields
     minx = models.DecimalField(max_digits=20, decimal_places=17)
     miny = models.DecimalField(max_digits=20, decimal_places=17)

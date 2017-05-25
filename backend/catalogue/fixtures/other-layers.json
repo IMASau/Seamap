@@ -15,6 +15,8 @@
     "maxx": 171.99875000000003,
     "maxy": -7.993749999999984,
     "layer_name": "SeamapAus_Bathymetry_National_50m/DEPTH",
+    "layer_group": 1,
+    "layer_priority": 1,
     "date_end": null,
     "description": "-"
   },
@@ -37,6 +39,8 @@
     "maxx": 155.33379443860588,
     "maxy": -28.116465768723415,
     "layer_name": "seamap:SeamapAus_NSW_marine_habitats_2013",
+    "layer_group": 1,
+    "layer_priority": 99,
     "date_end": null,
     "description": "-"
   },
@@ -59,6 +63,8 @@
     "maxx": 153.69585651159286,
     "maxy": -28.135408461093903,
     "layer_name": "NESP:NESP_Seabed_Habitat_NSWstatewide_MAP20m",
+    "layer_group": 1,
+    "layer_priority": 99,
     "date_end": null,
     "description": "-"
   },
@@ -81,6 +87,8 @@
     "maxx": 123.7590843,
     "maxy": -5.444165667,
     "layer_name": "imas:JCU_Haapkyla_Hoga_Reef_communities_MAP",
+    "layer_group": 1,
+    "layer_priority": 99,
     "date_end": null,
     "description": "-"
   },
@@ -103,6 +111,8 @@
     "maxx": 148.787013,
     "maxy": -40.595392000000004,
     "layer_name": "imas:NERP_NBarrett_Flinders_CMR_AUV_GV",
+    "layer_group": 6,
+    "layer_priority": 1,
     "date_end": null,
     "description": "-"
   },
@@ -125,6 +135,8 @@
     "maxx": 146.2949795,
     "maxy": -43.7371867,
     "layer_name": "imas:NERP_NBarrett_TasFracture_CMR_AUV_GV",
+    "layer_group": 6,
+    "layer_priority": 2,
     "date_end": null,
     "description": "-"
   },
