@@ -145,13 +145,13 @@
                 :text label}]]))
 
 (defn layer-logic-toggle []
-  (let [logic-type @(re-frame/subscribe [:map.layers/logic])
+  (let [logic-type            @(re-frame/subscribe [:map.layers/logic])
         [checked? label icon] (if (= logic-type :map.layer-logic/automatic)
                                 [true  " Automatic Layers" [:i.fa.fa-magic]]
                                 [false " Choose Layers"    [:span.pt-icon-standard.pt-icon-hand]])]
     [:div.logic-toggle
-     [b/switch {:checked checked?
-                :label (reagent/as-element [:span icon label])
+     [b/switch {:checked   checked?
+                :label     (reagent/as-element [:span icon label])
                 :on-change (handler-fn (re-frame/dispatch [:map.layers.logic/toggle]))}]]))
 
 (defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
