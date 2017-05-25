@@ -45,7 +45,9 @@
 (s/def :map/active-layers (s/coll-of :map/layer
                                      :kind set?))
 
-(s/def :map/logic #{:map.layer-logic/automatic :map.layer-logic/manual})
+(s/def :map.logic/type #{:map.layer-logic/automatic :map.layer-logic/manual})
+(s/def :map.logic/trigger #{:map.logic.trigger/automatic :map.logic.trigger/user})
+(s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
 
 (s/def ::map
   (s/keys :req-un [:map/center :map/zoom :map/zoom-cutover :map/controls :map/layers :map/active-layers :map/logic]))

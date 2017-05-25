@@ -12,4 +12,6 @@
      :active-layers active-layers}))
 
 (defn map-layer-logic [db _]
-  (get-in db [:map :logic] :map.layer-logic/automatic))
+  (get-in db [:map :logic]
+          {:type :map.layer-logic/automatic
+           :trigger :map.logic.trigger/automatic}))

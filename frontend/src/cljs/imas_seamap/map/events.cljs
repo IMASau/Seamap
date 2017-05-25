@@ -124,17 +124,21 @@
                        (into #{}))))
       db)))
 
-(defn map-layer-logic-manual [db _]
-  (assoc-in db [:map :logic] :map.layer-logic/manual))
+(defn map-layer-logic-manual [db [_ user-triggered]]
+  (assoc-in db [:map :logic]
+            {:type :map.layer-logic/manual
+             :trigger (if user-triggered :map.logic.trigger/user :map.logic.trigger/automatic)}))
 
 (defn map-layer-logic-automatic [db _]
-  (assoc-in db [:map :logic] :map.layer-logic/automatic))
+  (assoc-in db [:map :logic] {:type :map.layer-logic/automatic :trigger :map.logic.trigger/automatic}))
 
-(defn map-layer-logic-toggle [{:keys [map] :as db} _]
-  (if (= :map.layer-logic/manual
-         (:logic map))
-    (assoc-in db [:map :logic] :map.layer-logic/automatic)
-    (assoc-in db [:map :logic] :map.layer-logic/manual)))
+(defn map-layer-logic-toggle [{:keys [map] :as db} [_ user-triggered]]
+  (let [type (if (= (get-in map [:logic :type])
+                    :map.layer-logic/manual)
+               :map.layer-logic/automatic
+               :map.layer-logic/manual)
+        trigger (if user-triggered :map.logic.trigger/user :map.logic.trigger/automatic)]
+    (assoc-in db [:map :logic] {:type type :trigger trigger})))
 
 (defn map-view-updated [db [_ {:keys [zoom center bounds]}]]
   (-> db
