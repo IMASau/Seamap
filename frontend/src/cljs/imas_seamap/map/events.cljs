@@ -92,10 +92,11 @@
 (defn habitat-layer? [layer] (-> layer :category (= :habitat)))
 
 (defn update-active-layers
-  "Utility to recalculate layers that are displayed.  When the
-  viewport or zoom changes, we may need to switch out a layer for a
-  coarser/finer resolution one.  Only applies to habitat layers."
-  [{{:keys [layers active-layers zoom zoom-cutover bounds]} :map :as db}]
+  "Utility to recalculate layers that are displayed when automatic
+  layer-switching is in place.  When the viewport or zoom changes, we
+  may need to switch out a layer for a coarser/finer resolution one.
+  Only applies to habitat layers."
+  [{{:keys [layers active-layers zoom zoom-cutover bounds logic]} :map :as db}]
   ;; Basic idea:
   ;; * check that any habitat layer is currently displayed (ie, don't start with no habitats, then zoom in and suddenly display one!)
   ;; * filter out habitat layers from actives
@@ -103,7 +104,8 @@
   ;; * assoc back onto the db
   (let [{active-habitats  true
          filtered-actives false} (group-by habitat-layer? active-layers)]
-    (if (seq active-habitats)
+    (if (and (= logic :map.layer-logic/automatic)
+             (seq active-habitats))
       (let [display-more-detail? (> zoom zoom-cutover)
             {detailed-habitats   true
              national-resolution false} (->> layers
