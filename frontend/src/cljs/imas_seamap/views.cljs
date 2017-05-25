@@ -144,6 +144,16 @@
                 :on-click (handler-fn (re-frame/dispatch [dispatch-key]))
                 :text label}]]))
 
+(defn layer-logic-toggle []
+  (let [logic-type @(re-frame/subscribe [:map.layers/logic])
+        [checked? label] (if (= logic-type :map.layer-logic/automatic)
+                           [true  "Automatic Layers"]
+                           [false "Manual Layer Choice"])]
+    [:div.logic-toggle
+     [b/switch {:checked checked?
+                :label label
+                :on-change (handler-fn (re-frame/dispatch [:map.layers.logic/toggle]))}]]))
+
 (defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
   (let [legend-url (with-params server_url
                      {:REQUEST "GetLegendGraphic"
@@ -224,6 +234,7 @@
         {:keys [habitat bathymetry imagery third-party]} groups]
     [:div#sidebar
      [transect-toggle]
+     [layer-logic-toggle]
      [layer-group {:title "Habitat"   :expanded true } habitat     active-layers]
      [layer-group {:title "Bathymetry":expanded true } bathymetry  active-layers]
      [layer-group {:title "Imagery"   :expanded false} imagery     active-layers]

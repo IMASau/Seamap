@@ -70,6 +70,10 @@ footer {
     z-index: 2001;
 }
 
+.logic-toggle {
+    padding-top: 10px;
+}
+
 /* Layer cards */
 .layer-group {
     padding-top: 10px;
