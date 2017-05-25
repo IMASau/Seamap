@@ -18,6 +18,8 @@
 
 (def spinner         (reagent/adapt-react-class (gget "Blueprint.Spinner")))
 
+(def switch          (reagent/adapt-react-class (gget "Blueprint.Switch")))
+
 (def tabs            (reagent/adapt-react-class (gget "Blueprint.Tabs2")))
 
 (def tab             (reagent/adapt-react-class (gget "Blueprint.Tab2")))
