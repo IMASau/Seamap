@@ -66,18 +66,22 @@
        process-layers
        (assoc-in db [:map :layers])))
 
-(defn toggle-layer [db [_ layer]]
-  (update-in db [:map :active-layers]
-             #(if (% layer)
-                (disj % layer)
-                (conj % layer))))
+(defn toggle-layer [{:keys [db]} [_ layer]]
+  {:db (update-in db [:map :active-layers]
+                  #(if (% layer)
+                     (disj % layer)
+                     (conj % layer)))
+   ;; If someone triggers this, we also switch to manual mode:
+   :dispatch [:map.layers.logic/manual]})
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
-  [db [_ {:keys [bounding_box] :as layer}]]
-  (-> db
-      (assoc-in [:map :bounds] bounding_box)
-      (update-in [:map :active-layers] conj layer)))
+  [{:keys [db]} [_ {:keys [bounding_box] :as layer}]]
+  {:db (-> db
+           (assoc-in [:map :bounds] bounding_box)
+           (update-in [:map :active-layers] conj layer))
+   ;; If someone triggers this, we also switch to manual mode:
+   :dispatch [:map.layers.logic/manual]})
 
 (defn layer-visible? [{:keys [west south east north] :as bounds}
                       {:keys [bounding_box]          :as layer}]

@@ -52,12 +52,12 @@
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map/clicked                          [mevents/get-feature-info]
     :map/got-featureinfo                  mevents/got-feature-info
-    :map/toggle-layer                     mevents/toggle-layer
+    :map/toggle-layer                     [mevents/toggle-layer]
     :map.layers.logic/toggle              mevents/map-layer-logic-toggle
     :map.layers.logic/manual              mevents/map-layer-logic-manual
     :map.layers.logic/automatic           mevents/map-layer-logic-automatic
     :map/update-layers                    mevents/update-layers
-    :map/pan-to-layer                     mevents/zoom-to-layer
+    :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/view-updated                     mevents/map-view-updated}})
 
 (def standard-interceptors
