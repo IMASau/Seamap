@@ -54,6 +54,7 @@
 (s/def :transect.results/query :imas-seamap.specs.app-state/geojson)
 (s/def :transect.results/status #{:transect.results.status/empty
                                   :transect.results.status/loading
+                                  :transect.results.status/partial
                                   :transect.results.status/ready
                                   :transect.results.status/error})
 (s/def :transect.results/habitat    :imas-seamap.specs.app-state/transect-results-format)

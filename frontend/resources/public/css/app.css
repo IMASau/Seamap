@@ -136,6 +136,14 @@ footer {
     margin-bottom: 5px;
 }
 
+.transect-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
 .help-button {
     margin-top: auto;           /* stick to bottom */
     text-align: center;

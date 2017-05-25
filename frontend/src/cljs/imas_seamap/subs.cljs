@@ -56,10 +56,11 @@
 
 (defn- transect-query-status [{:keys [habitat bathymetry] :as args}]
   (cond
-    (every? nil? [habitat bathymetry])    :transect.results.status/empty
-    (every? string? [habitat bathymetry]) :transect.results.status/error
-    (= habitat bathymetry :loading)       :transect.results.status/loading
-    :default                              :transect.results.status/ready))
+    (every? nil? [habitat bathymetry])      :transect.results.status/empty
+    (every? string? [habitat bathymetry])   :transect.results.status/error
+    (= habitat bathymetry :loading)         :transect.results.status/loading
+    (some #{:loading} [habitat bathymetry]) :transect.results.status/partial
+    :default                                :transect.results.status/ready))
 
 (defn transect-results [{{:keys [query habitat bathymetry] :as transect} :transect :as db} _]
   (letfn [(always-vec [d] (if (vector? d) d []))]
