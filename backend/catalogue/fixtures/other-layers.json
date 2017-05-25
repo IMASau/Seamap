@@ -112,7 +112,7 @@
     "maxy": -40.595392000000004,
     "layer_name": "imas:NERP_NBarrett_Flinders_CMR_AUV_GV",
     "layer_group": 6,
-    "layer_priority": 1,
+    "layer_priority": 2,
     "date_end": null,
     "description": "-"
   },
@@ -142,5 +142,29 @@
   },
   "model": "catalogue.layer",
   "pk": 9
+},
+{
+  "fields": {
+    "category": 3,
+    "name": "Method 3 Photo Quadrat Scores",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "date_start": null,
+    "server_url": "http://geoserver-rls.imas.utas.edu.au/geoserver/wms",
+    "detail_resolution": false,
+    "minx": -179.135831,
+    "miny": -55.046786,
+    "maxx": 177.182721,
+    "maxy": 78.449001,
+    "layer_name": "RLS:M3_DATA",
+    "layer_group": 6,
+    "layer_priority": 1,
+    "date_end": null,
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 10
 }
 ]

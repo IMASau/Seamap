@@ -165,6 +165,6 @@
                 (conj layer-models django-model)
                 (rest layer-dirs)))
        layer-models)))
-  ([] (layerfiles->json 10)))
+  ([] (layerfiles->json 15)))
 
 ;;; To use: (spit "layers.json" (json/write-str (layerfiles->json)))
