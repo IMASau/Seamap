@@ -132,11 +132,13 @@
     (range graphmin (+ graphmax (/ d 2)) d)))
 
 (defn axis-labels [{:keys [x-axis-offset y-axis-offset line-height font-size offset
-                           min-depth spread graph-domain graph-range origin margin]}]
+                           min-depth max-x spread graph-domain graph-range origin margin
+                           :transect.results/habitat]}]
   (let [origin-depth (+ min-depth (/ spread (- 1 offset)))
         delta (- origin-depth min-depth)
-        x-steps (int (/ graph-domain 50))
         y-steps (int (/ graph-range 30))
+        x-ticks   (loose-label-ticks 0 max-x)
+        x-ticks   (if (< (last x-ticks) max-x) (butlast x-ticks) x-ticks)
         [m-left m-right m-top m-bottom] margin
         [ox oy] origin]
     (when (pos? y-steps)
@@ -144,15 +146,15 @@
                    :font-size   font-size}}
        ;; x-axis labels
        [:g {:style {:text-anchor "middle"}}
-        (for [i (range (+ 1 x-steps))]
-          [:text {:key (hash (str "percentageLabel" i))
-                  :x   (+ (* (/ i x-steps) graph-domain) ox m-left)
+        (for [tick x-ticks]
+          [:text {:key tick
+                  :x   (+ (* (/ tick max-x) graph-domain) ox m-left)
                   :y   (+ m-top font-size x-axis-offset graph-range)}
-           (str (int (* (/ i x-steps) 100)))])
+           (str tick)])
         [:text {:x     (+ m-left ox (/ graph-domain 2))
                 :y     (+ line-height font-size x-axis-offset m-top graph-range)
                 :style {:font-weight "bold"}}
-         "Percentage Along Transect (%)"]]
+         (if (seq habitat) "Distance Along Transect (m)" "Percentage Along Transect")]]
        ;; y-axis labels
        [:g {:style {:text-anchor "end"}}
         (for [i (range (+ 1 y-steps))]
@@ -350,7 +352,8 @@
                                        :font-size     font-size-axes
                                        :x-axis-offset 10
                                        :y-axis-offset 10
-                                       :x-steps       20
+                                       ;; default of 100 means it looks like pctg if we don't have habitat data
+                                       :max-x         (:end_distance (last habitat) 100)
                                        :y-steps       6
                                        :max-depth     max-depth
                                        :min-depth     min-depth
