@@ -194,7 +194,7 @@
             :rx     5
             :ry     5
             :width  tooltip-width
-            :height (* 2.5 line-height)
+            :height (* 3.5 line-height)
             :style  {:opacity      0.9
                      :fill         "white"
                      :stroke       "black"
@@ -222,6 +222,7 @@
                                 graph-domain graph-range
                                 tooltip-content tooltip-width
                                 origin margin offset
+                                max-x
                                 event on-mousemove] :as props}]
   (let [pagex                              (gobj/get event "pageX")
         [m-left m-right m-top m-bottom]    margin
@@ -236,7 +237,8 @@
         pointy                             (if (nil? closest-depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth closest-depth})))
         {:keys [name]}                     (habitat-at-percentage (merge props {:percentage closest-percentage}))
         depth-label                        (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))
-        zone-label                         (if (nil? name) "No data" (get zone-legend name "No data"))]
+        zone-label                         (if (nil? name) "No data" (get zone-legend name "No data"))
+        distance                           (int (/ (* percentage max-x) 100))]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
                                   :textbox   {:transform (str "translate("
                                                               (+ m-left ox (* (/ closest-percentage 100) (- graph-domain tooltip-width)))
@@ -245,7 +247,7 @@
                                               :y1 m-top
                                               :x2 pointx
                                               :y2 (+ m-top graph-range)}
-                                  :text      [(str "Depth: " depth-label) (str "Habitat: " zone-label)]
+                                  :text      [(str "Depth: " depth-label) (str "Habitat: " zone-label) (str "Distance: " distance)]
                                   :datapoint {:cx pointx
                                               :cy pointy}})
     (if on-mousemove (on-mousemove {:percentage closest-percentage
@@ -263,7 +265,7 @@
                                        :datapoint {:cx 0 :cy 0 :r 5}
                                        :line      {:x1 0 :y1 0 :x2 20 :y2 20}
                                        :textbox   {:transform "translate(0, 0)"}
-                                       :text      ["Depth: " "Habitat: "]})]
+                                       :text      ["Depth: " "Habitat: " "Distance: "]})]
     (fn [{:keys [:transect.results/bathymetry
                  :transect.results/habitat
                  :transect.results/zone-colours
@@ -283,6 +285,7 @@
             graph-domain                    (- width (+ m-left m-right ox))
             max-depth                       (max-depth bathymetry)
             min-depth                       (min-depth bathymetry)
+            max-x                           (:end_distance (last habitat) 100)
             spread                          (- max-depth min-depth)
             graph-line-offset               0.4
             graph-line-string               (graph-line-string (merge props {:graph-domain graph-domain
@@ -353,7 +356,7 @@
                                        :x-axis-offset 10
                                        :y-axis-offset 10
                                        ;; default of 100 means it looks like pctg if we don't have habitat data
-                                       :max-x         (:end_distance (last habitat) 100)
+                                       :max-x         max-x
                                        :y-steps       6
                                        :max-depth     max-depth
                                        :min-depth     min-depth
@@ -381,6 +384,7 @@
                                                                                        :event           %
                                                                                        :max-depth       max-depth
                                                                                        :min-depth       min-depth
+                                                                                       :max-x           max-x
                                                                                        :graph-domain    graph-domain
                                                                                        :graph-range     graph-range
                                                                                        :spread          spread
