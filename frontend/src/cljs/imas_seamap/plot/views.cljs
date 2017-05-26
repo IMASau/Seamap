@@ -103,6 +103,34 @@
                               (- width m-right) "," (- height (+ m-bottom oy)))}]]))
 
 
+;;; Axis-tick calculation via http://www.realtimerendering.com/resources/GraphicsGems/gems/Label.c
+(defn nice-num
+  "find a 'nice' number approximately equal to x. Round the number if
+  round=1, take ceiling if round=0"
+  [x round]
+  (let [expv (Math/floor (Math/log10 x)) ; exponent of x
+        f    (/ x (Math/pow 10 expv))    ; fractional part of x
+        nf   (if round                     ; nice rounded fraction
+               (cond (< f 1.5) 1
+                     (< f 3)   2
+                     (< f 7)   5
+                     :default  10)
+               (cond (< f 1)   1
+                     (< f 2)   2
+                     (< f 5)   5
+                     :default  10))]
+    (* nf (Math/pow 10 expv))))
+
+(def ^:private NUM-TICKS 10)
+(defn loose-label-ticks
+  "Loose-labelling method for data from min to max.  Expects min<max."
+  [min max]
+  (let [rng      (nice-num (- max min) false)
+        d        (nice-num (/ rng (- NUM-TICKS 1)) true)
+        graphmin (* d (Math/floor (/ min d)))
+        graphmax (* d (Math/ceil  (/ max d)))]
+    (range graphmin (+ graphmax (/ d 2)) d)))
+
 (defn axis-labels [{:keys [x-axis-offset y-axis-offset line-height font-size offset
                            min-depth spread graph-domain graph-range origin margin]}]
   (let [origin-depth (+ min-depth (/ spread (- 1 offset)))
