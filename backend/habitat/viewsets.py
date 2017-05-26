@@ -32,14 +32,13 @@ SELECT segments.segment.STStartPoint().STX as 'start x',
 FROM(
     SELECT segment, name
     FROM path_intersections(@line, @tmphabitat)
-    WHERE segment.STLength() > %s
 ) as segments;
 """
 
 
 def D(number):
     "Return the (probably) string, quantized to an acceptable number of decimal places"
-    return Decimal(number).quantize(Decimal('0.01'))
+    return Decimal(number).quantize(Decimal('0.1'))
 
 
 class HabitatViewSet(viewsets.ViewSet):
@@ -52,7 +51,6 @@ class HabitatViewSet(viewsets.ViewSet):
         if 'layers' not in request.query_params:
             raise ValidationError("Required parameter 'layers' is missing")
 
-        tolerance = 0.0001  # minimum length for non-zero line in sql query
         ordered_segments = []
         distance = 0
         segments = defaultdict(dict)
@@ -71,13 +69,15 @@ class HabitatViewSet(viewsets.ViewSet):
 
         with connections['transects'].cursor() as cursor:
             cursor.execute(SQL_GET_TRANSECT.format(layers_placeholder),
-                           [linestring] + layers + [tolerance])
+                           [linestring] + layers)
             while True:
                 try:
                     for row in cursor.fetchall():
                         [startx, starty, endx, endy, length, name] = row
                         p1, p2 = (D(startx), D(starty)), (D(endx), D(endy))
                         segment = p1, p2, name, length
+                        if p1 == p2:
+                            continue
                         distance += length
                         segments[p1][p2] = segment
                         segments[p2][p1] = segment
@@ -92,11 +92,15 @@ class HabitatViewSet(viewsets.ViewSet):
         p1, p2, _, _ = start_segment
         if p1 != start_pt:
             p1, p2 = p2, p1
+        start_distance = 0
         # p1 is the start point; it will always be the "known" point, and p2 is the next one to find:
         while True:
             _, _, name, length = segments[p1][p2]
+            end_distance = start_distance + length
             end_percentage = start_percentage + 100*length/float(distance)
             ordered_segments.append({'name': name,
+                                     'start_distance': start_distance,
+                                     'end_distance': end_distance,
                                      'start_percentage': start_percentage,
                                      'end_percentage': end_percentage,
                                      'startx': p1[0],
@@ -104,6 +108,7 @@ class HabitatViewSet(viewsets.ViewSet):
                                      'endx': p2[0],
                                      'endy': p2[1]})
             start_percentage = end_percentage
+            start_distance = end_distance
             del segments[p1][p2]
             if not segments[p1]: del segments[p1]
             del segments[p2][p1]
