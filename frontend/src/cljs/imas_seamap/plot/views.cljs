@@ -68,7 +68,7 @@
 
 
 (defn habitat-at-percentage [{:keys [:transect.results/habitat percentage]}]
-  (peek (filterv (fn [[p]] (<= p percentage)) habitat)))
+  (peek (filterv #(<= (:start_percentage %) percentage) habitat)))
 
 (defn graph-line-string [{:keys [:transect.results/bathymetry origin margin graph-domain graph-range offset min-depth max-depth spread] :as props}]
   (let [[m-left m-right m-top m-bottom] margin
@@ -232,9 +232,9 @@
         [closest-percentage closest-depth] (if next-is-closest next previous)
         pointx                             (percentage-to-x-pos (merge props {:percentage closest-percentage}))
         pointy                             (if (nil? closest-depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth closest-depth})))
-        [_ _ zone]                         (habitat-at-percentage (merge props {:percentage closest-percentage}))
+        {:keys [name]}                     (habitat-at-percentage (merge props {:percentage closest-percentage}))
         depth-label                        (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))
-        zone-label                         (if (nil? zone) "No data" (get zone-legend zone "No data"))]
+        zone-label                         (if (nil? name) "No data" (get zone-legend name "No data"))]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
                                   :textbox   {:transform (str "translate("
                                                               (+ m-left ox (* (/ closest-percentage 100) (- graph-domain tooltip-width)))
@@ -247,7 +247,7 @@
                                   :datapoint {:cx pointx
                                               :cy pointy}})
     (if on-mousemove (on-mousemove {:percentage closest-percentage
-                                    :habitat    zone
+                                    :habitat    zone-label
                                     :depth      closest-depth}))))
 
 
@@ -312,29 +312,28 @@
 
             ;; draw habitat zones
             [:g#habitat-zones
-             (for [zone habitat]
-               (let [[start-percentage end-percentage zone-name] zone
-                     zone-colour                                 (get zone-colours zone-name)]
-                 (when (and zone-name zone-colour)
-                   (let [x-pos (percentage-to-x-pos (merge props {:percentage   start-percentage
-                                                                  :graph-domain graph-domain
-                                                                  :origin       origin
-                                                                  :margin       margin}))
-                         width (* (/ (- end-percentage start-percentage) 100) graph-domain)]
-                     [:g {:key zone}
-                      [:rect {:x      x-pos
-                              :y      m-top
-                              :width  width
-                              :height graph-range
-                              :style  {:opacity 0.25
-                                       :fill    zone-colour}}]
-                      [:rect {:x      x-pos
-                              :y      m-top
-                              :width  width
-                              :height graph-range
-                              :style  {:opacity   0.75
-                                       :fill      zone-colour
-                                       :clip-path "url(#clipPath)"}}]]))))]
+             (for [{:keys [start_percentage end_percentage name] :as zone} habitat
+                   :let [zone-colour (get zone-colours name)]]
+               (when (and name zone-colour)
+                 (let [x-pos (percentage-to-x-pos (merge props {:percentage   start_percentage
+                                                                :graph-domain graph-domain
+                                                                :origin       origin
+                                                                :margin       margin}))
+                       width (* (/ (- end_percentage start_percentage) 100) graph-domain)]
+                   [:g {:key start_percentage}
+                    [:rect {:x      x-pos
+                            :y      m-top
+                            :width  width
+                            :height graph-range
+                            :style  {:opacity 0.25
+                                     :fill    zone-colour}}]
+                    [:rect {:x      x-pos
+                            :y      m-top
+                            :width  width
+                            :height graph-range
+                            :style  {:opacity   0.75
+                                     :fill      zone-colour
+                                     :clip-path "url(#clipPath)"}}]])))]
 
             ;; draw bathymetry line
             [:path {:d            graph-line-string

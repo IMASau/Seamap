@@ -115,9 +115,7 @@
       {:db (assoc-in db [:transect :habitat] [])})))
 
 (defn transect-query-habitat-success [db [_ response]]
-  (let [habitats (mapv (juxt :start_percentage :end_percentage :name) response)]
-    (assoc-in db [:transect :habitat]
-              habitats)))
+  (assoc-in db [:transect :habitat] response))
 
 (defn transect-query-bathymetry [{:keys [db]} [_ linestring]]
   (if-let [{:keys [server_url layer_name] :as bathy-layer}
