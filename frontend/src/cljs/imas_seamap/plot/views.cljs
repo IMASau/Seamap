@@ -218,6 +218,7 @@
 
 
 (defn mouse-move-graph [{:keys [:transect.results/bathymetry
+                                :transect.results/habitat
                                 :transect.results/zone-legend
                                 graph-domain graph-range
                                 tooltip-content tooltip-width
@@ -238,7 +239,8 @@
         {:keys [name]}                     (habitat-at-percentage (merge props {:percentage closest-percentage}))
         depth-label                        (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))
         zone-label                         (if (nil? name) "No data" (get zone-legend name "No data"))
-        distance                           (int (/ (* percentage max-x) 100))]
+        distance                           (int (/ (* percentage max-x) 100))
+        distance-unit                      (if (seq habitat) "m" "%")]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
                                   :textbox   {:transform (str "translate("
                                                               (+ m-left ox (* (/ closest-percentage 100) (- graph-domain tooltip-width)))
@@ -247,7 +249,9 @@
                                               :y1 m-top
                                               :x2 pointx
                                               :y2 (+ m-top graph-range)}
-                                  :text      [(str "Depth: " depth-label) (str "Habitat: " zone-label) (str "Distance: " distance)]
+                                  :text      [(str "Depth: " depth-label "m")
+                                              (str "Habitat: " zone-label)
+                                              (str "Distance: " distance distance-unit)]
                                   :datapoint {:cx pointx
                                               :cy pointy}})
     (if on-mousemove (on-mousemove {:percentage closest-percentage
