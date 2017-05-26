@@ -116,7 +116,7 @@
                    :font-size   font-size}}
        ;; x-axis labels
        [:g {:style {:text-anchor "middle"}}
-        (for [i (take (+ 1 x-steps) (range))]
+        (for [i (range (+ 1 x-steps))]
           [:text {:key (hash (str "percentageLabel" i))
                   :x   (+ (* (/ i x-steps) graph-domain) ox m-left)
                   :y   (+ m-top font-size x-axis-offset graph-range)}
@@ -127,7 +127,7 @@
          "Percentage Along Transect (%)"]]
        ;; y-axis labels
        [:g {:style {:text-anchor "end"}}
-        (for [i (take (+ 1 y-steps) (range))]
+        (for [i (range (+ 1 y-steps))]
           [:text {:key (hash (str "depthLabel" i))
                   :x   (- (+ m-left ox) y-axis-offset)
                   :y   (+ m-top (/ font-size 2) (* (/ i y-steps) graph-range))
