@@ -388,7 +388,7 @@
     :transect.results.status/error   [transect-error]
     :transect.results.status/partial
     [:div
-     [:div#transect-overlay
+     [:div.transect-overlay
       [non-ideal-state {:visual (reagent/as-element [spinner {:intent "success"}])}]]
      [transect-graph results]]
     ;; Default:
