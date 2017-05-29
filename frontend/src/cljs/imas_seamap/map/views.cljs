@@ -94,10 +94,16 @@
                    :on-click   on-map-clicked}
                   (when (seq bounds) {:bounds (map->bounds bounds)}))
      base-layer-osm
-     (for [{:keys [server_url layer_name] :as layer} (sort-layers active-layers)]
-       ^{:key (str server_url layer_name)}
-       [wms-layer {:url server_url :layers layer_name
-                   :transparent true :format "image/png"}])
+     ;; We enforce the layer ordering by an incrementing z-index (the
+     ;; order of this list is otherwise ignored, as the underlying
+     ;; React -> Leaflet translation just does add/removeLayer, which
+     ;; then orders in the map by update not by list):
+     (map-indexed
+      (fn [i {:keys [server_url layer_name] :as layer}]
+        ^{:key (str server_url layer_name)}
+        [wms-layer {:url server_url :layers layer_name :z-index (inc i)
+                    :transparent true :format "image/png"}])
+      (sort-layers active-layers))
      (when query
        [geojson-layer {:data (clj->js query)}])
      (when (and query mouse-loc)
