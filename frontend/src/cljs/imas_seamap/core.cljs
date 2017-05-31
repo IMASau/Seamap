@@ -54,7 +54,7 @@
     :map/clicked                          [mevents/get-feature-info]
     :map/got-featureinfo                  mevents/got-feature-info
     :map/toggle-layer                     [mevents/toggle-layer]
-    :map.layers/set-filter                mevents/map-set-layer-filter
+    :map.layers/filter                    mevents/map-set-layer-filter
     :map.layers.logic/toggle              mevents/map-layer-logic-toggle
     :map.layers.logic/manual              mevents/map-layer-logic-manual
     :map.layers.logic/automatic           mevents/map-layer-logic-automatic

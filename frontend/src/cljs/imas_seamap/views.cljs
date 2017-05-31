@@ -158,15 +158,15 @@
                 :on-change (handler-fn (re-frame/dispatch [:map.layers.logic/toggle true]))}]]))
 
 (defn layer-search-filter []
-  (let [filter-text @(re-frame/subscribe [:map.layers/filter])]
-    [b/input-group {:left-icon-name "search"
-                    :type           "search"
-                    :class-name     "pt-round"
-                    :placeholder    "Search Layers..."
-                    :value          filter-text
-                    :on-change      (handler-fn
-                                     (re-frame/dispatch [:map.layers/set-filter
-                                                         (oget event :target :value)]))}]))
+  (let [filter-text (re-frame/subscribe [:map.layers/filter])]
+    [:div.pt-input-group
+     [:span.pt-icon.pt-icon-search]
+     [:input.pt-input.pt-round {:type        "search"
+                                :placeholder "Search Layers..."
+                                :value       @filter-text
+                                :on-change   (handler-fn
+                                              (re-frame/dispatch
+                                               [:map.layers/filter (oget event :target :value)]))}]]))
 
 (defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
   (let [legend-url (with-params server_url
