@@ -157,6 +157,11 @@
                 :label     (reagent/as-element [:span icon label])
                 :on-change (handler-fn (re-frame/dispatch [:map.layers.logic/toggle true]))}]]))
 
+(defn layer-search-filter []
+  [b/input-group {:left-icon-name "search"
+                  :class-name "pt-round"
+                  :placeholder "Search Layers..."}])
+
 (defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
   (let [legend-url (with-params server_url
                      {:REQUEST "GetLegendGraphic"
@@ -238,6 +243,7 @@
     [:div#sidebar
      [transect-toggle]
      [layer-logic-toggle]
+     [layer-search-filter]
      [layer-group {:title "Habitat"   :expanded true } habitat     active-layers]
      [layer-group {:title "Bathymetry":expanded true } bathymetry  active-layers]
      [layer-group {:title "Imagery"   :expanded false} imagery     active-layers]
