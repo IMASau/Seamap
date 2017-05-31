@@ -21,17 +21,24 @@
   "Given a string of search words, attempt to match them *all* against
   a layer (designed so it can be used to filter a list of layers, in
   conjunction with partial)."
-  [filter-text {:keys [name layer_name description] :as layer}]
-  (let [layer-text (string/join " " [name layer_name description])
+  [filter-text {:keys [name layer_name description organisation data_classification] :as layer}]
+  (let [layer-text (string/join " " [name layer_name description organisation data_classification])
         search-re  (-> filter-text string/trim (string/split #"\s+") make-re)]
     (re-find search-re layer-text)))
 
-(defn map-layers [db _]
+(defn map-layers [{:keys [map filters] :as db} _]
   (let [{:keys [layers active-layers bounds]} (get-in db [:map])
         filter-text                           (get-in db [:filters :layers])
+        filter-text-others                    (get-in db [:filters :other-layers])
         visible-layers                        (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
+        {:keys [third-party]}                 (group-by :category visible-layers)
         filtered-layers                       (filter (partial match-layer filter-text) visible-layers)]
-    {:groups        (group-by :category filtered-layers)
+    ;; We have separate filters for main layers, and third-party -- so
+    ;; take the third-party group before filtering, and filter it
+    ;; separately:
+    {:groups        (assoc (group-by :category filtered-layers)
+                           :third-party
+                           (filter (partial match-layer filter-text-others) third-party))
      :active-layers active-layers}))
 
 (defn map-layer-logic [db _]
