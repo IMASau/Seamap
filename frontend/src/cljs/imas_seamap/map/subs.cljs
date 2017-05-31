@@ -41,3 +41,6 @@
 
 (defn map-layers-filter [db _]
   (get-in db [:filters :layers]))
+
+(defn map-other-layers-filter [db _]
+  (get-in db [:filters :other-layers]))

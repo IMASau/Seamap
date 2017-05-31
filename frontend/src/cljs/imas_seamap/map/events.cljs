@@ -14,7 +14,7 @@
 
 (defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y] :as point}]]
   ;; FIXME: We assume that all img layers are on the same server
-  (let [img-layers (->> db :map :active-layers (filter #(= :imagery (:category %))))
+  (let [img-layers (->> db :map :active-layers #_(filter #(= :imagery (:category %))))
         server-url (-> img-layers first :server_url)
         layers (->> img-layers (map :layer_name) (string/join ","))]
    (merge {:db db}
@@ -54,6 +54,9 @@
 
 (defn map-set-layer-filter [db [_ filter-text]]
   (assoc-in db [:filters :layers] filter-text))
+
+(defn map-set-others-layer-filter [db [_ filter-text]]
+  (assoc-in db [:filters :other-layers] filter-text))
 
 (defn process-layer [layer]
   (-> layer

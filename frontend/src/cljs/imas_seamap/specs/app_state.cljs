@@ -70,8 +70,9 @@
 (s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]
                           :opt-un [:transect/mouse-percentage]))
 
-(s/def :filters/layers string?)
-(s/def ::filters (s/keys :req-un [:filters/layers]))
+(s/def :filters/layers       string?)
+(s/def :filters/other-layers string?)
+(s/def ::filters (s/keys :req-un [:filters/layers :filters/other-layers]))
 
 (s/def ::config map?)
 
