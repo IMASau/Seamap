@@ -52,6 +52,9 @@
              {:location point
               :info (xml/emit-str (zip/node body))}))))
 
+(defn map-set-layer-filter [db [_ filter-text]]
+  (assoc-in db [:filters :layers] filter-text))
+
 (defn process-layer [layer]
   (-> layer
       ;; TODO: convert the dates, etc too

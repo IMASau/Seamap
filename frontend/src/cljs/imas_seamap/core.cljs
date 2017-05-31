@@ -18,6 +18,7 @@
   {:subs
    {:map/props                            msubs/map-props
     :map/layers                           msubs/map-layers
+    :map.layers/filter                    msubs/map-layers-filter
     :map.layers/logic                     msubs/map-layer-logic
     :map.feature/info                     subs/feature-info
     :transect/info                        subs/transect-info
@@ -53,6 +54,7 @@
     :map/clicked                          [mevents/get-feature-info]
     :map/got-featureinfo                  mevents/got-feature-info
     :map/toggle-layer                     [mevents/toggle-layer]
+    :map.layers/set-filter                mevents/map-set-layer-filter
     :map.layers.logic/toggle              mevents/map-layer-logic-toggle
     :map.layers.logic/manual              mevents/map-layer-logic-manual
     :map.layers.logic/automatic           mevents/map-layer-logic-automatic

@@ -10,6 +10,7 @@
          :logic {:type    :map.layer-logic/automatic
                  :trigger :map.logic.trigger/automatic}
          :controls {:transect false}}
+   :filters {:layers ""}
    :transect {:query nil
               :show? false
               :habitat nil
