@@ -12,6 +12,8 @@
 
 (def dialogue        (reagent/adapt-react-class (gget "Blueprint.Dialog")))
 
+(def input-group     (reagent/adapt-react-class (gget "Blueprint.InputGroup")))
+
 (def non-ideal-state (reagent/adapt-react-class (gget "Blueprint.NonIdealState")))
 
 (def overlay         (reagent/adapt-react-class (gget "Blueprint.Overlay")))
