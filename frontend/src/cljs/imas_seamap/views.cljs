@@ -123,14 +123,23 @@
                 :onNodeDoubleClick on-dblclick}]])))
 
 (defn layer-catalogue [layers]
-  [:div.layer-catalogue.pt-dialog-body
-   [b/tabs
-    [b/tab {:id "org" :title "By Organisation"
-            :panel (reagent/as-component
-                    [layer-catalogue-tree layers [:organisation :data_classification] "org"])}]
-    [b/tab {:id "cat" :title "By Category"
-            :panel (reagent/as-component
-                    [layer-catalogue-tree layers [:data_classification :organisation] "cat"])}]]])
+  (let [filter-text (re-frame/subscribe [:map.layers/others-filter])]
+    [:div.layer-catalogue.pt-dialog-body
+     [:div.pt-input-group
+      [:span.pt-icon.pt-icon-search]
+      [:input.pt-input.pt-round {:type        "search"
+                                 :placeholder "Search Layers..."
+                                 :value       @filter-text
+                                 :on-change   (handler-fn
+                                               (re-frame/dispatch
+                                                [:map.layers/others-filter (oget event :target :value)]))}]]
+     [b/tabs
+      [b/tab {:id    "org" :title "By Organisation"
+              :panel (reagent/as-component
+                      [layer-catalogue-tree layers [:organisation :data_classification] "org"])}]
+      [b/tab {:id    "cat" :title "By Category"
+              :panel (reagent/as-component
+                      [layer-catalogue-tree layers [:data_classification :organisation] "cat"])}]]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])
