@@ -89,7 +89,7 @@
                   {:id "map" :use-fly-to true
                    :center center :zoom zoom
                    :on-zoomend on-map-view-changed
-                   :on-dragend on-map-view-changed
+                   :on-moveend on-map-view-changed
                    :when-ready on-map-view-changed
                    :on-click   on-map-clicked}
                   (when (seq bounds) {:bounds (map->bounds bounds)}))
