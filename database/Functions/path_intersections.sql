@@ -27,7 +27,6 @@ BEGIN
   ,
   -- Polygons may not cover the entire length of the line; the difference gives us the bits outside our habitat data:
   external_area AS (
-    --select @line.STEnvelope().STBuffer(1).STDifference(agg) as diff from total_extent
     SELECT ISNULL(@buffered.STDifference(agg), @buffered) AS diff FROM total_extent
   )
   ,
