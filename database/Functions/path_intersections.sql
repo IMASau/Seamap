@@ -8,7 +8,7 @@ RETURNS @TransectSegments TABLE (
 )
 AS
 BEGIN
-  DECLARE @buffered geometry = @transect.STBuffer(0.0000001),
+  DECLARE @buffered geometry = @transect.STBuffer(0.01),
           @emptyshape geometry = geometry::STGeomFromText('GEOMETRYCOLLECTION EMPTY', 3112);
 
   WITH
