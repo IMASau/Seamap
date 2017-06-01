@@ -237,7 +237,7 @@
         pointx                             (percentage-to-x-pos (merge props {:percentage closest-percentage}))
         pointy                             (if (nil? closest-depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth closest-depth})))
         {:keys [name]}                     (habitat-at-percentage (merge props {:percentage closest-percentage}))
-        depth-label                        (if (nil? closest-depth) "No data" (.toFixed closest-depth 4))
+        depth-label                        (if (nil? closest-depth) "No data" (str (.toFixed closest-depth 4) "m"))
         zone-label                         (if (nil? name) "No data" (get zone-legend name "No data"))
         distance                           (int (/ (* percentage max-x) 100))
         distance-unit                      (if (seq habitat) "m" "%")]
@@ -249,7 +249,7 @@
                                               :y1 m-top
                                               :x2 pointx
                                               :y2 (+ m-top graph-range)}
-                                  :text      [(str "Depth: " depth-label "m")
+                                  :text      [(str "Depth: " depth-label)
                                               (str "Habitat: " zone-label)
                                               (str "Distance: " distance distance-unit)]
                                   :datapoint {:cx pointx
