@@ -93,13 +93,13 @@
      :dispatch [:info/show-message status-text b/*intent-danger*]}))
 
 (defn transect-query-habitat [{:keys [db]} [_ linestring]]
-  (let [bbox             (geojson-linestring->bbox linestring)
-        {:keys [layers]} @(re-frame/subscribe [:map/props])
-        habitat-layers   (filter #(and (:detail_resolution %)
-                                       (= :habitat (:category %))
-                                       (bbox-intersects? bbox (:bounding_box %)))
-                                 layers)
-        layer-names      (->> habitat-layers (map :layer_name) (string/join ","))]
+  (let [bbox           (geojson-linestring->bbox linestring)
+        layers         (get-in db [:map :layers])
+        habitat-layers (filter #(and (:detail_resolution %)
+                                     (= :habitat (:category %))
+                                     (bbox-intersects? bbox (:bounding_box %)))
+                               layers)
+        layer-names    (->> habitat-layers (map :layer_name) (string/join ","))]
     (if (seq habitat-layers)
       {:db         db
        :http-xhrio {:method          :get
@@ -119,7 +119,7 @@
 
 (defn transect-query-bathymetry [{:keys [db]} [_ linestring]]
   (if-let [{:keys [server_url layer_name] :as bathy-layer}
-           (get-in @(re-frame/subscribe [:map/layers]) [:groups :bathymetry 0])]
+           (->> db :map :layers (filter #(= :bathymetry (:category %))) (sort-by :layer_priority) first)]
     {:db         db
      :http-xhrio {:method          :get
                   :uri             server_url
