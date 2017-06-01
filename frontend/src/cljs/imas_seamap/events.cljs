@@ -94,7 +94,7 @@
 
 (defn transect-query-habitat [{:keys [db]} [_ linestring]]
   (let [bbox           (geojson-linestring->bbox linestring)
-        layers         (get-in db [:map :layers])
+        layers         (get-in db [:map :active-layers])
         habitat-layers (filter #(and (:detail_resolution %)
                                      (= :habitat (:category %))
                                      (bbox-intersects? bbox (:bounding_box %)))
