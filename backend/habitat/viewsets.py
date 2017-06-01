@@ -21,7 +21,8 @@ declare @tmphabitat as HabitatTableType;
 
 insert into @tmphabitat
     select habitat as name, geom from SeamapAus_Regions_VIEW
-    where lower(layer_name) in ({});
+    where lower(layer_name) in ({})
+      and geom.STIntersects(@line) = 1;
 
 SELECT segments.segment.STStartPoint().STX as 'start x',
         segments.segment.STStartPoint().STY as 'start y',

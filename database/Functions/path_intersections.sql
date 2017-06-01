@@ -13,13 +13,16 @@ BEGIN
 
   WITH
   -- first narrow to polygons we care about (those that intersect our line of interest):
-  valid_polygons AS (
-    SELECT id, name, geom
-    FROM @habitat
-    WHERE geom.STIntersects(@transect) = 1)
-  ,
+  -- UPDATE: we will do this refinement before invoking this procedure.  If using
+  -- stand-alone, it might be convenient to reinstate this CTE, and replace all following
+  -- instances of '@habitat' with 'valid_polygons':
+  --valid_polygons AS (
+  --  SELECT id, name, geom
+  --  FROM @habitat
+  --  WHERE geom.STIntersects(@transect) = 1)
+  --,
   total_extent AS (
-    SELECT geometry::UnionAggregate(geom) AS agg FROM valid_polygons
+    SELECT geometry::UnionAggregate(geom) AS agg FROM @habitat
   )
   ,
   -- Polygons may not cover the entire length of the line; the difference gives us the bits outside our habitat data:
@@ -31,8 +34,8 @@ BEGIN
   -- We have to handle overlaps (both in the datasets, and when using multiple datasets)
   overlappers (id, name, geom) AS (
     SELECT vl.id, vl.name, vr.geom
-	FROM valid_polygons vl
-	LEFT JOIN valid_polygons vr ON vl.geom.STIntersects(vr.geom) = 1 AND vl.id > vr.id
+	FROM @habitat vl
+	LEFT JOIN @habitat vr ON vl.geom.STIntersects(vr.geom) = 1 AND vl.id > vr.id
   )
   ,
   aggregated_overlappers (id, geom) AS (
@@ -43,7 +46,7 @@ BEGIN
   ,
   valid_flattened_polygons (id, name, geom) AS (
     SELECT p.id, p.name, p.geom.STDifference(agg.geom)
-	FROM valid_polygons p JOIN aggregated_overlappers agg
+	FROM @habitat p JOIN aggregated_overlappers agg
 	ON p.id = agg.id
   )
   ,
