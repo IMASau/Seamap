@@ -39,7 +39,7 @@
 (defn mouseevent->coords [e]
   (merge
    (-> e
-       (oget "layerPoint")
+       (oget "containerPoint")
        (js->clj :keywordize-keys true)
        (select-keys [:x :y]))
    (-> e
