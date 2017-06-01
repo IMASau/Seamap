@@ -1,5 +1,5 @@
 (ns imas-seamap.specs.app-state
-  (:require [cljs.spec :as s]))
+  (:require [cljs.spec.alpha :as s]))
 
 
 (s/def :map/center

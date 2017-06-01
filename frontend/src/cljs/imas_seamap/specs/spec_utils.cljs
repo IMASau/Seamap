@@ -1,7 +1,7 @@
 (ns imas-seamap.specs.spec-utils
   (:require [goog.object :as gobj]
-            [cljs.spec :as s]
-            [cljs.spec.test :as stest]
+            [cljs.spec.alpha :as s]
+            [cljs.spec.test.alpha :as stest]
             [cljs.stacktrace :as st]))
 
 ;;; Borrowed from imas-webapps

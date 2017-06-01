@@ -1,5 +1,5 @@
 (ns imas-seamap.specs.events
-  (:require [cljs.spec :as s]
+  (:require [cljs.spec.alpha :as s]
             [imas-seamap.specs.app-state]
             [imas-seamap.events :as events]
             [imas-seamap.subs :as subs]))

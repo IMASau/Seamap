@@ -1,7 +1,7 @@
 (ns imas-seamap.specs.preload
   (:require [re-frame.db :refer [app-db]]
-            [cljs.spec :as s]
-            [cljs.spec.test :as stest]
+            [cljs.spec.alpha :as s]
+            [cljs.spec.test.alpha :as stest]
             [imas-seamap.specs.app-state]
             [imas-seamap.specs.events]
             [imas-seamap.specs.spec-utils :as spec-utils]))
