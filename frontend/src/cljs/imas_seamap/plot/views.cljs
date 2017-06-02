@@ -287,8 +287,8 @@
             [m-left m-right m-top m-bottom] margin
             graph-range                     (- height (+ m-top m-bottom oy))
             graph-domain                    (- width (+ m-left m-right ox))
-            max-depth                       (max-depth bathymetry)
-            min-depth                       (min-depth bathymetry)
+            max-depth                       (* 1.01 (max-depth bathymetry))
+            min-depth                       (* 0.99 (min-depth bathymetry))
             max-x                           (:end_distance (last habitat) 100)
             spread                          (- max-depth min-depth)
             graph-line-offset               0.4
