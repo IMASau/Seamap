@@ -16,7 +16,8 @@
   ;; FIXME: We assume that all img layers are on the same server
   (let [img-layers (->> db :map :active-layers #_(filter #(= :imagery (:category %))))
         server-url (-> img-layers first :server_url)
-        layers (->> img-layers (map :layer_name) (string/join ","))]
+        ;; Note, top layer, last in the list, must be first in our search string:
+        layers (->> img-layers (map :layer_name) reverse (string/join ","))]
    (merge {:db db}
           (when-not (boolean (get-in db [:map :controls :transect]))
             ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo

@@ -99,7 +99,10 @@
                                      (= :habitat (:category %))
                                      (bbox-intersects? bbox (:bounding_box %)))
                                layers)
-        layer-names    (->> habitat-layers (map :layer_name) (string/join ","))]
+        ;; Note, we reverse because the top layer is last, so we want
+        ;; its features to be given priority in this search, so it
+        ;; must be at the front of the list:
+        layer-names    (->> habitat-layers (map :layer_name) reverse (string/join ","))]
     (if (seq habitat-layers)
       {:db         db
        :http-xhrio {:method          :get
