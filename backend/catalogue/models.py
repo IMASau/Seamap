@@ -68,8 +68,6 @@ class Layer(models.Model):
     description = models.CharField(max_length = 500)
     detail_resolution = models.BooleanField()
     server_type = models.ForeignKey(ServerType)
-    date_start = models.DateField(blank=True, null=True)
-    date_end = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return self.name
