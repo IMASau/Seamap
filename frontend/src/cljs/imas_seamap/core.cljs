@@ -3,6 +3,7 @@
             [re-frame.core :as re-frame]
             [day8.re-frame.http-fx]
             [oops.core :refer [gcall]]
+            [cemerick.url :as url]
             [imas-seamap.events :as events]
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
@@ -10,6 +11,9 @@
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
             [imas-seamap.views :as views]
+            [imas-seamap.imgview.views :as imgviews]
+            [imas-seamap.imgview.events :as imgevents]
+            [imas-seamap.imgview.subs :as imgsubs]
             [imas-seamap.config :as config]))
 
 
@@ -25,6 +29,7 @@
     :transect/results                     subs/transect-results
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
+    :imgview/images                       imgsubs/survey-images
     :info/message                         subs/user-message}
 
    :events
@@ -35,6 +40,8 @@
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
+    :imgview/load-id                      [imgevents/load-survey]
+    :imgview/on-load-survey               imgevents/on-load-survey
     :info/show-message                    events/show-message
     :transect/query                       [events/transect-query]
     :transect.query/failure               [events/transect-query-error]
@@ -85,11 +92,22 @@
     (enable-console-print!)
     (println "dev mode")))
 
+(defn route-for-path
+  "Very crude routing"
+  [path]
+  (let [{:keys [path query]} (url/url path)]
+   (cond
+     (re-find #"imageview" path) [imgviews/viewer-app (get query "survey_id")]
+     :default [views/layout-app])))
+
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (gcall "Blueprint.FocusStyleManager.onlyShowFocusOnTabs")
-  (reagent/render [views/layout-app]
-                  (.getElementById js/document "app")))
+  (reagent/render
+   ;; Could do this "routing" at the init level, but this allows us to
+   ;; customise re-frame initialisation as well (in the current setup)
+   (route-for-path (str js/window.location))
+   (.getElementById js/document "app")))
 
 (defn ^:export init []
   (register-handlers! config)
@@ -97,6 +115,14 @@
   (re-frame/dispatch [:initialise-layers])
   (dev-setup)
   (mount-root))
+
+(defn ^:export imgview-init []
+  (let [{:keys [query]} (url/url (str js/window.location))]
+    (register-handlers! config)
+    (re-frame/dispatch-sync [:initialise-db])
+    (re-frame/dispatch [:imgview/load-id (get query "survey_id")])
+    (dev-setup)
+    (mount-root)))
 
 (defn figwheel-reload []
   (register-handlers! config)
