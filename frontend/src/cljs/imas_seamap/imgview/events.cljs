@@ -5,7 +5,8 @@
   {:http-xhrio {:method :get
                 ;; Hackish; we could get the root endpoint and find
                 ;; the URL for the id, but this will do for now:
-                :uri (str "http://rls.tpac.org.au/pq/" survey-id)
+                ;; :uri (str "http://rls.tpac.org.au/pq/" survey-id)
+                :uri (str "/pq/" survey-id) ; proxy, until CORS is enabled
                 :response-format (ajax/json-response-format {:keywords? true})
                 :on-success [:imgview/on-load-survey]
                 :on-failure [:ajax/default-err-handler]}})

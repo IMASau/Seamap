@@ -19,4 +19,5 @@
 (def app (-> app-routes
              (wrap-defaults site-defaults)
              (wrap-proxy "/api" "http://localhost:8000/api")
+             (wrap-proxy "/pq" "http://rls.tpac.org.au/pq")
              (wrap-proxy "/static" "http://localhost:8000/static")))
