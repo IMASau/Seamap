@@ -3,7 +3,6 @@
             [re-frame.core :as re-frame]
             [day8.re-frame.http-fx]
             [oops.core :refer [gcall]]
-            [re-frisk.core :refer [enable-re-frisk!]]
             [imas-seamap.events :as events]
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
@@ -84,7 +83,6 @@
 (defn dev-setup []
   (when config/debug?
     (enable-console-print!)
-    ;(enable-re-frisk!)
     (println "dev mode")))
 
 (defn mount-root []

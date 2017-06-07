@@ -5,20 +5,19 @@
                  [org.clojure/data.xml "0.2.0-alpha2"]
                  [org.clojure/data.zip "0.1.2"]
                  [org.clojure/test.check "0.9.0"]
-                 [figwheel-sidecar "0.5.10"]
+                 [figwheel-sidecar "0.5.10" :exclusions [ring/ring-core]]
                  [com.cemerick/piggieback "0.2.1"]
                  [binaryage/oops "0.5.5"]
                  [reagent "0.6.0"]
                  [re-frame "0.9.1"]
-                 [day8.re-frame/http-fx "0.1.3"]
-                 [re-frisk "0.3.2"]
+                 [day8.re-frame/http-fx "0.1.3" :exclusions [cljs-ajax]]
                  [philoskim/debux "0.2.1"]]
 
   ;; Managed using create-react-app:
   ;; TODO: snaffle the externs from these (and Leaflet) and include
-  :exclusions [[cljsjs/react]
-               [cljsjs/react-dom]
-               [cljsjs/react-dom-server]]
+  :exclusions [cljsjs/react
+               cljsjs/react-dom
+               cljsjs/react-dom-server]
 
   :plugins [[lein-cljsbuild "1.1.4"]]
 
@@ -38,11 +37,11 @@
   :profiles
   {:dev
    {:dependencies [[binaryage/devtools "0.9.4"]
-                   [tailrecursion/ring-proxy "2.0.0-SNAPSHOT"]
+                   [tailrecursion/ring-proxy "2.0.0-SNAPSHOT" :exclusions [commons-codec commons-io]]
                    [ring "1.5.1"]
                    [potemkin "0.4.3"]   ; Was getting a weird error with the ring-proxy dependency version
                    [ring/ring-defaults "0.2.1"]
-                   [compojure "1.5.0"]
+                   [compojure "1.5.0" :exclusions [ring/ring-codec commons-codec]]
                    [spootnik/globber "0.4.1"]
                    [org.clojure/data.json "0.2.6"]
                    [org.osgeo/proj4j "0.1.0"]]}}
