@@ -7,6 +7,7 @@
                  [org.clojure/test.check "0.9.0"]
                  [figwheel-sidecar "0.5.10" :exclusions [ring/ring-core]]
                  [com.cemerick/piggieback "0.2.1"]
+                 [com.cemerick/url "0.1.1"]
                  [binaryage/oops "0.5.5"]
                  [reagent "0.6.0"]
                  [re-frame "0.9.1"]
