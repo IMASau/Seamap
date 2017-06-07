@@ -63,4 +63,4 @@
       (gobj/extend f))))
 
 (defn patch-spec-checking-fn []
-  (set! cljs.spec.test/spec-checking-fn spec-checking-fn))
+  (set! cljs.spec.test.alpha/spec-checking-fn spec-checking-fn))
