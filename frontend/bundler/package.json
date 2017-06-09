@@ -6,7 +6,7 @@
     "react-scripts": "1.0.7"
   },
   "dependencies": {
-    "@blueprintjs/core": "^1.18.0",
+    "@blueprintjs/core": "^1.19.0",
     "leaflet": "^1.0.3",
     "leaflet-draw": "^0.4.7",
     "proj4": "^2.4.3",
