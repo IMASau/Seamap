@@ -3,7 +3,7 @@
             [re-frame.loggers :refer [console]]
             [clojure.data :as data]))
 
-(defn debug-excluding [& excluded-events]
+(defn debug-excluding
   "An interceptor which logs data about the handling of an event.  A
   straight clone of the re-frame.std-interceptors.debug, with the
   addition that you can specify a number of event keys to be filtered
@@ -19,6 +19,7 @@
   can be slow. So, you won't want this interceptor present in production
   code. See the todomvc example to see how to exclude interceptors from
   production code."
+  [& excluded-events]
   (->interceptor
    :id     :debug-excluding
    :before (fn debug-before
