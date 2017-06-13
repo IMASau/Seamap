@@ -5,7 +5,7 @@
             [oops.core :refer [gcall]]
             [cemerick.url :as url]
             [imas-seamap.events :as events]
-            [imas-seamap.interceptors :refer [debug-excluding]]
+            [imas-seamap.interceptors :refer [analytics-for debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
             [imas-seamap.protocols]
@@ -70,8 +70,18 @@
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/view-updated                     mevents/map-view-updated}})
 
+(def events-for-analytics
+  [:help-layer/open
+   :map.layers.logic/toggle
+   :map/clicked
+   :map/pan-to-layer
+   :map/toggle-layer
+   :transect.plot/toggle-visibility
+   :transect/query])
+
 (def standard-interceptors
-  [(when ^boolean goog.DEBUG (debug-excluding :transect.plot/mousemove))])
+  [(when ^boolean goog.DEBUG (debug-excluding :transect.plot/mousemove))
+   (when ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
 (defn register-handlers! [{:keys [subs events]}]
   (doseq [[sym handler] subs]
