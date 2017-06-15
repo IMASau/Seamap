@@ -1,5 +1,7 @@
 (ns imas-seamap.db)
 
+(goog-define catalogue-url "/api/layers/")
+
 (def default-db
   {:map {:center [-23.116667 132.133333]
          :zoom 4
@@ -17,4 +19,4 @@
               :habitat nil
               :bathymetry nil}
    :display {:help-overlay false}
-   :config {:catalogue-url "/api/layers/"}})
+   :config {:catalogue-url catalogue-url}})
