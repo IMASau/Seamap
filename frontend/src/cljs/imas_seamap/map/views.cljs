@@ -62,14 +62,14 @@
 (defn on-map-view-changed [e]
   (re-frame/dispatch [:map/view-updated (leaflet-props e)]))
 
-(def ^:private *category-ordering*
+(def ^:private -category-ordering
   (into {} (map vector [:bathymetry :habitat :imagery :third-party] (range))))
 
 (defn sort-layers
   "Return layers in an order suitable for presentation (essentially,
   bathymetry at the bottom, third-party on top)"
   [layers]
-  (let [comparator #(< (get *category-ordering* %1 99) (get *category-ordering* %2 99))]
+  (let [comparator #(< (get -category-ordering %1 99) (get -category-ordering %2 99))]
     (sort-by :category comparator layers)))
 
 (defn map-component []
