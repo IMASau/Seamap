@@ -67,22 +67,31 @@
 
 (defn sort-layers
   "Return layers in an order suitable for presentation (essentially,
-  bathymetry at the bottom, third-party on top)"
-  [layers]
-  (let [comparator #(< (get -category-ordering %1 99) (get -category-ordering %2 99))]
-    (sort-by :category comparator layers)))
+  bathymetry at the bottom, third-party on top, and habitat layers by
+  priority when in auto mode)"
+  [layers group-priorities logic-type]
+  (let [layer-priority (fn [id]
+                         (if (= logic-type :map.layer-logic/automatic)
+                           ;; If automatic, pick the highest priority present
+                           (reduce (fn [p {:keys [layer priority]}]
+                                     (if (= layer id) (min p priority) p))
+                                   99
+                                   group-priorities)
+                           ;; If in manual mode, just use a default priority
+                           1))]
+    ;; Schwarztian transform (map-sort-map):
+    (->> layers
+         (map (fn [{:keys [category id] :as layer}]
+                [(-category-ordering category) (layer-priority id) layer]))
+         sort
+         (map last))))
 
 (defn map-component []
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]} @(re-frame/subscribe [:transect/info])
-        base-layer-bluemarble [wms-layer {:url "http://demo.opengeo.org/geoserver/ows?"
-                                          :layers "nasa:bluemarble"
-                                          :attribution "Made by Condense / Images by NASA"}]
-        ;; NOTE: this would require  :crs js/L.CRS.EPSG4326 in the leaflet-map props to render properly:
-        base-layer-bathy [wms-layer {:url "http://geoserver-static.aodn.org.au/geoserver/baselayers/wms?"
-                                     :layers "baselayers:default_bathy"
-                                     :transparent true :format "image/png"}]
+        layer-priorities @(re-frame/subscribe [:map.layers/priorities])
+        logic-type @(re-frame/subscribe [:map.layers/logic])
         base-layer-osm [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                                     :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
     [leaflet-map (merge
@@ -103,7 +112,7 @@
         ^{:key (str server_url layer_name)}
         [wms-layer {:url server_url :layers layer_name :z-index (inc i)
                     :transparent true :format "image/png"}])
-      (sort-layers active-layers))
+      (sort-layers active-layers layer-priorities logic-type))
      (when query
        [geojson-layer {:data (clj->js query)}])
      (when (and query mouse-loc)
