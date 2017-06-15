@@ -1,6 +1,6 @@
 (ns imas-seamap.db)
 
-(goog-define catalogue-url "/api/layers/")
+(goog-define api-url-base "/api/")
 
 (def default-db
   {:map {:center [-23.116667 132.133333]
@@ -19,4 +19,6 @@
               :habitat nil
               :bathymetry nil}
    :display {:help-overlay false}
-   :config {:catalogue-url catalogue-url}})
+   :config {:layer-url (str api-url-base "layers/")
+            :group-url (str api-url-base "groups/")
+            :priority-url (str api-url-base "priorities/")}})

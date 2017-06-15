@@ -23,13 +23,13 @@
 (defn initialise-db [_ _] db/default-db)
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [layer-url (get-in db [:config :catalogue-url])]
-    {:db db
-     :http-xhrio {:method :get
-                  :uri layer-url
-                  :response-format (ajax/json-response-format {:keywords? true})
-                  :on-success [:map/update-layers]
-                  :on-failure [:ajax/default-err-handler]}}))
+  (let [{:keys [layer-url]} (:config db)]
+    {:db         db
+     :http-xhrio [{:method          :get
+                   :uri             layer-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-layers]
+                   :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn help-layer-toggle [db _]
   (update-in db [:display :help-overlay] not))
