@@ -6,6 +6,10 @@
             [clojure.zip :as zip])
   (:import  [org.osgeo.proj4j CoordinateTransformFactory CRSFactory ProjCoordinate]))
 
+;;; WARNING!!  This hasn't kept pace with a migration to add a join
+;;; table (layer-group-priority) between Layer and Group, so it would
+;;; need some fixing to be useful again.
+
 (def base-dir "/users/mark_2/projects/geoserver-config-imas/workspaces/seamap/IMASSeamapAU/")
 (def layer-dirs
   ["SeamapAus_NAT_Aus_margin_geomorph_2006"
