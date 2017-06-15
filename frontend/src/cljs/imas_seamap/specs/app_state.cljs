@@ -46,7 +46,13 @@
 (s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
 
 (s/def ::map
-  (s/keys :req-un [:map/center :map/zoom :map/zoom-cutover :map/controls :map/layers :map/active-layers :map/logic]))
+  (s/keys :req-un [:map/center
+                   :map/zoom
+                   :map/zoom-cutover
+                   :map/controls
+                   :map/layers
+                   :map/active-layers
+                   :map/logic]))
 
 (s/def ::transect-results-format
   (s/or :empty   nil?
