@@ -83,8 +83,8 @@ class Layer(models.Model):
 @python_2_unicode_compatible
 class LayerGroupPriority(models.Model):
     priority = models.IntegerField(default=1, validators=[MinValueValidator(1)])
-    group = models.ForeignKey(LayerGroup)
-    layer = models.ForeignKey(Layer)
+    group = models.ForeignKey(LayerGroup, related_name='layerpriorities')
+    layer = models.ForeignKey(Layer, related_name='grouppriorities')
 
     def __str__(self):
         return '{}:[{} / {}]'.format(self.priority,

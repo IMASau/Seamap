@@ -1,5 +1,6 @@
+from django.db.models import Min, Max
 from rest_framework import serializers
-from catalogue.models import Layer
+from catalogue.models import Layer, LayerGroup, LayerGroupPriority
 
 
 class LayerSerializer(serializers.ModelSerializer):
@@ -30,3 +31,29 @@ class LayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Layer
         exclude = ('minx', 'miny', 'maxx', 'maxy',)
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    bounding_box = serializers.SerializerMethodField()
+
+    def get_bounding_box(self, obj):
+        bounds = obj.layerpriorities.aggregate(minx=Min('layer__minx'),
+                                               miny=Min('layer__miny'),
+                                               maxx=Max('layer__maxx'),
+                                               maxy=Max('layer__maxy'))
+        return {'west': bounds['minx'],
+                'south': bounds['miny'],
+                'east': bounds['maxx'],
+                'north': bounds['maxy']}
+
+    class Meta:
+        model = LayerGroup
+        fields = '__all__'
+
+
+class GroupPrioritySerializer(serializers.ModelSerializer):
+    # We only want the ids here, so we don't need to follow the
+    # foreign key relations here
+    class Meta:
+        model = LayerGroupPriority
+        fields = ('layer', 'group', 'priority')
