@@ -446,7 +446,7 @@
    "Zostera muelleri/Halophila uninervis"
    "Zostera muelleri/Syringodium isoetifolium"])
 
-(def *habitat-colours*
+(def HABITAT-COLOURS
   "Mapping the habitat zones, keyed by strings obtained from the
   SM_HAB_CLS column in the different habitat tables."
   (merge
@@ -749,7 +749,7 @@
     "Sparse patchy seagrass" "#d1ff73"
     "Unknown"                "#999999"}))
 
-(def *habitat-titles*
+(def HABITAT-TITLES
   "Maps habitat classifications to their titles, as they appear in the
   legend (often, but not always, the same as the SM_HAB_CLS value)."
   {"Coralline algae"                                                       "Coralline algae",
