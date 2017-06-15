@@ -13,8 +13,6 @@ import ContainerDimensions from 'react-container-dimensions';
 import * as ReactLeaflet from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 
-import Gallery from 'react-grid-gallery';
-
 import * as Blueprint from '@blueprintjs/core';
 
 window.L = L;
@@ -32,7 +30,5 @@ window.ReactDOM = ReactDOM;
 
 ReactLeaflet.EditControl = EditControl;
 window.ReactLeaflet = ReactLeaflet;
-
-window.Gallery = Gallery;
 
 window.Blueprint = Blueprint;
