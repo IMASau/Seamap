@@ -58,5 +58,5 @@
                   ;; here.  Need to determine how we convert re-frame
                   ;; events to those understood by GA, and how to
                   ;; handle args (eg, what layers are enabled, etc)
-                  (console :warn "Generating analytics event for" event))
+                  (console :warn "Generating analytics event for" (name (first event))))
                 context)))))
