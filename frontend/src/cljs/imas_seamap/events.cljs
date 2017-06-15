@@ -23,12 +23,22 @@
 (defn initialise-db [_ _] db/default-db)
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url]} (:config db)]
+  (let [{:keys [layer-url group-url priority-url]} (:config db)]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             group-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-groups]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             priority-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-priorities]
                    :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn help-layer-toggle [db _]

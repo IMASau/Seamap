@@ -61,6 +61,8 @@
     :map.layers.logic/manual              mevents/map-layer-logic-manual
     :map.layers.logic/automatic           mevents/map-layer-logic-automatic
     :map/update-layers                    mevents/update-layers
+    :map/update-groups                    mevents/update-groups
+    :map/update-priorities                mevents/update-priorities
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/view-updated                     mevents/map-view-updated}})
 

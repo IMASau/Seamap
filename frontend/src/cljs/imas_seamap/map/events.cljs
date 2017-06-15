@@ -73,6 +73,12 @@
        process-layers
        (assoc-in db [:map :layers])))
 
+(defn update-groups [db [_ groups]]
+  (assoc-in db [:map :groups] groups))
+
+(defn update-priorities [db [_ priorities]]
+  (assoc-in db [:map :priorities] priorities))
+
 (defn toggle-layer [{:keys [db]} [_ layer]]
   {:db (update-in db [:map :active-layers]
                   #(if (% layer)
