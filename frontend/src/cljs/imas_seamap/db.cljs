@@ -8,6 +8,8 @@
          :zoom-cutover 5
          :bounds {}
          :layers []
+         :priorities []
+         :groups []
          :active-layers #{}
          :logic {:type    :map.layer-logic/automatic
                  :trigger :map.logic.trigger/automatic}

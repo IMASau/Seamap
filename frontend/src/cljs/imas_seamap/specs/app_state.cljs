@@ -41,6 +41,23 @@
 (s/def :map/active-layers (s/coll-of :map/layer
                                      :kind set?))
 
+(s/def :map.layer-group.priority/layer integer?)
+(s/def :map.layer-group.priority/group integer?)
+(s/def :map.layer-group.priority/priority integer?)
+(s/def :map.layer-group/priority (s/keys :req-un [:map.layer-group.priorty/layer
+                                                  :map.layer-group.priorty/group
+                                                  :map.layer-group.priorty/priority]))
+(s/def :map/priorities (s/coll-of :map.layer-group/priority))
+
+(s/def :map.layer.group/id integer?)
+(s/def :map.layer.group/name string?)
+(s/def :map.layer.group/detail_resolution boolean?)
+(s/def :map.layer/group (s/keys :req-un [:map.layer.group/id
+                                         :map.layer/bounding_box
+                                         :map.layer.group/name
+                                         :map.layer.group/detail_resolution]))
+(s/def :map/groups (s/coll-of :map.layer/group))
+
 (s/def :map.logic/type #{:map.layer-logic/automatic :map.layer-logic/manual})
 (s/def :map.logic/trigger #{:map.logic.trigger/automatic :map.logic.trigger/user})
 (s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
@@ -52,6 +69,8 @@
                    :map/controls
                    :map/layers
                    :map/active-layers
+                   :map/groups
+                   :map/priorities
                    :map/logic]))
 
 (s/def ::transect-results-format
