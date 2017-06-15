@@ -229,7 +229,7 @@
         [:div.height-managed.group-scrollable
          (for [layer layers]
            ^{:key (:layer_name layer)}
-           [layer-card layer {:active? (active-layers layer)}])]]])))
+           [layer-card layer {:active? (some #{layer} active-layers)}])]]])))
 
 (defn third-party-layer-group [props layers active-layers]
   (let [show-dialogue? (reagent/atom false)]

@@ -10,7 +10,7 @@
          :layers []
          :priorities []
          :groups []
-         :active-layers #{}
+         :active-layers []
          :logic {:type    :map.layer-logic/automatic
                  :trigger :map.logic.trigger/automatic}
          :controls {:transect false}}

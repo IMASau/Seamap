@@ -39,7 +39,7 @@
 (s/def :map/layers (s/coll-of :map/layer))
 
 (s/def :map/active-layers (s/coll-of :map/layer
-                                     :kind set?))
+                                     :kind vector?))
 
 (s/def :map.layer-group.priority/layer integer?)
 (s/def :map.layer-group.priority/group integer?)

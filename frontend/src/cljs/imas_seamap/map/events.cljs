@@ -81,8 +81,8 @@
 
 (defn toggle-layer [{:keys [db]} [_ layer]]
   {:db (update-in db [:map :active-layers]
-                  #(if (% layer)
-                     (disj % layer)
+                  #(if (some #{layer} %)
+                     (filterv (fn [l] (not= l layer)) %)
                      (conj % layer)))
    ;; If someone triggers this, we also switch to manual mode:
    :dispatch [:map.layers.logic/manual]})
