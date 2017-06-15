@@ -1,0 +1,2263 @@
+[
+{
+  "fields": {
+    "category": 2,
+    "maxx": "171.99875000000002956",
+    "maxy": "-7.99374999999998437",
+    "name": "Australia 50m Resolution",
+    "server_type": 1,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://thredds.imas.utas.edu.au/ncwms/wms",
+    "minx": "91.99875000000000114",
+    "miny": "-59.99374999999999147",
+    "layer_name": "SeamapAus_Bathymetry_National_50m/DEPTH",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 4
+},
+{
+  "fields": {
+    "category": 4,
+    "maxx": "155.33379443860587799",
+    "maxy": "-28.11646576872341541",
+    "name": "Fake SST",
+    "server_type": 2,
+    "data_classification": 1,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": 1,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "148.65934886247680424",
+    "miny": "-37.51168756405259330",
+    "layer_name": "seamap:SeamapAus_NSW_marine_habitats_2013",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 5
+},
+{
+  "fields": {
+    "category": 4,
+    "maxx": "153.69585651159286499",
+    "maxy": "-28.13540846109390259",
+    "name": "Fake Cl.A",
+    "server_type": 2,
+    "data_classification": 2,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": 1,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "149.87229265272617340",
+    "miny": "-37.50735312314261449",
+    "layer_name": "NESP:NESP_Seabed_Habitat_NSWstatewide_MAP20m",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 6
+},
+{
+  "fields": {
+    "category": 4,
+    "maxx": "123.75908429999999782",
+    "maxy": "-5.44416566700000004",
+    "name": "Fake SST (BoM)",
+    "server_type": 2,
+    "data_classification": 1,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": 2,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "123.72449900000000866",
+    "miny": "-5.48350100000000040",
+    "layer_name": "imas:JCU_Haapkyla_Hoga_Reef_communities_MAP",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 7
+},
+{
+  "fields": {
+    "category": 3,
+    "maxx": "148.78701300000000174",
+    "maxy": "-40.59539200000000392",
+    "name": "Flinders AUV",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "148.74614099999999439",
+    "miny": "-40.63966999999999530",
+    "layer_name": "imas:NERP_NBarrett_Flinders_CMR_AUV_GV",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 8
+},
+{
+  "fields": {
+    "category": 3,
+    "maxx": "146.29497950000001083",
+    "maxy": "-43.73718670000000230",
+    "name": "Barret Tas-Fracture AUV",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "146.27565680000000725",
+    "miny": "-43.75547290000000089",
+    "layer_name": "imas:NERP_NBarrett_TasFracture_CMR_AUV_GV",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 9
+},
+{
+  "fields": {
+    "category": 3,
+    "maxx": "177.18272099999998659",
+    "maxy": "78.44900099999999554",
+    "name": "Method 3 Photo Quadrat Scores",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver-rls.imas.utas.edu.au/geoserver/wms",
+    "minx": "-179.13583099999999604",
+    "miny": "-55.04678599999999733",
+    "layer_name": "RLS:M3_DATA",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 10
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "164.91581397450957525",
+    "maxy": "-5.04543565204592870",
+    "name": "NATIONAL - geomorphic features of Australia's margin (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "71.11328108524969593",
+    "miny": "-53.49512955555024263",
+    "layer_name": "seamap:SeamapAus_NAT_Aus_margin_geomorph_2006",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 15
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "157.49542685845608503",
+    "maxy": "-3.96781878285682410",
+    "name": "NATIONAL - CAMRIS benthic substrate mapping (CSIRO)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "99.28530615140033433",
+    "miny": "-53.17782289543796281",
+    "layer_name": "seamap:SeamapAus_NAT_CAMRIS_benthic_substrate",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 16
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "150.73332217427710589",
+    "maxy": "-8.26171603208617356",
+    "name": "NATIONAL - CAMRIS seagrass mapping (CSIRO)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "109.26083683298247706",
+    "miny": "-42.24515609273154126",
+    "layer_name": "seamap:SeamapAus_NAT_CAMRIS_seagrass",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 17
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "149.98383931800577784",
+    "maxy": "-37.38984354645649688",
+    "name": "NATIONAL - Coastal geomorphology updates: offshore coastal geomorphology, reclassified 100K (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "140.99443735085574758",
+    "miny": "-39.55911520033219375",
+    "layer_name": "seamap:SeamapAus_NAT_CoastalGeomorph_OffshoreRC100K",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 18
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "151.01855415390662074",
+    "maxy": "-9.97381016961075417",
+    "name": "NATIONAL - Coastal geomorphology updates: Oz estuaries, reclassified 100K (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "109.55225821121905483",
+    "miny": "-42.31752476350558112",
+    "layer_name": "seamap:SeamapAus_NAT_CoastalGeomorph_OzEstuariesRC100K",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 19
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "150.73041133049369478",
+    "maxy": "-9.67335877111841391",
+    "name": "NATIONAL - Coastal geomorphology updates: geomorphology, reclassified 100K (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "143.57041421758853517",
+    "miny": "-43.84084869649849026",
+    "layer_name": "seamap:SeamapAus_NAT_CoastalGeomorph_RC100K",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 20
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "150.92107370676191636",
+    "maxy": "-11.05130040494301902",
+    "name": "NATIONAL - Coastal geomorphology updates: geomorphology, reclassified 25K (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "110.50259687786932261",
+    "miny": "-36.54974227194664849",
+    "layer_name": "seamap:SeamapAus_NAT_CoastalGeomorph_RC25K",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 21
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "146.58339901228154645",
+    "maxy": "-11.61086527525611878",
+    "name": "NATIONAL - Coastal geomorphology updates: geomorphology, reclassified 50K (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "112.65070873920183203",
+    "miny": "-37.96450419593784176",
+    "layer_name": "seamap:SeamapAus_NAT_CoastalGeomorph_RC50K",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 22
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "151.78916167281062144",
+    "maxy": "-32.64733749942085694",
+    "name": "NATIONAL - Coastal geomorphology updates: regolith geomorphology, reclassified 25K (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "150.78032924602558751",
+    "miny": "-34.56487940012354443",
+    "layer_name": "seamap:SeamapAus_NAT_CoastalGeomorph_Regolith25K",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 23
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "150.84708480808444619",
+    "maxy": "-8.35950317061147530",
+    "name": "NATIONAL - Coastal geomorphology updates: Smartline 100K (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "109.13170681755187275",
+    "miny": "-42.53926832769456468",
+    "layer_name": "seamap:SeamapAus_NAT_CoastalGeomorph_Smartline100K",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 24
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "151.20674778375774849",
+    "maxy": "-10.96793936019761162",
+    "name": "NATIONAL - Coastal geomorphology updates: surface geology, reclassified 100K (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "113.01959148113522247",
+    "miny": "-37.74569129784004673",
+    "layer_name": "seamap:SeamapAus_NAT_CoastalGeomorph_SurfaceGeoRC100K",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 25
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "150.76801045427671966",
+    "maxy": "-9.89488843585095879",
+    "name": "NATIONAL - Coastal geomorphology updates: surface geology, reclassified 250K (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "109.45307257317722360",
+    "miny": "-42.42175942868191640",
+    "layer_name": "seamap:SeamapAus_NAT_CoastalGeomorph_SurfaceGeoRC250K",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 26
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.45763398937296529",
+    "maxy": "-27.62982458045754086",
+    "name": "NATIONAL - Coastal geomorphology updates: surface geology, reclassified 25K (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "144.88359700006421349",
+    "miny": "-43.34743079362703355",
+    "layer_name": "seamap:SeamapAus_NAT_CoastalGeomorph_SurfaceGeoRC25K",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 27
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "151.01855415390662074",
+    "maxy": "-9.97381016961075417",
+    "name": "NATIONAL - coastal waterways geomorphic habitat (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "109.55225821121905483",
+    "miny": "-42.31752476350558112",
+    "layer_name": "seamap:SeamapAus_NAT_CoastalWaterways_geomorphic",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 28
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.56312273756284981",
+    "maxy": "-28.16264307249466015",
+    "name": "NSW - estuarine inventory (OEH)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "149.92142334160743644",
+    "miny": "-37.47410855823418530",
+    "layer_name": "seamap:SeamapAus_NSW_estuarine_inventory",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 29
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.56468238746450083",
+    "maxy": "-28.15963854434152580",
+    "name": "NSW - estuarine macrophytes (DPI)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "149.91132130763142527",
+    "miny": "-37.47577117119251966",
+    "layer_name": "seamap:SeamapAus_NSW_estuarine_macrophytes",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 30
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.56743174932822171",
+    "maxy": "-28.15918442794715304",
+    "name": "NSW - estuary ecosystems 2002 (OEH)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "149.80886570749186149",
+    "miny": "-37.48591817035631379",
+    "layer_name": "seamap:SeamapAus_NSW_estuary_ecosystems_2002",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 31
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.63989130559733098",
+    "maxy": "-28.15064944313498074",
+    "name": "NSW - marine habitats 2002 (OEH)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "149.92761060013080510",
+    "miny": "-37.51284996982104758",
+    "layer_name": "seamap:SeamapAus_NSW_marine_habitats_2002",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 32
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.63381649110198168",
+    "maxy": "-28.11646664922843541",
+    "name": "NSW - marine habitats 2013 (OEH)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "149.93907144841293189",
+    "miny": "-37.51168622834800459",
+    "layer_name": "seamap:SeamapAus_NSW_marine_habitats_2013",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 33
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.88279010432609084",
+    "maxy": "-28.01778281592028463",
+    "name": "NSW - ocean ecosystems 2002 (OEH)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "149.97765593444299270",
+    "miny": "-37.55789968618898911",
+    "layer_name": "seamap:SeamapAus_NSW_ocean_ecosystems_2002",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 34
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "130.79337705202721054",
+    "maxy": "-12.38416875229349223",
+    "name": "NT - Bynoe Harbour mangrove (DLRM)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "130.34587971456528521",
+    "miny": "-12.79725140309644082",
+    "layer_name": "seamap:SeamapAus_NT_BynoeHarbour_mangrove",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 35
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "131.05511853597599270",
+    "maxy": "-12.43393183159412452",
+    "name": "NT - Darwin Harbour mangrove (DLRM)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "130.70519643870397886",
+    "miny": "-12.73383810151375783",
+    "layer_name": "seamap:SeamapAus_NT_DarwinHarbour_mangrove",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 36
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "130.94500313953642490",
+    "maxy": "-12.33048382968809165",
+    "name": "NT - Darwin Harbour seabed mapping (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "130.68659935374896008",
+    "miny": "-12.58822866416353925",
+    "layer_name": "seamap:SeamapAus_NT_DarwinHarbour_seabed_mapping",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 37
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "131.01402098471041313",
+    "maxy": "-12.51718511337285555",
+    "name": "NT - East and Middle Arms communities (DLRM)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "130.85053328246351612",
+    "miny": "-12.65626428431718686",
+    "layer_name": "seamap:SeamapAus_NT_EastMiddleArms_communities",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 38
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "131.01402098471041313",
+    "maxy": "-12.51718511337285555",
+    "name": "NT - East and Middle Arms habitats (DLRM)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "130.85053328246351612",
+    "miny": "-12.65626428431718686",
+    "layer_name": "seamap:SeamapAus_NT_EastMiddleArms_habitats",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 39
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "127.51224104486129818",
+    "maxy": "-11.33952197367431936",
+    "name": "NT - Oceanic Shoals geomorphology (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "126.85155272035818541",
+    "miny": "-12.19419903103897518",
+    "layer_name": "seamap:SeamapAus_NT_OceanicShoals_geomorphology",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 40
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "129.33186942241641759",
+    "maxy": "-12.30742679768017389",
+    "name": "NT - Petrel Sub-Basin geomorphology (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "128.76001120685094747",
+    "miny": "-12.89888172485231976",
+    "layer_name": "seamap:SeamapAus_NT_PetrelBasin_geomorphology",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 41
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "134.00112771309250093",
+    "maxy": "-0.00008944882354973",
+    "name": "NT - mangroves 1:100,000 (DLRM)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "134.00105255413336636",
+    "miny": "-0.00013701424569906",
+    "layer_name": "seamap:SeamapAus_NT_mangroves_100",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 42
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "130.85631278260802901",
+    "maxy": "-12.41782700128477757",
+    "name": "NT - Ludmilla Creek mangroves 1:5,000 (DLRM)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "130.84672652831920914",
+    "miny": "-12.42638631211448441",
+    "layer_name": "seamap:SeamapAus_NT_mangroves_LudmillaCreek",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 43
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "142.21228760821770720",
+    "maxy": "-10.91516470034708064",
+    "name": "NT - seagrass meadows (DLRM/QDPI)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "132.19085868594501676",
+    "miny": "-17.82774815846484984",
+    "layer_name": "seamap:SeamapAus_NT_seagrass",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 44
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.41612300421184045",
+    "maxy": "-27.28159743541975502",
+    "name": "QLD - Eastern Banks seagrass biomass",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "153.32385722229338398",
+    "miny": "-27.53303744148657728",
+    "layer_name": "seamap:SeamapAus_QLD_EasternBanks_seagrass_biomass",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 45
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.41597351560830020",
+    "maxy": "-27.28073980034526613",
+    "name": "QLD - Eastern Banks seagrass cover",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "153.32361289222851042",
+    "miny": "-27.53307119877914388",
+    "layer_name": "seamap:SeamapAus_QLD_EasternBanks_seagrass_cover",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 46
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.41574928698460667",
+    "maxy": "-27.27945334717294656",
+    "name": "QLD - Eastern Banks seagrass species",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "153.30571816320082235",
+    "miny": "-27.53554237486551415",
+    "layer_name": "seamap:SeamapAus_QLD_EasternBanks_seagrass_species",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 47
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "150.06906902659818570",
+    "maxy": "-10.02509759123326027",
+    "name": "QLD - GBRWHA seagrass (JCU)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "143.61696824837994768",
+    "miny": "-25.35529221217124984",
+    "layer_name": "seamap:SeamapAus_QLD_GBRWHA_seagrass",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 48
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "151.08184458788136340",
+    "maxy": "-9.44925331435976013",
+    "name": "QLD - GBR features (GBRMPA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "138.15403839194283364",
+    "miny": "-30.17248347059573987",
+    "layer_name": "seamap:SeamapAus_QLD_GBR_features",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 49
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.42971907005355092",
+    "maxy": "-27.68064179288599647",
+    "name": "QLD - Gold Coast seagrass (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "153.39514826087093979",
+    "miny": "-27.97859214009337947",
+    "layer_name": "seamap:SeamapAus_QLD_GoldCoast_seagrass",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 50
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "152.00107270108500757",
+    "maxy": "-23.40933980531184133",
+    "name": "QLD - Heron Reef benthic community",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "151.90307636573081140",
+    "miny": "-23.48988179489850125",
+    "layer_name": "seamap:SeamapAus_QLD_HeronReef_benthiccomm",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 51
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "152.00107270108500757",
+    "maxy": "-23.40933980531184133",
+    "name": "QLD - Heron Reef geomorphology",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "151.90307636573081140",
+    "miny": "-23.48988179489850125",
+    "layer_name": "seamap:SeamapAus_QLD_HeronReef_geomorph",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 52
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "145.57005954186919894",
+    "maxy": "-16.37614395152300872",
+    "name": "QLD - Low Isles seagrass (JCU)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "145.55479086133914279",
+    "miny": "-16.39443944505593720",
+    "layer_name": "seamap:SeamapAus_QLD_LowIsles_seagrass",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 53
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.50155983143031335",
+    "maxy": "-26.75217560747636725",
+    "name": "QLD - Moreton Bay broadscale habitats (DNPSR)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "153.13672870235527057",
+    "miny": "-27.98094550596369245",
+    "layer_name": "seamap:SeamapAus_QLD_MoretonBay_broadscale",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 54
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.37424273115300366",
+    "maxy": "-27.16048057166615948",
+    "name": "QLD - Moreton Bay coral (DNPSR)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "153.25819528988884599",
+    "miny": "-27.62883908012440770",
+    "layer_name": "seamap:SeamapAus_QLD_MoretonBay_coral",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 55
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.36956102414802672",
+    "maxy": "-27.01190495823214022",
+    "name": "QLD - Moreton Bay seagrass 2004 (EPA/UQ/CRSSIS)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "153.14617932829992242",
+    "miny": "-27.81990510348510171",
+    "layer_name": "seamap:SeamapAus_QLD_MoretonBay_seagrass_2004",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 56
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.48725920077896490",
+    "maxy": "-26.97704628861808729",
+    "name": "QLD - Moreton Bay seagrass 2011 (EPA/UQ/CRSSIS)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "153.14487591688109092",
+    "miny": "-27.81991204476486601",
+    "layer_name": "seamap:SeamapAus_QLD_MoretonBay_seagrass_2011",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 57
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "142.30886145836464607",
+    "maxy": "-9.07956218794197234",
+    "name": "QLD - NW Torres Strait seagrass (JCU)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "141.36436788520532559",
+    "miny": "-9.67741977219435867",
+    "layer_name": "seamap:SeamapAus_QLD_NWTorresStrait_seagrass",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 58
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "153.55710863192595639",
+    "maxy": "-27.38433065603550531",
+    "name": "QLD - Point Lookout Ecological Assessment (UniDive)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "153.52591275937945170",
+    "miny": "-27.42772136099440061",
+    "layer_name": "seamap:SeamapAus_QLD_PointLookout_ecology",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 59
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "143.87957491568198520",
+    "maxy": "-9.13964197340603413",
+    "name": "QLD - Torres Strait seagrass intertidal (JCU)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "142.08918939510382984",
+    "miny": "-10.78902851333927515",
+    "layer_name": "seamap:SeamapAus_QLD_TorresStrait_seagrass_intertidal",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 60
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "142.45016361954296258",
+    "maxy": "-9.71788307695558906",
+    "name": "QLD - Torres Strait seagrass subtidal (JCU)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "141.11078526943839506",
+    "miny": "-11.25235711777014558",
+    "layer_name": "seamap:SeamapAus_QLD_TorresStrait_seagrass_subtidal",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 61
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "150.87358319594270029",
+    "maxy": "-9.19771513378430505",
+    "name": "QLD - coastal wetlands (QLD Fisheries)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "138.42736654283277176",
+    "miny": "-29.41768022924561876",
+    "layer_name": "seamap:SeamapAus_QLD_coastal_wetlands",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 62
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "150.91322896360014738",
+    "maxy": "-8.21630822169429642",
+    "name": "QLD - reefs and shoals (DNRM)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "139.53650961321986301",
+    "miny": "-28.68419732463840433",
+    "layer_name": "seamap:SeamapAus_QLD_reefs_shoals",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 63
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "150.89168667198600815",
+    "maxy": "-8.32255062023788028",
+    "name": "QLD - Queensland Wetland Data v4.0 (DSITI)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "138.15596625333563452",
+    "miny": "-30.17302117436578612",
+    "layer_name": "seamap:SeamapAus_QLD_wetland_v4",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 64
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "140.59665276938500256",
+    "maxy": "-31.93748129336279717",
+    "name": "SA - state benthic habitats (DEWNR)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "133.35956492959070374",
+    "miny": "-38.27545211152219906",
+    "layer_name": "seamap:SeamapAus_SA_state_benthic_habitats",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 65
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "148.11636555394628090",
+    "maxy": "-39.31359893398260397",
+    "name": "TAS - Seamap Tasmania (UTAS)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "145.23585855020249369",
+    "miny": "-43.71708622184959836",
+    "layer_name": "seamap:SeamapAus_TAS_SeamapTas",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 66
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "115.78412235155789745",
+    "maxy": "-32.13876672170054150",
+    "name": "WA - mapping selected areas of Cockburn Sound (CSMC)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "115.71074470136667856",
+    "miny": "-32.23147367495536031",
+    "layer_name": "seamap:SeamapAus_WA_CockburnSound_mapping",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 67
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "115.79687076938725454",
+    "maxy": "-32.06440090132254284",
+    "name": "WA - Cockburn Sound seagrass changes 1999 (UWA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "115.60550874054833059",
+    "miny": "-32.26334520926927496",
+    "layer_name": "seamap:SeamapAus_WA_CockburnSound_seagrass_1999",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 68
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "125.61416388484198592",
+    "maxy": "-17.47782120895120173",
+    "name": "WA - marine habitats (DPAW)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "111.10366810458873488",
+    "miny": "-33.90855869390392741",
+    "layer_name": "seamap:SeamapAus_WA_DPAW_marine_habitats",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 69
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "123.65421291748930344",
+    "maxy": "-11.96766534954799432",
+    "name": "WA - MOU74 marine resources, Ashmore Reef (CSIRO)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "122.67856407426465637",
+    "miny": "-12.82942886789040493",
+    "layer_name": "seamap:SeamapAus_WA_MOU74_AshmoreReef",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 70
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "122.49322153027101479",
+    "maxy": "-13.41552145314141598",
+    "name": "WA - MOU74 marine resources, Scott Reef (CSIRO)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "121.49892462649683011",
+    "miny": "-14.21689857657857736",
+    "layer_name": "seamap:SeamapAus_WA_MOU74_ScottReef",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 71
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "123.84674210991795462",
+    "maxy": "-29.70142128045984009",
+    "name": "WA - Marine Futures biota (UWA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "112.69250395864953873",
+    "miny": "-34.68464361095375637",
+    "layer_name": "seamap:SeamapAus_WA_MarineFutures_biota",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 72
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "123.84663669588319124",
+    "maxy": "-29.70103165170269222",
+    "name": "WA - Marine Futures reef (UWA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "112.69200391782909776",
+    "miny": "-34.68481838000613493",
+    "layer_name": "seamap:SeamapAus_WA_MarineFutures_reef",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 73
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "120.37897463310491730",
+    "maxy": "-18.77166052908884808",
+    "name": "WA - ecosystem characterisation of the NW shelf (GA)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "113.47431590897828357",
+    "miny": "-23.03224345277338969",
+    "layer_name": "seamap:SeamapAus_WA_ecosystem_NWShelf",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 74
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "118.90702500119672891",
+    "maxy": "-34.45099894003491414",
+    "name": "WA - seagrass Beaufort 2009 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "118.85245798566367625",
+    "miny": "-34.46596420426548946",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_Beaufort_2009",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 75
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "115.22725535026243904",
+    "maxy": "-34.26175246377025019",
+    "name": "WA - seagrass Hardy Inlet 2008 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "115.13814134967620362",
+    "miny": "-34.32080484253484087",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_HardyInlet_2008",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 76
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "116.99808229511323532",
+    "maxy": "-34.97586055656806536",
+    "name": "WA - seagrass Irwin Inlet 2009 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "116.94093530222313859",
+    "miny": "-35.01800041263586394",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_IrwinInlet_2009",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 77
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "115.72744262180003716",
+    "maxy": "-33.20070535276955326",
+    "name": "WA - seagrass Leschenault 2009 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "115.66682488087207048",
+    "miny": "-33.32094405413742066",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_Leschenault_2009",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 78
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "117.98018555575825417",
+    "maxy": "-34.94964811503521673",
+    "name": "WA - seagrass Oyster Harbour 1988 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "117.94122635957990042",
+    "miny": "-34.99371379029525997",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_OysterHarbour_1988",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 79
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "117.98382934032422042",
+    "maxy": "-34.95003259887813130",
+    "name": "WA - seagrass Oyster Harbour 1996 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "117.94049087223157812",
+    "miny": "-34.99449713802285089",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_OysterHarbour_1996",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 80
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "117.92878983957734818",
+    "maxy": "-35.03439762537724533",
+    "name": "WA - seagrass Princess Royal Harbour 1996 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "117.84358807804039770",
+    "miny": "-35.07636086872603443",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_PrincessRoyal_1996",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 81
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "117.92878983957734818",
+    "maxy": "-35.03439762537724533",
+    "name": "WA - seagrass Princess Royal Harbour 2006 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "117.84404852369293337",
+    "miny": "-35.07343269954704112",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_PrincessRoyal_2006",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 82
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "121.19590146789330731",
+    "maxy": "-33.79828120250792978",
+    "name": "WA - seagras Stokes Inlet 2009 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "121.13232273641048664",
+    "miny": "-33.85269178449557614",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_StokesInlet_2009",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 83
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "115.88335259397638310",
+    "maxy": "-31.96231279867830111",
+    "name": "WA - seagrass Swan Canning 2011 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "115.75445737697833692",
+    "miny": "-32.03767955851769500",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_SwanCanning_2011",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 84
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "116.76220333421871089",
+    "maxy": "-34.97893798886214256",
+    "name": "WA - seagrass Walpole and Nornalup Inlets 2009 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "116.69459034564823696",
+    "miny": "-35.02744856314587452",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_Walpole_Nornalup_2009",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 85
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "119.39367722401357241",
+    "maxy": "-34.36292556272390186",
+    "name": "WA - seagrass Wellstead Estuary 2009 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "119.35875630992191532",
+    "miny": "-34.39031418459498468",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_WellsteadEstuary_2009",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 86
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "117.48417628036401084",
+    "maxy": "-34.97011880245752735",
+    "name": "WA - seagrass Wilson Inlet 2007 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "117.32476967095148268",
+    "miny": "-35.02566810756891158",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_WilsonInlet_2007",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 87
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "117.48420041341624653",
+    "maxy": "-34.97012370761521538",
+    "name": "WA - seagrass Wilson Inlet 2008 (TERN ACEF)",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "117.33071425145088540",
+    "miny": "-35.01108986475014007",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_WilsonInlet_2008",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 88
+},
+{
+  "fields": {
+    "detail_resolution": false,
+    "name": "NATIONAL"
+  },
+  "model": "catalogue.layergroup",
+  "pk": 1
+},
+{
+  "fields": {
+    "detail_resolution": true,
+    "name": "NSW"
+  },
+  "model": "catalogue.layergroup",
+  "pk": 2
+},
+{
+  "fields": {
+    "detail_resolution": true,
+    "name": "NT"
+  },
+  "model": "catalogue.layergroup",
+  "pk": 3
+},
+{
+  "fields": {
+    "detail_resolution": true,
+    "name": "QLD"
+  },
+  "model": "catalogue.layergroup",
+  "pk": 4
+},
+{
+  "fields": {
+    "detail_resolution": true,
+    "name": "SA"
+  },
+  "model": "catalogue.layergroup",
+  "pk": 5
+},
+{
+  "fields": {
+    "detail_resolution": true,
+    "name": "TAS"
+  },
+  "model": "catalogue.layergroup",
+  "pk": 6
+},
+{
+  "fields": {
+    "detail_resolution": true,
+    "name": "WA"
+  },
+  "model": "catalogue.layergroup",
+  "pk": 7
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 15,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 1
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 16,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 2
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 17,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 3
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 18,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 4
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 19,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 5
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 20,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 6
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 21,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 7
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 22,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 8
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 23,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 9
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 24,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 10
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 25,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 11
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 26,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 12
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 27,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 13
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 28,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 14
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 67,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 15
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 68,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 16
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 69,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 17
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 70,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 18
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 71,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 19
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 72,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 20
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 73,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 21
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 74,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 22
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 75,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 23
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 76,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 24
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 77,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 25
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 78,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 26
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 79,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 27
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 80,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 28
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 81,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 29
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 82,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 30
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 83,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 31
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 84,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 32
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 85,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 33
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 86,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 34
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 87,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 35
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 88,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 36
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 66,
+    "group": 6
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 37
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 65,
+    "group": 5
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 38
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 45,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 39
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 46,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 40
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 47,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 41
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 48,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 42
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 49,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 43
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 50,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 44
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 51,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 45
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 52,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 46
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 53,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 47
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 54,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 48
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 55,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 49
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 56,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 50
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 57,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 51
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 58,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 52
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 59,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 53
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 60,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 54
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 61,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 55
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 62,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 56
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 63,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 57
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 64,
+    "group": 4
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 58
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 35,
+    "group": 3
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 59
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 36,
+    "group": 3
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 60
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 37,
+    "group": 3
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 61
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 38,
+    "group": 3
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 62
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 39,
+    "group": 3
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 63
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 40,
+    "group": 3
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 64
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 41,
+    "group": 3
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 65
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 42,
+    "group": 3
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 66
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 43,
+    "group": 3
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 67
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 44,
+    "group": 3
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 68
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 29,
+    "group": 2
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 69
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 30,
+    "group": 2
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 70
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 31,
+    "group": 2
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 71
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 32,
+    "group": 2
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 72
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 33,
+    "group": 2
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 73
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 34,
+    "group": 2
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 74
+}
+]
