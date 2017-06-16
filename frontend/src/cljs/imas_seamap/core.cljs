@@ -1,6 +1,7 @@
 (ns imas-seamap.core
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
+            [day8.re-frame.async-flow-fx]
             [day8.re-frame.http-fx]
             [oops.core :refer [gcall]]
             [cemerick.url :as url]
@@ -27,13 +28,14 @@
     :transect/results                     subs/transect-results
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
-    :info/message                         subs/user-message}
     :app/loading?                         subs/app-loading?
+    :info/message                         subs/user-message}
 
    :events
-   {:ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
+   {:boot                                 [events/boot]
+    :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
-    :initialise-db                        events/initialise-db
+    :initialise-db                        [events/initialise-db]
     :initialise-layers                    [events/initialise-layers]
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
@@ -65,8 +67,11 @@
     :map/update-layers                    mevents/update-layers
     :map/update-groups                    mevents/update-groups
     :map/update-priorities                mevents/update-priorities
+    :map/initialise-display               events/application-loaded ; will eventually display the initial layer
     :map/pan-to-layer                     [mevents/zoom-to-layer]
-    :map/view-updated                     mevents/map-view-updated}})
+    :map/view-updated                     mevents/map-view-updated
+    :ui/show-loading                      events/loading-screen
+    :ui/hide-loading                      events/application-loaded}})
 
 (def events-for-analytics
   [:help-layer/open
@@ -109,8 +114,7 @@
 
 (defn ^:export init []
   (register-handlers! config)
-  (re-frame/dispatch-sync [:initialise-db])
-  (re-frame/dispatch [:initialise-layers])
+  (re-frame/dispatch-sync [:boot])
   (dev-setup)
   (mount-root))
 

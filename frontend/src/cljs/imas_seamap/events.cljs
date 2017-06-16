@@ -18,9 +18,31 @@
   (js/console.warn "Warning: no handler for" sym "implemented yet")
   db)
 
+(defn boot-flow []
+  {:first-dispatch [:ui/show-loading]
+   :rules
+   [{:when :seen? :events :ui/show-loading :dispatch [:initialise-layers]}
+    {:when :seen-all-of? :events [:map/update-layers :map/update-groups :map/update-priorities]
+     :dispatch [:map/initialise-display]
+     :halt? true}
+    ;; TODO: error states
+    ]})
+
+(defn boot [_ _]
+  {:db         db/default-db
+   :async-flow (boot-flow)})
+
+(defn loading-screen [db _]
+  (assoc db :loading true))
+
+(defn application-loaded [db _]
+  (assoc db :loading false))
+
 ;;; TODO: maybe pull in extra config inject as page config, but that
 ;;; may not be feasible with a wordpress host
-(defn initialise-db [_ _] db/default-db)
+(defn initialise-db [_ _]
+  {:db db/default-db
+   :dispatch [:db-initialised]})
 
 (defn initialise-layers [{:keys [db]} _]
   (let [{:keys [layer-url group-url priority-url]} (:config db)]

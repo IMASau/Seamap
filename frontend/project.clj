@@ -11,6 +11,7 @@
                  [binaryage/oops "0.5.5"]
                  [reagent "0.6.0"]
                  [re-frame "0.9.1"]
+                 [day8.re-frame/async-flow-fx "0.0.7"]
                  [day8.re-frame/http-fx "0.1.3" :exclusions [cljs-ajax]]
                  [philoskim/debux "0.2.1"]]
 
