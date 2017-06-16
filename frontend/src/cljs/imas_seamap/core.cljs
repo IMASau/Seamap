@@ -67,7 +67,7 @@
     :map/update-layers                    mevents/update-layers
     :map/update-groups                    mevents/update-groups
     :map/update-priorities                mevents/update-priorities
-    :map/initialise-display               events/application-loaded ; will eventually display the initial layer
+    :map/initialise-display               [mevents/show-initial-layer]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/view-updated                     mevents/map-view-updated
     :ui/show-loading                      events/loading-screen
