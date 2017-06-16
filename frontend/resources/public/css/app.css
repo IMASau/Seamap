@@ -42,6 +42,9 @@ footer {
     background: white;
     opacity: 0.8;
 }
+.loading-splash.load-error {
+    opacity: 1;
+}
 
 .height-static {
     flex-grow: 0;

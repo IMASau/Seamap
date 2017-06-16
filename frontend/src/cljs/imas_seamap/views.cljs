@@ -314,12 +314,18 @@
 
 
 (defn loading-display []
-  (let [loading? @(re-frame/subscribe [:app/loading?])]
+  (let [loading?  @(re-frame/subscribe [:app/loading?])
+        error-msg @(re-frame/subscribe [:app/load-error-msg])]
     (when loading?
-      [:div.loading-splash
-       [b/non-ideal-state
-        {:title  "Loading Seamap Layers..."
-         :visual (reagent/as-element [b/spinner {:intent "success"}])}]])))
+      [:div.loading-splash {:class (when error-msg "load-error")}
+       (if error-msg
+         [b/non-ideal-state
+          {:title       error-msg
+           :description "We were unable to load everything we need to get started.  Please try again later."
+           :visual      "error"}]
+         [b/non-ideal-state
+          {:title  "Loading Seamap Layers..."
+           :visual (reagent/as-element [b/spinner {:intent "success"}])}])])))
 
 (defn layout-app []
   [:div#main-wrapper

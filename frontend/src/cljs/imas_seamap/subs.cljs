@@ -80,5 +80,8 @@
 (defn app-loading? [db _]
   (get db :loading false))
 
+(defn load-error-msg [db _]
+  (get db :load-error-msg))
+
 (defn user-message [db _]
   (get-in db [:info :message]))

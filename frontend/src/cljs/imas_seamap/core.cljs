@@ -29,6 +29,7 @@
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
     :app/loading?                         subs/app-loading?
+    :app/load-error-msg                   subs/load-error-msg
     :info/message                         subs/user-message}
 
    :events
@@ -37,6 +38,7 @@
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     :initialise-db                        [events/initialise-db]
     :initialise-layers                    [events/initialise-layers]
+    :loading-failed                       events/loading-failed
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close

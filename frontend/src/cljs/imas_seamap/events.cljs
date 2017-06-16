@@ -25,8 +25,7 @@
     {:when :seen-all-of? :events [:map/update-layers :map/update-groups :map/update-priorities]
      :dispatch [:map/initialise-display]
      :halt? true}
-    ;; TODO: error states
-    ]})
+    {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
 (defn boot [_ _]
   {:db         db/default-db
@@ -38,8 +37,9 @@
 (defn application-loaded [db _]
   (assoc db :loading false))
 
-;;; TODO: maybe pull in extra config inject as page config, but that
-;;; may not be feasible with a wordpress host
+(defn loading-failed [db _]
+  (assoc db :load-error-msg "Something went wrong!"))
+
 (defn initialise-db [_ _]
   {:db db/default-db
    :dispatch [:db-initialised]})
