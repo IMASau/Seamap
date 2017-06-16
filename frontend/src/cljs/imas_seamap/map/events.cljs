@@ -124,7 +124,7 @@
   ;; * assoc back onto the db
   (let [{active-habitats  true
          filtered-actives false} (group-by habitat-layer? active-layers)]
-    (if (and (= logic :map.layer-logic/automatic)
+    (if (and (= (:type logic) :map.layer-logic/automatic)
              (seq active-habitats))
       (let [display-more-detail? (> zoom zoom-cutover)
             {detailed-habitats   true
