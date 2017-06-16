@@ -72,6 +72,7 @@
     :map/initialise-display               [mevents/show-initial-layer]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/view-updated                     mevents/map-view-updated
+    :map/popup-closed                     mevents/destroy-popup
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded}})
 

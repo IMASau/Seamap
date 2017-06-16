@@ -59,6 +59,9 @@
   [e]
   (re-frame/dispatch [:map/clicked (leaflet-props e) (mouseevent->coords e)]))
 
+(defn on-popup-closed [e]
+  (re-frame/dispatch [:map/popup-closed]))
+
 (defn on-map-view-changed [e]
   (re-frame/dispatch [:map/view-updated (leaflet-props e)]))
 
@@ -100,7 +103,8 @@
                    :on-zoomend on-map-view-changed
                    :on-moveend on-map-view-changed
                    :when-ready on-map-view-changed
-                   :on-click   on-map-clicked}
+                   :on-click   on-map-clicked
+                   :on-popupclose on-popup-closed}
                   (when (seq bounds) {:bounds (map->bounds bounds)}))
      base-layer-osm
      ;; We enforce the layer ordering by an incrementing z-index (the

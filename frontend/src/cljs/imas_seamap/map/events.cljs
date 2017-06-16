@@ -53,6 +53,9 @@
              {:location point
               :info (xml/emit-str (zip/node body))}))))
 
+(defn destroy-popup [db _]
+  (assoc db :feature nil))
+
 (defn map-set-layer-filter [db [_ filter-text]]
   (assoc-in db [:filters :layers] filter-text))
 
