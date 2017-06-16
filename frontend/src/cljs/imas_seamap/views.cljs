@@ -313,6 +313,14 @@
       nil)))
 
 
+(defn loading-display []
+  (let [loading? @(re-frame/subscribe [:app/loading?])]
+    (when loading?
+      [:div.loading-splash
+       [b/non-ideal-state
+        {:title  "Loading Seamap Layers..."
+         :visual (reagent/as-element [b/spinner {:intent "success"}])}]])))
+
 (defn layout-app []
   [:div#main-wrapper
    [app-controls]
@@ -321,5 +329,6 @@
     [plot-component]]
    ;; needs the ids of components to helper-annotate:
    [helper-overlay :plot-footer :transect-btn-wrapper]
-   [show-messages]])
+   [show-messages]
+   [loading-display]])
 

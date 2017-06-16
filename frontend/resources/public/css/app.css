@@ -34,6 +34,15 @@ footer {
     flex-basis: 10px;
 }
 
+.loading-splash {
+    position: absolute;
+    width: 100%;
+    height: 100vh;
+    z-index: 9000;
+    background: white;
+    opacity: 0.8;
+}
+
 .height-static {
     flex-grow: 0;
     flex-shrink: 0;

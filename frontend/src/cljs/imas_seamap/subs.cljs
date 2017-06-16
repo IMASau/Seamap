@@ -77,5 +77,8 @@
 (defn help-layer-open? [db _]
   (get-in db [:display :help-overlay]))
 
+(defn app-loading? [db _]
+  (get db :loading false))
+
 (defn user-message [db _]
   (get-in db [:info :message]))

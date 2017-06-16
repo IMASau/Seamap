@@ -28,6 +28,7 @@
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
     :info/message                         subs/user-message}
+    :app/loading?                         subs/app-loading?
 
    :events
    {:ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
