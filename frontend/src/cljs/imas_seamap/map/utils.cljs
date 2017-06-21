@@ -32,6 +32,26 @@
          sort
          (map last))))
 
+(defn applicable-layers
+  [{{:keys [layers groups priorities zoom zoom-cutover bounds logic]} :map :as db}
+   & {:keys [bbox category]
+      :or   {bbox bounds}}]
+  ;; Generic utility to retrieve a list of relevant layers, filtered as necessary.
+  ;; figures out cut-off point, and restricts to those on the right side of it;
+  ;; filters to those groups intersecting the bbox;
+  ;; sorts by priority and grouping.
+  (let [match-category?    #(if category (= category (:category %)) true)
+        detail-resolution? (< zoom-cutover zoom)
+        group-ids          (->> groups
+                                (filter (fn [{:keys [bounding_box detail_resolution]}]
+                                          (and (= detail_resolution detail-resolution?)
+                                               (bbox-intersects? bounds bounding_box))))
+                                (clojure.core/map :id)
+                                set)
+        group-priorities   (filter #(group-ids (:group %)) priorities)
+        layer-ids          (->> group-priorities (map :layer) (into #{}))
+        selected-layers    (filter #(and (layer-ids %) (match-category? %)) layers)]
+    (sort-layers selected-layers group-priorities (:type logic))))
 
 
 
