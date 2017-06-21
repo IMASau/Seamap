@@ -2259,5 +2259,14 @@
   },
   "model": "catalogue.layergrouppriority",
   "pk": 74
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 4,
+    "group": 1
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 75
 }
 ]
