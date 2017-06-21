@@ -30,7 +30,7 @@
     (->> layers
          (map (fn [{:keys [category id] :as layer}]
                 [(-category-ordering category) (layer-priority id) layer]))
-         sort
+         (sort-by (comp vec (partial take 2)))
          (map last))))
 
 (defn applicable-layers
