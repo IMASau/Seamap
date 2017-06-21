@@ -50,8 +50,8 @@
                                 set)
         group-priorities   (filter #(group-ids (:group %)) priorities)
         layer-ids          (->> group-priorities (map :layer) (into #{}))
-        selected-layers    (filter #(and (layer-ids %) (match-category? %)) layers)]
-    (sort-layers selected-layers group-priorities (:type logic))))
+        selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %)) layers)]
+    (sort-layers selected-layers priorities (:type logic))))
 
 
 
