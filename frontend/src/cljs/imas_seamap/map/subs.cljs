@@ -44,14 +44,13 @@
 (defn map-current-priorities
   "Return the layer-group-priorities that are applicable for the
   current zoom level, etc"
-  [{:keys [map] :as db} _]
-  (let [{:keys [groups priorities bounds zoom zoom-cutover]} map
-        detail-resolution? (< zoom-cutover zoom)
+  [{{:keys [groups priorities bounds zoom zoom-cutover]} :map :as db} _]
+  (let [detail-resolution? (< zoom-cutover zoom)
         group-ids (->> groups
                        (filter (fn [{:keys [bounding_box detail_resolution]}]
                                  (and (= detail_resolution detail-resolution?)
                                       (bbox-intersects? bounds bounding_box))))
-                       (clojure.core/map :id)
+                       (map :id)
                        set)]
     (filter #(group-ids (:group %)) priorities)))
 
