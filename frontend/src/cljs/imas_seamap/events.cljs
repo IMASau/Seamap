@@ -230,3 +230,8 @@
             {:message message
              :intent (or intent b/*intent-warning*)
              :__cache-buster (js/Date.now)}))
+
+;;; A bit of a misnomer really; it cleans up the db, but won't
+;;; override the timeout if a message is still displayed.
+(defn clear-message [db _]
+  (assoc-in db [:info :message] nil))

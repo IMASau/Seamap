@@ -44,6 +44,7 @@
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
     :info/show-message                    events/show-message
+    :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]
     :transect.query/failure               [events/transect-query-error]
     :transect.query/habitat               [events/transect-query-habitat]
