@@ -47,7 +47,7 @@
                                 (filter (fn [{:keys [bounding_box detail_resolution]}]
                                           (and (= detail_resolution detail-resolution?)
                                                (bbox-intersects? bounds bounding_box))))
-                                (clojure.core/map :id)
+                                (map :id)
                                 set)
         group-priorities   (filter #(group-ids (:group %)) priorities)
         layer-ids          (->> group-priorities (map :layer) (into #{}))
