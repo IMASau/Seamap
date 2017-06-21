@@ -45,18 +45,3 @@
                            (console :groupEnd))
                        (console :log "no app-db changes caused by:" event)))))
                context))))
-
-(defn analytics-for [events-to-log]
-  (let [loggable-events (set events-to-log)]
-    (->interceptor
-     :id    :generate-analytics
-     :after (fn analytics-for-after
-              [context]
-              (let [event (get-coeffect context :event)]
-                (when (loggable-events (first event))
-                  ;; FIXME: interact with the javascript ga object
-                  ;; here.  Need to determine how we convert re-frame
-                  ;; events to those understood by GA, and how to
-                  ;; handle args (eg, what layers are enabled, etc)
-                  (console :warn "Generating analytics event for" (name (first event))))
-                context)))))

@@ -3,6 +3,7 @@
             [cljs.spec.alpha :as s]
             [cljs.spec.test.alpha :as stest]
             [imas-seamap.specs.app-state]
+            [imas-seamap.analytics]
             [imas-seamap.specs.events]
             [imas-seamap.specs.spec-utils :as spec-utils]))
 
