@@ -6,7 +6,7 @@
             [clojure.zip :as zip]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.map.utils :refer [bbox-intersects?]]
+            [imas-seamap.map.utils :refer [applicable-layers bbox-intersects?]]
             [oops.core :refer [gcall ocall]]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
@@ -129,11 +129,9 @@
 
 (defn transect-query-habitat [{:keys [db]} [_ linestring]]
   (let [bbox           (geojson-linestring->bbox linestring)
-        layers         (get-in db [:map :active-layers])
-        habitat-layers (filter #(and (:detail_resolution %)
-                                     (= :habitat (:category %))
-                                     (bbox-intersects? bbox (:bounding_box %)))
-                               layers)
+        habitat-layers (applicable-layers db
+                                          :bbox bbox
+                                          :category :habitat)
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it
         ;; must be at the front of the list:
@@ -157,7 +155,7 @@
 
 (defn transect-query-bathymetry [{:keys [db]} [_ linestring]]
   (if-let [{:keys [server_url layer_name] :as bathy-layer}
-           (->> db :map :layers (filter #(= :bathymetry (:category %))) (sort-by :layer_priority) first)]
+           (first (applicable-layers db :category :bathymetry))]
     {:db         db
      :http-xhrio {:method          :get
                   :uri             server_url
