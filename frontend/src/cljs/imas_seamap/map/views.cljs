@@ -100,10 +100,10 @@
     [leaflet-map (merge
                   {:id "map" :use-fly-to true
                    :center center :zoom zoom
-                   :on-zoomend on-map-view-changed
-                   :on-moveend on-map-view-changed
-                   :when-ready on-map-view-changed
-                   :on-click   on-map-clicked
+                   :on-zoomend    on-map-view-changed
+                   :on-moveend    on-map-view-changed
+                   :when-ready    on-map-view-changed
+                   :on-click      on-map-clicked
                    :on-popupclose on-popup-closed}
                   (when (seq bounds) {:bounds (map->bounds bounds)}))
      base-layer-osm
