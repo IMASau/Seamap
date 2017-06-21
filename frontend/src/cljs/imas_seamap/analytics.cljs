@@ -10,6 +10,16 @@
 
 (defmulti format-event (fn [event-v] (first event-v)))
 
+(defmethod format-event :map/toggle-layer [[id layer :as event-v]]
+  {:eventCategory "layers"
+   :eventAction   "toggle"
+   :eventLabel    (:layer_name layer)})
+
+(defmethod format-event :map/pan-to-layer [[id layer :as event-v]]
+  {:eventCategory "layers"
+   :eventAction   "pan"
+   :eventLabel    (:layer_name layer)})
+
 (defmethod format-event :default [[id & args :as event-v]]
   {:eventCategory "general"
    :eventAction   (event->action id)})
