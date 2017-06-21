@@ -1,6 +1,12 @@
-(ns imas-seamap.map.utils
-  (:require [imas-seamap.utils :refer [bbox-intersects?]]))
+(ns imas-seamap.map.utils)
 
+
+(defn bbox-intersects? [b1 b2]
+  (not
+   (or (> (:west b1)  (:east b2))
+       (< (:east b1)  (:west b2))
+       (> (:south b1) (:north b2))
+       (< (:north b1) (:south b2)))))
 
 (def ^:private -category-ordering
   (into {} (map vector [:bathymetry :habitat :imagery :third-party] (range))))

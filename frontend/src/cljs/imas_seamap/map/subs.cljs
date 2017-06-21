@@ -1,6 +1,6 @@
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
-            [imas-seamap.utils :refer [bbox-intersects?]]
+            [imas-seamap.map.utils :refer [bbox-intersects?]]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))

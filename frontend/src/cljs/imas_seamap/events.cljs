@@ -6,7 +6,7 @@
             [clojure.zip :as zip]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [bbox-intersects?]]
+            [imas-seamap.map.utils :refer [bbox-intersects?]]
             [oops.core :refer [gcall ocall]]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
