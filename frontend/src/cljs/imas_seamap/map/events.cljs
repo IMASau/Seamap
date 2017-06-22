@@ -87,7 +87,9 @@
   {:db (update-in db [:map :active-layers]
                   #(if (some #{layer} %)
                      (filterv (fn [l] (not= l layer)) %)
-                     (conj % layer)))
+                     (if (= :bathymetry (:category layer))
+                       [layer] ; if we turn on bathymetry, hide everything else (SM-58)
+                       (conj % layer))))
    ;; If someone triggers this, we also switch to manual mode:
    :dispatch [:map.layers.logic/manual]})
 
