@@ -9,6 +9,7 @@
          :bounds {}
          :layers []
          :priorities []
+         :priority-cutoff 2 ; priorities <= this value will be displayed in auto mode
          :groups []
          :active-layers []
          :logic {:type    :map.layer-logic/automatic
