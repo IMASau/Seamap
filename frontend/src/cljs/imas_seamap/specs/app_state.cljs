@@ -51,7 +51,7 @@
 
 (s/def :map.layer.group/id integer?)
 (s/def :map.layer.group/name string?)
-(s/def :map.layer.group/detail_resolution boolean?)
+(s/def :map.layer.group/detail_resolution (s/nilable boolean?))
 (s/def :map.layer/group (s/keys :req-un [:map.layer.group/id
                                          :map.layer/bounding_box
                                          :map.layer.group/name

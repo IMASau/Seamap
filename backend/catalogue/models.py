@@ -53,7 +53,7 @@ class Organisation(models.Model):
 @python_2_unicode_compatible
 class LayerGroup(models.Model):
     name = models.CharField(max_length = 200)
-    detail_resolution = models.BooleanField(default=True)
+    detail_resolution = models.NullBooleanField(default=True)
 
     def __str__(self):
         return self.name
