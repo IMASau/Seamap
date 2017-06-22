@@ -1596,6 +1596,14 @@
 },
 {
   "fields": {
+    "detail_resolution": null,
+    "name": "National Bathymetry"
+  },
+  "model": "catalogue.layergroup",
+  "pk": 8
+},
+{
+  "fields": {
     "priority": 1,
     "layer": 15,
     "group": 1
@@ -2268,5 +2276,14 @@
   },
   "model": "catalogue.layergrouppriority",
   "pk": 75
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 4,
+    "group": 8
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 76
 }
 ]
