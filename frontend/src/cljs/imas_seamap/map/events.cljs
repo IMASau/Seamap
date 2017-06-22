@@ -5,6 +5,7 @@
             [clojure.string :as string]
             [clojure.zip :as zip]
             [re-frame.core :as re-frame]
+            [imas-seamap.map.utils :refer [applicable-layers]]
             [debux.cs.core :refer-macros [dbg]]
             [ajax.core :as ajax]))
 
@@ -116,29 +117,16 @@
   layer-switching is in place.  When the viewport or zoom changes, we
   may need to switch out a layer for a coarser/finer resolution one.
   Only applies to habitat layers."
-  [{{:keys [layers active-layers zoom zoom-cutover bounds logic]} :map :as db}]
+  [{{:keys [logic]} :map :as db}]
   ;; Basic idea:
   ;; * check that any habitat layer is currently displayed (ie, don't start with no habitats, then zoom in and suddenly display one!)
   ;; * filter out habitat layers from actives
   ;; * add back in those that are visible, and past the zoom cutoff
   ;; * assoc back onto the db
-  (let [{active-habitats  true
-         filtered-actives false} (group-by habitat-layer? active-layers)]
-    (if (and (= (:type logic) :map.layer-logic/automatic)
-             (seq active-habitats))
-      (let [display-more-detail? (> zoom zoom-cutover)
-            {detailed-habitats   true
-             national-resolution false} (->> layers
-                                             (filter habitat-layer?)
-                                             (group-by :detail_resolution))
-            visible-detailed (visible-layers bounds detailed-habitats)]
-        (assoc-in db [:map :active-layers]
-                  (->> (if (and display-more-detail? (seq visible-detailed))
-                         visible-detailed
-                         (take 1 national-resolution))
-                       (into filtered-actives)
-                       (into #{}))))
-      db)))
+  (if (= (:type logic) :map.layer-logic/automatic)
+    (assoc-in db [:map :active-layers]
+              (vec (applicable-layers db :category :habitat)))
+    db))
 
 (defn show-initial-layer
   "Figure out the highest priority layer, and display it"
