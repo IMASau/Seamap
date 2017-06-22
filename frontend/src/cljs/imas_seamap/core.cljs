@@ -65,13 +65,13 @@
     :map/toggle-layer                     [mevents/toggle-layer]
     :map.layers/filter                    mevents/map-set-layer-filter
     :map.layers/others-filter             mevents/map-set-others-layer-filter
-    :map.layers.logic/toggle              mevents/map-layer-logic-toggle
+    :map.layers.logic/toggle              [mevents/map-layer-logic-toggle]
     :map.layers.logic/manual              mevents/map-layer-logic-manual
     :map.layers.logic/automatic           mevents/map-layer-logic-automatic
     :map/update-layers                    mevents/update-layers
     :map/update-groups                    mevents/update-groups
     :map/update-priorities                mevents/update-priorities
-    :map/initialise-display               [mevents/show-initial-layer]
+    :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/view-updated                     mevents/map-view-updated
     :map/popup-closed                     mevents/destroy-popup

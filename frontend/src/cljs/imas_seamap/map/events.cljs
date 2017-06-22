@@ -130,11 +130,11 @@
               (vec (applicable-layers db :category :habitat)))
     db))
 
-(defn show-initial-layer
+(defn show-initial-layers
   "Figure out the highest priority layer, and display it"
   [{:keys [db]} _]
-  (let [initial-layer (first (applicable-layers db :category :habitat))]
-    {:db       (assoc-in db [:map :active-layers] [initial-layer])
+  (let [initial-layers (applicable-layers db :category :habitat)]
+    {:db       (assoc-in db [:map :active-layers] (vec initial-layers))
      :dispatch [:ui/hide-loading]}))
 
 (defn map-layer-logic-manual [db [_ user-triggered]]
@@ -145,13 +145,16 @@
 (defn map-layer-logic-automatic [db _]
   (assoc-in db [:map :logic] {:type :map.layer-logic/automatic :trigger :map.logic.trigger/automatic}))
 
-(defn map-layer-logic-toggle [{:keys [map] :as db} [_ user-triggered]]
-  (let [type (if (= (get-in map [:logic :type])
+(defn map-layer-logic-toggle [{:keys [db]} [_ user-triggered]]
+  (let [type (if (= (get-in db [:map :logic :type])
                     :map.layer-logic/manual)
                :map.layer-logic/automatic
                :map.layer-logic/manual)
         trigger (if user-triggered :map.logic.trigger/user :map.logic.trigger/automatic)]
-    (assoc-in db [:map :logic] {:type type :trigger trigger})))
+    (merge {:db (assoc-in db [:map :logic] {:type type :trigger trigger})}
+           ;; Also reset displayed layers, if we're turning auto-mode back on:
+           (when (= type :map.layer-logic/automatic)
+             {:dispatch [:map/initialise-display]}))))
 
 (defn map-view-updated [db [_ {:keys [zoom center bounds]}]]
   (-> db
