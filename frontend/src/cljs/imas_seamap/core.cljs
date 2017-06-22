@@ -22,7 +22,7 @@
     :map/layers                           msubs/map-layers
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
-    :map.layers/priorities                msubs/map-current-priorities
+    :map.layers/priorities                msubs/map-layer-priorities
     :map.layers/logic                     msubs/map-layer-logic
     :map.feature/info                     subs/feature-info
     :transect/info                        subs/transect-info

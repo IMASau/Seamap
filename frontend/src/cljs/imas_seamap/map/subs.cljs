@@ -41,18 +41,8 @@
                            (filter (partial match-layer filter-text-others) third-party))
      :active-layers active-layers}))
 
-(defn map-current-priorities
-  "Return the layer-group-priorities that are applicable for the
-  current zoom level, etc"
-  [{{:keys [groups priorities bounds zoom zoom-cutover]} :map :as db} _]
-  (let [detail-resolution? (< zoom-cutover zoom)
-        group-ids (->> groups
-                       (filter (fn [{:keys [bounding_box detail_resolution]}]
-                                 (and (= detail_resolution detail-resolution?)
-                                      (bbox-intersects? bounds bounding_box))))
-                       (map :id)
-                       set)]
-    (filter #(group-ids (:group %)) priorities)))
+(defn map-layer-priorities [db _]
+  (get-in db [:map :priorities]))
 
 (defn map-layer-logic [db _]
   (get-in db [:map :logic]
