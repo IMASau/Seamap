@@ -41,7 +41,8 @@
   ;; figures out cut-off point, and restricts to those on the right side of it;
   ;; filters to those groups intersecting the bbox;
   ;; sorts by priority and grouping.
-  (let [match-category?    #(if category (= category (:category %)) true)
+  (let [logic-type         (:type logic)
+        match-category?    #(if category (= category (:category %)) true)
         detail-resolution? (< zoom-cutover zoom)
         group-ids          (->> groups
                                 (filter (fn [{:keys [bounding_box detail_resolution]}]
@@ -54,7 +55,7 @@
                                    priorities)
         layer-ids          (->> group-priorities (map :layer) (into #{}))
         selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %)) layers)]
-    (sort-layers selected-layers priorities (:type logic))))
+    (sort-layers selected-layers priorities logic-type)))
 
 
 
