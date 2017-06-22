@@ -131,17 +131,7 @@
 (defn show-initial-layer
   "Figure out the highest priority layer, and display it"
   [{:keys [db]} _]
-  (let [{{:keys [groups priorities layers]} :map} db
-        overview-group-ids (->> groups
-                                (filter #(not (:detail_resolution %)))
-                                (map :id)
-                                set)
-        layer-id (->> priorities
-                      (filter #(overview-group-ids (:group %)))
-                      (sort-by :priority)
-                      first
-                      :layer)
-        initial-layer (some #(and (= layer-id (:id %)) %) layers)]
+  (let [initial-layer (first (applicable-layers db :category :habitat))]
     {:db       (assoc-in db [:map :active-layers] [initial-layer])
      :dispatch [:ui/hide-loading]}))
 
