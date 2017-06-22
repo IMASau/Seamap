@@ -46,7 +46,9 @@
         detail-resolution? (< zoom-cutover zoom)
         group-ids          (->> groups
                                 (filter (fn [{:keys [bounding_box detail_resolution]}]
-                                          (and (= detail_resolution detail-resolution?)
+                                          ;; detail_resolution only applies to habitat layers:
+                                          (and (or (nil? detail_resolution)
+                                                   (= detail_resolution detail-resolution?))
                                                (bbox-intersects? bounds bounding_box))))
                                 (map :id)
                                 set)
