@@ -34,7 +34,7 @@
          (map last))))
 
 (defn applicable-layers
-  [{{:keys [layers groups priorities zoom zoom-cutover bounds logic]} :map :as db}
+  [{{:keys [layers groups priorities priority-cutoff zoom zoom-cutover bounds logic]} :map :as db}
    & {:keys [bbox category]
       :or   {bbox bounds}}]
   ;; Generic utility to retrieve a list of relevant layers, filtered as necessary.
@@ -49,7 +49,9 @@
                                                (bbox-intersects? bounds bounding_box))))
                                 (map :id)
                                 set)
-        group-priorities   (filter #(group-ids (:group %)) priorities)
+        group-priorities   (filter #(and (< (:priority %) priority-cutoff)
+                                         (group-ids (:group %)))
+                                   priorities)
         layer-ids          (->> group-priorities (map :layer) (into #{}))
         selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %)) layers)]
     (sort-layers selected-layers priorities (:type logic))))
