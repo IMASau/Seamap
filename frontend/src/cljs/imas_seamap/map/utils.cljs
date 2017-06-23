@@ -9,6 +9,8 @@
        (> (:south b1) (:north b2))
        (< (:north b1) (:south b2)))))
 
+(defn habitat-layer? [layer] (-> layer :category (= :habitat)))
+
 (def ^:private -category-ordering
   (into {} (map vector [:bathymetry :habitat :imagery :third-party] (range))))
 

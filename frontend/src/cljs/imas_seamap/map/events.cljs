@@ -112,8 +112,6 @@
 (defn visible-layers [{:keys [west south east north] :as bounds} layers]
   (filter (partial layer-visible? bounds) layers))
 
-(defn habitat-layer? [layer] (-> layer :category (= :habitat)))
-
 (defn update-active-layers
   "Utility to recalculate layers that are displayed when automatic
   layer-switching is in place.  When the viewport or zoom changes, we
