@@ -25,11 +25,11 @@ insert into @tmphabitat
       and geom.STIntersects(@line) = 1;
 
 SELECT segments.segment.STStartPoint().STX as 'start x',
-        segments.segment.STStartPoint().STY as 'start y',
-        segments.segment.STEndPoint().STX as 'end x',
-        segments.segment.STEndPoint().STY as 'start y',
-        segments.segment.STLength() as 'length',
-        segments.name
+       segments.segment.STStartPoint().STY as 'start y',
+       segments.segment.STEndPoint().STX   as 'end x',
+       segments.segment.STEndPoint().STY   as 'start y',
+       segments.segment.STLength()         as 'length',
+       segments.name
 FROM(
     SELECT segment, name
     FROM path_intersections(@line, @tmphabitat)
