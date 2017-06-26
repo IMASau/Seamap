@@ -112,7 +112,8 @@ footer {
     padding: 10px;
 }
 
-.layer-wrapper .header-row {
+.layer-wrapper .header-row,
+.layer-wrapper .subheader-row {
     display: flex;
     flex-direction: row;
 }
@@ -122,11 +123,13 @@ footer {
     overflow: hidden;
 }
 
-.layer-wrapper .header-row .layer-controls {
+.layer-wrapper .header-row .view-controls {
     flex: 0;
-    display: flex;
-    flex-direction: column;
     margin-left: 10px;
+}
+
+.layer-wrapper .control-row {
+    flex: 1 1 auto;
 }
 
 .layer-controls .control:hover,

@@ -200,16 +200,19 @@
                      :is-disabled (not active?)}
           [b/clipped-text {:ellipsize true :class-name "header-text"}
            name]]
-         [:div.layer-controls.pt-ui-text-large
+         [:div.view-controls.pt-ui-text-large
           [b/tooltip {:content (if active? "Hide layer" "Show layer")
                       :position *RIGHT*}
            [:span.control.pt-text-muted.pt-icon-large
             {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
-             :on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer-spec]))}]]
-          [b/tooltip {:content "Show entire layer"
-                      :position *RIGHT*}
-           [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
-            {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer-spec]))}]]]]
+             :on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer-spec]))}]]]]
+        [:div.subheader-row.height-static
+         [:div.control-row
+          [:span.control.pt-text-muted.pt-icon-standard.pt-icon-link]
+          [:span.control.pt-text-muted.pt-icon-standard.pt-icon-import]]
+         [:div.view-controls.pt-ui-text-large
+          [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
+           {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer-spec]))}]]]
         [b/collapse {:is-open (and active? @show-legend)
                      :className "layer-legend"}
          [legend-display layer-spec]]]])))
