@@ -36,3 +36,7 @@
 (def *intent-success* (gget "Blueprint.Intent.SUCCESS"))
 (def *intent-warning* (gget "Blueprint.Intent.WARNING"))
 (def *intent-danger*  (gget "Blueprint.Intent.DANGER"))
+
+;;; Other constants:
+
+(def ^:private *RIGHT* (gget "Blueprint.Position.RIGHT"))

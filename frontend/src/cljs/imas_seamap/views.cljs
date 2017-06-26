@@ -3,7 +3,7 @@
             [clojure.string :as string]
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]
-            [imas-seamap.blueprint :as b]
+            [imas-seamap.blueprint :as b :refer [*RIGHT*]]
             [imas-seamap.map.events :refer [process-layer]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
@@ -187,8 +187,6 @@
                       :VERSION "1.1.1"})]
     [:div.legend-wrapper
      [:img {:src legend-url}]]))
-
-(def ^:private *RIGHT* (oget js/window "Blueprint.Position.RIGHT"))
 
 (defn layer-card [layer-spec other-props]
   (let [show-legend (reagent/atom false)]
