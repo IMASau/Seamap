@@ -197,7 +197,7 @@
          [b/clipped-text {:ellipsize true :class-name "header-text"}
           [b/tooltip {:content (if @show-legend "Click to hide legend" "Click to show legend")
                       :position *RIGHT*
-                      :isDisabled (not active?)}
+                      :is-disabled (not active?)}
            name]]
          [:div.layer-controls.pt-ui-text-large
           [b/tooltip {:content (if active? "Hide layer" "Show layer")
