@@ -62,5 +62,18 @@
         selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %)) layers)]
     (sort-layers selected-layers priorities logic-type)))
 
+(defn all-priority-layers
+  "Return the list of priority layers: that is, every layer for which
+  its priority in *some* group is higher than the priority-cutoff.
+  This only applies to habitat and bathymetry layers; other categories
+  aren't handled via priorities and are always included."
+  [{{:keys [layers priorities priority-cutoff]} :map :as db}]
+  (let [priority-layer-ids (->> priorities
+                                (filter #(< (:priority %) priority-cutoff))
+                                (map :layer)
+                                set)]
+    (filter #(or (not (#{:habitat :bathymetry} (:category %)))
+                 (priority-layer-ids (:id %)))
+            layers)))
 
 
