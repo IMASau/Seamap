@@ -1,5 +1,6 @@
 -- Calculate all the intersections along a path, together with an attribute of interest from the intersected polygon.
 -- Assumption is that the input is a LINESTRING, and the intersected geometries are all polygons.
+-- Any overlaps are clipped, with earlier polygons have priority over (clipping) later ones in @habitat.
 
 CREATE FUNCTION path_intersections(@transect geometry, @habitat HabitatTableType READONLY)
 RETURNS @TransectSegments TABLE (

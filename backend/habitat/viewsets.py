@@ -12,17 +12,18 @@ from rest_framework.serializers import ValidationError
 # here; "%s" and "{}".  The former is used by ODBC for parameters
 # (avoiding injection attacks, etc).  The latter is because we want to
 # do a where-in clause against an unknown number of parameters, so for
-# safety we construct the sequence "%s,%s,..." matching the number of
-# user parameters, include that in the template by substituting for
-# {}.
+# safety we construct the portion of the template refering to layers
+# below, using a '%s' parameter for every layer, then include that in
+# the template by substituting for {}.
 SQL_GET_TRANSECT = """
 declare @line geometry = geometry::STGeomFromText(%s, 3112);
 declare @tmphabitat as HabitatTableType;
 
 insert into @tmphabitat
-    select habitat as name, geom from SeamapAus_Regions_VIEW
-    where lower(layer_name) in ({})
-      and geom.STIntersects(@line) = 1;
+    select habitat as name, geom from (
+        {}
+    ) polys
+    order by priority asc;
 
 SELECT segments.segment.STStartPoint().STX as 'start x',
        segments.segment.STStartPoint().STY as 'start y',
@@ -65,8 +66,14 @@ class HabitatViewSet(viewsets.ViewSet):
         start_pt = tuple(map(D, line.split(',', 1)[0].split(' ')))
         start_percentage = 0
 
+        # To ensure polygons are inserted in the order of layer
+        # ordering, we add a priority to sort by -- which means
+        # generating a union-all statement by layer:
         layers = request.query_params.get('layers').lower().split(',')
-        layers_placeholder = ','.join(['%s'] * len(layers))
+        layer_stmt = ('select habitat, geom, {} as priority '
+                      'from SeamapAus_Regions_VIEW '
+                      'where lower(layer_name) = %s and geom.STIntersects(@line) = 1')
+        layers_placeholder = '\nUNION ALL\n'.join( layer_stmt.format(i) for i,_ in enumerate(layers) )
 
         with connections['transects'].cursor() as cursor:
             cursor.execute(SQL_GET_TRANSECT.format(layers_placeholder),
