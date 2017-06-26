@@ -119,6 +119,7 @@ footer {
 
 .layer-wrapper .header-text {
     flex: 1 1 auto;
+    overflow: hidden;
 }
 
 .layer-wrapper .header-row .layer-controls {

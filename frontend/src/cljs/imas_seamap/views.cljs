@@ -194,10 +194,11 @@
       [:div.layer-wrapper {:on-click (handler-fn (when active? (swap! show-legend not)))}
        [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "layer-active pt-interactive")}
         [:div.header-row.height-static
-         [b/clipped-text {:ellipsize true :class-name "header-text"}
-          [b/tooltip {:content (if @show-legend "Click to hide legend" "Click to show legend")
-                      :position *RIGHT*
-                      :is-disabled (not active?)}
+         [b/tooltip {:content (if @show-legend "Click to hide legend" "Click to show legend")
+                     :class-name "header-text"
+                     :position *RIGHT*
+                     :is-disabled (not active?)}
+          [b/clipped-text {:ellipsize true :class-name "header-text"}
            name]]
          [:div.layer-controls.pt-ui-text-large
           [b/tooltip {:content (if active? "Hide layer" "Show layer")
