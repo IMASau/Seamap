@@ -1,5 +1,5 @@
 (ns imas-seamap.map.utils
-  (:require [debux.cs.core :refer [dbg]]))
+  (:require [debux.cs.core :refer-macros [dbg]]))
 
 
 (defn bbox-intersects? [b1 b2]
