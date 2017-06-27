@@ -451,7 +451,7 @@
   SM_HAB_CLS column in the different habitat tables."
   (merge
    ;; This data semi-automatically extracted; see imas-seamap.munging:
-   {"Coralline algae"                                                         "#e68a00",
+   {"Coralline algae"                                                            "#e68a00",
     "High density filter feeders (sponges & soft corals)"                        "#b30086",
     "11-30%"                                                                     "#9ecc3b",
     "Channel - moderate (5 - 10 metres)"                                         "#00e6b8",
@@ -741,7 +741,13 @@
     "Medium density filter feeders (sponges & soft corals)"                      "#ff99e6",
     "Volcanic sand and grit"                                                     "#000000",
     "Reef"                                                                       "#640000",
-    "Low tidal mudflat"                                                          "#734e26"}
+    "Low tidal mudflat"                                                          "#734e26",
+    "Bare reef (intertidal)"                                                     "#fed66d",
+    "Bare reef (subtidal)"                                                       "#feac00",
+    "Macroalgae (intertidal)"                                                    "#ccffb3",
+    "Macroalgae (subtidal)"                                                      "#00e6b8",
+    "Coral reef (intertidal)"                                                    "#f6a4fe",
+    "Coral reef (subtidal)"                                                      "#ca00db"}
    ;; Manual overrides for Tasmanian layer (the style for which uses background images)
    {"Cobble"                 "#00a9e6"
     "Patchy reef"            "#640000"
