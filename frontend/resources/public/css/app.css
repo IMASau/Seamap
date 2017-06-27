@@ -116,6 +116,15 @@ footer {
 .layer-wrapper .subheader-row {
     display: flex;
     flex-direction: row;
+    overflow: hidden;
+}
+
+.layer-wrapper .subheader-row {
+    transition: height 200ms ease-out;
+    height: 0;
+}
+.layer-wrapper:hover .subheader-row {
+    height: 20px;
 }
 
 .layer-wrapper .header-text {
