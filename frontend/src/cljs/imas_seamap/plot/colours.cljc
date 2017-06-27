@@ -747,7 +747,8 @@
     "Macroalgae (intertidal)"                                                    "#ccffb3",
     "Macroalgae (subtidal)"                                                      "#00e6b8",
     "Coral reef (intertidal)"                                                    "#f6a4fe",
-    "Coral reef (subtidal)"                                                      "#ca00db"}
+    "Coral reef (subtidal)"                                                      "#ca00db",
+    "Gravel/rubble"                                                              "#c2783d"}
    ;; Manual overrides for Tasmanian layer (the style for which uses background images)
    {"Cobble"                 "#00a9e6"
     "Patchy reef"            "#640000"
