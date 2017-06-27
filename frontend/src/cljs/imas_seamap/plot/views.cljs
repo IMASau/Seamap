@@ -238,7 +238,7 @@
         pointy                             (if (nil? closest-depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth closest-depth})))
         {:keys [name]}                     (habitat-at-percentage (merge props {:percentage closest-percentage}))
         depth-label                        (if (nil? closest-depth) "No data" (str (.toFixed closest-depth 4) "m"))
-        zone-label                         (if (nil? name) "No data" (get zone-legend name "No data"))
+        zone-label                         (if (nil? name) "No data" (get zone-legend name name))
         distance                           (int (/ (* percentage max-x) 100))
         distance-unit                      (if (seq habitat) "m" "%")]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
