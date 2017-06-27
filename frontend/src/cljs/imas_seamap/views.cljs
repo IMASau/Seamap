@@ -211,8 +211,10 @@
           [:span.control.pt-text-muted.pt-icon-standard.pt-icon-link]
           [:span.control.pt-text-muted.pt-icon-standard.pt-icon-import]]
          [:div.view-controls.pt-ui-text-large
-          [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
-           {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer-spec]))}]]]
+          [b/tooltip {:content "Show entire layer"
+                      :position *RIGHT*}
+           [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
+            {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer-spec]))}]]]]
         [b/collapse {:is-open (and active? @show-legend)
                      :className "layer-legend"}
          [legend-display layer-spec]]]])))
