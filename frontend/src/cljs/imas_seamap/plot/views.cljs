@@ -233,17 +233,17 @@
         previous                           (if (seq before) (last before) (first after))
         next                               (if (seq after) (first after) (last before))
         next-is-closest                    (< (- (first next) percentage) (- percentage (first previous)))
-        [closest-percentage closest-depth] (if next-is-closest next previous)
-        pointx                             (percentage-to-x-pos (merge props {:percentage closest-percentage}))
+        [_ closest-depth]                  (if next-is-closest next previous)
+        pointx                             (percentage-to-x-pos (merge props {:percentage percentage}))
         pointy                             (if (nil? closest-depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth closest-depth})))
-        {:keys [name]}                     (habitat-at-percentage (merge props {:percentage closest-percentage}))
+        {:keys [name]}                     (habitat-at-percentage (merge props {:percentage percentage}))
         depth-label                        (if (nil? closest-depth) "No data" (str (.toFixed closest-depth 4) "m"))
         zone-label                         (if (nil? name) "No data" (get zone-legend name name))
         distance                           (int (/ (* percentage max-x) 100))
         distance-unit                      (if (seq habitat) "m" "%")]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
                                   :textbox   {:transform (str "translate("
-                                                              (+ m-left ox (* (/ closest-percentage 100) (- graph-domain tooltip-width)))
+                                                              (+ m-left ox (* (/ percentage 100) (- graph-domain tooltip-width)))
                                                               ", " (+ 10 (+ m-top (* graph-range (- 1 offset)))) ")")}
                                   :line      {:x1 pointx
                                               :y1 m-top
@@ -254,7 +254,7 @@
                                               (str "Distance: " distance distance-unit)]
                                   :datapoint {:cx pointx
                                               :cy pointy}})
-    (if on-mousemove (on-mousemove {:percentage closest-percentage
+    (if on-mousemove (on-mousemove {:percentage percentage
                                     :habitat    zone-label
                                     :depth      closest-depth}))))
 
