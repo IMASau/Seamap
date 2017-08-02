@@ -124,9 +124,6 @@
     {:db       (assoc-in db [:transect type] status-text)
      :dispatch [:info/show-message status-text b/*intent-danger*]}))
 
-;;; May not need to override this, but let's make it easy to anyway:
-(goog-define TRANSECT-API "/api/habitat/transect/")
-
 (defn transect-query-habitat [{:keys [db]} [_ linestring]]
   (let [bbox           (geojson-linestring->bbox linestring)
         habitat-layers (->> db :map :active-layers (filter habitat-layer?))
@@ -137,7 +134,7 @@
     (if (seq habitat-layers)
       {:db         db
        :http-xhrio {:method          :get
-                    :uri             TRANSECT-API
+                    :uri             (str db/api-url-base "habitat/transect/")
                     :params          {:layers layer-names
                                       :line   (->> linestring
                                                    (map wgs48->epsg3112)
