@@ -70,6 +70,12 @@
 (defn habitat-at-percentage [{:keys [:transect.results/habitat percentage]}]
   (peek (filterv #(<= (:start_percentage %) percentage) habitat)))
 
+(defn depth-at-percentage [{:keys [:transect.results/bathymetry percentage]}]
+  (->> bathymetry
+       (filterv #(<= (first %) percentage))
+       peek
+       second))
+
 (defn graph-line-string [{:keys [:transect.results/bathymetry origin margin graph-domain graph-range offset min-depth max-depth spread] :as props}]
   (let [[m-left m-right m-top m-bottom] margin
         [ox oy] origin
@@ -229,15 +235,11 @@
         [m-left m-right m-top m-bottom]    margin
         [ox oy]                            origin
         percentage                         (min (max (* 100 (mouse-pos-to-percentage (merge props {:pagex pagex}))) 0) 100)
-        [before after]                     (split-with #(< (first %) percentage) bathymetry)
-        previous                           (if (seq before) (last before) (first after))
-        next                               (if (seq after) (first after) (last before))
-        next-is-closest                    (< (- (first next) percentage) (- percentage (first previous)))
-        [_ closest-depth]                  (if next-is-closest next previous)
+        depth                              (depth-at-percentage (merge props {:percentage percentage}))
         pointx                             (percentage-to-x-pos (merge props {:percentage percentage}))
-        pointy                             (if (nil? closest-depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth closest-depth})))
+        pointy                             (if (nil? depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth depth})))
         {:keys [name]}                     (habitat-at-percentage (merge props {:percentage percentage}))
-        depth-label                        (if (nil? closest-depth) "No data" (str (.toFixed closest-depth 4) "m"))
+        depth-label                        (if (nil? depth) "No data" (str (.toFixed depth 4) "m"))
         zone-label                         (if (nil? name) "No data" (get zone-legend name name))
         distance                           (int (/ (* percentage max-x) 100))
         distance-unit                      (if (seq habitat) "m" "%")]
@@ -256,7 +258,7 @@
                                               :cy pointy}})
     (if on-mousemove (on-mousemove {:percentage percentage
                                     :habitat    zone-label
-                                    :depth      closest-depth}))))
+                                    :depth      depth}))))
 
 
 (defn mouse-leave-graph [{:keys [tooltip-content on-mouseout] :as props}]
