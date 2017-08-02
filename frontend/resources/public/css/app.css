@@ -18,13 +18,13 @@ body {
     flex-direction: column;
     justify-content: flex-start;
     padding: 5px;
-    width: 0;
+    min-width: 0;
 }
 #content-wrapper {
     flex: 1 1 100%;
     display: flex;
     flex-direction: column;
-    width: 0; /* Makes it ignore child width, in particular won't be stretched by svg */
+    min-width: 0; /* Makes it ignore child width, in particular won't be stretched by svg */
 }
 #map {
     flex: 1 1 100%;
