@@ -41,6 +41,22 @@ class Organisation(models.Model):
         return self.name
 
 
+# Habitat descriptors; ie, how we map from a habitat key to a colour
+# and (optionally) a title:
+
+colour_validator = RegexValidator(regex=r'^#[0-9a-fA-F]{6,6}$',
+                                  message="Colour must be in hexadecimal format")
+
+@python_2_unicode_compatible
+class HabitatDescriptor(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    colour = models.CharField(max_length=7, validators=[colour_validator])
+    title = models.CharField(max_length=200, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
 # We have groups of layers, for the purposes of automatic layer
 # switching logic.  A group is a collection of overlapping layers, and
 # layers have a priority within that group that determines in what

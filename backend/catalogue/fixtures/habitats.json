@@ -1,0 +1,2684 @@
+[
+  {
+    "fields": {
+      "name": "Coralline algae",
+      "colour": "#e68a00",
+      "title": "Coralline algae"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 0
+  },
+  {
+    "fields": {
+      "name": "High density filter feeders (sponges & soft corals)",
+      "colour": "#b30086",
+      "title": "Filter feeders (sponges & soft corals) - high density"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "name": "11-30%",
+      "colour": "#9ecc3b",
+      "title": "11-30%"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "name": "Channel - moderate (5 - 10 metres)",
+      "colour": "#00e6b8",
+      "title": "Channel - moderate (5 - 10 metres)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "name": "Benthic micro-algae",
+      "colour": "#a82424",
+      "title": "Benthic microalgae"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 4
+  },
+  {
+    "fields": {
+      "name": "Sloping rocky bottom",
+      "colour": "#000066",
+      "title": "Sloping rocky bottom"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 5
+  },
+  {
+    "fields": {
+      "name": "Offshore reef",
+      "colour": "#640000",
+      "title": "Offshore reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 6
+  },
+  {
+    "fields": {
+      "name": "Fine sediment",
+      "colour": "#f9f075",
+      "title": "Fine sediment"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 7
+  },
+  {
+    "fields": {
+      "name": "Medium profile reef",
+      "colour": "#A16632",
+      "title": "Medium profile reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 8
+  },
+  {
+    "fields": {
+      "name": "Halophila decipiens",
+      "colour": "#b3daff",
+      "title": "Halophila decipiens"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 9
+  },
+  {
+    "fields": {
+      "name": "Pinnacle",
+      "colour": "#b52829",
+      "title": "Pinnacle"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 10
+  },
+  {
+    "fields": {
+      "name": "Undefined",
+      "colour": "#999999",
+      "title": "Undefined"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 11
+  },
+  {
+    "fields": {
+      "name": "Massive/Soft/Branching coral / Sponge",
+      "colour": "#7b50fb",
+      "title": "Massive/Soft/Branching coral + Sponge"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 12
+  },
+  {
+    "fields": {
+      "name": "Invertebrate community",
+      "colour": "#E64C00",
+      "title": "Invertebrate community"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 13
+  },
+  {
+    "fields": {
+      "name": "Plunging cliff",
+      "colour": "#cc3300",
+      "title": "Plunging cliff"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 14
+  },
+  {
+    "fields": {
+      "name": "Macroalgae",
+      "colour": "#2d9624",
+      "title": "Macroalgae"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 15
+  },
+  {
+    "fields": {
+      "name": "Halophila sp.",
+      "colour": "#47291f",
+      "title": "Halophila sp."
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 16
+  },
+  {
+    "fields": {
+      "name": "Islands and rocks",
+      "colour": "#018200",
+      "title": "Islands and rocks"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 17
+  },
+  {
+    "fields": {
+      "name": "Boulder+Rubble",
+      "colour": "#ff9900",
+      "title": "Boulder and rubble"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 18
+  },
+  {
+    "fields": {
+      "name": "Sparse patchy seagrass",
+      "colour": "#d1ff73",
+      "title": "Sparse patchy seagrass"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 19
+  },
+  {
+    "fields": {
+      "name": "Caulerpa",
+      "colour": "#00E6A9",
+      "title": "Caulerpa"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 20
+  },
+  {
+    "fields": {
+      "name": "Blue hole",
+      "colour": "#000066",
+      "title": "Blue hole"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 21
+  },
+  {
+    "fields": {
+      "name": "Sand, silt and gravel with less than 50% mud",
+      "colour": "#E8C7AE",
+      "title": "Sand, silt and gravel with less than 50% mud"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 22
+  },
+  {
+    "fields": {
+      "name": "Algal mat",
+      "colour": "#8fb300",
+      "title": "Algal mat"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 23
+  },
+  {
+    "fields": {
+      "name": "Shallow, very low slope, unconsolidated",
+      "colour": "#ffce99",
+      "title": "Shallow, very low slope, unconsolidated"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 24
+  },
+  {
+    "fields": {
+      "name": "Seagrass",
+      "colour": "#02DC00",
+      "title": "Seagrass"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 25
+  },
+  {
+    "fields": {
+      "name": "Vegetated area",
+      "colour": "#016300",
+      "title": "Vegetated area"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 26
+  },
+  {
+    "fields": {
+      "name": "Sand and bolders",
+      "colour": "#999966",
+      "title": "Sand and boulders"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 27
+  },
+  {
+    "fields": {
+      "name": "Shallow island fringe",
+      "colour": "#7ab8b8",
+      "title": "Shallow island fringe"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 28
+  },
+  {
+    "fields": {
+      "name": "Mixed reef and gravel",
+      "colour": "#cc0000",
+      "title": "Mixed reef and gravel"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 29
+  },
+  {
+    "fields": {
+      "name": "Sand",
+      "colour": "#FFF9A5",
+      "title": "Sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 30
+  },
+  {
+    "fields": {
+      "name": "Filter feeders",
+      "colour": "#bc8fbc",
+      "title": "Filter feeders"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 31
+  },
+  {
+    "fields": {
+      "name": "Patchy reef",
+      "colour": "#640000",
+      "title": "Patchy reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 32
+  },
+  {
+    "fields": {
+      "name": "Wave dominated estuary",
+      "colour": "#000080",
+      "title": "Wave dominated estuary"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 33
+  },
+  {
+    "fields": {
+      "name": "Estuarine - salt flats and saltmarshes",
+      "colour": "#ff1a53",
+      "title": "Estuarine - salt flats and saltmarshes"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 34
+  },
+  {
+    "fields": {
+      "name": "Roads, cultural features",
+      "colour": "#4a1c4a",
+      "title": "Roads, cultural features"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 35
+  },
+  {
+    "fields": {
+      "name": "Halodule uninervis",
+      "colour": "#ffccff",
+      "title": "Halodule uninervis"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 36
+  },
+  {
+    "fields": {
+      "name": "Thalassia hemprichii with mixed species",
+      "colour": "#6f2a6f",
+      "title": "Thalassia hemprichii with mixed species"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 37
+  },
+  {
+    "fields": {
+      "name": "Mobile sand",
+      "colour": "#eade9c",
+      "title": "Mobile sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 38
+  },
+  {
+    "fields": {
+      "name": "> 1000 g/m2",
+      "colour": "#002c00",
+      "title": "> 1000"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 39
+  },
+  {
+    "fields": {
+      "name": "Mixed seagrass species",
+      "colour": "#009900",
+      "title": "Mixed seagrass species"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 40
+  },
+  {
+    "fields": {
+      "name": "Riverine/estuarine",
+      "colour": "#00E6A9",
+      "title": "Riverine/estuarine"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 41
+  },
+  {
+    "fields": {
+      "name": "Basin",
+      "colour": "#29bd44",
+      "title": "Basin"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 42
+  },
+  {
+    "fields": {
+      "name": "Rocky reef",
+      "colour": "#640000",
+      "title": "Rocky reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 43
+  },
+  {
+    "fields": {
+      "name": "Rhizophora",
+      "colour": "#3fd411",
+      "title": "Rhizophora"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 44
+  },
+  {
+    "fields": {
+      "name": "Offshore deep",
+      "colour": "#3d3d8f",
+      "title": "Offshore deep"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 45
+  },
+  {
+    "fields": {
+      "name": "Tide dominated estuary",
+      "colour": "#009999",
+      "title": "Tide dominated estuary"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 46
+  },
+  {
+    "fields": {
+      "name": "Transition",
+      "colour": "#0000cc",
+      "title": "Transition"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 47
+  },
+  {
+    "fields": {
+      "name": "Patchy seagrass",
+      "colour": "#02dc00",
+      "title": "Patchy seagrass"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 48
+  },
+  {
+    "fields": {
+      "name": "Enhalus acoroides",
+      "colour": "#4dc3ff",
+      "title": "Enhalus acoroides"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 49
+  },
+  {
+    "fields": {
+      "name": "Coral",
+      "colour": "#dd3c8c",
+      "title": "Coral"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 50
+  },
+  {
+    "fields": {
+      "name": "Mud and sand",
+      "colour": "#FFAD00",
+      "title": "Mud and sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 51
+  },
+  {
+    "fields": {
+      "name": "Tidal sand banks",
+      "colour": "#FFF9A5",
+      "title": "Tidal sand banks"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 52
+  },
+  {
+    "fields": {
+      "name": "High energy coastal",
+      "colour": "#E64C00",
+      "title": "High energy coastal"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 53
+  },
+  {
+    "fields": {
+      "name": "Low profile reef",
+      "colour": "#A1967A",
+      "title": "Low profile reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 54
+  },
+  {
+    "fields": {
+      "name": "Exposed Rock",
+      "colour": "#008080",
+      "title": "Exposed rock"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 55
+  },
+  {
+    "fields": {
+      "name": "Tidal channel (subtidal)",
+      "colour": "#1a8cff",
+      "title": "Tidal channel"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 56
+  },
+  {
+    "fields": {
+      "name": "Subtidal, mobile, below PS zone, rough",
+      "colour": "#52217a",
+      "title": "Subtidal - mobile substrate (rough), below PS zone"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 57
+  },
+  {
+    "fields": {
+      "name": "Estuarine - water",
+      "colour": "#5599ff",
+      "title": "Estuarine - water"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 58
+  },
+  {
+    "fields": {
+      "name": "Calcareous gravel, sand and silt",
+      "colour": "#974749",
+      "title": "Calcareous gravel, sand and silt"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 59
+  },
+  {
+    "fields": {
+      "name": "Saline grassland",
+      "colour": "#7ab8b8",
+      "title": "Saline grassland"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 60
+  },
+  {
+    "fields": {
+      "name": "Central basin",
+      "colour": "#000080",
+      "title": "Central basin"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 61
+  },
+  {
+    "fields": {
+      "name": "Posidonia australis",
+      "colour": "#ecee5d",
+      "title": "Posidonia australis"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 62
+  },
+  {
+    "fields": {
+      "name": "Subtidal, non-mobile, below PS zone, rough",
+      "colour": "#2c09aa",
+      "title": "Subtidal - non-mobile substrate (rough), below PS zone"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 63
+  },
+  {
+    "fields": {
+      "name": "Bare reef (intertidal)",
+      "colour": "#fed66d",
+      "title": "Bare reef (intertidal)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 64
+  },
+  {
+    "fields": {
+      "name": "Salt flats",
+      "colour": "#b12d38",
+      "title": "Salt flats"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 65
+  },
+  {
+    "fields": {
+      "name": "Ceriops tagal",
+      "colour": "#f28c8c",
+      "title": "Ceriops tagal"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 66
+  },
+  {
+    "fields": {
+      "name": "High profile reef",
+      "colour": "#974749",
+      "title": "High profile reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 67
+  },
+  {
+    "fields": {
+      "name": "Branching live coral, reef slope",
+      "colour": "#ffbb33",
+      "title": "Live branching coral on reef slope"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 68
+  },
+  {
+    "fields": {
+      "name": "Bare rocky reef",
+      "colour": "#640000",
+      "title": "Bare rocky reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 69
+  },
+  {
+    "fields": {
+      "name": "Fluvial (bay-head) delta",
+      "colour": "#1a8cff",
+      "title": "Fluvial (bay-head) delta"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 70
+  },
+  {
+    "fields": {
+      "name": "75-100 g/m2",
+      "colour": "#00cc00",
+      "title": "75-100"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 71
+  },
+  {
+    "fields": {
+      "name": "Thalassia hemprichii in sandy pool",
+      "colour": "#00cccc",
+      "title": "Thalassia hemprichii in sandy pool"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 72
+  },
+  {
+    "fields": {
+      "name": "Cymodocea serrulata with mixed species",
+      "colour": "#331a00",
+      "title": "Cymodocea serrulata with mixed species"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 73
+  },
+  {
+    "fields": {
+      "name": "Rocky intertidal",
+      "colour": "#999966",
+      "title": "Rocky intertidal"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 74
+  },
+  {
+    "fields": {
+      "name": "50-75 g/m2",
+      "colour": "#4dff4d",
+      "title": "50-75"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 75
+  },
+  {
+    "fields": {
+      "name": "Very shallow, very low slope, highly consolidated",
+      "colour": "#ffffcc",
+      "title": "Very shallow, very low slope, highly consolidated"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 76
+  },
+  {
+    "fields": {
+      "name": "Low density mixed community (corals, algae, sponges & soft sorals)",
+      "colour": "#99ffeb",
+      "title": "Mixed community (corals, algae, sponges & soft sorals) - low density"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 77
+  },
+  {
+    "fields": {
+      "name": "Low-medium density mixed community (corals, algae, sponges & soft sorals)",
+      "colour": "#00e6b8",
+      "title": "Mixed community (corals, algae, sponges & soft sorals) - low-medium density"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 78
+  },
+  {
+    "fields": {
+      "name": "0 - 20m",
+      "colour": "#ffffcc",
+      "title": "0 - 20m"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 79
+  },
+  {
+    "fields": {
+      "name": "Deep reef structures",
+      "colour": "#24478f",
+      "title": "Deep reef structures"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 80
+  },
+  {
+    "fields": {
+      "name": "Macroalgae (intertidal)",
+      "colour": "#ccffb3",
+      "title": "Macroalgae (intertidal)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 81
+  },
+  {
+    "fields": {
+      "name": "Soft coral",
+      "colour": "#ff80ff",
+      "title": "Soft coral"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 82
+  },
+  {
+    "fields": {
+      "name": "Rhodoliths",
+      "colour": "#d7191c",
+      "title": "Rhodoliths"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 83
+  },
+  {
+    "fields": {
+      "name": "Mangroves",
+      "colour": "#26734b",
+      "title": "Mangroves"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 84
+  },
+  {
+    "fields": {
+      "name": "Subtidal, non-mobile, PS zone, smooth",
+      "colour": "#7ecf63",
+      "title": "Subtidal - non-mobile substrate (smooth), PS zone"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 85
+  },
+  {
+    "fields": {
+      "name": "High density mixed community (corals, algae, sponges & soft corals)",
+      "colour": "#004d4d",
+      "title": "Mixed community (corals, algae, sponges & soft sorals) - high density"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 86
+  },
+  {
+    "fields": {
+      "name": "Nearshore reef",
+      "colour": "#A16632",
+      "title": "Nearshore reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 87
+  },
+  {
+    "fields": {
+      "name": "Biosiliceous marl and calcareous clay",
+      "colour": "#3C6442",
+      "title": "Biosiliceous marl and calcareous clay"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 88
+  },
+  {
+    "fields": {
+      "name": "Ocean embayment",
+      "colour": "#5151fb",
+      "title": "Ocean embayment"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 89
+  },
+  {
+    "fields": {
+      "name": "< 25 g/m2",
+      "colour": "#daffb3",
+      "title": "< 25"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 90
+  },
+  {
+    "fields": {
+      "name": "Deep reef flat",
+      "colour": "#006699",
+      "title": "Reef flat (deep)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 91
+  },
+  {
+    "fields": {
+      "name": "Offshore sandy",
+      "colour": "#cc99ff",
+      "title": "Offshore sandy"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 92
+  },
+  {
+    "fields": {
+      "name": "Sandy intermediate",
+      "colour": "#acac53",
+      "title": "Sandy intermediate"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 93
+  },
+  {
+    "fields": {
+      "name": "Mixed gravel and sand",
+      "colour": "#d2a679",
+      "title": "Mixed gravel and sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 94
+  },
+  {
+    "fields": {
+      "name": "< 0m",
+      "colour": "#666666",
+      "title": "< 0m (land)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 95
+  },
+  {
+    "fields": {
+      "name": "Bare substrate",
+      "colour": "#8c8c8c",
+      "title": "Bare substrate"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 96
+  },
+  {
+    "fields": {
+      "name": "Very deep, very high slope, unconsolidated",
+      "colour": "#000080",
+      "title": "Very deep, very high slope, unconsolidated"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 97
+  },
+  {
+    "fields": {
+      "name": "Escarpment",
+      "colour": "#a13f6d",
+      "title": "Escarpment"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 98
+  },
+  {
+    "fields": {
+      "name": "Continental-rise",
+      "colour": "#c471da",
+      "title": "Continental-rise"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 99
+  },
+  {
+    "fields": {
+      "name": "Lagoon sand / algae",
+      "colour": "#00b386",
+      "title": "Lagoon sand / algae"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 100
+  },
+  {
+    "fields": {
+      "name": "70-100%",
+      "colour": "#006600",
+      "title": "70-100%"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 101
+  },
+  {
+    "fields": {
+      "name": "None modelled with certainty",
+      "colour": "#c0c1c8",
+      "title": "None modelled with certainty"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 102
+  },
+  {
+    "fields": {
+      "name": "Subtidal, mobile, PS zone, rough",
+      "colour": "#aa27c1",
+      "title": "Subtidal - mobile substrate (rough), PS zone"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 103
+  },
+  {
+    "fields": {
+      "name": "Coral communities",
+      "colour": "#dd3c8c",
+      "title": "Coral communities"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 104
+  },
+  {
+    "fields": {
+      "name": "Dredged",
+      "colour": "#A5A5A5",
+      "title": "Dredged"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 105
+  },
+  {
+    "fields": {
+      "name": "Soft bedrock",
+      "colour": "#fff21a",
+      "title": "Soft bedrock"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 106
+  },
+  {
+    "fields": {
+      "name": "Rock wall",
+      "colour": "#ff8533",
+      "title": "Rock wall"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 107
+  },
+  {
+    "fields": {
+      "name": "Unconsolidated bare substrate",
+      "colour": "#A5A5A5",
+      "title": "Unconsolidated bare substrate"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 108
+  },
+  {
+    "fields": {
+      "name": "Reef flat inner",
+      "colour": "#fcf769",
+      "title": "Reef flat (inner)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 109
+  },
+  {
+    "fields": {
+      "name": "Cymodocea serrulata",
+      "colour": "#ff904d",
+      "title": "Cymodocea serrulata"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 110
+  },
+  {
+    "fields": {
+      "name": "Shoal, Tidal",
+      "colour": "#ace600",
+      "title": "Shoal, tidal"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 111
+  },
+  {
+    "fields": {
+      "name": "Depression",
+      "colour": "#000000",
+      "title": "Depression"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 112
+  },
+  {
+    "fields": {
+      "name": "Slope",
+      "colour": "#bd4b28",
+      "title": "Slope"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 113
+  },
+  {
+    "fields": {
+      "name": "Reef, Submerged",
+      "colour": "#813918",
+      "title": "Reef, submerged"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 114
+  },
+  {
+    "fields": {
+      "name": "Enhalus acoroides with mixed species",
+      "colour": "#1a3365",
+      "title": "Enhalus acoroides with mixed species"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 115
+  },
+  {
+    "fields": {
+      "name": "Subtidal, non-mobile, PS zone, rough",
+      "colour": "#33892a",
+      "title": "Subtidal - non-mobile substrate (rough), PS zone"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 116
+  },
+  {
+    "fields": {
+      "name": "Water and terrestrial",
+      "colour": "#000080",
+      "title": "Water and terrestrial"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 117
+  },
+  {
+    "fields": {
+      "name": "Unknown",
+      "colour": "#999999",
+      "title": "Unknown"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 118
+  },
+  {
+    "fields": {
+      "name": "Shipwreck",
+      "colour": "#000000",
+      "title": "Shipwreck"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 119
+  },
+  {
+    "fields": {
+      "name": "Rubble and sand",
+      "colour": "#E8C7AE",
+      "title": "Rubble and sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 120
+  },
+  {
+    "fields": {
+      "name": "Sloping sandy bottom",
+      "colour": "#4747eb",
+      "title": "Sloping sandy bottom"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 121
+  },
+  {
+    "fields": {
+      "name": "Mud and calcareous clay",
+      "colour": "#14A4AC",
+      "title": "Mud and calcareous clay"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 122
+  },
+  {
+    "fields": {
+      "name": "Sill",
+      "colour": "#5a41d8",
+      "title": "Sill"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 123
+  },
+  {
+    "fields": {
+      "name": "Terrace",
+      "colour": "#FFAD00",
+      "title": "Terrace"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 124
+  },
+  {
+    "fields": {
+      "name": "Mixed vegetation",
+      "colour": "#009999",
+      "title": "Mixed vegetation"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 125
+  },
+  {
+    "fields": {
+      "name": "Seawall",
+      "colour": "#000000",
+      "title": "Seawall"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 126
+  },
+  {
+    "fields": {
+      "name": "Reef flat",
+      "colour": "#ff8000",
+      "title": "Reef flat"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 127
+  },
+  {
+    "fields": {
+      "name": "1-10%",
+      "colour": "#b3ffb3",
+      "title": "1-10%"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 128
+  },
+  {
+    "fields": {
+      "name": "Wrack",
+      "colour": "#ff8000",
+      "title": "Wrack"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 129
+  },
+  {
+    "fields": {
+      "name": "Silty sand",
+      "colour": "#E8C7AE",
+      "title": "Silty sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 130
+  },
+  {
+    "fields": {
+      "name": "60 - 200m",
+      "colour": "#ff9c33",
+      "title": "60 - 200m"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 131
+  },
+  {
+    "fields": {
+      "name": "Sandy channels",
+      "colour": "#FFF9A5",
+      "title": "Sandy channels"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 132
+  },
+  {
+    "fields": {
+      "name": "Plateau",
+      "colour": "#aed392",
+      "title": "Plateau"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 133
+  },
+  {
+    "fields": {
+      "name": "Unvegetated",
+      "colour": "#e9beaf",
+      "title": "Unvegetated"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 134
+  },
+  {
+    "fields": {
+      "name": "Bare sandy to mixed sediments",
+      "colour": "#FFF9A5",
+      "title": "Bare sandy to mixed sediments"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 135
+  },
+  {
+    "fields": {
+      "name": "Pelagic clay",
+      "colour": "#A5A5A5",
+      "title": "Pelagic clay"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 136
+  },
+  {
+    "fields": {
+      "name": "Macroalgae (subtidal)",
+      "colour": "#00e6b8",
+      "title": "Macroalgae (subtidal)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 137
+  },
+  {
+    "fields": {
+      "name": "Zostera capricorni",
+      "colour": "#b35900",
+      "title": "Zostera capricorni"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 138
+  },
+  {
+    "fields": {
+      "name": "Moderately shallow, high slope, low consolidation",
+      "colour": "#ff9c33",
+      "title": "Moderately shallow, high slope, low consolidation"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 139
+  },
+  {
+    "fields": {
+      "name": "Thalassia hemprichii and green algae",
+      "colour": "#003300",
+      "title": "Thalassia hemprichii and green algae"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 140
+  },
+  {
+    "fields": {
+      "name": "Brackish lake",
+      "colour": "#e07552",
+      "title": "Brackish lake"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 141
+  },
+  {
+    "fields": {
+      "name": "Sediment bottom",
+      "colour": "#BBA600",
+      "title": "Sediment bottom"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 142
+  },
+  {
+    "fields": {
+      "name": "Channel - deep (10 - 20 metres)",
+      "colour": "#004d4d",
+      "title": "Channel - deep (10 - 20 metres)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 143
+  },
+  {
+    "fields": {
+      "name": "Saltmarsh",
+      "colour": "#E64C00",
+      "title": "Saltmarsh"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 144
+  },
+  {
+    "fields": {
+      "name": "Backreef / shallow lagoon",
+      "colour": "#33adff",
+      "title": "Backreef / shallow lagoon"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 145
+  },
+  {
+    "fields": {
+      "name": "Subtidal sand",
+      "colour": "#E8C7AE",
+      "title": "Subtidal sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 146
+  },
+  {
+    "fields": {
+      "name": "Fringing coral reefs",
+      "colour": "#aa80ff",
+      "title": "Fringing coral reefs"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 147
+  },
+  {
+    "fields": {
+      "name": "Limestone",
+      "colour": "#E8C7AE",
+      "title": "Limestone"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 148
+  },
+  {
+    "fields": {
+      "name": "Cymodocea rotundata",
+      "colour": "#ecec13",
+      "title": "Cymodocea rotundata"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 149
+  },
+  {
+    "fields": {
+      "name": "Avicennia marina",
+      "colour": "#ffb980",
+      "title": "Avicennia marina"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 150
+  },
+  {
+    "fields": {
+      "name": "Mixed mangrove species",
+      "colour": "#43705a",
+      "title": "Mixed mangrove species"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 151
+  },
+  {
+    "fields": {
+      "name": "Rocky platform",
+      "colour": "#00cc66",
+      "title": "Rocky platform"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 152
+  },
+  {
+    "fields": {
+      "name": "Intertidal, non-mobile substrates",
+      "colour": "#c5d300",
+      "title": "Intertidal - non-mobile substrates"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 153
+  },
+  {
+    "fields": {
+      "name": "Bare coarse sediment with possibility of small rocky outcrops/rippled sand",
+      "colour": "#E8C7AE",
+      "title": "Bare coarse sediment with possibility of small rocky outcrops/rippled sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 154
+  },
+  {
+    "fields": {
+      "name": "Medium density mixed community (corals, algae, sponges & soft sorals)",
+      "colour": "#00995c",
+      "title": "Mixed community (corals, algae, sponges & soft sorals) - medium density"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 155
+  },
+  {
+    "fields": {
+      "name": "Hard substrate",
+      "colour": "#802000",
+      "title": "Hard substrate"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 156
+  },
+  {
+    "fields": {
+      "name": "Massive/Soft coral",
+      "colour": "#ffb84d",
+      "title": "Massive/Soft coral"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 157
+  },
+  {
+    "fields": {
+      "name": "Coastline - sand",
+      "colour": "#ffffcc",
+      "title": "Coastline - sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 158
+  },
+  {
+    "fields": {
+      "name": "Halophila ovalis with mixed species",
+      "colour": "#47291f",
+      "title": "Halophila ovalis with mixed species"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 159
+  },
+  {
+    "fields": {
+      "name": "Canyon",
+      "colour": "#2634aa",
+      "title": "Canyon"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 160
+  },
+  {
+    "fields": {
+      "name": "Bare reef (subtidal)",
+      "colour": "#feac00",
+      "title": "Bare reef (subtidal)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 161
+  },
+  {
+    "fields": {
+      "name": "Diverse sandy",
+      "colour": "#FFAD00",
+      "title": "Diverse sandy"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 162
+  },
+  {
+    "fields": {
+      "name": "Massive coral",
+      "colour": "#b30000",
+      "title": "Massive coral"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 163
+  },
+  {
+    "fields": {
+      "name": "Mixed seagrass and reef",
+      "colour": "#009999",
+      "title": "Mixed seagrass and reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 164
+  },
+  {
+    "fields": {
+      "name": "Hard coral and all mixes",
+      "colour": "#b33c00",
+      "title": "Hard coral and all mixes"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 165
+  },
+  {
+    "fields": {
+      "name": "Rock",
+      "colour": "#bf8040",
+      "title": "Rock"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 166
+  },
+  {
+    "fields": {
+      "name": "Reef crest",
+      "colour": "#ff9999",
+      "title": "Reef crest"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 167
+  },
+  {
+    "fields": {
+      "name": "Thalassodendron ciliatum",
+      "colour": "#125454",
+      "title": "Thalassodendron ciliatum"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 168
+  },
+  {
+    "fields": {
+      "name": "Valley",
+      "colour": "#000000",
+      "title": "Valley"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 169
+  },
+  {
+    "fields": {
+      "name": "Bare coarse sediment with rippled sand",
+      "colour": "#FFAD00",
+      "title": "Bare coarse sediment with rippled sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 170
+  },
+  {
+    "fields": {
+      "name": "Soft substrate",
+      "colour": "#f4d371",
+      "title": "Soft substrate"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 171
+  },
+  {
+    "fields": {
+      "name": "Reef and shoal",
+      "colour": "#640000",
+      "title": "Reef and shoal"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 172
+  },
+  {
+    "fields": {
+      "name": "Macroalgae, undifferentiated",
+      "colour": "#2d9624",
+      "title": "Macroalgae, undifferentiated"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 173
+  },
+  {
+    "fields": {
+      "name": "31-50%",
+      "colour": "#38a748",
+      "title": "31-50%"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 174
+  },
+  {
+    "fields": {
+      "name": "Hard rocky reefs",
+      "colour": "#640000",
+      "title": "Hard rocky reefs"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 175
+  },
+  {
+    "fields": {
+      "name": "Sparse seagrass",
+      "colour": "#D1FF73",
+      "title": "Sparse seagrass"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 176
+  },
+  {
+    "fields": {
+      "name": "Mound",
+      "colour": "#b52829",
+      "title": "Mound"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 177
+  },
+  {
+    "fields": {
+      "name": "Zostera",
+      "colour": "#8ef28c",
+      "title": "Zostera"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 178
+  },
+  {
+    "fields": {
+      "name": "Abyssal-plain / Deep ocean floor",
+      "colour": "#b2b434",
+      "title": "Abyssal-plain / Deep ocean floor"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 179
+  },
+  {
+    "fields": {
+      "name": "Intermittent estuary",
+      "colour": "#e68a00",
+      "title": "Intermittent estuary"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 180
+  },
+  {
+    "fields": {
+      "name": "Island",
+      "colour": "#018200",
+      "title": "Island"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 181
+  },
+  {
+    "fields": {
+      "name": "Rocky shores",
+      "colour": "#800040",
+      "title": "Rocky shores"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 182
+  },
+  {
+    "fields": {
+      "name": "Mangroves / Saltmarsh",
+      "colour": "#458aa1",
+      "title": "Mangroves / Saltmarsh"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 183
+  },
+  {
+    "fields": {
+      "name": "Freshwater",
+      "colour": "#66d9ff",
+      "title": "Freshwater"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 184
+  },
+  {
+    "fields": {
+      "name": "Shallow lagoon",
+      "colour": "#dbadeb",
+      "title": "Lagoon (shallow)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 185
+  },
+  {
+    "fields": {
+      "name": "Unidentified seagrass",
+      "colour": "#999999",
+      "title": "Unidentified seagrass"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 186
+  },
+  {
+    "fields": {
+      "name": "Samphire-dominated salt flats",
+      "colour": "#cc0066",
+      "title": "Samphire-dominated salt flats"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 187
+  },
+  {
+    "fields": {
+      "name": "Posidonia",
+      "colour": "#ecee5d",
+      "title": "Posidonia"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 188
+  },
+  {
+    "fields": {
+      "name": "Ruppia",
+      "colour": "#D3FFBE",
+      "title": "Ruppia"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 189
+  },
+  {
+    "fields": {
+      "name": "Intertidal, mobile substrates",
+      "colour": "#ecffb3",
+      "title": "Intertidal - mobile substrates"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 190
+  },
+  {
+    "fields": {
+      "name": "100-1000 g/m2",
+      "colour": "#007100",
+      "title": "100-1000"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 191
+  },
+  {
+    "fields": {
+      "name": "Reef slope",
+      "colour": "#bd4b28",
+      "title": "Reef slope"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 192
+  },
+  {
+    "fields": {
+      "name": "Scarp",
+      "colour": "#a13f6d",
+      "title": "Scarp"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 193
+  },
+  {
+    "fields": {
+      "name": "Bommies",
+      "colour": "#4d3319",
+      "title": "Bommies"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 194
+  },
+  {
+    "fields": {
+      "name": "Bioturbated mud",
+      "colour": "#974749",
+      "title": "Bioturbated mud"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 195
+  },
+  {
+    "fields": {
+      "name": "Halophila spinulosa",
+      "colour": "#b299ff",
+      "title": "Halophila spinulosa"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 196
+  },
+  {
+    "fields": {
+      "name": "Halophila",
+      "colour": "#d9cda6",
+      "title": "Halophila"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 197
+  },
+  {
+    "fields": {
+      "name": "Subtidal, non-mobile, below PS zone, smooth",
+      "colour": "#3385ff",
+      "title": "Subtidal - non-mobile substrate (smooth), below PS zone"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 198
+  },
+  {
+    "fields": {
+      "name": "20 - 60m",
+      "colour": "#ffce99",
+      "title": "20 - 60m"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 199
+  },
+  {
+    "fields": {
+      "name": "Barrier/back-barrier",
+      "colour": "#ff9900",
+      "title": "Barrier/back-barrier"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 200
+  },
+  {
+    "fields": {
+      "name": "No Seagrass",
+      "colour": "#d9d9d9",
+      "title": "No seagrass"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 201
+  },
+  {
+    "fields": {
+      "name": "Lagoon sand / rubble",
+      "colour": "#669999",
+      "title": "Lagoon sand / rubble"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 202
+  },
+  {
+    "fields": {
+      "name": "Subtidal, mobile, below PS zone, smooth",
+      "colour": "#b68cd9",
+      "title": "Subtidal - mobile substrate (smooth), below PS zone"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 203
+  },
+  {
+    "fields": {
+      "name": "Rock (+ live coral), reef crest",
+      "colour": "#cc9900",
+      "title": "Rock (+ live coral) on reef crest"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 204
+  },
+  {
+    "fields": {
+      "name": "Sponge",
+      "colour": "#FCFAE2",
+      "title": "Sponge"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 205
+  },
+  {
+    "fields": {
+      "name": "Patchy Posidonia",
+      "colour": "#a5d742",
+      "title": "Patchy Posidonia"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 206
+  },
+  {
+    "fields": {
+      "name": "Shoal, Submerged",
+      "colour": "#4d6600",
+      "title": "Shoal, submerged"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 207
+  },
+  {
+    "fields": {
+      "name": "Ridge",
+      "colour": "#a97070",
+      "title": "Ridge"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 208
+  },
+  {
+    "fields": {
+      "name": "Mixed other algae and SI",
+      "colour": "#cc0066",
+      "title": "Mixed other algae and SI"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 209
+  },
+  {
+    "fields": {
+      "name": "Mixed vegetation and SI",
+      "colour": "#ff8533",
+      "title": "Mixed vegetation and SI"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 210
+  },
+  {
+    "fields": {
+      "name": "Non-Reef",
+      "colour": "#b3b3ff",
+      "title": "Non-Reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 211
+  },
+  {
+    "fields": {
+      "name": "Deep areas",
+      "colour": "#16389c",
+      "title": "Other deep areas"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 212
+  },
+  {
+    "fields": {
+      "name": "Mangrove/intertidal habitat",
+      "colour": "#227722",
+      "title": "Mangrove/intertidal habitat"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 213
+  },
+  {
+    "fields": {
+      "name": "Bank",
+      "colour": "#44a1b5",
+      "title": "Bank"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 214
+  },
+  {
+    "fields": {
+      "name": "Hard sand",
+      "colour": "#FFAD00",
+      "title": "Hard sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 215
+  },
+  {
+    "fields": {
+      "name": "Zostera muelleri",
+      "colour": "#cc2900",
+      "title": "Zostera muelleri"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 216
+  },
+  {
+    "fields": {
+      "name": "Bioturbated sand",
+      "colour": "#A1967A",
+      "title": "Bioturbated sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 217
+  },
+  {
+    "fields": {
+      "name": "Riverine",
+      "colour": "#00ffff",
+      "title": "Riverine"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 218
+  },
+  {
+    "fields": {
+      "name": "Silt",
+      "colour": "#E5D6ED",
+      "title": "Silt"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 219
+  },
+  {
+    "fields": {
+      "name": "Other algae",
+      "colour": "#84e1e1",
+      "title": "Other algae"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 220
+  },
+  {
+    "fields": {
+      "name": "Aquatic macrophytes",
+      "colour": "#32B34E",
+      "title": "Aquatic macrophytes"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 221
+  },
+  {
+    "fields": {
+      "name": "Subtidal, mobile, PS zone, smooth",
+      "colour": "#e16bc3",
+      "title": "Subtidal - mobile substrate (smooth), PS zone"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 222
+  },
+  {
+    "fields": {
+      "name": "Halophila decipiens with mixed species",
+      "colour": "#476b6b",
+      "title": "Halophila decipiens with mixed species"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 223
+  },
+  {
+    "fields": {
+      "name": "Offshore waters 10 - 20 metres",
+      "colour": "#4d4dff",
+      "title": "Offshore waters 10 - 20 metres"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 224
+  },
+  {
+    "fields": {
+      "name": "Halophila ovalis",
+      "colour": "#bfff80",
+      "title": "Halophila ovalis"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 225
+  },
+  {
+    "fields": {
+      "name": "Bruguiera exaristata",
+      "colour": "#b2fc03",
+      "title": "Bruguiera exaristata"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 226
+  },
+  {
+    "fields": {
+      "name": "Gravel",
+      "colour": "#82837E",
+      "title": "Gravel"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 227
+  },
+  {
+    "fields": {
+      "name": "Lumnitzera racemosa",
+      "colour": "#7ab8b8",
+      "title": "Lumnitzera racemosa"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 228
+  },
+  {
+    "fields": {
+      "name": "Shelf",
+      "colour": "#c89e4a",
+      "title": "Shelf"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 229
+  },
+  {
+    "fields": {
+      "name": "Mixed reef and sand",
+      "colour": "#ff884d",
+      "title": "Mixed reef and sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 230
+  },
+  {
+    "fields": {
+      "name": "25-50 g/m2",
+      "colour": "#b5ff66",
+      "title": "25-50"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 231
+  },
+  {
+    "fields": {
+      "name": "Vegetated unconsolidated",
+      "colour": "#018200",
+      "title": "Vegetated unconsolidated"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 232
+  },
+  {
+    "fields": {
+      "name": "Channel",
+      "colour": "#006666",
+      "title": "Channel"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 233
+  },
+  {
+    "fields": {
+      "name": "Coral reef (subtidal)",
+      "colour": "#ca00db",
+      "title": "Coral reef (subtidal)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 234
+  },
+  {
+    "fields": {
+      "name": "Low intertidal, non-mobile, rough",
+      "colour": "#f6620a",
+      "title": "Low intertidal - non-mobile substrate (rough)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 235
+  },
+  {
+    "fields": {
+      "name": "Deep, low slope, unconsolidated",
+      "colour": "#4d4dff",
+      "title": "Deep, low slope, unconsolidated"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 236
+  },
+  {
+    "fields": {
+      "name": "Cobble",
+      "colour": "#00a9e6",
+      "title": "Cobble"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 237
+  },
+  {
+    "fields": {
+      "name": "Pelagic",
+      "colour": "#0066cc",
+      "title": "Pelagic"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 238
+  },
+  {
+    "fields": {
+      "name": "Mixed kelp and SI",
+      "colour": "#77b300",
+      "title": "Mixed kelp and SI"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 239
+  },
+  {
+    "fields": {
+      "name": "Eroded sandstone",
+      "colour": "#a6a6a6",
+      "title": "Eroded sandstone"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 240
+  },
+  {
+    "fields": {
+      "name": "Syringodium isoetifolium with mixed species",
+      "colour": "#3385ff",
+      "title": "Syringodium isoetifolium with mixed species"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 241
+  },
+  {
+    "fields": {
+      "name": "Sand (subtidal)",
+      "colour": "#A68C73",
+      "title": "Sand (subtidal)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 242
+  },
+  {
+    "fields": {
+      "name": "Rocky headland",
+      "colour": "#000000",
+      "title": "Rocky headland"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 243
+  },
+  {
+    "fields": {
+      "name": "Deep lagoon",
+      "colour": "#8529a3",
+      "title": "Lagoon (deep)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 244
+  },
+  {
+    "fields": {
+      "name": "Sonneratia alba",
+      "colour": "#dfd19f",
+      "title": "Sonneratia alba"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 245
+  },
+  {
+    "fields": {
+      "name": "Flood- and ebb-tide delta",
+      "colour": "#7ab8b8",
+      "title": "Flood- and Ebb-tide Delta"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 246
+  },
+  {
+    "fields": {
+      "name": "Syringodium isoetifolium",
+      "colour": "#3385ff",
+      "title": "Syringodium isoetifolium"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 247
+  },
+  {
+    "fields": {
+      "name": "Beach",
+      "colour": "#FFF9A5",
+      "title": "Beach"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 248
+  },
+  {
+    "fields": {
+      "name": "Pavement",
+      "colour": "#cccc00",
+      "title": "Flat/hard low-relief bottom (pavement)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 249
+  },
+  {
+    "fields": {
+      "name": "Mudflat",
+      "colour": "#734e26",
+      "title": "Mudflat"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 250
+  },
+  {
+    "fields": {
+      "name": "Unknown or inacessible mangrove species",
+      "colour": "#A5A5A5",
+      "title": "Unknown / inacessible mangrove species"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 251
+  },
+  {
+    "fields": {
+      "name": "Gravel/rubble",
+      "colour": "#c2783d",
+      "title": "Gravel/rubble"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 252
+  },
+  {
+    "fields": {
+      "name": "Calcareous ooze",
+      "colour": "#BBA600",
+      "title": "Calcareous ooze"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 253
+  },
+  {
+    "fields": {
+      "name": "Artificial substrate",
+      "colour": "#000000",
+      "title": "Artificial substrate"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 254
+  },
+  {
+    "fields": {
+      "name": "Massive/Plate/Branching coral / Sponge",
+      "colour": "#00b3b3",
+      "title": "Massive/Plate/Branching coral + Sponge"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 255
+  },
+  {
+    "fields": {
+      "name": "10-40 %",
+      "colour": "#33ff33",
+      "title": "10-40%"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 256
+  },
+  {
+    "fields": {
+      "name": "Mud and tidal flats",
+      "colour": "#FFAD00",
+      "title": "Mud and tidal flats"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 257
+  },
+  {
+    "fields": {
+      "name": "Thalassia hemprichii",
+      "colour": "#00e6ac",
+      "title": "Thalassia hemprichii"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 258
+  },
+  {
+    "fields": {
+      "name": "Offshore waters 5 - 10 metres",
+      "colour": "#b3b3ff",
+      "title": "Offshore waters 5 - 10 metres"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 259
+  },
+  {
+    "fields": {
+      "name": "Bedrock",
+      "colour": "#4d3319",
+      "title": "Bedrock"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 260
+  },
+  {
+    "fields": {
+      "name": "Rubble+Sand",
+      "colour": "#E8C7AE",
+      "title": "Rubble and sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 261
+  },
+  {
+    "fields": {
+      "name": "Coral reef (intertidal)",
+      "colour": "#f6a4fe",
+      "title": "Coral reef (intertidal)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 262
+  },
+  {
+    "fields": {
+      "name": "40-70 %",
+      "colour": "#00cc00",
+      "title": "40-70%"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 263
+  },
+  {
+    "fields": {
+      "name": "Large Rock",
+      "colour": "#4d3319",
+      "title": "Large rock"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 264
+  },
+  {
+    "fields": {
+      "name": "Marine",
+      "colour": "#000099",
+      "title": "Marine"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 265
+  },
+  {
+    "fields": {
+      "name": "Moderately deep, low slope, unconsolidated",
+      "colour": "#b3b3ff",
+      "title": "Moderately deep, low slope, unconsolidated"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 266
+  },
+  {
+    "fields": {
+      "name": "Reef flat outer",
+      "colour": "#ff8000",
+      "title": "Reef flat (outer)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 267
+  },
+  {
+    "fields": {
+      "name": "Other",
+      "colour": "#000000",
+      "title": "Other"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 268
+  },
+  {
+    "fields": {
+      "name": "Halophila tricostata",
+      "colour": "#d9cda6",
+      "title": "Halophila tricostata"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 269
+  },
+  {
+    "fields": {
+      "name": "1-10 %",
+      "colour": "#b3ffb3",
+      "title": "1-10%"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 270
+  },
+  {
+    "fields": {
+      "name": "Algal beds",
+      "colour": "#018200",
+      "title": "Algal beds"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 271
+  },
+  {
+    "fields": {
+      "name": "51-75%",
+      "colour": "#2a753a",
+      "title": "51-75%"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 272
+  },
+  {
+    "fields": {
+      "name": "Pavement reef",
+      "colour": "#640000",
+      "title": "Pavement reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 273
+  },
+  {
+    "fields": {
+      "name": "Mixed sandy bottom",
+      "colour": "#FFAD00",
+      "title": "Mixed sandy bottom"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 274
+  },
+  {
+    "fields": {
+      "name": "Live and dead coral",
+      "colour": "#601f60",
+      "title": "Live/dead coral combined"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 275
+  },
+  {
+    "fields": {
+      "name": "Reef, Tidal",
+      "colour": "#e6994c",
+      "title": "Reef, tidal"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 276
+  },
+  {
+    "fields": {
+      "name": "Kelp",
+      "colour": "#006600",
+      "title": "Kelp"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 277
+  },
+  {
+    "fields": {
+      "name": "Halophila capricorni",
+      "colour": "#993366",
+      "title": "Halophila capricorni"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 278
+  },
+  {
+    "fields": {
+      "name": "Aegiceras corniculatum",
+      "colour": "#ffde4d",
+      "title": "Aegiceras corniculatum"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 279
+  },
+  {
+    "fields": {
+      "name": "> 200m",
+      "colour": "#666666",
+      "title": "< 0m (land)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 280
+  },
+  {
+    "fields": {
+      "name": "Cay",
+      "colour": "#FFAD00",
+      "title": "Cay"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 281
+  },
+  {
+    "fields": {
+      "name": "Channel - shallow (< 5 metres)",
+      "colour": "#99ffeb",
+      "title": "Channel - shallow (< 5 metres)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 282
+  },
+  {
+    "fields": {
+      "name": "Saddle",
+      "colour": "#e6e600",
+      "title": "Saddle"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 283
+  },
+  {
+    "fields": {
+      "name": "Sand (intertidal)",
+      "colour": "#E8C7AE",
+      "title": "Sand (intertidal)"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 284
+  },
+  {
+    "fields": {
+      "name": "Branching coral",
+      "colour": "#00ffaa",
+      "title": "Branching coral"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 285
+  },
+  {
+    "fields": {
+      "name": "patches",
+      "colour": "#bfbfbf",
+      "title": "Patches"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 286
+  },
+  {
+    "fields": {
+      "name": "Inshore reef",
+      "colour": "#a16632",
+      "title": "Inshore reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 287
+  },
+  {
+    "fields": {
+      "name": "76-100%",
+      "colour": "#374705",
+      "title": "76-100%"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 288
+  },
+  {
+    "fields": {
+      "name": "Plain",
+      "colour": "#FFF9A5",
+      "title": "Plain"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 289
+  },
+  {
+    "fields": {
+      "name": "Mixed reef, gravel and sand",
+      "colour": "#cccc00",
+      "title": "Mixed reef, gravel and sand"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 290
+  },
+  {
+    "fields": {
+      "name": "Non-mangrove vegetation communities",
+      "colour": "#c2cc00",
+      "title": "Non-mangrove vegetation communities"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 291
+  },
+  {
+    "fields": {
+      "name": "Muddy bottom",
+      "colour": "#734e26",
+      "title": "Muddy bottom"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 292
+  },
+  {
+    "fields": {
+      "name": "Bruguiera parviflora",
+      "colour": "#ecfd68",
+      "title": "Bruguiera parviflora"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 293
+  },
+  {
+    "fields": {
+      "name": "Medium density filter feeders (sponges & soft corals)",
+      "colour": "#ff99e6",
+      "title": "Filter feeders (sponges & soft corals) - medium density"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 294
+  },
+  {
+    "fields": {
+      "name": "Volcanic sand and grit",
+      "colour": "#000000",
+      "title": "Volcanic sand and grit"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 295
+  },
+  {
+    "fields": {
+      "name": "Reef",
+      "colour": "#640000",
+      "title": "Reef"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 296
+  },
+  {
+    "fields": {
+      "name": "Low tidal mudflat",
+      "colour": "#734e26",
+      "title": "Low tidal mudflat"
+    },
+    "model": "catalogue.habitatdescriptor",
+    "pk": 297
+  }
+]

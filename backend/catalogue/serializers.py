@@ -1,6 +1,12 @@
 from django.db.models import Min, Max
 from rest_framework import serializers
-from catalogue.models import Layer, LayerGroup, LayerGroupPriority
+from catalogue.models import HabitatDescriptor, Layer, LayerGroup, LayerGroupPriority
+
+
+class HabitatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HabitatDescriptor
+        fields = ('name', 'title', 'colour')
 
 
 class LayerSerializer(serializers.ModelSerializer):

@@ -1,6 +1,11 @@
-from catalogue.models import Layer, LayerGroup, LayerGroupPriority
-from catalogue.serializers import LayerSerializer, GroupSerializer, GroupPrioritySerializer
+from catalogue.models import HabitatDescriptor, Layer, LayerGroup, LayerGroupPriority
+from catalogue.serializers import HabitatSerializer, LayerSerializer, GroupSerializer, GroupPrioritySerializer
 from rest_framework import viewsets
+
+
+class DescriptorViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = HabitatDescriptor.objects.all()
+    serializer_class = HabitatSerializer
 
 
 class LayerViewset(viewsets.ReadOnlyModelViewSet):
