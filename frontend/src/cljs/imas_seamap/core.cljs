@@ -71,6 +71,7 @@
     :map/update-layers                    mevents/update-layers
     :map/update-groups                    mevents/update-groups
     :map/update-priorities                mevents/update-priorities
+    :map/update-descriptors               mevents/update-descriptors
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/view-updated                     mevents/map-view-updated

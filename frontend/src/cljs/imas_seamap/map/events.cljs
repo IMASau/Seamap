@@ -83,6 +83,13 @@
 (defn update-priorities [db [_ priorities]]
   (assoc-in db [:map :priorities] priorities))
 
+(defn update-descriptors [db [_ descriptors]]
+  (let [titles  (reduce (fn [acc {:keys [name title]}]  (assoc acc name title))  {} descriptors)
+        colours (reduce (fn [acc {:keys [name colour]}] (assoc acc name colour)) {} descriptors)]
+    (assoc db
+           :habitat-titles  titles
+           :habitat-colours colours)))
+
 (defn toggle-layer [{:keys [db]} [_ layer]]
   {:db (update-in db [:map :active-layers]
                   #(if (some #{layer} %)

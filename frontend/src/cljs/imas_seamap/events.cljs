@@ -22,7 +22,7 @@
   {:first-dispatch [:ui/show-loading]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:initialise-layers]}
-    {:when :seen-all-of? :events [:map/update-layers :map/update-groups :map/update-priorities]
+    {:when :seen-all-of? :events [:map/update-layers :map/update-groups :map/update-priorities :map/update-descriptors]
      :dispatch [:map/initialise-display]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
@@ -45,7 +45,7 @@
    :dispatch [:db-initialised]})
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url group-url priority-url]} (:config db)]
+  (let [{:keys [layer-url group-url priority-url descriptor-url]} (:config db)]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -61,6 +61,11 @@
                    :uri             priority-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-priorities]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             descriptor-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-descriptors]
                    :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn help-layer-toggle [db _]

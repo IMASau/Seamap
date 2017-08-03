@@ -24,4 +24,5 @@
    :display {:help-overlay false}
    :config {:layer-url (str api-url-base "layers/")
             :group-url (str api-url-base "groups/")
-            :priority-url (str api-url-base "priorities/")}})
+            :priority-url (str api-url-base "priorities/")
+            :descriptor-url (str api-url-base "descriptors/")}})
