@@ -1,7 +1,6 @@
 (ns imas-seamap.subs
     (:require-macros [reagent.ratom :refer [reaction]])
     (:require [imas-seamap.map.views :refer [point->latlng point-distance]]
-              [imas-seamap.plot.colours :refer [HABITAT-COLOURS HABITAT-TITLES]]
               [re-frame.core :as re-frame]
               [debux.cs.core :refer-macros [dbg]]))
 
@@ -62,14 +61,16 @@
     (some #{:loading} [habitat bathymetry]) :transect.results.status/partial
     :default                                :transect.results.status/ready))
 
-(defn transect-results [{{:keys [query habitat bathymetry] :as transect} :transect :as db} _]
+(defn transect-results [{{:keys [query habitat bathymetry] :as transect} :transect
+                         :keys [habitat-colours habitat-titles]
+                         :as db} _]
   (letfn [(always-vec [d] (if (vector? d) d []))]
     {:transect.results/query        query
      :transect.results/status       (transect-query-status transect)
      :transect.results/habitat      (always-vec habitat)
      :transect.results/bathymetry   (always-vec bathymetry)
-     :transect.results/zone-colours HABITAT-COLOURS
-     :transect.results/zone-legend  HABITAT-TITLES}))
+     :transect.results/zone-colours habitat-colours
+     :transect.results/zone-legend  habitat-titles}))
 
 (defn transect-show? [db _]
   (get-in db [:transect :show?] false))

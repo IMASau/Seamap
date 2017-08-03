@@ -64,6 +64,9 @@
 (s/def :map.logic/trigger #{:map.logic.trigger/automatic :map.logic.trigger/user})
 (s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
 
+(s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
+(s/def ::habitat-colours (s/map-of string? string?))
+
 (s/def ::map
   (s/keys :req-un [:map/center
                    :map/zoom
@@ -101,4 +104,4 @@
 (s/def ::config map?)
 
 (s/def :seamap/app-state
-  (s/keys :req-un [::map ::transect ::filters ::config]))
+  (s/keys :req-un [::map ::transect ::filters ::config ::habitat-titles ::habitat-colours]))

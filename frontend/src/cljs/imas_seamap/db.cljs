@@ -21,6 +21,8 @@
               :show? false
               :habitat nil
               :bathymetry nil}
+   :habitat-colours {}
+   :habitat-titles {}
    :display {:help-overlay false}
    :config {:layer-url (str api-url-base "layers/")
             :group-url (str api-url-base "groups/")
