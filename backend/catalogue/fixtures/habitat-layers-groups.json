@@ -1540,6 +1540,82 @@
 },
 {
   "fields": {
+    "category": 1,
+    "maxx": "149.80215578721504244",
+    "maxy": "-37.40654554526764741",
+    "name": "VIC - Gippsland Lake biotopes",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "146.96529341999780627",
+    "miny": "-38.55663272216461479",
+    "layer_name": "seamap:SeamapAus_VIC_GippslandLake_biotopes",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 89
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "150.01406868890308033",
+    "maxy": "-37.38227412353305112",
+    "name": "VIC - open coast biotopes",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "141.05674884118624846",
+    "miny": "-39.50286282664461623",
+    "layer_name": "seamap:SeamapAus_VIC_OpenCoast_biotopes",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 90
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "145.11656495808631462",
+    "maxy": "-37.79160689333204459",
+    "name": "VIC - Port Phillip Bay biotopes",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "144.38334851724005148",
+    "miny": "-38.40056811192360442",
+    "layer_name": "seamap:SeamapAus_VIC_PPB_biotopes",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 91
+},
+{
+  "fields": {
+    "category": 1,
+    "maxx": "145.53282871814124633",
+    "maxy": "-38.18361728881914274",
+    "name": "VIC - Western Port Bay biotopes",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "organisation": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "145.01480772273666275",
+    "miny": "-38.57872335029222910",
+    "layer_name": "seamap:SeamapAus_VIC_WPB_biotopes",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 92
+},
+{
+  "fields": {
     "detail_resolution": false,
     "name": "NATIONAL"
   },
@@ -1601,6 +1677,14 @@
   },
   "model": "catalogue.layergroup",
   "pk": 8
+},
+{
+  "fields": {
+    "detail_resolution": true,
+    "name": "VIC"
+  },
+  "model": "catalogue.layergroup",
+  "pk": 9
 },
 {
   "fields": {
@@ -2285,5 +2369,41 @@
   },
   "model": "catalogue.layergrouppriority",
   "pk": 76
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 90,
+    "group": 9
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 77
+},
+{
+  "fields": {
+    "priority": 2,
+    "layer": 89,
+    "group": 9
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 78
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 91,
+    "group": 9
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 79
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 92,
+    "group": 9
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 80
 }
 ]
