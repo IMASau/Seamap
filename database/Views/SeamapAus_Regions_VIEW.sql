@@ -114,14 +114,14 @@ union all
 select 'seamap:seamapaus_wa_mou74_scottreef'                    as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MOU74_ScottReef
 union all
 select 'seamap:seamapaus_wa_marinefutures_biota'                as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota
-select 'seamap:seamapsus_vic_gippslandlake_biotopes'            as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_GippslandLake_biotopes
+union all
+select 'seamap:seamapaus_vic_gippslandlake_biotopes'            as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_GippslandLake_biotopes
 union all
 select 'seamap:seamapaus_vic_opencoast_biotopes'                as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_OpenCoast_biotopes
 union all
 select 'seamap:seamapaus_vic_ppb_biotopes'                      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_PPB_biotopes
 union all
 select 'seamap:seamapaus_vic_wpb_biotopes​'                      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_WPB_biotopes​
-union all
 union all
 select 'seamap:seamapaus_wa_marinefutures_reef'                 as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef
 union all
