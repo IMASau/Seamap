@@ -103,11 +103,14 @@
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ {:keys [bounding_box] :as layer}]]
-  {:db (-> db
-           (assoc-in [:map :bounds] bounding_box)
-           (update-in [:map :active-layers] conj layer))
-   ;; If someone triggers this, we also switch to manual mode:
-   :dispatch [:map.layers.logic/manual]})
+  (let [already-active? (some #{layer} (-> db :map :active-layers))]
+    (merge
+     {:db (cond-> db
+            true                  (assoc-in [:map :bounds] bounding_box)
+            (not already-active?) (update-in [:map :active-layers] conj layer))}
+     ;; If someone triggers this, we also switch to manual mode:
+     (when-not already-active?
+       {:dispatch [:map.layers.logic/manual]}))))
 
 (defn layer-visible? [{:keys [west south east north] :as bounds}
                       {:keys [bounding_box]          :as layer}]
