@@ -117,5 +117,5 @@
      (when has-info?
        ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
        ^{:key (str location)}
-       [popup {:position location}
+       [popup {:position location :max-width 600}
         [:div {:dangerouslySetInnerHTML {:__html info-body}}]])]))
