@@ -142,10 +142,12 @@
                       [layer-catalogue-tree layers [:data_classification :organisation] "cat"])}]]]))
 
 (defn transect-toggle []
-  (let [{:keys [drawing?]} @(re-frame/subscribe [:transect/info])
-        [dispatch-key label] (if drawing?
-                               [:transect.draw/disable "Cancel Transect"]
-                               [:transect.draw/enable  "Draw Transect"])]
+  (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
+        ;; Need to add a "Clear" button
+        [dispatch-key label] (cond
+                               drawing? [:transect.draw/disable "Cancel Transect"]
+                               query    [:transect.draw/clear "Clear Transect"]
+                               :else    [:transect.draw/enable  "Draw Transect"])]
     [:div#transect-btn-wrapper {:data-helper-text "Click to draw a transect"}
      [b/button {:id "transect-button"
                 :icon-name "edit"
