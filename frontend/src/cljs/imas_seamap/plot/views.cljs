@@ -195,6 +195,9 @@
                             :stroke-width 2}}
                    (:datapoint @tooltip-content))]
    [:g#textbox (merge {:transform "translate(0, 0)"} (:textbox @tooltip-content))
+    [:defs
+     [:clipPath {:id "tooltip-clip"}
+      [:rect {:x 0 :y 0 :width tooltip-width :height (* 3.5 line-height)}]]]
     [:rect {:x      0
             :y      0
             :rx     5
@@ -205,7 +208,7 @@
                      :fill         "white"
                      :stroke       "black"
                      :stroke-width 2}}]
-    [:text {:style {:font-size font-size}}
+    [:text {:style {:font-size font-size} :clip-path "url(#tooltip-clip)"}
      (doall (for [s (:text @tooltip-content)]
               [:tspan {:key s
                        :x   10
@@ -283,7 +286,7 @@
                  margin            [5 15 15 5]}}]
       (let [line-height-tooltip             (* 1.6 font-size-tooltip)
             line-height-axes                (* 1.6 font-size-axes)
-            tooltip-width                   175
+            tooltip-width                   350
             origin                          [(* 3 line-height-axes) (* 3 line-height-axes)]
             [ox oy]                         origin
             [m-left m-right m-top m-bottom] margin
