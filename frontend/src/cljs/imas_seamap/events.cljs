@@ -188,6 +188,11 @@
 (defn transect-drawing-finish [db _]
   (assoc-in db [:map :controls :transect] false))
 
+(defn transect-drawing-clear [db _]
+  (update-in db [:transect] merge {:query      nil
+                                   :habitat    nil
+                                   :bathymetry nil}))
+
 (defn transect-visibility-toggle [db _]
   (update-in db [:transect :show?] not))
 

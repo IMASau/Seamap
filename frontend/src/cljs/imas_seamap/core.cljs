@@ -54,7 +54,7 @@
     :transect.query/error                 events/transect-query-error
     :transect.draw/enable                 events/transect-drawing-start
     :transect.draw/disable                events/transect-drawing-finish
-    :transect.draw/clear                  events/not-yet-implemented
+    :transect.draw/clear                  events/transect-drawing-clear
     :transect.plot/show                   events/transect-visibility-show
     :transect.plot/hide                   events/transect-visibility-hide
     :transect.plot/mousemove              events/transect-onmousemove
