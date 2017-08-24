@@ -321,3 +321,6 @@ rect#background {
     cursor: pointer;
 }
 
+.leaflet-grab {
+    cursor: default;
+}
