@@ -109,8 +109,6 @@ select 'seamap:seamapaus_wa_cockburnsound_seagrass_1999'        as layer_name, S
 union all
 select 'seamap:seamapaus_wa_dpaw_marine_habitats'               as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_DPAW_marine_habitats
 union all
-select 'seamap:seamapaus_wa_mou74_ashmorereef'                  as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MOU74_AshmoreReef
-union all
 select 'seamap:seamapaus_wa_mou74_scottreef'                    as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MOU74_ScottReef
 union all
 select 'seamap:seamapaus_wa_marinefutures_biota'                as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota
