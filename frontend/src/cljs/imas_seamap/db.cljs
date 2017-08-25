@@ -15,6 +15,7 @@
                      :logic           {:type    :map.layer-logic/automatic
                                        :trigger :map.logic.trigger/automatic}
                      :controls        {:transect false}}
+   :layer-state     {}
    :filters         {:layers       ""
                      :other-layers ""}
    :transect        {:query      nil

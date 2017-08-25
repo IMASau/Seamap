@@ -92,6 +92,9 @@
       (fn [i {:keys [server_url layer_name] :as layer}]
         ^{:key (str server_url layer_name)}
         [wms-layer {:url server_url :layers layer_name :z-index (inc i)
+                    :on-loading   #(re-frame/dispatch [:map.layer/load-start    layer])
+                    :on-tileerror #(re-frame/dispatch [:map.layer/load-error    layer])
+                    :on-load      #(re-frame/dispatch [:map.layer/load-finished layer])
                     :transparent true :format "image/png"}])
       (sort-layers active-layers layer-priorities logic-type))
      (when query

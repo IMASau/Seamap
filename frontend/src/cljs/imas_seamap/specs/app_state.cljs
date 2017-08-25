@@ -79,6 +79,11 @@
                    :map/priority-cutoff
                    :map/logic]))
 
+(s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
+(s/def ::layer-state (s/map-of :map/layer
+                               (s/cat :loading-state :layer/loading-state
+                                      :seen-errors   boolean?)))
+
 (s/def ::transect-results-format
   (s/or :empty   nil?
         :state   #{:empty :loading}
@@ -104,4 +109,4 @@
 (s/def ::config map?)
 
 (s/def :seamap/app-state
-  (s/keys :req-un [::map ::transect ::filters ::config ::habitat-titles ::habitat-colours]))
+  (s/keys :req-un [::map ::layer-state ::transect ::filters ::config ::habitat-titles ::habitat-colours]))

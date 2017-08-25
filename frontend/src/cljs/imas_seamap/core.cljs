@@ -63,6 +63,9 @@
     :map/clicked                          [mevents/get-feature-info]
     :map/got-featureinfo                  mevents/got-feature-info
     :map/toggle-layer                     [mevents/toggle-layer]
+    :map.layer/load-start                 mevents/layer-started-loading
+    :map.layer/load-error                 mevents/layer-loading-error
+    :map.layer/load-finished              mevents/layer-finished-loading
     :map.layers/filter                    mevents/map-set-layer-filter
     :map.layers/others-filter             mevents/map-set-others-layer-filter
     :map.layers.logic/toggle              [mevents/map-layer-logic-toggle]
