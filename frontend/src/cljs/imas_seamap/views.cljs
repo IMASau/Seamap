@@ -192,7 +192,7 @@
 
 (defn layer-card [layer-spec other-props]
   (let [show-legend (reagent/atom false)]
-    (fn [{:keys [name] :as layer-spec} {:keys [active?] :as other-props}]
+    (fn [{:keys [name] :as layer-spec} {:keys [active? loading? errors?] :as other-props}]
       [:div.layer-wrapper {:on-click (handler-fn (when active? (swap! show-legend not)))}
        [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "layer-active pt-interactive")}
         [:div.header-row.height-static
@@ -200,8 +200,12 @@
                      :class-name "header-text"
                      :position *RIGHT*
                      :is-disabled (not active?)}
-          [b/clipped-text {:ellipsize true :class-name "header-text"}
-           name]]
+          [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
+           [:div (when (or loading? errors?) {:class "header-status-icons"})
+            (when (and active? loading?) [b/spinner {:class-name "pt-small layer-spinner"}])
+            (when (and active? errors?) [:span.layer-warning.pt-icon.pt-icon-small.pt-icon-warning-sign])]
+           [b/clipped-text {:ellipsize true :class-name "header-text"}
+            name]]]
          [:div.view-controls.pt-ui-text-large
           [b/tooltip {:content (if active? "Hide layer" "Show layer")
                       :position *RIGHT*}
@@ -221,9 +225,9 @@
                      :className "layer-legend"}
          [legend-display layer-spec]]]])))
 
-(defn layer-group [{:keys [expanded] :or {:expanded false} :as props} layers active-layers]
+(defn layer-group [{:keys [expanded] :or {:expanded false} :as props} layers active-layers loading-fn error-fn]
   (let [expanded (reagent/atom expanded)]
-    (fn [{:keys [title classes] :as props} layers active-layers]
+    (fn [{:keys [title classes] :as props} layers active-layers loading-fn error-fn]
       [:div.layer-group.height-managed
        {:class-name (str classes (if @expanded " expanded" " collapsed"))}
        [:h1.pt-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")
@@ -235,11 +239,13 @@
         [:div.height-managed.group-scrollable
          (for [layer layers]
            ^{:key (:layer_name layer)}
-           [layer-card layer {:active? (some #{layer} active-layers)}])]]])))
+           [layer-card layer {:active?  (some #{layer} active-layers)
+                              :loading? (loading-fn layer)
+                              :errors?  (error-fn layer)}])]]])))
 
-(defn third-party-layer-group [props layers active-layers]
+(defn third-party-layer-group [props layers active-layers loading-fn error-fn]
   (let [show-dialogue? (reagent/atom false)]
-    (fn [props layers active-layers]
+    (fn [props layers active-layers loading-fn error-fn]
       (let [catalogue [:div
                        [b/button  {:icon-name "pt-icon-add-to-artifact"
                                    :class-name "pt-fill catalogue-add"
@@ -256,20 +262,22 @@
                          (assoc :extra-component catalogue)
                          (update :classes str (when (seq third-party-actives) " needs-extra")))
          third-party-actives
-         active-layers]))))
+         active-layers
+         loading-fn
+         error-fn]))))
 
 (defn app-controls []
-  (let [{:keys [groups active-layers]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [groups active-layers loading-layers error-layers]} @(re-frame/subscribe [:map/layers])
         {:keys [habitat bathymetry imagery third-party]} groups]
     [:div#sidebar
      [transect-toggle]
      [layer-logic-toggle]
      [layer-search-filter]
-     [layer-group {:title "Habitat"   :expanded true } habitat     active-layers]
-     [layer-group {:title "Bathymetry":expanded true } bathymetry  active-layers]
-     [layer-group {:title "Imagery"   :expanded false} imagery     active-layers]
+     [layer-group {:title "Habitat"   :expanded true } habitat     active-layers loading-layers error-layers]
+     [layer-group {:title "Bathymetry":expanded true } bathymetry  active-layers loading-layers error-layers]
+     [layer-group {:title "Imagery"   :expanded false} imagery     active-layers loading-layers error-layers]
      [third-party-layer-group
-      {:title "Other"     :expanded false} third-party active-layers]
+      {:title "Other"     :expanded false} third-party active-layers loading-layers error-layers]
      [help-button]]))
 
 (defn plot-component-animatable [{:keys [on-add on-remove]

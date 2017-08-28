@@ -154,6 +154,24 @@ footer {
     font-style: italic;
 }
 
+.layer-active .header-text-wrapper.has-icons {
+    margin-left: 25px;
+}
+
+.header-status-icons {
+    position: absolute;
+    left: 0;
+    flex: 1 1 auto;
+}
+.header-status-icons .layer-spinner {
+    position: absolute;
+}
+.header-status-icons .layer-warning {
+    position: absolute;
+    top: 3px;
+    left: 5px
+}
+
 .layer-wrapper .legend-wrapper {
     overflow-x: hidden;
 }
