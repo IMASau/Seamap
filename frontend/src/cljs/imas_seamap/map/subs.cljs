@@ -26,7 +26,7 @@
         search-re  (-> filter-text string/trim (string/split #"\s+") make-re)]
     (re-find search-re layer-text)))
 
-(defn map-layers [{:keys [map filters] :as db} _]
+(defn map-layers [{:keys [map layer-state filters] :as db} _]
   (let [{:keys [layers active-layers bounds logic]} (get-in db [:map])
         filter-text                                 (get-in db [:filters :layers])
         filter-text-others                          (get-in db [:filters :other-layers])
@@ -39,10 +39,12 @@
     ;; We have separate filters for main layers, and third-party -- so
     ;; take the third-party group before filtering, and filter it
     ;; separately:
-    {:groups        (assoc (group-by :category filtered-layers)
-                           :third-party
-                           (filter (partial match-layer filter-text-others) third-party))
-     :active-layers active-layers}))
+    {:groups         (assoc (group-by :category filtered-layers)
+                            :third-party
+                            (filter (partial match-layer filter-text-others) third-party))
+     :loading-layers (->> layer-state (filter (fn [[l [st _]]] (= st :map.layer/loading))) keys set)
+     :error-layers   (->> layer-state (filter (fn [[l [_ errors?]]] errors?)) keys set)
+     :active-layers  active-layers}))
 
 (defn map-layer-priorities [db _]
   (get-in db [:map :priorities]))
