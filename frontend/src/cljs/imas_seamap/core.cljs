@@ -24,6 +24,7 @@
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/priorities                msubs/map-layer-priorities
     :map.layers/logic                     msubs/map-layer-logic
+    :map.layers/lookup                    msubs/map-layer-lookup
     :map.feature/info                     subs/feature-info
     :transect/info                        subs/transect-info
     :transect/results                     subs/transect-results

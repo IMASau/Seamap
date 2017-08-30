@@ -66,6 +66,28 @@
 (defn on-map-view-changed [e]
   (re-frame/dispatch [:map/view-updated (leaflet-props e)]))
 
+;;; Rather round-about logic: we want to attach a callback based on a
+;;; specific layer, but because closure are created fresh they fail
+;;; equality tests and thus the map re-renders, causing flickering.
+;;; So, we take the raw event instead, pick out enough info to
+;;; identify the layer, and then dispatch.
+(defn event->layer-tuple [e]
+  (let [target (oget e :target)]
+    [(oget target :_url)
+     (oget target [:options :layers])]))
+(defn on-load-start [e]
+  (let [lt (event->layer-tuple e)
+        layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
+    (re-frame/dispatch [:map.layer/load-start layer])))
+(defn on-tile-error [e]
+  (let [lt (event->layer-tuple e)
+        layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
+    (re-frame/dispatch [:map.layer/load-error layer])))
+(defn on-load-end   [e]
+  (let [lt (event->layer-tuple e)
+        layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
+    (re-frame/dispatch [:map.layer/load-finished layer])))
+
 (defn map-component []
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
@@ -92,9 +114,9 @@
       (fn [i {:keys [server_url layer_name] :as layer}]
         ^{:key (str server_url layer_name)}
         [wms-layer {:url server_url :layers layer_name :z-index (inc i)
-                    :on-loading   #(re-frame/dispatch [:map.layer/load-start    layer])
-                    :on-tileerror #(re-frame/dispatch [:map.layer/load-error    layer])
-                    :on-load      #(re-frame/dispatch [:map.layer/load-finished layer])
+                    :on-loading   on-load-start
+                    :on-tileerror on-tile-error
+                    :on-load      on-load-end
                     :transparent true :format "image/png"}])
       (sort-layers active-layers layer-priorities logic-type))
      (when query

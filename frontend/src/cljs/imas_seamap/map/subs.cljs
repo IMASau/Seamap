@@ -59,3 +59,10 @@
 
 (defn map-other-layers-filter [db _]
   (get-in db [:filters :other-layers]))
+
+(defn map-layer-lookup [db _]
+  (reduce
+   (fn [acc {:keys [server_url layer_name] :as layer}]
+     (assoc acc [server_url layer_name] layer))
+   {}
+   (get-in db [:map :layers])))
