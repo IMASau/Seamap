@@ -9,7 +9,10 @@ class DescriptorViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class LayerViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Layer.objects.all()
+    queryset = Layer.objects.all().prefetch_related('category',
+                                                    'data_classification',
+                                                    'organisation',
+                                                    'server_type')
     serializer_class = LayerSerializer
 
 
