@@ -71,6 +71,10 @@
 ;;; equality tests and thus the map re-renders, causing flickering.
 ;;; So, we take the raw event instead, pick out enough info to
 ;;; identify the layer, and then dispatch.
+;;; We could actually rely on the event handler (:load-start, etc)
+;;; looking up the layer itself, as a slight efficiency, but until
+;;; it's necessary I prefer the API consistency of passing the layer
+;;; to the dispatch.
 (defn event->layer-tuple [e]
   (let [target (oget e :target)]
     [(oget target :_url)
