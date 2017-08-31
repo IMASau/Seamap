@@ -13,6 +13,8 @@ import ContainerDimensions from 'react-container-dimensions';
 import * as ReactLeaflet from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 
+import * as ReactSidebar from 'react-leaflet-sidebarv2';
+
 import * as Blueprint from '@blueprintjs/core';
 
 window.L = L;
@@ -28,7 +30,9 @@ React.ContainerDimensions = ContainerDimensions;
 window.React = React;
 window.ReactDOM = ReactDOM;
 
-ReactLeaflet.EditControl = EditControl;
 window.ReactLeaflet = ReactLeaflet;
+window.ReactLeaflet.EditControl = EditControl;
+
+window.ReactSidebar = ReactSidebar;
 
 window.Blueprint = Blueprint;
