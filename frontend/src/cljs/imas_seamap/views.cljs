@@ -230,8 +230,8 @@
     (fn [{:keys [title classes] :as props} layers active-layers loading-fn error-fn]
       [:div.layer-group.height-managed
        {:class-name (str classes (if @expanded " expanded" " collapsed"))}
-       [:h1.pt-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")
-                              :on-click (handler-fn (swap! expanded not))}
+       [:h1 {:on-click (handler-fn (swap! expanded not))}
+        [:span.pt-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")}]
         (str title " (" (count layers) ")")]
        [b/collapse {:is-open @expanded :className "height-managed"}
         (when-let [extra-component (:extra-component props)]
