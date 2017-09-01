@@ -104,16 +104,61 @@
         {:keys [collapsed selected] :as sidebar-state} @(re-frame/subscribe [:ui/sidebar])
         base-layer-osm [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                                     :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
-    [leaflet-map (merge
-                  {:id "map" :use-fly-to true
-                   :center center :zoom zoom
-                   :on-zoomend    on-map-view-changed
-                   :on-moveend    on-map-view-changed
-                   :when-ready    on-map-view-changed
-                   :on-click      on-map-clicked
-                   :on-popupclose on-popup-closed}
-                  (when (seq bounds) {:bounds (map->bounds bounds)}))
-     [sidebar {:selected  selected
+    [:div.map-wrapper
+     [leaflet-map (merge
+                   {:id            "map"
+                    :use-fly-to    true
+                    :center        center
+                    :zoom          zoom
+                    :on-zoomend    on-map-view-changed
+                    :on-moveend    on-map-view-changed
+                    :when-ready    on-map-view-changed
+                    :on-click      on-map-clicked
+                    :on-popupclose on-popup-closed}
+                   (when (seq bounds) {:bounds (map->bounds bounds)}))
+
+      base-layer-osm
+      ;; We enforce the layer ordering by an incrementing z-index (the
+      ;; order of this list is otherwise ignored, as the underlying
+      ;; React -> Leaflet translation just does add/removeLayer, which
+      ;; then orders in the map by update not by list):
+      (map-indexed
+       (fn [i {:keys [server_url layer_name] :as layer}]
+         ^{:key (str server_url layer_name)}
+         [wms-layer {:url          server_url :layers layer_name :z-index (inc i)
+                     :on-loading   on-load-start
+                     :on-tileerror on-tile-error
+                     :on-load      on-load-end
+                     :transparent  true       :format "image/png"}])
+       (sort-layers active-layers layer-priorities logic-type))
+      (when query
+        [geojson-layer {:data (clj->js query)}])
+      (when (and query mouse-loc)
+        [circle-marker {:center      mouse-loc
+                        :radius      3
+                        :fillColor   "#3f8ffa"
+                        :color       "#3f8ffa"
+                        :opacity     1
+                        :fillOpacity 1}])
+      (when drawing?
+        [feature-group
+         [edit-control {:draw       {:rectangle false
+                                     :circle    false
+                                     :marker    false
+                                     :polygon   false
+                                     :polyline  {:allowIntersection false}}
+                        :on-mounted (fn [e]
+                                      (ocall e "_toolbars.draw._modes.polyline.handler.enable")
+                                      (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
+                        :on-created #(re-frame/dispatch [:transect/query (-> % (ocall "layer.toGeoJSON") (js->clj :keywordize-keys true))])}]])
+      (when has-info?
+        ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
+        ^{:key (str location)}
+        [popup {:position location :max-width 600}
+         [:div {:dangerouslySetInnerHTML {:__html info-body}}]])]
+
+     [sidebar {:id        "floating-sidebar"
+               :selected  selected
                :collapsed collapsed
                :closeIcon (r/as-element [:span.pt-icon-standard.pt-icon-caret-left])
                :on-close  #(re-frame/dispatch [:ui.sidebar/close])
@@ -121,44 +166,4 @@
       [sidebar-tab {:header "Seamap Australia"
                     :icon   (r/as-element [:span.pt-icon-standard.pt-icon-menu])
                     :id     "tab-home"}
-       sidebar-content]]
-
-     base-layer-osm
-     ;; We enforce the layer ordering by an incrementing z-index (the
-     ;; order of this list is otherwise ignored, as the underlying
-     ;; React -> Leaflet translation just does add/removeLayer, which
-     ;; then orders in the map by update not by list):
-     (map-indexed
-      (fn [i {:keys [server_url layer_name] :as layer}]
-        ^{:key (str server_url layer_name)}
-        [wms-layer {:url server_url :layers layer_name :z-index (inc i)
-                    :on-loading   on-load-start
-                    :on-tileerror on-tile-error
-                    :on-load      on-load-end
-                    :transparent true :format "image/png"}])
-      (sort-layers active-layers layer-priorities logic-type))
-     (when query
-       [geojson-layer {:data (clj->js query)}])
-     (when (and query mouse-loc)
-       [circle-marker {:center      mouse-loc
-                       :radius      3
-                       :fillColor   "#3f8ffa"
-                       :color       "#3f8ffa"
-                       :opacity     1
-                       :fillOpacity 1}])
-     (when drawing?
-       [feature-group
-        [edit-control {:draw {:rectangle false
-                              :circle    false
-                              :marker    false
-                              :polygon   false
-                              :polyline  {:allowIntersection false}}
-                       :on-mounted (fn [e]
-                                     (ocall e "_toolbars.draw._modes.polyline.handler.enable")
-                                     (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
-                       :on-created #(re-frame/dispatch [:transect/query (-> % (ocall "layer.toGeoJSON") (js->clj :keywordize-keys true))])}]])
-     (when has-info?
-       ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
-       ^{:key (str location)}
-       [popup {:position location :max-width 600}
-        [:div {:dangerouslySetInnerHTML {:__html info-body}}]])]))
+       sidebar-content]]]))
