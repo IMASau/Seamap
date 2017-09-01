@@ -344,9 +344,9 @@
 
 (defn layout-app []
   [:div#main-wrapper
-   [app-controls]
+   ;[app-controls]
    [:div#content-wrapper
-    [map-component]
+    [map-component [app-controls]]
     [plot-component]]
    ;; needs the ids of components to helper-annotate:
    [helper-overlay :plot-footer :transect-btn-wrapper]
