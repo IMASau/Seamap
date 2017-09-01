@@ -109,4 +109,10 @@
 (s/def ::config map?)
 
 (s/def :seamap/app-state
-  (s/keys :req-un [::map ::layer-state ::transect ::filters ::config ::habitat-titles ::habitat-colours]))
+  (s/keys :req-un [::config
+                   ::filters
+                   ::habitat-colours
+                   ::habitat-titles
+                   ::layer-state
+                   ::map
+                   ::transect]))
