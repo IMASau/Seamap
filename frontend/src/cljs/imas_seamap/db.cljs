@@ -24,7 +24,9 @@
                      :bathymetry nil}
    :habitat-colours {}
    :habitat-titles  {}
-   :display         {:help-overlay false}
+   :display         {:help-overlay false
+                     :sidebar      {:collapsed false
+                                    :selected  "tab-home"}}
    :config          {:layer-url      (str api-url-base "layers/")
                      :group-url      (str api-url-base "groups/")
                      :priority-url   (str api-url-base "priorities/")

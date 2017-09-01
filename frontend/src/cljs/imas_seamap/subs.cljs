@@ -78,6 +78,9 @@
 (defn help-layer-open? [db _]
   (get-in db [:display :help-overlay]))
 
+(defn sidebar-state [db _]
+  (get-in db [:display :sidebar]))
+
 (defn app-loading? [db _]
   (get db :loading false))
 

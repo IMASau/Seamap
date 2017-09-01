@@ -30,6 +30,7 @@
     :transect/results                     subs/transect-results
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
+    :ui/sidebar                           subs/sidebar-state
     :app/loading?                         subs/app-loading?
     :app/load-error-msg                   subs/load-error-msg
     :info/message                         subs/user-message}
@@ -81,7 +82,9 @@
     :map/view-updated                     mevents/map-view-updated
     :map/popup-closed                     mevents/destroy-popup
     :ui/show-loading                      events/loading-screen
-    :ui/hide-loading                      events/application-loaded}})
+    :ui/hide-loading                      events/application-loaded
+    :ui.sidebar/open                      events/sidebar-open
+    :ui.sidebar/close                     events/sidebar-close}})
 
 (def events-for-analytics
   [:help-layer/open

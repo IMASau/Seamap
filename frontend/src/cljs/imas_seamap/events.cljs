@@ -238,3 +238,11 @@
 ;;; override the timeout if a message is still displayed.
 (defn clear-message [db _]
   (assoc-in db [:info :message] nil))
+
+(defn sidebar-open [db [_ tabid]]
+  (assoc-in db [:display :sidebar] {:collapsed false
+                                    :selected  tabid}))
+
+(defn sidebar-close [db _]
+  (assoc-in db [:display :sidebar :collapsed] true))
+

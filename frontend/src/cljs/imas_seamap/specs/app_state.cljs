@@ -102,6 +102,12 @@
 (s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]
                           :opt-un [:transect/mouse-percentage]))
 
+(s/def :display/help-overlay boolean?)
+(s/def :sidebar/collapsed boolean?)
+(s/def :sidebar/selected string?)
+(s/def :display/sidebar (s/keys :req-un [:sidebar/collapsed :sidebar/selected]))
+(s/def ::display (s/keys :req-un [:display/help-overlay :display/sidebar]))
+
 (s/def :filters/layers       string?)
 (s/def :filters/other-layers string?)
 (s/def ::filters (s/keys :req-un [:filters/layers :filters/other-layers]))
@@ -110,6 +116,7 @@
 
 (s/def :seamap/app-state
   (s/keys :req-un [::config
+                   ::display
                    ::filters
                    ::habitat-colours
                    ::habitat-titles
