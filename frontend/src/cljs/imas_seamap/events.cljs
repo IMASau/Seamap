@@ -240,8 +240,10 @@
   (assoc-in db [:info :message] nil))
 
 (defn sidebar-open [db [_ tabid]]
-  (assoc-in db [:display :sidebar] {:collapsed false
-                                    :selected  tabid}))
+  (-> db
+      (assoc-in [:display :sidebar :selected] tabid)
+      ;; Allow the left tab to close as well as open:
+      (update-in [:display :sidebar :collapsed] not)))
 
 (defn sidebar-close [db _]
   (assoc-in db [:display :sidebar :collapsed] true))
