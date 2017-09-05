@@ -23,7 +23,9 @@
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:initialise-layers]}
     {:when :seen-all-of? :events [:map/update-layers :map/update-groups :map/update-priorities :map/update-descriptors]
-     :dispatch [:map/initialise-display]
+     :dispatch [:map/initialise-display]}
+    {:when :seen? :events :ui/hide-loading
+     :dispatch [:welcome-layer/open]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 

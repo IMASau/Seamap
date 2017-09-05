@@ -25,7 +25,7 @@
    :habitat-colours {}
    :habitat-titles  {}
    :display         {:help-overlay    false
-                     :welcome-overlay true
+                     :welcome-overlay false
                      :sidebar         {:collapsed false
                                        :selected  "tab-home"}}
    :config          {:layer-url      (str api-url-base "layers/")
