@@ -103,10 +103,11 @@
                           :opt-un [:transect/mouse-percentage]))
 
 (s/def :display/help-overlay boolean?)
+(s/def :display/welcome-overlay boolean?)
 (s/def :sidebar/collapsed boolean?)
 (s/def :sidebar/selected string?)
 (s/def :display/sidebar (s/keys :req-un [:sidebar/collapsed :sidebar/selected]))
-(s/def ::display (s/keys :req-un [:display/help-overlay :display/sidebar]))
+(s/def ::display (s/keys :req-un [:display/help-overlay :display/welcome-overlay :display/sidebar]))
 
 (s/def :filters/layers       string?)
 (s/def :filters/other-layers string?)

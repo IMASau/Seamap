@@ -30,6 +30,7 @@
     :transect/results                     subs/transect-results
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
+    :welcome-layer/open?                  subs/welcome-layer-open?
     :ui/sidebar                           subs/sidebar-state
     :app/loading?                         subs/app-loading?
     :app/load-error-msg                   subs/load-error-msg
@@ -45,6 +46,8 @@
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
+    :welcome-layer/open                   events/welcome-layer-open
+    :welcome-layer/close                  events/welcome-layer-close
     :info/show-message                    events/show-message
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]

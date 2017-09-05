@@ -342,6 +342,21 @@
           {:title  "Loading Seamap Layers..."
            :visual (reagent/as-element [b/spinner {:intent "success"}])}])])))
 
+(defn welcome-dialogue []
+  (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
+    [b/dialogue {:title "" ; Hide for now, but this generates the <header> bar
+                 :class-name "welcome-splash"
+                 :is-open open?
+                 :on-close #(re-frame/dispatch [:welcome-layer/close])}
+     [:div#welcome-splash.pt-dialog-body
+      [:p "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+    Donec hendrerit tempor tellus.  Donec pretium posuere tellus.
+    Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus.
+    Cum sociis natoque penatibus et magnis dis parturient montes,
+    nascetur ridiculus mus.  Nulla posuere.  Donec vitae dolor.
+    Nullam tristique diam non turpis.  Cras placerat accumsan nulla.
+    Nullam rutrum.  Nam vestibulum accumsan nisl."]]]))
+
 (defn layout-app []
   [:div#main-wrapper
    ;[app-controls]
@@ -351,5 +366,6 @@
    ;; needs the ids of components to helper-annotate:
    [helper-overlay :plot-footer :transect-btn-wrapper]
    [show-messages]
+   [welcome-dialogue]
    [loading-display]])
 

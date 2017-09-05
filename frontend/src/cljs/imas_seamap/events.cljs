@@ -77,6 +77,12 @@
 (defn help-layer-close [db _]
   (assoc-in db [:display :help-overlay] false))
 
+(defn welcome-layer-open [db _]
+  (assoc-in db [:display :welcome-overlay] true))
+
+(defn welcome-layer-close [db _]
+  (assoc-in db [:display :welcome-overlay] false))
+
 (defn- geojson->linestring [geojson]
   ;; No assertions or anything for now (could make the geojson spec more explicit, but this will be fine)
   (get-in geojson [:geometry :coordinates]))

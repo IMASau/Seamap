@@ -78,6 +78,9 @@
 (defn help-layer-open? [db _]
   (get-in db [:display :help-overlay]))
 
+(defn welcome-layer-open? [db _]
+  (get-in db [:display :welcome-overlay]))
+
 (defn sidebar-state [db _]
   (get-in db [:display :sidebar]))
 
