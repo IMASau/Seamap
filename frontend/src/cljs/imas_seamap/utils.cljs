@@ -23,6 +23,7 @@
 (defn parse-state [hash-str]
   (let [parsed (->> (string/split hash-str "|")
                     (map #(string/split % "="))
+                    (filter #(= 2 (count %)))
                     (into {})
                     keywordize-keys)]
     (-> parsed
