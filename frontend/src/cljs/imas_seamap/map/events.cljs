@@ -5,6 +5,7 @@
             [clojure.string :as string]
             [clojure.zip :as zip]
             [re-frame.core :as re-frame]
+            [imas-seamap.utils :refer [encode-state]]
             [imas-seamap.map.utils :refer [applicable-layers]]
             [debux.cs.core :refer-macros [dbg]]
             [ajax.core :as ajax]))
@@ -100,23 +101,26 @@
   (update-in db [:layer-state] assoc-in [layer 0] :map.layer/loaded))
 
 (defn toggle-layer [{:keys [db]} [_ layer]]
-  {:db (update-in db [:map :active-layers]
-                  #(if (some #{layer} %)
-                     (filterv (fn [l] (not= l layer)) %)
-                     (if (= :bathymetry (:category layer))
-                       [layer] ; if we turn on bathymetry, hide everything else (SM-58)
-                       (conj % layer))))
-   ;; If someone triggers this, we also switch to manual mode:
-   :dispatch [:map.layers.logic/manual]})
+  (let [db (update-in db [:map :active-layers]
+                      #(if (some #{layer} %)
+                         (filterv (fn [l] (not= l layer)) %)
+                         (if (= :bathymetry (:category layer))
+                           [layer] ; if we turn on bathymetry, hide everything else (SM-58)
+                           (conj % layer))))]
+    {:db       db
+     :put-hash (encode-state db)
+     ;; If someone triggers this, we also switch to manual mode:
+     :dispatch [:map.layers.logic/manual]}))
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ {:keys [bounding_box] :as layer}]]
   (let [already-active? (some #{layer} (-> db :map :active-layers))]
     (merge
-     {:db (cond-> db
-            true                  (assoc-in [:map :bounds] bounding_box)
-            (not already-active?) (update-in [:map :active-layers] conj layer))}
+     {:db       (cond-> db
+                  true                  (assoc-in [:map :bounds] bounding_box)
+                  (not already-active?) (update-in [:map :active-layers] conj layer))
+      :put-hash (encode-state db)}
      ;; If someone triggers this, we also switch to manual mode:
      (when-not already-active?
        {:dispatch [:map.layers.logic/manual]}))))
@@ -150,8 +154,10 @@
 (defn show-initial-layers
   "Figure out the highest priority layer, and display it"
   [{:keys [db]} _]
-  (let [initial-layers (applicable-layers db :category :habitat)]
-    {:db       (assoc-in db [:map :active-layers] (vec initial-layers))
+  (let [initial-layers (applicable-layers db :category :habitat)
+        db             (assoc-in db [:map :active-layers] (vec initial-layers))]
+    {:db       db
+     :put-hash (encode-state db)
      :dispatch [:ui/hide-loading]}))
 
 (defn map-layer-logic-manual [db [_ user-triggered]]
@@ -168,15 +174,17 @@
                :map.layer-logic/automatic
                :map.layer-logic/manual)
         trigger (if user-triggered :map.logic.trigger/user :map.logic.trigger/automatic)]
-    (merge {:db (assoc-in db [:map :logic] {:type type :trigger trigger})}
+    (merge {:db (assoc-in db [:map :logic] {:type type :trigger trigger})
+            :put-hash (encode-state db)}
            ;; Also reset displayed layers, if we're turning auto-mode back on:
            (when (= type :map.layer-logic/automatic)
              {:dispatch [:map/initialise-display]}))))
 
-(defn map-view-updated [db [_ {:keys [zoom center bounds]}]]
-  (-> db
-      (update-in [:map] assoc
-                 :zoom zoom
-                 :center center
-                 :bounds bounds)
-      update-active-layers))
+(defn map-view-updated [{:keys [db]} [_ {:keys [zoom center bounds]}]]
+  {:db       (-> db
+                 (update-in [:map] assoc
+                            :zoom zoom
+                            :center center
+                            :bounds bounds)
+                 update-active-layers)
+   :put-hash (encode-state db)})

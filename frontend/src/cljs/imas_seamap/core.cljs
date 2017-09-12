@@ -7,6 +7,7 @@
             [cemerick.url :as url]
             [imas-seamap.analytics :refer [analytics-for]]
             [imas-seamap.events :as events]
+            [imas-seamap.fx]
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
@@ -82,7 +83,7 @@
     :map/update-descriptors               mevents/update-descriptors
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
-    :map/view-updated                     mevents/map-view-updated
+    :map/view-updated                     [mevents/map-view-updated]
     :map/popup-closed                     mevents/destroy-popup
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
