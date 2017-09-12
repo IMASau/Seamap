@@ -1,7 +1,8 @@
 (ns imas-seamap.utils
-  (:require [clojure.set :refer [rename-keys]]
+  (:require [clojure.set :refer [index rename-keys]]
             [clojure.string :as string]
-            [clojure.walk :refer [keywordize-keys]]))
+            [clojure.walk :refer [keywordize-keys]]
+            [debux.cs.core :refer-macros [dbg]]))
 
 ;;; http://blog.jayfields.com/2011/01/clojure-select-keys-select-values-and.html
 (defn select-values [map ks]
@@ -31,3 +32,10 @@
         (update :active string/split ";")
         (update :zoom js/parseInt)
         (rename-keys {:active :active-layers}))))
+
+(defn names->active-layers [names layers]
+  (let [by-name (index layers [:layer_name])]
+    (->> names
+         (map #(first (get by-name {:layer_name %})))
+         (remove nil?)
+         vec)))
