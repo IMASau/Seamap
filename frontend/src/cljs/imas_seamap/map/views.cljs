@@ -105,8 +105,20 @@
         base-layer-osm [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                                     :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
     [:div.map-wrapper
+     [sidebar {:id        "floating-sidebar"
+               :selected  selected
+               :collapsed collapsed
+               :closeIcon (r/as-element [:span.pt-icon-standard.pt-icon-caret-left])
+               :on-close  #(re-frame/dispatch [:ui.sidebar/close])
+               :on-open   #(re-frame/dispatch [:ui.sidebar/open %])}
+      [sidebar-tab {:header "Seamap Australia"
+                    :icon   (r/as-element [:span.pt-icon-standard.pt-icon-menu])
+                    :id     "tab-home"}
+       sidebar-content]]
+
      [leaflet-map (merge
                    {:id            "map"
+                    :class-name    "sidebar-map"
                     :use-fly-to    true
                     :center        center
                     :zoom          zoom
@@ -155,15 +167,4 @@
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
         ^{:key (str location)}
         [popup {:position location :max-width 600}
-         [:div {:dangerouslySetInnerHTML {:__html info-body}}]])]
-
-     [sidebar {:id        "floating-sidebar"
-               :selected  selected
-               :collapsed collapsed
-               :closeIcon (r/as-element [:span.pt-icon-standard.pt-icon-caret-left])
-               :on-close  #(re-frame/dispatch [:ui.sidebar/close])
-               :on-open   #(re-frame/dispatch [:ui.sidebar/open %])}
-      [sidebar-tab {:header "Seamap Australia"
-                    :icon   (r/as-element [:span.pt-icon-standard.pt-icon-menu])
-                    :id     "tab-home"}
-       sidebar-content]]]))
+         [:div {:dangerouslySetInnerHTML {:__html info-body}}]])]]))
