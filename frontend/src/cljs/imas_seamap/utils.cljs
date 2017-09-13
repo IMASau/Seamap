@@ -28,10 +28,10 @@
                     (into {})
                     keywordize-keys)]
     (-> parsed
-        (update :center #(map js/parseFloat (string/split % ";")))
-        (update :active string/split ";")
-        (update :zoom js/parseInt)
-        (rename-keys {:active :active-layers}))))
+        dbg
+        (update :center #(mapv js/parseFloat (string/split % ";")))
+        (update :active #(filterv (comp not string/blank?) (string/split % ";")))
+        (update :zoom js/parseInt))))
 
 (defn names->active-layers [names layers]
   (let [by-name (index layers [:layer_name])]

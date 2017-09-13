@@ -38,8 +38,7 @@
     :info/message                         subs/user-message}
 
    :events
-   {:boot                                 [events/boot]
-    :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
+   {:ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     :initialise-db                        [events/initialise-db]
     :initialise-layers                    [events/initialise-layers]
@@ -102,6 +101,12 @@
 (def standard-interceptors
   [(when ^boolean goog.DEBUG (debug-excluding :transect.plot/mousemove))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
+
+;;; Register :boot separately, because we want an extra interceptor:
+(re-frame/reg-event-fx
+ :boot
+ [(re-frame/inject-cofx :hash-state) standard-interceptors]
+ events/boot)
 
 (defn register-handlers! [{:keys [subs events]}]
   (doseq [[sym handler] subs]

@@ -5,7 +5,7 @@
             [clojure.string :as string]
             [clojure.zip :as zip]
             [re-frame.core :as re-frame]
-            [imas-seamap.utils :refer [encode-state]]
+            [imas-seamap.utils :refer [encode-state names->active-layers]]
             [imas-seamap.map.utils :refer [applicable-layers]]
             [debux.cs.core :refer-macros [dbg]]
             [ajax.core :as ajax]))
@@ -153,9 +153,17 @@
 
 (defn show-initial-layers
   "Figure out the highest priority layer, and display it"
+  ;; Slight hack; note we use :active not :active-layers, because
+  ;; during boot we may have loaded hash-state, but we can't hydrate
+  ;; the names from the hash state into actual layers, until the
+  ;; layers themselves are loaded... by which time the state will have
+  ;; been re-set.  So we have this two step process.
   [{:keys [db]} _]
-  (let [initial-layers (applicable-layers db :category :habitat)
-        db             (assoc-in db [:map :active-layers] (vec initial-layers))]
+  (let [{:keys [active logic]} (:map db)
+        active-layers          (if (= (:type logic) :map.layer-logic/manual)
+                                 (names->active-layers active (get-in db [:map :layers]))
+                                 (vec (applicable-layers db :category :habitat)))
+        db                     (assoc-in db [:map :active-layers] active-layers)]
     {:db       db
      :put-hash (encode-state db)
      :dispatch [:ui/hide-loading]}))
