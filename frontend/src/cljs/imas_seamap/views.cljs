@@ -383,6 +383,9 @@
                 {:label "Start Searching Layers" :combo "/" :prevent-default true}
                 [:ui.search/focus])]
      [b/hotkey (keydown-wrapper
+                {:label "Reset"                  :combo "shift + r"}
+                [:re-boot])]
+     [b/hotkey (keydown-wrapper
                 {:label "Show Help Overlay"      :combo "h"}
                 [:help-layer/toggle])]]))
 
