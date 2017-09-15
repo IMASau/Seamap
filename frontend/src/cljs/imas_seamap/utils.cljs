@@ -28,7 +28,6 @@
                     (into {})
                     keywordize-keys)]
     (-> parsed
-        dbg
         (update :center #(mapv js/parseFloat (string/split % ";")))
         (update :active #(filterv (comp not string/blank?) (string/split % ";")))
         (update :zoom js/parseInt))))
