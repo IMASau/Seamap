@@ -363,9 +363,7 @@
         (fn [{:keys [label combo] :as m} keydown-v]
           (assoc m :global    true
                    :group     "Keyboard Shortcuts"
-                   :onKeyDown (fn [_]
-                                (re-frame/dispatch [:info/show-message (str label " (" combo ")") b/*intent-none*])
-                                (re-frame/dispatch keydown-v))))]
+                   :onKeyDown #(re-frame/dispatch keydown-v)))]
     [b/hotkeys nil
      [b/hotkey (keydown-wrapper
                 {:label "Toggle Plot Panel"      :combo "p"}
