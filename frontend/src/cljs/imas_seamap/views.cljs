@@ -172,7 +172,8 @@
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
     [:div.pt-input-group
      [:span.pt-icon.pt-icon-search]
-     [:input.pt-input.pt-round {:type        "search"
+     [:input.pt-input.pt-round {:id          "layer-search"
+                                :type        "search"
                                 :placeholder "Search Layers..."
                                 :value       @filter-text
                                 :on-change   (handler-fn
@@ -360,14 +361,30 @@
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [{:keys [label combo] :as m} keydown-v]
-          (assoc m :onKeyDown (fn [_]
+          (assoc m :global    true
+                   :group     "Keyboard Shortcuts"
+                   :onKeyDown (fn [_]
                                 (re-frame/dispatch [:info/show-message (str label " (" combo ")") b/*intent-none*])
                                 (re-frame/dispatch keydown-v))))]
     [b/hotkeys nil
      [b/hotkey (keydown-wrapper
-                {:global true :label "Toggle Plot panel" :combo "p"}
+                {:label "Toggle Plot Panel"      :combo "p"}
                 [:transect.plot/toggle-visibility])]
-     [b/hotkey {:global true :label "Testing!" :combo "shift + a" :onKeyDown #(js/console.warn "**** a triggered")}]]))
+     [b/hotkey (keydown-wrapper
+                {:label "Toggle Sidebar"         :combo "s"}
+                [:ui.sidebar/toggle])]
+     [b/hotkey (keydown-wrapper
+                {:label "Start/Clear Transect"   :combo "t"}
+                [:transect.draw/toggle])]
+     [b/hotkey (keydown-wrapper
+                {:label "Toggle Layer Logic"     :combo "m"}
+                [:map.layers.logic/toggle])]
+     [b/hotkey (keydown-wrapper
+                {:label "Start Searching Layers" :combo "/" :prevent-default true}
+                [:ui.search/focus])]
+     [b/hotkey (keydown-wrapper
+                {:label "Show Help Overlay"      :combo "h"}
+                [:help-layer/toggle])]]))
 
 (def layout-app
   (b/hotkeys-target

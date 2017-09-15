@@ -4,6 +4,7 @@
             [clojure.data.xml :as xml]
             [clojure.data.zip.xml :as zx]
             [clojure.zip :as zip]
+            [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.map.utils :refer [applicable-layers bbox-intersects? habitat-layer?]]
@@ -203,6 +204,13 @@
                                    :habitat    nil
                                    :bathymetry nil}))
 
+(defn transect-drawing-toggle [{:keys [db]} _]
+  {:dispatch
+   (cond
+     (get-in db [:transect :query])         [:transect.draw/clear]
+     (get-in db [:map :controls :transect]) [:transect.draw/disable]
+     :default                               [:transect.draw/enable])})
+
 (defn transect-visibility-toggle [db _]
   (update-in db [:transect :show?] not))
 
@@ -258,3 +266,8 @@
 (defn sidebar-close [db _]
   (assoc-in db [:display :sidebar :collapsed] true))
 
+(defn sidebar-toggle [db _]
+  (update-in db [:display :sidebar :collapsed] not))
+
+(defn focus-search [_ _]
+  (.focus (gdom/getElement "layer-search")))

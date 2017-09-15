@@ -60,6 +60,7 @@
     :transect.draw/enable                 events/transect-drawing-start
     :transect.draw/disable                events/transect-drawing-finish
     :transect.draw/clear                  events/transect-drawing-clear
+    :transect.draw/toggle                 [events/transect-drawing-toggle]
     :transect.plot/show                   events/transect-visibility-show
     :transect.plot/hide                   events/transect-visibility-hide
     :transect.plot/mousemove              events/transect-onmousemove
@@ -86,8 +87,10 @@
     :map/popup-closed                     mevents/destroy-popup
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
+    :ui.search/focus                      [events/focus-search]
     :ui.sidebar/open                      events/sidebar-open
-    :ui.sidebar/close                     events/sidebar-close}})
+    :ui.sidebar/close                     events/sidebar-close
+    :ui.sidebar/toggle                    events/sidebar-toggle}})
 
 (def events-for-analytics
   [:help-layer/open
