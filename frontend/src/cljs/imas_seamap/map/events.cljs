@@ -15,36 +15,36 @@
   (string/join "," [south west north east]))
 
 (defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y] :as point}]]
-  ;; FIXME: We assume that all img layers are on the same server
-  (let [img-layers (->> db :map :active-layers #_(filter #(= :imagery (:category %))))
-        server-url (-> img-layers first :server_url)
+  ;; WARNING: We assume that all habitat / img layers are on the same server
+  (let [active-layers (->> db :map :active-layers (filter #(#{:habitat :imagery} (:category %))))
+        server-url    (-> active-layers first :server_url)
         ;; Note, top layer, last in the list, must be first in our search string:
-        layers (->> img-layers (map :layer_name) reverse (string/join ","))]
-   (merge {:db db}
-          (when-not (boolean (get-in db [:map :controls :transect]))
-            ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
-            (let [params {:REQUEST "GetFeatureInfo"
-                          :LAYERS layers
-                          :QUERY_layers layers
-                          :WIDTH (:x size)
-                          :HEIGHT (:y size)
-                          :BBOX (bounds->str bounds)
-                          :X x
-                          :Y y
-                          :I x
-                          :J y
-                          :SRS "EPSG:4326"
-                          :CRS "EPSG:4326"
-                          :FORMAT "text/html"
-                          :INFO_format "text/html"
-                          :SERVICE "WMS"
-                          :VERSION "1.3.0"}]
-              {:http-xhrio {:method :get
-                            :uri server-url
-                            :params params
-                            :response-format (ajax/text-response-format)
-                            :on-success [:map/got-featureinfo point]
-                            :on-failure [:ajax/default-err-handler]}})))))
+        layers        (->> active-layers (map :layer_name) reverse (string/join ","))]
+    ;; Only invoke if we have at least one layer, and aren't drawing a transect (ie, different click):
+    (when (and server-url (not (get-in db [:map :controls :transect])))
+      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
+      (let [params {:REQUEST      "GetFeatureInfo"
+                    :LAYERS       layers
+                    :QUERY_layers layers
+                    :WIDTH        (:x size)
+                    :HEIGHT       (:y size)
+                    :BBOX         (bounds->str bounds)
+                    :X            x
+                    :Y            y
+                    :I            x
+                    :J            y
+                    :SRS          "EPSG:4326"
+                    :CRS          "EPSG:4326"
+                    :FORMAT       "text/html"
+                    :INFO_format  "text/html"
+                    :SERVICE      "WMS"
+                    :VERSION      "1.3.0"}]
+        {:http-xhrio {:method          :get
+                      :uri             server-url
+                      :params          params
+                      :response-format (ajax/text-response-format)
+                      :on-success      [:map/got-featureinfo point]
+                      :on-failure      [:ajax/default-err-handler]}}))))
 
 (defn got-feature-info [db [_ point response]]
   (let [zipped (->> response xml/parse-str zip/xml-zip)
