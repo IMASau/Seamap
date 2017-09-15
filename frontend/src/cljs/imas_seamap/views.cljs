@@ -281,6 +281,14 @@
       {:title "Other"     :expanded false} third-party active-layers loading-layers error-layers]
      [help-button]]))
 
+(defn settings-controls []
+  [:div#settings
+   [b/button {:id         "reset-button"
+              :icon-name  "undo"
+              :class-name "pt-fill"
+              :on-click   (handler-fn (re-frame/dispatch [:re-boot]))
+              :text       "Reset Interface"}]])
+
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
                                   :as   props}
@@ -392,7 +400,7 @@
 
    [:div#main-wrapper
     [:div#content-wrapper
-     [map-component [app-controls]]
+     [map-component [app-controls] [settings-controls]]
      [plot-component]]
     ;; needs the ids of components to helper-annotate:
     [helper-overlay :plot-footer :transect-btn-wrapper]

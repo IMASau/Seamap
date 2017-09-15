@@ -95,7 +95,7 @@
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
     (re-frame/dispatch [:map.layer/load-finished layer])))
 
-(defn map-component [sidebar-content]
+(defn map-component [sidebar-content settings-content]
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]} @(re-frame/subscribe [:transect/info])
@@ -114,7 +114,12 @@
       [sidebar-tab {:header "Seamap Australia"
                     :icon   (r/as-element [:span.pt-icon-standard.pt-icon-menu])
                     :id     "tab-home"}
-       sidebar-content]]
+       sidebar-content]
+      [sidebar-tab {:header "Settings"
+                    :anchor "bottom"
+                    :icon   (r/as-element [:span.pt-icon-standard.pt-icon-cog])
+                    :id     "tab-settings"}
+       settings-content]]
 
      [leaflet-map (merge
                    {:id            "map"
