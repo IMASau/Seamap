@@ -367,9 +367,10 @@
     Nullam rutrum.  Nam vestibulum accumsan nisl."]]
      [:div.pt-dialog-footer
       [:div.pt-dialog-footer-actions
-       [b/button {:text    "Get Started!"
-                  :intent   b/*intent-primary*
-                  :on-click (handler-fn (re-frame/dispatch [:welcome-layer/close]))}]]]]))
+       [b/button {:text       "Get Started!"
+                  :intent     b/*intent-primary*
+                  :auto-focus true
+                  :on-click   (handler-fn (re-frame/dispatch [:welcome-layer/close]))}]]]]))
 
 (def hotkeys-combos
   (let [keydown-wrapper
