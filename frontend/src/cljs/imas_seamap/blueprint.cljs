@@ -28,6 +28,17 @@
 
 (def tree            (reagent/adapt-react-class (gget "Blueprint.Tree")))
 
+(def hotkeys         (reagent/adapt-react-class (gget "Blueprint.Hotkeys")))
+
+(def hotkey          (reagent/adapt-react-class (gget "Blueprint.Hotkey")))
+
+(defn hotkeys-target
+  [view hotkeys]
+  (let [c (js/React.createClass
+           #js {:renderHotkeys (fn [_] (reagent/as-element hotkeys))
+                :render        (fn [_] (reagent/as-element view))})]
+    (js/Blueprint.HotkeysTarget c)
+    (reagent/adapt-react-class c)))
 
 ;;; Intents:
 

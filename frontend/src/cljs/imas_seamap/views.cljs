@@ -357,15 +357,30 @@
     Nullam tristique diam non turpis.  Cras placerat accumsan nulla.
     Nullam rutrum.  Nam vestibulum accumsan nisl."]]]))
 
-(defn layout-app []
-  [:div#main-wrapper
-   ;[app-controls]
-   [:div#content-wrapper
-    [map-component [app-controls]]
-    [plot-component]]
-   ;; needs the ids of components to helper-annotate:
-   [helper-overlay :plot-footer :transect-btn-wrapper]
-   [show-messages]
-   [welcome-dialogue]
-   [loading-display]])
+(def hotkeys-combos
+  (let [keydown-wrapper
+        (fn [{:keys [label combo] :as m} keydown-v]
+          (assoc m :onKeyDown (fn [_]
+                                (re-frame/dispatch [:info/show-message (str label " (" combo ")") b/*intent-none*])
+                                (re-frame/dispatch keydown-v))))]
+    [b/hotkeys nil
+     [b/hotkey (keydown-wrapper
+                {:global true :label "Toggle Plot panel" :combo "p"}
+                [:transect.plot/toggle-visibility])]
+     [b/hotkey {:global true :label "Testing!" :combo "shift + a" :onKeyDown #(js/console.warn "**** a triggered")}]]))
+
+(def layout-app
+  (b/hotkeys-target
+
+   [:div#main-wrapper
+    [:div#content-wrapper
+     [map-component [app-controls]]
+     [plot-component]]
+    ;; needs the ids of components to helper-annotate:
+    [helper-overlay :plot-footer :transect-btn-wrapper]
+    [show-messages]
+    [welcome-dialogue]
+    [loading-display]]
+
+   hotkeys-combos))
 
