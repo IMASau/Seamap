@@ -269,10 +269,11 @@
   (assoc-in db [:info :message] nil))
 
 (defn sidebar-open [db [_ tabid]]
-  (-> db
-      (assoc-in [:display :sidebar :selected] tabid)
-      ;; Allow the left tab to close as well as open:
-      (update-in [:display :sidebar :collapsed] not)))
+  (let [{:keys [selected collapsed]} (get-in db [:display :sidebar])]
+    (-> db
+        (assoc-in [:display :sidebar :selected] tabid)
+        ;; Allow the left tab to close as well as open, if clicking same icon:
+        (assoc-in [:display :sidebar :collapsed] (and (= tabid selected) (not collapsed))))))
 
 (defn sidebar-close [db _]
   (assoc-in db [:display :sidebar :collapsed] true))
