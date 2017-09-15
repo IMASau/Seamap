@@ -156,6 +156,10 @@ footer {
     flex: 1 1 auto;
 }
 
+.control-row .control {
+    margin-left: 2px;
+}
+
 .layer-controls .control:hover,
 .layer-active .header-text,
 .layer-active .pt-icon-eye-on {

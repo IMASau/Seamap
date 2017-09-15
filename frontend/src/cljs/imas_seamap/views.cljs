@@ -215,7 +215,7 @@
              :on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer-spec]))}]]]]
         [:div.subheader-row.height-static
          [:div.control-row
-          [:span.control.pt-text-muted.pt-icon-standard.pt-icon-link]
+          [:span.control.pt-text-muted.pt-icon-standard.pt-icon-info-sign]
           [:span.control.pt-text-muted.pt-icon-standard.pt-icon-import]]
          [:div.view-controls.pt-ui-text-large
           [b/tooltip {:content "Show entire layer"
