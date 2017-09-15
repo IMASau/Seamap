@@ -36,6 +36,17 @@
     {:db         initial-db
      :async-flow (boot-flow)}))
 
+;;; Reset state.  Gets a bit messy because we can't just return
+;;; default-db without throwing away ajax-loaded layer info, so we
+;;; restore that manually first.
+(defn re-boot [{:keys [habitat-colours habitat-titles] {:keys [layers priorities groups] :as map-state} :map :as db} _]
+  (-> db/default-db
+      (update :map merge {:layers     layers
+                          :groups     groups
+                          :priorities priorities})
+      (merge {:habitat-colours habitat-colours
+              :habitat-titles  habitat-titles})))
+
 (defn loading-screen [db _]
   (assoc db :loading true))
 
