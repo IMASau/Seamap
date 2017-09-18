@@ -127,6 +127,7 @@
                     :use-fly-to    true
                     :center        center
                     :zoom          zoom
+                    :keyboard      false  ; handled externally
                     :on-zoomend    on-map-view-changed
                     :on-moveend    on-map-view-changed
                     :when-ready    on-map-view-changed
