@@ -380,6 +380,12 @@
                    :onKeyDown #(re-frame/dispatch keydown-v)))]
     [b/hotkeys nil
      [b/hotkey (keydown-wrapper
+                {:label "Zoom In"                :combo "plus"}
+                [:map/zoom-in])]
+     [b/hotkey (keydown-wrapper
+                {:label "Zoom Out"               :combo "-"}
+                [:map/zoom-out])]
+     [b/hotkey (keydown-wrapper
                 {:label "Toggle Plot Panel"      :combo "p"}
                 [:transect.plot/toggle-visibility])]
      [b/hotkey (keydown-wrapper

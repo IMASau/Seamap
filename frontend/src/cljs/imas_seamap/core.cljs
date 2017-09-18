@@ -84,6 +84,8 @@
     :map/update-descriptors               mevents/update-descriptors
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
+    :map/zoom-in                          mevents/map-zoom-in
+    :map/zoom-out                         mevents/map-zoom-out
     :map/view-updated                     [mevents/map-view-updated]
     :map/popup-closed                     mevents/destroy-popup
     :ui/show-loading                      events/loading-screen

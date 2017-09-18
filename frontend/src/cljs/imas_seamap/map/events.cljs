@@ -125,6 +125,12 @@
      (when-not already-active?
        {:dispatch [:map.layers.logic/manual]}))))
 
+(defn map-zoom-in [db _]
+  (update-in db [:map :zoom] inc))
+
+(defn map-zoom-out [db _]
+  (update-in db [:map :zoom] dec))
+
 (defn layer-visible? [{:keys [west south east north] :as bounds}
                       {:keys [bounding_box]          :as layer}]
   (not (or (> (:south bounding_box) north)
