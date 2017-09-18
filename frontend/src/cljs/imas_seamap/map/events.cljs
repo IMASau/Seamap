@@ -131,6 +131,20 @@
 (defn map-zoom-out [db _]
   (update-in db [:map :zoom] dec))
 
+(defn map-pan-direction [db [_ direction]]
+  (assert [(#{:left :right :up :down} direction)])
+  (let [[x' y']                         [0.05 0.05]
+        [horiz vert]                    (case direction
+                                          :left  [x'     0]
+                                          :right [(- x') 0]
+                                          :up    [0      (- y')]
+                                          :down  [0      y'])
+        {:keys [north south east west]} (get-in db [:map :bounds])
+        shift-centre                    (fn [[y x]]
+                                          [(+ y (* vert  (- north south)))
+                                           (+ x (* horiz (- east  west)))])]
+    (update-in db [:map :center] shift-centre)))
+
 (defn layer-visible? [{:keys [west south east north] :as bounds}
                       {:keys [bounding_box]          :as layer}]
   (not (or (> (:south bounding_box) north)

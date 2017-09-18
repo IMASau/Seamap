@@ -386,6 +386,18 @@
                 {:label "Zoom Out"               :combo "-"}
                 [:map/zoom-out])]
      [b/hotkey (keydown-wrapper
+                {:label "Pan Up"                 :combo "up"}
+                [:map/pan-direction :up])]
+     [b/hotkey (keydown-wrapper
+                {:label "Pan Down"               :combo "down"}
+                [:map/pan-direction :down])]
+     [b/hotkey (keydown-wrapper
+                {:label "Pan Left"               :combo "left"}
+                [:map/pan-direction :left])]
+     [b/hotkey (keydown-wrapper
+                {:label "Pan Right"              :combo "right"}
+                [:map/pan-direction :right])]
+     [b/hotkey (keydown-wrapper
                 {:label "Toggle Plot Panel"      :combo "p"}
                 [:transect.plot/toggle-visibility])]
      [b/hotkey (keydown-wrapper
