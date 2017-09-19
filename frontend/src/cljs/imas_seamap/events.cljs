@@ -134,24 +134,35 @@
 (defn transect-query [{:keys [db]} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
   ;; unlikely race conditions; do this before dispatching)
-  (let [db (assoc db :transect {:query geojson
+  (let [query-id (gensym)
+        db (assoc db :transect {:query geojson
+                                :query-id query-id
                                 :show? true
                                 :habitat :loading
                                 :bathymetry :loading})
         linestring (geojson->linestring geojson)]
     {:db db
      :dispatch-n [[:transect.plot/show] ; A bit redundant since we set the :show key above
-                  [:transect.query/habitat linestring]
-                  [:transect.query/bathymetry linestring]]}))
+                  [:transect.query/habitat    query-id linestring]
+                  [:transect.query/bathymetry query-id linestring]]}))
 
-(defn transect-query-error [{:keys [db]} [_ type {:keys [last-error failure] :as response}]]
-  (let [status-text (if (= failure :timeout)
-                      (str "Remote server timed out querying " (name type))
-                      (str "Error querying " (name type) ": " last-error))]
-    {:db       (assoc-in db [:transect type] status-text)
-     :dispatch [:info/show-message status-text b/*intent-danger*]}))
+(defn transect-query-cancel [db]
+  (let [clear-loading (fn [val] (if (= val :loading) [] val))]
+    (-> db
+        (update :transect dissoc :query-id)
+        (update-in [:transect :habitat] clear-loading)
+        (update-in [:transect :bathymetry] clear-loading))))
 
-(defn transect-query-habitat [{:keys [db]} [_ linestring]]
+(defn transect-query-error [{:keys [db]} [_ type query-id {:keys [last-error failure] :as response}]]
+  (when (= query-id
+           (get-in db [:transect :query-id]))
+    (let [status-text (if (= failure :timeout)
+                        (str "Remote server timed out querying " (name type))
+                        (str "Error querying " (name type) ": " last-error))]
+      {:db       (assoc-in db [:transect type] status-text)
+       :dispatch [:info/show-message status-text b/*intent-danger*]})))
+
+(defn transect-query-habitat [{:keys [db]} [_ query-id linestring]]
   (let [bbox           (geojson-linestring->bbox linestring)
         habitat-layers (->> db :map :active-layers (filter habitat-layer?))
         ;; Note, we reverse because the top layer is last, so we want
@@ -167,15 +178,17 @@
                                                    (map wgs48->epsg3112)
                                                    coords->linestring)}
                     :response-format (ajax/json-response-format {:keywords? true})
-                    :on-success      [:transect.query.habitat/success]
-                    :on-failure      [:transect.query/failure :habitat]}}
+                    :on-success      [:transect.query.habitat/success query-id]
+                    :on-failure      [:transect.query/failure :habitat query-id]}}
       ;; No layers to query; reset habitat to no-results:
       {:db (assoc-in db [:transect :habitat] [])})))
 
-(defn transect-query-habitat-success [db [_ response]]
-  (assoc-in db [:transect :habitat] response))
+(defn transect-query-habitat-success [db [_ query-id response]]
+  (cond-> db
+    (= query-id (get-in db [:transect :query-id]))
+    (assoc-in [:transect :habitat] response)))
 
-(defn transect-query-bathymetry [{:keys [db]} [_ linestring]]
+(defn transect-query-bathymetry [{:keys [db]} [_ query-id linestring]]
   (if-let [{:keys [server_url layer_name] :as bathy-layer}
            (first (applicable-layers db :category :bathymetry))]
     {:db         db
@@ -188,19 +201,22 @@
                                     :format     "text/xml"
                                     :VERSION    "1.1.1"}
                   :response-format (ajax/text-response-format)
-                  :on-success      [:transect.query.bathymetry/success]
-                  :on-failure      [:transect.query/failure :bathymetry]}}
+                  :on-success      [:transect.query.bathymetry/success query-id]
+                  :on-failure      [:transect.query/failure :bathymetry query-id]}}
     ;; Otherwise, don't bother with ajax; immediately return no results
     {:db (assoc-in db [:transect :bathymetry] [])}))
 
-(defn transect-query-bathymetry-success [db [_ response]]
-  (let [zipped      (->> response xml/parse-str zip/xml-zip)
-        data-points (zx/xml1-> zipped :transect :transectData)
-        num-points  (zx/xml1->  data-points (zx/attr :numPoints) js/parseInt)
-        values      (zx/xml-> data-points :dataPoint :value zx/text js/parseFloat)
-        increment   (/ 100 num-points)]
-    (assoc-in db [:transect :bathymetry]
-              (vec (map-indexed (fn [i v] [(* i increment) (if (js/isNaN v) nil (- v))]) values)))))
+(defn transect-query-bathymetry-success [db [_ query-id response]]
+  (if (= query-id
+         (get-in db [:transect :query-id]))
+    (let [zipped      (->> response xml/parse-str zip/xml-zip)
+          data-points (zx/xml1-> zipped :transect :transectData)
+          num-points  (zx/xml1->  data-points (zx/attr :numPoints) js/parseInt)
+          values      (zx/xml-> data-points :dataPoint :value zx/text js/parseFloat)
+          increment   (/ 100 num-points)]
+      (assoc-in db [:transect :bathymetry]
+                (vec (map-indexed (fn [i v] [(* i increment) (if (js/isNaN v) nil (- v))]) values))))
+    db))
 
 (defn transect-drawing-start [db _]
   (-> db

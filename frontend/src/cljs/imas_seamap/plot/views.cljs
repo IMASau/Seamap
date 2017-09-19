@@ -1,7 +1,8 @@
 (ns imas-seamap.plot.views
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
-            [imas-seamap.blueprint :refer [non-ideal-state spinner]]
+            [imas-seamap.blueprint :refer [button non-ideal-state spinner]]
+            [imas-seamap.utils :refer-macros [handler-fn]]
             [goog.dom :as dom]
             [goog.object :as gobj]
             [goog.math :as gmaths]
@@ -410,8 +411,11 @@
 
 (defn- transect-loading []
   [non-ideal-state
-   {:title  "Loading..."
-    :visual (reagent/as-element [spinner {:intent "success"}])}])
+   {:title       "Loading..."
+    :description (reagent/as-element
+                  [button {:text     "Cancel"
+                           :on-click (handler-fn (re-frame/dispatch [:transect.query/cancel]))}])
+    :visual      (reagent/as-element [spinner {:intent "success"}])}])
 
 (defn- transect-error []
   [non-ideal-state
@@ -432,7 +436,10 @@
     :transect.results.status/partial
     [:div
      [:div.transect-overlay
-      [non-ideal-state {:visual (reagent/as-element [spinner {:intent "success"}])}]]
+      [non-ideal-state {:visual      (reagent/as-element [spinner {:intent "success"}])
+                        :description (reagent/as-element
+                                      [button {:text     "Cancel"
+                                               :on-click (handler-fn (re-frame/dispatch [:transect.query/cancel]))}])}]]
      [transect-graph results]]
     ;; Default:
     [transect-graph results]))

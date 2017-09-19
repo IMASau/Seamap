@@ -52,6 +52,7 @@
     :info/show-message                    events/show-message
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]
+    :transect.query/cancel                events/transect-query-cancel
     :transect.query/failure               [events/transect-query-error]
     :transect.query/habitat               [events/transect-query-habitat]
     :transect.query/bathymetry            [events/transect-query-bathymetry]
