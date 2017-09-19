@@ -58,7 +58,6 @@
     :transect.query/bathymetry            [events/transect-query-bathymetry]
     :transect.query.bathymetry/success    events/transect-query-bathymetry-success
     :transect.query.habitat/success       events/transect-query-habitat-success
-    :transect.query/error                 events/transect-query-error
     :transect.draw/enable                 events/transect-drawing-start
     :transect.draw/disable                events/transect-drawing-finish
     :transect.draw/clear                  events/transect-drawing-clear
