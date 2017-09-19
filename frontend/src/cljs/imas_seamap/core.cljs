@@ -38,7 +38,8 @@
     :info/message                         subs/user-message}
 
    :events
-   {:re-boot                              events/re-boot
+   {:boot                                 [events/boot (re-frame/inject-cofx :hash-state)]
+    :re-boot                              events/re-boot
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     :initialise-db                        [events/initialise-db]
@@ -109,12 +110,6 @@
   [(when ^boolean goog.DEBUG (debug-excluding :transect.plot/mousemove))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
-;;; Register :boot separately, because we want an extra interceptor:
-(re-frame/reg-event-fx
- :boot
- [(re-frame/inject-cofx :hash-state) standard-interceptors]
- events/boot)
-
 (defn register-handlers! [{:keys [subs events]}]
   (doseq [[sym handler] subs]
     (re-frame/reg-sub sym handler))
@@ -122,7 +117,7 @@
     (if (sequential? handler)
       (re-frame/reg-event-fx
        sym
-       standard-interceptors
+       [(rest handler) standard-interceptors]
        (first handler))
       (re-frame/reg-event-db
        sym
