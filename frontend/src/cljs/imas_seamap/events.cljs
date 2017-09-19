@@ -153,12 +153,14 @@
         (update-in [:transect :habitat] clear-loading)
         (update-in [:transect :bathymetry] clear-loading))))
 
-(defn transect-query-error [{:keys [db]} [_ type query-id {:keys [last-error failure] :as response}]]
+(defn transect-query-error [{:keys [db]} [_ type query-id {:keys [last-error failure response] :as http-response}]]
   (when (= query-id
            (get-in db [:transect :query-id]))
     (let [status-text (if (= failure :timeout)
                         (str "Remote server timed out querying " (name type))
-                        (str "Error querying " (name type) ": " last-error))]
+                        (str "Error querying " (name type) ": " (or (:message response)
+                                                                    (:detail  response)
+                                                                    last-error)))]
       {:db       (assoc-in db [:transect type] status-text)
        :dispatch [:info/show-message status-text b/*intent-danger*]})))
 

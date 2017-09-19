@@ -75,6 +75,10 @@ TEMPLATES = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'webapp.handlers.custom_exception_handler'
+}
+
 WSGI_APPLICATION = 'webapp.wsgi.application'
 
 
