@@ -112,7 +112,7 @@
                :on-close  #(re-frame/dispatch [:ui.sidebar/close])
                :on-open   #(re-frame/dispatch [:ui.sidebar/open %])}
       [sidebar-tab {:header "Seamap Australia"
-                    :icon   (r/as-element [:span.pt-icon-standard.pt-icon-menu])
+                    :icon   (r/as-element [:span.pt-icon-standard.pt-icon-home])
                     :id     "tab-home"}
        sidebar-content]
       [sidebar-tab {:header "Settings"
