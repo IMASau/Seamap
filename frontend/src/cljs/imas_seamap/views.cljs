@@ -229,9 +229,10 @@
 
 (defn layer-group [{:keys [expanded] :or {:expanded false} :as props} layers active-layers loading-fn error-fn]
   (let [expanded (reagent/atom expanded)]
-    (fn [{:keys [title classes] :as props} layers active-layers loading-fn error-fn]
+    (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn]
       [:div.layer-group.height-managed
-       {:class-name (str classes (if @expanded " expanded" " collapsed"))}
+       (merge {:class-name (str classes (if @expanded " expanded" " collapsed"))}
+              (when id {:id id}))
        [:h1 {:on-click (handler-fn (swap! expanded not))}
         [:span.pt-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")}]
         (str title " (" (count layers) ")")]
@@ -275,11 +276,11 @@
      [transect-toggle]
      [layer-logic-toggle]
      [layer-search-filter]
-     [layer-group {:title "Habitat"   :expanded true } habitat     active-layers loading-layers error-layers]
-     [layer-group {:title "Bathymetry":expanded true } bathymetry  active-layers loading-layers error-layers]
-     [layer-group {:title "Imagery"   :expanded false} imagery     active-layers loading-layers error-layers]
+     [layer-group {:id "habitat-group" :title "Habitat"   :expanded true } habitat     active-layers loading-layers error-layers]
+     [layer-group {:id "bathy-group"   :title "Bathymetry":expanded true } bathymetry  active-layers loading-layers error-layers]
+     [layer-group {:id "imagery-group" :title "Imagery"   :expanded false} imagery     active-layers loading-layers error-layers]
      [third-party-layer-group
-      {:title "Other"     :expanded false} third-party active-layers loading-layers error-layers]
+      {:id "third-party-group" :title "Other"     :expanded false} third-party active-layers loading-layers error-layers]
      [help-button]]))
 
 (defn settings-controls []
