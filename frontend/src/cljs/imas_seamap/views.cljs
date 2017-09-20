@@ -162,16 +162,17 @@
         [checked? label icon]  (if (= type :map.layer-logic/automatic)
                                  [true  " Automatic Layers" [:i.fa.fa-magic]]
                                  [false " Choose Layers"    [:span.pt-icon-standard.pt-icon-hand]])]
-    [:div.logic-toggle
-     (when-not (or checked? user-triggered?)
-       {:class-name "external-trigger"})
+    [:div#logic-toggle.logic-toggle
+     (merge {:data-helper-text "Automatic layer selection, or choose your own"}
+            (when-not (or checked? user-triggered?)
+              {:class-name "external-trigger"}))
      [b/switch {:checked   checked?
                 :label     (reagent/as-element [:span icon label])
                 :on-change (handler-fn (re-frame/dispatch [:map.layers.logic/toggle true]))}]]))
 
 (defn layer-search-filter []
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
-    [:div.pt-input-group
+    [:div#layer-search.pt-input-group {:data-helper-text "Filter Layers"}
      [:span.pt-icon.pt-icon-search]
      [:input.pt-input.pt-round {:id          "layer-search"
                                 :type        "search"
@@ -429,7 +430,15 @@
      [map-component [app-controls] [settings-controls]]
      [plot-component]]
     ;; needs the ids of components to helper-annotate:
-    [helper-overlay :plot-footer :transect-btn-wrapper]
+    [helper-overlay
+     :layer-search
+     :logic-toggle
+     :plot-footer
+     :transect-btn-wrapper
+     {:id "habitat-group"     :helperText "Layers showing sea-floor habitats"}
+     {:id "bathy-group"       :helperText "Layers showing bathymetry data"}
+     {:id "imagery-group"     :helperText "Layers showing photos collected"}
+     {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
     [show-messages]
     [welcome-dialogue]
     [loading-display]]
