@@ -28,12 +28,13 @@
 (defn helper-overlay [& element-ids]
   (let [*line-height* 17.6 *padding* 10 *text-width* 200 ;; hard-code
         *vertical-bar* 50 *horiz-bar* 100
-        elem-props #(when-let [elem (dom/getElement %)]
+        elem-props #(if-let [elem (dom/getElement (or (:id %) %))]
                       (merge
                        (-> elem .getBoundingClientRect js->clj)
-                       (-> elem .-dataset js->clj)))
+                       (-> elem .-dataset js->clj)
+                       (when (map? %) %)))
         posn->offsets (fn [posn width height]
-                        (case posn
+                        (case (name posn)
                           "top"    {:bottom (+ height *vertical-bar* *padding*)
                                     :left (- (/ width 2) (/ *text-width* 2))}
                           "bottom" {:top (+ height *vertical-bar* *padding*)
@@ -54,7 +55,7 @@
                 :on-close #(re-frame/dispatch [:help-layer/close])}
      (when open?
        (for [id element-ids
-             :let [id (-> id name (string/replace #"^#" "")) ; allow "id", "#id", :id, :#id
+             :let [id (if-not (map? id) (-> id name (string/replace #"^#" "")) id) ; allow "id", "#id", :id, :#id, {:id "...", ..}
                    {:keys [top right bottom left width height
                            helperText helperPosition]
                     :or {helperPosition "right"}
