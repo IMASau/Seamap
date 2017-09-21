@@ -91,6 +91,7 @@ class Layer(models.Model):
     metadata_url = models.URLField(max_length = 200)
     description = models.CharField(max_length = 500)
     server_type = models.ForeignKey(ServerType)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
         return self.name

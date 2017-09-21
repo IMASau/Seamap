@@ -67,7 +67,8 @@
 (defn process-layer [layer]
   (-> layer
       ;; TODO: convert the dates, etc too
-      (update :category (comp keyword string/lower-case))
+      (update :sort_key    #(if (empty? %) "zzzzzzzz" %)) ; fnil won't work if the key is ""
+      (update :category    (comp keyword string/lower-case))
       (update :server_type (comp keyword string/lower-case))))
 
 (defn process-layers [layers]
@@ -76,6 +77,7 @@
 (defn update-layers [db [_ layers]]
   (->> layers
        process-layers
+       (sort-by (juxt :sort_key :name))
        (assoc-in db [:map :layers])))
 
 (defn update-groups [db [_ groups]]
