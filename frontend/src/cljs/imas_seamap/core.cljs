@@ -70,6 +70,7 @@
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map/clicked                          [mevents/get-feature-info]
     :map/got-featureinfo                  mevents/got-feature-info
+    :map/got-featureinfo-err              mevents/got-feature-info-error
     :map/toggle-layer                     [mevents/toggle-layer]
     :map.layer/load-start                 mevents/layer-started-loading
     :map.layer/load-error                 mevents/layer-loading-error
