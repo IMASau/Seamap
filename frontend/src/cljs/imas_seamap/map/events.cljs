@@ -15,36 +15,37 @@
   (string/join "," [south west north east]))
 
 (defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y] :as point}]]
-  ;; WARNING: We assume that all habitat / img layers are on the same server
-  (let [active-layers (->> db :map :active-layers (filter #(#{:habitat :imagery} (:category %))))
-        server-url    (-> active-layers first :server_url)
-        ;; Note, top layer, last in the list, must be first in our search string:
-        layers        (->> active-layers (map :layer_name) reverse (string/join ","))]
-    ;; Only invoke if we have at least one layer, and aren't drawing a transect (ie, different click):
-    (when (and server-url (not (get-in db [:map :controls :transect])))
+  ;; Only invoke if we aren't drawing a transect (ie, different click):
+  (when-not (get-in db [:map :controls :transect])
+    (let [active-layers (->> db :map :active-layers (remove #(#{:bathymetry} (:category %))))
+          by-server     (group-by :server_url active-layers)
+          ;; Note, top layer, last in the list, must be first in our search string:
+          layers->str   #(->> % (map :layer_name) reverse (string/join ","))]
       ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
-      (let [params {:REQUEST      "GetFeatureInfo"
-                    :LAYERS       layers
-                    :QUERY_layers layers
-                    :WIDTH        (:x size)
-                    :HEIGHT       (:y size)
-                    :BBOX         (bounds->str bounds)
-                    :X            x
-                    :Y            y
-                    :I            x
-                    :J            y
-                    :SRS          "EPSG:4326"
-                    :CRS          "EPSG:4326"
-                    :FORMAT       "text/html"
-                    :INFO_format  "text/html"
-                    :SERVICE      "WMS"
-                    :VERSION      "1.3.0"}]
-        {:http-xhrio {:method          :get
-                      :uri             server-url
-                      :params          params
-                      :response-format (ajax/text-response-format)
-                      :on-success      [:map/got-featureinfo point]
-                      :on-failure      [:ajax/default-err-handler]}}))))
+      {:http-xhrio (for [[server-url active-layers] by-server
+                         :let [layers (layers->str active-layers)]]
+                     (let [params {:REQUEST      "GetFeatureInfo"
+                                   :LAYERS       layers
+                                   :QUERY_layers layers
+                                   :WIDTH        (:x size)
+                                   :HEIGHT       (:y size)
+                                   :BBOX         (bounds->str bounds)
+                                   :X            x
+                                   :Y            y
+                                   :I            x
+                                   :J            y
+                                   :SRS          "EPSG:4326"
+                                   :CRS          "EPSG:4326"
+                                   :FORMAT       "text/html"
+                                   :INFO_format  "text/html"
+                                   :SERVICE      "WMS"
+                                   :VERSION      "1.3.0"}]
+                       {:method          :get
+                        :uri             server-url
+                        :params          params
+                        :response-format (ajax/text-response-format)
+                        :on-success      [:map/got-featureinfo point]
+                        :on-failure      [:ajax/default-err-handler]}))})))
 
 (defn got-feature-info [db [_ point response]]
   (let [zipped (->> response xml/parse-str zip/xml-zip)
