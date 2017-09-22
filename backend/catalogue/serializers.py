@@ -36,7 +36,7 @@ class LayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Layer
-        exclude = ('minx', 'miny', 'maxx', 'maxy',)
+        exclude = ('minx', 'miny', 'maxx', 'maxy', 'sort_key',)
 
 
 class GroupSerializer(serializers.ModelSerializer):
