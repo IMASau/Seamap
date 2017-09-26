@@ -175,7 +175,7 @@
 
 (defn layer-search-filter []
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
-    [:div#layer-search.pt-input-group {:data-helper-text "Filter Layers"}
+    [:div.pt-input-group {:data-helper-text "Filter Layers"}
      [:span.pt-icon.pt-icon-search]
      [:input.pt-input.pt-round {:id          "layer-search"
                                 :type        "search"
@@ -410,8 +410,7 @@
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as sidebar-state}             @(re-frame/subscribe [:ui/sidebar])
         {:keys [groups active-layers loading-layers error-layers]} @(re-frame/subscribe [:map/layers])
-        {:keys [habitat bathymetry imagery third-party]}           groups
-        as-tab                                                     #(layer-tab % active-layers loading-layers error-layers)]
+        {:keys [habitat bathymetry imagery third-party]}           groups]
     [sidebar {:id        "floating-sidebar"
               :selected  selected
               :collapsed collapsed
@@ -421,23 +420,23 @@
      [sidebar-tab {:header "Habitats"
                    :icon   (as-icon "home"
                                     (str "Habitat Layers (" (count habitat) ")"))
-                   :id     "tab-home"}
-      [as-tab habitat]]
+                   :id     "tab-habitat"}
+      [layer-tab habitat active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Bathymetry"
                    :icon   (as-icon "timeline-area-chart"
                                     (str "Bathymetry Layers (" (count bathymetry) ")"))
                    :id     "tab-bathy"}
-      [as-tab bathymetry]]
+      [layer-tab bathymetry active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Imagery"
                    :icon   (as-icon "media"
                                     (str "Image Layers (" (count imagery) ")"))
                    :id     "tab-imagery"}
-      [as-tab imagery]]
+      [layer-tab imagery active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Third-Party"
                    :icon   (as-icon "more"
-                                    (str "Third-Party Layers (miscellaneous data; " (count third-party) ")"))
+                                    (str "Third-Party Layers (miscellaneous data — " (count third-party) ")"))
                    :id     "tab-thirdparty"}
-      [as-tab third-party]]
+      [layer-tab third-party active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.pt-icon-standard.pt-icon-cog])

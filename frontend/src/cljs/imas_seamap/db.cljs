@@ -27,7 +27,7 @@
    :display         {:help-overlay    false
                      :welcome-overlay false
                      :sidebar         {:collapsed false
-                                       :selected  "tab-home"}}
+                                       :selected  "tab-habitat"}}
    :config          {:layer-url      (str api-url-base "layers/")
                      :group-url      (str api-url-base "groups/")
                      :priority-url   (str api-url-base "priorities/")
