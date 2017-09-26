@@ -407,6 +407,14 @@
    [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn]
    [help-button]])
 
+(defn thirdparty-layer-tab [layers active-layers loading-fn error-fn]
+  [:div.sidebar-tab.height-managed
+   [transect-toggle]
+   [layer-logic-toggle]
+   [layer-search-filter]
+   [third-party-layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn]
+   [help-button]])
+
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as sidebar-state}             @(re-frame/subscribe [:ui/sidebar])
         {:keys [groups active-layers loading-layers error-layers]} @(re-frame/subscribe [:map/layers])
@@ -436,7 +444,7 @@
                    :icon   (as-icon "more"
                                     (str "Third-Party Layers (miscellaneous data — " (count third-party) ")"))
                    :id     "tab-thirdparty"}
-      [layer-tab third-party active-layers loading-layers error-layers]]
+      [thirdparty-layer-tab third-party active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.pt-icon-standard.pt-icon-cog])
