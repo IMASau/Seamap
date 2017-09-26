@@ -160,8 +160,8 @@
   (let [{:keys [type trigger]} @(re-frame/subscribe [:map.layers/logic])
         user-triggered?        (= trigger :map.logic.trigger/user)
         [checked? label icon]  (if (= type :map.layer-logic/automatic)
-                                 [true  " Automatic Layers" [:i.fa.fa-magic]]
-                                 [false " Choose Layers"    [:span.pt-icon-standard.pt-icon-hand]])]
+                                 [true  " Automatic Layer Selection" [:i.fa.fa-magic]]
+                                 [false " Choose Layers Manually"    [:span.pt-icon-standard.pt-icon-hand]])]
     [:div#logic-toggle.logic-toggle
      (merge {:data-helper-text "Automatic layer selection, or choose your own"}
             (when-not (or checked? user-triggered?)
@@ -220,7 +220,7 @@
           [:span.control.pt-text-muted.pt-icon-standard.pt-icon-info-sign
            {:on-click (handler-fn (re-frame/dispatch [:map.layer/show-info layer-spec]))}]]
          [:div.view-controls.pt-ui-text-large
-          [b/tooltip {:content "Show entire layer"
+          [b/tooltip {:content "Zoom to layer"
                       :position *RIGHT*}
            [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
             {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer-spec]))}]]]]
