@@ -81,6 +81,9 @@
 (defn welcome-layer-open? [db _]
   (get-in db [:display :welcome-overlay]))
 
+(defn map-layer-info [db _]
+  (get-in db [:display :info-card]))
+
 (defn sidebar-state [db _]
   (get-in db [:display :sidebar]))
 

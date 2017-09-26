@@ -26,6 +26,7 @@
     :map.layers/priorities                msubs/map-layer-priorities
     :map.layers/logic                     msubs/map-layer-logic
     :map.layers/lookup                    msubs/map-layer-lookup
+    :map.layer/info                       subs/map-layer-info
     :map.feature/info                     subs/feature-info
     :transect/info                        subs/transect-info
     :transect/results                     subs/transect-results
@@ -75,6 +76,8 @@
     :map.layer/load-start                 mevents/layer-started-loading
     :map.layer/load-error                 mevents/layer-loading-error
     :map.layer/load-finished              mevents/layer-finished-loading
+    :map.layer/show-info                  events/layer-show-info
+    :map.layer/close-info                 events/layer-close-info
     :map.layers/filter                    mevents/map-set-layer-filter
     :map.layers/others-filter             mevents/map-set-others-layer-filter
     :map.layers.logic/toggle              [mevents/map-layer-logic-toggle]

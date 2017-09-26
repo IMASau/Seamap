@@ -217,7 +217,8 @@
              :on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer-spec]))}]]]]
         [:div.subheader-row.height-static
          [:div.control-row
-          [:span.control.pt-text-muted.pt-icon-standard.pt-icon-info-sign]]
+          [:span.control.pt-text-muted.pt-icon-standard.pt-icon-info-sign
+           {:on-click (handler-fn (re-frame/dispatch [:map.layer/show-info layer-spec]))}]]
          [:div.view-controls.pt-ui-text-large
           [b/tooltip {:content "Show entire layer"
                       :position *RIGHT*}
@@ -374,6 +375,22 @@
                   :auto-focus true
                   :on-click   (handler-fn (re-frame/dispatch [:welcome-layer/close]))}]]]]))
 
+(defn info-card []
+  (let [layer-info @(re-frame/subscribe [:map.layer/info])]
+    [b/dialogue {:title "Information"
+                 :is-open layer-info
+                 :on-close #(re-frame/dispatch [:map.layer/close-info])}
+     [:div.pt-dialog-body
+      [:p "Proin neque massa, cursus ut, gravida ut, lobortis eget,
+      lacus.  Donec vitae dolor.  Etiam vel neque nec dui dignissim
+      bibendum.  Fusce suscipit, wisi nec facilisis facilisis, est dui
+      fermentum leo, quis tempor ligula erat quis odio."]]
+     [:div.pt-dialog-footer
+      [:div.pt-dialog-footer-actions
+       [b/button {:text "Close"
+                  :auto-focus true
+                  :on-click (handler-fn (re-frame/dispatch [:map.layer/close-info]))}]]]]))
+
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [{:keys [label combo] :as m} keydown-v]
@@ -440,6 +457,7 @@
      {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
     [show-messages]
     [welcome-dialogue]
+    [info-card]
     [loading-display]]
 
    hotkeys-combos))
