@@ -37,7 +37,7 @@
 
 (defn applicable-layers
   [{{:keys [layers groups priorities priority-cutoff zoom zoom-cutover bounds logic]} :map :as db}
-   & {:keys [bbox category]
+   & {:keys [bbox category server_type]
       :or   {bbox bounds}}]
   ;; Generic utility to retrieve a list of relevant layers, filtered as necessary.
   ;; figures out cut-off point, and restricts to those on the right side of it;
@@ -45,6 +45,7 @@
   ;; sorts by priority and grouping.
   (let [logic-type         (:type logic)
         match-category?    #(if category (= category (:category %)) true)
+        match-server?      #(if server_type (= server_type (:server_type %)) true)
         detail-resolution? (< zoom-cutover zoom)
         group-ids          (->> groups
                                 (filter (fn [{:keys [bounding_box detail_resolution]}]
@@ -59,7 +60,7 @@
                                          (group-ids (:group %)))
                                    priorities)
         layer-ids          (->> group-priorities (map :layer) (into #{}))
-        selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %)) layers)]
+        selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %) (match-server? %)) layers)]
     (sort-layers selected-layers priorities logic-type)))
 
 (defn all-priority-layers

@@ -198,7 +198,8 @@
 
 (defn transect-query-bathymetry [{:keys [db]} [_ query-id linestring]]
   (if-let [{:keys [server_url layer_name] :as bathy-layer}
-           (first (applicable-layers db :category :bathymetry))]
+           (first (applicable-layers db :category :bathymetry
+                                        :server_type :ncwms))]
     {:db         db
      :http-xhrio {:method          :get
                   :uri             server_url
