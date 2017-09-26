@@ -16,9 +16,6 @@
 (def edit-control  (r/adapt-react-class (oget js/window "ReactLeaflet.EditControl")))
 (def circle-marker (r/adapt-react-class (oget js/window "ReactLeaflet.CircleMarker")))
 
-(def sidebar       (r/adapt-react-class (oget js/window "ReactSidebar.Sidebar")))
-(def sidebar-tab   (r/adapt-react-class (oget js/window "ReactSidebar.Tab")))
-
 (defn bounds->map [bounds]
   {:north (ocall bounds :getNorth)
    :south (ocall bounds :getSouth)
@@ -95,31 +92,16 @@
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
     (re-frame/dispatch [:map.layer/load-finished layer])))
 
-(defn map-component [sidebar-content settings-content]
+(defn map-component [sidebar]
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]} @(re-frame/subscribe [:transect/info])
         layer-priorities @(re-frame/subscribe [:map.layers/priorities])
         logic-type @(re-frame/subscribe [:map.layers/logic])
-        {:keys [collapsed selected] :as sidebar-state} @(re-frame/subscribe [:ui/sidebar])
         base-layer-osm [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                                     :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
     [:div.map-wrapper
-     [sidebar {:id        "floating-sidebar"
-               :selected  selected
-               :collapsed collapsed
-               :closeIcon (r/as-element [:span.pt-icon-standard.pt-icon-caret-left])
-               :on-close  #(re-frame/dispatch [:ui.sidebar/close])
-               :on-open   #(re-frame/dispatch [:ui.sidebar/open %])}
-      [sidebar-tab {:header "Seamap Australia"
-                    :icon   (r/as-element [:span.pt-icon-standard.pt-icon-home])
-                    :id     "tab-home"}
-       sidebar-content]
-      [sidebar-tab {:header "Settings"
-                    :anchor "bottom"
-                    :icon   (r/as-element [:span.pt-icon-standard.pt-icon-cog])
-                    :id     "tab-settings"}
-       settings-content]]
+     sidebar
 
      [leaflet-map (merge
                    {:id            "map"

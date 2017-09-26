@@ -19,6 +19,9 @@
 (def container-dimensions
   (reagent/adapt-react-class (oget js/window "React.ContainerDimensions")))
 
+(def sidebar     (reagent/adapt-react-class (oget js/window "ReactSidebar.Sidebar")))
+(def sidebar-tab (reagent/adapt-react-class (oget js/window "ReactSidebar.Tab")))
+
 (defn with-params [url params]
   (let [u (goog/Uri. url)]
     (doseq [[k v] params]
@@ -391,6 +394,56 @@
                   :auto-focus true
                   :on-click (handler-fn (re-frame/dispatch [:map.layer/close-info]))}]]]]))
 
+(defn- as-icon [icon-name description]
+  (reagent/as-element [b/tooltip {:content  description
+                                  :position *RIGHT*}
+                       [:span.pt-icon-standard {:class-name (str "pt-icon-" icon-name)}]]))
+
+(defn layer-tab [layers active-layers loading-fn error-fn]
+  [:div.sidebar-tab.height-managed
+   [transect-toggle]
+   [layer-logic-toggle]
+   [layer-search-filter]
+   [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn]
+   [help-button]])
+
+(defn seamap-sidebar []
+  (let [{:keys [collapsed selected] :as sidebar-state}             @(re-frame/subscribe [:ui/sidebar])
+        {:keys [groups active-layers loading-layers error-layers]} @(re-frame/subscribe [:map/layers])
+        {:keys [habitat bathymetry imagery third-party]}           groups
+        as-tab                                                     #(layer-tab % active-layers loading-layers error-layers)]
+    [sidebar {:id        "floating-sidebar"
+              :selected  selected
+              :collapsed collapsed
+              :closeIcon (reagent/as-element [:span.pt-icon-standard.pt-icon-caret-left])
+              :on-close  #(re-frame/dispatch [:ui.sidebar/close])
+              :on-open   #(re-frame/dispatch [:ui.sidebar/open %])}
+     [sidebar-tab {:header "Habitats"
+                   :icon   (as-icon "home"
+                                    (str "Habitat Layers (" (count habitat) ")"))
+                   :id     "tab-home"}
+      [as-tab habitat]]
+     [sidebar-tab {:header "Bathymetry"
+                   :icon   (as-icon "timeline-area-chart"
+                                    (str "Bathymetry Layers (" (count bathymetry) ")"))
+                   :id     "tab-bathy"}
+      [as-tab bathymetry]]
+     [sidebar-tab {:header "Imagery"
+                   :icon   (as-icon "media"
+                                    (str "Image Layers (" (count imagery) ")"))
+                   :id     "tab-imagery"}
+      [as-tab imagery]]
+     [sidebar-tab {:header "Third-Party"
+                   :icon   (as-icon "more"
+                                    (str "Third-Party Layers (miscellaneous data; " (count third-party) ")"))
+                   :id     "tab-thirdparty"}
+      [as-tab third-party]]
+     [sidebar-tab {:header "Settings"
+                   :anchor "bottom"
+                   :icon   (reagent/as-element [:span.pt-icon-standard.pt-icon-cog])
+                   :id     "tab-settings"}
+      [settings-controls]]]))
+
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [{:keys [label combo] :as m} keydown-v]
@@ -443,7 +496,7 @@
 
    [:div#main-wrapper
     [:div#content-wrapper
-     [map-component [app-controls] [settings-controls]]
+     [map-component [seamap-sidebar]]
      [plot-component]]
     ;; needs the ids of components to helper-annotate:
     [helper-overlay

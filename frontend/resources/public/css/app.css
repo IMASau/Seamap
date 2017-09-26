@@ -380,3 +380,7 @@ rect#background {
 .sidebar-pane {
     padding: 10px 5px 0 5px;
 }
+.sidebar-tab {
+    flex-grow: 1;
+    padding: 5px;
+}
