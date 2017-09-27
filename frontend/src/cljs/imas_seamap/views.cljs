@@ -79,6 +79,15 @@
     [:span.control.pt-icon-large.pt-icon-help.pt-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
 
+(defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading?] :as layer-state}]
+  [:div.layer-wrapper (when active? {:class-name "layer-active"})
+   [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
+    [:div (when (or loading? errors?) {:class "header-status-icons"})
+     (when (and active? loading?) [b/spinner {:class-name "pt-small layer-spinner"}])
+     (when (and active? errors?) [:span.layer-warning.pt-icon.pt-icon-small.pt-icon-warning-sign])]
+    [b/clipped-text {:ellipsize true :class-name "header-text"}
+     name]]])
+
 (defn catalogue-controls [layer {:keys [active? errors? loading?] :as layer-state}]
   [:div.catalogue-layer-controls
    [b/tooltip {:content "Show layer info"}
@@ -109,7 +118,7 @@
                                          :loading? (loading-fn layer)
                                          :errors?  (error-fn layer)}]
                        {:id (str id-str "-" i)
-                        :label (:name layer)
+                        :label (reagent/as-element [catalogue-header layer layer-state])
                         ;; A hack, but if we just add the layer it gets
                         ;; warped in the js->clj conversion
                         ;; (specifically, values that were keywords become strings)
