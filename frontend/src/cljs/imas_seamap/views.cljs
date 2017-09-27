@@ -64,7 +64,9 @@
                     :or {helperPosition "right"}
                     :as eprops} (elem-props id)
                    posn-cls (str "helper-layer-" helperPosition)]
-             :when (not (string/blank? helperText))]
+             :when (and eprops
+                        (pos? height)
+                        (not (string/blank? helperText)))]
          ^{:key id}
          [:div.helper-layer-wrapper {:class-name posn-cls
                                      :style (wrapper-props helperPosition eprops)}
