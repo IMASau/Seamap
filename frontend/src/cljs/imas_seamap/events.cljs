@@ -23,7 +23,11 @@
   {:first-dispatch [:ui/show-loading]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:initialise-layers]}
-    {:when :seen-all-of? :events [:map/update-layers :map/update-groups :map/update-priorities :map/update-descriptors]
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-groups
+                                  :map/update-organisations
+                                  :map/update-priorities
+                                  :map/update-descriptors]
      :dispatch [:map/initialise-display]}
     {:when :seen? :events :ui/hide-loading
      :dispatch [:welcome-layer/open]
@@ -39,11 +43,14 @@
 ;;; Reset state.  Gets a bit messy because we can't just return
 ;;; default-db without throwing away ajax-loaded layer info, so we
 ;;; restore that manually first.
-(defn re-boot [{:keys [habitat-colours habitat-titles] {:keys [layers priorities groups] :as map-state} :map :as db} _]
+(defn re-boot [{:keys [habitat-colours habitat-titles]
+                {:keys [layers organisations priorities groups] :as map-state} :map
+                :as db} _]
   (-> db/default-db
-      (update :map merge {:layers     layers
-                          :groups     groups
-                          :priorities priorities})
+      (update :map merge {:layers        layers
+                          :organisations organisations
+                          :groups        groups
+                          :priorities    priorities})
       (merge {:habitat-colours habitat-colours
               :habitat-titles  habitat-titles})))
 
@@ -61,7 +68,7 @@
    :dispatch [:db-initialised]})
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url group-url priority-url descriptor-url]} (:config db)]
+  (let [{:keys [layer-url group-url organisation-url priority-url descriptor-url]} (:config db)]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -82,6 +89,11 @@
                    :uri             descriptor-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-descriptors]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             organisation-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-organisations]
                    :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn help-layer-toggle [db _]

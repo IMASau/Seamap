@@ -85,6 +85,7 @@
     :map.layers.logic/automatic           mevents/map-layer-logic-automatic
     :map/update-layers                    mevents/update-layers
     :map/update-groups                    mevents/update-groups
+    :map/update-organisations             mevents/update-organisations
     :map/update-priorities                mevents/update-priorities
     :map/update-descriptors               mevents/update-descriptors
     :map/initialise-display               [mevents/show-initial-layers]

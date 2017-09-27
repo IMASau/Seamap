@@ -60,6 +60,12 @@
                                          :map.layer.group/detail_resolution]))
 (s/def :map/groups (s/coll-of :map.layer/group))
 
+(s/def :map.layer.organisation/name string?)
+(s/def :map.layer.organisation/logo (s/nilable string?))
+(s/def :map.layer/organisation (s/keys :req-un [:map.layer.organisation/name
+                                                :map.layer.organisation/logo]))
+(s/def :map/organisations (s/coll-of :map.layer/organisation))
+
 (s/def :map/priority-cutoff (s/and pos? integer?))
 
 (s/def :map.logic/type #{:map.layer-logic/automatic :map.layer-logic/manual})
@@ -77,6 +83,7 @@
                    :map/layers
                    :map/active-layers
                    :map/groups
+                   :map/organisations
                    :map/priorities
                    :map/priority-cutoff
                    :map/logic]))

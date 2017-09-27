@@ -2,6 +2,7 @@
   (:require [clojure.set :refer [index rename-keys]]
             [clojure.string :as string]
             [clojure.walk :refer [keywordize-keys]]
+            [goog.dom :as gdom]
             [debux.cs.core :refer-macros [dbg]]))
 
 ;;; http://blog.jayfields.com/2011/01/clojure-select-keys-select-values-and.html
@@ -38,3 +39,14 @@
          (map #(first (get by-name {:layer_name %})))
          (remove nil?)
          vec)))
+
+(defn visible?
+  "True iff the element is currently visible on the page (but not if it
+  is off-screen or obscured by overflow, etc).  Accepts either string
+  id, or the element itself."
+  [id]
+  (-> id
+      gdom/getElement
+      .-offsetParent
+      nil?
+      not))

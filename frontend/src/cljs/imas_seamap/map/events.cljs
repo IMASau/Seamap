@@ -112,6 +112,9 @@
 (defn update-groups [db [_ groups]]
   (assoc-in db [:map :groups] groups))
 
+(defn update-organisations [db [_ organisations]]
+  (assoc-in db [:map :organisations] organisations))
+
 (defn update-priorities [db [_ priorities]]
   (assoc-in db [:map :priorities] priorities))
 
