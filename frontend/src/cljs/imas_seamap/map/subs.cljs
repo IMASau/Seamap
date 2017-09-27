@@ -29,19 +29,13 @@
 (defn map-layers [{:keys [map layer-state filters] :as db} _]
   (let [{:keys [layers active-layers bounds logic]} (get-in db [:map])
         filter-text                                 (get-in db [:filters :layers])
-        filter-text-others                          (get-in db [:filters :other-layers])
         layers                                      (if (= (:type logic) :map.layer-logic/automatic)
                                                       (all-priority-layers db)
                                                       layers)
         visible-layers                              (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
         {:keys [third-party]}                       (group-by :category visible-layers)
         filtered-layers                             (filter (partial match-layer filter-text) visible-layers)]
-    ;; We have separate filters for main layers, and third-party -- so
-    ;; take the third-party group before filtering, and filter it
-    ;; separately:
-    {:groups         (assoc (group-by :category filtered-layers)
-                            :third-party
-                            (filter (partial match-layer filter-text-others) third-party))
+    {:groups         (group-by :category filtered-layers)
      :loading-layers (->> layer-state (filter (fn [[l [st _]]] (= st :map.layer/loading))) keys set)
      :error-layers   (->> layer-state (filter (fn [[l [_ errors?]]] errors?)) keys set)
      :active-layers  active-layers}))

@@ -148,15 +148,14 @@
                 :onNodeDoubleClick on-dblclick}]])))
 
 (defn layer-catalogue [layers layer-props]
-  (let [filter-text (re-frame/subscribe [:map.layers/others-filter])]
-    [:div
-     [b/tabs
-      [b/tab {:id    "org" :title "By Organisation"
-              :panel (reagent/as-component
-                      [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props])}]
-      [b/tab {:id    "cat" :title "By Category"
-              :panel (reagent/as-component
-                      [layer-catalogue-tree layers [:data_classification :organisation] "cat" layer-props])}]]]))
+  [:div
+   [b/tabs
+    [b/tab {:id    "org" :title "By Organisation"
+            :panel (reagent/as-component
+                    [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props])}]
+    [b/tab {:id    "cat" :title "By Category"
+            :panel (reagent/as-component
+                    [layer-catalogue-tree layers [:data_classification :organisation] "cat" layer-props])}]]])
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
