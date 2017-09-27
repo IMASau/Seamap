@@ -1,7 +1,12 @@
 from django.db.models.functions import Coalesce, Value
-from catalogue.models import HabitatDescriptor, Layer, LayerGroup, LayerGroupPriority
-from catalogue.serializers import HabitatSerializer, LayerSerializer, GroupSerializer, GroupPrioritySerializer
+from catalogue.models import Organisation, HabitatDescriptor, Layer, LayerGroup, LayerGroupPriority
+from catalogue.serializers import OrganisationSerializer, HabitatSerializer, LayerSerializer, GroupSerializer, GroupPrioritySerializer
 from rest_framework import viewsets
+
+
+class OrganisationViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Organisation.objects.all()
+    serializer_class = OrganisationSerializer
 
 
 class DescriptorViewset(viewsets.ReadOnlyModelViewSet):

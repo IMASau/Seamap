@@ -36,6 +36,7 @@ class ServerType(models.Model):
 @python_2_unicode_compatible
 class Organisation(models.Model):
     name = models.CharField(max_length = 200)
+    logo = models.CharField(max_length = 50, blank=True, null=True)
 
     def __str__(self):
         return self.name
