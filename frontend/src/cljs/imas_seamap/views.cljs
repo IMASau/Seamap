@@ -28,14 +28,37 @@
       (.setParameterValue u (name k) v))
     (str u)))
 
-(defn helper-overlay [& element-ids]
+(defn- ->query-selector
+  "Normalises selectors for helper-overlay into a form for use with
+  document.querySelectorAll.  Arguments may be keywords, strings, or
+  maps.  Maps must contain either an :id or :selector key.  Selectors
+  without a # or . at the front are treated as ids."
+  [selector]
+  (let [normalise-selector-str #(if-not (#{"#" "."} (first %))
+                                  (str "#" %)
+                                  %)]
+    (if (map? selector)
+      (normalise-selector-str (name (or (:id selector) (:selector selector))))
+      (normalise-selector-str (name selector)))))
+
+(defn- elem-props [selector elem]
+  (when elem
+    (merge
+     (-> elem .getBoundingClientRect js->clj)
+     (-> elem .-dataset js->clj)
+     (when (map? selector) selector))))
+
+(defn- selectors+elements [selectors]
+  (->> selectors
+       (map
+        (fn [selector]
+          (map (partial elem-props selector)
+               (array-seq (.querySelectorAll js/document (->query-selector selector))))))
+       (apply concat)))
+
+(defn helper-overlay [& element-selectors]
   (let [*line-height* 17.6 *padding* 10 *text-width* 200 ;; hard-code
         *vertical-bar* 50 *horiz-bar* 100
-        elem-props #(if-let [elem (dom/getElement (or (:id %) %))]
-                      (merge
-                       (-> elem .getBoundingClientRect js->clj)
-                       (-> elem .-dataset js->clj)
-                       (when (map? %) %)))
         posn->offsets (fn [posn width height]
                         (case (name posn)
                           "top"    {:bottom (+ height *vertical-bar* *padding*)
@@ -57,17 +80,15 @@
     [b/overlay {:is-open  open?
                 :on-close #(re-frame/dispatch [:help-layer/close])}
      (when open?
-       (for [id element-ids
-             :let [id (if-not (map? id) (-> id name (string/replace #"^#" "")) id) ; allow "id", "#id", :id, :#id, {:id "...", ..}
-                   {:keys [top right bottom left width height
+       (for [{:keys [top right bottom left width height
                            helperText helperPosition]
                     :or {helperPosition "right"}
-                    :as eprops} (elem-props id)
-                   posn-cls (str "helper-layer-" helperPosition)]
+                    :as eprops} (selectors+elements element-selectors)
+             :let [posn-cls (str "helper-layer-" helperPosition)]
              :when (and eprops
                         (pos? height)
                         (not (string/blank? helperText)))]
-         ^{:key id}
+         ^{:key (hash eprops)}
          [:div.helper-layer-wrapper {:class-name posn-cls
                                      :style (wrapper-props helperPosition eprops)}
           [:div.helper-layer-tooltip {:class-name posn-cls
