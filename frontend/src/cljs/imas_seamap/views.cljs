@@ -79,33 +79,45 @@
     [:span.control.pt-icon-large.pt-icon-help.pt-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
 
-(defn add-to-layer [layer]
-  [b/tooltip {:content "Add to map"}
-   [:span.pt-icon-standard.pt-icon-send-to-map.pt-text-muted.control
-    {:on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer]))}]])
+(defn catalogue-controls [layer {:keys [active? errors? loading?] :as layer-state}]
+  [:div.catalogue-layer-controls
+   [b/tooltip {:content "Show layer info"}
+    [:span.pt-icon-standard.pt-icon-info-sign.pt-text-muted.control
+     {:on-click (handler-fn (re-frame/dispatch [:map.layer/show-info layer]))}]]
+   [b/tooltip {:content "Zoom to layer"}
+    [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
+     {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer]))}]]
+   [b/tooltip {:content (if active? "Hide layer" "Show layer")}
+    [:span.control.pt-text-muted.pt-icon-large
+     {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
+      :on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer]))}]]])
 
 (defn layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
-  [layers [ordering & ordering-remainder :as group-ordering] expanded-states id-base]
+  [layers [ordering & ordering-remainder :as group-ordering] expanded-states id-base
+   {:keys [active-layers loading-fn error-fn] :as layer-props}]
   (for [[val layer-subset] (group-by ordering layers)
         :let [id-str (str id-base val)]]
     {:id id-str
      :label val ; (Implicit assumption that the group-by value is a string)
      :isExpanded (get expanded-states id-str false)
      :childNodes (if (seq ordering-remainder)
-                   (layers->nodes layer-subset (rest group-ordering) expanded-states id-str)
+                   (layers->nodes layer-subset (rest group-ordering) expanded-states id-str layer-props)
                    (map-indexed
                     (fn [i layer]
-                      {:id (str id-str "-" i)
-                       :label (:name layer)
-                       ;; A hack, but if we just add the layer it gets
-                       ;; warped in the js->clj conversion
-                       ;; (specifically, values that were keywords become strings)
-                       :do-layer-toggle #(re-frame/dispatch [:map/toggle-layer layer])
-                       :secondaryLabel (reagent/as-component (add-to-layer layer))})
+                      (let [layer-state {:active?  (some #{layer} active-layers)
+                                         :loading? (loading-fn layer)
+                                         :errors?  (error-fn layer)}]
+                       {:id (str id-str "-" i)
+                        :label (:name layer)
+                        ;; A hack, but if we just add the layer it gets
+                        ;; warped in the js->clj conversion
+                        ;; (specifically, values that were keywords become strings)
+                        :do-layer-toggle #(re-frame/dispatch [:map/toggle-layer layer])
+                        :secondaryLabel (reagent/as-component [catalogue-controls layer layer-state])}))
                     layer-subset))}))
 
-(defn layer-catalogue-tree [layers ordering id]
+(defn layer-catalogue-tree [layers ordering id layer-props]
   (let [expanded-states (reagent/atom {})
         on-open (fn [node]
                   (let [node (js->clj node :keywordize-keys true)]
@@ -119,31 +131,23 @@
                           ;; If we have children, toggle expanded state, else add to map
                           (swap! expanded-states update id not)
                           (do-layer-toggle))))]
-    (fn [layers ordering id]
+    (fn [layers ordering id layer-props]
       [:div.tab-body.layer-controls {:id id}
-       [b/tree {:contents (layers->nodes layers ordering @expanded-states id)
+       [b/tree {:contents (layers->nodes layers ordering @expanded-states id layer-props)
                 :onNodeCollapse on-close
                 :onNodeExpand on-open
                 :onNodeDoubleClick on-dblclick}]])))
 
-(defn layer-catalogue [layers]
+(defn layer-catalogue [layers layer-props]
   (let [filter-text (re-frame/subscribe [:map.layers/others-filter])]
-    [:div.layer-catalogue.pt-dialog-body
-     [:div.pt-input-group
-      [:span.pt-icon.pt-icon-search]
-      [:input.pt-input.pt-round {:type        "search"
-                                 :placeholder "Search Layers..."
-                                 :value       @filter-text
-                                 :on-change   (handler-fn
-                                               (re-frame/dispatch
-                                                [:map.layers/others-filter (oget event :target :value)]))}]]
+    [:div
      [b/tabs
       [b/tab {:id    "org" :title "By Organisation"
               :panel (reagent/as-component
-                      [layer-catalogue-tree layers [:organisation :data_classification] "org"])}]
+                      [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props])}]
       [b/tab {:id    "cat" :title "By Category"
               :panel (reagent/as-component
-                      [layer-catalogue-tree layers [:data_classification :organisation] "cat"])}]]]))
+                      [layer-catalogue-tree layers [:data_classification :organisation] "cat" layer-props])}]]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -412,7 +416,9 @@
    [transect-toggle]
    [layer-logic-toggle]
    [layer-search-filter]
-   [third-party-layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn]
+   [layer-catalogue layers {:active-layers active-layers
+                            :loading-fn    loading-fn
+                            :error-fn      error-fn}]
    [help-button]])
 
 (defn seamap-sidebar []

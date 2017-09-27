@@ -198,6 +198,12 @@ footer {
 .catalogue-add {
     margin-bottom: 5px;
 }
+.pt-tree-node-secondary-label {
+    flex: 0 0 auto;
+}
+.catalogue-layer-controls > span {
+    padding-left: 2px;
+}
 
 .transect-overlay {
     position: absolute;
