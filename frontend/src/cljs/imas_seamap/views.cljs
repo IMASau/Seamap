@@ -413,21 +413,51 @@
                   :auto-focus true
                   :on-click   (handler-fn (re-frame/dispatch [:welcome-layer/close]))}]]]]))
 
+(defn metadata-record [{:keys [license-name license-link license-img constraints other]
+                        {:keys [organisation name metadata_url]} :layer
+                        :as layer-info}]
+  [:div.metadata-record
+   [:div.metadata-header.clearfix
+    (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
+      [:img.metadata-img.org-logo {:src "http://www.imas.utas.edu.au/__data/assets/image/0005/741875/imas-logo.png"}])
+    [:h3 name]]
+   [:h6.metadata-subheader "Citation Information:"]
+   [:p.citation  constraints]
+   (when (seq other)
+     [:div
+      [:h6.metadata-subheader "Usage:"]
+      (map-indexed (fn [i o] ^{:key i} [:p.other-constraints o]) other)])
+   [:div.license-info.clearfix
+    [:h6 "License Information:"]
+    (when license-img [:img.license.metadata-img {:src license-img}])
+    [:a {:href license-link} license-name]]
+   [:a {:href metadata_url :target "_blank"} "Click here for the full metadata record"]])
+
 (defn info-card []
-  (let [layer-info @(re-frame/subscribe [:map.layer/info])]
-    [b/dialogue {:title "Information"
-                 :is-open layer-info
+  (let [layer-info @(re-frame/subscribe [:map.layer/info])
+        title      (or (get-in layer-info [:layer :name]) "Layer Information")]
+    [b/dialogue {:title    title
+                 :is-open  layer-info
                  :on-close #(re-frame/dispatch [:map.layer/close-info])}
      [:div.pt-dialog-body
-      [:p "Proin neque massa, cursus ut, gravida ut, lobortis eget,
-      lacus.  Donec vitae dolor.  Etiam vel neque nec dui dignissim
-      bibendum.  Fusce suscipit, wisi nec facilisis facilisis, est dui
-      fermentum leo, quis tempor ligula erat quis odio."]]
+      (case layer-info
+        :display.info/loading
+        [b/non-ideal-state
+         {:title  "Loading Metadata..."
+          :visual (reagent/as-element [b/spinner {:intent "success"}])}]
+
+        :display.info/error
+        [b/non-ideal-state
+         {:title       "Error"
+          :description "Unable to load metadata record.  Please try again later."
+          :visual      "error"}]
+
+        [metadata-record layer-info])]
      [:div.pt-dialog-footer
       [:div.pt-dialog-footer-actions
-       [b/button {:text "Close"
+       [b/button {:text       "Close"
                   :auto-focus true
-                  :on-click (handler-fn (re-frame/dispatch [:map.layer/close-info]))}]]]]))
+                  :on-click   (handler-fn (re-frame/dispatch [:map.layer/close-info]))}]]]]))
 
 (defn- as-icon [icon-name description]
   (reagent/as-element [b/tooltip {:content  description
