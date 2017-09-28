@@ -60,3 +60,11 @@
      (assoc acc [server_url layer_name] layer))
    {}
    (get-in db [:map :layers])))
+
+(defn organisations
+  "Sub to access organisations; overloaded to return a single org
+  specified by name."
+  [{{:keys [organisations]} :map} [_ org-name]]
+  (if org-name
+    (some #(and (= org-name (:name %)) %) organisations)
+    organisations))
