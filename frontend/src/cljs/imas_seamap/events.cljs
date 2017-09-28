@@ -140,13 +140,15 @@
         license-link     (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/licenseLink zx/text)
         license-img      (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/imageLink zx/text)
         license-name     (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/licenseName zx/text)
-        attr-constraints (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/attributionConstraints zx/text)]
+        attr-constraints (zx/xml->  constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/attributionConstraints zx/text)
+        other            (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/otherConstraints zx/text)]
     (assoc-in db [:display :info-card]
               {:layer        layer
                :license-name license-name
                :license-link license-link
                :license-img  license-img
-               :constraints  attr-constraints})))
+               :constraints  (if (seq? attr-constraints) (first attr-constraints) attr-constraints)
+               :other        (flatten [(when (seq? attr-constraints) (rest attr-constraints)) other])})))
 
 (defn layer-receive-metadata-err [db [_ & err]]
   (assoc-in db [:display :info-card] :display.info/error))
