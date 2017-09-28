@@ -7,6 +7,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
+            [imas-seamap.utils :refer [geonetwork-force-xml]]
             [imas-seamap.map.utils :refer [applicable-layers bbox-intersects? habitat-layer?]]
             [oops.core :refer [gcall ocall]]
             [re-frame.core :as re-frame]
@@ -111,8 +112,44 @@
 (defn welcome-layer-close [db _]
   (assoc-in db [:display :welcome-overlay] false))
 
-(defn layer-show-info [db [_ layer]]
-  (assoc-in db [:display :info-card] layer))
+(defn layer-show-info [{:keys [db]} [_ layer]]
+  {:db         (assoc-in db [:display :info-card] :display.info/loading)
+   :http-xhrio {:method          :get
+                :uri             (-> layer :metadata_url geonetwork-force-xml)
+                :response-format (ajax/text-response-format)
+                :on-success      [:map.layer/update-metadata layer]
+                :on-failure      [:map.layer/metadata-error]}})
+
+;; (xml/alias-uri 'mcp "http://schemas.aodn.org.au/mcp-2.0")
+;; (xml/alias-uri 'gmd "http://www.isotc211.org/2005/gmd")
+;; (xml/alias-uri 'gco "http://www.isotc211.org/2005/gco")
+;;; There's some unfortunate verbosity here.  Ideally we'd alias-uri
+;;; as above, but that doesn't work in clojurescript because it can't
+;;; automatically create namespaces.  We can create the namespaces
+;;; manually... except that the mcp namespace would wind up with a
+;;; single file 0.cljs, which is invalid.  So we just do it the long
+;;; way.
+(defn layer-receive-metadata [db [_ layer raw-response]]
+  (let [zipped           (-> raw-response xml/parse-str zip/xml-zip)
+        constraints      (zx/xml1-> zipped
+                                    :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/MD_Metadata
+                                    :xmlns.http%3A%2F%2Fwww.isotc211.org%2F2005%2Fgmd/identificationInfo
+                                    :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/MD_DataIdentification
+                                    :xmlns.http%3A%2F%2Fwww.isotc211.org%2F2005%2Fgmd/resourceConstraints
+                                    :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/MD_Commons)
+        license-link     (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/licenseLink zx/text)
+        license-img      (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/imageLink zx/text)
+        license-name     (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/licenseName zx/text)
+        attr-constraints (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/attributionConstraints zx/text)]
+    (assoc-in db [:display :info-card]
+              {:layer        layer
+               :license-name license-name
+               :license-link license-link
+               :license-img  license-img
+               :constraints  attr-constraints})))
+
+(defn layer-receive-metadata-err [db [_ & err]]
+  (assoc-in db [:display :info-card] :display.info/error))
 
 (defn layer-close-info [db _]
   (assoc-in db [:display :info-card] nil))

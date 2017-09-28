@@ -76,8 +76,10 @@
     :map.layer/load-start                 mevents/layer-started-loading
     :map.layer/load-error                 mevents/layer-loading-error
     :map.layer/load-finished              mevents/layer-finished-loading
-    :map.layer/show-info                  events/layer-show-info
+    :map.layer/show-info                  [events/layer-show-info]
     :map.layer/close-info                 events/layer-close-info
+    :map.layer/update-metadata            events/layer-receive-metadata
+    :map.layer/metadata-error             events/layer-receive-metadata-err
     :map.layers/filter                    mevents/map-set-layer-filter
     :map.layers/others-filter             mevents/map-set-others-layer-filter
     :map.layers.logic/toggle              [mevents/map-layer-logic-toggle]
