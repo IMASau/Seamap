@@ -394,18 +394,26 @@
 
 (defn welcome-dialogue []
   (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
-    [b/dialogue {:title      "" ; Hide for now, but this generates the <header> bar
+    [b/dialogue {:title      "Welcome to Seamap Australia!"
                  :class-name "welcome-splash"
                  :is-open    open?
                  :on-close   #(re-frame/dispatch [:welcome-layer/close])}
      [:div#welcome-splash.pt-dialog-body
-      [:p "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
-    Donec hendrerit tempor tellus.  Donec pretium posuere tellus.
-    Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus.
-    Cum sociis natoque penatibus et magnis dis parturient montes,
-    nascetur ridiculus mus.  Nulla posuere.  Donec vitae dolor.
-    Nullam tristique diam non turpis.  Cras placerat accumsan nulla.
-    Nullam rutrum.  Nam vestibulum accumsan nisl."]]
+      [:p "Seamap Australia is a nationally synthesised product of
+      seafloor habitat data collected from various stakeholders around
+      Australia. Source datasets were reclassified according to a
+      newly-developed national marine benthic habitat classification
+      scheme, and synthesised to produce a single standardised GIS
+      data layer of Australian benthic marine habitats."]
+
+      [:p [:i "Seamap Australia would not have been possible without the
+      collaboration of its stakeholders, including (but not limited
+      to): The University of Queensland, The University of Western
+      Australia, The University of Tasmania, James Cook University,
+      Griffith University, Deakin University, CSIRO, Geoscience
+      Australia, Great Barrier Reef Marine Park Authority (GBRMPA),
+      the National Environmental Science Program (NESP), and all State
+      Governments."]]]
      [:div.pt-dialog-footer
       [:div.pt-dialog-footer-actions
        [b/button {:text       "Get Started!"
