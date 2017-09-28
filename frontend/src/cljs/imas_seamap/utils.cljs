@@ -1,8 +1,8 @@
 (ns imas-seamap.utils
-  (:require [clojure.set :refer [index rename-keys]]
+  (:require [cemerick.url :as url]
+            [clojure.set :refer [index rename-keys]]
             [clojure.string :as string]
             [clojure.walk :refer [keywordize-keys]]
-            [goog.dom :as gdom]
             [debux.cs.core :refer-macros [dbg]]))
 
 ;;; http://blog.jayfields.com/2011/01/clojure-select-keys-select-values-and.html
@@ -40,13 +40,17 @@
          (remove nil?)
          vec)))
 
-(defn visible?
-  "True iff the element is currently visible on the page (but not if it
-  is off-screen or obscured by overflow, etc).  Accepts either string
-  id, or the element itself."
-  [id]
-  (-> id
-      gdom/getElement
-      .-offsetParent
-      nil?
-      not))
+(defn geonetwork-force-xml [geonetwork-url]
+  (let [url            (url/url geonetwork-url)
+        update-service #(update % :path string/replace #"/[^/]+$" "/xml.metadata.get")]
+    (if (string/includes? geonetwork-url "search#!")
+      (let [uuid (-> url :anchor (subs 1))]
+        (-> url
+            update-service
+            (update :query assoc :uuid uuid)
+            (assoc :anchor nil)
+            str))
+      ;; Regular format; switch to XML format:
+      (-> url
+          update-service
+          str))))
