@@ -466,8 +466,21 @@
         [metadata-record layer-info])]
      [:div.pt-dialog-footer
       [:div.pt-dialog-footer-actions
+       [b/popover {:position           b/*BOTTOM*
+                   :popover-class-name "pt-minimal"
+                   :content            (reagent/as-element
+                                        [b/menu
+                                         [b/menu-item {:text  "GeoTIFF"
+                                                       :label (reagent/as-element [b/icon {:icon-name "globe"}])}]
+                                         [b/menu-item {:text  "SHP File"
+                                                       :label (reagent/as-element [b/icon {:icon-name "polygon-filter"}])}]
+                                         [b/menu-item {:text  "CSV"
+                                                       :label (reagent/as-element [b/icon {:icon-name "th"}])}]])}
+        [b/button {:text            "Download As..."
+                   :right-icon-name "caret-down"}]]
        [b/button {:text       "Close"
                   :auto-focus true
+                  :intent     b/*intent-primary*
                   :on-click   (handler-fn (re-frame/dispatch [:map.layer/close-info]))}]]]]))
 
 (defn- as-icon [icon-name description]

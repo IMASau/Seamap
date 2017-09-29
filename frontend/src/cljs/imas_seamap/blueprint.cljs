@@ -12,9 +12,17 @@
 
 (def dialogue        (reagent/adapt-react-class (gget "Blueprint.Dialog")))
 
+(def icon            (reagent/adapt-react-class (gget "Blueprint.Icon")))
+
 (def non-ideal-state (reagent/adapt-react-class (gget "Blueprint.NonIdealState")))
 
 (def overlay         (reagent/adapt-react-class (gget "Blueprint.Overlay")))
+
+(def popover         (reagent/adapt-react-class (gget "Blueprint.Popover")))
+
+(def menu            (reagent/adapt-react-class (gget "Blueprint.Menu")))
+
+(def menu-item       (reagent/adapt-react-class (gget "Blueprint.MenuItem")))
 
 (def spinner         (reagent/adapt-react-class (gget "Blueprint.Spinner")))
 
@@ -50,4 +58,5 @@
 
 ;;; Other constants:
 
-(def ^:private *RIGHT* (gget "Blueprint.Position.RIGHT"))
+(def *RIGHT*  (gget "Blueprint.Position.RIGHT"))
+(def *BOTTOM* (gget "Blueprint.Position.BOTTOM"))
