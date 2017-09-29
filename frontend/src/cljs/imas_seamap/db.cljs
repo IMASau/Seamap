@@ -8,6 +8,7 @@
                      :zoom-cutover    7
                      :bounds          {}
                      :layers          []
+                     :organisations   []
                      :priorities      []
                      :priority-cutoff 2 ; priorities <= this value will be displayed in auto mode
                      :groups          []
