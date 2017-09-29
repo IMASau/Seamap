@@ -430,16 +430,18 @@
       [:img.metadata-img.org-logo {:src "http://www.imas.utas.edu.au/__data/assets/image/0005/741875/imas-logo.png"}])
     [:h3 name]]
    [:h6.metadata-subheader "Citation Information:"]
-   [:p.citation  constraints]
+   [:div
+    [:p.citation  constraints]]
    (when (seq other)
      [:div
       [:h6.metadata-subheader "Usage:"]
-      (map-indexed (fn [i o] ^{:key i} [:p.other-constraints o]) other)])
+      (map-indexed (fn [i o] (when o ^{:key i} [:p.other-constraints o])) other)])
    [:div.license-info.clearfix
     [:h6 "License Information:"]
     (when license-img [:img.license.metadata-img {:src license-img}])
-    [:a {:href license-link} license-name]]
-   [:a {:href metadata_url :target "_blank"} "Click here for the full metadata record"]])
+    [:a {:href license-link :target "_blank"} license-name]]
+   [:div.more-info
+    [:a {:href metadata_url :target "_blank"} "Click here for the full metadata record."]]])
 
 (defn info-card []
   (let [layer-info @(re-frame/subscribe [:map.layer/info])

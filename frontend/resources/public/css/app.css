@@ -394,8 +394,15 @@ rect#background {
     padding: 5px;
 }
 
+.metadata-record div {
+    margin-bottom: 15px;
+}
+.metadata-record .more-info {
+    margin-top: 10px;
+}
 .metadata-img {
     float: left;
+    margin-right: 5px;
 }
 .org-logo {
     width: 50px;
