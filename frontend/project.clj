@@ -72,6 +72,7 @@
                     :source-map      "resources/public/js/compiled/app.js.map"
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG                   false
-                                      imas-seamap.db/api-url-base "http://data.imas.utas.edu.au/seamap/api/"}
+                                      imas-seamap.db/api-url-base "http://data.imas.utas.edu.au/seamap/api/"
+                                      imas-seamap.db/img-url-base "/app/img/"}
                     :pseudo-names    false
                     :pretty-print    false}}]})

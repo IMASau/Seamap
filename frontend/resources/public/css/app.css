@@ -405,7 +405,7 @@ rect#background {
     margin-right: 5px;
 }
 .org-logo {
-    width: 50px;
+    /* width: 90px; */
     height: 50px;
 }
 .clearfix::after {

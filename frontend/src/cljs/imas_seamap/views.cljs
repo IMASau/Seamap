@@ -4,6 +4,7 @@
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [*RIGHT*]]
+            [imas-seamap.db :refer [img-url-base]]
             [imas-seamap.map.events :refer [process-layer]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
@@ -427,7 +428,7 @@
   [:div.metadata-record
    [:div.metadata-header.clearfix
     (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
-      [:img.metadata-img.org-logo {:src "http://www.imas.utas.edu.au/__data/assets/image/0005/741875/imas-logo.png"}])
+      [:img.metadata-img.org-logo {:src (str img-url-base logo)}])
     [:h3 name]]
    [:h6.metadata-subheader "Citation Information:"]
    [:div

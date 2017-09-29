@@ -1,6 +1,7 @@
 (ns imas-seamap.db)
 
 (goog-define api-url-base "http://localhost:8000/api/")
+(goog-define img-url-base "/img/")
 
 (def default-db
   {:map             {:center          [-23.116667 132.133333]
