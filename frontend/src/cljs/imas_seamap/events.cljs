@@ -106,11 +106,18 @@
 (defn help-layer-close [db _]
   (assoc-in db [:display :help-overlay] false))
 
-(defn welcome-layer-open [db _]
-  (assoc-in db [:display :welcome-overlay] true))
+;;; Allow optional force-open arg to override already-seen cookie
+(defn welcome-layer-open [{db :db cookies :cookie/get} [_ force-open]]
+  (if-not (and (:seen-welcome cookies) (not force-open))
+    {:db (assoc-in db [:display :welcome-overlay] true)}))
 
-(defn welcome-layer-close [db _]
-  (assoc-in db [:display :welcome-overlay] false))
+(defn welcome-layer-close [{:keys [db]} _]
+  {:db         (assoc-in db [:display :welcome-overlay] false)
+   :cookie/set {:name  :seen-welcome
+                :value true}})
+;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
+(re-frame/reg-event-db :cookie-set-no-on-success identity)
+(re-frame/reg-event-db :cookie-set-no-on-failure identity)
 
 (defn layer-show-info [{:keys [db]} [_ layer]]
   {:db         (assoc-in db [:display :info-card] :display.info/loading)

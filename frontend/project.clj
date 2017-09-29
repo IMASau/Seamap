@@ -13,6 +13,7 @@
                  [re-frame "0.9.1"]
                  [day8.re-frame/async-flow-fx "0.0.7"]
                  [day8.re-frame/http-fx "0.1.3" :exclusions [cljs-ajax]]
+                 [com.smxemail/re-frame-cookie-fx "0.0.2"]
                  [philoskim/debux "0.3.1"]]
 
   ;; Managed using create-react-app:

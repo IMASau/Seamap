@@ -1,6 +1,7 @@
 (ns imas-seamap.core
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
+            [com.smxemail.re-frame-cookie-fx]
             [day8.re-frame.async-flow-fx]
             [day8.re-frame.http-fx]
             [oops.core :refer [gcall]]
@@ -50,8 +51,8 @@
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
-    :welcome-layer/open                   events/welcome-layer-open
-    :welcome-layer/close                  events/welcome-layer-close
+    :welcome-layer/open                   [events/welcome-layer-open (re-frame/inject-cofx :cookie/get [:seen-welcome])]
+    :welcome-layer/close                  [events/welcome-layer-close]
     :info/show-message                    events/show-message
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]
