@@ -50,11 +50,13 @@
 
 
 (defn min-depth [bathymetry]
-  (apply min (filterv #(not (nil? %)) (mapv second bathymetry))))
+  (let [min-val (apply min (filterv #(not (nil? %)) (mapv second bathymetry)))]
+    (if (zero? min-val) -0.1 min-val)))
 
 
 (defn max-depth [bathymetry]
-  (apply max (map second bathymetry)))
+  (let [max-val (apply max (map second bathymetry))]
+    (if (zero? max-val) 0.1 max-val)))
 
 
 (defn depth-to-y-pos [{:keys [depth graph-range offset min-depth spread margin] :as props}]
