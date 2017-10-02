@@ -8,9 +8,6 @@
 (s/def :map/zoom integer?)
 (s/def :map/zoom-cutover integer?)
 
-(s/def :map.controls/transect boolean?)
-(s/def :map/controls (s/keys :req-un [:map.controls/transect]))
-
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
 (s/def :map.layer/layer_name string?)
@@ -65,6 +62,17 @@
 (s/def :map.layer/organisation (s/keys :req-un [:map.layer.organisation/name
                                                 :map.layer.organisation/logo]))
 (s/def :map/organisations (s/coll-of :map.layer/organisation))
+
+(s/def :map.controls/transect boolean?)
+(s/def :map.controls.download/type #{:map.layer.download/geotiff
+                                     :map.layer.download/shp
+                                     :map.layer.download/csv})
+(s/def :map.controls.download/layer :map/layer)
+(s/def :map.controls/download
+  (s/nilable (s/keys :req-un [:map.controls.download/layer
+                              :map.controls.download/type])))
+(s/def :map/controls (s/keys :req-un [:map.controls/transect
+                                      :map.controls/download]))
 
 (s/def :map/priority-cutoff (s/and pos? integer?))
 

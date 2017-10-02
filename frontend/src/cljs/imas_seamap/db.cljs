@@ -16,7 +16,8 @@
                      :active-layers   []
                      :logic           {:type    :map.layer-logic/automatic
                                        :trigger :map.logic.trigger/automatic}
-                     :controls        {:transect false}}
+                     :controls        {:transect false
+                                       :download nil}}
    :layer-state     {}
    :filters         {:layers       ""
                      :other-layers ""}
