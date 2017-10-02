@@ -6,13 +6,10 @@
             [clojure.zip :as zip]
             [re-frame.core :as re-frame]
             [imas-seamap.utils :refer [encode-state names->active-layers]]
-            [imas-seamap.map.utils :refer [applicable-layers]]
+            [imas-seamap.map.utils :refer [applicable-layers bounds->str]]
             [debux.cs.core :refer-macros [dbg]]
             [ajax.core :as ajax]))
 
-
-(defn bounds->str [{:keys [north south east west] :as bounds}]
-  (string/join "," [south west north east]))
 
 (defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y] :as point}]]
   ;; Only invoke if we aren't drawing a transect (ie, different click):

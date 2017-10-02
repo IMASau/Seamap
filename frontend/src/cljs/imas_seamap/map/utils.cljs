@@ -1,6 +1,11 @@
 (ns imas-seamap.map.utils
-  (:require [debux.cs.core :refer-macros [dbg]]))
+  (:require [cemerick.url :as url]
+            [clojure.string :as string]
+            [debux.cs.core :refer-macros [dbg]]))
 
+
+(defn bounds->str [{:keys [north south east west] :as bounds}]
+  (string/join "," [south west north east]))
 
 (defn bbox-intersects? [b1 b2]
   (not
