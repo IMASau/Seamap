@@ -1,7 +1,8 @@
 (ns imas-seamap.map.views
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
-            [imas-seamap.utils :refer [select-values]]
+            [imas-seamap.blueprint :as b]
+            [imas-seamap.utils :refer [select-values handler-fn]]
             [imas-seamap.map.utils :refer [sort-layers]]
             [oops.core :refer [ocall oget]]
             [debux.cs.core :refer-macros [dbg]]))
@@ -92,17 +93,32 @@
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
     (re-frame/dispatch [:map.layer/load-finished layer])))
 
+(defn download-component [{:keys [display-link link] :as download-info}]
+  [b/dialogue {:is-open   display-link
+               :title     "Download"
+               :icon-name "import"
+               :on-close  (handler-fn (re-frame/dispatch [:ui.download/close-dialogue]))}
+   [:div.pt-dialog-body
+    [:p [:a {:href link :target "_blank"}
+         "Click here to download selection"]]]
+   [:div.pt-dialog-footer
+    [:div.pt-dialog-footer-actions
+     [b/button {:text       "Done"
+                :intent   b/*intent-primary*
+                :on-click (handler-fn (re-frame/dispatch [:ui.download/close-dialogue]))}]]]])
+
 (defn map-component [sidebar]
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [has-info? info-body location] :as fi}       @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]}                  @(re-frame/subscribe [:transect/info])
-        {:keys [outlining? download-type download-layer]}   @(re-frame/subscribe [:download/info])
+        {:keys [outlining? download-type download-layer] :as download-info} @(re-frame/subscribe [:download/info])
         layer-priorities                                    @(re-frame/subscribe [:map.layers/priorities])
         logic-type                                          @(re-frame/subscribe [:map.layers/logic])
         base-layer-osm                                      [tile-layer {:url         "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                                                                          :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
     [:div.map-wrapper
      sidebar
+     [download-component download-info]
 
      [leaflet-map (merge
                    {:id            "map"
