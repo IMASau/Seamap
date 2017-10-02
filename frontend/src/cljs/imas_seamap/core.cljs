@@ -105,6 +105,7 @@
     :map/popup-closed                     mevents/destroy-popup
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
+    :ui.drawing/cancel                    events/global-drawing-cancel
     :ui.download/close-dialogue           events/close-download-dialogue
     :ui.search/focus                      [events/focus-search]
     :ui.sidebar/open                      events/sidebar-open

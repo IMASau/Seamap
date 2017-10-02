@@ -587,6 +587,9 @@
                 {:label "Start/Clear Transect"   :combo "t"}
                 [:transect.draw/toggle])]
      [b/hotkey (keydown-wrapper
+                {:label "Cancel"                 :combo "esc"}
+                [:ui.drawing/cancel])]
+     [b/hotkey (keydown-wrapper
                 {:label "Toggle Layer Logic"     :combo "m"}
                 [:map.layers.logic/toggle])]
      [b/hotkey (keydown-wrapper

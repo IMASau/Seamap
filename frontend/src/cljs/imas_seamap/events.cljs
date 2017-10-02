@@ -383,3 +383,10 @@
 
 (defn focus-search [_ _]
   (.focus (gdom/getElement "layer-search")))
+
+;;; Slightly hacky, in that we manually cancel everything that might
+;;; be in flight. Convenient for the user though.
+(defn global-drawing-cancel [db _]
+  (-> db
+      (assoc-in [:map :controls :transect] false)
+      (assoc-in [:map :controls :download :selecting] false)))
