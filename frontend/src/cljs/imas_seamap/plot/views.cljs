@@ -416,7 +416,7 @@
    {:title       "Loading..."
     :description (reagent/as-element
                   [button {:text     "Cancel"
-                           :on-click (handler-fn (re-frame/dispatch [:transect.query/cancel]))}])
+                           :on-click (handler-dispatch [:transect.query/cancel])}])
     :visual      (reagent/as-element [spinner {:intent "success"}])}])
 
 (defn- transect-error []
@@ -441,7 +441,7 @@
       [non-ideal-state {:visual      (reagent/as-element [spinner {:intent "success"}])
                         :description (reagent/as-element
                                       [button {:text     "Cancel"
-                                               :on-click (handler-fn (re-frame/dispatch [:transect.query/cancel]))}])}]]
+                                               :on-click (handler-dispatch [:transect.query/cancel])}])}]]
      [transect-graph results]]
     ;; Default:
     [transect-graph results]))

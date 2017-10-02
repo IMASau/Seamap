@@ -8,3 +8,12 @@
       (.preventDefault ~'event)
       (.stopPropagation ~'event)
       nil)))                            ; always return nil
+
+;;; and a version optimised for our most common case
+(defmacro handler-dispatch
+  ([dispatch-v]
+   `(fn [~'event]
+      (re-frame.core/dispatch ~'dispatch-v)
+      (.preventDefault ~'event)
+      (.stopPropagation ~'event)
+      nil)))

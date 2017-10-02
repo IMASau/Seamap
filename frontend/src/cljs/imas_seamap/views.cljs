@@ -8,7 +8,7 @@
             [imas-seamap.map.events :refer [process-layer]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer-macros [handler-fn]]
+            [imas-seamap.utils :refer-macros [handler-fn handler-dispatch]]
             [goog.object :as gobj]
             [goog.dom :as dom]
             [oops.core :refer [oget ocall]]
@@ -116,14 +116,14 @@
   [:div.catalogue-layer-controls
    [b/tooltip {:content "Show layer info"}
     [:span.pt-icon-standard.pt-icon-info-sign.pt-text-muted.control
-     {:on-click (handler-fn (re-frame/dispatch [:map.layer/show-info layer]))}]]
+     {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
    [b/tooltip {:content "Zoom to layer"}
     [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
-     {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer]))}]]
+     {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
    [b/tooltip {:content (if active? "Hide layer" "Show layer")}
     [:span.control.pt-text-muted.pt-icon-large
      {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
-      :on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer]))}]]])
+      :on-click (handler-dispatch [:map/toggle-layer layer])}]]])
 
 (defn layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
@@ -192,7 +192,7 @@
      [b/button {:id "transect-button"
                 :icon-name "edit"
                 :class-name "pt-fill draw-transect height-static"
-                :on-click (handler-fn (re-frame/dispatch [dispatch-key]))
+                :on-click (handler-dispatch [dispatch-key])
                 :text label}]]))
 
 (defn layer-logic-toggle []
@@ -207,7 +207,7 @@
               {:class-name "external-trigger"}))
      [b/switch {:checked   checked?
                 :label     (reagent/as-element [:span icon label])
-                :on-change (handler-fn (re-frame/dispatch [:map.layers.logic/toggle true]))}]]))
+                :on-change (handler-dispatch [:map.layers.logic/toggle true])}]]))
 
 (defn layer-search-filter []
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
@@ -217,9 +217,8 @@
                                 :type        "search"
                                 :placeholder "Search Layers..."
                                 :value       @filter-text
-                                :on-change   (handler-fn
-                                              (re-frame/dispatch
-                                               [:map.layers/filter (oget event :target :value)]))}]]))
+                                :on-change   (handler-dispatch
+                                               [:map.layers/filter (oget event :target :value)])}]]))
 
 (defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
   (let [legend-url (with-params server_url
@@ -253,16 +252,16 @@
                       :position *RIGHT*}
            [:span.control.pt-text-muted.pt-icon-large
             {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
-             :on-click (handler-fn (re-frame/dispatch [:map/toggle-layer layer-spec]))}]]]]
+             :on-click (handler-dispatch [:map/toggle-layer layer-spec])}]]]]
         [:div.subheader-row.height-static
          [:div.control-row
           [:span.control.pt-text-muted.pt-icon-standard.pt-icon-info-sign
-           {:on-click (handler-fn (re-frame/dispatch [:map.layer/show-info layer-spec]))}]]
+           {:on-click (handler-dispatch [:map.layer/show-info layer-spec])}]]
          [:div.view-controls.pt-ui-text-large
           [b/tooltip {:content "Zoom to layer"
                       :position *RIGHT*}
            [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
-            {:on-click (handler-fn (re-frame/dispatch [:map/pan-to-layer layer-spec]))}]]]]
+            {:on-click (handler-dispatch [:map/pan-to-layer layer-spec])}]]]]
         [b/collapse {:is-open (and active? @show-legend)
                      :className "layer-legend"}
          [legend-display layer-spec]]]])))
@@ -328,7 +327,7 @@
    [b/button {:id         "reset-button"
               :icon-name  "undo"
               :class-name "pt-fill"
-              :on-click   (handler-fn (re-frame/dispatch [:re-boot]))
+              :on-click   (handler-dispatch [:re-boot])
               :text       "Reset Interface"}]])
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
@@ -353,7 +352,7 @@
         force-resize #(js/window.dispatchEvent (js/Event. "resize"))
         transect-results (re-frame/subscribe [:transect/results])]
     [:footer#plot-footer
-     {:on-click (handler-fn (re-frame/dispatch [:transect.plot/toggle-visibility]))
+     {:on-click (handler-dispatch [:transect.plot/toggle-visibility])
       :data-helper-text "This shows the data along a transect you can draw"
       :data-helper-position "top"}
      [:div.drag-handle [:span.pt-icon-large.pt-icon-drag-handle-horizontal]]
@@ -420,7 +419,7 @@
        [b/button {:text       "Get Started!"
                   :intent     b/*intent-primary*
                   :auto-focus true
-                  :on-click   (handler-fn (re-frame/dispatch [:welcome-layer/close]))}]]]]))
+                  :on-click   (handler-dispatch [:welcome-layer/close])}]]]]))
 
 (defn metadata-record [{:keys [license-name license-link license-img constraints other]
                         {:keys [organisation name metadata_url]} :layer
@@ -473,25 +472,25 @@
                                         [b/menu
                                          [b/menu-item {:text  "GeoTIFF"
                                                        :label (reagent/as-element [b/icon {:icon-name "globe"}])
-                                                       :on-click (handler-fn (re-frame/dispatch [:map.layer/download-start
+                                                       :on-click (handler-dispatch [:map.layer/download-start
                                                                                                  layer
-                                                                                                 :map.layer.download/geotiff]))}]
+                                                                                                 :map.layer.download/geotiff])}]
                                          [b/menu-item {:text  "SHP File"
                                                        :label (reagent/as-element [b/icon {:icon-name "polygon-filter"}])
-                                                       :on-click (handler-fn (re-frame/dispatch [:map.layer/download-start
+                                                       :on-click (handler-dispatch [:map.layer/download-start
                                                                                                  layer
-                                                                                                 :map.layer.download/shp]))}]
+                                                                                                 :map.layer.download/shp])}]
                                          [b/menu-item {:text  "CSV"
                                                        :label (reagent/as-element [b/icon {:icon-name "th"}])
-                                                       :on-click (handler-fn (re-frame/dispatch [:map.layer/download-start
+                                                       :on-click (handler-dispatch [:map.layer/download-start
                                                                                                  layer
-                                                                                                 :map.layer.download/csv]))}]])}
+                                                                                                 :map.layer.download/csv])}]])}
         [b/button {:text            "Download As..."
                    :right-icon-name "caret-down"}]]
        [b/button {:text       "Close"
                   :auto-focus true
                   :intent     b/*intent-primary*
-                  :on-click   (handler-fn (re-frame/dispatch [:map.layer/close-info]))}]]]]))
+                  :on-click   (handler-dispatch [:map.layer/close-info])}]]]]))
 
 (defn- as-icon [icon-name description]
   (reagent/as-element [b/tooltip {:content  description

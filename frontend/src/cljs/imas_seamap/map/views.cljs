@@ -97,7 +97,7 @@
   [b/dialogue {:is-open   display-link
                :title     "Download"
                :icon-name "import"
-               :on-close  (handler-fn (re-frame/dispatch [:ui.download/close-dialogue]))}
+               :on-close  (handler-dispatch [:ui.download/close-dialogue])}
    [:div.pt-dialog-body
     [:p [:a {:href link :target "_blank"}
          "Click here to download selection."]]]
@@ -105,7 +105,7 @@
     [:div.pt-dialog-footer-actions
      [b/button {:text       "Done"
                 :intent   b/*intent-primary*
-                :on-click (handler-fn (re-frame/dispatch [:ui.download/close-dialogue]))}]]]])
+                :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]])
 
 (defn map-component [sidebar]
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
