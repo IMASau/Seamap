@@ -2,7 +2,7 @@
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.utils :refer [select-values handler-dispatch]]
+            [imas-seamap.utils :refer [select-values] :refer-macros [handler-dispatch]]
             [imas-seamap.map.utils :refer [sort-layers]]
             [oops.core :refer [ocall oget]]
             [debux.cs.core :refer-macros [dbg]]))
