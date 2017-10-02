@@ -441,7 +441,12 @@
     (when license-img [:img.license.metadata-img {:src license-img}])
     [:a {:href license-link :target "_blank"} license-name]]
    [:div.more-info
-    [:a {:href metadata_url :target "_blank"} "Click here for the full metadata record."]]])
+    [:a {:href metadata_url :target "_blank"} "Click here for the full metadata record."]]
+   [:div
+    [:p.download-instructions
+     "Downloading implies acceptance of all citation and usage
+     requirements.  You will first select your region of
+     interest."]]])
 
 (defn info-card []
   (let [layer-info @(re-frame/subscribe [:map.layer/info])

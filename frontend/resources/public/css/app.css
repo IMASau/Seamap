@@ -413,4 +413,6 @@ rect#background {
     display: block;
     content: "";
 }
-
+.metadata-record .download-instructions {
+    font-style: italic;
+}
