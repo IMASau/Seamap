@@ -13,7 +13,7 @@
 (defmacro handler-dispatch
   ([dispatch-v]
    `(fn [~'event]
-      (re-frame.core/dispatch ~'dispatch-v)
+      (re-frame.core/dispatch ~dispatch-v)
       (.preventDefault ~'event)
       (.stopPropagation ~'event)
       nil)))
