@@ -94,12 +94,13 @@
 
 (defn map-component [sidebar]
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
-        {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
-        {:keys [drawing? query mouse-loc]} @(re-frame/subscribe [:transect/info])
-        layer-priorities @(re-frame/subscribe [:map.layers/priorities])
-        logic-type @(re-frame/subscribe [:map.layers/logic])
-        base-layer-osm [tile-layer {:url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-                                    :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
+        {:keys [has-info? info-body location] :as fi}       @(re-frame/subscribe [:map.feature/info])
+        {:keys [drawing? query mouse-loc]}                  @(re-frame/subscribe [:transect/info])
+        {:keys [outlining? download-type download-layer]}   @(re-frame/subscribe [:download/info])
+        layer-priorities                                    @(re-frame/subscribe [:map.layers/priorities])
+        logic-type                                          @(re-frame/subscribe [:map.layers/logic])
+        base-layer-osm                                      [tile-layer {:url         "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+                                                                         :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
     [:div.map-wrapper
      sidebar
 
@@ -109,7 +110,7 @@
                     :use-fly-to    true
                     :center        center
                     :zoom          zoom
-                    :keyboard      false  ; handled externally
+                    :keyboard      false ; handled externally
                     :on-zoomend    on-map-view-changed
                     :on-moveend    on-map-view-changed
                     :when-ready    on-map-view-changed
@@ -151,6 +152,20 @@
                                       (ocall e "_toolbars.draw._modes.polyline.handler.enable")
                                       (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
                         :on-created #(re-frame/dispatch [:transect/query (-> % (ocall "layer.toGeoJSON") (js->clj :keywordize-keys true))])}]])
+      (when outlining?
+        [feature-group
+         [edit-control {:draw       {:rectangle true
+                                     :circle    false
+                                     :marker    false
+                                     :polygon   false
+                                     :polyline  false}
+                        :on-mounted (fn [e]
+                                      (ocall e "_toolbars.draw._modes.rectangle.handler.enable")
+                                      (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:map.layer/download-cancel])))
+                        :on-created #(re-frame/dispatch [:map.layer/download-finish
+                                                         download-layer
+                                                         download-type
+                                                         (-> % (ocall "layer.getBounds") bounds->map)])}]])
       (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
         ^{:key (str location)}

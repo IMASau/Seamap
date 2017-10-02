@@ -446,6 +446,7 @@
 
 (defn info-card []
   (let [layer-info @(re-frame/subscribe [:map.layer/info])
+        layer      (:layer layer-info)
         title      (or (get-in layer-info [:layer :name]) "Layer Information")]
     [b/dialogue {:title    title
                  :is-open  layer-info
@@ -471,11 +472,20 @@
                    :content            (reagent/as-element
                                         [b/menu
                                          [b/menu-item {:text  "GeoTIFF"
-                                                       :label (reagent/as-element [b/icon {:icon-name "globe"}])}]
+                                                       :label (reagent/as-element [b/icon {:icon-name "globe"}])
+                                                       :on-click (handler-fn (re-frame/dispatch [:map.layer/download-start
+                                                                                                 layer
+                                                                                                 :map.layer.download/geotiff]))}]
                                          [b/menu-item {:text  "SHP File"
-                                                       :label (reagent/as-element [b/icon {:icon-name "polygon-filter"}])}]
+                                                       :label (reagent/as-element [b/icon {:icon-name "polygon-filter"}])
+                                                       :on-click (handler-fn (re-frame/dispatch [:map.layer/download-start
+                                                                                                 layer
+                                                                                                 :map.layer.download/shp]))}]
                                          [b/menu-item {:text  "CSV"
-                                                       :label (reagent/as-element [b/icon {:icon-name "th"}])}]])}
+                                                       :label (reagent/as-element [b/icon {:icon-name "th"}])
+                                                       :on-click (handler-fn (re-frame/dispatch [:map.layer/download-start
+                                                                                                 layer
+                                                                                                 :map.layer.download/csv]))}]])}
         [b/button {:text            "Download As..."
                    :right-icon-name "caret-down"}]]
        [b/button {:text       "Close"
