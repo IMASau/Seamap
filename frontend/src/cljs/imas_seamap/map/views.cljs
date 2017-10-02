@@ -103,7 +103,7 @@
          "Click here to download selection."]]]
    [:div.pt-dialog-footer
     [:div.pt-dialog-footer-actions
-     [b/button {:text       "Done"
+     [b/button {:text     "Done"
                 :intent   b/*intent-primary*
                 :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]])
 
