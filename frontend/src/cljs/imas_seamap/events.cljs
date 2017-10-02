@@ -321,12 +321,13 @@
   (assoc-in db [:transect :mouse-percentage] nil))
 
 (defn download-start-outlining [{:keys [db]} [_ layer download-type]]
-  {:db       (assoc-in db [:map :controls :download] {:type  download-type
-                                                      :layer layer})
+  {:db       (assoc-in db [:map :controls :download] {:selecting true
+                                                      :type      download-type
+                                                      :layer     layer})
    :dispatch [:map.layer/close-info]})
 
 (defn download-cancel [db _]
-  (assoc-in db [:map :controls :download] nil))
+  (assoc-in db [:map :controls :download :selecting] false))
 
 (defn download-finish [db [_ layer download-type bounds]]
   (update-in db [:map :controls :download]

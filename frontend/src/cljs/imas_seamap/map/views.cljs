@@ -100,7 +100,7 @@
                :on-close  (handler-fn (re-frame/dispatch [:ui.download/close-dialogue]))}
    [:div.pt-dialog-body
     [:p [:a {:href link :target "_blank"}
-         "Click here to download selection"]]]
+         "Click here to download selection."]]]
    [:div.pt-dialog-footer
     [:div.pt-dialog-footer-actions
      [b/button {:text       "Done"
@@ -111,7 +111,8 @@
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [has-info? info-body location] :as fi}       @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]}                  @(re-frame/subscribe [:transect/info])
-        {:keys [outlining? download-type download-layer] :as download-info} @(re-frame/subscribe [:download/info])
+        {:keys [outlining? download-type
+                download-layer] :as download-info}          @(re-frame/subscribe [:download/info])
         layer-priorities                                    @(re-frame/subscribe [:map.layers/priorities])
         logic-type                                          @(re-frame/subscribe [:map.layers/logic])
         base-layer-osm                                      [tile-layer {:url         "http://{s}.tile.osm.org/{z}/{x}/{y}.png"

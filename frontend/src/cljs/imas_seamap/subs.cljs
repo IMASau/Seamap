@@ -1,6 +1,7 @@
 (ns imas-seamap.subs
     (:require-macros [reagent.ratom :refer [reaction]])
-    (:require [imas-seamap.map.views :refer [point->latlng point-distance]]
+    (:require [clojure.set :refer [rename-keys]]
+              [imas-seamap.map.views :refer [point->latlng point-distance]]
               [re-frame.core :as re-frame]
               [debux.cs.core :refer-macros [dbg]]))
 
@@ -45,12 +46,11 @@
     {:has-info? false}))
 
 (defn download-info [{:keys [map] :as db} _]
-  (let [{:keys [layer type display-link link] :as download} (get-in map [:controls :download])]
-    {:outlining?     (boolean download)
-     :download-type  type
-     :download-layer layer
-     :link           link
-     :display-link   display-link}))
+  (-> db
+      (get-in [:map :controls :download])
+      (rename-keys {:selecting :outlining?
+                    :type      :download-type
+                    :layer     :download-layer})))
 
 (defn transect-info [{:keys [map transect] :as db} _]
   (merge

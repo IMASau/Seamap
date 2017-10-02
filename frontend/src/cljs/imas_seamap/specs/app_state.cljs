@@ -67,11 +67,13 @@
 (s/def :map.controls.download/type #{:map.layer.download/geotiff
                                      :map.layer.download/shp
                                      :map.layer.download/csv})
+(s/def :map.controls.download/selecting boolean?)
 (s/def :map.controls.download/layer :map/layer)
 (s/def :map.controls.download/link string?)
 (s/def :map.controls.download/display-link boolean?)
 (s/def :map.controls/download
-  (s/nilable (s/keys :req-un [:map.controls.download/layer
+  (s/nilable (s/keys :req-un [:map.controls.download/selecting
+                              :map.controls.download/layer
                               :map.controls.download/type]
                      :opt-un [:map.controls.download/link
                               :map.controls.download/display-link])))
