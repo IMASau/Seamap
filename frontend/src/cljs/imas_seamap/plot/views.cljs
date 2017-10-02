@@ -2,7 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [imas-seamap.blueprint :refer [button non-ideal-state spinner]]
-            [imas-seamap.utils :refer-macros [handler-fn]]
+            [imas-seamap.utils :refer-macros [handler-dispatch]]
             [goog.dom :as dom]
             [goog.object :as gobj]
             [goog.math :as gmaths]
