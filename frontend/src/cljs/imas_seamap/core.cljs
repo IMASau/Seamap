@@ -30,6 +30,7 @@
     :map.layers/lookup                    msubs/map-layer-lookup
     :map.layer/info                       subs/map-layer-info
     :map.feature/info                     subs/feature-info
+    :download/info                        subs/download-info
     :transect/info                        subs/transect-info
     :transect/results                     subs/transect-results
     :transect.plot/show?                  subs/transect-show?
@@ -82,6 +83,9 @@
     :map.layer/close-info                 events/layer-close-info
     :map.layer/update-metadata            events/layer-receive-metadata
     :map.layer/metadata-error             events/layer-receive-metadata-err
+    :map.layer/download-start             [events/download-start-outlining]
+    :map.layer/download-cancel            events/download-cancel
+    :map.layer/download-finish            events/download-finish
     :map.layers/filter                    mevents/map-set-layer-filter
     :map.layers/others-filter             mevents/map-set-others-layer-filter
     :map.layers.logic/toggle              [mevents/map-layer-logic-toggle]

@@ -8,7 +8,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [geonetwork-force-xml]]
-            [imas-seamap.map.utils :refer [applicable-layers bbox-intersects? habitat-layer?]]
+            [imas-seamap.map.utils :as mutils :refer [applicable-layers bbox-intersects? habitat-layer? download-link]]
             [oops.core :refer [gcall ocall]]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
@@ -319,6 +319,19 @@
 
 (defn transect-onmouseout [db _]
   (assoc-in db [:transect :mouse-percentage] nil))
+
+(defn download-start-outlining [{:keys [db]} [_ layer download-type]]
+  {:db       (assoc-in db [:map :controls :download] {:type  download-type
+                                                      :layer layer})
+   :dispatch [:map.layer/close-info]})
+
+(defn download-cancel [db _]
+  (assoc-in db [:map :controls :download] nil))
+
+(defn download-finish [db [_ layer download-type bounds]]
+  (js/console.warn "****" layer bounds download-type)
+  (js/console.warn "**** link:" (download-link layer bounds download-type))
+  db)
 
 (defn ajax [db [_ url {:keys [handler err-handler override-opts]
                        :or   {handler     :ajax/default-success-handler
