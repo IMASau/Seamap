@@ -427,7 +427,8 @@
   [:div.metadata-record
    [:div.metadata-header.clearfix
     (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
-      [:img.metadata-img.org-logo {:src (str img-url-base logo)}])
+      [:img.metadata-img.org-logo {:class-name (string/replace logo #"\..+$" "")
+                                   :src        (str img-url-base logo)}])
     [:h3 name]]
    [:h6.metadata-subheader "Citation Information:"]
    [:div
