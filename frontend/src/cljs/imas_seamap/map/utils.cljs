@@ -82,4 +82,42 @@
                  (priority-layer-ids (:id %)))
             layers)))
 
+(def ^:private type->format-str {:map.layer.download/csv     "csv"
+                                 :map.layer.download/shp     "shp-zip"
+                                 :map.layer.download/geotiff "image/geotiff"})
+
+(def ^:private type->servertype {:map.layer.download/csv     :wfs
+                                 :map.layer.download/shp     :wfs
+                                 :map.layer.download/geotiff :wms})
+
+(defmulti download-link (fn [layer bounds download-type] (type->servertype download-type)))
+
+(defmethod download-link :wfs [{:keys [server_url detail_layer layer_name] :as layer} bounds download-type]
+  (-> (url/url (or detail_layer server_url))
+      (assoc :query {:service      "wfs"
+                     :version      "1.0.0"
+                     :request      "GetFeature"
+                     :outputFormat (type->format-str download-type)
+                     :typeName     layer_name
+                     :srsName      "EPSG:4326"
+                     :bbox         (bounds->str bounds)})
+      str))
+
+(defmethod download-link :wms [{:keys [server_url detail_layer layer_name] :as layer}
+                               {:keys [north south east west] :as bounds}
+                               download-type]
+  ;; Crude ratio calculations for approximating image dimensions:
+  (let [ratio (/ (- north south) (- east west))
+        width 640]
+    (-> (url/url (or detail_layer server_url))
+        (assoc :query {:service "wms"
+                       :version "1.3.0"
+                       :request "GetMap"
+                       :SRS     "EPSG:4326"
+                       :bbox    (bounds->str bounds)
+                       :format  (type->format-str download-type)
+                       :width   width
+                       :height  (int (* ratio width))
+                       :layers  layer_name})
+        str)))
 
