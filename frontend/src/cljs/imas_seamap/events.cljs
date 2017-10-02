@@ -329,9 +329,12 @@
   (assoc-in db [:map :controls :download] nil))
 
 (defn download-finish [db [_ layer download-type bounds]]
-  (js/console.warn "****" layer bounds download-type)
-  (js/console.warn "**** link:" (download-link layer bounds download-type))
-  db)
+  (update-in db [:map :controls :download]
+             merge {:link         (download-link layer bounds download-type)
+                    :display-link true}))
+
+(defn close-download-dialogue [db _]
+  (assoc-in db [:map :controls :download :display-link] false))
 
 (defn ajax [db [_ url {:keys [handler err-handler override-opts]
                        :or   {handler     :ajax/default-success-handler

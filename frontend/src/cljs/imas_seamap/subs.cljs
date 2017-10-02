@@ -45,10 +45,12 @@
     {:has-info? false}))
 
 (defn download-info [{:keys [map] :as db} _]
-  (let [{:keys [layer type] :as download} (get-in map [:controls :download])]
+  (let [{:keys [layer type display-link link] :as download} (get-in map [:controls :download])]
     {:outlining?     (boolean download)
      :download-type  type
-     :download-layer layer}))
+     :download-layer layer
+     :link           link
+     :display-link   display-link}))
 
 (defn transect-info [{:keys [map transect] :as db} _]
   (merge
