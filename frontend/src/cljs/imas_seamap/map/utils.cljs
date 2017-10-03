@@ -83,7 +83,7 @@
             layers)))
 
 (def ^:private type->format-str {:map.layer.download/csv     "csv"
-                                 :map.layer.download/shp     "shp-zip"
+                                 :map.layer.download/shp     "shape-zip"
                                  :map.layer.download/geotiff "image/geotiff"})
 
 (def ^:private type->servertype {:map.layer.download/csv     :wfs
