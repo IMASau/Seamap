@@ -1,4 +1,4 @@
-create view SeamapAus_Regions_VIEW as
+CREATE view [dbo].[SeamapAus_Regions_VIEW] as
 select 'seamap:seamapaus_nat_aus_margin_geomorph_2006'          as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_Aus_margin_geomorph_2006
 union all
 select 'seamap:seamapaus_nat_camris_benthic_substrate'          as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_CAMRIS_benthic_substrate
@@ -59,10 +59,6 @@ select 'seamap:seamapaus_nt_mangroves_ludmillacreek'            as layer_name, S
 union all
 select 'seamap:seamapaus_nt_seagrass'                           as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NT_seagrass
 union all
-select 'seamap:seamapaus_qld_easternbanks_seagrass_biomass'     as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_QLD_EasternBanks_seagrass_biomass
-union all
-select 'seamap:seamapaus_qld_easternbanks_seagrass_cover'       as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_QLD_EasternBanks_seagrass_cover
-union all
 select 'seamap:seamapaus_qld_easternbanks_seagrass_species'     as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_QLD_EasternBanks_seagrass_species
 union all
 select 'seamap:seamapaus_qld_gbrwha_seagrass'                   as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_QLD_GBRWHA_seagrass
@@ -103,6 +99,14 @@ select 'seamap:seamapaus_sa_state_benthic_habitats'             as layer_name, S
 union all
 select 'seamap:seamapaus_tas_seamaptas'                         as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_TAS_SeamapTas
 union all
+select 'seamap:seamapaus_vic_gippslandlakes_biotopes'            as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_GippslandLakes_biotopes
+union all
+select 'seamap:seamapaus_vic_opencoast_biotopes'                as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_OpenCoast_biotopes
+union all
+select 'seamap:seamapaus_vic_ppb_biotopes'                      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_PPB_biotopes
+union all
+select 'seamap:seamapaus_vic_wpb_biotopes'                      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_WPB_biotopes?
+union all
 select 'seamap:seamapaus_wa_cockburnsound_mapping'              as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_CockburnSound_mapping
 union all
 select 'seamap:seamapaus_wa_cockburnsound_seagrass_1999'        as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_CockburnSound_seagrass_1999
@@ -111,15 +115,9 @@ select 'seamap:seamapaus_wa_dpaw_marine_habitats'               as layer_name, S
 union all
 select 'seamap:seamapaus_wa_mou74_scottreef'                    as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MOU74_ScottReef
 union all
+select 'seamap:seamapaus_wa_mou74_ashmorereef'                  as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MOU74_AshmoreReef
+union all
 select 'seamap:seamapaus_wa_marinefutures_biota'                as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_biota
-union all
-select 'seamap:seamapaus_vic_gippslandlake_biotopes'            as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_GippslandLake_biotopes
-union all
-select 'seamap:seamapaus_vic_opencoast_biotopes'                as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_OpenCoast_biotopes
-union all
-select 'seamap:seamapaus_vic_ppb_biotopes'                      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_PPB_biotopes
-union all
-select 'seamap:seamapaus_vic_wpb_biotopes​'                      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_WPB_biotopes​
 union all
 select 'seamap:seamapaus_wa_marinefutures_reef'                 as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef
 union all
@@ -152,4 +150,6 @@ union all
 select 'seamap:seamapaus_wa_seagrass_wilsoninlet_2007'          as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_seagrass_WilsonInlet_2007
 union all
 select 'seamap:seamapaus_wa_seagrass_wilsoninlet_2008'          as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_seagrass_WilsonInlet_2008
+union all
+select 'seamap:finalproduct_seamapaus'							as layer_name, NAT_HAB_CL as habitat, geom from FINALPRODUCT_SeamapAus
 ;

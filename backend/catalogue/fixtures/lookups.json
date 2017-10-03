@@ -1,6 +1,251 @@
 [
 {
   "fields": {
+    "logo": "CSIRO.png",
+    "name": "CSIRO"
+  },
+  "model": "catalogue.organisation",
+  "pk": 1
+},
+{
+  "fields": {
+    "logo": null,
+    "name": "CSIRO/AAD"
+  },
+  "model": "catalogue.organisation",
+  "pk": 3
+},
+{
+  "fields": {
+    "logo": null,
+    "name": "CSIRO/AMSA"
+  },
+  "model": "catalogue.organisation",
+  "pk": 4
+},
+{
+  "fields": {
+    "logo": "CSIRO-NESP.jpg",
+    "name": "CSIRO/NESP"
+  },
+  "model": "catalogue.organisation",
+  "pk": 5
+},
+{
+  "fields": {
+    "logo": "CSIRO-SOOS-IMOS.jpg",
+    "name": "IMOS/CSIRO/SOOP"
+  },
+  "model": "catalogue.organisation",
+  "pk": 6
+},
+{
+  "fields": {
+    "logo": "JCU.jpg",
+    "name": "James Cook University (JCU)"
+  },
+  "model": "catalogue.organisation",
+  "pk": 8
+},
+{
+  "fields": {
+    "logo": "WA-Government.jpg",
+    "name": "Western Australian Government"
+  },
+  "model": "catalogue.organisation",
+  "pk": 9
+},
+{
+  "fields": {
+    "logo": "NT-Government.png",
+    "name": "Northern Territory Government"
+  },
+  "model": "catalogue.organisation",
+  "pk": 10
+},
+{
+  "fields": {
+    "logo": "VIC-Government.png",
+    "name": "Victorian Government"
+  },
+  "model": "catalogue.organisation",
+  "pk": 12
+},
+{
+  "fields": {
+    "logo": "SA-Government.jpg",
+    "name": "South Australian Government"
+  },
+  "model": "catalogue.organisation",
+  "pk": 13
+},
+{
+  "fields": {
+    "logo": "QLD-Government.jpg",
+    "name": "Queensland Government"
+  },
+  "model": "catalogue.organisation",
+  "pk": 14
+},
+{
+  "fields": {
+    "logo": "NSW-Government.png",
+    "name": "New South Wales Government"
+  },
+  "model": "catalogue.organisation",
+  "pk": 15
+},
+{
+  "fields": {
+    "logo": "University-of-Queensland.jpg",
+    "name": "The University of Queensland (UQ)"
+  },
+  "model": "catalogue.organisation",
+  "pk": 16
+},
+{
+  "fields": {
+    "logo": "GA.png",
+    "name": "Geoscience Australia (GA)"
+  },
+  "model": "catalogue.organisation",
+  "pk": 17
+},
+{
+  "fields": {
+    "logo": "NESP-MBH.jpg",
+    "name": "National Environmental Science Program (NESP)"
+  },
+  "model": "catalogue.organisation",
+  "pk": 18
+},
+{
+  "fields": {
+    "logo": "IMAS-UTAS.png",
+    "name": "Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)"
+  },
+  "model": "catalogue.organisation",
+  "pk": 19
+},
+{
+  "fields": {
+    "logo": "University-of-WA.jpg",
+    "name": "The University of Western Australia (UWA)"
+  },
+  "model": "catalogue.organisation",
+  "pk": 20
+},
+{
+  "fields": {
+    "logo": "Griffith-Uni.jpg",
+    "name": "Griffith University (GU)"
+  },
+  "model": "catalogue.organisation",
+  "pk": 21
+},
+{
+  "fields": {
+    "logo": "GBRMPA.jpg",
+    "name": "Great Barrier Reef Marine Park Authority (GBRMPA)"
+  },
+  "model": "catalogue.organisation",
+  "pk": 22
+},
+{
+  "fields": {
+    "logo": "Deakin.jpg",
+    "name": "Deakin University (DU)"
+  },
+  "model": "catalogue.organisation",
+  "pk": 23
+},
+{
+  "fields": {
+    "logo": null,
+    "name": "Other"
+  },
+  "model": "catalogue.organisation",
+  "pk": 24
+},
+{
+  "fields": {
+    "name": "Sea Surface Temperature (SST)"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 1
+},
+{
+  "fields": {
+    "name": "Chl.A"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 2
+},
+{
+  "fields": {
+    "name": "Shipping"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 3
+},
+{
+  "fields": {
+    "name": "Weather Events"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 4
+},
+{
+  "fields": {
+    "name": "Seismic Surveys"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 5
+},
+{
+  "fields": {
+    "name": "Plankton (AusCPR)"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 6
+},
+{
+  "fields": {
+    "name": "Oil & Petroleum Facilities"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 7
+},
+{
+  "fields": {
+    "name": "Harmful Spills"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 8
+},
+{
+  "fields": {
+    "name": "Fishing Effort"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 9
+},
+{
+  "fields": {
+    "name": "Maritime Cables"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 10
+},
+{
+  "fields": {
+    "name": "Management Boundaries"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 11
+},
+{
+  "fields": {
     "name": "Habitat"
   },
   "model": "catalogue.category",
