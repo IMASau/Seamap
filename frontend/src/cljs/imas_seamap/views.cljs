@@ -476,21 +476,21 @@
                    :popover-class-name "pt-minimal"
                    :content            (reagent/as-element
                                         [b/menu
-                                         [b/menu-item {:text  "GeoTIFF"
-                                                       :label (reagent/as-element [b/icon {:icon-name "globe"}])
+                                         [b/menu-item {:text     "GeoTIFF"
+                                                       :label    (reagent/as-element [b/icon {:icon-name "globe"}])
                                                        :on-click (handler-dispatch [:map.layer/download-start
-                                                                                                 layer
-                                                                                                 :map.layer.download/geotiff])}]
-                                         [b/menu-item {:text  "SHP File"
-                                                       :label (reagent/as-element [b/icon {:icon-name "polygon-filter"}])
+                                                                                    layer
+                                                                                    :map.layer.download/geotiff])}]
+                                         [b/menu-item {:text     "SHP File"
+                                                       :label    (reagent/as-element [b/icon {:icon-name "polygon-filter"}])
                                                        :on-click (handler-dispatch [:map.layer/download-start
-                                                                                                 layer
-                                                                                                 :map.layer.download/shp])}]
-                                         [b/menu-item {:text  "CSV"
-                                                       :label (reagent/as-element [b/icon {:icon-name "th"}])
+                                                                                    layer
+                                                                                    :map.layer.download/shp])}]
+                                         [b/menu-item {:text     "CSV"
+                                                       :label    (reagent/as-element [b/icon {:icon-name "th"}])
                                                        :on-click (handler-dispatch [:map.layer/download-start
-                                                                                                 layer
-                                                                                                 :map.layer.download/csv])}]])}
+                                                                                    layer
+                                                                                    :map.layer.download/csv])}]])}
         [b/button {:text            "Download As..."
                    :right-icon-name "caret-down"}]]
        [b/button {:text       "Close"
