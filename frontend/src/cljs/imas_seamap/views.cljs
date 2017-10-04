@@ -113,7 +113,7 @@
      name]]])
 
 (defn catalogue-controls [layer {:keys [active? errors? loading?] :as layer-state}]
-  [:div.catalogue-layer-controls
+  [:div.catalogue-layer-controls (when active? {:class-name "layer-active"})
    [b/tooltip {:content "Show layer info"}
     [:span.pt-icon-standard.pt-icon-info-sign.pt-text-muted.control
      {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
