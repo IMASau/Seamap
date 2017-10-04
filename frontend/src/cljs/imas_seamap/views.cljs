@@ -422,9 +422,9 @@
                   :on-click   (handler-dispatch [:welcome-layer/close])}]]]]))
 
 (defn metadata-record [{:keys [license-name license-link license-img constraints other]
-                        {:keys [organisation name metadata_url]} :layer
+                        {:keys [category organisation name metadata_url]} :layer
                         :as layer-info}]
-  [:div.metadata-record
+  [:div.metadata-record {:class-name (clojure.core/name category)}
    [:div.metadata-header.clearfix
     (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
       [:img.metadata-img.org-logo {:class-name (string/replace logo #"\..+$" "")
@@ -472,27 +472,28 @@
         [metadata-record layer-info])]
      [:div.pt-dialog-footer
       [:div.pt-dialog-footer-actions
-       [b/popover {:position           b/*BOTTOM*
-                   :popover-class-name "pt-minimal"
-                   :content            (reagent/as-element
-                                        [b/menu
-                                         [b/menu-item {:text     "GeoTIFF"
-                                                       :label    (reagent/as-element [b/icon {:icon-name "globe"}])
-                                                       :on-click (handler-dispatch [:map.layer/download-start
-                                                                                    layer
-                                                                                    :map.layer.download/geotiff])}]
-                                         [b/menu-item {:text     "SHP File"
-                                                       :label    (reagent/as-element [b/icon {:icon-name "polygon-filter"}])
-                                                       :on-click (handler-dispatch [:map.layer/download-start
-                                                                                    layer
-                                                                                    :map.layer.download/shp])}]
-                                         [b/menu-item {:text     "CSV"
-                                                       :label    (reagent/as-element [b/icon {:icon-name "th"}])
-                                                       :on-click (handler-dispatch [:map.layer/download-start
-                                                                                    layer
-                                                                                    :map.layer.download/csv])}]])}
-        [b/button {:text            "Download As..."
-                   :right-icon-name "caret-down"}]]
+       (when (#{:habitat :bathymetry :imagery} (:category layer))
+         [b/popover {:position           b/*BOTTOM*
+                     :popover-class-name "pt-minimal"
+                     :content            (reagent/as-element
+                                          [b/menu
+                                           [b/menu-item {:text     "GeoTIFF"
+                                                         :label    (reagent/as-element [b/icon {:icon-name "globe"}])
+                                                         :on-click (handler-dispatch [:map.layer/download-start
+                                                                                      layer
+                                                                                      :map.layer.download/geotiff])}]
+                                           [b/menu-item {:text     "SHP File"
+                                                         :label    (reagent/as-element [b/icon {:icon-name "polygon-filter"}])
+                                                         :on-click (handler-dispatch [:map.layer/download-start
+                                                                                      layer
+                                                                                      :map.layer.download/shp])}]
+                                           [b/menu-item {:text     "CSV"
+                                                         :label    (reagent/as-element [b/icon {:icon-name "th"}])
+                                                         :on-click (handler-dispatch [:map.layer/download-start
+                                                                                      layer
+                                                                                      :map.layer.download/csv])}]])}
+          [b/button {:text            "Download As..."
+                     :right-icon-name "caret-down"}]])
        [b/button {:text       "Close"
                   :auto-focus true
                   :intent     b/*intent-primary*

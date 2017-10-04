@@ -416,3 +416,8 @@ rect#background {
 .metadata-record .download-instructions {
     font-style: italic;
 }
+.metadata-record.third-party .metadata-subheader,
+.metadata-record.third-party .license-info,
+.metadata-record.third-party .download-instructions {
+    display: none;
+}
