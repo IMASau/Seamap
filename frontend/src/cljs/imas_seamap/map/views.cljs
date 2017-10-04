@@ -164,7 +164,8 @@
                                      :circle    false
                                      :marker    false
                                      :polygon   false
-                                     :polyline  {:allowIntersection false}}
+                                     :polyline  {:allowIntersection false
+                                                 :metric            "metric"}}
                         :on-mounted (fn [e]
                                       (ocall e "_toolbars.draw._modes.polyline.handler.enable")
                                       (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
