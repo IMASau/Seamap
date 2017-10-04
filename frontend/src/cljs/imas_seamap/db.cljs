@@ -6,7 +6,7 @@
 (def default-db
   {:map             {:center          [-23.116667 132.133333]
                      :zoom            5
-                     :zoom-cutover    7
+                     :zoom-cutover    10
                      :bounds          {}
                      :layers          []
                      :organisations   []
