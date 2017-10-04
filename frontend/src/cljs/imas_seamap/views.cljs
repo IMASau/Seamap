@@ -241,27 +241,8 @@
                      :class-name "header-text"
                      :position *RIGHT*
                      :is-disabled (not active?)}
-          [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
-           [:div (when (or loading? errors?) {:class "header-status-icons"})
-            (when (and active? loading?) [b/spinner {:class-name "pt-small layer-spinner"}])
-            (when (and active? errors?) [:span.layer-warning.pt-icon.pt-icon-small.pt-icon-warning-sign])]
-           [b/clipped-text {:ellipsize true :class-name "header-text"}
-            name]]]
-         [:div.view-controls.pt-ui-text-large
-          [b/tooltip {:content (if active? "Hide layer" "Show layer")
-                      :position *RIGHT*}
-           [:span.control.pt-text-muted.pt-icon-large
-            {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
-             :on-click (handler-dispatch [:map/toggle-layer layer-spec])}]]]]
-        [:div.subheader-row.height-static
-         [:div.control-row
-          [:span.control.pt-text-muted.pt-icon-standard.pt-icon-info-sign
-           {:on-click (handler-dispatch [:map.layer/show-info layer-spec])}]]
-         [:div.view-controls.pt-ui-text-large
-          [b/tooltip {:content "Zoom to layer"
-                      :position *RIGHT*}
-           [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
-            {:on-click (handler-dispatch [:map/pan-to-layer layer-spec])}]]]]
+          [catalogue-header layer-spec other-props]]
+         [catalogue-controls layer-spec other-props]]
         [b/collapse {:is-open (and active? @show-legend)
                      :className "layer-legend"}
          [legend-display layer-spec]]]])))

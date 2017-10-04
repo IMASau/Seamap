@@ -195,6 +195,10 @@ footer {
     overflow-x: hidden;
 }
 
+.catalogue-layer-controls {
+    flex: 0 0 auto;
+}
+
 .catalogue-add {
     margin-bottom: 5px;
 }
