@@ -114,7 +114,7 @@
 
 (defn catalogue-controls [layer {:keys [active? errors? loading?] :as layer-state}]
   [:div.catalogue-layer-controls (when active? {:class-name "layer-active"})
-   [b/tooltip {:content "Show layer info"}
+   [b/tooltip {:content "Layer info / Download data"}
     [:span.control.pt-icon-small.pt-icon-info-sign.pt-text-muted
      {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
    [b/tooltip {:content "Zoom to layer"}
