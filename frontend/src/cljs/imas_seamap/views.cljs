@@ -525,7 +525,7 @@
       [layer-tab bathymetry active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Imagery"
                    :icon   (as-icon "media"
-                                    (str "Image Layers (" (count imagery) ")"))
+                                    (str "Imagery Layers (" (count imagery) ")"))
                    :id     "tab-imagery"}
       [layer-tab imagery active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Third-Party"
