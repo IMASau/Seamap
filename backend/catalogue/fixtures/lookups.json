@@ -9,22 +9,6 @@
 },
 {
   "fields": {
-    "logo": null,
-    "name": "CSIRO/AAD"
-  },
-  "model": "catalogue.organisation",
-  "pk": 3
-},
-{
-  "fields": {
-    "logo": null,
-    "name": "CSIRO/AMSA"
-  },
-  "model": "catalogue.organisation",
-  "pk": 4
-},
-{
-  "fields": {
     "logo": "CSIRO-NESP.jpg",
     "name": "CSIRO/NESP"
   },
@@ -34,7 +18,7 @@
 {
   "fields": {
     "logo": "CSIRO-SOOS-IMOS.jpg",
-    "name": "IMOS/CSIRO/SOOP"
+    "name": "IMOS/CSIRO/SOOS"
   },
   "model": "catalogue.organisation",
   "pk": 6
@@ -166,6 +150,46 @@
   },
   "model": "catalogue.organisation",
   "pk": 24
+},
+{
+  "fields": {
+    "logo": "Deakin-VicGovernment.jpg",
+    "name": "Deakin University / Victorian Government"
+  },
+  "model": "catalogue.organisation",
+  "pk": 25
+},
+{
+  "fields": {
+    "logo": "IMOS.png",
+    "name": "IMOS"
+  },
+  "model": "catalogue.organisation",
+  "pk": 26
+},
+{
+  "fields": {
+    "logo": "CSIRO-IMOS.jpg",
+    "name": "CSIRO/IMOS"
+  },
+  "model": "catalogue.organisation",
+  "pk": 27
+},
+{
+  "fields": {
+    "logo": "SOOS.jpg",
+    "name": "Southern Ocean Observing System (SOOS)"
+  },
+  "model": "catalogue.organisation",
+  "pk": 28
+},
+{
+  "fields": {
+    "logo": "SeamapAus.png",
+    "name": "Seamap Australia"
+  },
+  "model": "catalogue.organisation",
+  "pk": 29
 },
 {
   "fields": {
