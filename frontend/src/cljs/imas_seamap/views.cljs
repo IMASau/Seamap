@@ -179,7 +179,7 @@
                     [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props])}]
     [b/tab {:id    "cat" :title "By Category"
             :panel (reagent/as-component
-                    [layer-catalogue-tree layers [:data_classification :organisation] "cat" layer-props])}]]])
+                    [layer-catalogue-tree layers [:data_classification] "cat" layer-props])}]]])
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
