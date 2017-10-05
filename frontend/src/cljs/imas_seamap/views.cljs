@@ -115,13 +115,13 @@
 (defn catalogue-controls [layer {:keys [active? errors? loading?] :as layer-state}]
   [:div.catalogue-layer-controls (when active? {:class-name "layer-active"})
    [b/tooltip {:content "Show layer info"}
-    [:span.pt-icon-standard.pt-icon-info-sign.pt-text-muted.control
+    [:span.control.pt-icon-small.pt-icon-info-sign.pt-text-muted
      {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
    [b/tooltip {:content "Zoom to layer"}
-    [:span.control.pt-text-muted.pt-icon-large.pt-icon-zoom-to-fit
+    [:span.control.pt-icon-standard.pt-icon-zoom-to-fit.pt-text-muted
      {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
    [b/tooltip {:content (if active? "Hide layer" "Show layer")}
-    [:span.control.pt-text-muted.pt-icon-large
+    [:span.control.pt-icon-large.pt-text-muted
      {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
       :on-click (handler-dispatch [:map/toggle-layer layer])}]]])
 

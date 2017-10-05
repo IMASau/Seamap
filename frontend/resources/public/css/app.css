@@ -156,11 +156,14 @@ footer {
     flex: 1 1 auto;
 }
 
-.control-row .control {
+.catalogue-layer-controls .control {
     margin-left: 2px;
+    opacity: 0.8;
+}
+.catalogue-layer-controls .control:hover {
+    opacity: 1;
 }
 
-.layer-controls .control:hover,
 .layer-active .header-text,
 .layer-active .pt-icon-eye-on {
     color: #0F9960;
