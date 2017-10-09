@@ -503,6 +503,13 @@
                             :error-fn      error-fn}]
    [help-button]])
 
+(defn management-layer-tab [layers active-layers loading-fn error-fn]
+  [:div.sidebar-tab.height-managed
+   [transect-toggle]
+   [layer-logic-toggle]
+   [layer-search-filter]
+   [help-button]])
+
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as sidebar-state}             @(re-frame/subscribe [:ui/sidebar])
         {:keys [groups active-layers loading-layers error-layers]} @(re-frame/subscribe [:map/layers])
@@ -528,6 +535,10 @@
                                     (str "Imagery Layers (" (count imagery) ")"))
                    :id     "tab-imagery"}
       [layer-tab imagery active-layers loading-layers error-layers]]
+     [sidebar-tab {:header "Management Regions"
+                   :icon   (as-icon "heatmap" "Management Region Layers")
+                   :id     "tab-management"}
+      [management-layer-tab nil active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Third-Party"
                    :icon   (as-icon "more"
                                     (str "Third-Party Layers (miscellaneous data — " (count third-party) ")"))
