@@ -4,4 +4,4 @@ django-cors-headers
 django-extensions
 django-pyodbc-azure>=1.8.17,<1.8.99
 sqlparse
-
+pyshp==1.2.12

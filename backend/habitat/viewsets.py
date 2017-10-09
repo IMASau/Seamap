@@ -1,11 +1,18 @@
 from collections import defaultdict
 from decimal import Decimal, getcontext
+import zipfile
+from django.contrib.gis.geos import GEOSGeometry
 from django.db import connections, ProgrammingError
+from django.http import HttpResponse
 from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
-
+import shapefile
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import BytesIO as StringIO
 
 # SQL Template to invoke the habitat transect intersection procedure.
 # There's an awkward situation of two types of parameters involved
@@ -37,6 +44,24 @@ FROM(
 ) as segments;
 """
 
+
+SQL_GET_REGIONS = """
+select b.region,
+       r.habitat,
+       b.geom.STIntersection(r.geom).STAsBinary() as geom,
+       b.geom.STIntersection(r.geom).STArea() as area,
+       b.geom.STIntersection(r.geom).STArea() / b.geom.STArea() as percentage
+from
+  (select region, geom
+   from seamapaus_boundaries_view
+   where boundary_layer = %s
+     and region = %s) b
+join
+  (select habitat, geom
+   from seamapaus_regions_view
+   where layer_name = %s) r
+on b.geom.STIntersects(r.geom) = 1
+"""
 
 def D(number):
     "Return the (probably) string, quantized to an acceptable number of decimal places"
@@ -127,3 +152,65 @@ class HabitatViewSet(viewsets.ViewSet):
             p1, p2 = p2, segments[p2].keys()[0]
 
         return Response(ordered_segments)
+
+    # .../regions?boundary=boundarylayer&habitat=habitatlayer&region=regionname
+    # boundary is the boundary-layer name, eg seamap:SeamapAus_BOUNDARIES_CMR2014
+    # habitat is the habitat-layer name, eg seamap:FINALPRODUCT_SeamapAus
+    # region is the name of the boundary region (eg, MPA name), like Montibello
+    @list_route()
+    def regions(self, request):
+        if 'boundary' not in request.query_params:
+            raise ValidationError("Required parameter 'boundary' is missing")
+        if 'habitat' not in request.query_params:
+            raise ValidationError("Required parameter 'habitat' is missing")
+        if 'region' not in request.query_params:
+            raise ValidationError("Required parameter 'region' is missing")
+
+        boundary = request.query_params.get('boundary')
+        habitat = request.query_params.get('habitat')
+        region = request.query_params.get('region')
+
+        # Set up shapefile writer:
+        sw = shapefile.Writer(shapeType=shapefile.POLYGON)
+        sw.field("region", "C")
+        sw.field("habitat", "C")
+        sw.field("area", "N", decimal=30)
+        sw.field("percentage", "N", decimal=30)
+
+        with connections['transects'].cursor() as cursor:
+            cursor.execute(SQL_GET_REGIONS, [boundary, region, habitat])
+            while True:
+                try:
+                    for row in cursor.fetchall():
+                        region,habitat,bgeom,area,pctg = row
+                        sw.record(region, habitat, area, pctg)
+                        geom = GEOSGeometry(buffer(bgeom))
+                        coords = geom.coords
+                        # pyshp doesn't natively handle multipolygons
+                        # yet, so if we have one of those just flatten
+                        # it out to parts ourselves:
+                        if len(coords) > 1:
+                            coords = [parts for poly in coords for parts in poly]
+                        sw.poly(parts=coords)
+                    if not cursor.nextset():
+                        break
+                except ProgrammingError:
+                    if not cursor.nextset():
+                        break
+
+        shp = StringIO()
+        shx = StringIO()
+        dbf = StringIO()
+        sw.saveShp(shp)
+        sw.saveShx(shx)
+        sw.saveDbf(dbf)
+
+        zipstream = StringIO()
+        with zipfile.ZipFile(zipstream, 'w') as responsezip:
+            responsezip.writestr('regions.shp', shp.getvalue())
+            responsezip.writestr('regions.shx', shx.getvalue())
+            responsezip.writestr('regions.dbf', dbf.getvalue())
+
+        response = HttpResponse(zipstream.getvalue(), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="regions.zip"'
+        return response
