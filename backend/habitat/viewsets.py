@@ -230,4 +230,8 @@ def regions(request):
         return Response(results, content_type='application/zip',
                         headers={'Content-Disposition': 'attachment; filename="regions.zip"'})
 
-    return Response({'data': results}, template_name='habitat/regions.html')
+    return Response({'data': results,
+                     'boundary': boundary,
+                     'habitat': habitat,
+                     'region': region},
+                    template_name='habitat/regions.html')

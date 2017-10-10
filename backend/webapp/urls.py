@@ -16,7 +16,7 @@ router.register(r'descriptors', DescriptorViewset)
 
 urlpatterns = [
     url(r'^api/habitat/transect', transect),
-    url(r'^api/habitat/regions', regions),
+    url(r'^api/habitat/regions', regions, name='habitat-regions'),
     url(r'^api/', include(router.urls)),
 ]
 

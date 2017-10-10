@@ -1,5 +1,5 @@
 <div>
-  <h1>{{ data.0.region }}</h1>
+  <h1>{{ region }}</h1>
   <table>
     <thead>
       <th>Habitat</th>
@@ -16,4 +16,5 @@
       {% endfor %}
     </tbody>
   </table>
+  <a href="{% url 'habitat-regions' %}?boundary={{ boundary }}&habitat={{ habitat }}&region={{ region }}&format=raw">Download as shapefile</a>
 </div>
