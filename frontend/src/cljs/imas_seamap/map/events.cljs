@@ -151,13 +151,15 @@
 (defn layer-finished-loading [db [_ layer]]
   (update-in db [:layer-state] assoc-in [layer 0] :map.layer/loaded))
 
+(defn- toggle-layer-logic [layer active-layers]
+  (if (some #{layer} active-layers)
+    (filterv (fn [l] (not= l layer)) active-layers)
+    (if (= :bathymetry (:category layer))
+      [layer] ; if we turn on bathymetry, hide everything else (SM-58)
+      (conj active-layers layer))))
+
 (defn toggle-layer [{:keys [db]} [_ layer]]
-  (let [db (update-in db [:map :active-layers]
-                      #(if (some #{layer} %)
-                         (filterv (fn [l] (not= l layer)) %)
-                         (if (= :bathymetry (:category layer))
-                           [layer] ; if we turn on bathymetry, hide everything else (SM-58)
-                           (conj % layer))))]
+  (let [db (update-in db [:map :active-layers] (partial toggle-layer-logic layer))]
     {:db       db
      :put-hash (encode-state db)
      ;; If someone triggers this, we also switch to manual mode:
