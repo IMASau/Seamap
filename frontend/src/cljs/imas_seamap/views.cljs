@@ -503,17 +503,27 @@
                             :error-fn      error-fn}]
    [help-button]])
 
-(defn management-layer-tab [layers active-layers loading-fn error-fn]
+(defn management-layer-tab [boundaries active-layers loading-fn error-fn]
   [:div.sidebar-tab.height-managed
-   [transect-toggle]
-   [layer-logic-toggle]
-   [layer-search-filter]
+   [:div.boundary-layers.height-managed.group-scrollable
+    [:h6 "Boundary Layers"]
+    (for [layer boundaries]
+      ^{:key (:layer_name layer)}
+      [layer-card layer {:active?  (some #{layer} active-layers)
+                         :loading? (loading-fn layer)
+                         :errors?  (error-fn layer)}])]
+   [:label.pt-label.height-managed
+    "Habitat layer for region statistics (can only select a single active layer):"
+    [:div.pt-select.pt-fill
+     [:select
+      (for [layer (filter #(= :habitat (:category %)) active-layers)]
+        ^{:key (:layer_name layer)} [:option nil (:name layer)])]]]
    [help-button]])
 
 (defn seamap-sidebar []
-  (let [{:keys [collapsed selected] :as sidebar-state}             @(re-frame/subscribe [:ui/sidebar])
-        {:keys [groups active-layers loading-layers error-layers]} @(re-frame/subscribe [:map/layers])
-        {:keys [habitat bathymetry imagery third-party]}           groups]
+  (let [{:keys [collapsed selected] :as sidebar-state}              @(re-frame/subscribe [:ui/sidebar])
+        {:keys [groups active-layers loading-layers error-layers]}  @(re-frame/subscribe [:map/layers])
+        {:keys [habitat boundaries bathymetry imagery third-party]} groups]
     [sidebar {:id        "floating-sidebar"
               :selected  selected
               :collapsed collapsed
@@ -538,7 +548,7 @@
      [sidebar-tab {:header "Management Regions"
                    :icon   (as-icon "heatmap" "Management Region Layers")
                    :id     "tab-management"}
-      [management-layer-tab nil active-layers loading-layers error-layers]]
+      [management-layer-tab boundaries active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Third-Party"
                    :icon   (as-icon "more"
                                     (str "Third-Party Layers (miscellaneous data — " (count third-party) ")"))
