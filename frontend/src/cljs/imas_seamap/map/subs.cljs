@@ -28,6 +28,10 @@
 
 (defn map-layers [{:keys [map layer-state filters] :as db} _]
   (let [{:keys [layers active-layers bounds logic]} (get-in db [:map])
+        boundaries                                  (->> layers
+                                                         (filter #(and (= :third-party (:category %))
+                                                                       (= "Management Boundaries" (:data_classification %))))
+                                                         (sort-by :name))
         filter-text                                 (get-in db [:filters :layers])
         layers                                      (if (= (:type logic) :map.layer-logic/automatic)
                                                       (all-priority-layers db)
@@ -35,7 +39,8 @@
         visible-layers                              (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
         {:keys [third-party]}                       (group-by :category visible-layers)
         filtered-layers                             (filter (partial match-layer filter-text) visible-layers)]
-    {:groups         (group-by :category filtered-layers)
+    {:groups         (assoc (group-by :category filtered-layers)
+                            :boundaries boundaries)
      :loading-layers (->> layer-state (filter (fn [[l [st _]]] (= st :map.layer/loading))) keys set)
      :error-layers   (->> layer-state (filter (fn [[l [_ errors?]]] errors?)) keys set)
      :active-layers  active-layers}))
