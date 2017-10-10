@@ -3,9 +3,8 @@ from decimal import Decimal, getcontext
 import zipfile
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import connections, ProgrammingError
-from django.http import HttpResponse
-from rest_framework import viewsets
-from rest_framework.decorators import list_route
+from rest_framework.decorators import api_view, list_route, renderer_classes
+from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 import shapefile
@@ -68,108 +67,11 @@ def D(number):
     return Decimal(number).quantize(Decimal('0.1'))
 
 
-class HabitatViewSet(viewsets.ViewSet):
+class ShapefileRenderer(BaseRenderer):
+    media_type = 'application/zip'
+    format = 'raw'
 
-    # request as .../transect/?line= x1 y1,x2 y2, ...,xn yn&layers=layer1,layer2..
-    @list_route()
-    def transect(self, request):
-        if 'line' not in request.query_params:
-            raise ValidationError("Required parameter 'line' is missing")
-        if 'layers' not in request.query_params:
-            raise ValidationError("Required parameter 'layers' is missing")
-
-        ordered_segments = []
-        distance = 0
-        segments = defaultdict(dict)
-        start_segment = None
-
-        line = request.query_params.get('line')
-        linestring = 'LINESTRING(' + line + ')'
-
-        # Lines don't really have a direction, so we can't make assumptions
-        # about how they will be returned
-        start_pt = tuple(map(D, line.split(',', 1)[0].split(' ')))
-        start_percentage = 0
-
-        # To ensure polygons are inserted in the order of layer
-        # ordering, we add a priority to sort by -- which means
-        # generating a union-all statement by layer:
-        layers = request.query_params.get('layers').lower().split(',')
-        layer_stmt = ('select habitat, geom, {} as priority '
-                      'from SeamapAus_Regions_VIEW '
-                      'where lower(layer_name) = %s and geom.STIntersects(@line) = 1')
-        layers_placeholder = '\nUNION ALL\n'.join( layer_stmt.format(i) for i,_ in enumerate(layers) )
-
-        with connections['transects'].cursor() as cursor:
-            cursor.execute(SQL_GET_TRANSECT.format(layers_placeholder),
-                           [linestring] + layers)
-            while True:
-                try:
-                    for row in cursor.fetchall():
-                        [startx, starty, endx, endy, length, name] = row
-                        p1, p2 = (D(startx), D(starty)), (D(endx), D(endy))
-                        segment = p1, p2, name, length
-                        if p1 == p2:
-                            continue
-                        distance += length
-                        segments[p1][p2] = segment
-                        segments[p2][p1] = segment
-                        if p1 == start_pt or p2 == start_pt:
-                            start_segment = segment
-                    if not cursor.nextset():
-                        break
-                except ProgrammingError:
-                    if not cursor.nextset():
-                        break
-
-        p1, p2, _, _ = start_segment
-        if p1 != start_pt:
-            p1, p2 = p2, p1
-        start_distance = 0
-        # p1 is the start point; it will always be the "known" point, and p2 is the next one to find:
-        while True:
-            _, _, name, length = segments[p1][p2]
-            end_distance = start_distance + length
-            end_percentage = start_percentage + 100*length/float(distance)
-            ordered_segments.append({'name': name,
-                                     'start_distance': start_distance,
-                                     'end_distance': end_distance,
-                                     'start_percentage': start_percentage,
-                                     'end_percentage': end_percentage,
-                                     'startx': p1[0],
-                                     'starty': p1[1],
-                                     'endx': p2[0],
-                                     'endy': p2[1]})
-            start_percentage = end_percentage
-            start_distance = end_distance
-            del segments[p1][p2]
-            if not segments[p1]: del segments[p1]
-            del segments[p2][p1]
-            if not segments[p2]: del segments[p2]
-
-            if not segments:
-                break
-            p1, p2 = p2, segments[p2].keys()[0]
-
-        return Response(ordered_segments)
-
-    # .../regions?boundary=boundarylayer&habitat=habitatlayer&region=regionname
-    # boundary is the boundary-layer name, eg seamap:SeamapAus_BOUNDARIES_CMR2014
-    # habitat is the habitat-layer name, eg seamap:FINALPRODUCT_SeamapAus
-    # region is the name of the boundary region (eg, MPA name), like Montibello
-    @list_route()
-    def regions(self, request):
-        if 'boundary' not in request.query_params:
-            raise ValidationError("Required parameter 'boundary' is missing")
-        if 'habitat' not in request.query_params:
-            raise ValidationError("Required parameter 'habitat' is missing")
-        if 'region' not in request.query_params:
-            raise ValidationError("Required parameter 'region' is missing")
-
-        boundary = request.query_params.get('boundary')
-        habitat = request.query_params.get('habitat')
-        region = request.query_params.get('region')
-
+    def render(self, data, media_type=None, renderer_context=None):
         # Set up shapefile writer:
         sw = shapefile.Writer(shapeType=shapefile.POLYGON)
         sw.field("region", "C")
@@ -177,26 +79,17 @@ class HabitatViewSet(viewsets.ViewSet):
         sw.field("area", "N", decimal=30)
         sw.field("percentage", "N", decimal=30)
 
-        with connections['transects'].cursor() as cursor:
-            cursor.execute(SQL_GET_REGIONS, [boundary, region, habitat])
-            while True:
-                try:
-                    for row in cursor.fetchall():
-                        region,habitat,bgeom,area,pctg = row
-                        sw.record(region, habitat, area, pctg)
-                        geom = GEOSGeometry(buffer(bgeom))
-                        coords = geom.coords
-                        # pyshp doesn't natively handle multipolygons
-                        # yet, so if we have one of those just flatten
-                        # it out to parts ourselves:
-                        if len(coords) > 1:
-                            coords = [parts for poly in coords for parts in poly]
-                        sw.poly(parts=coords)
-                    if not cursor.nextset():
-                        break
-                except ProgrammingError:
-                    if not cursor.nextset():
-                        break
+        for row in data:
+            region,habitat,bgeom,area,pctg = row
+            sw.record(row['region'], row['habitat'], row['area'], row['pctg'])
+            geom = GEOSGeometry(buffer(row['geom']))
+            coords = geom.coords
+            # pyshp doesn't natively handle multipolygons
+            # yet, so if we have one of those just flatten
+            # it out to parts ourselves:
+            if len(coords) > 1:
+                coords = [parts for poly in coords for parts in poly]
+            sw.poly(parts=coords)
 
         shp = StringIO()
         shx = StringIO()
@@ -210,7 +103,131 @@ class HabitatViewSet(viewsets.ViewSet):
             responsezip.writestr('regions.shp', shp.getvalue())
             responsezip.writestr('regions.shx', shx.getvalue())
             responsezip.writestr('regions.dbf', dbf.getvalue())
+        return zipstream.getvalue()
 
-        response = HttpResponse(zipstream.getvalue(), content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename="regions.zip"'
-        return response
+
+# request as .../transect/?line= x1 y1,x2 y2, ...,xn yn&layers=layer1,layer2..
+@list_route()
+@api_view()
+def transect(request):
+    if 'line' not in request.query_params:
+        raise ValidationError("Required parameter 'line' is missing")
+    if 'layers' not in request.query_params:
+        raise ValidationError("Required parameter 'layers' is missing")
+
+    ordered_segments = []
+    distance = 0
+    segments = defaultdict(dict)
+    start_segment = None
+
+    line = request.query_params.get('line')
+    linestring = 'LINESTRING(' + line + ')'
+
+    # Lines don't really have a direction, so we can't make assumptions
+    # about how they will be returned
+    start_pt = tuple(map(D, line.split(',', 1)[0].split(' ')))
+    start_percentage = 0
+
+    # To ensure polygons are inserted in the order of layer
+    # ordering, we add a priority to sort by -- which means
+    # generating a union-all statement by layer:
+    layers = request.query_params.get('layers').lower().split(',')
+    layer_stmt = ('select habitat, geom, {} as priority '
+                  'from SeamapAus_Regions_VIEW '
+                  'where lower(layer_name) = %s and geom.STIntersects(@line) = 1')
+    layers_placeholder = '\nUNION ALL\n'.join( layer_stmt.format(i) for i,_ in enumerate(layers) )
+
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_TRANSECT.format(layers_placeholder),
+                       [linestring] + layers)
+        while True:
+            try:
+                for row in cursor.fetchall():
+                    [startx, starty, endx, endy, length, name] = row
+                    p1, p2 = (D(startx), D(starty)), (D(endx), D(endy))
+                    segment = p1, p2, name, length
+                    if p1 == p2:
+                        continue
+                    distance += length
+                    segments[p1][p2] = segment
+                    segments[p2][p1] = segment
+                    if p1 == start_pt or p2 == start_pt:
+                        start_segment = segment
+                if not cursor.nextset():
+                    break
+            except ProgrammingError:
+                if not cursor.nextset():
+                    break
+
+    p1, p2, _, _ = start_segment
+    if p1 != start_pt:
+        p1, p2 = p2, p1
+    start_distance = 0
+    # p1 is the start point; it will always be the "known" point, and p2 is the next one to find:
+    while True:
+        _, _, name, length = segments[p1][p2]
+        end_distance = start_distance + length
+        end_percentage = start_percentage + 100*length/float(distance)
+        ordered_segments.append({'name': name,
+                                 'start_distance': start_distance,
+                                 'end_distance': end_distance,
+                                 'start_percentage': start_percentage,
+                                 'end_percentage': end_percentage,
+                                 'startx': p1[0],
+                                 'starty': p1[1],
+                                 'endx': p2[0],
+                                 'endy': p2[1]})
+        start_percentage = end_percentage
+        start_distance = end_distance
+        del segments[p1][p2]
+        if not segments[p1]: del segments[p1]
+        del segments[p2][p1]
+        if not segments[p2]: del segments[p2]
+
+        if not segments:
+            break
+        p1, p2 = p2, segments[p2].keys()[0]
+
+    return Response(ordered_segments)
+
+
+# .../regions?boundary=boundarylayer&habitat=habitatlayer&region=regionname
+# boundary is the boundary-layer name, eg seamap:SeamapAus_BOUNDARIES_CMR2014
+# habitat is the habitat-layer name, eg seamap:FINALPRODUCT_SeamapAus
+# region is the name of the boundary region (eg, MPA name), like Montibello
+@list_route()
+@api_view()
+@renderer_classes((TemplateHTMLRenderer, ShapefileRenderer))
+def regions(request):
+    if 'boundary' not in request.query_params:
+        raise ValidationError("Required parameter 'boundary' is missing")
+    if 'habitat' not in request.query_params:
+        raise ValidationError("Required parameter 'habitat' is missing")
+    if 'region' not in request.query_params:
+        raise ValidationError("Required parameter 'region' is missing")
+
+    boundary = request.query_params.get('boundary')
+    habitat = request.query_params.get('habitat')
+    region = request.query_params.get('region')
+
+    def to_dict(row):
+        region,habitat,geom,area,pctg = row
+        return {'region':region, 'habitat':habitat, 'geom':geom, 'area':area, 'pctg':pctg}
+
+    results = []
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_REGIONS, [boundary, region, habitat])
+        while True:
+            try:
+                results.extend((to_dict(row) for row in cursor.fetchall()))
+                if not cursor.nextset():
+                    break
+            except ProgrammingError:
+                if not cursor.nextset():
+                    break
+
+    if request.accepted_renderer.format == 'raw':
+        return Response(results, content_type='application/zip',
+                        headers={'Content-Disposition': 'attachment; filename="regions.zip"'})
+
+    return Response({'data': results}, template_name='habitat/regions.html')
