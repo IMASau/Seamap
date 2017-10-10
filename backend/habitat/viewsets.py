@@ -45,6 +45,8 @@ FROM(
 
 
 SQL_GET_REGIONS = """
+declare @pt geometry = geometry::Point(%s, %s, 3112);
+
 select b.region,
        r.habitat,
        b.geom.STIntersection(r.geom).STAsBinary() as geom,
@@ -54,7 +56,7 @@ from
   (select region, geom
    from seamapaus_boundaries_view
    where boundary_layer = %s
-     and region = %s) b
+     and geom.STContains(@pt) = 1) b
 join
   (select habitat, geom
    from seamapaus_regions_view
@@ -87,7 +89,7 @@ class ShapefileRenderer(BaseRenderer):
             # pyshp doesn't natively handle multipolygons
             # yet, so if we have one of those just flatten
             # it out to parts ourselves:
-            if len(coords) > 1:
+            if geom.num_geom > 1:
                 coords = [parts for poly in coords for parts in poly]
             sw.poly(parts=coords)
 
@@ -191,24 +193,22 @@ def transect(request):
     return Response(ordered_segments)
 
 
-# .../regions?boundary=boundarylayer&habitat=habitatlayer&region=regionname
+# .../regions?boundary=boundarylayer&habitat=habitatlayer&x=longitude&y=latitude
 # boundary is the boundary-layer name, eg seamap:SeamapAus_BOUNDARIES_CMR2014
 # habitat is the habitat-layer name, eg seamap:FINALPRODUCT_SeamapAus
-# region is the name of the boundary region (eg, MPA name), like Montibello
+# x and y (lon + lat) are in espg3112
 @list_route()
 @api_view()
 @renderer_classes((TemplateHTMLRenderer, ShapefileRenderer))
 def regions(request):
-    if 'boundary' not in request.query_params:
-        raise ValidationError("Required parameter 'boundary' is missing")
-    if 'habitat' not in request.query_params:
-        raise ValidationError("Required parameter 'habitat' is missing")
-    if 'region' not in request.query_params:
-        raise ValidationError("Required parameter 'region' is missing")
+    for required in ['boundary', 'habitat', 'x', 'y']:
+        if required not in request.query_params:
+            raise ValidationError("Required parameter '{}' is missing".format(required))
 
     boundary = request.query_params.get('boundary')
-    habitat = request.query_params.get('habitat')
-    region = request.query_params.get('region')
+    habitat  = request.query_params.get('habitat')
+    x        = request.query_params.get('x')
+    y        = request.query_params.get('y')
 
     def to_dict(row):
         region,habitat,geom,area,pctg = row
@@ -216,7 +216,7 @@ def regions(request):
 
     results = []
     with connections['transects'].cursor() as cursor:
-        cursor.execute(SQL_GET_REGIONS, [boundary, region, habitat])
+        cursor.execute(SQL_GET_REGIONS, [x, y, boundary, habitat])
         while True:
             try:
                 results.extend((to_dict(row) for row in cursor.fetchall()))
@@ -233,5 +233,6 @@ def regions(request):
     return Response({'data': results,
                      'boundary': boundary,
                      'habitat': habitat,
-                     'region': region},
+                     'x': x,
+                     'y': y},
                     template_name='habitat/regions.html')

@@ -2,7 +2,7 @@
   <head></head>
   <body>
     <div>
-      <h1>Managment Region: {{ region }}</h1>
+      <h1>Managment Region: {{ data.0.region }}</h1>
       <table>
         <thead>
           <th>Habitat</th>
@@ -19,7 +19,7 @@
           {% endfor %}
         </tbody>
       </table>
-      <a href="{% url 'habitat-regions' %}?boundary={{ boundary }}&habitat={{ habitat }}&region={{ region }}&format=raw">Download as shapefile</a>
+      <a href="{% url 'habitat-regions' %}?boundary={{ boundary }}&habitat={{ habitat }}&x={{ x }}&y={{ y }}&format=raw">Download as shapefile</a>
     </div>
   </body>
 </html>
