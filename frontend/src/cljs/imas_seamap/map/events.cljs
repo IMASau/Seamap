@@ -12,51 +12,70 @@
 
 
 (defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y] :as point}]]
+  (let [active-layers (->> db :map :active-layers (remove #(#{:bathymetry} (:category %))))
+        by-server     (group-by :server_url active-layers)
+        ;; Note, top layer, last in the list, must be first in our search string:
+        layers->str   #(->> % (map :layer_name) reverse (string/join ","))
+        request-id    (gensym)]
+    ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
+    {:http-xhrio (for [[server-url active-layers] by-server
+                       :let [layers   (layers->str active-layers)
+                             priority (->> active-layers
+                                           (map :category)
+                                           (map {:imagery     0
+                                                 :habitat     1
+                                                 :third-party 2})
+                                           (apply min))]]
+                   (let [params {:REQUEST      "GetFeatureInfo"
+                                 :LAYERS       layers
+                                 :QUERY_layers layers
+                                 :WIDTH        (:x size)
+                                 :HEIGHT       (:y size)
+                                 :BBOX         (bounds->str bounds)
+                                 :X            x
+                                 :Y            y
+                                 :I            x
+                                 :J            y
+                                 :SRS          "EPSG:4326"
+                                 :CRS          "EPSG:4326"
+                                 :FORMAT       "text/html"
+                                 :INFO_format  "text/html"
+                                 :SERVICE      "WMS"
+                                 :VERSION      "1.3.0"}]
+                     {:method          :get
+                      :uri             server-url
+                      :params          params
+                      :response-format (ajax/text-response-format)
+                      :on-success      [:map/got-featureinfo request-id priority point]
+                      :on-failure      [:map/got-featureinfo-err request-id]}))
+     :dispatch   [:map/popup-closed]
+     ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
+     :db         (assoc db :feature-query {:request-id        request-id
+                                           :response-remain   (count by-server)
+                                           :response-priority 99
+                                           :candidate         nil})}))
+
+(defn get-habitat-region-statistics [{:keys [db] :as ctx} [_ props point]]
+  (let [boundary-layer (->> db :map :active-layers (filter #(= :boundaries (:category %))) first)
+        habitat-layer  nil
+        request-id     (gensym)]
+    (when (and boundary-layer habitat-layer)
+      {:http-xhrio {}
+       :dispatch   [:map/popup-closed]
+       :db         db})))
+
+(defn map-click-dispatcher
+  "Jumping-off point for when we get a map-click event.  Normally we
+  just want to issue a (or multiple) getFeatureInfo requests, but if
+  we're in calculating-region-statistics mode we want to issue a
+  different request, and it's cleaner to handle those separately."
+  [{:keys [db] :as ctx} [_ props point :as event-v]]
   ;; Only invoke if we aren't drawing a transect (ie, different click):
   (when-not (or (get-in db [:map :controls :transect])
                 (get-in db [:map :controls :download :selecting]))
-    (let [active-layers (->> db :map :active-layers (remove #(#{:bathymetry} (:category %))))
-          by-server     (group-by :server_url active-layers)
-          ;; Note, top layer, last in the list, must be first in our search string:
-          layers->str   #(->> % (map :layer_name) reverse (string/join ","))
-          request-id    (gensym)]
-      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
-      {:http-xhrio (for [[server-url active-layers] by-server
-                         :let [layers   (layers->str active-layers)
-                               priority (->> active-layers
-                                             (map :category)
-                                             (map {:imagery     0
-                                                   :habitat     1
-                                                   :third-party 2})
-                                             (apply min))]]
-                     (let [params {:REQUEST      "GetFeatureInfo"
-                                   :LAYERS       layers
-                                   :QUERY_layers layers
-                                   :WIDTH        (:x size)
-                                   :HEIGHT       (:y size)
-                                   :BBOX         (bounds->str bounds)
-                                   :X            x
-                                   :Y            y
-                                   :I            x
-                                   :J            y
-                                   :SRS          "EPSG:4326"
-                                   :CRS          "EPSG:4326"
-                                   :FORMAT       "text/html"
-                                   :INFO_format  "text/html"
-                                   :SERVICE      "WMS"
-                                   :VERSION      "1.3.0"}]
-                       {:method          :get
-                        :uri             server-url
-                        :params          params
-                        :response-format (ajax/text-response-format)
-                        :on-success      [:map/got-featureinfo request-id priority point]
-                        :on-failure      [:map/got-featureinfo-err request-id]}))
-       :dispatch   [:map/popup-closed]
-       ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
-       :db         (assoc db :feature-query {:request-id        request-id
-                                             :response-remain   (count by-server)
-                                             :response-priority 99
-                                             :candidate         nil})})))
+    (if (= "tab-management" (get-in db [:display :sidebar :selected]))
+      (get-habitat-region-statistics ctx event-v)
+      (get-feature-info ctx event-v))))
 
 (defn got-feature-info [db [_ request-id priority point response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
