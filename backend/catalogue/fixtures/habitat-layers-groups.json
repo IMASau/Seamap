@@ -71,7 +71,7 @@
     "name": "Reef Life Survey (RLS) Benthic Photo Quadrats",
     "server_type": 2,
     "data_classification": null,
-    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "metadata_url": "http://catalogue-rls.imas.utas.edu.au/geonetwork/srv/eng/metadata.show?uuid=6e9c4980-1005-11dd-b28e-00188b4c0af8",
     "organisation": null,
     "sort_key": null,
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
@@ -1283,7 +1283,7 @@
 {
   "fields": {
     "category": 1,
-    "detail_layer": null,
+    "detail_layer": "seamap:SeamapAus_WA_NWShelf_ecosystems_DATA",
     "maxx": "120.37897463310491730",
     "maxy": "-18.77166052908884808",
     "name": "WA - Northwest Shelf ecosystems",
@@ -1295,7 +1295,7 @@
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
     "minx": "113.47431590897828357",
     "miny": "-23.03224345277338969",
-    "layer_name": "seamap:SeamapAus_WA_ecosystem_NWShelf",
+    "layer_name": "seamap:SeamapAus_WA_NWShelf_ecosystems",
     "description": "-"
   },
   "model": "catalogue.layer",
@@ -1396,7 +1396,7 @@
     "data_classification": null,
     "metadata_url": "http://metadata.imas.utas.edu.au/geonetwork/srv/en/metadata.show?uuid=23053B66-472A-41A9-BBD1-85EFCC443065",
     "organisation": 9,
-    "sort_key": "heab",
+    "sort_key": "heac",
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
     "minx": "117.94122635957990042",
     "miny": "-34.99371379029525997",
@@ -1417,7 +1417,7 @@
     "data_classification": null,
     "metadata_url": "http://metadata.imas.utas.edu.au/geonetwork/srv/en/metadata.show?uuid=C17373F8-C646-41CB-A0A5-11A9559251D1",
     "organisation": 9,
-    "sort_key": "heaa",
+    "sort_key": "heab",
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
     "minx": "117.94049087223157812",
     "miny": "-34.99449713802285089",
@@ -1433,7 +1433,7 @@
     "detail_layer": null,
     "maxx": "117.92878983957734818",
     "maxy": "-35.03439762537724533",
-    "name": "WA - Princess Royal Harbour seagrass 1996",
+    "name": "WA - Princess Royal Harbour seagrass 1996-2006",
     "server_type": 2,
     "data_classification": null,
     "metadata_url": "http://metadata.imas.utas.edu.au/geonetwork/srv/en/metadata.show?uuid=E8B03484-6D7B-41A9-B54D-F5533D045AC3",
@@ -1605,7 +1605,7 @@
     "server_type": 2,
     "data_classification": null,
     "metadata_url": "http://metadata.imas.utas.edu.au/geonetwork/srv/en/metadata.show?uuid=8359d896-3374-4f16-9e70-906d006cff91",
-    "organisation": 12,
+    "organisation": 25,
     "sort_key": "g",
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
     "minx": "146.96529341999780627",
@@ -1626,7 +1626,7 @@
     "server_type": 2,
     "data_classification": null,
     "metadata_url": "http://metadata.imas.utas.edu.au/geonetwork/srv/en/metadata.show?uuid=f07ac004-dc40-48ec-90f9-c90835d323a6",
-    "organisation": 12,
+    "organisation": 25,
     "sort_key": "g",
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
     "minx": "141.05674884118624846",
@@ -1647,7 +1647,7 @@
     "server_type": 2,
     "data_classification": null,
     "metadata_url": "http://metadata.imas.utas.edu.au/geonetwork/srv/en/metadata.show?uuid=9737f03b-8e6b-4a93-b530-d7687d1a8a01",
-    "organisation": 12,
+    "organisation": 25,
     "sort_key": "g",
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
     "minx": "144.38334851724005148",
@@ -1668,7 +1668,7 @@
     "server_type": 2,
     "data_classification": null,
     "metadata_url": "http://metadata.imas.utas.edu.au/geonetwork/srv/en/metadata.show?uuid=583ab825-5a12-4005-8c39-4e6ff3c16058",
-    "organisation": 12,
+    "organisation": 25,
     "sort_key": "g",
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
     "minx": "145.01480772273666275",
@@ -1688,7 +1688,7 @@
     "name": "Australian CMR Boundaries 2014",
     "server_type": 2,
     "data_classification": 11,
-    "metadata_url": "http://metadata.imas.utas.edu.au/",
+    "metadata_url": "http://www.environment.gov.au/fed/catalog/search/resource/details.page?uuid=%7B2E8DD19C-1B93-4D90-BD1C-128DDC4A2998%7D",
     "organisation": 24,
     "sort_key": null,
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
@@ -1731,7 +1731,7 @@
     "server_type": 2,
     "data_classification": null,
     "metadata_url": "http://metadata.imas.utas.edu.au/geonetwork/srv/en/metadata.show?uuid=4739e4b0-4dba-4ec5-b658-02c09f27ab9a",
-    "organisation": null,
+    "organisation": 29,
     "sort_key": "aaa",
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
     "minx": "112.30000000000000000",
@@ -2969,13 +2969,13 @@
     "name": "MEOW - Marine Ecoregions of the World",
     "server_type": 2,
     "data_classification": 11,
-    "metadata_url": "-",
+    "metadata_url": "https://www.worldwildlife.org/publications/marine-ecoregions-of-the-world-a-bioregionalization-of-coastal-and-shelf-areas",
     "organisation": 24,
     "sort_key": null,
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
     "minx": "-179.50000000000000000",
     "miny": "-88.00000000000000000",
-    "layer_name": "seamap:SeamapAus_BOUNDARIES_MEOW",
+    "layer_name": "seamap:SeamapAus_BOUNDARIES_MEOW_FULL",
     "description": "-"
   },
   "model": "catalogue.layer",
@@ -2990,17 +2990,206 @@
     "name": "IMCRA v4.0 - Integrated Marine and Coastal Regionalisation of Australia",
     "server_type": 2,
     "data_classification": 11,
-    "metadata_url": "-",
+    "metadata_url": "http://www.environment.gov.au/resource/guide-integrated-marine-and-coastal-regionalisation-australia-version-40-june-2006-imcra",
     "organisation": 24,
     "sort_key": null,
     "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
     "minx": "108.17700000000000000",
     "miny": "-44.61500000000000000",
-    "layer_name": "seamap:SeamapAus_BOUNDARIES_IMCRA",
+    "layer_name": "seamap:SeamapAus_BOUNDARIES_IMCRA_FULL",
     "description": "-"
   },
   "model": "catalogue.layer",
   "pk": 182
+},
+{
+  "fields": {
+    "category": 1,
+    "detail_layer": null,
+    "maxx": "117.98173375498597000",
+    "maxy": "-34.94620331066402000",
+    "name": "WA - Oyster Harbour seagrass 2006",
+    "server_type": 2,
+    "data_classification": null,
+    "metadata_url": "http://metadata.imas.utas.edu.au/geonetwork/srv/en/metadata.show?uuid=1D34BD8E-74B1-41EB-8F81-398539215527",
+    "organisation": 9,
+    "sort_key": "heaa",
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "117.94081246432376000",
+    "miny": "-34.99775747252803000",
+    "layer_name": "seamap:SeamapAus_WA_seagrass_OysterHarbour_2006",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 183
+},
+{
+  "fields": {
+    "category": 4,
+    "detail_layer": null,
+    "maxx": "159.30462646484400000",
+    "maxy": "-11.30293083190920000",
+    "name": "Population Density 1991",
+    "server_type": 2,
+    "data_classification": 12,
+    "metadata_url": "http://www.marlin.csiro.au/geonetwork/srv/eng/search?uuid=c8b09cef-c645-48aa-8658-22ece782365f",
+    "organisation": 1,
+    "sort_key": "ae",
+    "server_url": "https://www.cmar.csiro.au/geoserver/nerp/wms",
+    "minx": "112.69034576416000000",
+    "miny": "-43.90189361572270000",
+    "layer_name": "nerp:1991_enumeration_proj",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 184
+},
+{
+  "fields": {
+    "category": 4,
+    "detail_layer": null,
+    "maxx": "159.30462646484400000",
+    "maxy": "-11.30293083190920000",
+    "name": "Population Density 1996",
+    "server_type": 2,
+    "data_classification": 12,
+    "metadata_url": "http://www.marlin.csiro.au/geonetwork/srv/eng/search?uuid=c8b09cef-c645-48aa-8658-22ece782365f",
+    "organisation": 1,
+    "sort_key": "ad",
+    "server_url": "https://www.cmar.csiro.au/geoserver/nerp/wms",
+    "minx": "112.69034576416000000",
+    "miny": "-43.90189361572270000",
+    "layer_name": "nerp:1996_enumeration_proj",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 185
+},
+{
+  "fields": {
+    "category": 4,
+    "detail_layer": null,
+    "maxx": "159.30462646484400000",
+    "maxy": "-11.30293083190920000",
+    "name": "Population Density 2001",
+    "server_type": 2,
+    "data_classification": 12,
+    "metadata_url": "http://www.marlin.csiro.au/geonetwork/srv/eng/search?uuid=c8b09cef-c645-48aa-8658-22ece782365f",
+    "organisation": 1,
+    "sort_key": "ac",
+    "server_url": "https://www.cmar.csiro.au/geoserver/nerp/wms",
+    "minx": "112.69034576416000000",
+    "miny": "-43.90189361572270000",
+    "layer_name": "nerp:2001_enumeration_proj",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 186
+},
+{
+  "fields": {
+    "category": 4,
+    "detail_layer": null,
+    "maxx": "159.30462646484400000",
+    "maxy": "-11.30293083190920000",
+    "name": "Population Density 2006",
+    "server_type": 2,
+    "data_classification": 12,
+    "metadata_url": "http://www.marlin.csiro.au/geonetwork/srv/eng/search?uuid=c8b09cef-c645-48aa-8658-22ece782365f",
+    "organisation": 1,
+    "sort_key": "ab",
+    "server_url": "https://www.cmar.csiro.au/geoserver/nerp/wms",
+    "minx": "112.69034576416000000",
+    "miny": "-43.90189361572270000",
+    "layer_name": "nerp:2006_enumeration_proj",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 187
+},
+{
+  "fields": {
+    "category": 4,
+    "detail_layer": null,
+    "maxx": "159.30462646484400000",
+    "maxy": "-11.30293083190920000",
+    "name": "Population Density 2011",
+    "server_type": 2,
+    "data_classification": 12,
+    "metadata_url": "http://www.marlin.csiro.au/geonetwork/srv/eng/search?uuid=c8b09cef-c645-48aa-8658-22ece782365f",
+    "organisation": 1,
+    "sort_key": "ae",
+    "server_url": "https://www.cmar.csiro.au/geoserver/nerp/wms",
+    "minx": "112.69034576416000000",
+    "miny": "-43.90189361572270000",
+    "layer_name": "nerp:2011_enumeration_proj",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 188
+},
+{
+  "fields": {
+    "category": 5,
+    "detail_layer": null,
+    "maxx": "179.50000000000000000",
+    "maxy": "88.00000000000000000",
+    "name": "MEOW Provinces - Marine Ecoregions of the World",
+    "server_type": 2,
+    "data_classification": 11,
+    "metadata_url": "https://www.worldwildlife.org/publications/marine-ecoregions-of-the-world-a-bioregionalization-of-coastal-and-shelf-areas",
+    "organisation": 24,
+    "sort_key": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "-179.50000000000000000",
+    "miny": "-88.00000000000000000",
+    "layer_name": "seamap:SeamapAus_BOUNDARIES_MEOW_PROV",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 189
+},
+{
+  "fields": {
+    "category": 5,
+    "detail_layer": null,
+    "maxx": "157.48700000000000000",
+    "maxy": "-7.72900000000000000",
+    "name": "IMCRA Provincial Bioregions v4.0 - Integrated Marine and Coastal Regionalisation of Australia",
+    "server_type": 2,
+    "data_classification": 11,
+    "metadata_url": "http://www.environment.gov.au/resource/guide-integrated-marine-and-coastal-regionalisation-australia-version-40-june-2006-imcra",
+    "organisation": 24,
+    "sort_key": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "108.17700000000000000",
+    "miny": "-44.61500000000000000",
+    "layer_name": "seamap:SeamapAus_BOUNDARIES_IMCRA_PROVBIO",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 190
+},
+{
+  "fields": {
+    "category": 5,
+    "detail_layer": null,
+    "maxx": "169.00000000000000000",
+    "maxy": "-9.00000000000000000",
+    "name": "Australian CMR Boundaries 2014",
+    "server_type": 2,
+    "data_classification": 11,
+    "metadata_url": "http://www.environment.gov.au/fed/catalog/search/resource/details.page?uuid=%7B2E8DD19C-1B93-4D90-BD1C-128DDC4A2998%7D",
+    "organisation": 24,
+    "sort_key": null,
+    "server_url": "http://geoserver.imas.utas.edu.au/geoserver/wms",
+    "minx": "71.00000000000000000",
+    "miny": "-58.00000000000000000",
+    "layer_name": "seamap:SeamapAus_BOUNDARIES_CMR2014",
+    "description": "-"
+  },
+  "model": "catalogue.layer",
+  "pk": 191
 },
 {
   "fields": {
@@ -3282,7 +3471,7 @@
 },
 {
   "fields": {
-    "priority": 2,
+    "priority": 1,
     "layer": 75,
     "group": 7
   },
@@ -3291,7 +3480,7 @@
 },
 {
   "fields": {
-    "priority": 2,
+    "priority": 1,
     "layer": 76,
     "group": 7
   },
@@ -3300,7 +3489,7 @@
 },
 {
   "fields": {
-    "priority": 2,
+    "priority": 1,
     "layer": 77,
     "group": 7
   },
@@ -3309,7 +3498,7 @@
 },
 {
   "fields": {
-    "priority": 2,
+    "priority": 1,
     "layer": 78,
     "group": 7
   },
@@ -3318,7 +3507,7 @@
 },
 {
   "fields": {
-    "priority": 2,
+    "priority": 3,
     "layer": 79,
     "group": 7
   },
@@ -3345,7 +3534,7 @@
 },
 {
   "fields": {
-    "priority": 2,
+    "priority": 1,
     "layer": 82,
     "group": 7
   },
@@ -3354,7 +3543,7 @@
 },
 {
   "fields": {
-    "priority": 2,
+    "priority": 1,
     "layer": 83,
     "group": 7
   },
@@ -3363,7 +3552,7 @@
 },
 {
   "fields": {
-    "priority": 2,
+    "priority": 1,
     "layer": 84,
     "group": 7
   },
@@ -3372,7 +3561,7 @@
 },
 {
   "fields": {
-    "priority": 2,
+    "priority": 1,
     "layer": 85,
     "group": 7
   },
@@ -3381,7 +3570,7 @@
 },
 {
   "fields": {
-    "priority": 2,
+    "priority": 1,
     "layer": 86,
     "group": 7
   },
@@ -3399,7 +3588,7 @@
 },
 {
   "fields": {
-    "priority": 2,
+    "priority": 1,
     "layer": 88,
     "group": 7
   },
@@ -3828,5 +4017,14 @@
   },
   "model": "catalogue.layergrouppriority",
   "pk": 1008
+},
+{
+  "fields": {
+    "priority": 1,
+    "layer": 183,
+    "group": 7
+  },
+  "model": "catalogue.layergrouppriority",
+  "pk": 1009
 }
 ]

@@ -28,9 +28,9 @@
 
 (defn map-layers [{:keys [map layer-state filters] :as db} _]
   (let [{:keys [layers active-layers bounds logic]} (get-in db [:map])
+        ;; Ignore filtering etc for boundary layers:
         boundaries                                  (->> layers
-                                                         (filter #(and (= :third-party (:category %))
-                                                                       (= "Management Boundaries" (:data_classification %))))
+                                                         (filter #(= :boundaries (:category %)))
                                                          (sort-by :name))
         filter-text                                 (get-in db [:filters :layers])
         layers                                      (if (= (:type logic) :map.layer-logic/automatic)
