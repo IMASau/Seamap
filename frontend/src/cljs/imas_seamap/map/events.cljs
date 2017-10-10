@@ -13,7 +13,8 @@
 
 (defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y] :as point}]]
   ;; Only invoke if we aren't drawing a transect (ie, different click):
-  (when-not (get-in db [:map :controls :transect])
+  (when-not (or (get-in db [:map :controls :transect])
+                (get-in db [:map :controls :download :selecting]))
     (let [active-layers (->> db :map :active-layers (remove #(#{:bathymetry} (:category %))))
           by-server     (group-by :server_url active-layers)
           ;; Note, top layer, last in the list, must be first in our search string:
