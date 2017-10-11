@@ -30,6 +30,7 @@
     :map.layers/lookup                    msubs/map-layer-lookup
     :map.layer/info                       subs/map-layer-info
     :map.feature/info                     subs/feature-info
+    :map/region-stats                     msubs/region-stats
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
     :transect/results                     subs/transect-results
@@ -91,6 +92,7 @@
     :map.layers.logic/toggle              [mevents/map-layer-logic-toggle]
     :map.layers.logic/manual              mevents/map-layer-logic-manual
     :map.layers.logic/automatic           mevents/map-layer-logic-automatic
+    :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-layers                    mevents/update-layers
     :map/update-groups                    mevents/update-groups
     :map/update-organisations             mevents/update-organisations

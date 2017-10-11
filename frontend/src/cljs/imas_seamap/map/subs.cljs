@@ -45,6 +45,9 @@
      :error-layers   (->> layer-state (filter (fn [[l [_ errors?]]] errors?)) keys set)
      :active-layers  active-layers}))
 
+(defn region-stats [db _]
+  (:region-stats db))
+
 (defn map-layer-priorities [db _]
   (get-in db [:map :priorities]))
 

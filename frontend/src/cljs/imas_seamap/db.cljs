@@ -25,6 +25,7 @@
                      :show?      false
                      :habitat    nil
                      :bathymetry nil}
+   :region-stats    {:habitat-layer nil}
    :habitat-colours {}
    :habitat-titles  {}
    :display         {:help-overlay    false

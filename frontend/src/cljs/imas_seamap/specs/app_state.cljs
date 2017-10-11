@@ -136,12 +136,16 @@
 (s/def :filters/other-layers string?)
 (s/def ::filters (s/keys :req-un [:filters/layers :filters/other-layers]))
 
+(s/def :region-stats/habitat-layer (s/nilable :map/layer))
+(s/def ::region-stats (s/keys :req-un [:region-stats/habitat-layer]))
+
 (s/def ::config map?)
 
 (s/def :seamap/app-state
   (s/keys :req-un [::config
                    ::display
                    ::filters
+                   ::region-stats
                    ::habitat-colours
                    ::habitat-titles
                    ::layer-state

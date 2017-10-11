@@ -188,6 +188,9 @@
      (when-not already-active?
        {:dispatch [:map.layers.logic/manual]}))))
 
+(defn region-stats-select-habitat [db [_ layer]]
+  (assoc-in db [:region-stats :habitat-layer] layer))
+
 (defn map-zoom-in [db _]
   (update-in db [:map :zoom] inc))
 
