@@ -9,7 +9,6 @@
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [geonetwork-force-xml]]
             [imas-seamap.map.utils :as mutils :refer [applicable-layers bbox-intersects? habitat-layer? download-link]]
-            [oops.core :refer [gcall ocall]]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
 
@@ -170,15 +169,6 @@
   ;; No assertions or anything for now (could make the geojson spec more explicit, but this will be fine)
   (get-in geojson [:geometry :coordinates]))
 
-(def ^:private *epsg-3112*
-  (gcall "proj4"
-         "+proj=lcc +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=134 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
-
-(defn- wgs48->epsg3112 [pt]
-  ;; pt is a vector of [lon lat]
-  (js->clj
-   (ocall *epsg-3112* :forward (clj->js pt))))
-
 (defn- coords->linestring
   "Turn a list of coords into a formatted linestring parameter, ie
   comma-separated pairs of space-separated coords."
@@ -248,7 +238,7 @@
                     :uri             (str db/api-url-base "habitat/transect/")
                     :params          {:layers layer-names
                                       :line   (->> linestring
-                                                   (map wgs48->epsg3112)
+                                                   (map mutils/wgs48->epsg3112)
                                                    coords->linestring)}
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success      [:transect.query.habitat/success query-id]
