@@ -151,11 +151,21 @@
 (defn layer-finished-loading [db [_ layer]]
   (update-in db [:layer-state] assoc-in [layer 0] :map.layer/loaded))
 
-(defn- toggle-layer-logic [layer active-layers]
+(defn- toggle-layer-logic
+  "Encompases all the special-case logic in toggling active layers.
+  Returns the new active layers as a vector."
+  [layer active-layers]
   (if (some #{layer} active-layers)
     (filterv (fn [l] (not= l layer)) active-layers)
-    (if (= :bathymetry (:category layer))
-      [layer] ; if we turn on bathymetry, hide everything else (SM-58)
+    (case (:category layer)
+      ;; if we turn on bathymetry, hide everything else (SM-58):
+      :bathymetry [layer]
+      ;; Only show one boundary-layer at a time:
+      :boundaries (conj
+                   (filterv #(not= :boundaries (:category %))
+                            active-layers)
+                   layer)
+      ;; Default:
       (conj active-layers layer))))
 
 (defn toggle-layer [{:keys [db]} [_ layer]]
