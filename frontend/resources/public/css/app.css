@@ -231,6 +231,10 @@ footer {
     bottom: 0;
 }
 
+.full-width {
+    width: 100%;
+}
+
 .help-button {
     margin-top: auto;           /* stick to bottom */
     text-align: center;

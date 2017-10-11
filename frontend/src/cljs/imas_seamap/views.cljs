@@ -503,7 +503,7 @@
                             :error-fn      error-fn}]
    [help-button]])
 
-(defn management-layer-tab [boundaries active-layers loading-fn error-fn]
+(defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn]
   [:div.sidebar-tab.height-managed
    [:div.boundary-layers.height-managed.group-scrollable
     [:h6 "Boundary Layers"]
@@ -513,16 +513,25 @@
                          :loading? (loading-fn layer)
                          :errors?  (error-fn layer)}])]
    [:label.pt-label.height-managed
-    "Habitat layer for region statistics (can only select a single active layer):"
-    [:div.pt-select.pt-fill
-     [:select
-      (for [layer (filter #(= :habitat (:category %)) active-layers)]
-        ^{:key (:layer_name layer)} [:option nil (:name layer)])]]]
+    "Habitat layer for region statistics (only one active layer may be selected at a time):"
+    [b/popover {:position           b/*BOTTOM*
+                :class-name         "full-width"
+                :popover-class-name "pt-minimal"
+                :content            (reagent/as-element
+                                     [b/menu
+                                      (for [layer (filter #(= :habitat (:category %)) active-layers)]
+                                        ^{:key (:layer_name layer)}
+                                        [b/menu-item {:text     (:name layer)
+                                                      :on-click #(re-frame/dispatch [:map.region-stats/select-habitat layer])}])])}
+     [b/button {:text            (get habitat-layer :name "Select Habitat Layer for statistics...")
+                :class-name      "pt-fill pt-text-overflow-ellipsis"
+                :right-icon-name "caret-down"}]]]
    [help-button]])
 
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as sidebar-state}              @(re-frame/subscribe [:ui/sidebar])
         {:keys [groups active-layers loading-layers error-layers]}  @(re-frame/subscribe [:map/layers])
+        {:keys [habitat-layer]}                                     @(re-frame/subscribe [:map/region-stats])
         {:keys [habitat boundaries bathymetry imagery third-party]} groups]
     [sidebar {:id        "floating-sidebar"
               :selected  selected
@@ -548,7 +557,7 @@
      [sidebar-tab {:header "Management Regions"
                    :icon   (as-icon "heatmap" "Management Region Layers")
                    :id     "tab-management"}
-      [management-layer-tab boundaries active-layers loading-layers error-layers]]
+      [management-layer-tab boundaries habitat-layer active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Third-Party"
                    :icon   (as-icon "more"
                                     (str "Third-Party Layers (miscellaneous data — " (count third-party) ")"))
