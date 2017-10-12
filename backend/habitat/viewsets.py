@@ -117,10 +117,9 @@ class ShapefileRenderer(BaseRenderer):
 @list_route()
 @api_view()
 def transect(request):
-    if 'line' not in request.query_params:
-        raise ValidationError("Required parameter 'line' is missing")
-    if 'layers' not in request.query_params:
-        raise ValidationError("Required parameter 'layers' is missing")
+    for required in ['line', 'layers']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
 
     ordered_segments = []
     distance = 0
@@ -208,7 +207,7 @@ def transect(request):
 def regions(request):
     for required in ['boundary', 'habitat', 'x', 'y']:
         if required not in request.query_params:
-            raise ValidationError("Required parameter '{}' is missing".format(required))
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
 
     boundary = request.query_params.get('boundary')
     habitat  = request.query_params.get('habitat')
