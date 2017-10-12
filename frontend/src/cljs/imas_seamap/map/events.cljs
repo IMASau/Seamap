@@ -194,7 +194,7 @@
     (merge
      {:db       (cond-> db
                   true                  (assoc-in [:map :bounds] bounding_box)
-                  (not already-active?) (update-in [:map :active-layers] conj layer))
+                  (not already-active?) (update-in [:map :active-layers] (partial toggle-layer-logic layer)))
       :put-hash (encode-state db)}
      ;; If someone triggers this, we also switch to manual mode:
      (when-not already-active?
