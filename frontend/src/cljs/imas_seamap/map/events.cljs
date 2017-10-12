@@ -81,24 +81,23 @@
   (if (not= request-id (get-in db [:feature-query :request-id]))
     db                           ; Ignore late responses to old clicks
 
-    (let [zipped           (->> response xml/parse-str zip/xml-zip)
-          body             (zx/xml1-> zipped :html :body)
-          ;; always decrement the counter:
-          db'              (update-in db [:feature-query :response-remain] dec)
+    (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
+          body  (first (array-seq (.querySelectorAll parsed "body")))
+          db' (update-in db [:feature-query :response-remain] dec)
           {:keys [response-priority response-remain candidate]} (:feature-query db')
-          higher-priority? (< priority response-priority)
-          candidate'       {:location point
-                            :info     (xml/emit-str (zip/node body))}]
-      (if (-> body zx/text string/blank?)
+          higher-priority? (< priority response-priority)]
+      (if-not (.-firstElementChild body)
         ;; empty response; otherwise ignore:
         db'
-        (cond-> db'
-          ;; If this response has a higher priority, update the response candidate
-          higher-priority?
-          (assoc-in [:feature-query :candidate] candidate')
-          ;; If this is the last response expected, update the displayed feature
-          (zero? response-remain)
-          (assoc :feature (if higher-priority? candidate' candidate)))))))
+        (let [candidate' {:location point
+                          :info     (.-innerHTML body)}]
+         (cond-> db'
+           ;; If this response has a higher priority, update the response candidate
+           higher-priority?
+           (assoc-in [:feature-query :candidate] candidate')
+           ;; If this is the last response expected, update the displayed feature
+           (zero? response-remain)
+           (assoc :feature (if higher-priority? candidate' candidate))))))))
 
 (defn got-feature-info-error [db [_ request_id _]]
   (update-in db [:feature-query :response-remain] dec))
