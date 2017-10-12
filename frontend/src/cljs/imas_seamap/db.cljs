@@ -36,4 +36,5 @@
                      :group-url        (str api-url-base "groups/")
                      :organisation-url (str api-url-base "organisations/")
                      :priority-url     (str api-url-base "priorities/")
+                     :region-stats-url (str api-url-base "habitat/regions/")
                      :descriptor-url   (str api-url-base "descriptors/")}})

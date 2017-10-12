@@ -6,7 +6,7 @@
             [clojure.zip :as zip]
             [re-frame.core :as re-frame]
             [imas-seamap.utils :refer [encode-state names->active-layers]]
-            [imas-seamap.map.utils :refer [applicable-layers bounds->str]]
+            [imas-seamap.map.utils :refer [applicable-layers bounds->str wgs84->epsg3112]]
             [debux.cs.core :refer-macros [dbg]]
             [ajax.core :as ajax]))
 
@@ -56,13 +56,26 @@
                                            :candidate         nil})}))
 
 (defn get-habitat-region-statistics [{:keys [db] :as ctx} [_ props point]]
-  (let [boundary-layer (->> db :map :active-layers (filter #(= :boundaries (:category %))) first)
-        habitat-layer  nil
-        request-id     (gensym)]
+  (let [boundary-layer (->> db :map :active-layers (filter #(= :boundaries (:category %))) first :layer_name)
+        habitat-layer  (-> db :region-stats :habitat-layer :layer_name)
+        [x y]          (wgs84->epsg3112 ((juxt :lng :lat) point))
+        request-id     (gensym)
+        priority       0]
     (when (and boundary-layer habitat-layer)
-      {:http-xhrio {}
+      {:http-xhrio {:method          :get
+                    :uri             (get-in db [:config :region-stats-url])
+                    :params          {:boundary boundary-layer
+                                      :habitat  habitat-layer
+                                      :x        x
+                                      :y        y}
+                    :response-format (ajax/text-response-format)
+                    :on-success      [:map/got-featureinfo request-id priority point]
+                    :on-failure      [:map/got-featureinfo-err request-id]}
        :dispatch   [:map/popup-closed]
-       :db         db})))
+       :db         (assoc db :feature-query {:request-id        request-id
+                                             :response-remain   1
+                                             :response-priority 99
+                                             :candidate         nil})})))
 
 (defn map-click-dispatcher
   "Jumping-off point for when we get a map-click event.  Normally we
