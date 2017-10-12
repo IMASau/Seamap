@@ -2,19 +2,19 @@
   <head></head>
   <body>
     <div>
-      <h1>Managment Region: {{ data.0.region }}</h1>
+      <h4>Managment Region: {{ data.0.region }}</h4>
       <table>
         <thead>
           <th>Habitat</th>
           <th>Area (m<sup>2</sup>)</th>
-          <th>Percentage</th>
+          <th>Percentage (%)</th>
         </thead>
         <tbody>
           {% for row in data %}
           <tr>
             <td>{{ row.habitat }}</td>
-            <td>{{ row.area }}</td>
-            <td>{{ row.pctg }}</td>
+            <td>{{ row.area|floatformat:"0" }}</td>
+            <td>{{ row.pctg|floatformat }}</td>
           </tr>
           {% endfor %}
         </tbody>

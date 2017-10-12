@@ -47,21 +47,26 @@ FROM(
 SQL_GET_REGIONS = """
 declare @pt geometry = geometry::Point(%s, %s, 3112);
 
-select b.region,
-       r.habitat,
-       b.geom.STIntersection(r.geom).STAsBinary() as geom,
-       b.geom.STIntersection(r.geom).STArea() as area,
-       b.geom.STIntersection(r.geom).STArea() / b.geom.STArea() as percentage
-from
-  (select region, geom
-   from seamapaus_boundaries_view
-   where boundary_layer = %s
-     and geom.STContains(@pt) = 1) b
-join
-  (select habitat, geom
-   from seamapaus_regions_view
-   where layer_name = %s) r
-on b.geom.STIntersects(r.geom) = 1
+select region, habitat, geometry::UnionAggregate(geom).STAsBinary() as geom, sum(area) as area, sum(percentage) as percentage
+from (
+  select b.region,
+         b.boundary_area,
+         r.habitat,
+         b.geom.STIntersection(r.geom) as geom,
+         b.geom.STIntersection(r.geom).STArea() as area,
+         100 * b.geom.STIntersection(r.geom).STArea() / b.geom.STArea() as percentage
+  from
+    (select region, geom, geom.STArea() as boundary_area
+     from seamapaus_boundaries_view
+     where boundary_layer = %s
+       and geom.STContains(@pt) = 1) b
+  left join
+    (select habitat, geom
+     from seamapaus_regions_view
+     where layer_name = %s) r
+  on b.geom.STIntersects(r.geom) = 1
+) sub
+group by region, habitat;
 """
 
 def D(number):
