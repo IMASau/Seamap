@@ -1,8 +1,10 @@
 <html>
   <head></head>
   <body>
+    {% if data %}
     <div>
       <h4>Managment Region: {{ data.0.region }}</h4>
+      {% if data.0.habitat %}
       <table>
         <thead>
           <th>Habitat</th>
@@ -20,6 +22,8 @@
         </tbody>
       </table>
       <a href="{% url 'habitat-regions' %}?boundary={{ boundary }}&habitat={{ habitat }}&x={{ x }}&y={{ y }}&format=raw">Download as shapefile</a>
+      {% endif %}
     </div>
+    {% endif %}
   </body>
 </html>
