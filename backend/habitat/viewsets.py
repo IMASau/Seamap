@@ -6,6 +6,7 @@ from django.db import connections, ProgrammingError
 from rest_framework.decorators import api_view, list_route, renderer_classes
 from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework.serializers import ValidationError
 import shapefile
 try:
@@ -237,6 +238,7 @@ def regions(request):
     return Response({'data': results,
                      'boundary': boundary,
                      'habitat': habitat,
+                     'url': reverse('habitat-regions', request=request),
                      'x': x,
                      'y': y},
                     template_name='habitat/regions.html')

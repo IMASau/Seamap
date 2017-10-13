@@ -21,7 +21,7 @@
           {% endfor %}
         </tbody>
       </table>
-      <a class="download" href="{% url 'habitat-regions' %}?boundary={{ boundary }}&habitat={{ habitat }}&x={{ x }}&y={{ y }}&format=raw">Download as Shapefile</a>
+      <a class="download" href="{{ url }}?boundary={{ boundary }}&habitat={{ habitat }}&x={{ x }}&y={{ y }}&format=raw">Download as Shapefile</a>
       {% endif %}
     </div>
     {% endif %}
