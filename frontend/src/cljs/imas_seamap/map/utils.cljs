@@ -27,7 +27,7 @@
 (defn habitat-layer? [layer] (-> layer :category (= :habitat)))
 
 (def ^:private -category-ordering
-  (into {} (map vector [:bathymetry :habitat :imagery :third-party] (range))))
+  (into {} (map vector [:bathymetry :habitat :imagery :third-party :boundaries] (range))))
 
 (defn sort-layers
   "Return layers in an order suitable for presentation (essentially,
