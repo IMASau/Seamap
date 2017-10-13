@@ -437,7 +437,10 @@ rect#background {
 }
 .metadata-record.third-party .metadata-subheader,
 .metadata-record.third-party .license-info,
-.metadata-record.third-party .download-instructions {
+.metadata-record.third-party .download-instructions,
+.metadata-record.boundaries .metadata-subheader,
+.metadata-record.boundaries .license-info,
+.metadata-record.boundaries .download-instructions {
     display: none;
 }
 

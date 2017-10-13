@@ -119,14 +119,14 @@
 (re-frame/reg-event-db :cookie-set-no-on-failure identity)
 
 (defn layer-show-info [{:keys [db]} [_ layer]]
-  (if-not (= :third-party (:category layer))
+  (if-not (#{:boundaries :third-party} (:category layer))
     {:db         (assoc-in db [:display :info-card] :display.info/loading)
      :http-xhrio {:method          :get
                   :uri             (-> layer :metadata_url geonetwork-force-xml)
                   :response-format (ajax/text-response-format)
                   :on-success      [:map.layer/update-metadata layer]
                   :on-failure      [:map.layer/metadata-error]}}
-    ;; For third-party layers, just show the basic layer info from the catalogue:
+    ;; For third-party/boundary layers, just show the basic layer info from the catalogue:
     {:db (assoc-in db [:display :info-card :layer] layer)}))
 
 ;; (xml/alias-uri 'mcp "http://schemas.aodn.org.au/mcp-2.0")
