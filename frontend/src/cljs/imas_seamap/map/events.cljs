@@ -57,15 +57,15 @@
                                            :location point})}))
 
 (defn get-habitat-region-statistics [{:keys [db] :as ctx} [_ props point]]
-  (let [boundary-layer (->> db :map :active-layers (filter #(= :boundaries (:category %))) first :layer_name)
-        habitat-layer  (-> db :region-stats :habitat-layer :layer_name)
-        [x y]          (wgs84->epsg3112 ((juxt :lng :lat) point))
-        request-id     (gensym)
-        priority       0]
-    (when (and boundary-layer habitat-layer)
+  (let [boundary      (->> db :map :active-layers (filter #(= :boundaries (:category %))) first)
+        habitat-layer (-> db :region-stats :habitat-layer :layer_name)
+        [x y]         (wgs84->epsg3112 ((juxt :lng :lat) point))
+        request-id    (gensym)
+        priority      0]
+    (when (and boundary habitat-layer)
       {:http-xhrio {:method          :get
                     :uri             (get-in db [:config :region-stats-url])
-                    :params          {:boundary boundary-layer
+                    :params          {:boundary (or (:detail_layer boundary) (:layer_name boundary))
                                       :habitat  habitat-layer
                                       :x        x
                                       :y        y}
@@ -76,8 +76,8 @@
                                              :response-remain   1
                                              :response-priority 99
                                              :candidate         nil}
-                             :feature       {:status   :feature-info/waiting
-                                             :location point})})))
+                          :feature       {:status   :feature-info/waiting
+                                          :location point})})))
 
 (defn map-click-dispatcher
   "Jumping-off point for when we get a map-click event.  Normally we
