@@ -440,3 +440,19 @@ rect#background {
 .metadata-record.third-party .download-instructions {
     display: none;
 }
+
+.region-stats table {
+    padding-bottom: 15px
+}
+.region-stats .download {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+.region-stats td,
+.region-stats th {
+    text-align: left;
+}
+.region-stats td + td,
+.region-stats th + th {
+    text-align: right;
+}

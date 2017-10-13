@@ -2,26 +2,26 @@
   <head></head>
   <body>
     {% if data %}
-    <div>
-      <h4>Managment Region: {{ data.0.region }}</h4>
+    <div class="region-stats">
+      <h4>Management Region: {{ data.0.region }}</h4>
       {% if data.0.habitat %}
-      <table>
+      <table class="pt-table pt-interactive pt-condensed">
         <thead>
           <th>Habitat</th>
-          <th>Area (m<sup>2</sup>)</th>
+          <th>Area (km<sup>2</sup>)</th>
           <th>Percentage (%)</th>
         </thead>
         <tbody>
           {% for row in data %}
           <tr>
             <td>{{ row.habitat }}</td>
-            <td>{{ row.area|floatformat:"0" }}</td>
+            <td>{{ row.area|floatformat }}</td>
             <td>{{ row.pctg|floatformat }}</td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
-      <a href="{% url 'habitat-regions' %}?boundary={{ boundary }}&habitat={{ habitat }}&x={{ x }}&y={{ y }}&format=raw">Download as shapefile</a>
+      <a class="download" href="{% url 'habitat-regions' %}?boundary={{ boundary }}&habitat={{ habitat }}&x={{ x }}&y={{ y }}&format=raw">Download as Shapefile</a>
       {% endif %}
     </div>
     {% endif %}

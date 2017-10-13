@@ -47,7 +47,7 @@ FROM(
 SQL_GET_REGIONS = """
 declare @pt geometry = geometry::Point(%s, %s, 3112);
 
-select region, habitat, geometry::UnionAggregate(geom).STAsBinary() as geom, sum(area) as area, sum(percentage) as percentage
+select region, habitat, geometry::UnionAggregate(geom).STAsBinary() as geom, sum(area)/1000000 as area, sum(percentage) as percentage
 from (
   select b.region,
          b.boundary_area,
