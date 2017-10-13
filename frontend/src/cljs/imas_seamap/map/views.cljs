@@ -107,6 +107,19 @@
                 :intent   b/*intent-primary*
                 :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]])
 
+(defn popup-component [{:keys [status info-body]}]
+  (case status
+    :feature-info/waiting [b/non-ideal-state
+                               {:visual (r/as-element [b/spinner {:intent "success"}])}]
+    :feature-info/empty   [b/non-ideal-state
+                           {:title  "No Results"
+                            :visual "warning-sign"}]
+    :feature-info/error   [b/non-ideal-state
+                           {:title  "Server Error"
+                            :visual "error"}]
+    ;; Default; we have actual content:
+    [:div {:dangerouslySetInnerHTML {:__html info-body}}]))
+
 (defn map-component [sidebar]
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [has-info? info-body location] :as fi}       @(re-frame/subscribe [:map.feature/info])
@@ -187,5 +200,6 @@
       (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
         ^{:key (str location)}
-        [popup {:position location :max-width 600}
-         [:div {:dangerouslySetInnerHTML {:__html info-body}}]])]]))
+        [popup {:position location :max-width 600 :auto-pan false}
+         ^{:key (or info-body (:status fi))}
+         [popup-component fi]])]]))

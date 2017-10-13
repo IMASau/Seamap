@@ -47,13 +47,14 @@
                       :params          params
                       :response-format (ajax/text-response-format)
                       :on-success      [:map/got-featureinfo request-id priority point]
-                      :on-failure      [:map/got-featureinfo-err request-id]}))
-     :dispatch   [:map/popup-closed]
+                      :on-failure      [:map/got-featureinfo-err request-id priority]}))
      ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
      :db         (assoc db :feature-query {:request-id        request-id
                                            :response-remain   (count by-server)
                                            :response-priority 99
-                                           :candidate         nil})}))
+                                           :candidate         nil}
+                           :feature       {:status   :feature-info/waiting
+                                           :location point})}))
 
 (defn get-habitat-region-statistics [{:keys [db] :as ctx} [_ props point]]
   (let [boundary-layer (->> db :map :active-layers (filter #(= :boundaries (:category %))) first :layer_name)
@@ -70,12 +71,13 @@
                                       :y        y}
                     :response-format (ajax/text-response-format)
                     :on-success      [:map/got-featureinfo request-id priority point]
-                    :on-failure      [:map/got-featureinfo-err request-id]}
-       :dispatch   [:map/popup-closed]
+                    :on-failure      [:map/got-featureinfo-err request-id priority]}
        :db         (assoc db :feature-query {:request-id        request-id
                                              :response-remain   1
                                              :response-priority 99
-                                             :candidate         nil})})))
+                                             :candidate         nil}
+                             :feature       {:status   :feature-info/waiting
+                                             :location point})})))
 
 (defn map-click-dispatcher
   "Jumping-off point for when we get a map-click event.  Normally we
@@ -86,9 +88,10 @@
   ;; Only invoke if we aren't drawing a transect (ie, different click):
   (when-not (or (get-in db [:map :controls :transect])
                 (get-in db [:map :controls :download :selecting]))
-    (if (= "tab-management" (get-in db [:display :sidebar :selected]))
-      (get-habitat-region-statistics ctx event-v)
-      (get-feature-info ctx event-v))))
+    (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)]
+      (if (= "tab-management" (get-in db [:display :sidebar :selected]))
+        (get-habitat-region-statistics ctx event-v)
+        (get-feature-info ctx event-v)))))
 
 (defn got-feature-info [db [_ request-id priority point response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
@@ -99,21 +102,25 @@
           db' (update-in db [:feature-query :response-remain] dec)
           {:keys [response-priority response-remain candidate]} (:feature-query db')
           higher-priority? (< priority response-priority)]
-      (if-not (.-firstElementChild body)
-        ;; empty response; otherwise ignore:
-        db'
-        (let [candidate' {:location point
-                          :info     (.-innerHTML body)}]
-         (cond-> db'
-           ;; If this response has a higher priority, update the response candidate
-           higher-priority?
-           (assoc-in [:feature-query :candidate] candidate')
-           ;; If this is the last response expected, update the displayed feature
-           (zero? response-remain)
-           (assoc :feature (if higher-priority? candidate' candidate))))))))
+      (let [candidate' (merge {:location point}
+                              (if (.-firstElementChild body)
+                                {:info (.-innerHTML body)}
+                                {:status :feature-info/empty}))]
+        (cond-> db'
+          ;; If this response has a higher priority, update the response candidate
+          higher-priority?
+          (assoc-in [:feature-query :candidate] candidate')
+          ;; If this is the last response expected, update the displayed feature
+          (zero? response-remain)
+          (assoc :feature (if higher-priority? candidate' candidate)))))))
 
-(defn got-feature-info-error [db [_ request_id _]]
-  (update-in db [:feature-query :response-remain] dec))
+(defn got-feature-info-error [db [_ request_id priority _]]
+  (let [db (update-in db [:feature-query :response-remain] dec)
+        {:keys [response-priority response-remain candidate]} (:feature-query db)
+        higher-priority? (< priority response-priority)]
+    (if (and (zero? response-remain) higher-priority?)
+      (assoc-in db [:feature :status] :feature-info/error)
+      db)))
 
 (defn destroy-popup [db _]
   (assoc db :feature nil))

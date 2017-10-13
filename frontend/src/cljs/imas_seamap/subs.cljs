@@ -39,8 +39,9 @@
     (scale-distance s1 s2 remainder-pct)))
 
 (defn feature-info [{:keys [feature] :as db} _]
-  (if-let [{:keys [info location]} feature]
+  (if-let [{:keys [status info location]} feature]
     {:has-info? true
+     :status status
      :info-body info
      :location ((juxt :lat :lng) location)}
     {:has-info? false}))
