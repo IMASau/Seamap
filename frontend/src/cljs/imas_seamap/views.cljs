@@ -525,6 +525,7 @@
                                                       :on-click #(re-frame/dispatch [:map.region-stats/select-habitat layer])}])])}
      [b/button {:text            (get habitat-layer :name "Select Habitat Layer for statistics...")
                 :class-name      "pt-fill pt-text-overflow-ellipsis"
+                :intent (when-not habitat-layer b/*intent-warning*)
                 :right-icon-name "caret-down"}]]]
    [help-button]])
 
