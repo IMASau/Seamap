@@ -48,7 +48,7 @@ FROM(
 SQL_GET_REGIONS = """
 declare @pt geometry = geometry::Point(%s, %s, 3112);
 
-select region, habitat, geometry::UnionAggregate(geom).STAsBinary() as geom, sum(area)/1000000 as area, sum(percentage) as percentage
+select region, boundary_area/1000000 as boundary_area, habitat, geometry::UnionAggregate(geom).STAsBinary() as geom, sum(area)/1000000 as area, sum(percentage) as percentage
 from (
   select b.region,
          b.boundary_area,
@@ -67,7 +67,7 @@ from (
      where layer_name = %s) r
   on b.geom.STIntersects(r.geom) = 1
 ) sub
-group by region, habitat;
+group by region, boundary_area, habitat;
 """
 
 def D(number):
@@ -216,8 +216,8 @@ def regions(request):
     y        = request.query_params.get('y')
 
     def to_dict(row):
-        region,habitat,geom,area,pctg = row
-        return {'region':region, 'habitat':habitat, 'geom':geom, 'area':area, 'pctg':pctg}
+        region,boundary_area,habitat,geom,area,pctg = row
+        return {'region':region, 'boundary_area': boundary_area, 'habitat':habitat, 'geom':geom, 'area':area, 'pctg':pctg}
 
     results = []
     with connections['transects'].cursor() as cursor:
@@ -235,6 +235,12 @@ def regions(request):
         return Response(results, content_type='application/zip',
                         headers={'Content-Disposition': 'attachment; filename="regions.zip"'})
 
+    # HTML only; add a derived row (doing it in SQL was getting complicated and slow):
+    if results:
+        barea = results[0]['boundary_area']
+        area = barea - sum(row['area'] or 0 for row in results)
+        pctg = 100 * area / barea
+        results.append({'habitat': 'UNMAPPED', 'area': area, 'pctg': pctg})
     return Response({'data': results,
                      'boundary': boundary,
                      'habitat': habitat,
@@ -242,3 +248,40 @@ def regions(request):
                      'x': x,
                      'y': y},
                     template_name='habitat/regions.html')
+
+# In case I want to come back to this -- CTE-based approach to include row for unmapped space:
+# with
+# boundary AS (
+#   select region, geom, geom.STArea() as boundary_area
+#   from seamapaus_boundaries_view
+#   where boundary_layer = 'seamap:SeamapAus_BOUNDARIES_CMR2014'
+#     and geom.STContains(@pt) = 1)
+# ,
+# habitats AS (
+#   select b.region,
+#          b.boundary_area,
+#          r.habitat,
+#          b.geom.STIntersection(r.geom) as geom,
+#          b.geom.STIntersection(r.geom).STArea() as area,
+#          100 * b.geom.STIntersection(r.geom).STArea() / b.boundary_area as percentage
+#   from
+#     boundary b
+#   left join
+#     (select habitat, geom
+#      from seamapaus_regions_view
+#      where layer_name = 'seamap:FINALPRODUCT_SeamapAus') r
+#   on b.geom.STIntersects(r.geom) = 1
+# )
+# ,
+# stats AS (
+#   select region, habitat, geometry::UnionAggregate(geom).STAsBinary() as geom, sum(area)/1000000 as area, sum(percentage) as percentage
+#   from habitats
+#   group by region, habitat
+# )
+# ,
+# stats_totals AS (
+#   select sum(area) as area, sum(percentage) as percentage from stats
+# )
+# select region, habitat, geom, area, percentage from stats
+# union all
+# select region, 'UNMAPPED', null, boundary_area - area, 100 - percentage from boundary cross join stats_totals;
