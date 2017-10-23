@@ -105,7 +105,7 @@ select 'seamap:seamapaus_vic_opencoast_biotopes'                as layer_name, S
 union all
 select 'seamap:seamapaus_vic_ppb_biotopes'                      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_PPB_biotopes
 union all
-select 'seamap:seamapaus_vic_wpb_biotopes'                      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_WPB_biotopes?
+select 'seamap:seamapaus_vic_wpb_biotopes'                      as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_VIC_WPB_biotopes
 union all
 select 'seamap:seamapaus_wa_cockburnsound_mapping'              as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_CockburnSound_mapping
 union all
@@ -121,7 +121,7 @@ select 'seamap:seamapaus_wa_marinefutures_biota'                as layer_name, S
 union all
 select 'seamap:seamapaus_wa_marinefutures_reef'                 as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef
 union all
-select 'seamap:seamapaus_wa_ecosystem_nwshelf'                  as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_ecosystem_NWShelf
+select 'seamap:seamapaus_wa_nwshelf_ecosystems'                 as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_NWShelf_ecosystems
 union all
 select 'seamap:seamapaus_wa_seagrass_beaufort_2009'             as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_seagrass_Beaufort_2009
 union all
@@ -134,6 +134,8 @@ union all
 select 'seamap:seamapaus_wa_seagrass_oysterharbour_1988'        as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_seagrass_OysterHarbour_1988
 union all
 select 'seamap:seamapaus_wa_seagrass_oysterharbour_1996'        as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_seagrass_OysterHarbour_1996
+union all
+select 'seamap:seamapaus_wa_seagrass_oysterharbour_2006'        as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_seagrass_OysterHarbour_2006
 union all
 select 'seamap:seamapaus_wa_seagrass_princessroyal_1996'        as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_seagrass_PrincessRoyal_1996
 union all
