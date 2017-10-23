@@ -412,6 +412,10 @@ rect#background {
     flex-grow: 1;
     padding: 5px;
 }
+/* Chrome 62 regression fix; see https://bugs.chromium.org/p/chromium/issues/detail?id=775880 */
+.sidebar-tabs>li, .sidebar-tabs>ul>li {
+    list-style-type: none;
+}
 
 .metadata-record div {
     margin-bottom: 15px;
