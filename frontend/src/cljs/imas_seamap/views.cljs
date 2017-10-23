@@ -82,7 +82,8 @@
                 :on-close #(re-frame/dispatch [:help-layer/close])}
      (when open?
        (for [{:keys [top right bottom left width height
-                           helperText helperPosition]
+                     helperText helperPosition
+                     textWidth]
                     :or {helperPosition "right"}
                     :as eprops} (selectors+elements element-selectors)
              :let [posn-cls (str "helper-layer-" helperPosition)]
@@ -94,7 +95,7 @@
                                      :style (wrapper-props helperPosition eprops)}
           [:div.helper-layer-tooltip {:class-name posn-cls
                                       :style (posn->offsets helperPosition width height)}
-           [:div.helper-layer-tooltiptext {:style {:width *text-width*}}
+           [:div.helper-layer-tooltiptext {:style {:width (or textWidth *text-width*)}}
             helperText]]]))]))
 
 (defn help-button []
@@ -202,7 +203,8 @@
                                  [true  " Automatic Layer Selection" [:i.fa.fa-magic]]
                                  [false " Choose Layers Manually"    [:span.pt-icon-standard.pt-icon-hand]])]
     [:div#logic-toggle.logic-toggle
-     (merge {:data-helper-text "Automatic layer selection, or choose your own"}
+     (merge {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
+             :data-text-width "380px"}
             (when-not (or checked? user-triggered?)
               {:class-name "external-trigger"}))
      [b/switch {:checked   checked?
@@ -334,7 +336,7 @@
         transect-results (re-frame/subscribe [:transect/results])]
     [:footer#plot-footer
      {:on-click (handler-dispatch [:transect.plot/toggle-visibility])
-      :data-helper-text "This shows the data along a transect you can draw"
+      :data-helper-text "This shows the habitat data along a bathymetry transect you can draw"
       :data-helper-position "top"}
      [:div.drag-handle [:span.pt-icon-large.pt-icon-drag-handle-horizontal]]
      [css-transition-group {:transition-name "plot-height"
@@ -627,12 +629,19 @@
     [:div#content-wrapper
      [map-component [seamap-sidebar]]
      [plot-component]]
-    ;; needs the ids of components to helper-annotate:
     [helper-overlay
      :layer-search
      :logic-toggle
      :plot-footer
+     {:selector ".group-scrollable"
+      :helperText "Layers available in your current field of view (zoom out to see more)"}
+     {:selector ".group-scrollable > .layer-wrapper:first-child"
+      :helperPosition "bottom"
+      :helperText "Toggle layer visibility, view more info, show legend, and download data"}
+     {:selector ".sidebar-tabs ul:first-child"
+      :helperText "Choose between habitat, bathymetry, and other layer types"}
      :transect-btn-wrapper
+     {:selector ".sidebar-tabs ul:nth-child(2)" :helperText "Reset interface"}
      {:id "habitat-group"     :helperText "Layers showing sea-floor habitats"}
      {:id "bathy-group"       :helperText "Layers showing bathymetry data"}
      {:id "imagery-group"     :helperText "Layers showing photos collected"}
