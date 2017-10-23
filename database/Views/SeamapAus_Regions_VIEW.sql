@@ -1,6 +1,9 @@
 CREATE view [dbo].[SeamapAus_Regions_VIEW] as
 select 'seamap:seamapaus_nat_aus_margin_geomorph_2006'          as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_Aus_margin_geomorph_2006
 union all
+-- Detail layer version of the above, for data calculations only
+select 'seamap:seamapaus_nat_aus_margin_geomorph_2006_DATA'     as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_Aus_margin_geomorph_2006_DATA
+union all
 select 'seamap:seamapaus_nat_camris_benthic_substrate'          as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_CAMRIS_benthic_substrate
 union all
 select 'seamap:seamapaus_nat_camris_seagrass'                   as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_CAMRIS_seagrass
@@ -18,6 +21,9 @@ union all
 select 'seamap:seamapaus_nat_coastalgeomorph_regolith25k'       as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_CoastalGeomorph_Regolith25K
 union all
 select 'seamap:seamapaus_nat_coastalgeomorph_smartline100k'     as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_CoastalGeomorph_Smartline100K
+union all
+-- Detail layer version of the above, for data calculations only
+select 'seamap:seamapaus_nat_coastalgeomorph_smartline100k_DATA' as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_CoastalGeomorph_Smartline100K_DATA
 union all
 select 'seamap:seamapaus_nat_coastalgeomorph_surfacegeorc100k'  as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NAT_CoastalGeomorph_SurfaceGeoRC100K
 union all
@@ -44,6 +50,9 @@ union all
 select 'seamap:seamapaus_nt_darwinharbour_mangrove'             as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NT_DarwinHarbour_mangrove
 union all
 select 'seamap:seamapaus_nt_darwinharbour_seabed_mapping'       as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NT_DarwinHarbour_seabed_mapping
+union all
+-- Detail layer version of the above, for data calculations only
+select 'seamap:seamapaus_nt_darwinharbour_seabed_mapping_DATA'  as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NT_DarwinHarbour_seabed_mapping_DATA
 union all
 select 'seamap:seamapaus_nt_eastmiddlearms_communities'         as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_NT_EastMiddleArms_communities
 union all
@@ -122,6 +131,9 @@ union all
 select 'seamap:seamapaus_wa_marinefutures_reef'                 as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_MarineFutures_reef
 union all
 select 'seamap:seamapaus_wa_nwshelf_ecosystems'                 as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_NWShelf_ecosystems
+union all
+-- Detail layer version of the above, for data calculations only
+select 'seamap:seamapaus_wa_nwshelf_ecosystems_DATA'            as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_NWShelf_ecosystems_DATA
 union all
 select 'seamap:seamapaus_wa_seagrass_beaufort_2009'             as layer_name, SM_HAB_CLS as habitat, geom from SeamapAus_WA_seagrass_Beaufort_2009
 union all
