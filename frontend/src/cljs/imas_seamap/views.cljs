@@ -529,6 +529,15 @@
                 :class-name      "pt-fill pt-text-overflow-ellipsis"
                 :intent (when-not habitat-layer b/*intent-warning*)
                 :right-icon-name "caret-down"}]]]
+   [:div.pt-callout.pt-icon-help.height-managed
+    [:h5 "Hints"]
+    [:p "Choose a management boundary and select a habitat layer for
+    spatial summaries. Note that only visible habitat layers will be
+    available for selection."]
+
+    [:p "Click on a management boundary (on the map) to generate
+    habitat statistics for that region, and to download the subsetted
+    benthic habitat data."]]
    [help-button]])
 
 (defn seamap-sidebar []
