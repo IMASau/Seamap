@@ -57,16 +57,16 @@
                                            :location point})}))
 
 (defn get-habitat-region-statistics [{:keys [db] :as ctx} [_ props point]]
-  (let [boundary      (->> db :map :active-layers (filter #(= :boundaries (:category %))) first)
-        habitat-layer (-> db :region-stats :habitat-layer :layer_name)
-        [x y]         (wgs84->epsg3112 ((juxt :lng :lat) point))
-        request-id    (gensym)
-        priority      0]
-    (when (and boundary habitat-layer)
+  (let [boundary   (->> db :map :active-layers (filter #(= :boundaries (:category %))) first :id)
+        habitat    (-> db :region-stats :habitat-layer :id)
+        [x y]      (wgs84->epsg3112 ((juxt :lng :lat) point))
+        request-id (gensym)
+        priority   0]
+    (when (and boundary habitat)
       {:http-xhrio {:method          :get
                     :uri             (get-in db [:config :region-stats-url])
-                    :params          {:boundary (or (:detail_layer boundary) (:layer_name boundary))
-                                      :habitat  habitat-layer
+                    :params          {:boundary boundary
+                                      :habitat  habitat
                                       :x        x
                                       :y        y}
                     :response-format (ajax/text-response-format)
