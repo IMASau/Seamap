@@ -45,8 +45,11 @@ FROM(
 """
 
 
+# Note hack; we only include geoms in the result sometimes, so there's
+# a conditional fragement inclusion using {} before actual parameter
+# preparation (%s)
 SQL_GET_REGIONS = """
-select b.region, b.geom.STArea() as boundary_area, r.habitat, r.geom.STAsBinary(), r.area, 100 * r.area / b.geom.STArea() as percentage
+select b.region, b.geom.STArea() as boundary_area, r.habitat, {} r.area, 100 * r.area / b.geom.STArea() as percentage
 from SeamapAus_Boundaries_View b
 left join SeamapAus_Habitat_By_Region r on b.region = r.region
 where b.geom.STContains(geometry::Point(%s, %s, 3112)) = 1
@@ -199,16 +202,27 @@ def regions(request):
     x        = request.query_params.get('x')
     y        = request.query_params.get('y')
 
-    def to_dict(row):
-        region,boundary_area,habitat,geom,area,pctg = row
-        return {'region':region, 'boundary_area': boundary_area, 'habitat':habitat, 'geom':geom, 'area':area, 'pctg':pctg}
+    # Performance optimisation (hack): it's expensive to pull
+    # geometries over the wire for shapefile generation, but we don't
+    # need them for popup display
+    is_download = request.accepted_renderer.format == 'raw'
+
+    if is_download:
+        def to_dict(row):
+            region,boundary_area,habitat,geom,area,pctg = row
+            return {'region':region, 'boundary_area': boundary_area, 'habitat':habitat, 'geom':geom, 'area':area, 'pctg':pctg}
+    else:
+        def to_dict(row):
+            region,boundary_area,habitat,area,pctg = row
+            return {'region':region, 'boundary_area': boundary_area, 'habitat':habitat, 'area':area, 'pctg':pctg}
 
     results = []
     with connections['transects'].cursor() as cursor:
-        cursor.execute(SQL_GET_REGIONS, [x, y, boundary, habitat])
+        cursor.execute(SQL_GET_REGIONS.format('r.geom.STAsBinary(),' if is_download else ''),
+                       [x, y, boundary, habitat])
         results = map(to_dict, cursor)
 
-        if request.accepted_renderer.format == 'raw':
+        if is_download:
             return Response(results, content_type='application/zip',
                             headers={'Content-Disposition': 'attachment; filename="regions.zip"'})
 
