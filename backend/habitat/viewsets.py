@@ -49,7 +49,7 @@ FROM(
 # a conditional fragement inclusion using {} before actual parameter
 # preparation (%s)
 SQL_GET_REGIONS = """
-select b.region, b.geom.STArea() as boundary_area, r.habitat, {} r.area, 100 * r.area / b.geom.STArea() as percentage
+select b.region, b.geom.STArea() / 1000000 as boundary_area, r.habitat, {} r.area / 1000000, 100 * r.area / b.geom.STArea() as percentage
 from SeamapAus_Boundaries_View b
 left join SeamapAus_Habitat_By_Region r on b.region = r.region
 where b.geom.STContains(geometry::Point(%s, %s, 3112)) = 1
