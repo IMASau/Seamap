@@ -45,8 +45,11 @@
      :error-layers   (->> layer-state (filter (fn [[l [_ errors?]]] errors?)) keys set)
      :active-layers  active-layers}))
 
-(defn region-stats [db _]
-  (:region-stats db))
+(defn region-stats [{:keys [region-stats] :as db} _]
+  ;; The selected habitat layer for region-stats, providing it is
+  ;; active:
+  (when (some #{(:habitat-layer region-stats)} (get-in db [:map :active-layers]))
+    region-stats))
 
 (defn map-layer-priorities [db _]
   (get-in db [:map :priorities]))
