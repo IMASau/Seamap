@@ -17,7 +17,6 @@
                  [philoskim/debux "0.3.1"]]
 
   ;; Managed using create-react-app:
-  ;; TODO: snaffle the externs from these (and Leaflet) and include
   :exclusions [cljsjs/react
                cljsjs/react-dom
                cljsjs/react-dom-server]
@@ -40,6 +39,7 @@
   :profiles
   {:dev
    {:dependencies [[binaryage/devtools "0.9.4"]
+                   [day8.re-frame/trace "0.1.10"]
                    [tailrecursion/ring-proxy "2.0.0-SNAPSHOT" :exclusions [commons-codec commons-io]]
                    [ring "1.5.1"]
                    [potemkin "0.4.3"]   ; Was getting a weird error with the ring-proxy dependency version
@@ -59,8 +59,10 @@
                     :output-dir           "resources/public/js/compiled/out"
                     :asset-path           "js/compiled/out"
                     :source-map-timestamp true
-                    :closure-defines      {goog.DEBUG true}
+                    :closure-defines      {goog.DEBUG true
+                                           "re_frame.trace.trace_enabled_QMARK_" true}
                     :preloads             [devtools.preload
+                                           day8.re-frame.trace.preload
                                            imas-seamap.specs.preload]
                     :external-config      {:devtools/config {:features-to-install :all}}}}
 
