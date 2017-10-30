@@ -28,6 +28,7 @@
     :map.layers/priorities                msubs/map-layer-priorities
     :map.layers/logic                     msubs/map-layer-logic
     :map.layers/lookup                    msubs/map-layer-lookup
+    :map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.feature/info                     subs/feature-info
     :map/region-stats                     msubs/region-stats

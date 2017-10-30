@@ -127,6 +127,7 @@
         {:keys [outlining? download-type
                 download-layer] :as download-info}          @(re-frame/subscribe [:download/info])
         layer-priorities                                    @(re-frame/subscribe [:map.layers/priorities])
+        layer-params                                        @(re-frame/subscribe [:map.layers/params])
         logic-type                                          @(re-frame/subscribe [:map.layers/logic])
         base-layer-osm                                      [tile-layer {:url         "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
                                                                          :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
@@ -155,12 +156,18 @@
       ;; then orders in the map by update not by list):
       (map-indexed
        (fn [i {:keys [server_url layer_name] :as layer}]
-         ^{:key (str server_url layer_name)}
-         [wms-layer {:url          server_url :layers layer_name :z-index (inc i)
-                     :on-loading   on-load-start
-                     :on-tileerror on-tile-error
-                     :on-load      on-load-end
-                     :transparent  true       :format "image/png"}])
+         (let [extra-params (layer-params layer)]
+           ^{:key (str server_url layer_name (hash extra-params))}
+           [wms-layer (merge
+                       {:url          server_url
+                        :layers       layer_name
+                        :z-index      (inc i)
+                        :on-loading   on-load-start
+                        :on-tileerror on-tile-error
+                        :on-load      on-load-end
+                        :transparent  true
+                        :format       "image/png"}
+                       extra-params)]))
        (sort-layers active-layers layer-priorities logic-type))
       (when query
         [geojson-layer {:data (clj->js query)}])
