@@ -173,8 +173,8 @@
                 :onNodeDoubleClick on-dblclick}]])))
 
 (defn layer-catalogue [layers layer-props]
-  [:div
-   [b/tabs
+  [:div.height-managed.group-scrollable
+   [b/tabs {:class-name "group-scrollable height-managed"}
     [b/tab {:id    "org" :title "By Organisation"
             :panel (reagent/as-component
                     [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props])}]
