@@ -117,6 +117,7 @@
 
 (def events-for-analytics
   [:help-layer/open
+   :map.layer/load-error
    :map.layers.logic/toggle
    :map/clicked
    :map/pan-to-layer
