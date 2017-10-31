@@ -91,7 +91,11 @@
   (get-in db [:display :welcome-overlay]))
 
 (defn map-layer-info [db _]
-  (get-in db [:display :info-card]))
+  (let [info (get-in db [:display :info-card])
+        download (get-in db [:map :controls :download])]
+    (cond-> info
+      (map? info) (assoc :hidden? (or (:selecting download)
+                                      (:display-link download))))))
 
 (defn sidebar-state [db _]
   (get-in db [:display :sidebar]))

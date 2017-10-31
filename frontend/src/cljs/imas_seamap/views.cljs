@@ -437,7 +437,7 @@
         layer      (:layer layer-info)
         title      (or (get-in layer-info [:layer :name]) "Layer Information")]
     [b/dialogue {:title    title
-                 :is-open  layer-info
+                 :is-open  (and layer-info (not (:hidden? layer-info)))
                  :on-close #(re-frame/dispatch [:map.layer/close-info])}
      [:div.pt-dialog-body
       (case layer-info

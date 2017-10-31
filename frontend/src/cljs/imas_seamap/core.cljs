@@ -85,7 +85,7 @@
     :map.layer/close-info                 events/layer-close-info
     :map.layer/update-metadata            events/layer-receive-metadata
     :map.layer/metadata-error             events/layer-receive-metadata-err
-    :map.layer/download-start             [events/download-start-outlining]
+    :map.layer/download-start             events/download-start-outlining
     :map.layer/download-cancel            events/download-cancel
     :map.layer/download-finish            events/download-finish
     :map.layers/filter                    mevents/map-set-layer-filter
