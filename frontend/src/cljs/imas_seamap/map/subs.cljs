@@ -76,26 +76,37 @@
   "Creates a function that returns a map of additional WMS parameters
   for a given layer argument."
   [db _]
-  ;; For now, if:
-  ;; * tab is "management", and
-  ;; * we have a selected habitat layer, and
-  ;; * there's a mouse-click
-  ;; Then add a CQL filter for that click-location, and a translucency for /other/ habitat layers
-  ;; Otherwise just return nil (no extra params)
   (let [region-stats?                  (= "tab-management" (get-in db [:display :sidebar :selected]))
         {:keys [lng lat] :as location} (get-in db [:feature :location])
         habitat-layer                  (get-in db [:region-stats :habitat-layer])
-        boundary-layer                 (->> db :map :active-layers (filter #(= :boundaries (:category %))) first)]
-    (if-not (and region-stats? location habitat-layer boundary-layer)
-      (constantly nil)
+        boundary-layer                 (->> db :map :active-layers (filter #(= :boundaries (:category %))) first)
+        {:keys [selecting layer]}      (get-in db [:map :controls :download])]
+    (cond
+      ;; Region-stats mode; if:
+      ;; * tab is "management", and
+      ;; * we have a selected habitat layer, and
+      ;; * there's a mouse-click
+      ;; Then add a CQL filter for that click-location, and a translucency for /other/ habitat layers
+      (and region-stats? location habitat-layer boundary-layer)
       (fn [layer]
         (let [click-pt (wgs84->epsg3112 [lng lat])]
-         (cond
-           (= layer boundary-layer) {:CQL_FILTER (str "CONTAINS(geom,POINT("
-                                                      (string/join " " click-pt)
-                                                      "))")}
-           (= layer habitat-layer)  nil
-           :default                 {:opacity 0.1}))))))
+          (cond
+            (= layer boundary-layer) {:CQL_FILTER (str "CONTAINS(geom,POINT("
+                                                       (string/join " " click-pt)
+                                                       "))")}
+            (= layer habitat-layer)  nil
+            :default                 {:opacity 0.1})))
+
+      ;; Selecting region for download; fade out other layers:
+      selecting
+      (fn [lyr] (when-not (= lyr layer) {:opacity 0.1}))
+
+      ;; Everything else; reset the CQL filter for boundaries,
+      ;; otherwise leave the default opacity (and everything else)
+      :default
+      (fn [layer]
+        (when (= :boundaries (:category layer))
+          {:CQL_FILTER "INCLUDE"})))))
 
 (defn organisations
   "Sub to access organisations; overloaded to return a single org

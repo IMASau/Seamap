@@ -157,7 +157,12 @@
       (map-indexed
        (fn [i {:keys [server_url layer_name] :as layer}]
          (let [extra-params (layer-params layer)]
-           ^{:key (str server_url layer_name (hash extra-params))}
+           ;; This extra key aspect (hash of extra params) shouldn't
+           ;; be necessary anyway, and now it interferes with
+           ;; download-selection (if we fade out other layers when
+           ;; selecting, it triggers a reload of that layer, which
+           ;; triggers draw:stop it seems)
+           ^{:key (str server_url layer_name)}
            [wms-layer (merge
                        {:url          server_url
                         :layers       layer_name
@@ -166,6 +171,7 @@
                         :on-tileerror on-tile-error
                         :on-load      on-load-end
                         :transparent  true
+                        :opacity      1
                         :format       "image/png"}
                        extra-params)]))
        (sort-layers active-layers layer-priorities logic-type))
