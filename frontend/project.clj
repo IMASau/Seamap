@@ -39,6 +39,7 @@
   :profiles
   {:dev
    {:dependencies [[binaryage/devtools "0.9.4"]
+                   [cljsjs/d3 "4.3.0-5"]
                    [day8.re-frame/trace "0.1.10"]
                    [tailrecursion/ring-proxy "2.0.0-SNAPSHOT" :exclusions [commons-codec commons-io]]
                    [ring "1.5.1"]
