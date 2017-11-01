@@ -463,3 +463,14 @@ rect#background {
 .region-stats th + th {
     text-align: right;
 }
+
+/* Overrides for the region-select tool */
+.leaflet-draw-toolbar .leaflet-draw-draw-rectangle,
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-rectangle {
+    background-image: none;
+}
+.leaflet-draw-toolbar .leaflet-draw-draw-rectangle::before,
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-rectangle::before {
+    content: "";
+    font-family: "Icons20";
+}
