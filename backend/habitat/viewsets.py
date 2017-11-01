@@ -83,6 +83,7 @@ class ShapefileRenderer(BaseRenderer):
         for row in data:
             habitat,bgeom,area,pctg = row
             geom = GEOSGeometry(buffer(row['geom']))
+            # For some reason MSSQL is giving me the occasional (2-point) LineString; filter those:
             geoms = (g for g in geom if g.geom_type == 'Polygon') if geom.num_geom > 1 else [geom]
             for g in geoms:
                 sw.record(row['habitat'], row['area'], row['pctg'])
