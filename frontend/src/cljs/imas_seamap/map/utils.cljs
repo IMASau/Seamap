@@ -14,8 +14,11 @@
   (js->clj
    (ocall *epsg-3112* :forward (clj->js pt))))
 
-(defn bounds->str [{:keys [north south east west] :as bounds}]
-  (string/join "," [south west north east]))
+(defn bounds->str
+  ([bounds] (bounds->str bounds 4326))
+  ([{:keys [north south east west] :as bounds} epsg-code]
+   (assert (integer? epsg-code))
+   (string/join "," [south west north east (str "urn:ogc:def:crs:EPSG:" epsg-code)])))
 
 (defn bbox-intersects? [b1 b2]
   (not
@@ -105,7 +108,7 @@
 (defmethod download-link :wfs [{:keys [server_url detail_layer layer_name] :as layer} bounds download-type]
   (-> (url/url (or detail_layer server_url))
       (assoc :query {:service      "wfs"
-                     :version      "1.0.0"
+                     :version      "1.1.0"
                      :request      "GetFeature"
                      :outputFormat (type->format-str download-type)
                      :typeName     layer_name
