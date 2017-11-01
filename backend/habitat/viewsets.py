@@ -1,8 +1,10 @@
+from catalogue.models import Layer
 from collections import defaultdict
 from decimal import Decimal, getcontext
 import zipfile
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import connections, ProgrammingError
+from django.db.models.functions import Coalesce
 from rest_framework.decorators import api_view, list_route, renderer_classes
 from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
@@ -48,13 +50,18 @@ FROM(
 # Note hack; we only include geoms in the result sometimes, so there's
 # a conditional fragement inclusion using {} before actual parameter
 # preparation (%s)
-SQL_GET_REGIONS = """
-select b.region, b.geom.STArea() / 1000000 as boundary_area, r.habitat, {} r.area / 1000000, 100 * r.area / b.geom.STArea() as percentage
-from SeamapAus_Boundaries_View b
-left join SeamapAus_Habitat_By_Region r on b.region = r.region
-where b.geom.STContains(geometry::Point(%s, %s, 3112)) = 1
-  and r.boundary_layer_id = %s
-  and r.habitat_layer_id = %s;
+SQL_IDENTIFY_REGION = """
+select region, geom.STArea() from SeamapAus_Boundaries_View
+where boundary_layer = %s
+  and geom.STContains(geometry::Point(%s, %s, 3112)) = 1
+"""
+
+SQL_GET_STATS = """
+select habitat, {} area / 1000000, 100 * area / %s as percentage
+from SeamapAus_Habitat_By_Region
+where region = %s
+  and boundary_layer_id = %s
+  and habitat_layer_id = %s;
 """
 
 def D(number):
@@ -69,22 +76,24 @@ class ShapefileRenderer(BaseRenderer):
     def render(self, data, media_type=None, renderer_context=None):
         # Set up shapefile writer:
         sw = shapefile.Writer(shapeType=shapefile.POLYGON)
-        sw.field("region", "C")
         sw.field("habitat", "C")
         sw.field("area", "N", decimal=30)
         sw.field("percentage", "N", decimal=30)
 
         for row in data:
-            region,boundary_area,habitat,bgeom,area,pctg = row
-            sw.record(row['region'], row['habitat'], row['area'], row['pctg'])
+            habitat,bgeom,area,pctg = row
             geom = GEOSGeometry(buffer(row['geom']))
-            coords = geom.coords
+            geoms = (g for g in geom if g.geom_type == 'Polygon') if geom.num_geom > 1 else [geom]
+            for g in geoms:
+                sw.record(row['habitat'], row['area'], row['pctg'])
+                sw.poly(parts=g.coords)
+            # coords = geom.coords
             # pyshp doesn't natively handle multipolygons
             # yet, so if we have one of those just flatten
             # it out to parts ourselves:
-            if geom.num_geom > 1:
-                coords = [parts for poly in coords for parts in poly]
-            sw.poly(parts=coords)
+            # if geom.num_geom > 1:
+            #     # coords = [parts for poly in coords for parts in poly]
+            #     coords = [part for g in geom for part in g.coords if g.geom_type == 'Polygon']
 
         shp = StringIO()
         shx = StringIO()
@@ -209,31 +218,42 @@ def regions(request):
 
     if is_download:
         def to_dict(row):
-            region,boundary_area,habitat,geom,area,pctg = row
-            return {'region':region, 'boundary_area': boundary_area, 'habitat':habitat, 'geom':geom, 'area':area, 'pctg':pctg}
+            habitat,geom,area,pctg = row
+            return {'habitat':habitat, 'geom':geom, 'area':area, 'pctg':pctg}
     else:
         def to_dict(row):
-            region,boundary_area,habitat,area,pctg = row
-            return {'region':region, 'boundary_area': boundary_area, 'habitat':habitat, 'area':area, 'pctg':pctg}
+            habitat,area,pctg = row
+            return {'habitat':habitat, 'area':area, 'pctg':pctg}
+
+    # If we don't find the boundary layer it's probably shenanigans,
+    # just let the default exception handling deal with it:
+    boundary_layer = Layer.objects.annotate(layer=Coalesce('detail_layer', 'layer_name')).get(pk=boundary).layer
 
     results = []
+    boundary_name = None
     with connections['transects'].cursor() as cursor:
-        cursor.execute(SQL_GET_REGIONS.format('r.geom.STAsBinary(),' if is_download else ''),
-                       [x, y, boundary, habitat])
-        results = map(to_dict, cursor)
+        cursor.execute(SQL_IDENTIFY_REGION, [boundary_layer, x, y])
+        boundary_info = cursor.fetchone()
 
-        if is_download:
-            return Response(results, content_type='application/zip',
-                            headers={'Content-Disposition': 'attachment; filename="regions.zip"'})
+        if boundary_info:
+            boundary_name, boundary_area = boundary_info
+
+            cursor.execute(SQL_GET_STATS.format('geom.STAsBinary(),' if is_download else ''),
+                           [boundary_area, boundary_name, boundary, habitat])
+            results = map(to_dict, cursor)
+
+            if is_download:
+                return Response(results, content_type='application/zip',
+                                headers={'Content-Disposition': 'attachment; filename="regions.zip"'})
 
         # HTML only; add a derived row (doing it in SQL was getting complicated and slow):
         if results:
-            barea = results[0]['boundary_area']
-            area = barea - float( sum(row['area'] or 0 for row in results) )
-            pctg = 100 * area / barea
+            area = boundary_area / 1000000 - float( sum(row['area'] or 0 for row in results) )
+            pctg = 100 * area / (boundary_area / 1000000)
             results.append({'habitat': 'UNMAPPED', 'area': area, 'pctg': pctg})
         return Response({'data': results,
                          'boundary': boundary,
+                         'boundary_name': boundary_name,
                          'habitat': habitat,
                          'url': reverse('habitat-regions', request=request),
                          'x': x,

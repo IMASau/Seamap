@@ -1,9 +1,10 @@
 <html>
   <head></head>
   <body>
-    {% if data %}
+    {% if boundary_name %}
     <div class="region-stats">
-      <h4>Management Region: {{ data.0.region }}</h4>
+      <h4>Management Region: {{ boundary_name }}</h4>
+      {% if data %}
       <table class="pt-table pt-interactive pt-condensed">
         <thead>
           <th>Habitat</th>
@@ -12,17 +13,14 @@
         </thead>
         <tbody>
           {% for row in data %}
-          {% if row.habitat %}
           <tr>
             <td>{{ row.habitat }}</td>
             <td>{{ row.area|floatformat }}</td>
             <td>{{ row.pctg|floatformat }}</td>
           </tr>
-          {% endif %}
           {% endfor %}
         </tbody>
       </table>
-      {% if data.0.habitat %}
       <a class="download" href="{{ url }}?boundary={{ boundary }}&habitat={{ habitat }}&x={{ x }}&y={{ y }}&format=raw">Download as Shapefile</a>
       {% endif %}
     </div>
