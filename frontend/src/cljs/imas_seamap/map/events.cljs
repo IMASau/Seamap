@@ -316,3 +316,9 @@
 (defn map-finalise-selection [db [_ bbox]]
   (update-in db [:map :controls :download] merge {:selecting false
                                                   :bbox      bbox}))
+(defn map-toggle-selecting [{:keys [db] :as ctx} _]
+  {:dispatch
+   (cond
+     (get-in db [:map :controls :download :selecting]) [:map.layer.selection/disable]
+     (get-in db [:map :controls :download :bbox])      [:map.layer.selection/clear]
+     :default                                          [:map.layer.selection/enable])})
