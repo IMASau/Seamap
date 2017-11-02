@@ -101,10 +101,6 @@
             (= layer habitat-layer)  nil
             :default                 {:opacity 0.1})))
 
-      ;; Selecting region for download; fade out other layers:
-      selecting
-      (fn [lyr] (when-not (= lyr layer) {:opacity 0.1}))
-
       ;; Everything else; reset the CQL filter for boundaries,
       ;; otherwise leave the default opacity (and everything else)
       :default
