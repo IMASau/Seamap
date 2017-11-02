@@ -592,6 +592,9 @@
                 {:label "Start/Clear Transect"   :combo "t"}
                 [:transect.draw/toggle])]
      [b/hotkey (keydown-wrapper
+                {:label "Start/Clear Region"     :combo "r"}
+                [:map.layer.selection/toggle])]
+     [b/hotkey (keydown-wrapper
                 {:label "Cancel"                 :combo "esc"}
                 [:ui.drawing/cancel])]
      [b/hotkey (keydown-wrapper
