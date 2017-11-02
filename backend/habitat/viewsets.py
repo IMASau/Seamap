@@ -276,10 +276,9 @@ def regions(request):
                                 headers={'Content-Disposition': 'attachment; filename="regions.zip"'})
 
         # HTML only; add a derived row (doing it in SQL was getting complicated and slow):
-        if results:
-            area = boundary_area / 1000000 - float( sum(row['area'] or 0 for row in results) )
-            pctg = 100 * area / (boundary_area / 1000000)
-            results.append({'habitat': 'UNMAPPED', 'area': area, 'pctg': pctg})
+        area = boundary_area / 1000000 - float( sum(row['area'] or 0 for row in results) )
+        pctg = 100 * area / (boundary_area / 1000000)
+        results.append({'habitat': 'UNMAPPED', 'area': area, 'pctg': pctg})
         return Response({'data': results,
                          'boundary': boundary,
                          'boundary_name': boundary_name,
