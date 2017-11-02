@@ -105,6 +105,10 @@ footer {
     z-index: 2001;
 }
 
+#transect-btn-wrapper {
+    margin-bottom: 5px;
+}
+
 .logic-toggle {
     padding-top: 10px;
     margin-top: 10px;
