@@ -109,7 +109,9 @@
 
 (defmulti download-link (fn [layer bounds download-type] (type->servertype download-type)))
 
-(defmethod download-link :wfs [{:keys [server_url detail_layer layer_name] :as layer} bounds download-type]
+(defmethod download-link :wfs [{:keys [server_url detail_layer layer_name bounding_box] :as layer}
+                               bounds
+                               download-type]
   (-> (url/url (or detail_layer server_url))
       (assoc :query {:service      "wfs"
                      :version      "1.1.0"
@@ -117,14 +119,16 @@
                      :outputFormat (type->format-str download-type)
                      :typeName     layer_name
                      :srsName      "EPSG:4326"
-                     :bbox         (bounds->str bounds)})
+                     ;; (note, bbox could be param or layer extent):
+                     :bbox         (bounds->str (or bounds bounding_box))})
       str))
 
-(defmethod download-link :wms [{:keys [server_url detail_layer layer_name] :as layer}
-                               {:keys [north south east west] :as bounds}
+(defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as layer}
+                               bounds
                                download-type]
-  ;; Crude ratio calculations for approximating image dimensions:
-  (let [ratio (/ (- north south) (- east west))
+  ;; Crude ratio calculations for approximating image dimensions (note, bbox could be param or layer extent):
+  (let [{:keys [north south east west] :as bounds} (or bounds bounding_box)
+        ratio (/ (- north south) (- east west))
         width 640]
     (-> (url/url (or detail_layer server_url))
         (assoc :query {:service "wms"

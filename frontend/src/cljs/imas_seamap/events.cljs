@@ -325,7 +325,7 @@
 (defn download-cancel [db _]
   (assoc-in db [:map :controls :download :selecting] false))
 
-(defn download-finish [db [_ layer download-type bounds]]
+(defn download-finish [db [_ layer bounds download-type]]
   (update-in db [:map :controls :download]
              merge {:link         (download-link layer bounds download-type)
                     :bbox         bounds
