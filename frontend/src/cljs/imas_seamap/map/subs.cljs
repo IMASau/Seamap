@@ -84,7 +84,7 @@
         {:keys [lng lat] :as location} (get-in db [:feature :location])
         habitat-layer                  (get-in db [:region-stats :habitat-layer])
         boundary-layer                 (->> db :map :active-layers (filter #(= :boundaries (:category %))) first)
-        {:keys [selecting layer]}      (get-in db [:map :controls :download])]
+        info-layer                     (get-in db [:display :info-card :layer])]
     (cond
       ;; Region-stats mode; if:
       ;; * tab is "management", and
@@ -100,6 +100,16 @@
                                                        "))")}
             (= layer habitat-layer)  nil
             :default                 {:opacity 0.1})))
+
+      ;; Displaying info-card for a layer?  Fade-out the others (note
+      ;; need to ensure we don't touch the CQL_FILTER if it's a
+      ;; boundary layer, or we'll trigger layer-load events):
+      info-layer
+      (fn [layer]
+        (cond
+          (= layer info-layer)              nil
+          (= :boundaries (:category layer)) {:CQL_FILTER "INCLUDE" :opacity 0.1}
+          :default                          {:opacity 0.1}))
 
       ;; Everything else; reset the CQL filter for boundaries,
       ;; otherwise leave the default opacity (and everything else)
