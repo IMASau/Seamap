@@ -413,19 +413,19 @@
                                    [b/menu
                                     [b/menu-item {:text     "GeoTIFF"
                                                   :label    (reagent/as-element [b/icon {:icon-name "globe"}])
-                                                  :on-click (handler-dispatch [:map.layer/download-finish
+                                                  :on-click (handler-dispatch [:map.layer/download
                                                                                layer
                                                                                bbox
                                                                                :map.layer.download/geotiff])}]
                                     [b/menu-item {:text     "SHP File"
                                                   :label    (reagent/as-element [b/icon {:icon-name "polygon-filter"}])
-                                                  :on-click (handler-dispatch [:map.layer/download-finish
+                                                  :on-click (handler-dispatch [:map.layer/download
                                                                                layer
                                                                                bbox
                                                                                :map.layer.download/shp])}]
                                     [b/menu-item {:text     "CSV"
                                                   :label    (reagent/as-element [b/icon {:icon-name "th"}])
-                                                  :on-click (handler-dispatch [:map.layer/download-finish
+                                                  :on-click (handler-dispatch [:map.layer/download
                                                                                layer
                                                                                bbox
                                                                                :map.layer.download/csv])}]])}

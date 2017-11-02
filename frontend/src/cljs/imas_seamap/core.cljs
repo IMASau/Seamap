@@ -86,9 +86,7 @@
     :map.layer/close-info                 events/layer-close-info
     :map.layer/update-metadata            events/layer-receive-metadata
     :map.layer/metadata-error             events/layer-receive-metadata-err
-    :map.layer/download-start             events/download-start-outlining
-    :map.layer/download-cancel            events/download-cancel
-    :map.layer/download-finish            events/download-finish
+    :map.layer/download                   events/download-show-link
     :map.layers/filter                    mevents/map-set-layer-filter
     :map.layers/others-filter             mevents/map-set-others-layer-filter
     :map.layers.logic/toggle              [mevents/map-layer-logic-toggle]

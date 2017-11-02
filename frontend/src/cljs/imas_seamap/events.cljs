@@ -317,17 +317,11 @@
 (defn transect-onmouseout [db _]
   (assoc-in db [:transect :mouse-percentage] nil))
 
-(defn download-start-outlining [db [_ layer download-type]]
-  (assoc-in db [:map :controls :download] {:selecting true
-                                           :type      download-type
-                                           :layer     layer}))
-
-(defn download-cancel [db _]
-  (assoc-in db [:map :controls :download :selecting] false))
-
-(defn download-finish [db [_ layer bounds download-type]]
+(defn download-show-link [db [_ layer bounds download-type]]
   (update-in db [:map :controls :download]
              merge {:link         (download-link layer bounds download-type)
+                    :layer        layer
+                    :type         download-type
                     :bbox         bounds
                     :display-link true}))
 
