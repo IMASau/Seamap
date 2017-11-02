@@ -184,7 +184,6 @@
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
-        ;; Need to add a "Clear" button
         [dispatch-key label] (cond
                                drawing? [:transect.draw/disable "Cancel Transect"]
                                query    [:transect.draw/clear "Clear Transect"]
@@ -267,43 +266,6 @@
            [layer-card layer {:active?  (some #{layer} active-layers)
                               :loading? (loading-fn layer)
                               :errors?  (error-fn layer)}])]]])))
-
-(defn third-party-layer-group [props layers active-layers loading-fn error-fn]
-  (let [show-dialogue? (reagent/atom false)]
-    (fn [props layers active-layers loading-fn error-fn]
-      (let [catalogue [:div
-                       [b/button  {:icon-name "pt-icon-add-to-artifact"
-                                   :class-name "pt-fill catalogue-add"
-                                   :on-click (handler-fn (swap! show-dialogue? not))
-                                   :text "Catalogue"}]
-                       [b/dialogue {:is-open @show-dialogue?
-                                    :on-close #(reset! show-dialogue? false)
-                                    :icon-name "pt-icon-add-to-artifact"
-                                    :title "Add from catalogue"}
-                        [layer-catalogue (seq (difference (set layers) (set active-layers)))]]]
-            ;; Only display active (third-party) layers in this group:
-            third-party-actives (filter #(= :third-party (:category %)) active-layers)]
-        [layer-group (-> props
-                         (assoc :extra-component catalogue)
-                         (update :classes str (when (seq third-party-actives) " needs-extra")))
-         third-party-actives
-         active-layers
-         loading-fn
-         error-fn]))))
-
-(defn app-controls []
-  (let [{:keys [groups active-layers loading-layers error-layers]} @(re-frame/subscribe [:map/layers])
-        {:keys [habitat bathymetry imagery third-party]} groups]
-    [:div#sidebar
-     [transect-toggle]
-     [layer-logic-toggle]
-     [layer-search-filter]
-     [layer-group {:id "habitat-group" :title "Habitat"   :expanded true } habitat     active-layers loading-layers error-layers]
-     [layer-group {:id "bathy-group"   :title "Bathymetry":expanded true } bathymetry  active-layers loading-layers error-layers]
-     [layer-group {:id "imagery-group" :title "Imagery"   :expanded false} imagery     active-layers loading-layers error-layers]
-     [third-party-layer-group
-      {:id "third-party-group" :title "Other"     :expanded false} third-party active-layers loading-layers error-layers]
-     [help-button]]))
 
 (defn settings-controls []
   [:div#settings
