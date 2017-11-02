@@ -3,7 +3,7 @@
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [select-values] :refer-macros [handler-dispatch]]
-            [imas-seamap.map.utils :refer [sort-layers]]
+            [imas-seamap.map.utils :refer [sort-layers bounds->geojson]]
             [oops.core :refer [ocall oget]]
             [debux.cs.core :refer-macros [dbg]]))
 
@@ -124,8 +124,8 @@
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [has-info? info-body location] :as fi}       @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]}                  @(re-frame/subscribe [:transect/info])
-        {:keys [outlining? download-type
-                download-layer] :as download-info}          @(re-frame/subscribe [:download/info])
+        {:keys [selecting? region]}                         @(re-frame/subscribe [:map.layer.selection/info])
+        download-info                                       @(re-frame/subscribe [:download/info])
         layer-priorities                                    @(re-frame/subscribe [:map.layers/priorities])
         layer-params                                        @(re-frame/subscribe [:map.layers/params])
         logic-type                                          @(re-frame/subscribe [:map.layers/logic])
@@ -177,6 +177,8 @@
        (sort-layers active-layers layer-priorities logic-type))
       (when query
         [geojson-layer {:data (clj->js query)}])
+      (when region
+        [geojson-layer {:data (clj->js (bounds->geojson region))}])
       (when (and query mouse-loc)
         [circle-marker {:center      mouse-loc
                         :radius      3
@@ -196,7 +198,7 @@
                                       (ocall e "_toolbars.draw._modes.polyline.handler.enable")
                                       (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
                         :on-created #(re-frame/dispatch [:transect/query (-> % (ocall "layer.toGeoJSON") (js->clj :keywordize-keys true))])}]])
-      (when outlining?
+      (when selecting?
         [feature-group
          [edit-control {:draw       {:rectangle true
                                      :circle    false
@@ -205,10 +207,8 @@
                                      :polyline  false}
                         :on-mounted (fn [e]
                                       (ocall e "_toolbars.draw._modes.rectangle.handler.enable")
-                                      (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:map.layer/download-cancel])))
-                        :on-created #(re-frame/dispatch [:map.layer/download-finish
-                                                         download-layer
-                                                         download-type
+                                      (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable])))
+                        :on-created #(re-frame/dispatch [:map.layer.selection/finalise
                                                          (-> % (ocall "layer.getBounds") bounds->map)])}]])
       (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:

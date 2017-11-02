@@ -328,6 +328,7 @@
 (defn download-finish [db [_ layer download-type bounds]]
   (update-in db [:map :controls :download]
              merge {:link         (download-link layer bounds download-type)
+                    :bbox         bounds
                     :display-link true}))
 
 (defn close-download-dialogue [db _]

@@ -20,6 +20,10 @@
    (assert (integer? epsg-code))
    (string/join "," [south west north east (str "urn:ogc:def:crs:EPSG:" epsg-code)])))
 
+(defn bounds->geojson [{:keys [north south east west]}]
+  {:type "Polygon"
+   :coordinates [[[west south] [west north] [east north] [east south] [west south]]]})
+
 (defn bbox-intersects? [b1 b2]
   (not
    (or (> (:west b1)  (:east b2))

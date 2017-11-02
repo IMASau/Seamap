@@ -195,6 +195,19 @@
                 :on-click (handler-dispatch [dispatch-key])
                 :text label}]]))
 
+(defn selection-button []
+  (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
+        [dispatch-key label]        (cond
+                                      selecting? [:map.layer.selection/disable "Cancel Selecting"]
+                                      region     [:map.layer.selection/clear   "Clear Selection"]
+                                      :else      [:map.layer.selection/enable  "Select Region"])]
+    [:div#select-btn-wrapper {:data-helper-text "Click to select a region"}
+     [b/button {:id         "transect-button"
+                :icon-name  "widget"
+                :class-name "pt-fill select-region height-static"
+                :on-click   (handler-dispatch [dispatch-key])
+                :text       label}]]))
+
 (defn layer-logic-toggle []
   (let [{:keys [type trigger]} @(re-frame/subscribe [:map.layers/logic])
         user-triggered?        (= trigger :map.logic.trigger/user)
@@ -452,6 +465,7 @@
 (defn layer-tab [layers active-layers loading-fn error-fn]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
+   [selection-button]
    [layer-logic-toggle]
    [layer-search-filter]
    [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn]
@@ -612,6 +626,7 @@
      {:selector ".sidebar-tabs ul:first-child"
       :helperText "Choose between habitat, bathymetry, and other layer types"}
      :transect-btn-wrapper
+     :select-btn-wrapper
      {:selector ".sidebar-tabs ul:nth-child(2)" :helperText "Reset interface"}
      {:id "habitat-group"     :helperText "Layers showing sea-floor habitats"}
      {:id "bathy-group"       :helperText "Layers showing bathymetry data"}

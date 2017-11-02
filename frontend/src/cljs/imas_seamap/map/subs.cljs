@@ -45,6 +45,10 @@
      :error-layers   (->> layer-state (filter (fn [[l [_ errors?]]] errors?)) keys set)
      :active-layers  active-layers}))
 
+(defn layer-selection-info [db _]
+  {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
+   :region     (get-in db [:map :controls :download :bbox])})
+
 (defn region-stats [{:keys [region-stats] :as db} _]
   ;; The selected habitat layer for region-stats, providing it is
   ;; active:

@@ -303,3 +303,16 @@
                             :bounds bounds)
                  update-active-layers)
    :put-hash (encode-state db)})
+
+(defn map-start-selecting [db _]
+  (assoc-in db [:map :controls :download :selecting] true))
+
+(defn map-cancel-selecting [db _]
+  (assoc-in db [:map :controls :download :selecting] false))
+
+(defn map-clear-selection [db _]
+  (update-in db [:map :controls :download] dissoc :bbox))
+
+(defn map-finalise-selection [db [_ bbox]]
+  (update-in db [:map :controls :download] merge {:selecting false
+                                                  :bbox      bbox}))
