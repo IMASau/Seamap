@@ -420,6 +420,10 @@ rect#background {
 .sidebar-tabs>li, .sidebar-tabs>ul>li {
     list-style-type: none;
 }
+/* Another chrome-only hack (otherwise we get an extra 0.4px on the close-button) */
+.pt-dialog-footer-actions .pt-popover-target {
+    vertical-align: unset;
+}
 
 .metadata-record div {
     margin-bottom: 15px;
