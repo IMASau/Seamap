@@ -64,6 +64,33 @@ where region = %s
   and habitat_layer_id = %s;
 """
 
+PRJ_3112 = """
+PROJCS["GDA94 / Geoscience Australia Lambert",
+    GEOGCS["GDA94",
+        DATUM["Geocentric_Datum_of_Australia_1994",
+            SPHEROID["GRS 1980",6378137,298.257222101,
+                AUTHORITY["EPSG","7019"]],
+            TOWGS84[0,0,0,0,0,0,0],
+            AUTHORITY["EPSG","6283"]],
+        PRIMEM["Greenwich",0,
+            AUTHORITY["EPSG","8901"]],
+        UNIT["degree",0.0174532925199433,
+            AUTHORITY["EPSG","9122"]],
+        AUTHORITY["EPSG","4283"]],
+    PROJECTION["Lambert_Conformal_Conic_2SP"],
+    PARAMETER["standard_parallel_1",-18],
+    PARAMETER["standard_parallel_2",-36],
+    PARAMETER["latitude_of_origin",0],
+    PARAMETER["central_meridian",134],
+    PARAMETER["false_easting",0],
+    PARAMETER["false_northing",0],
+    UNIT["metre",1,
+        AUTHORITY["EPSG","9001"]],
+    AXIS["Easting",EAST],
+    AXIS["Northing",NORTH],
+    AUTHORITY["EPSG","3112"]]
+"""
+
 def D(number):
     "Return the (probably) string, quantized to an acceptable number of decimal places"
     return Decimal(number).quantize(Decimal('0.1'))
@@ -108,6 +135,7 @@ class ShapefileRenderer(BaseRenderer):
             responsezip.writestr('regions.shp', shp.getvalue())
             responsezip.writestr('regions.shx', shx.getvalue())
             responsezip.writestr('regions.dbf', dbf.getvalue())
+            responsezip.writestr('regions.prj', PRJ_3112)
         return zipstream.getvalue()
 
 
