@@ -403,14 +403,41 @@
     [:a {:href metadata_url :target "_blank"} "Click here for the full metadata record."]]
    [:div
     [:p.download-instructions
-     "Downloading implies acceptance of all citation and usage
-     requirements.  You will first select your region of
-     interest."]]])
+     "Downloading implies acceptance of all citation and usage requirements."]]])
+
+(defn- download-menu [{:keys [title disabled? layer bbox]}]
+  [b/popover {:position           b/*BOTTOM*
+              :is-disabled        disabled?
+              :popover-class-name "pt-minimal"
+              :content            (reagent/as-element
+                                   [b/menu
+                                    [b/menu-item {:text     "GeoTIFF"
+                                                  :label    (reagent/as-element [b/icon {:icon-name "globe"}])
+                                                  :on-click (handler-dispatch [:map.layer/download-start
+                                                                               layer
+                                                                               bbox
+                                                                               :map.layer.download/geotiff])}]
+                                    [b/menu-item {:text     "SHP File"
+                                                  :label    (reagent/as-element [b/icon {:icon-name "polygon-filter"}])
+                                                  :on-click (handler-dispatch [:map.layer/download-start
+                                                                               layer
+                                                                               bbox
+                                                                               :map.layer.download/shp])}]
+                                    [b/menu-item {:text     "CSV"
+                                                  :label    (reagent/as-element [b/icon {:icon-name "th"}])
+                                                  :on-click (handler-dispatch [:map.layer/download-start
+                                                                               layer
+                                                                               bbox
+                                                                               :map.layer.download/csv])}]])}
+   [b/button {:text            title
+              :disabled        disabled?
+              :right-icon-name "caret-down"}]])
 
 (defn info-card []
-  (let [layer-info @(re-frame/subscribe [:map.layer/info])
-        layer      (:layer layer-info)
-        title      (or (get-in layer-info [:layer :name]) "Layer Information")]
+  (let [layer-info       @(re-frame/subscribe [:map.layer/info])
+        layer            (:layer layer-info)
+        title            (or (get-in layer-info [:layer :name]) "Layer Information")
+        {:keys [region]} @(re-frame/subscribe [:map.layer.selection/info])]
     [b/dialogue {:title    title
                  :is-open  (and layer-info (not (:hidden? layer-info)))
                  :on-close #(re-frame/dispatch [:map.layer/close-info])}
@@ -431,27 +458,13 @@
      [:div.pt-dialog-footer
       [:div.pt-dialog-footer-actions
        (when (#{:habitat :bathymetry :imagery} (:category layer))
-         [b/popover {:position           b/*BOTTOM*
-                     :popover-class-name "pt-minimal"
-                     :content            (reagent/as-element
-                                          [b/menu
-                                           [b/menu-item {:text     "GeoTIFF"
-                                                         :label    (reagent/as-element [b/icon {:icon-name "globe"}])
-                                                         :on-click (handler-dispatch [:map.layer/download-start
-                                                                                      layer
-                                                                                      :map.layer.download/geotiff])}]
-                                           [b/menu-item {:text     "SHP File"
-                                                         :label    (reagent/as-element [b/icon {:icon-name "polygon-filter"}])
-                                                         :on-click (handler-dispatch [:map.layer/download-start
-                                                                                      layer
-                                                                                      :map.layer.download/shp])}]
-                                           [b/menu-item {:text     "CSV"
-                                                         :label    (reagent/as-element [b/icon {:icon-name "th"}])
-                                                         :on-click (handler-dispatch [:map.layer/download-start
-                                                                                      layer
-                                                                                      :map.layer.download/csv])}]])}
-          [b/button {:text            "Download As..."
-                     :right-icon-name "caret-down"}]])
+         [:div
+          [download-menu {:title     "Download Selection..."
+                          :layer     layer
+                          :disabled? (nil? region)
+                          :bbox      region}]
+          [download-menu {:title "Download..."
+                          :layer layer}]])
        [b/button {:text       "Close"
                   :auto-focus true
                   :intent     b/*intent-primary*
