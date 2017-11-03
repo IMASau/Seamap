@@ -1,8 +1,8 @@
 <html>
   <head></head>
   <body>
-    {% if boundary_name %}
     <div class="region-stats">
+      {% if boundary_name %}
       <h4>Management Region: {{ boundary_name }}</h4>
       {% if data %}
       <table class="pt-table pt-interactive pt-condensed">
@@ -23,7 +23,9 @@
       </table>
       <a class="download" href="{{ url }}?boundary={{ boundary }}&habitat={{ habitat }}&x={{ x }}&y={{ y }}&format=raw">Download as Shapefile</a>
       {% endif %}
+      {% else %}
+      No results (click wasn't inside a management region)
+      {% endif %}
     </div>
-    {% endif %}
   </body>
 </html>
