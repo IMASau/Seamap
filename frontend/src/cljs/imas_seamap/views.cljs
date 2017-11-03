@@ -457,7 +457,7 @@
         [metadata-record layer-info])]
      [:div.pt-dialog-footer
       [:div.pt-dialog-footer-actions
-       (when (#{:habitat :bathymetry :imagery} (:category layer))
+       (when (#{:habitat :imagery} (:category layer))
          [:div
           [download-menu {:title     "Download Selection..."
                           :layer     layer
