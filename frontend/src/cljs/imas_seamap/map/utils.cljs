@@ -110,6 +110,12 @@
                                  :map.layer.download/shp     :wfs
                                  :map.layer.download/geotiff :wms})
 
+(defn type->str [type-key]
+  (get {:map.layer.download/csv     "CSV"
+        :map.layer.download/shp     "Shapefile"
+        :map.layer.download/geotiff "GeoTIFF"}
+       type-key))
+
 (defmulti download-link (fn [layer bounds download-type] (type->servertype download-type)))
 
 (defmethod download-link :wfs [{:keys [server_url detail_layer layer_name bounding_box] :as layer}

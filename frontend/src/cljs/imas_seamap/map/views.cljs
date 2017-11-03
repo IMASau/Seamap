@@ -3,7 +3,7 @@
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [select-values] :refer-macros [handler-dispatch]]
-            [imas-seamap.map.utils :refer [sort-layers bounds->geojson]]
+            [imas-seamap.map.utils :refer [sort-layers bounds->geojson type->str]]
             [oops.core :refer [ocall oget]]
             [debux.cs.core :refer-macros [dbg]]))
 
@@ -93,19 +93,23 @@
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
     (re-frame/dispatch [:map.layer/load-finished layer])))
 
-(defn download-component [{:keys [display-link link] :as download-info}]
-  [b/dialogue {:is-open   display-link
-               :title     "Download"
-               :icon-name "import"
-               :on-close  (handler-dispatch [:ui.download/close-dialogue])}
-   [:div.pt-dialog-body
-    [:p [:a {:href link :target "_blank"}
-         "Click here to download selection."]]]
-   [:div.pt-dialog-footer
-    [:div.pt-dialog-footer-actions
-     [b/button {:text     "Done"
-                :intent   b/*intent-primary*
-                :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]])
+(defn download-component [{:keys [display-link link bbox download-type] :as download-info}]
+  (let [type-str (type->str download-type)]
+    [b/dialogue {:is-open   display-link
+                 :title     (str "Download " type-str)
+                 :icon-name "import"
+                 :on-close  (handler-dispatch [:ui.download/close-dialogue])}
+     [:div.pt-dialog-body
+      [:p [:a {:href link :target "_blank"}
+           "Click here to download"
+           (when bbox " region")
+           " as "
+           type-str]]]
+     [:div.pt-dialog-footer
+      [:div.pt-dialog-footer-actions
+       [b/button {:text     "Done"
+                  :intent   b/*intent-primary*
+                  :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]]))
 
 (defn popup-component [{:keys [status info-body]}]
   (case status
