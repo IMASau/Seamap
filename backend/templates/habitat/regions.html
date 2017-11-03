@@ -21,11 +21,13 @@
           {% endfor %}
         </tbody>
       </table>
+      {% if downloadable %}
       <a class="download" href="{{ url }}?boundary={{ boundary }}&habitat={{ habitat }}&x={{ x }}&y={{ y }}&format=raw">Download as Shapefile</a>
-      {% endif %}
+      {% endif %}{# downloadable #}
+      {% endif %}{# data #}
       {% else %}
       No results (click wasn't inside a management region)
-      {% endif %}
+      {% endif %}{# boundary_name #}
     </div>
   </body>
 </html>

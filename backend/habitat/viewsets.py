@@ -260,6 +260,7 @@ def regions(request):
 
     results = []
     boundary_name = None
+    downloadable = False
     with connections['transects'].cursor() as cursor:
         cursor.execute(SQL_IDENTIFY_REGION, [boundary_layer, x, y])
         boundary_info = cursor.fetchone()
@@ -276,10 +277,12 @@ def regions(request):
                                 headers={'Content-Disposition': 'attachment; filename="regions.zip"'})
 
             # HTML only; add a derived row (doing it in SQL was getting complicated and slow):
+            downloadable = len(results)
             area = boundary_area / 1000000 - float( sum(row['area'] or 0 for row in results) )
             pctg = 100 * area / (boundary_area / 1000000)
             results.append({'habitat': 'UNMAPPED', 'area': area, 'pctg': pctg})
         return Response({'data': results,
+                         'downloadable': downloadable,
                          'boundary': boundary,
                          'boundary_name': boundary_name,
                          'habitat': habitat,
