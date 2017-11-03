@@ -73,9 +73,10 @@
 (s/def :map.controls.download/bbox (s/nilable :map.layer/bounding_box))
 (s/def :map.controls.download/display-link boolean?)
 (s/def :map.controls/download
-  (s/nilable (s/keys :req-un [:map.controls.download/layer
-                              :map.controls.download/type]
-                     :opt-un [:map.controls.download/link
+  (s/nilable (s/keys :req-un [:map.controls.download/selecting]
+                     :opt-un [:map.controls.download/layer
+                              :map.controls.download/type
+                              :map.controls.download/link
                               :map.controls.download/bbox
                               :map.controls.download/display-link])))
 (s/def :map/controls (s/keys :req-un [:map.controls/transect
