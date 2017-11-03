@@ -487,6 +487,7 @@
 (defn thirdparty-layer-tab [layers active-layers loading-fn error-fn]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
+   [selection-button]
    [layer-logic-toggle]
    [layer-search-filter]
    [layer-catalogue layers {:active-layers active-layers
