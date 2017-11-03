@@ -193,42 +193,42 @@
 },
 {
   "fields": {
-    "name": "Sea Surface Temperature (SST)"
+    "name": "ABS Population Density"
   },
   "model": "catalogue.dataclassification",
   "pk": 1
 },
 {
   "fields": {
-    "name": "Chl.A"
+    "name": "AMSA Fishing Effort"
   },
   "model": "catalogue.dataclassification",
   "pk": 2
 },
 {
   "fields": {
-    "name": "Shipping"
+    "name": "Chl.A-placehold"
   },
   "model": "catalogue.dataclassification",
   "pk": 3
 },
 {
   "fields": {
-    "name": "Weather Events"
+    "name": "Chl.A-placehold2"
   },
   "model": "catalogue.dataclassification",
   "pk": 4
 },
 {
   "fields": {
-    "name": "Seismic Surveys"
+    "name": "Disturbance & Exposure modelling"
   },
   "model": "catalogue.dataclassification",
   "pk": 5
 },
 {
   "fields": {
-    "name": "Plankton (AusCPR)"
+    "name": "Harmful Spills & Weather Events"
   },
   "model": "catalogue.dataclassification",
   "pk": 6
@@ -242,14 +242,14 @@
 },
 {
   "fields": {
-    "name": "Harmful Spills"
+    "name": "Plankton (AusCPR)"
   },
   "model": "catalogue.dataclassification",
   "pk": 8
 },
 {
   "fields": {
-    "name": "Fishing Effort (from AMSA)"
+    "name": "Shipping"
   },
   "model": "catalogue.dataclassification",
   "pk": 9
@@ -270,10 +270,24 @@
 },
 {
   "fields": {
-    "name": "Population Density (from ABS)"
+    "name": "Sea Surface Temperature (SST)"
   },
   "model": "catalogue.dataclassification",
   "pk": 12
+},
+{
+  "fields": {
+    "name": "Submarine Canyons"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 13
+},
+{
+  "fields": {
+    "name": "Seismic Surveys"
+  },
+  "model": "catalogue.dataclassification",
+  "pk": 14
 },
 {
   "fields": {
