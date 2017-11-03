@@ -312,6 +312,13 @@
 },
 {
   "fields": {
+    "name": "Contours"
+  },
+  "model": "catalogue.category",
+  "pk": 6
+},
+{
+  "fields": {
     "name": "ncwms"
   },
   "model": "catalogue.servertype",

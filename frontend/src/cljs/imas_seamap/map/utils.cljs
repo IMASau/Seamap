@@ -34,7 +34,10 @@
 (defn habitat-layer? [layer] (-> layer :category (= :habitat)))
 
 (def ^:private -category-ordering
-  (into {} (map vector [:bathymetry :habitat :imagery :third-party :boundaries] (range))))
+  ;; Note, bathymetry is only displayed with other categories when
+  ;; it's a contour layer, so it can go over the top of habitats
+  ;; because they'll be visible underneath:
+  (into {} (map vector [:habitat :bathymetry :imagery :third-party :boundaries] (range))))
 
 (defn sort-layers
   "Return layers in an order suitable for presentation (essentially,
