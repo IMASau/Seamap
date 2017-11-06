@@ -41,7 +41,10 @@
 (defn mouseevent->coords [e]
   (merge
    (-> e
-       (oget "containerPoint")
+       ;; Note need to round; fractional offsets (eg as in wordpress
+       ;; navbar) cause fractional x/y which causes geoserver to
+       ;; return errors in GetFeatureInfo
+       (ocall "containerPoint.round")
        (js->clj :keywordize-keys true)
        (select-keys [:x :y]))
    (-> e
