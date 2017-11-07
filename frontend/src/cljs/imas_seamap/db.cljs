@@ -4,7 +4,7 @@
 (goog-define img-url-base "/img/")
 
 (def default-db
-  {:map             {:center          [-23.116667 132.133333]
+  {:map             {:center          [-27.819644755 132.133333]
                      :zoom            5
                      :zoom-cutover    10
                      :bounds          {}
