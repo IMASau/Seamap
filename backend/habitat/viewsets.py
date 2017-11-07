@@ -84,7 +84,7 @@ class ShapefileRenderer(BaseRenderer):
         sw.field("area", "N", decimal=30)
         sw.field("percentage", "N", decimal=30)
 
-        for row in data:
+        for row in data['data']:
             habitat,bgeom,area,pctg = row
             geom = GEOSGeometry(buffer(row['geom']))
             # For some reason MSSQL is giving me the occasional (2-point) LineString; filter those:
@@ -108,11 +108,12 @@ class ShapefileRenderer(BaseRenderer):
         sw.saveDbf(dbf)
 
         zipstream = StringIO()
+        filename = data['boundary_name']
         with zipfile.ZipFile(zipstream, 'w') as responsezip:
-            responsezip.writestr('regions.shp', shp.getvalue())
-            responsezip.writestr('regions.shx', shx.getvalue())
-            responsezip.writestr('regions.dbf', dbf.getvalue())
-            responsezip.writestr('regions.prj', PRJ_3112)
+            responsezip.writestr(filename + '.shp', shp.getvalue())
+            responsezip.writestr(filename + '.shx', shx.getvalue())
+            responsezip.writestr(filename + '.dbf', dbf.getvalue())
+            responsezip.writestr(filename + '.prj', PRJ_3112)
         return zipstream.getvalue()
 
 
@@ -250,8 +251,10 @@ def regions(request):
             results = map(to_dict, cursor)
 
             if is_download:
-                return Response(results, content_type='application/zip',
-                                headers={'Content-Disposition': 'attachment; filename="regions.zip"'})
+                return Response({'data': results,
+                                 'boundary_name': boundary_name},
+                                content_type='application/zip',
+                                headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
 
             # HTML only; add a derived row (doing it in SQL was getting complicated and slow):
             downloadable = len(results)
