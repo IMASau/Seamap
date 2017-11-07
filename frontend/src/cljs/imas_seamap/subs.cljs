@@ -97,6 +97,8 @@
       (map? info) (assoc :hidden? (or (:selecting download)
                                       (:display-link download))))))
 
+(defn sorting-info [{:keys [sorting] :as db} _] sorting)
+
 (defn sidebar-state [db _]
   (get-in db [:display :sidebar]))
 

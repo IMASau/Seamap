@@ -152,8 +152,16 @@
 (defn update-groups [db [_ groups]]
   (assoc-in db [:map :groups] groups))
 
+(defn- ->sort-map [ms]
+  (reduce (fn [acc {:keys [name sort_key]}] (assoc acc name (or sort_key "zzzzz"))) {} ms))
+
 (defn update-organisations [db [_ organisations]]
-  (assoc-in db [:map :organisations] organisations))
+  (-> db
+      (assoc-in [:map :organisations] organisations)
+      (assoc-in [:sorting :organisation] (->sort-map organisations))))
+
+(defn update-classifications [db [_ classifications]]
+  (assoc-in db [:sorting :data_classification] (->sort-map classifications)))
 
 (defn update-priorities [db [_ priorities]]
   (assoc-in db [:map :priorities] priorities))

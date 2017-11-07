@@ -26,6 +26,7 @@
     {:when :seen-all-of? :events [:map/update-layers
                                   :map/update-groups
                                   :map/update-organisations
+                                  :map/update-classifications
                                   :map/update-priorities
                                   :map/update-descriptors]
      :dispatch [:map/initialise-display]}
@@ -68,7 +69,7 @@
    :dispatch [:db-initialised]})
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url group-url organisation-url priority-url descriptor-url]} (:config db)]
+  (let [{:keys [layer-url group-url organisation-url classification-url priority-url descriptor-url]} (:config db)]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -89,6 +90,11 @@
                    :uri             descriptor-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-descriptors]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             classification-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-classifications]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             organisation-url

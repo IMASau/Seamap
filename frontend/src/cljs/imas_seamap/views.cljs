@@ -126,17 +126,22 @@
      {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
       :on-click (handler-dispatch [:map/toggle-layer layer])}]]])
 
+(defn- ->sort-by [sorting-info ordering-key]
+  (let [name-key-mapping (get sorting-info ordering-key)]
+    ;; Sort by key first, then name (ie, return vector of [key name])
+    (comp #(vector (get name-key-mapping %) %) first)))
+
 (defn layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
-  [layers [ordering & ordering-remainder :as group-ordering] expanded-states id-base
+  [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
    {:keys [active-layers loading-fn error-fn] :as layer-props}]
-  (for [[val layer-subset] (group-by ordering layers)
+  (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         :let [id-str (str id-base val)]]
     {:id id-str
      :label val ; (Implicit assumption that the group-by value is a string)
      :isExpanded (get expanded-states id-str false)
      :childNodes (if (seq ordering-remainder)
-                   (layers->nodes layer-subset (rest group-ordering) expanded-states id-str layer-props)
+                   (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props)
                    (map-indexed
                     (fn [i layer]
                       (let [layer-state {:active?  (some #{layer} active-layers)
@@ -153,6 +158,7 @@
 
 (defn layer-catalogue-tree [layers ordering id layer-props]
   (let [expanded-states (reagent/atom {})
+        sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
                   (let [node (js->clj node :keywordize-keys true)]
                     (swap! expanded-states assoc (:id node) true)))
@@ -167,7 +173,7 @@
                           (do-layer-toggle))))]
     (fn [layers ordering id layer-props]
       [:div.tab-body.layer-controls {:id id}
-       [b/tree {:contents (layers->nodes layers ordering @expanded-states id layer-props)
+       [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props)
                 :onNodeCollapse on-close
                 :onNodeExpand on-open
                 :onNodeDoubleClick on-dblclick}]])))

@@ -33,6 +33,7 @@
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     :map/region-stats                     msubs/region-stats
+    :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
     :transect/results                     subs/transect-results
@@ -101,6 +102,7 @@
     :map/update-layers                    mevents/update-layers
     :map/update-groups                    mevents/update-groups
     :map/update-organisations             mevents/update-organisations
+    :map/update-classifications           mevents/update-classifications
     :map/update-priorities                mevents/update-priorities
     :map/update-descriptors               mevents/update-descriptors
     :map/initialise-display               [mevents/show-initial-layers]
