@@ -3,11 +3,12 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework.routers import DefaultRouter
 
-from catalogue.viewsets import DescriptorViewset, LayerViewset, GroupViewset, GroupPriorityViewset, OrganisationViewset
+from catalogue.viewsets import ClassificationViewset, DescriptorViewset, LayerViewset, GroupViewset, GroupPriorityViewset, OrganisationViewset
 from habitat.viewsets import regions, transect
 
 
 router = DefaultRouter()
+router.register(r'classifications', ClassificationViewset)
 router.register(r'layers', LayerViewset)
 router.register(r'groups', GroupViewset)
 router.register(r'organisations', OrganisationViewset)

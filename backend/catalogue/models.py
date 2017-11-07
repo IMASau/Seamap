@@ -20,6 +20,7 @@ class DataClassification(models.Model):
     """Category for data-type grouping; eg SST, chlorophyll, etc (relevant
     for third-party layers)"""
     name = models.CharField(max_length = 200)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -37,6 +38,7 @@ class ServerType(models.Model):
 class Organisation(models.Model):
     name = models.CharField(max_length = 200)
     logo = models.CharField(max_length = 50, blank=True, null=True)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
         return self.name
