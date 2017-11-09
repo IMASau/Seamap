@@ -7,8 +7,8 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^1.27.0",
-    "leaflet": "^1.0.3",
-    "leaflet-draw": "^0.4.7",
+    "leaflet": "^1.2.0",
+    "leaflet-draw": "^0.4.12",
     "proj4": "^2.4.3",
     "proj4leaflet": "^1.0.1",
     "react": "^15.5.1",
