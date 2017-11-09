@@ -51,9 +51,11 @@
 
 (defn region-stats [{:keys [region-stats] :as db} _]
   ;; The selected habitat layer for region-stats, providing it is
-  ;; active:
-  (when (some #{(:habitat-layer region-stats)} (get-in db [:map :active-layers]))
-    region-stats))
+  ;; active; default selection if there's a single habitat layer:
+  (let [habitat-layers (filter #(= :habitat (:category %)) (get-in db [:map :active-layers]))]
+    (cond
+      (= 1 (count habitat-layers)) {:habitat-layer (first habitat-layers)}
+      (some #{(:habitat-layer region-stats)} habitat-layers) region-stats)))
 
 (defn map-layer-priorities [db _]
   (get-in db [:map :priorities]))
