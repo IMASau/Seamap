@@ -4,18 +4,18 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [select-values] :refer-macros [handler-dispatch]]
             [imas-seamap.map.utils :refer [sort-layers bounds->geojson type->str]]
-            [oops.core :refer [ocall oget]]
+            [oops.core :refer [ocall oget gget]]
             [debux.cs.core :refer-macros [dbg]]))
 
-(def tile-layer    (r/adapt-react-class (oget js/window "ReactLeaflet.TileLayer")))
-(def wms-layer     (r/adapt-react-class (oget js/window "ReactLeaflet.WMSTileLayer")))
-(def geojson-layer (r/adapt-react-class (oget js/window "ReactLeaflet.GeoJSON")))
-(def leaflet-map   (r/adapt-react-class (oget js/window "ReactLeaflet.Map")))
-(def marker        (r/adapt-react-class (oget js/window "ReactLeaflet.Marker")))
-(def popup         (r/adapt-react-class (oget js/window "ReactLeaflet.Popup")))
-(def feature-group (r/adapt-react-class (oget js/window "ReactLeaflet.FeatureGroup")))
-(def edit-control  (r/adapt-react-class (oget js/window "ReactLeaflet.EditControl")))
-(def circle-marker (r/adapt-react-class (oget js/window "ReactLeaflet.CircleMarker")))
+(def tile-layer    (r/adapt-react-class (gget "ReactLeaflet.TileLayer")))
+(def wms-layer     (r/adapt-react-class (gget "ReactLeaflet.WMSTileLayer")))
+(def geojson-layer (r/adapt-react-class (gget "ReactLeaflet.GeoJSON")))
+(def leaflet-map   (r/adapt-react-class (gget "ReactLeaflet.Map")))
+(def marker        (r/adapt-react-class (gget "ReactLeaflet.Marker")))
+(def popup         (r/adapt-react-class (gget "ReactLeaflet.Popup")))
+(def feature-group (r/adapt-react-class (gget "ReactLeaflet.FeatureGroup")))
+(def edit-control  (r/adapt-react-class (gget "ReactLeaflet.EditControl")))
+(def circle-marker (r/adapt-react-class (gget "ReactLeaflet.CircleMarker")))
 
 (defn bounds->map [bounds]
   {:north (ocall bounds :getNorth)
@@ -151,7 +151,7 @@
      [leaflet-map (merge
                    {:id            "map"
                     :class-name    "sidebar-map"
-                    :crs           js/L.CRS.EPSG4326
+                    :crs           (gget "L.CRS.EPSG4326")
                     :use-fly-to    true
                     :center        center
                     :zoom          zoom
