@@ -211,7 +211,8 @@
     {:db       db
      :put-hash (encode-state db)
      ;; If someone triggers this, we also switch to manual mode:
-     :dispatch [:map.layers.logic/manual]}))
+     :dispatch-n [[:map.layers.logic/manual]
+                  [:map/popup-closed]]}))
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
