@@ -36,6 +36,7 @@
                                  :Y            y
                                  :I            x
                                  :J            y
+                                 :buffer       10 ; copying the AODN portal
                                  :SRS          "EPSG:4326"
                                  :CRS          "EPSG:4326"
                                  :FORMAT       "text/html"
