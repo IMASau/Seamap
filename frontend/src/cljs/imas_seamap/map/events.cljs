@@ -6,7 +6,7 @@
             [clojure.zip :as zip]
             [re-frame.core :as re-frame]
             [imas-seamap.utils :refer [encode-state names->active-layers]]
-            [imas-seamap.map.utils :refer [applicable-layers bounds->str wgs84->epsg3112]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112]]
             [debux.cs.core :refer-macros [dbg]]
             [ajax.core :as ajax]))
 
@@ -15,7 +15,7 @@
   (let [active-layers (->> db :map :active-layers (remove #(#{:bathymetry} (:category %))))
         by-server     (group-by :server_url active-layers)
         ;; Note, top layer, last in the list, must be first in our search string:
-        layers->str   #(->> % (map :layer_name) reverse (string/join ","))
+        layers->str   #(->> % (map layer-name) reverse (string/join ","))
         request-id    (gensym)]
     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
     {:http-xhrio (for [[server-url active-layers] by-server

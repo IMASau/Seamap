@@ -39,6 +39,13 @@
   ;; because they'll be visible underneath:
   (into {} (map vector [:habitat :bathymetry :imagery :third-party :boundaries] (range))))
 
+(defn layer-name
+  "Returns the most specific layer name; ie either detail_layer if
+  defined, or layer_name otherwise"
+  [layer]
+  (or (:detail_layer layer)
+      (:layer_name layer)))
+
 (defn sort-layers
   "Return layers in an order suitable for presentation (essentially,
   bathymetry at the bottom, third-party on top, and habitat layers by
