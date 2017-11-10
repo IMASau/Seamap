@@ -312,7 +312,8 @@
             :put-hash (encode-state db)}
            ;; Also reset displayed layers, if we're turning auto-mode back on:
            (when (= type :map.layer-logic/automatic)
-             {:dispatch [:map/initialise-display]}))))
+             {:dispatch-n [[:map/initialise-display]
+                           [:map/popup-closed]]}))))
 
 (defn map-view-updated [{:keys [db]} [_ {:keys [zoom center bounds]}]]
   {:db       (-> db
