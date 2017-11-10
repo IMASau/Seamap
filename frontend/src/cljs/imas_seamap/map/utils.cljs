@@ -46,6 +46,17 @@
   (or (:detail_layer layer)
       (:layer_name layer)))
 
+(defn region-stats-habitat-layer
+  "Encapsulate the logic for identifying the region-stats selected
+  habitat layer.  This is the one that has been selected (provided it
+  is still active), or if there is only a single habitat layer then
+  assume that one."
+  [{:keys [region-stats] :as db}]
+  (let [habitat-layers (filter #(= :habitat (:category %)) (get-in db [:map :active-layers]))]
+    (cond
+      (= 1 (count habitat-layers)) (first habitat-layers)
+      (some #{(:habitat-layer region-stats)} habitat-layers) (:habitat-layer region-stats))))
+
 (defn sort-layers
   "Return layers in an order suitable for presentation (essentially,
   bathymetry at the bottom, third-party on top, and habitat layers by

@@ -6,7 +6,7 @@
             [clojure.zip :as zip]
             [re-frame.core :as re-frame]
             [imas-seamap.utils :refer [encode-state names->active-layers]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112]]
             [debux.cs.core :refer-macros [dbg]]
             [ajax.core :as ajax]))
 
@@ -59,7 +59,7 @@
 
 (defn get-habitat-region-statistics [{:keys [db] :as ctx} [_ props point]]
   (let [boundary   (->> db :map :active-layers (filter #(= :boundaries (:category %))) first :id)
-        habitat    (-> db :region-stats :habitat-layer :id)
+        habitat    (region-stats-habitat-layer db)
         [x y]      (wgs84->epsg3112 ((juxt :lng :lat) point))
         request-id (gensym)
         priority   0]
@@ -67,7 +67,7 @@
       {:http-xhrio {:method          :get
                     :uri             (get-in db [:config :region-stats-url])
                     :params          {:boundary boundary
-                                      :habitat  habitat
+                                      :habitat  (:id habitat)
                                       :x        x
                                       :y        y}
                     :response-format (ajax/text-response-format)

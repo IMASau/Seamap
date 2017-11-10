@@ -1,6 +1,6 @@
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
-            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers]]
+            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer]]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
@@ -49,13 +49,10 @@
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
    :region     (get-in db [:map :controls :download :bbox])})
 
-(defn region-stats [{:keys [region-stats] :as db} _]
+(defn region-stats [db _]
   ;; The selected habitat layer for region-stats, providing it is
   ;; active; default selection if there's a single habitat layer:
-  (let [habitat-layers (filter #(= :habitat (:category %)) (get-in db [:map :active-layers]))]
-    (cond
-      (= 1 (count habitat-layers)) {:habitat-layer (first habitat-layers)}
-      (some #{(:habitat-layer region-stats)} habitat-layers) region-stats)))
+  {:habitat-layer (region-stats-habitat-layer db)})
 
 (defn map-layer-priorities [db _]
   (get-in db [:map :priorities]))
@@ -84,7 +81,7 @@
   [db _]
   (let [region-stats?                  (= "tab-management" (get-in db [:display :sidebar :selected]))
         {:keys [lng lat] :as location} (get-in db [:feature :location])
-        habitat-layer                  (get-in db [:region-stats :habitat-layer])
+        habitat-layer                  (region-stats-habitat-layer db)
         boundary-layer                 (->> db :map :active-layers (filter #(= :boundaries (:category %))) first)
         info-layer                     (get-in db [:display :info-card :layer])]
     (cond
