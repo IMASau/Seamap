@@ -136,14 +136,20 @@
         layer-priorities                                    @(re-frame/subscribe [:map.layers/priorities])
         layer-params                                        @(re-frame/subscribe [:map.layers/params])
         logic-type                                          @(re-frame/subscribe [:map.layers/logic])
-        base-layer-aodn                                     [wms-layer {:url "http://geoserver-static.aodn.org.au/geoserver/baselayers/wms"
-                                                                        :layers "default_bathy"}]
-        base-layer-terrestris                               [wms-layer {:url "http://ows.terrestris.de/osm/service"
-                                                                        :layers "OSM-WMS"}]
-        base-layer-osmwms                                   [wms-layer {:url "http://129.206.228.72/cached/osm"
-                                                                        :layers "osm_auto:all"}]
-        base-layer-osm                                      [tile-layer {:url         "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-                                                                         :attribution "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"}]]
+        ;; base-layer-terrestris                               [wms-layer {:url "http://ows.terrestris.de/osm/service" :layers "OSM-WMS"}]
+        base-layer-eoc                                      [tile-layer {:url (str "http://tiles.geoservice.dlr.de/service/wmts?"
+                                                                                   "Service=WMTS&Request=GetTile&"
+                                                                                   "Version=1.0.0&Format=image/png&"
+                                                                                   "layer=eoc:basemap&tilematrixset=EPSG:4326&"
+                                                                                   "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")
+                                                                         :attribution (str "Base Data &copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors "
+                                                                                           "| Rendering &copy; <a href=\"http://www.dlr.de/eoc/\">DLR/EOC</a>")}]
+        base-layer-eoc-overlay                              [tile-layer {:url (str "http://tiles.geoservice.dlr.de/service/wmts?"
+                                                                                   "Service=WMTS&Request=GetTile&"
+                                                                                   "Version=1.0.0&Format=image/png&"
+                                                                                   "layer=eoc:liteoverlay&tilematrixset=EPSG:4326&"
+                                                                                   "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")}]
+        ]
     [:div.map-wrapper
      sidebar
      [download-component download-info]
@@ -163,7 +169,9 @@
                     :on-popupclose on-popup-closed}
                    (when (seq bounds) {:bounds (map->bounds bounds)}))
 
-      base-layer-terrestris
+      base-layer-eoc
+      base-layer-eoc-overlay
+
       ;; We enforce the layer ordering by an incrementing z-index (the
       ;; order of this list is otherwise ignored, as the underlying
       ;; React -> Leaflet translation just does add/removeLayer, which
