@@ -3,7 +3,7 @@
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [select-values] :refer-macros [handler-dispatch]]
-            [imas-seamap.map.utils :refer [sort-layers bounds->geojson type->str]]
+            [imas-seamap.map.utils :refer [sort-layers bounds->geojson download-type->str]]
             [oops.core :refer [ocall oget gget]]
             [debux.cs.core :refer-macros [dbg]]))
 
@@ -97,7 +97,7 @@
     (re-frame/dispatch [:map.layer/load-finished layer])))
 
 (defn download-component [{:keys [display-link link bbox download-type] :as download-info}]
-  (let [type-str (type->str download-type)]
+  (let [type-str (download-type->str download-type)]
     [b/dialogue {:is-open   display-link
                  :title     (str "Download " type-str)
                  :icon-name "import"

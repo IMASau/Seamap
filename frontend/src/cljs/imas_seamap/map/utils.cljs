@@ -117,7 +117,7 @@
                                  :map.layer.download/shp     :wfs
                                  :map.layer.download/geotiff :wms})
 
-(defn type->str [type-key]
+(defn download-type->str [type-key]
   (get {:map.layer.download/csv     "CSV"
         :map.layer.download/shp     "Shapefile"
         :map.layer.download/geotiff "GeoTIFF"}
