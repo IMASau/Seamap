@@ -1,6 +1,6 @@
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
-            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers wgs84->epsg3112]]
+            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers]]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
@@ -92,25 +92,27 @@
       ;; * tab is "management", and
       ;; * we have a selected habitat layer, and
       ;; * there's a mouse-click
-      ;; Then add a CQL filter for that click-location, and a translucency for /other/ habitat layers
+      ;; Then add a filter for that click-location, and a translucency for /other/ habitat layers
+      ;; (Note, regular FILTER so we can specify a CRS and just use 4326; we have both 3112 and 4326 boundaries)
       (and region-stats? location habitat-layer boundary-layer)
       (fn [layer]
-        (let [click-pt (wgs84->epsg3112 [lng lat])]
-          (cond
-            (= layer boundary-layer) {:CQL_FILTER (str "CONTAINS(geom,POINT("
-                                                       (string/join " " click-pt)
-                                                       "))")}
-            (= layer habitat-layer)  nil
-            :default                 {:opacity 0.1})))
+        (cond
+          (= layer boundary-layer) {:FILTER (str "<Filter xmlns=\"http://www.opengis.net/ogc\" xmlns:gml=\"http://www.opengis.net/gml\">"
+                                                 "<Contains><PropertyName>geom</PropertyName>"
+                                                 "<gml:Point srsName=\"EPSG:4326\"><gml:coordinates>"
+                                                 lng "," lat
+                                                 "</gml:coordinates></gml:Point></Contains></Filter>")}
+          (= layer habitat-layer)  nil
+          :default                 {:opacity 0.1}))
 
       ;; Displaying info-card for a layer?  Fade-out the others (note
-      ;; need to ensure we don't touch the CQL_FILTER if it's a
-      ;; boundary layer, or we'll trigger layer-load events):
+      ;; need to ensure we don't touch the FILTER if it's a boundary
+      ;; layer, or we'll trigger layer-load events):
       info-layer
       (fn [layer]
         (cond
           (= layer info-layer)              nil
-          (= :boundaries (:category layer)) {:CQL_FILTER "INCLUDE" :opacity 0.1}
+          (= :boundaries (:category layer)) {:FILTER "" :opacity 0.1}
           :default                          {:opacity 0.1}))
 
       ;; Everything else; reset the CQL filter for boundaries,
@@ -118,7 +120,7 @@
       :default
       (fn [layer]
         (when (= :boundaries (:category layer))
-          {:CQL_FILTER "INCLUDE"})))))
+          {:FILTER ""})))))
 
 (defn organisations
   "Sub to access organisations; overloaded to return a single org
