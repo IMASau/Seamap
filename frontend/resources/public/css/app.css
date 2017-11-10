@@ -485,3 +485,13 @@ rect#background {
     content: "";
     font-family: "Icons20";
 }
+
+/* sidebar tweaks */
+.sidebar.collapsed {
+    box-sizing: content-box;
+}
+@media (min-width: 768px) {
+    .sidebar-left.collapsed~.sidebar-map .leaflet-left {
+        left: 55px;
+    }
+}
