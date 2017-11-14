@@ -147,7 +147,7 @@
         base-layer-eoc-overlay                              [tile-layer {:url (str "http://tiles.geoservice.dlr.de/service/wmts?"
                                                                                    "Service=WMTS&Request=GetTile&"
                                                                                    "Version=1.0.0&Format=image/png&"
-                                                                                   "layer=eoc:liteoverlay&tilematrixset=EPSG:4326&"
+                                                                                   "layer=eoc:baseoverlay&tilematrixset=EPSG:4326&"
                                                                                    "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")}]
         ]
     [:div.map-wrapper
