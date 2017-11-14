@@ -276,7 +276,9 @@
        [:h1 {:on-click (handler-fn (swap! expanded not))}
         [:span.pt-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")}]
         (str title " (" (count layers) ")")]
-       [b/collapse {:is-open @expanded :className "height-managed"}
+       [b/collapse {:is-open               @expanded
+                    :keep-children-mounted true
+                    :className             "height-managed"}
         (when-let [extra-component (:extra-component props)]
           extra-component)
         [:div.height-managed.group-scrollable
