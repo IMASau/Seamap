@@ -570,7 +570,7 @@
       [management-layer-tab boundaries habitat-layer active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Third-Party"
                    :icon   (as-icon "more"
-                                    (str "Third-Party Layers (miscellaneous data — " (count third-party) ")"))
+                                    (str "Third-Party Layers (" (count third-party) ")"))
                    :id     "tab-thirdparty"}
       [thirdparty-layer-tab third-party active-layers loading-layers error-layers]]
      [sidebar-tab {:header "Settings"
