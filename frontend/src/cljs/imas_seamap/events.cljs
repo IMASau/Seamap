@@ -297,7 +297,8 @@
   (assoc-in db [:map :controls :transect] false))
 
 (defn transect-drawing-clear [db _]
-  (update-in db [:transect] merge {:query      nil
+  (update-in db [:transect] merge {:show?      false
+                                   :query      nil
                                    :habitat    nil
                                    :bathymetry nil}))
 
