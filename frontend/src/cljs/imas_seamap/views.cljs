@@ -471,7 +471,7 @@
                           :layer     layer
                           :disabled? (nil? region)
                           :bbox      region}]
-          [download-menu {:title "Download..."
+          [download-menu {:title "Download All..."
                           :layer layer}]])
        [b/button {:text       "Close"
                   :auto-focus true
