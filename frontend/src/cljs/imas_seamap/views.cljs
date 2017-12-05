@@ -104,14 +104,31 @@
     [:span.control.pt-icon-large.pt-icon-help.pt-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
 
-(defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading?] :as layer-state}]
-  [:div.layer-wrapper (when active? {:class-name "layer-active"})
-   [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
-    [:div (when (or loading? errors?) {:class "header-status-icons"})
-     (when (and active? loading?) [b/spinner {:class-name "pt-small layer-spinner"}])
-     (when (and active? errors?) [:span.layer-warning.pt-icon.pt-icon-small.pt-icon-warning-sign])]
-    [b/clipped-text {:ellipsize true :class-name "header-text"}
-     name]]])
+(defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
+  (let [legend-url (with-params server_url
+                     {:REQUEST "GetLegendGraphic"
+                      :LAYER layer_name
+                      :FORMAT "image/png"
+                      :TRANSPARENT true
+                      :SERVICE "WMS"
+                      :VERSION "1.1.1"})]
+    [:div.legend-wrapper
+     [:img {:src legend-url}]]))
+
+(defn catalogue-header [layer layer-state]
+  (let [show-legend (reagent/atom false)]
+    (fn [{:keys [name] :as layer} {:keys [active? errors? loading?] :as layer-state}]
+      [:div.layer-wrapper (when active? {:class-name "layer-active"
+                                         :on-click #(swap! show-legend not)})
+       [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
+        [:div (when (or loading? errors?) {:class "header-status-icons"})
+         (when (and active? loading?) [b/spinner {:class-name "pt-small layer-spinner"}])
+         (when (and active? errors?) [:span.layer-warning.pt-icon.pt-icon-small.pt-icon-warning-sign])]
+        [b/clipped-text {:ellipsize true :class-name "header-text"}
+         name]
+        [b/collapse {:is-open (and active? @show-legend)
+                     :className "layer-legend"}
+         [legend-display layer]]]])))
 
 (defn catalogue-controls [layer {:keys [active? errors? loading?] :as layer-state}]
   [:div.catalogue-layer-controls (when active? {:class-name "layer-active"})
@@ -147,7 +164,8 @@
                       (let [layer-state {:active?  (some #{layer} active-layers)
                                          :loading? (loading-fn layer)
                                          :errors?  (error-fn layer)}]
-                       {:id (str id-str "-" i)
+                        {:id (str id-str "-" i)
+                         :className (when (:active? layer-state) "layer-active")
                         :label (reagent/as-element [catalogue-header layer layer-state])
                         ;; A hack, but if we just add the layer it gets
                         ;; warped in the js->clj conversion
@@ -165,18 +183,17 @@
         on-close (fn [node]
                    (let [node (js->clj node :keywordize-keys true)]
                      (swap! expanded-states assoc (:id node) false)))
-        on-dblclick (fn [node]
-                      (let [{:keys [childNodes do-layer-toggle id] :as node} (js->clj node :keywordize-keys true)]
-                        (if (seq childNodes )
-                          ;; If we have children, toggle expanded state, else add to map
-                          (swap! expanded-states update id not)
-                          (do-layer-toggle))))]
+        on-click (fn [node]
+                   (let [{:keys [childNodes do-layer-toggle id] :as node} (js->clj node :keywordize-keys true)]
+                     (when (seq childNodes )
+                       ;; If we have children, toggle expanded state, else add to map
+                       (swap! expanded-states update id not))))]
     (fn [layers ordering id layer-props]
       [:div.tab-body.layer-controls {:id id}
        [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props)
                 :onNodeCollapse on-close
                 :onNodeExpand on-open
-                :onNodeDoubleClick on-dblclick}]])))
+                :onNodeClick on-click}]])))
 
 (defn layer-catalogue [layers layer-props]
   [:div.height-managed
@@ -240,16 +257,6 @@
                                 :on-change   (handler-dispatch
                                                [:map.layers/filter (oget event :target :value)])}]]))
 
-(defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
-  (let [legend-url (with-params server_url
-                     {:REQUEST "GetLegendGraphic"
-                      :LAYER layer_name
-                      :FORMAT "image/png"
-                      :TRANSPARENT true
-                      :SERVICE "WMS"
-                      :VERSION "1.1.1"})]
-    [:div.legend-wrapper
-     [:img {:src legend-url}]]))
 
 (defn layer-card [layer-spec other-props]
   (let [show-legend (reagent/atom false)]

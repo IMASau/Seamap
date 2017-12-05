@@ -223,6 +223,13 @@ footer {
 .pt-tree-node-content-2 {
     padding-left: 25px;
 }
+.layer-active .pt-tree-node-content {
+    align-items: normal;
+    height: auto;
+}
+.pt-tree-node-label > .layer-wrapper.layer-active {
+    padding-top: 5px;
+}
 .catalogue-layer-controls > span {
     padding-left: 2px;
 }
