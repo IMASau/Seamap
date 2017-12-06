@@ -8,7 +8,9 @@
             [imas-seamap.utils :refer [encode-state names->active-layers]]
             [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112]]
             [debux.cs.core :refer-macros [dbg]]
-            [ajax.core :as ajax]))
+            [ajax.core :as ajax]
+            [imas-seamap.blueprint :as b]
+            [reagent.core :as r]))
 
 
 (defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y] :as point}]]
@@ -336,9 +338,15 @@
 (defn map-clear-selection [db _]
   (update-in db [:map :controls :download] dissoc :bbox))
 
-(defn map-finalise-selection [db [_ bbox]]
-  (update-in db [:map :controls :download] merge {:selecting false
-                                                  :bbox      bbox}))
+(defn map-finalise-selection [{:keys [db]} [_ bbox]]
+  {:db (update-in db [:map :controls :download] merge {:selecting false
+                                                       :bbox      bbox})
+   :dispatch [:info/show-message (r/as-element
+                                  [:div "Open layer info ("
+                                   [b/icon {:icon-name "info-sign" :icon-size 14}]
+                                   ") to download selection"])
+              b/*intent-none*]})
+
 (defn map-toggle-selecting [{:keys [db] :as ctx} _]
   {:dispatch
    (cond
