@@ -155,18 +155,19 @@
      [download-component download-info]
 
      [leaflet-map (merge
-                   {:id            "map"
-                    :class-name    "sidebar-map"
-                    :crs           (gget "L.CRS.EPSG4326")
-                    :use-fly-to    true
-                    :center        center
-                    :zoom          zoom
-                    :keyboard      false ; handled externally
-                    :on-zoomend    on-map-view-changed
-                    :on-moveend    on-map-view-changed
-                    :when-ready    on-map-view-changed
-                    :on-click      on-map-clicked
-                    :on-popupclose on-popup-closed}
+                   {:id                   "map"
+                    :class-name           "sidebar-map"
+                    :crs                  (gget "L.CRS.EPSG4326")
+                    :use-fly-to           true
+                    :center               center
+                    :zoom                 zoom
+                    :keyboard             false ; handled externally
+                    :on-zoomend           on-map-view-changed
+                    :on-moveend           on-map-view-changed
+                    :when-ready           on-map-view-changed
+                    :on-click             on-map-clicked
+                    :close-popup-on-click false ; We'll handle that ourselves
+                    :on-popupclose        on-popup-closed}
                    (when (seq bounds) {:bounds (map->bounds bounds)}))
 
       base-layer-eoc

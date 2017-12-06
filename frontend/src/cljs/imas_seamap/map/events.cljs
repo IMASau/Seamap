@@ -86,15 +86,18 @@
   we're in calculating-region-statistics mode we want to issue a
   different request, and it's cleaner to handle those separately."
   [{:keys [db] :as ctx} [_ props point :as event-v]]
-  ;; Only invoke if we aren't drawing a transect (ie, different click):
-  (when-not (or (get-in db [:map :controls :transect])
-                (get-in db [:map :controls :download :selecting])
-                ;; (also ignore click if there's no active layers to click on)
-                (empty? (get-in db [:map :active-layers])))
-    (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)]
-      (if (= "tab-management" (get-in db [:display :sidebar :selected]))
-        (get-habitat-region-statistics ctx event-v)
-        (get-feature-info ctx event-v)))))
+  (cond (:feature db) ; If we're clicking the map but there's a popup open, just close it
+        {:dispatch [:map/popup-closed]}
+
+        ;; Only invoke if we aren't drawing a transect (ie, different click):
+        (not (or (get-in db [:map :controls :transect])
+                 (get-in db [:map :controls :download :selecting])
+                 ;; (also ignore click if there's no active layers to click on)
+                 (empty? (get-in db [:map :active-layers]))))
+        (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)]
+          (if (= "tab-management" (get-in db [:display :sidebar :selected]))
+            (get-habitat-region-statistics ctx event-v)
+            (get-feature-info ctx event-v)))))
 
 (defn got-feature-info [db [_ request-id priority point response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
