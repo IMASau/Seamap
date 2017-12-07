@@ -84,7 +84,7 @@ class Layer(models.Model):
     server_url = models.URLField(max_length = 200)
     layer_name = models.CharField(max_length = 200)
     detail_layer = models.CharField(max_length = 200, blank=True, null=True)
-    table_name = models.CharField(max_length = 200)
+    table_name = models.CharField(max_length = 200, blank=True, null=True)
     category = models.ForeignKey(Category)
     data_classification = models.ForeignKey(DataClassification, blank=True, null=True)
     organisation = models.ForeignKey(Organisation, blank=True, null=True)
