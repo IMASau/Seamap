@@ -15,8 +15,8 @@
    (ocall *epsg-3112* :forward (clj->js pt))))
 
 (defn bounds->str
-  ([bounds] (bounds->str bounds 4326))
-  ([{:keys [north south east west] :as bounds} epsg-code]
+  ([bounds] (bounds->str 4326 bounds))
+  ([epsg-code {:keys [north south east west] :as bounds}]
    (assert (integer? epsg-code))
    (string/join "," [south west north east (str "urn:ogc:def:crs:EPSG:" epsg-code)])))
 
