@@ -1,6 +1,7 @@
 (ns imas-seamap.map.utils
   (:require [cemerick.url :as url]
             [clojure.string :as string]
+            [imas-seamap.db :refer [api-url-base]]
             [oops.core :refer [gcall ocall]]
             [debux.cs.core :refer-macros [dbg]]))
 
@@ -133,7 +134,7 @@
                                  :map.layer.download/geotiff "image/geotiff"})
 
 (def ^:private type->servertype {:map.layer.download/csv     :wfs
-                                 :map.layer.download/shp     :wfs
+                                 :map.layer.download/shp     :api
                                  :map.layer.download/geotiff :wms})
 
 (defn download-type->str [type-key]
@@ -143,6 +144,21 @@
        type-key))
 
 (defmulti download-link (fn [layer bounds download-type] (type->servertype download-type)))
+
+(defmethod download-link :api [{:keys [id] :as layer} bounds download-type]
+  ;; At the moment we still use geoserver for CSV downloads (all), and
+  ;; shp downloads of the entire data, ie when bounds arg is nil.
+  (if-not bounds
+    ((get-method download-link :wfs) layer bounds download-type)
+    ;; Bugger, we need a way to get the base URL... might have to
+    ;; scrap that since we don't have the db available.
+    (let [base-url (str api-url-base "habitat/subset/")
+          bounds-arg (->> bounds (bounds->projected wgs84->epsg3112) (bounds->str 3112))]
+      (-> (url/url base-url)
+          (assoc :query {:layer_id id
+                         :bounds   bounds-arg
+                         :format   (type->format-str :map.layer.download/shp)})
+          str))))
 
 (defmethod download-link :wfs [{:keys [server_url detail_layer layer_name bounding_box] :as layer}
                                bounds
