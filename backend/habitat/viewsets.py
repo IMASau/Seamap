@@ -1,6 +1,7 @@
 from catalogue.models import Layer
 from collections import defaultdict
 from decimal import Decimal, getcontext
+import numbers
 import zipfile
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import connections, ProgrammingError
@@ -78,17 +79,27 @@ class ShapefileRenderer(BaseRenderer):
     def render(self, data, media_type=None, renderer_context=None):
         # Set up shapefile writer:
         sw = shapefile.Writer(shapeType=shapefile.POLYGON)
-        sw.field("habitat", "C")
-        sw.field("area", "N", decimal=30)
-        sw.field("percentage", "N", decimal=30)
+        fields = data['fields']
+        # Define shp-table column structure from field metadata:
+        geom_idx = None
+        for idx, field in enumerate(fields):
+            fname,ftype = field[:2]
+            fname = str(fname)  # it's unicode out of the box, with breaks pyshp / struct.pack
+            if issubclass(ftype, (str, unicode)):
+                sw.field(str(fname), "C")
+            elif issubclass(ftype, numbers.Number):
+                sw.field(str(fname), "N", decimal=30)
+            else:
+                geom_idx = idx
 
         for row in data['data']:
-            habitat,bgeom,area,pctg = row
-            geom = GEOSGeometry(buffer(row['geom']))
+            row = list(row)
+            geom = row.pop(geom_idx)
+            geom = GEOSGeometry(buffer(geom))
             # For some reason MSSQL is giving me the occasional (2-point) LineString; filter those:
             geoms = (g for g in geom if g.geom_type == 'Polygon') if geom.num_geom > 1 else [geom]
             for g in geoms:
-                sw.record(row['habitat'], row['area'], row['pctg'])
+                sw.record(*row)
                 sw.poly(parts=g.coords)
             # coords = geom.coords
             # pyshp doesn't natively handle multipolygons
@@ -106,7 +117,7 @@ class ShapefileRenderer(BaseRenderer):
         sw.saveDbf(dbf)
 
         zipstream = StringIO()
-        filename = data['boundary_name']
+        filename = data['table_name']
         with zipfile.ZipFile(zipstream, 'w') as responsezip:
             responsezip.writestr(filename + '.shp', shp.getvalue())
             responsezip.writestr(filename + '.shx', shx.getvalue())
@@ -241,6 +252,7 @@ def regions(request):
 
             if is_download:
                 return Response({'data': results,
+                                 'fields': cursor.description,
                                  'boundary_name': boundary_name},
                                 content_type='application/zip',
                                 headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
