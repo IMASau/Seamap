@@ -117,7 +117,7 @@ class ShapefileRenderer(BaseRenderer):
         sw.saveDbf(dbf)
 
         zipstream = StringIO()
-        filename = data['table_name']
+        filename = data['file_name']
         with zipfile.ZipFile(zipstream, 'w') as responsezip:
             responsezip.writestr(filename + '.shp', shp.getvalue())
             responsezip.writestr(filename + '.shx', shx.getvalue())
@@ -253,7 +253,7 @@ def regions(request):
             if is_download:
                 return Response({'data': results,
                                  'fields': cursor.description,
-                                 'boundary_name': boundary_name},
+                                 'file_name': boundary_name},
                                 content_type='application/zip',
                                 headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
 
