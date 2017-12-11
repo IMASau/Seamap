@@ -65,7 +65,26 @@ where region = %s
   and habitat_layer_id = %s;
 """
 
+# Another hacky two-step construction: we can pass the coordinates in
+# as parameters, but need to string-splice in both the table name, and
+# the list of of column names after introspection (technically we
+# don't need to if we just assume the geometry column is always
+# "geom", but let's not leave that hole open just to save a few
+# minutes)
+SQL_GET_SUBSET = """
+declare @bbox geometry = geometry::Point(%s, %s, 3112).STUnion(geometry::Point(%s, %s, 3112)).STEnvelope();
+select {}.STIntersection(@bbox).STAsBinary() geom, {} from {} where {}.STIntersects(@bbox) = 1;
+"""
+
 PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",DATUM["D_GDA_1994",SPHEROID["GRS_1980",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Lambert_Conformal_Conic"],PARAMETER["standard_parallel_1",-18],PARAMETER["standard_parallel_2",-36],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",134],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Meter",1]]"""
+
+
+def parse_bounds(bounds_str):
+    # Note, we want points in x,y order but a boundary string is in y,x order:
+    parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
+    [y0,x0,y1,x1] = map(float, parts)
+    return [x0,y0,x1,y1]
+
 
 def D(number):
     "Return the (probably) string, quantized to an acceptable number of decimal places"
@@ -271,3 +290,44 @@ def regions(request):
                          'x': x,
                          'y': y},
                         template_name='habitat/regions.html')
+
+
+# .../subset?bounds=1,1,11,...&layer_id=layerid
+# boundary is the boundary-layer name, eg seamap:SeamapAus_BOUNDARIES_CMR2014
+# habitat is the habitat-layer name, eg seamap:FINALPRODUCT_SeamapAus
+# x and y (lon + lat) are in espg3112
+@list_route()
+@api_view()
+@renderer_classes((ShapefileRenderer,))
+def subset(request):
+    for required in ['bounds', 'layer_id']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+
+    bounds_str = request.query_params.get('bounds')
+    layer_id = request.query_params.get('layer_id')
+
+    table_name = Layer.objects.get(pk=layer_id).table_name
+
+    geom_col = None
+    colnames = []
+    field_metadata = []
+    with connections['transects'].cursor() as cursor:
+        columns = cursor.columns(table=table_name)
+        for row in cursor.fetchall():
+            colname = row.column_name
+            typename = row.type_name
+            if typename == 'geometry':
+                geom_col = colname
+            else:
+                colnames.append(colname)
+
+        subset_sql = SQL_GET_SUBSET.format(geom_col, ','.join(colnames), table_name, geom_col)
+        cursor.execute(subset_sql, parse_bounds(bounds_str))
+        data = cursor.fetchall()
+        field_metadata = cursor.description
+
+    return Response({'data': data, 'file_name': table_name, 'fields': field_metadata},
+                    content_type='application/zip',
+                    headers={'Content-Disposition':
+                             'attachment; filename="{}.zip"'.format(table_name)})

@@ -157,7 +157,7 @@
       (-> (url/url base-url)
           (assoc :query {:layer_id id
                          :bounds   bounds-arg
-                         :format   (type->format-str :map.layer.download/shp)})
+                         :format   "raw"})
           str))))
 
 (defmethod download-link :wfs [{:keys [server_url detail_layer layer_name bounding_box] :as layer}
