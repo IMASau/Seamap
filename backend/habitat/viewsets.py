@@ -57,7 +57,7 @@ where boundary_layer = %s
 """
 
 SQL_GET_STATS = """
-select habitat, {} area / 1000000, 100 * area / %s as percentage
+select habitat, {} area / 1000000 as area, 100 * area / %s as percentage
 from SeamapAus_Habitat_By_Region
 where region = %s
   and boundary_layer_id = %s
@@ -221,15 +221,6 @@ def regions(request):
     # need them for popup display
     is_download = request.accepted_renderer.format == 'raw'
 
-    if is_download:
-        def to_dict(row):
-            habitat,geom,area,pctg = row
-            return {'habitat':habitat, 'geom':geom, 'area':area, 'pctg':pctg}
-    else:
-        def to_dict(row):
-            habitat,area,pctg = row
-            return {'habitat':habitat, 'area':area, 'pctg':pctg}
-
     # If we don't find the boundary layer it's probably shenanigans,
     # just let the default exception handling deal with it:
     boundary_layer = Layer.objects.annotate(layer=Coalesce('detail_layer', 'layer_name')).get(pk=boundary).layer
@@ -246,7 +237,7 @@ def regions(request):
 
             cursor.execute(SQL_GET_STATS.format('geom.STAsBinary(),' if is_download else ''),
                            [boundary_area, boundary_name, boundary, habitat])
-            results = map(to_dict, cursor)
+            results = cursor.fetchall()
 
             if is_download:
                 return Response({'data': results,
@@ -256,7 +247,7 @@ def regions(request):
 
             # HTML only; add a derived row (doing it in SQL was getting complicated and slow):
             downloadable = len(results)
-            area = boundary_area / 1000000 - float( sum(row['area'] or 0 for row in results) )
+            area = boundary_area / 1000000 - float( sum(row.area or 0 for row in results) )
             pctg = 100 * area / (boundary_area / 1000000)
             results.append({'habitat': 'UNMAPPED', 'area': area, 'pctg': pctg})
         return Response({'data': results,
