@@ -16,7 +16,7 @@
    (ocall *epsg-3112* :forward (clj->js pt))))
 
 (defn bounds->projected [project-fn {:keys [north south east west] :as bounds}]
-  (let [[x0 y0] (dbg (wgs84->epsg3112 (dbg [west south])))
+  (let [[x0 y0] (wgs84->epsg3112 [west south])
         [x1 y1] (wgs84->epsg3112 [east north])]
     {:west  x0
      :south y0
