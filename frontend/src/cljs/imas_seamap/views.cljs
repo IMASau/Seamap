@@ -118,17 +118,21 @@
 (defn catalogue-header [layer layer-state]
   (let [show-legend (reagent/atom false)]
     (fn [{:keys [name] :as layer} {:keys [active? errors? loading?] :as layer-state}]
-      [:div.layer-wrapper (when active? {:class-name "layer-active"
-                                         :on-click #(swap! show-legend not)})
-       [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
-        [:div (when (or loading? errors?) {:class "header-status-icons"})
-         (when (and active? loading?) [b/spinner {:class-name "pt-small layer-spinner"}])
-         (when (and active? errors?) [:span.layer-warning.pt-icon.pt-icon-small.pt-icon-warning-sign])]
-        [b/clipped-text {:ellipsize true :class-name "header-text"}
-         name]
-        [b/collapse {:is-open (and active? @show-legend)
-                     :className "layer-legend"}
-         [legend-display layer]]]])))
+      [b/tooltip {:content (if @show-legend "Click to hide legend" "Click to show legend")
+                  :class-name "header-text"
+                  :position *RIGHT*
+                  :is-disabled (not active?)}
+       [:div.layer-wrapper (when active? {:class-name "layer-active"
+                                          :on-click #(swap! show-legend not)})
+        [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
+         [:div (when (or loading? errors?) {:class "header-status-icons"})
+          (when (and active? loading?) [b/spinner {:class-name "pt-small layer-spinner"}])
+          (when (and active? errors?) [:span.layer-warning.pt-icon.pt-icon-small.pt-icon-warning-sign])]
+         [b/clipped-text {:ellipsize true :class-name "header-text"}
+          name]
+         [b/collapse {:is-open (and active? @show-legend)
+                      :className "layer-legend"}
+          [legend-display layer]]]]])))
 
 (defn catalogue-controls [layer {:keys [active? errors? loading?] :as layer-state}]
   [:div.catalogue-layer-controls (when active? {:class-name "layer-active"})
@@ -258,21 +262,12 @@
                                                [:map.layers/filter (oget event :target :value)])}]]))
 
 
-(defn layer-card [layer-spec other-props]
-  (let [show-legend (reagent/atom false)]
-    (fn [{:keys [name] :as layer-spec} {:keys [active? loading? errors?] :as other-props}]
-      [:div.layer-wrapper {:on-click (handler-fn (when active? (swap! show-legend not)))}
-       [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "layer-active pt-interactive")}
-        [:div.header-row.height-static
-         [b/tooltip {:content (if @show-legend "Click to hide legend" "Click to show legend")
-                     :class-name "header-text"
-                     :position *RIGHT*
-                     :is-disabled (not active?)}
-          [catalogue-header layer-spec other-props]]
-         [catalogue-controls layer-spec other-props]]
-        [b/collapse {:is-open (and active? @show-legend)
-                     :className "layer-legend"}
-         [legend-display layer-spec]]]])))
+(defn layer-card [{:keys [name] :as layer-spec} {:keys [active? loading? errors?] :as other-props}]
+  [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
+   [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "layer-active pt-interactive")}
+    [:div.header-row.height-static
+     [catalogue-header layer-spec other-props]
+     [catalogue-controls layer-spec other-props]]]])
 
 (defn layer-group [{:keys [expanded] :or {:expanded false} :as props} layers active-layers loading-fn error-fn]
   (let [expanded (reagent/atom expanded)]
