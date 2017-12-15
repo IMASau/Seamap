@@ -1,3 +1,6 @@
+# Seamap: view and interact with Australian coastal habitat data
+# Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
+# Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from catalogue.models import Layer
 from collections import defaultdict
 from decimal import Decimal, getcontext

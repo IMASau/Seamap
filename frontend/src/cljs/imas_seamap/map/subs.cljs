@@ -1,3 +1,6 @@
+;;; Seamap: view and interact with Australian coastal habitat data
+;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
+;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
             [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer]]

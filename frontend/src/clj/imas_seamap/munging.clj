@@ -1,3 +1,6 @@
+;;; Seamap: view and interact with Australian coastal habitat data
+;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
+;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.munging
   "We need to automatically extract colours mapped against different
   SM_HAB_CLS values for the plot.  We do this by parsing the geoserver
