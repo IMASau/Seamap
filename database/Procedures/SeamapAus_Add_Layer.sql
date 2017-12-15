@@ -19,7 +19,7 @@ BEGIN
 	-- idempotent by deleting everything with that habitat-layer id
 	-- first... instead we will warn if it's already present.
     IF EXISTS(SELECT * FROM SeamapAus_Habitat_By_Region WHERE habitat_layer_id = @habitat_layer_id)
-        RAISERROR('Data already exists for that habitat layer', -1, -1);
+        THROW 65100, 'Data already exists for that habitat layer', 0;
 
     INSERT INTO SeamapAus_Habitat_By_Region (boundary_layer_id, habitat_layer_id, habitat, region, boundary_area, area, geom)
     SELECT boundary_layer_id, habitat_layer_id, habitat, region, boundary_area, sum(region_area) AS area, geometry::UnionAggregate(region_geom) AS geom--, sum(percentage) as percentage
