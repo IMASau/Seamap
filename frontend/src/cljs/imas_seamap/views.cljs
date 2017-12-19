@@ -384,7 +384,11 @@
       Griffith University, Deakin University, CSIRO, Geoscience
       Australia, Great Barrier Reef Marine Park Authority (GBRMPA),
       the National Environmental Science Program (NESP), and all State
-      Governments."]]]
+      Governments."]]
+
+      [:p "Please cite as Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
+       [:i "Seamap Australia - a national seafloor habitat classification scheme."]
+       " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]]
      [:div.pt-dialog-footer
       [:div.pt-dialog-footer-actions
        [b/button {:text       "Get Started!"
