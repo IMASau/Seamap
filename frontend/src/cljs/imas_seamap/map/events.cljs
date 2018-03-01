@@ -249,10 +249,10 @@
   (assert [(#{:left :right :up :down} direction)])
   (let [[x' y']                         [0.05 0.05]
         [horiz vert]                    (case direction
-                                          :left  [x'     0]
-                                          :right [(- x') 0]
-                                          :up    [0      (- y')]
-                                          :down  [0      y'])
+                                          :left  [(- x') 0]
+                                          :right [x'     0]
+                                          :up    [0      y']
+                                          :down  [0      (- y')])
         {:keys [north south east west]} (get-in db [:map :bounds])
         shift-centre                    (fn [[y x]]
                                           [(+ y (* vert  (- north south)))
