@@ -166,12 +166,12 @@
 (defmethod download-link :wfs [{:keys [server_url detail_layer layer_name bounding_box] :as layer}
                                bounds
                                download-type]
-  (-> (url/url (or detail_layer server_url))
+  (-> (url/url server_url)
       (assoc :query {:service      "wfs"
                      :version      "1.1.0"
                      :request      "GetFeature"
                      :outputFormat (type->format-str download-type)
-                     :typeName     layer_name
+                     :typeName     (or detail_layer layer_name)
                      :srsName      "EPSG:4326"
                      ;; (note, bbox could be param or layer extent):
                      :bbox         (bounds->str (or bounds bounding_box))})
@@ -184,7 +184,7 @@
   (let [{:keys [north south east west] :as bounds} (or bounds bounding_box)
         ratio (/ (- north south) (- east west))
         width 640]
-    (-> (url/url (or detail_layer server_url))
+    (-> (url/url server_url)
         (assoc :query {:service "wms"
                        :version "1.3.0"
                        :request "GetMap"
@@ -193,6 +193,6 @@
                        :format  (type->format-str download-type)
                        :width   width
                        :height  (int (* ratio width))
-                       :layers  layer_name})
+                       :layers  (or detail_layer layer_name)})
         str)))
 
