@@ -283,7 +283,7 @@ def regions(request):
             downloadable = len(results)
             area = boundary_area / 1000000 - float( sum(row.area or 0 for row in results) )
             pctg = 100 * area / (boundary_area / 1000000)
-            results.append({'habitat': 'UNMAPPED', 'area': area, 'pctg': pctg})
+            results.append({'habitat': 'UNMAPPED', 'area': area, 'percentage': pctg})
         return Response({'data': results,
                          'downloadable': downloadable,
                          'boundary': boundary,
