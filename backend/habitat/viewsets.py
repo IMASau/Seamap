@@ -118,11 +118,15 @@ class ShapefileRenderer(BaseRenderer):
             row = list(row)
             geom = row.pop(geom_idx)
             geom = GEOSGeometry(buffer(geom))
-            # For some reason MSSQL is giving me the occasional (2-point) LineString; filter those:
-            geoms = (g for g in geom if g.geom_type == 'Polygon') if geom.num_geom > 1 else [geom]
-            for g in geoms:
+            if geom.geom_type == 'Point':
                 sw.record(*row)
-                sw.poly(parts=g.coords)
+                sw.point(*geom.coords)
+            else:
+                # For some reason MSSQL is giving me the occasional (2-point) LineString; filter those:
+                geoms = (g for g in geom if g.geom_type == 'Polygon') if geom.num_geom > 1 else [geom]
+                for g in geoms:
+                    sw.record(*row)
+                    sw.poly(parts=g.coords)
             # coords = geom.coords
             # pyshp doesn't natively handle multipolygons
             # yet, so if we have one of those just flatten
