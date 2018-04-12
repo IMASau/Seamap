@@ -23,44 +23,45 @@
         layers->str   #(->> % (map layer-name) reverse (string/join ","))
         request-id    (gensym)]
     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
-    {:http-xhrio (for [[server-url active-layers] by-server
-                       :let [layers   (layers->str active-layers)
-                             priority (->> active-layers
-                                           (map :category)
-                                           (map {:imagery     0
-                                                 :habitat     1
-                                                 :third-party 2})
-                                           (apply min))]]
-                   (let [params {:REQUEST      "GetFeatureInfo"
-                                 :LAYERS       layers
-                                 :QUERY_layers layers
-                                 :WIDTH        (:x size)
-                                 :HEIGHT       (:y size)
-                                 :BBOX         (bounds->str bounds)
-                                 :X            x
-                                 :Y            y
-                                 :I            x
-                                 :J            y
-                                 :buffer       10 ; copying the AODN portal
-                                 :SRS          "EPSG:4326"
-                                 :CRS          "EPSG:4326"
-                                 :FORMAT       "text/html"
-                                 :INFO_format  "text/html"
-                                 :SERVICE      "WMS"
-                                 :VERSION      "1.3.0"}]
-                     {:method          :get
-                      :uri             server-url
-                      :params          params
-                      :response-format (ajax/text-response-format)
-                      :on-success      [:map/got-featureinfo request-id priority point]
-                      :on-failure      [:map/got-featureinfo-err request-id priority]}))
-     ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
-     :db         (assoc db :feature-query {:request-id        request-id
-                                           :response-remain   (count by-server)
-                                           :response-priority 99
-                                           :candidate         nil}
-                           :feature       {:status   :feature-info/waiting
-                                           :location point})}))
+    (when (seq active-layers)
+      {:http-xhrio (for [[server-url active-layers] by-server
+                         :let [layers   (layers->str active-layers)
+                               priority (->> active-layers
+                                             (map :category)
+                                             (map {:imagery     0
+                                                   :habitat     1
+                                                   :third-party 2})
+                                             (apply min))]]
+                     (let [params {:REQUEST      "GetFeatureInfo"
+                                   :LAYERS       layers
+                                   :QUERY_layers layers
+                                   :WIDTH        (:x size)
+                                   :HEIGHT       (:y size)
+                                   :BBOX         (bounds->str bounds)
+                                   :X            x
+                                   :Y            y
+                                   :I            x
+                                   :J            y
+                                   :buffer       10 ; copying the AODN portal
+                                   :SRS          "EPSG:4326"
+                                   :CRS          "EPSG:4326"
+                                   :FORMAT       "text/html"
+                                   :INFO_format  "text/html"
+                                   :SERVICE      "WMS"
+                                   :VERSION      "1.3.0"}]
+                       {:method          :get
+                        :uri             server-url
+                        :params          params
+                        :response-format (ajax/text-response-format)
+                        :on-success      [:map/got-featureinfo request-id priority point]
+                        :on-failure      [:map/got-featureinfo-err request-id priority]}))
+       ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
+       :db         (assoc db :feature-query {:request-id        request-id
+                                             :response-remain   (count by-server)
+                                             :response-priority 99
+                                             :candidate         nil}
+                          :feature       {:status   :feature-info/waiting
+                                          :location point})})))
 
 (defn get-habitat-region-statistics [{:keys [db] :as ctx} [_ props point]]
   (let [boundary   (->> db :map :active-layers (filter #(= :boundaries (:category %))) first :id)
