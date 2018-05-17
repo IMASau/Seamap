@@ -438,6 +438,12 @@ rect#background {
     vertical-align: unset;
 }
 
+.metadata-record {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
 .metadata-record div {
     margin-bottom: 15px;
 }
