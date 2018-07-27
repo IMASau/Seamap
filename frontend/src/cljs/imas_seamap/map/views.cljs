@@ -140,14 +140,14 @@
         layer-params                                        @(re-frame/subscribe [:map.layers/params])
         logic-type                                          @(re-frame/subscribe [:map.layers/logic])
         ;; base-layer-terrestris                               [wms-layer {:url "http://ows.terrestris.de/osm/service" :layers "OSM-WMS"}]
-        base-layer-eoc                                      [tile-layer {:url (str "http://tiles.geoservice.dlr.de/service/wmts?"
+        base-layer-eoc                                      [tile-layer {:url (str "https://tiles.geoservice.dlr.de/service/wmts?"
                                                                                    "Service=WMTS&Request=GetTile&"
                                                                                    "Version=1.0.0&Format=image/png&"
                                                                                    "layer=eoc:basemap&tilematrixset=EPSG:4326&"
                                                                                    "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")
                                                                          :attribution (str "Base Data &copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors "
                                                                                            "| Rendering &copy; <a href=\"http://www.dlr.de/eoc/\">DLR/EOC</a>")}]
-        base-layer-eoc-overlay                              [tile-layer {:url (str "http://tiles.geoservice.dlr.de/service/wmts?"
+        base-layer-eoc-overlay                              [tile-layer {:url (str "https://tiles.geoservice.dlr.de/service/wmts?"
                                                                                    "Service=WMTS&Request=GetTile&"
                                                                                    "Version=1.0.0&Format=image/png&"
                                                                                    "layer=eoc:baseoverlay&tilematrixset=EPSG:4326&"
