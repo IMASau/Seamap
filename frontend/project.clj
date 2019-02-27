@@ -8,8 +8,8 @@
                  [org.clojure/data.xml "0.2.0-alpha2"]
                  [org.clojure/data.zip "0.1.2"]
                  [org.clojure/test.check "0.9.0"]
-                 [figwheel-sidecar "0.5.10" :exclusions [ring/ring-core]]
-                 [com.cemerick/piggieback "0.2.1"]
+                 [figwheel-sidecar "0.5.18" :exclusions [ring/ring-core]]
+                 [cider/piggieback "0.4.0"]
                  [com.cemerick/url "0.1.1"]
                  [binaryage/oops "0.5.5"]
                  [reagent "0.6.0"]
@@ -37,7 +37,7 @@
              :nrepl-port       7892
              :ring-handler     imas-seamap.dev-handlers/app
              :css-dirs         ["resources/public/css"]}
-  :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+  :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
 
   :profiles
   {:dev
