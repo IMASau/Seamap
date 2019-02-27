@@ -26,7 +26,8 @@
          (string/join "|"))))
 
 (defn parse-state [hash-str]
-  (let [parsed (->> (string/split hash-str "|")
+  (let [decoded (url/url-decode hash-str)
+        parsed (->> (string/split decoded "|")
                     (map #(string/split % "="))
                     (filter #(= 2 (count %)))
                     (into {})
