@@ -224,6 +224,11 @@
      :dispatch-n [[:map.layers.logic/manual]
                   [:map/popup-closed]]}))
 
+(defn toggle-legend-display [{:keys [db]} [_ layer]]
+  (let [db (update-in db [:layer-state layer 2] not)]
+    {:db       db
+     :put-hash (encode-state db)}))
+
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ {:keys [bounding_box] :as layer}]]

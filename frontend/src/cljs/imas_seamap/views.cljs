@@ -118,24 +118,22 @@
     [:div.legend-wrapper
      [:img {:src legend-url}]]))
 
-(defn catalogue-header [layer layer-state]
-  (let [show-legend (reagent/atom false)]
-    (fn [{:keys [name] :as layer} {:keys [active? errors? loading?] :as layer-state}]
-      [b/tooltip {:content (if @show-legend "Click to hide legend" "Click to show legend")
-                  :class-name "header-text"
-                  :position *RIGHT*
-                  :is-disabled (not active?)}
-       [:div.layer-wrapper (when active? {:class-name "layer-active"
-                                          :on-click #(swap! show-legend not)})
-        [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
-         [:div (when (or loading? errors?) {:class "header-status-icons"})
-          (when (and active? loading?) [b/spinner {:class-name "pt-small layer-spinner"}])
-          (when (and active? errors?) [:span.layer-warning.pt-icon.pt-icon-small.pt-icon-warning-sign])]
-         [b/clipped-text {:ellipsize true :class-name "header-text"}
-          name]
-         [b/collapse {:is-open (and active? @show-legend)
-                      :className "layer-legend"}
-          [legend-display layer]]]]])))
+(defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading? expanded?] :as layer-state}]
+  [b/tooltip {:content (if expanded? "Click to hide legend" "Click to show legend")
+              :class-name "header-text"
+              :position *RIGHT*
+              :is-disabled (not active?)}
+   [:div.layer-wrapper (when active? {:class-name "layer-active"
+                                      :on-click (handler-dispatch [:map.layer.legend/toggle layer])})
+    [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
+     [:div (when (or loading? errors?) {:class "header-status-icons"})
+      (when (and active? loading?) [b/spinner {:class-name "pt-small layer-spinner"}])
+      (when (and active? errors?) [:span.layer-warning.pt-icon.pt-icon-small.pt-icon-warning-sign])]
+     [b/clipped-text {:ellipsize true :class-name "header-text"}
+      name]
+     [b/collapse {:is-open (and active? expanded?)
+                  :className "layer-legend"}
+      [legend-display layer]]]]])
 
 (defn catalogue-controls [layer {:keys [active? errors? loading?] :as layer-state}]
   [:div.catalogue-layer-controls (when active? {:class-name "layer-active"})
@@ -265,16 +263,16 @@
                                                [:map.layers/filter (oget event :target :value)])}]]))
 
 
-(defn layer-card [{:keys [name] :as layer-spec} {:keys [active? loading? errors?] :as other-props}]
+(defn layer-card [{:keys [name] :as layer-spec} {:keys [active? loading? errors? expanded?] :as other-props}]
   [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
    [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "layer-active pt-interactive")}
     [:div.header-row.height-static
      [catalogue-header layer-spec other-props]
      [catalogue-controls layer-spec other-props]]]])
 
-(defn layer-group [{:keys [expanded] :or {:expanded false} :as props} layers active-layers loading-fn error-fn]
+(defn layer-group [{:keys [expanded] :or {:expanded false} :as props} layers active-layers loading-fn error-fn expanded-fn]
   (let [expanded (reagent/atom expanded)]
-    (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn]
+    (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn expanded-fn]
       [:div.layer-group.height-managed
        (merge {:class-name (str classes (if @expanded " expanded" " collapsed"))}
               (when id {:id id}))
@@ -289,9 +287,10 @@
         [:div.height-managed.group-scrollable
          (for [layer layers]
            ^{:key (:layer_name layer)}
-           [layer-card layer {:active?  (some #{layer} active-layers)
-                              :loading? (loading-fn layer)
-                              :errors?  (error-fn layer)}])]]])))
+           [layer-card layer {:active?   (some #{layer} active-layers)
+                              :loading?  (loading-fn layer)
+                              :errors?   (error-fn layer)
+                              :expanded? (expanded-fn layer)}])]]])))
 
 (defn settings-controls []
   [:div#settings
@@ -498,7 +497,7 @@
    [selection-button]
    [layer-logic-toggle]
    [layer-search-filter]
-   [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn]
+   [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn]
    [help-button]])
 
 (defn thirdparty-layer-tab [layers active-layers loading-fn error-fn expanded-fn]
@@ -509,7 +508,8 @@
    [layer-search-filter]
    [layer-catalogue layers {:active-layers active-layers
                             :loading-fn    loading-fn
-                            :error-fn      error-fn}]
+                            :error-fn      error-fn
+                            :expanded-fn   expanded-fn}]
    [help-button]])
 
 (defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn expanded-fn]
@@ -518,9 +518,10 @@
     [:h6 "Boundary Layers"]
     (for [layer boundaries]
       ^{:key (:layer_name layer)}
-      [layer-card layer {:active?  (some #{layer} active-layers)
-                         :loading? (loading-fn layer)
-                         :errors?  (error-fn layer)}])]
+      [layer-card layer {:active?   (some #{layer} active-layers)
+                         :loading?  (loading-fn layer)
+                         :errors?   (error-fn layer)
+                         :expanded? (expanded-fn layer)}])]
    [:label.pt-label.height-managed
     "Habitat layer for region statistics (only one active layer may be selected at a time):"
     [b/popover {:position           b/*BOTTOM*
@@ -534,7 +535,7 @@
                                                       :on-click #(re-frame/dispatch [:map.region-stats/select-habitat layer])}])])}
      [b/button {:text            (get habitat-layer :name "Select Habitat Layer for statistics...")
                 :class-name      "pt-fill pt-text-overflow-ellipsis"
-                :intent (when-not habitat-layer b/*intent-warning*)
+                :intent          (when-not habitat-layer b/*intent-warning*)
                 :right-icon-name "caret-down"}]]]
    [:div.pt-callout.pt-icon-help.height-managed
     [:h5 "Hints"]

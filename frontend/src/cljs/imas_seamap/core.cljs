@@ -96,6 +96,7 @@
     :map.layers.logic/toggle              [mevents/map-layer-logic-toggle]
     :map.layers.logic/manual              mevents/map-layer-logic-manual
     :map.layers.logic/automatic           mevents/map-layer-logic-automatic
+    :map.layer.legend/toggle              [mevents/toggle-legend-display]
     :map.layer.selection/enable           mevents/map-start-selecting
     :map.layer.selection/disable          mevents/map-cancel-selecting
     :map.layer.selection/clear            mevents/map-clear-selection
