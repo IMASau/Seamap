@@ -120,7 +120,7 @@
     :ui.drawing/cancel                    events/global-drawing-cancel
     :ui.download/close-dialogue           events/close-download-dialogue
     :ui.search/focus                      [events/focus-search]
-    :ui.sidebar/open                      events/sidebar-open
+    :ui.sidebar/open                      [events/sidebar-open]
     :ui.sidebar/close                     events/sidebar-close
     :ui.sidebar/toggle                    events/sidebar-toggle}})
 

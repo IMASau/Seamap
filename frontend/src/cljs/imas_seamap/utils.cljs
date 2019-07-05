@@ -8,6 +8,16 @@
             [clojure.walk :refer [keywordize-keys]]
             [debux.cs.core :refer-macros [dbg]]))
 
+;;; Taken from https://github.com/district0x/district-cljs-utils/
+(letfn [(merge-in* [a b]
+          (if (map? a)
+            (merge-with merge-in* a b)
+            b))]
+  (defn merge-in
+    "Merge multiple nested maps."
+    [& args]
+    (reduce merge-in* nil args)))
+
 ;;; http://blog.jayfields.com/2011/01/clojure-select-keys-select-values-and.html
 (defn select-values [map ks]
   (reduce #(conj %1 (map %2)) [] ks))

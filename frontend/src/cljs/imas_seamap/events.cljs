@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [geonetwork-force-xml]]
+            [imas-seamap.utils :refer [encode-state geonetwork-force-xml merge-in]]
             [imas-seamap.map.utils :as mutils :refer [applicable-layers bbox-intersects? habitat-layer? download-link]]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
@@ -39,7 +39,7 @@
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
 (defn boot [{:keys [hash-state]} _]
-  (let [initial-db (cond-> (merge db/default-db hash-state)
+  (let [initial-db (cond-> (merge-in db/default-db hash-state)
                      hash-state (assoc-in [:map :logic :type] :map.layer-logic/manual))]
     {:db         initial-db
      :async-flow (boot-flow)}))
@@ -369,12 +369,14 @@
 (defn clear-message [db _]
   (assoc-in db [:info :message] nil))
 
-(defn sidebar-open [db [_ tabid]]
-  (let [{:keys [selected collapsed]} (get-in db [:display :sidebar])]
-    (-> db
-        (assoc-in [:display :sidebar :selected] tabid)
-        ;; Allow the left tab to close as well as open, if clicking same icon:
-        (assoc-in [:display :sidebar :collapsed] (and (= tabid selected) (not collapsed))))))
+(defn sidebar-open [{:keys [db]} [_ tabid]]
+  (let [{:keys [selected collapsed]} (get-in db [:display :sidebar])
+        db (-> db
+               (assoc-in [:display :sidebar :selected] tabid)
+               ;; Allow the left tab to close as well as open, if clicking same icon:
+               (assoc-in [:display :sidebar :collapsed] (and (= tabid selected) (not collapsed))))]
+    {:db db
+     :put-hash (encode-state db)}))
 
 (defn sidebar-close [db _]
   (assoc-in db [:display :sidebar :collapsed] true))
