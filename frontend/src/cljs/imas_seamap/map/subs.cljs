@@ -42,11 +42,12 @@
         visible-layers                              (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
         {:keys [third-party]}                       (group-by :category visible-layers)
         filtered-layers                             (filter (partial match-layer filter-text) visible-layers)]
-    {:groups         (assoc (group-by :category filtered-layers)
-                            :boundaries boundaries)
-     :loading-layers (->> layer-state (filter (fn [[l [st _]]] (= st :map.layer/loading))) keys set)
-     :error-layers   (->> layer-state (filter (fn [[l [_ errors?]]] errors?)) keys set)
-     :active-layers  active-layers}))
+    {:groups          (assoc (group-by :category filtered-layers)
+                             :boundaries boundaries)
+     :loading-layers  (->> layer-state (filter (fn [[l [st _ _]]] (= st :map.layer/loading))) keys set)
+     :error-layers    (->> layer-state (filter (fn [[l [_ errors? _]]] errors?)) keys set)
+     :expanded-layers (->> layer-state (filter (fn [[l [_ _ expanded?]]] expanded?)) keys set)
+     :active-layers   active-layers}))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))

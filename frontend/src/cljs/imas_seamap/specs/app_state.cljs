@@ -110,7 +110,8 @@
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
 (s/def ::layer-state (s/map-of :map/layer
                                (s/cat :loading-state :layer/loading-state
-                                      :seen-errors   boolean?)))
+                                      :seen-errors   boolean?
+                                      :legend-shown  boolean?)))
 
 (s/def ::transect-results-format
   (s/or :empty   nil?

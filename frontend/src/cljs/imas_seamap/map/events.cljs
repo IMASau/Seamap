@@ -184,7 +184,7 @@
            :habitat-colours colours)))
 
 (defn layer-started-loading [db [_ layer]]
-  (update-in db [:layer-state] assoc layer [:map.layer/loading false]))
+  (update-in db [:layer-state] assoc layer [:map.layer/loading false false]))
 
 (defn layer-loading-error [db [_ layer]]
   (update-in db [:layer-state] assoc-in [layer 1] true))

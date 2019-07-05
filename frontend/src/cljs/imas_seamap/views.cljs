@@ -492,7 +492,7 @@
                                   :position *RIGHT*}
                        [:span.pt-icon-standard {:class-name (str "pt-icon-" icon-name)}]]))
 
-(defn layer-tab [layers active-layers loading-fn error-fn]
+(defn layer-tab [layers active-layers loading-fn error-fn expanded-fn]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
@@ -501,7 +501,7 @@
    [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn]
    [help-button]])
 
-(defn thirdparty-layer-tab [layers active-layers loading-fn error-fn]
+(defn thirdparty-layer-tab [layers active-layers loading-fn error-fn expanded-fn]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
@@ -512,7 +512,7 @@
                             :error-fn      error-fn}]
    [help-button]])
 
-(defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn]
+(defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn expanded-fn]
   [:div.sidebar-tab.height-managed
    [:div.boundary-layers.height-managed.group-scrollable
     [:h6 "Boundary Layers"]
@@ -548,10 +548,10 @@
    [help-button]])
 
 (defn seamap-sidebar []
-  (let [{:keys [collapsed selected] :as sidebar-state}              @(re-frame/subscribe [:ui/sidebar])
-        {:keys [groups active-layers loading-layers error-layers]}  @(re-frame/subscribe [:map/layers])
-        {:keys [habitat-layer]}                                     @(re-frame/subscribe [:map/region-stats])
-        {:keys [habitat boundaries bathymetry imagery third-party]} groups]
+  (let [{:keys [collapsed selected] :as sidebar-state}                             @(re-frame/subscribe [:ui/sidebar])
+        {:keys [groups active-layers loading-layers error-layers expanded-layers]} @(re-frame/subscribe [:map/layers])
+        {:keys [habitat-layer]}                                                    @(re-frame/subscribe [:map/region-stats])
+        {:keys [habitat boundaries bathymetry imagery third-party]}                groups]
     [sidebar {:id        "floating-sidebar"
               :selected  selected
               :collapsed collapsed
@@ -562,26 +562,26 @@
                    :icon   (as-icon "home"
                                     (str "Habitat Layers (" (count habitat) ")"))
                    :id     "tab-habitat"}
-      [layer-tab habitat active-layers loading-layers error-layers]]
+      [layer-tab habitat active-layers loading-layers error-layers expanded-layers]]
      [sidebar-tab {:header "Bathymetry"
                    :icon   (as-icon "timeline-area-chart"
                                     (str "Bathymetry Layers (" (count bathymetry) ")"))
                    :id     "tab-bathy"}
-      [layer-tab bathymetry active-layers loading-layers error-layers]]
+      [layer-tab bathymetry active-layers loading-layers error-layers expanded-layers]]
      [sidebar-tab {:header "Imagery"
                    :icon   (as-icon "media"
                                     (str "Imagery Layers (" (count imagery) ")"))
                    :id     "tab-imagery"}
-      [layer-tab imagery active-layers loading-layers error-layers]]
+      [layer-tab imagery active-layers loading-layers error-layers expanded-layers]]
      [sidebar-tab {:header "Management Regions"
                    :icon   (as-icon "heatmap" "Management Region Layers")
                    :id     "tab-management"}
-      [management-layer-tab boundaries habitat-layer active-layers loading-layers error-layers]]
+      [management-layer-tab boundaries habitat-layer active-layers loading-layers error-layers expanded-layers]]
      [sidebar-tab {:header "Third-Party"
                    :icon   (as-icon "more"
                                     (str "Third-Party Layers (" (count third-party) ")"))
                    :id     "tab-thirdparty"}
-      [thirdparty-layer-tab third-party active-layers loading-layers error-layers]]
+      [thirdparty-layer-tab third-party active-layers loading-layers error-layers expanded-layers]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.pt-icon-standard.pt-icon-cog])
