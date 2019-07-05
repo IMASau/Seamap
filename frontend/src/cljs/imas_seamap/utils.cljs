@@ -27,13 +27,14 @@
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
   [{map-state :map :as db}]
-  (let [pruned (-> (select-keys map-state [:center :zoom :active-layers])
-                   (rename-keys {:active-layers :active})
-                   (update :center #(string/join ";" %))
-                   (update :active #(string/join ";" (map :layer_name %))))
-        tab    (get-in db [:display :sidebar :selected])]
+  (let [pruned   (-> (select-keys map-state [:center :zoom :active-layers])
+                     (rename-keys {:active-layers :active})
+                     (update :center #(string/join ";" %))
+                     (update :active #(string/join ";" (map :layer_name %))))
+        tab      (get-in db [:display :sidebar :selected])
+        expanded (->> db :layer-state (filter (fn [[_ [_ _ e]]] e)) (map (comp :id first)))]
     (->> pruned
-         (merge {:tab tab})
+         (merge {:tab tab :legends (string/join "," expanded)})
          (map -equalise)
          (string/join "|"))))
 
@@ -45,12 +46,14 @@
                        (into {})
                        keywordize-keys)
         tab       (:tab parsed)
+        legends   (->> parsed :legends (map js/parseInt))
         processed (-> parsed
                       (update :center #(mapv js/parseFloat (string/split % ";")))
                       (update :active #(filterv (comp not string/blank?) (string/split % ";")))
                       (update :zoom js/parseInt))]
     {:map     (dissoc processed :tab)
-     :display {:sidebar {:selected tab}}}))
+     :display {:sidebar {:selected tab}}
+     :legend-ids legends}))
 
 (defn names->active-layers [names layers]
   (let [by-name (index layers [:layer_name])]
@@ -58,6 +61,10 @@
          (map #(first (get by-name {:layer_name %})))
          (remove nil?)
          vec)))
+
+(defn ids->layers [ids layers]
+  (let [ids (set ids)]
+    (filter #(contains? ids (:id %)) layers)))
 
 (defn geonetwork-force-xml [geonetwork-url]
   (let [url            (url/url geonetwork-url)

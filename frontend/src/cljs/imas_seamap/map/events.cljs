@@ -154,10 +154,18 @@
 (defn process-layers [layers]
   (mapv process-layer layers))
 
-(defn update-layers [db [_ layers]]
-  (->> layers
-       process-layers
-       (assoc-in db [:map :layers])))
+(defn init-layer-legend-status [layers legend-ids]
+  (let [legends (set legend-ids)]
+    (->> layers
+         (filter (comp legends :id))
+         (map #(vector % [nil nil true]))
+         (into {}))))
+
+(defn update-layers [{:keys [legend-ids] :as db} [_ layers]]
+  (let [layers (process-layers layers)]
+    (-> db
+        (assoc-in [:map :layers] layers)
+        (assoc-in [:layer-state] (init-layer-legend-status layers legend-ids)))))
 
 (defn update-groups [db [_ groups]]
   (assoc-in db [:map :groups] groups))
