@@ -39,7 +39,7 @@
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
 (defn boot [{:keys [hash-state]} _]
-  (let [initial-db (cond-> (update db/default-db :map merge hash-state)
+  (let [initial-db (cond-> (merge db/default-db hash-state)
                      hash-state (assoc-in [:map :logic :type] :map.layer-logic/manual))]
     {:db         initial-db
      :async-flow (boot-flow)}))

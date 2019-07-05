@@ -20,22 +20,27 @@
   (let [pruned (-> (select-keys map-state [:center :zoom :active-layers])
                    (rename-keys {:active-layers :active})
                    (update :center #(string/join ";" %))
-                   (update :active #(string/join ";" (map :layer_name %))))]
+                   (update :active #(string/join ";" (map :layer_name %))))
+        tab    (get-in db [:display :sidebar :selected])]
     (->> pruned
+         (merge {:tab tab})
          (map -equalise)
          (string/join "|"))))
 
 (defn parse-state [hash-str]
-  (let [decoded (url/url-decode hash-str)
-        parsed (->> (string/split decoded "|")
-                    (map #(string/split % "="))
-                    (filter #(= 2 (count %)))
-                    (into {})
-                    keywordize-keys)]
-    (-> parsed
-        (update :center #(mapv js/parseFloat (string/split % ";")))
-        (update :active #(filterv (comp not string/blank?) (string/split % ";")))
-        (update :zoom js/parseInt))))
+  (let [decoded   (url/url-decode hash-str)
+        parsed    (->> (string/split decoded "|")
+                       (map #(string/split % "="))
+                       (filter #(= 2 (count %)))
+                       (into {})
+                       keywordize-keys)
+        tab       (:tab parsed)
+        processed (-> parsed
+                      (update :center #(mapv js/parseFloat (string/split % ";")))
+                      (update :active #(filterv (comp not string/blank?) (string/split % ";")))
+                      (update :zoom js/parseInt))]
+    {:map     (dissoc processed :tab)
+     :display {:sidebar {:selected tab}}}))
 
 (defn names->active-layers [names layers]
   (let [by-name (index layers [:layer_name])]
