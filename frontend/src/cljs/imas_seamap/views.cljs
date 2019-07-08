@@ -301,7 +301,12 @@
               :icon-name  "undo"
               :class-name "pt-fill"
               :on-click   (handler-dispatch [:re-boot])
-              :text       "Reset Interface"}]])
+              :text       "Reset Interface"}]
+   [b/button {:id         "copy-as-share"
+              :icon-name  "clipboard"
+              :class-name "pt-fill"
+              :on-click   (handler-dispatch [:copy-share-url])
+              :text       "Copy Shareable URL to Clipboard"}]])
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
@@ -641,6 +646,9 @@
      [b/hotkey (keydown-wrapper
                 {:label "Reset"                  :combo "shift + r"}
                 [:re-boot])]
+     [b/hotkey (keydown-wrapper
+                {:label "Copy Shareable URL"     :combo "c"}
+                [:copy-share-url])]
      [b/hotkey (keydown-wrapper
                 {:label "Show Help Overlay"      :combo "h"}
                 [:help-layer/toggle])]]))

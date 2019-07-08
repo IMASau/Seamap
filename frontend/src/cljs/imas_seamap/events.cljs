@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [encode-state geonetwork-force-xml merge-in]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in]]
             [imas-seamap.map.utils :as mutils :refer [applicable-layers bbox-intersects? habitat-layer? download-link]]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer-macros [dbg]]))
@@ -368,6 +368,10 @@
 ;;; override the timeout if a message is still displayed.
 (defn clear-message [db _]
   (assoc-in db [:info :message] nil))
+
+(defn copy-share-url [{:keys [db]} _]
+  (copy-text js/location.href)
+  {:dispatch [:info/show-message "Copied!"]})
 
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]
   {:db       (assoc-in db [:display :catalogue :tab] tabid)
