@@ -108,10 +108,12 @@
                    :map/logic]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
-(s/def ::layer-state (s/map-of :map/layer
-                               (s/cat :loading-state :layer/loading-state
-                                      :seen-errors   boolean?
-                                      :legend-shown  boolean?)))
+(s/def :map.state/seen-errors (s/coll-of :map/layer :kind set?))
+(s/def :map.state/legend-shown (s/coll-of :map/layer :kind set?))
+(s/def :map.state/loading-state (s/map-of :map/layer :layer/loading-state))
+(s/def ::layer-state (s/keys :opt-un [:map.state/loading-state
+                                      :map.state/seen-errors
+                                      :map.state/legend-shown]))
 
 (s/def ::transect-results-format
   (s/or :empty   nil?

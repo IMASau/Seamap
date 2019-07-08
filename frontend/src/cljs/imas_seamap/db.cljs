@@ -21,7 +21,9 @@
                                        :trigger :map.logic.trigger/automatic}
                      :controls        {:transect false
                                        :download nil}}
-   :layer-state     {}
+   :layer-state     {:loading-state {}
+                     :seen-errors   #{}
+                     :legend-shown  #{}}
    :filters         {:layers       ""
                      :other-layers ""}
    :transect        {:query      nil

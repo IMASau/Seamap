@@ -44,9 +44,9 @@
         filtered-layers                             (filter (partial match-layer filter-text) visible-layers)]
     {:groups          (assoc (group-by :category filtered-layers)
                              :boundaries boundaries)
-     :loading-layers  (->> layer-state (filter (fn [[l [st _ _]]] (= st :map.layer/loading))) keys set)
-     :error-layers    (->> layer-state (filter (fn [[l [_ errors? _]]] errors?)) keys set)
-     :expanded-layers (->> layer-state (filter (fn [[l [_ _ expanded?]]] expanded?)) keys set)
+     :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
+     :error-layers    (->> layer-state :seen-errors set)
+     :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers}))
 
 (defn layer-selection-info [db _]

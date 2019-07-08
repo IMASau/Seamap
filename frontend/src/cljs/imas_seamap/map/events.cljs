@@ -8,7 +8,7 @@
             [clojure.string :as string]
             [clojure.zip :as zip]
             [re-frame.core :as re-frame]
-            [imas-seamap.utils :refer [encode-state names->active-layers]]
+            [imas-seamap.utils :refer [encode-state ids->layers names->active-layers]]
             [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112]]
             [debux.cs.core :refer-macros [dbg]]
             [ajax.core :as ajax]
@@ -158,14 +158,13 @@
   (let [legends (set legend-ids)]
     (->> layers
          (filter (comp legends :id))
-         (map #(vector % [nil nil true]))
-         (into {}))))
+         set)))
 
 (defn update-layers [{:keys [legend-ids] :as db} [_ layers]]
   (let [layers (process-layers layers)]
     (-> db
         (assoc-in [:map :layers] layers)
-        (assoc-in [:layer-state] (init-layer-legend-status layers legend-ids)))))
+        (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids)))))
 
 (defn update-groups [db [_ groups]]
   (assoc-in db [:map :groups] groups))
@@ -192,13 +191,13 @@
            :habitat-colours colours)))
 
 (defn layer-started-loading [db [_ layer]]
-  (update-in db [:layer-state] assoc layer [:map.layer/loading false false]))
+  (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
 
 (defn layer-loading-error [db [_ layer]]
-  (update-in db [:layer-state] assoc-in [layer 1] true))
+  (update-in db [:layer-state :seen-errors] conj layer))
 
 (defn layer-finished-loading [db [_ layer]]
-  (update-in db [:layer-state] assoc-in [layer 0] :map.layer/loaded))
+  (update-in db [:layer-state :loading-state] assoc layer :map.layer/loaded))
 
 (defn- toggle-layer-logic
   "Encompases all the special-case logic in toggling active layers.
@@ -233,7 +232,7 @@
                   [:map/popup-closed]]}))
 
 (defn toggle-legend-display [{:keys [db]} [_ layer]]
-  (let [db (update-in db [:layer-state layer 2] not)]
+  (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))]
     {:db       db
      :put-hash (encode-state db)}))
 
@@ -307,10 +306,11 @@
   ;; layers themselves are loaded... by which time the state will have
   ;; been re-set.  So we have this two step process.
   [{:keys [db]} _]
-  (let [{:keys [active logic]} (:map db)
+  (let [{:keys [active legend-ids logic]} (:map db)
         active-layers          (if (= (:type logic) :map.layer-logic/manual)
                                  (names->active-layers active (get-in db [:map :layers]))
                                  (vec (applicable-layers db :category :habitat)))
+        expanded-layers        (ids->layers legend-ids active-layers)
         db                     (assoc-in db [:map :active-layers] active-layers)]
     {:db       db
      :put-hash (encode-state db)
