@@ -9,6 +9,8 @@
 
 (def button          (reagent/adapt-react-class (gget "Blueprint.Button")))
 
+(def card            (reagent/adapt-react-class (gget "Blueprint.Card")))
+
 (def clipped-text    (reagent/adapt-react-class (gget "Blueprint.Text")))
 
 (def collapse        (reagent/adapt-react-class (gget "Blueprint.Collapse")))
@@ -63,3 +65,11 @@
 
 (def *RIGHT*  (gget "Blueprint.Position.RIGHT"))
 (def *BOTTOM* (gget "Blueprint.Position.BOTTOM"))
+(def *LEFT*   (gget "Blueprint.Position.LEFT"))
+(def *TOP*    (gget "Blueprint.Position.TOP"))
+
+(def *elevation-one*   (gget "Blueprint.Elevation.ONE"))
+(def *elevation-two*   (gget "Blueprint.Elevation.TWO"))
+(def *elevation-three* (gget "Blueprint.Elevation.THREE"))
+(def *elevation-four*  (gget "Blueprint.Elevation.FOUR"))
+(def *elevation-five*  (gget "Blueprint.Elevation.FIVE"))
