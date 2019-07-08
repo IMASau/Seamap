@@ -369,13 +369,15 @@
 (defn clear-message [db _]
   (assoc-in db [:info :message] nil))
 
-(defn catalogue-select-tab [db [_ tabid]]
-  (assoc-in db [:display :catalogue :tab] tabid))
+(defn catalogue-select-tab [{:keys [db]} [_ tabid]]
+  {:db       (assoc-in db [:display :catalogue :tab] tabid)
+   :put-hash (encode-state db)})
 
-(defn catalogue-toggle-node [db [_ nodeid]]
-  (let [nodes (get-in db [:display :catalogue :expanded])
+(defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
+  (let [nodes         (get-in db [:display :catalogue :expanded])
         updated-nodes (if (contains? nodes nodeid) (disj nodes nodeid) (conj nodes nodeid))]
-    (assoc-in db [:display :catalogue :expanded] updated-nodes)))
+    {:db       (assoc-in db [:display :catalogue :expanded] updated-nodes)
+     :put-hash (encode-state db)}))
 
 (defn sidebar-open [{:keys [db]} [_ tabid]]
   (let [{:keys [selected collapsed]} (get-in db [:display :sidebar])

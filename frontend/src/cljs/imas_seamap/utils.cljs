@@ -6,6 +6,7 @@
             [clojure.set :refer [index rename-keys]]
             [clojure.string :as string]
             [clojure.walk :refer [keywordize-keys]]
+            [goog.crypt.base64 :as b64]
             [debux.cs.core :refer-macros [dbg]]))
 
 ;;; Taken from https://github.com/district0x/district-cljs-utils/
@@ -32,9 +33,14 @@
                      (update :center #(string/join ";" %))
                      (update :active #(string/join ";" (map :id %))))
         tab      (get-in db [:display :sidebar :selected])
+        ctab     (get-in db [:display :catalogue :tab])
+        cnodes   (get-in db [:display :catalogue :expanded])
         expanded (->> db :layer-state :legend-shown (map :id))]
     (->> pruned
-         (merge {:tab tab :legends (string/join ";" expanded)})
+         (merge {:tab     tab
+                 :legends (string/join ";" expanded)
+                 :ctab    ctab
+                 :cnodes  (b64/encodeString (string/join ";" cnodes))})
          (map -equalise)
          (string/join "|"))))
 
@@ -46,13 +52,17 @@
                        (into {})
                        keywordize-keys)
         tab       (:tab parsed)
+        cat-tab   (:ctab parsed)
+        cat-nodes (-> (:cnodes parsed) b64/decodeString (string/split ";") set)
         legends   (->> parsed :legends (#(string/split % ";")) (map js/parseInt))
         processed (-> parsed
                       (update :center #(mapv js/parseFloat (string/split % ";")))
                       (update :active #(->> (string/split % ";") (filterv (comp not string/blank?)) (map js/parseInt)))
                       (update :zoom js/parseInt))]
-    {:map        (dissoc processed :tab :legends)
-     :display    {:sidebar {:selected tab}}
+    {:map        (dissoc processed :tab :legends :ctab)
+     :display    {:sidebar   {:selected tab}
+                  :catalogue {:tab      cat-tab
+                              :expanded cat-nodes}}
      :legend-ids legends}))
 
 (defn ids->layers [ids layers]
