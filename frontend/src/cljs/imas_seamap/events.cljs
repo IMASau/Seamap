@@ -358,11 +358,12 @@
   (js/console.info "AJAX error response" response)
   db)
 
-(defn show-message [db [_ message intent]]
-  (assoc-in db [:info :message]
-            {:message message
-             :intent (or intent b/*intent-warning*)
-             :__cache-buster (js/Date.now)}))
+(defn show-message [db [_ message intent-or-opts]]
+  (let [msg (merge {:intent b/*intent-warning*}
+                   (if (map? intent-or-opts) intent-or-opts {:intent intent-or-opts})
+                   {:message        message
+                    :__cache-buster (js/Date.now)})]
+   (assoc-in db [:info :message] msg)))
 
 ;;; A bit of a misnomer really; it cleans up the db, but won't
 ;;; override the timeout if a message is still displayed.
@@ -371,7 +372,8 @@
 
 (defn copy-share-url [{:keys [db]} _]
   (copy-text js/location.href)
-  {:dispatch [:info/show-message "Copied to clipboard!" b/*intent-success*]})
+  {:dispatch [:info/show-message "Copied to clipboard!" {:intent   b/*intent-success*
+                                                         :iconName "clipboard"}]})
 
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]
   {:db       (assoc-in db [:display :catalogue :tab] tabid)

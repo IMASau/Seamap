@@ -344,7 +344,7 @@
   (let [info-message (re-frame/subscribe [:info/message])
         toaster      (ocall (oget js/window "Blueprint.Toaster") "create")]
     (fn []
-      (let [{:keys [message intent] :or {intent b/*intent-warning*} :as msg} @info-message
+      (let [{:keys [message] :as msg} @info-message
             msg (assoc msg :onDismiss #(re-frame/dispatch [:info/clear-message]))]
         (when message
           (ocall toaster "show" (clj->js msg))))
