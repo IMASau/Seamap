@@ -30,11 +30,11 @@
   (let [pruned   (-> (select-keys map-state [:center :zoom :active-layers])
                      (rename-keys {:active-layers :active})
                      (update :center #(string/join ";" %))
-                     (update :active #(string/join ";" (map :layer_name %))))
+                     (update :active #(string/join ";" (map :id %))))
         tab      (get-in db [:display :sidebar :selected])
         expanded (->> db :layer-state :legend-shown (map :id))]
     (->> pruned
-         (merge {:tab tab :legends (string/join "," expanded)})
+         (merge {:tab tab :legends (string/join ";" expanded)})
          (map -equalise)
          (string/join "|"))))
 
@@ -46,21 +46,14 @@
                        (into {})
                        keywordize-keys)
         tab       (:tab parsed)
-        legends   (->> parsed :legends (#(string/split % ",")) (map js/parseInt))
+        legends   (->> parsed :legends (#(string/split % ";")) (map js/parseInt))
         processed (-> parsed
                       (update :center #(mapv js/parseFloat (string/split % ";")))
-                      (update :active #(filterv (comp not string/blank?) (string/split % ";")))
+                      (update :active #(->> (string/split % ";") (filterv (comp not string/blank?)) (map js/parseInt)))
                       (update :zoom js/parseInt))]
     {:map        (dissoc processed :tab :legends)
      :display    {:sidebar {:selected tab}}
      :legend-ids legends}))
-
-(defn names->active-layers [names layers]
-  (let [by-name (index layers [:layer_name])]
-    (->> names
-         (map #(first (get by-name {:layer_name %})))
-         (remove nil?)
-         vec)))
 
 (defn ids->layers [ids layers]
   (let [ids (set ids)]

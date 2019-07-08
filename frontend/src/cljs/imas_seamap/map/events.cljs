@@ -8,7 +8,7 @@
             [clojure.string :as string]
             [clojure.zip :as zip]
             [re-frame.core :as re-frame]
-            [imas-seamap.utils :refer [encode-state ids->layers names->active-layers]]
+            [imas-seamap.utils :refer [encode-state ids->layers]]
             [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112]]
             [debux.cs.core :refer-macros [dbg]]
             [ajax.core :as ajax]
@@ -302,13 +302,13 @@
   "Figure out the highest priority layer, and display it"
   ;; Slight hack; note we use :active not :active-layers, because
   ;; during boot we may have loaded hash-state, but we can't hydrate
-  ;; the names from the hash state into actual layers, until the
-  ;; layers themselves are loaded... by which time the state will have
-  ;; been re-set.  So we have this two step process.
+  ;; the id from the hash state into actual layers, until the layers
+  ;; themselves are loaded... by which time the state will have been
+  ;; re-set.  So we have this two step process.
   [{:keys [db]} _]
   (let [{:keys [active legend-ids logic]} (:map db)
         active-layers          (if (= (:type logic) :map.layer-logic/manual)
-                                 (names->active-layers active (get-in db [:map :layers]))
+                                 (vec (ids->layers active (get-in db [:map :layers])))
                                  (vec (applicable-layers db :category :habitat)))
         expanded-layers        (ids->layers legend-ids active-layers)
         db                     (assoc-in db [:map :active-layers] active-layers)]
