@@ -133,12 +133,21 @@
 (s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]
                           :opt-un [:transect/mouse-percentage]))
 
+;;; catalogue
+(s/def :display.catalogue/tab string?)
+(s/def :display.catalogue/expanded (s/coll-of string? :kind set?))
+(s/def :display/catalogue (s/keys opt-un [:display.catalogue/tab :display.catalogue/expanded]))
+;;; overlays
 (s/def :display/help-overlay boolean?)
 (s/def :display/welcome-overlay boolean?)
+;;; sidebar
 (s/def :sidebar/collapsed boolean?)
 (s/def :sidebar/selected string?)
 (s/def :display/sidebar (s/keys :req-un [:sidebar/collapsed :sidebar/selected]))
-(s/def ::display (s/keys :req-un [:display/help-overlay :display/welcome-overlay :display/sidebar]))
+(s/def ::display (s/keys :req-un [:display/catalogue
+                                  :display/help-overlay
+                                  :display/welcome-overlay
+                                  :display/sidebar]))
 
 (s/def :filters/layers       string?)
 (s/def :filters/other-layers string?)

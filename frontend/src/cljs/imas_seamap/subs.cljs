@@ -102,6 +102,14 @@
 
 (defn sorting-info [{:keys [sorting] :as db} _] sorting)
 
+(defn catalogue-tab [db _]
+  (get-in db [:display :catalogue :tab]))
+
+(defn catalogue-nodes [db _]
+  (->> (get-in db [:display :catalogue :expanded])
+       (map #(vector % true))
+       (into {})))
+
 (defn sidebar-state [db _]
   (get-in db [:display :sidebar]))
 

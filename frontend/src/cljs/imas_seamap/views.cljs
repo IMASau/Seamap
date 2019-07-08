@@ -180,35 +180,38 @@
                     layer-subset))}))
 
 (defn layer-catalogue-tree [layers ordering id layer-props]
-  (let [expanded-states (reagent/atom {})
+  (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
                   (let [node (js->clj node :keywordize-keys true)]
-                    (swap! expanded-states assoc (:id node) true)))
+                    (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
         on-close (fn [node]
                    (let [node (js->clj node :keywordize-keys true)]
-                     (swap! expanded-states assoc (:id node) false)))
+                     (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
         on-click (fn [node]
                    (let [{:keys [childNodes do-layer-toggle id] :as node} (js->clj node :keywordize-keys true)]
                      (when (seq childNodes )
                        ;; If we have children, toggle expanded state, else add to map
-                       (swap! expanded-states update id not))))]
-    (fn [layers ordering id layer-props]
-      [:div.tab-body.layer-controls {:id id}
-       [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props)
-                :onNodeCollapse on-close
-                :onNodeExpand on-open
-                :onNodeClick on-click}]])))
+                       (re-frame/dispatch [:ui.catalogue/toggle-node id]))))]
+    [:div.tab-body.layer-controls {:id id}
+     [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props)
+              :onNodeCollapse on-close
+              :onNodeExpand on-open
+              :onNodeClick on-click}]]))
 
 (defn layer-catalogue [layers layer-props]
-  [:div.height-managed
-   [b/tabs {:class-name "group-scrollable height-managed"}
-    [b/tab {:id    "org" :title "By Organisation"
-            :panel (reagent/as-component
-                    [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props])}]
-    [b/tab {:id    "cat" :title "By Category"
-            :panel (reagent/as-component
-                    [layer-catalogue-tree layers [:data_classification] "cat" layer-props])}]]])
+  (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab])
+        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab %1])]
+    [:div.height-managed
+     [b/tabs {:selected-tab-id selected-tab
+              :on-change       select-tab
+              :class-name      "group-scrollable height-managed"}
+      [b/tab {:id    "org" :title "By Organisation"
+              :panel (reagent/as-component
+                      [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props])}]
+      [b/tab {:id    "cat" :title "By Category"
+              :panel (reagent/as-component
+                      [layer-catalogue-tree layers [:data_classification] "cat" layer-props])}]]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])

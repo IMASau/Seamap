@@ -43,6 +43,8 @@
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
     :welcome-layer/open?                  subs/welcome-layer-open?
+    :ui.catalogue/tab                     subs/catalogue-tab
+    :ui.catalogue/nodes                   subs/catalogue-nodes
     :ui/sidebar                           subs/sidebar-state
     :app/loading?                         subs/app-loading?
     :app/load-error-msg                   subs/load-error-msg
@@ -118,6 +120,8 @@
     :map/popup-closed                     mevents/destroy-popup
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
+    :ui.catalogue/select-tab              events/catalogue-select-tab
+    :ui.catalogue/toggle-node             events/catalogue-toggle-node
     :ui.drawing/cancel                    events/global-drawing-cancel
     :ui.download/close-dialogue           events/close-download-dialogue
     :ui.search/focus                      [events/focus-search]

@@ -35,6 +35,8 @@
    :habitat-titles  {}
    :display         {:help-overlay    false
                      :welcome-overlay false
+                     :catalogue       {:tab      "org"
+                                       :expanded #{}}
                      :sidebar         {:collapsed false
                                        :selected  "tab-habitat"}}
    :config          {:layer-url          (str api-url-base "layers/")
