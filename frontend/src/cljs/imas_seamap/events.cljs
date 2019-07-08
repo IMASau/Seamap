@@ -371,7 +371,7 @@
 
 (defn copy-share-url [{:keys [db]} _]
   (copy-text js/location.href)
-  {:dispatch [:info/show-message "Copied!"]})
+  {:dispatch [:info/show-message "Copied to clipboard!" b/*intent-success*]})
 
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]
   {:db       (assoc-in db [:display :catalogue :tab] tabid)

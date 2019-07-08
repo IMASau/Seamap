@@ -301,12 +301,7 @@
               :icon-name  "undo"
               :class-name "pt-fill"
               :on-click   (handler-dispatch [:re-boot])
-              :text       "Reset Interface"}]
-   [b/button {:id         "copy-as-share"
-              :icon-name  "clipboard"
-              :class-name "pt-fill"
-              :on-click   (handler-dispatch [:copy-share-url])
-              :text       "Copy Shareable URL to Clipboard"}]])
+              :text       "Reset Interface"}]])
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
