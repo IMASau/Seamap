@@ -372,7 +372,7 @@
 
 (defn copy-share-url [{:keys [db]} _]
   (copy-text js/location.href)
-  {:dispatch [:info/show-message "Copied to clipboard!" {:intent   b/*intent-success*
+  {:dispatch [:info/show-message "URL copied to clipboard!" {:intent   b/*intent-success*
                                                          :iconName "clipboard"}]})
 
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]
