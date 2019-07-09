@@ -19,6 +19,7 @@
 (def feature-group (r/adapt-react-class (gget "ReactLeaflet.FeatureGroup")))
 (def edit-control  (r/adapt-react-class (gget "ReactLeaflet.EditControl")))
 (def circle-marker (r/adapt-react-class (gget "ReactLeaflet.CircleMarker")))
+(def print-control (r/adapt-react-class (gget "ReactLeaflet.PrintControl")))
 
 (defn bounds->map [bounds]
   {:north (ocall bounds :getNorth)
@@ -240,6 +241,10 @@
                                       (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable])))
                         :on-created #(re-frame/dispatch [:map.layer.selection/finalise
                                                          (-> % (ocall "layer.getBounds") bounds->map)])}]])
+
+      [print-control {:position "topleft" :title "Export as PNG" :export-only true
+                      :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
+
       (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
         ^{:key (str location)}
