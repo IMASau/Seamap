@@ -15,6 +15,8 @@ import { EditControl } from 'react-leaflet-draw';
 
 import * as ReactSidebar from 'react-leaflet-sidebarv2';
 
+import PrintControl from 'react-leaflet-easyprint';
+
 import * as Blueprint from '@blueprintjs/core';
 
 window.L = L;
@@ -34,5 +36,7 @@ window.ReactLeaflet = ReactLeaflet;
 window.ReactLeaflet.EditControl = EditControl;
 
 window.ReactSidebar = ReactSidebar;
+
+window.ReactLeaflet.PrintControl = PrintControl;
 
 window.Blueprint = Blueprint;
