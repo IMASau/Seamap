@@ -20,6 +20,7 @@
 (def edit-control  (r/adapt-react-class (gget "ReactLeaflet.EditControl")))
 (def circle-marker (r/adapt-react-class (gget "ReactLeaflet.CircleMarker")))
 (def print-control (r/adapt-react-class (gget "ReactLeaflet.PrintControl")))
+(def custom-control (r/adapt-react-class (gget "ReactLeaflet.ReactControl")))
 
 (defn bounds->map [bounds]
   {:north (ocall bounds :getNorth)
@@ -117,6 +118,12 @@
        [b/button {:text     "Done"
                   :intent   b/*intent-primary*
                   :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]]))
+
+(defn share-control [props]
+  [custom-control {:position "topleft" :class-name "leaflet-bar"}
+   [:a {:on-click (handler-dispatch [:copy-share-url])}
+    [b/tooltip {:content "Copy Shareable URL to clipboard" :position b/*RIGHT*}
+     [b/icon {:icon-name "clipboard"}]]]])
 
 (defn popup-component [{:keys [status info-body]}]
   (case status
@@ -241,6 +248,8 @@
                                       (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable])))
                         :on-created #(re-frame/dispatch [:map.layer.selection/finalise
                                                          (-> % (ocall "layer.getBounds") bounds->map)])}]])
+
+      [share-control]
 
       [print-control {:position "topleft" :title "Export as PNG" :export-only true
                       :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
