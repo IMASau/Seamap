@@ -64,13 +64,6 @@ footer {
     flex-basis: 10px;
 }
 
-.clipboard-button {
-    position: absolute;
-    z-index: 2000;
-    right: 10px;
-    bottom: 26px;               /* 10px on top of 16px attribution */
-}
-
 .loading-splash {
     position: absolute;
     width: 100%;

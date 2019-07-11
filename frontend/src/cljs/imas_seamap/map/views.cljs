@@ -164,10 +164,6 @@
     [:div.map-wrapper
      sidebar
      [download-component download-info]
-     [b/card {:class-name "clipboard-button" :interactive true :elevation b/*elevation-two*
-              :on-click (handler-dispatch [:copy-share-url])}
-      [b/tooltip {:content "Copy Shareable URL to clipboard" :position b/*LEFT*}
-       [b/icon {:icon-name "clipboard" :icon-size 20}]]]
 
      [leaflet-map (merge
                    {:id                   "map"
