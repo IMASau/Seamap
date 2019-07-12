@@ -46,9 +46,11 @@
     (b64/encodeString (t/write (t/writer :json) db*))))
 
 (defn parse-state [hash-str]
-  (let [decoded   (b64/decodeString hash-str)
-        reader    (t/reader :json)]
-    (t/read reader decoded)))
+  (try
+   (let [decoded   (b64/decodeString hash-str)
+         reader    (t/reader :json)]
+     (t/read reader decoded))
+   (catch js/Object e {})))
 
 
 (defn ids->layers [ids layers]

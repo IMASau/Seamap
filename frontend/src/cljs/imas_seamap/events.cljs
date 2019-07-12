@@ -40,7 +40,7 @@
 
 (defn boot [{:keys [hash-state]} _]
   (let [initial-db (cond-> (merge-in db/default-db hash-state)
-                     hash-state (assoc-in [:map :logic :type] :map.layer-logic/manual))]
+                     (seq hash-state) (assoc-in [:map :logic :type] :map.layer-logic/manual))]
     {:db         initial-db
      :async-flow (boot-flow)}))
 
