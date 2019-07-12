@@ -4,6 +4,7 @@
 (defproject imas-seamap "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
                  [org.clojure/clojurescript "1.9.671"]
+                 [com.cognitect/transit-cljs "0.8.256"]
                  [cljs-ajax "0.5.5"]
                  [org.clojure/data.xml "0.2.0-alpha2"]
                  [org.clojure/data.zip "0.1.2"]

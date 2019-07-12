@@ -7,7 +7,9 @@
             [clojure.string :as string]
             [clojure.walk :refer [keywordize-keys]]
             [goog.crypt.base64 :as b64]
-            [debux.cs.core :refer-macros [dbg]]))
+            [cognitect.transit :as t]
+            [debux.cs.core :refer-macros [dbg]]
+            [imas-seamap.blueprint :as b]))
 
 ;;; Taken from https://github.com/district0x/district-cljs-utils/
 (letfn [(merge-in* [a b]
@@ -28,42 +30,26 @@
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
   [{map-state :map :as db}]
-  (let [pruned   (-> (select-keys map-state [:center :zoom :active-layers])
-                     (rename-keys {:active-layers :active})
-                     (update :center #(string/join ";" %))
-                     (update :active #(string/join ";" (map :id %))))
-        tab      (get-in db [:display :sidebar :selected])
-        ctab     (get-in db [:display :catalogue :tab])
-        cnodes   (get-in db [:display :catalogue :expanded])
-        expanded (->> db :layer-state :legend-shown (map :id))]
-    (->> pruned
-         (merge {:tab     tab
-                 :legends (string/join ";" expanded)
-                 :ctab    ctab
-                 :cnodes  (b64/encodeString (string/join ";" cnodes))})
-         (map -equalise)
-         (string/join "|"))))
+  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers])
+                       (rename-keys {:active-layers :active})
+                       (update :active (partial map :id)))
+        db         (-> db
+                       (select-keys [:map :display :layer-state])
+                       (assoc :map pruned-map)
+                       (update-in [:display] select-keys [:sidebar :catalogue])
+                       (update-in [:display :sidebar] select-keys [:selected])
+                       #_(update-in [:display :catalogue :expanded] #(into {} (filter second %))))
+        legends    (->> db :layer-state :legend-shown (map :id))
+        db*        (-> db
+                       (dissoc :layer-state)
+                       (assoc :legend-ids legends))]
+    (b64/encodeString (t/write (t/writer :json) db*))))
 
 (defn parse-state [hash-str]
-  (let [decoded   (url/url-decode hash-str)
-        parsed    (->> (string/split decoded "|")
-                       (map #(string/split % "="))
-                       (filter #(= 2 (count %)))
-                       (into {})
-                       keywordize-keys)
-        tab       (:tab parsed)
-        cat-tab   (:ctab parsed)
-        cat-nodes (-> (:cnodes parsed) b64/decodeString (string/split ";") set)
-        legends   (->> parsed :legends (#(string/split % ";")) (map js/parseInt))
-        processed (-> parsed
-                      (update :center #(mapv js/parseFloat (string/split % ";")))
-                      (update :active #(->> (string/split % ";") (filterv (comp not string/blank?)) (map js/parseInt)))
-                      (update :zoom js/parseInt))]
-    {:map        (dissoc processed :tab :legends :ctab)
-     :display    {:sidebar   {:selected tab}
-                  :catalogue {:tab      cat-tab
-                              :expanded cat-nodes}}
-     :legend-ids legends}))
+  (let [decoded   (b64/decodeString hash-str)
+        reader    (t/reader :json)]
+    (t/read reader decoded)))
+
 
 (defn ids->layers [ids layers]
   (let [ids (set ids)]
