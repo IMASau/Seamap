@@ -381,8 +381,9 @@
 
 (defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
   (let [nodes         (get-in db [:display :catalogue :expanded])
-        updated-nodes (if (contains? nodes nodeid) (disj nodes nodeid) (conj nodes nodeid))]
-    {:db       (assoc-in db [:display :catalogue :expanded] updated-nodes)
+        updated-nodes (if (contains? nodes nodeid) (disj nodes nodeid) (conj nodes nodeid))
+        db            (assoc-in db [:display :catalogue :expanded] updated-nodes)]
+    {:db       db
      :put-hash (encode-state db)}))
 
 (defn sidebar-open [{:keys [db]} [_ tabid]]
