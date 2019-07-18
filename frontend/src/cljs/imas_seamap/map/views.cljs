@@ -143,6 +143,10 @@
     ;; Default; we have actual content:
     [:div {:dangerouslySetInnerHTML {:__html info-body}}]))
 
+(defn- add-raw-handler-once [js-obj event-name handler]
+  (when-not (.listens js-obj event-name)
+    (.on js-obj event-name handler)))
+
 (defn map-component [sidebar]
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
         {:keys [has-info? info-body location] :as fi}       @(re-frame/subscribe [:map.feature/info])
@@ -181,6 +185,12 @@
                     :on-zoomend           on-map-view-changed
                     :on-moveend           on-map-view-changed
                     :when-ready           on-map-view-changed
+                    :ref                  (fn [map]
+                                            (when map
+                                              (add-raw-handler-once (oget map :leafletElement) "easyPrint-start"
+                                                                    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
+                                              (add-raw-handler-once (oget map :leafletElement) "easyPrint-finished"
+                                                                    #(re-frame/dispatch [:ui/hide-loading]))))
                     :on-click             on-map-clicked
                     :close-popup-on-click false ; We'll handle that ourselves
                     :on-popupclose        on-popup-closed}
