@@ -116,6 +116,9 @@
 (defn app-loading? [db _]
   (get db :loading false))
 
+(defn load-normal-msg [db _]
+  (get db :loading-message))
+
 (defn load-error-msg [db _]
   (get db :load-error-msg))
 

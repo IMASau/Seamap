@@ -58,8 +58,10 @@
       (merge {:habitat-colours habitat-colours
               :habitat-titles  habitat-titles})))
 
-(defn loading-screen [db _]
-  (assoc db :loading true))
+(defn loading-screen [db [_ msg]]
+  (assoc db
+         :loading true
+         :loading-message (or msg "Loading Seamap Layers...")))
 
 (defn application-loaded [db _]
   (assoc db :loading false))

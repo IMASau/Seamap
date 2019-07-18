@@ -353,6 +353,7 @@
 
 (defn loading-display []
   (let [loading?  @(re-frame/subscribe [:app/loading?])
+        main-msg  @(re-frame/subscribe [:app/load-normal-msg])
         error-msg @(re-frame/subscribe [:app/load-error-msg])]
     (when loading?
       [:div.loading-splash {:class (when error-msg "load-error")}
@@ -362,7 +363,7 @@
            :description "We were unable to load everything we need to get started.  Please try again later."
            :visual      "error"}]
          [b/non-ideal-state
-          {:title  "Loading Seamap Layers..."
+          {:title  main-msg
            :visual (reagent/as-element [b/spinner {:intent "success"}])}])])))
 
 (defn welcome-dialogue []
