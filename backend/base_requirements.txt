@@ -1,5 +1,5 @@
 Django==1.8.17
-djangorestframework==3.5.3
+djangorestframework==3.9.1
 django-cors-headers
 django-extensions
 django-pyodbc-azure>=1.8.17,<1.8.99
