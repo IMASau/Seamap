@@ -1,7 +1,8 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
-from django.db.models.functions import Coalesce, Value
+from django.db.models import Value
+from django.db.models.functions import Coalesce
 from catalogue.models import Organisation, HabitatDescriptor, Layer, LayerGroup, LayerGroupPriority, DataClassification
 from catalogue.serializers import ClassificationSerializer, OrganisationSerializer, HabitatSerializer, LayerSerializer, GroupSerializer, GroupPrioritySerializer
 from rest_framework import viewsets
