@@ -144,8 +144,8 @@
     [:div {:dangerouslySetInnerHTML {:__html info-body}}]))
 
 (defn- add-raw-handler-once [js-obj event-name handler]
-  (when-not (.listens js-obj event-name)
-    (.on js-obj event-name handler)))
+  (when-not (ocall js-obj :listens event-name)
+    (ocall js-obj :on event-name handler)))
 
 (defn map-component [sidebar]
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
