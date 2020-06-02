@@ -72,4 +72,3 @@
 (def *elevation-two*   (gget "Blueprint.Elevation.TWO"))
 (def *elevation-three* (gget "Blueprint.Elevation.THREE"))
 (def *elevation-four*  (gget "Blueprint.Elevation.FOUR"))
-(def *elevation-five*  (gget "Blueprint.Elevation.FIVE"))
