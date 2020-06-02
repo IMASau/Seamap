@@ -47,6 +47,7 @@
     :ui.catalogue/nodes                   subs/catalogue-nodes
     :ui/sidebar                           subs/sidebar-state
     :app/loading?                         subs/app-loading?
+    :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
     :info/message                         subs/user-message}
 

@@ -5,7 +5,7 @@
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.utils :refer [select-values] :refer-macros [handler-dispatch]]
+            [imas-seamap.utils :refer [copy-text select-values] :refer-macros [handler-dispatch]]
             [imas-seamap.map.utils :refer [sort-layers bounds->geojson download-type->str]]
             [oops.core :refer [ocall oget gget]]
             [debux.cs.core :refer-macros [dbg]]))
@@ -121,7 +121,12 @@
 
 (defn share-control [props]
   [custom-control {:position "topleft" :class-name "leaflet-bar"}
-   [:a {:on-click (handler-dispatch [:copy-share-url])}
+   ;; The copy-text has to be here rather than in a handler, because
+   ;; Firefox won't do execCommand('copy') outside of a "short-lived
+   ;; event handler"
+   [:a {:on-click #((copy-text js/location.href)
+                    (re-frame/dispatch  [:info/show-message "URL copied to clipboard!" {:intent   b/*intent-success*
+                                                                                        :iconName "clipboard"}]))}
     [b/tooltip {:content "Copy Shareable URL to clipboard" :position b/*RIGHT*}
      [b/icon {:icon-name "clipboard"}]]]])
 
@@ -137,6 +142,10 @@
                             :visual "error"}]
     ;; Default; we have actual content:
     [:div {:dangerouslySetInnerHTML {:__html info-body}}]))
+
+(defn- add-raw-handler-once [js-obj event-name handler]
+  (when-not (.listens js-obj event-name)
+    (.on js-obj event-name handler)))
 
 (defn map-component [sidebar]
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
@@ -176,6 +185,12 @@
                     :on-zoomend           on-map-view-changed
                     :on-moveend           on-map-view-changed
                     :when-ready           on-map-view-changed
+                    :ref                  (fn [map]
+                                            (when map
+                                              (add-raw-handler-once (oget map :leafletElement) "easyPrint-start"
+                                                                    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
+                                              (add-raw-handler-once (oget map :leafletElement) "easyPrint-finished"
+                                                                    #(re-frame/dispatch [:ui/hide-loading]))))
                     :on-click             on-map-clicked
                     :close-popup-on-click false ; We'll handle that ourselves
                     :on-popupclose        on-popup-closed}

@@ -1,7 +1,7 @@
-Django==1.8.17
-djangorestframework==3.9.1
-django-cors-headers
-django-extensions
-django-pyodbc-azure>=1.8.17,<1.8.99
-sqlparse
+Django==1.11.26
+djangorestframework==3.5.3
+django-cors-headers==2.1.0
+django-extensions==1.9.8
+django-pyodbc-azure>=1.11.15,<1.11.99
+sqlparse==0.2.4
 pyshp==1.2.12
