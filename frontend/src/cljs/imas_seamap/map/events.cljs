@@ -34,21 +34,19 @@
                                              (apply min))]]
                      (let [params {:REQUEST      "GetFeatureInfo"
                                    :LAYERS       layers
-                                   :QUERY_layers layers
+                                   :QUERY_LAYERS layers
                                    :WIDTH        (:x size)
                                    :HEIGHT       (:y size)
                                    :BBOX         (bounds->str bounds)
+                                   :STYLES       ""
                                    :X            x
                                    :Y            y
-                                   :I            x
-                                   :J            y
-                                   :buffer       10 ; copying the AODN portal
-                                   :SRS          "EPSG:4326"
+                                   :TRANSPARENT  true
                                    :CRS          "EPSG:4326"
-                                   :FORMAT       "text/html"
-                                   :INFO_format  "text/html"
+                                   :FORMAT       "image/png"
+                                   :INFO_FORMAT  "text/html"
                                    :SERVICE      "WMS"
-                                   :VERSION      "1.3.0"}]
+                                   :VERSION      "1.1.1"}]
                        {:method          :get
                         :uri             server-url
                         :params          params

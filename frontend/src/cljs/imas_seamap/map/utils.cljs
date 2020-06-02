@@ -185,14 +185,15 @@
         ratio (/ (- north south) (- east west))
         width 640]
     (-> (url/url server_url)
-        (assoc :query {:service "wms"
-                       :version "1.3.0"
-                       :request "GetMap"
-                       :SRS     "EPSG:4326"
-                       :bbox    (bounds->str bounds)
-                       :format  (type->format-str download-type)
-                       :width   width
-                       :height  (int (* ratio width))
-                       :layers  (or detail_layer layer_name)})
+        (assoc :query {:service     "wms"
+                       :version     "1.1.1"
+                       :request     "GetMap"
+                       :SRS         "EPSG:4326"
+                       :transparent true
+                       :bbox        (bounds->str bounds)
+                       :format      (type->format-str download-type)
+                       :width       width
+                       :height      (int (* ratio width))
+                       :layers      (or detail_layer layer_name)})
         str)))
 
