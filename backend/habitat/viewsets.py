@@ -85,7 +85,7 @@ PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
-    [y0,x0,y1,x1] = map(float, parts)
+    [x0,y0,x1,y1] = map(float, parts)
     return [x0,y0,x1,y1]
 
 
