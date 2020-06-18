@@ -32,7 +32,8 @@
                                   :map/update-classifications
                                   :map/update-priorities
                                   :map/update-descriptors]
-     :dispatch [:map/initialise-display]}
+     :dispatch-n [[:map/initialise-display]
+                  [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
      :dispatch [:welcome-layer/open]
      :halt? true}
@@ -211,9 +212,17 @@
                                 :bathymetry :loading})
         linestring (geojson->linestring geojson)]
     {:db db
+     :put-hash (encode-state db)
      :dispatch-n [[:transect.plot/show] ; A bit redundant since we set the :show key above
                   [:transect.query/habitat    query-id linestring]
                   [:transect.query/bathymetry query-id linestring]]}))
+
+(defn transect-maybe-query [{:keys [db]}]
+  ;; When existing transect state is rehydrated it will have the
+  ;; query, but that will need to be re-executed. Only do this if we
+  ;; actually have a query of course:
+  (when-let [query (get-in db [:transect :query])]
+    {:dispatch [:transect/query query]}))
 
 (defn transect-query-cancel [db]
   (let [clear-loading (fn [val] (if (= val :loading) [] val))]

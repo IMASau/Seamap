@@ -34,10 +34,11 @@
                        (rename-keys {:active-layers :active})
                        (update :active (partial map :id)))
         db         (-> db
-                       (select-keys [:map :display :layer-state])
+                       (select-keys [:map :display :layer-state :transect])
                        (assoc :map pruned-map)
                        (update-in [:display] select-keys [:sidebar :catalogue])
                        (update-in [:display :sidebar] select-keys [:selected])
+                       (update-in [:transect] select-keys [:show? :query])
                        #_(update-in [:display :catalogue :expanded] #(into {} (filter second %))))
         legends    (->> db :layer-state :legend-shown (map :id))
         db*        (-> db

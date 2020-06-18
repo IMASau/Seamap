@@ -68,6 +68,7 @@
     :info/show-message                    events/show-message
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]
+    :transect/maybe-query                 [events/transect-maybe-query]
     :transect.query/cancel                events/transect-query-cancel
     :transect.query/failure               [events/transect-query-error]
     :transect.query/habitat               [events/transect-query-habitat]
