@@ -21,6 +21,17 @@
     [& args]
     (reduce merge-in* nil args)))
 
+(defn select-keys*
+  "select-keys, but allows nested selection using vector paths."
+  [m paths]
+  (apply merge-in
+        (map #(cond
+                (nil? %)              nil
+                (not (sequential? %)) {% (get m %)}
+                (= 1 (count %))       {(first %) (get m (first %))}
+                :else                 {(first %) (select-keys* (get m (first %)) [(rest %)])})
+             paths)))
+
 ;;; http://blog.jayfields.com/2011/01/clojure-select-keys-select-values-and.html
 (defn select-values [map ks]
   (reduce #(conj %1 (map %2)) [] ks))
