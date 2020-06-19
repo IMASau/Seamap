@@ -2,12 +2,12 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (defproject imas-seamap "0.1.0-SNAPSHOT"
-  :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
-                 [org.clojure/clojurescript "1.9.671"]
+  :dependencies [[org.clojure/clojure "1.10.1"]
+                 [org.clojure/clojurescript "1.10.773"]
                  [com.cognitect/transit-cljs "0.8.256"]
                  [cljs-ajax "0.5.5"]
-                 [org.clojure/data.xml "0.2.0-alpha2"]
-                 [org.clojure/data.zip "0.1.2"]
+                 [org.clojure/data.xml "0.2.0-alpha6"]
+                 [org.clojure/data.zip "1.0.0"]
                  [org.clojure/test.check "0.9.0"]
                  [figwheel-sidecar "0.5.18" :exclusions [ring/ring-core]]
                  [cider/piggieback "0.4.0"]
