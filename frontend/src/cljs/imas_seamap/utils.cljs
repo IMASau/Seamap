@@ -45,11 +45,12 @@
                        (rename-keys {:active-layers :active})
                        (update :active (partial map :id)))
         db         (-> db
-                       (select-keys [:map :display :layer-state :transect])
+                       (select-keys* [[:display :sidebar :selected]
+                                      [:display :catalogue]
+                                      :layer-state
+                                      [:transect :show?]
+                                      [:transect :query]])
                        (assoc :map pruned-map)
-                       (update-in [:display] select-keys [:sidebar :catalogue])
-                       (update-in [:display :sidebar] select-keys [:selected])
-                       (update-in [:transect] select-keys [:show? :query])
                        #_(update-in [:display :catalogue :expanded] #(into {} (filter second %))))
         legends    (->> db :layer-state :legend-shown (map :id))
         db*        (-> db
@@ -57,13 +58,29 @@
                        (assoc :legend-ids legends))]
     (b64/encodeString (t/write (t/writer :json) db*))))
 
+(defn filter-state
+  "Given a state map, presumably from the hashed state, filter down to
+  only expected/allowed paths to prevent injection attacks."
+  [state]
+  (select-keys* state
+                [[:display :sidebar :selected]
+                 [:display :catalogue :tab]
+                 [:display :catalogue :expanded]
+                 [:transect :show?]
+                 [:transect :query]
+                 [:map :active]
+                 [:map :center]
+                 [:map :zoom]
+                 :legend-ids]))
+
 (defn parse-state [hash-str]
   (try
    (let [decoded   (b64/decodeString hash-str)
          reader    (t/reader :json)]
-     (t/read reader decoded))
+     (->> decoded
+          (t/read reader)
+          filter-state))
    (catch js/Object e {})))
-
 
 (defn ids->layers [ids layers]
   (let [ids (set ids)]

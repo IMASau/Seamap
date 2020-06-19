@@ -10,8 +10,8 @@
 (defn set-location-anchor [anchor]
   (gset! :location.hash anchor))
 
-
 (re-frame/reg-fx :put-hash set-location-anchor)
+
 
 (defn cofx-hash-state [cofx _]
   (let [hash-val (gget :location.hash)]
