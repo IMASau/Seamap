@@ -158,7 +158,10 @@
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
    {:keys [active-layers loading-fn error-fn] :as layer-props}]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
-        :let [id-str (str id-base val)]]
+        ;; sorting-info maps category key -> label -> [sort-key,id].
+        ;; We use the id for a stable node-id:
+        :let [sorting-id (get-in sorting-info [ordering val 1])
+              id-str (str id-base "|" sorting-id)]]
     {:id id-str
      :label val ; (Implicit assumption that the group-by value is a string)
      :isExpanded (get expanded-states id-str false)

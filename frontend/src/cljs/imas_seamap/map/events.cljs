@@ -168,7 +168,10 @@
   (assoc-in db [:map :groups] groups))
 
 (defn- ->sort-map [ms]
-  (reduce (fn [acc {:keys [name sort_key]}] (assoc acc name (or sort_key "zzzzz"))) {} ms))
+  ;; Associate a category of objects (categories, organisations) with
+  ;; a tuple of its sort-key (user-assigned, to allow user-specified
+  ;; ordering) and its id (which is used as a stable id)
+  (reduce (fn [acc {:keys [id name sort_key]}] (assoc acc name [(or sort_key "zzzzz") id])) {} ms))
 
 (defn update-organisations [db [_ organisations]]
   (-> db

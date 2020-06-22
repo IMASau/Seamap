@@ -9,13 +9,13 @@ from catalogue.models import DataClassification, Organisation, HabitatDescriptor
 class OrganisationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organisation
-        fields = ('name', 'logo', 'sort_key')
+        fields = ('id', 'name', 'logo', 'sort_key')
 
 
 class ClassificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataClassification
-        fields = ('name', 'sort_key')
+        fields = ('id', 'name', 'sort_key')
 
 
 class HabitatSerializer(serializers.ModelSerializer):

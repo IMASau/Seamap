@@ -48,7 +48,7 @@
 ;;; Reset state.  Gets a bit messy because we can't just return
 ;;; default-db without throwing away ajax-loaded layer info, so we
 ;;; restore that manually first.
-(defn re-boot [{:keys [habitat-colours habitat-titles]
+(defn re-boot [{:keys [habitat-colours habitat-titles sorting]
                 {:keys [layers organisations priorities groups] :as map-state} :map
                 :as db} _]
   (-> db/default-db
@@ -57,7 +57,8 @@
                           :groups        groups
                           :priorities    priorities})
       (merge {:habitat-colours habitat-colours
-              :habitat-titles  habitat-titles})))
+              :habitat-titles  habitat-titles
+              :sorting         sorting})))
 
 (defn loading-screen [db [_ msg]]
   (assoc db
