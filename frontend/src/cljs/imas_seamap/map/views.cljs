@@ -130,16 +130,22 @@
     [b/tooltip {:content "Copy Shareable URL to clipboard" :position b/*RIGHT*}
      [b/icon {:icon-name "clipboard"}]]]])
 
-(defn popup-component [{:keys [status info-body]}]
+(defn popup-component [{:keys [status info-body had-insecure?] :as feature-popup}]
   (case status
-    :feature-info/waiting [b/non-ideal-state
-                               {:visual (r/as-element [b/spinner {:intent "success"}])}]
-    :feature-info/empty   [b/non-ideal-state
-                           {:title  "No Results"
-                            :visual "warning-sign"}]
-    :feature-info/error   [b/non-ideal-state
-                           {:title  "Server Error"
-                            :visual "error"}]
+    :feature-info/waiting        [b/non-ideal-state
+                                  {:visual (r/as-element [b/spinner {:intent "success"}])}]
+    :feature-info/empty          [b/non-ideal-state
+                                  (merge
+                                   {:title  "No Results"
+                                    :visual "warning-sign"}
+                                   (when had-insecure? {:description "(We are unable to query all remote servers here)"}))]
+    :feature-info/none-queryable [b/non-ideal-state
+                                  {:title       "No Valid Server"
+                                   :description "Unfortunately the remote server prevents us querying it."
+                                   :visual      "warning-sign"}]
+    :feature-info/error          [b/non-ideal-state
+                                  {:title  "Server Error"
+                                   :visual "error"}]
     ;; Default; we have actual content:
     [:div {:dangerouslySetInnerHTML {:__html info-body}}]))
 

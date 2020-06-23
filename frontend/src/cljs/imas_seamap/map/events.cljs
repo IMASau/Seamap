@@ -16,14 +16,21 @@
             [reagent.core :as r]))
 
 
+;;; Seamap is hosted under https, meaning the browser will block ajax
+;;; (ie, getfeatureinfo) requests to plain http URLs.  Servers still
+;;; using http need specil handling:
+(defn- is-insecure? [url] (-> url string/lower-case (string/starts-with? "http:")))
+
 (defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y] :as point}]]
-  (let [active-layers (->> db :map :active-layers (remove #(#{:bathymetry} (:category %))))
+  (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))))
         by-server     (group-by :server_url active-layers)
         ;; Note, top layer, last in the list, must be first in our search string:
         layers->str   #(->> % (map layer-name) reverse (string/join ","))
-        request-id    (gensym)]
+        request-id    (gensym)
+        had-insecure? (->> db :map :active-layers (some #(is-insecure? (:server_url %))))]
     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
-    (when (seq active-layers)
+    (cond
+      (seq active-layers)
       {:http-xhrio (for [[server-url active-layers] by-server
                          :let [layers   (layers->str active-layers)
                                priority (->> active-layers
@@ -57,9 +64,15 @@
        :db         (assoc db :feature-query {:request-id        request-id
                                              :response-remain   (count by-server)
                                              :response-priority 99
+                                             :had-insecure?     had-insecure?
                                              :candidate         nil}
                           :feature       {:status   :feature-info/waiting
-                                          :location point})})))
+                                          :location point})}
+
+      ;; This is the fall-through case for "layers are visible, but
+      ;; they're http so we can't query them":
+      had-insecure?
+      {:db (assoc db :feature {:status :feature-info/none-queryable :location point})})))
 
 (defn get-habitat-region-statistics [{:keys [db] :as ctx} [_ props point]]
   (let [boundary   (->> db :map :active-layers (filter #(= :boundaries (:category %))) first :id)
@@ -110,9 +123,9 @@
     (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
           body  (first (array-seq (.querySelectorAll parsed "body")))
           db' (update-in db [:feature-query :response-remain] dec)
-          {:keys [response-priority response-remain candidate]} (:feature-query db')
+          {:keys [response-priority response-remain candidate had-insecure?]} (:feature-query db')
           higher-priority? (< priority response-priority)]
-      (let [candidate' (merge {:location point}
+      (let [candidate' (merge {:location point :had-insecure? had-insecure?}
                               (if (.-firstElementChild body)
                                 {:info (.-innerHTML body)}
                                 {:status :feature-info/empty}))]
