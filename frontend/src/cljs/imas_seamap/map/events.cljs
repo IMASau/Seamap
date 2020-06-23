@@ -50,6 +50,7 @@
                                    :Y            y
                                    :TRANSPARENT  true
                                    :CRS          "EPSG:4326"
+                                   :SRS          "EPSG:4326"
                                    :FORMAT       "image/png"
                                    :INFO_FORMAT  "text/html"
                                    :SERVICE      "WMS"
