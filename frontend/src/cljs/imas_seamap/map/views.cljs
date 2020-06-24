@@ -137,11 +137,12 @@
     :feature-info/empty          [b/non-ideal-state
                                   (merge
                                    {:title  "No Results"
+                                    :description "Try clicking elsewhere or adding another layer"
                                     :visual "warning-sign"}
-                                   (when had-insecure? {:description "(We are unable to query all remote servers here)"}))]
+                                   (when had-insecure? {:description "(Could not query all displayed external data layers)"}))]
     :feature-info/none-queryable [b/non-ideal-state
-                                  {:title       "No Valid Server"
-                                   :description "Unfortunately the remote server prevents us querying it."
+                                  {:title       "Invalid Info"
+                                   :description "Could not query the external data provider"
                                    :visual      "warning-sign"}]
     :feature-info/error          [b/non-ideal-state
                                   {:title  "Server Error"
