@@ -6,7 +6,7 @@
             [clojure.string :as string]
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]
-            [imas-seamap.blueprint :as b :refer [*RIGHT*]]
+            [imas-seamap.blueprint :as b :refer [RIGHT]]
             [imas-seamap.db :refer [img-url-base]]
             [imas-seamap.map.events :refer [process-layer]]
             [imas-seamap.map.views :refer [map-component]]
@@ -121,7 +121,7 @@
 (defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading? expanded?] :as layer-state}]
   [b/tooltip {:content (if expanded? "Click to hide legend" "Click to show legend")
               :class-name "header-text"
-              :position *RIGHT*
+              :position RIGHT
               :is-disabled (not active?)}
    [:div.layer-wrapper (when active? {:class-name "layer-active"
                                       :on-click (handler-dispatch [:map.layer.legend/toggle layer])})
@@ -399,7 +399,7 @@
      [:div.pt-dialog-footer
       [:div.pt-dialog-footer-actions
        [b/button {:text       "Get Started!"
-                  :intent     b/*intent-primary*
+                  :intent     b/INTENT-PRIMARY
                   :auto-focus true
                   :on-click   (handler-dispatch [:welcome-layer/close])}]]]]))
 
@@ -430,7 +430,7 @@
      "Downloading implies acceptance of all citation and usage requirements."]]])
 
 (defn- download-menu [{:keys [title disabled? layer bbox]}]
-  [b/popover {:position           b/*BOTTOM*
+  [b/popover {:position           b/BOTTOM
               :is-disabled        disabled?
               :popover-class-name "pt-minimal"
               :content            (reagent/as-element
@@ -491,12 +491,12 @@
                           :layer layer}]])
        [b/button {:text       "Close"
                   :auto-focus true
-                  :intent     b/*intent-primary*
+                  :intent     b/INTENT-PRIMARY
                   :on-click   (handler-dispatch [:map.layer/close-info])}]]]]))
 
 (defn- as-icon [icon-name description]
   (reagent/as-element [b/tooltip {:content  description
-                                  :position *RIGHT*}
+                                  :position RIGHT}
                        [:span.pt-icon-standard {:class-name (str "pt-icon-" icon-name)}]]))
 
 (defn layer-tab [layers active-layers loading-fn error-fn expanded-fn]
@@ -532,7 +532,7 @@
                          :expanded? (expanded-fn layer)}])]
    [:label.pt-label.height-managed
     "Habitat layer for region statistics (only one active layer may be selected at a time):"
-    [b/popover {:position           b/*BOTTOM*
+    [b/popover {:position           b/BOTTOM
                 :class-name         "full-width"
                 :popover-class-name "pt-minimal"
                 :content            (reagent/as-element
@@ -543,7 +543,7 @@
                                                       :on-click #(re-frame/dispatch [:map.region-stats/select-habitat layer])}])])}
      [b/button {:text            (get habitat-layer :name "Select Habitat Layer for statistics...")
                 :class-name      "pt-fill pt-text-overflow-ellipsis"
-                :intent          (when-not habitat-layer b/*intent-warning*)
+                :intent          (when-not habitat-layer b/INTENT-WARNING)
                 :right-icon-name "caret-down"}]]]
    [:div.pt-callout.pt-icon-help.height-managed
     [:h5 "Hints"]

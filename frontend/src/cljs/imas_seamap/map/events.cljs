@@ -377,7 +377,7 @@
                                   [:div "Open layer info ("
                                    [b/icon {:icon-name "info-sign" :icon-size 14}]
                                    ") to download selection"])
-              b/*intent-none*]})
+              b/INTENT-NONE]})
 
 (defn map-toggle-selecting [{:keys [db] :as ctx} _]
   {:dispatch

@@ -244,7 +244,7 @@
                                                                     (:debug-message  response)
                                                                     last-error)))]
       {:db       (assoc-in db [:transect type] status-text)
-       :dispatch [:info/show-message status-text b/*intent-danger*]})))
+       :dispatch [:info/show-message status-text b/INTENT-DANGER]})))
 
 (defn transect-query-habitat [{:keys [db]} [_ query-id linestring]]
   (let [bbox           (geojson-linestring->bbox linestring)
@@ -371,7 +371,7 @@
   db)
 
 (defn show-message [db [_ message intent-or-opts]]
-  (let [msg (merge {:intent b/*intent-warning*}
+  (let [msg (merge {:intent b/INTENT-WARNING}
                    (if (map? intent-or-opts) intent-or-opts {:intent intent-or-opts})
                    {:message        message
                     :__cache-buster (js/Date.now)})]
@@ -384,7 +384,7 @@
 
 (defn copy-share-url [{:keys [db]} _]
   (copy-text js/location.href)
-  {:dispatch [:info/show-message "URL copied to clipboard!" {:intent   b/*intent-success*
+  {:dispatch [:info/show-message "URL copied to clipboard!" {:intent   b/INTENT-SUCCESS
                                                          :iconName "clipboard"}]})
 
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]

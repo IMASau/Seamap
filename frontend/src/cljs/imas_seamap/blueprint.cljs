@@ -55,20 +55,20 @@
 
 ;;; Intents:
 
-(def *intent-none*    (gget "Blueprint.Intent.NONE"))
-(def *intent-primary* (gget "Blueprint.Intent.PRIMARY"))
-(def *intent-success* (gget "Blueprint.Intent.SUCCESS"))
-(def *intent-warning* (gget "Blueprint.Intent.WARNING"))
-(def *intent-danger*  (gget "Blueprint.Intent.DANGER"))
+(def INTENT-NONE    (gget "Blueprint.Intent.NONE"))
+(def INTENT-PRIMARY (gget "Blueprint.Intent.PRIMARY"))
+(def INTENT-SUCCESS (gget "Blueprint.Intent.SUCCESS"))
+(def INTENT-WARNING (gget "Blueprint.Intent.WARNING"))
+(def INTENT-DANGER  (gget "Blueprint.Intent.DANGER"))
 
 ;;; Other constants:
 
-(def *RIGHT*  (gget "Blueprint.Position.RIGHT"))
-(def *BOTTOM* (gget "Blueprint.Position.BOTTOM"))
-(def *LEFT*   (gget "Blueprint.Position.LEFT"))
-(def *TOP*    (gget "Blueprint.Position.TOP"))
+(def RIGHT  (gget "Blueprint.Position.RIGHT"))
+(def BOTTOM (gget "Blueprint.Position.BOTTOM"))
+(def LEFT   (gget "Blueprint.Position.LEFT"))
+(def TOP    (gget "Blueprint.Position.TOP"))
 
-(def *elevation-one*   (gget "Blueprint.Elevation.ONE"))
-(def *elevation-two*   (gget "Blueprint.Elevation.TWO"))
-(def *elevation-three* (gget "Blueprint.Elevation.THREE"))
-(def *elevation-four*  (gget "Blueprint.Elevation.FOUR"))
+(def ELEVATION-ONE   (gget "Blueprint.Elevation.ONE"))
+(def ELEVATION-TWO   (gget "Blueprint.Elevation.TWO"))
+(def ELEVATION-THREE (gget "Blueprint.Elevation.THREE"))
+(def ELEVATION-FOUR  (gget "Blueprint.Elevation.FOUR"))
