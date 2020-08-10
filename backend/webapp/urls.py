@@ -2,8 +2,8 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from django.conf import settings
-from django.urls import include, re_path
 from django.contrib import admin
+from django.urls import include, re_path
 from rest_framework.routers import DefaultRouter
 
 from catalogue.viewsets import ClassificationViewset, DescriptorViewset, LayerViewset, GroupViewset, GroupPriorityViewset, OrganisationViewset
