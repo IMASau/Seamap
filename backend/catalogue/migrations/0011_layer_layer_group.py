@@ -17,6 +17,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='layer',
             name='layer_group',
-            field=models.ForeignKey(default=1, to='catalogue.LayerGroup'),
+            field=models.ForeignKey(default=1, to='catalogue.LayerGroup', on_delete=models.PROTECT),
         ),
     ]

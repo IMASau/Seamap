@@ -17,11 +17,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='layer',
             name='data_classification',
-            field=models.ForeignKey(blank=True, to='catalogue.DataClassification', null=True),
+            field=models.ForeignKey(blank=True, to='catalogue.DataClassification', null=True, on_delete=models.PROTECT),
         ),
         migrations.AlterField(
             model_name='layer',
             name='organisation',
-            field=models.ForeignKey(blank=True, to='catalogue.Organisation', null=True),
+            field=models.ForeignKey(blank=True, to='catalogue.Organisation', null=True, on_delete=models.PROTECT),
         ),
     ]

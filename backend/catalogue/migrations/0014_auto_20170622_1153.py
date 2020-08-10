@@ -22,11 +22,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='layergrouppriority',
             name='group',
-            field=models.ForeignKey(related_name='layerpriorities', to='catalogue.LayerGroup'),
+            field=models.ForeignKey(related_name='layerpriorities', to='catalogue.LayerGroup', on_delete=models.PROTECT),
         ),
         migrations.AlterField(
             model_name='layergrouppriority',
             name='layer',
-            field=models.ForeignKey(related_name='grouppriorities', to='catalogue.Layer'),
+            field=models.ForeignKey(related_name='grouppriorities', to='catalogue.Layer', on_delete=models.PROTECT),
         ),
     ]

@@ -24,6 +24,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='layer',
             name='data_classification',
-            field=models.ForeignKey(to='catalogue.DataClassification', null=True),
+            field=models.ForeignKey(to='catalogue.DataClassification', null=True, on_delete=models.PROTECT),
         ),
     ]

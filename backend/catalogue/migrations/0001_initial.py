@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 ('legend_url', models.URLField()),
                 ('date_start', models.DateField()),
                 ('date_end', models.DateField()),
-                ('category', models.ForeignKey(to='catalogue.Category')),
+                ('category', models.ForeignKey(to='catalogue.Category', on_delete=models.PROTECT)),
             ],
         ),
         migrations.CreateModel(
@@ -48,6 +48,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='layer',
             name='server_type',
-            field=models.ForeignKey(to='catalogue.ServerType'),
+            field=models.ForeignKey(to='catalogue.ServerType', on_delete=models.PROTECT),
         ),
     ]
