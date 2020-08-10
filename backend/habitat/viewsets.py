@@ -16,7 +16,7 @@ from rest_framework.reverse import reverse
 from rest_framework.serializers import ValidationError
 import shapefile
 try:
-    from StringIO import StringIO
+    from io import StringIO
 except ImportError:
     from io import BytesIO as StringIO
 
@@ -85,7 +85,7 @@ PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
-    [x0,y0,x1,y1] = map(float, parts)
+    [x0,y0,x1,y1] = list(map(float, parts))
     return [x0,y0,x1,y1]
 
 
@@ -107,7 +107,7 @@ class ShapefileRenderer(BaseRenderer):
         for idx, field in enumerate(fields):
             fname,ftype = field[:2]
             fname = str(fname)  # it's unicode out of the box, with breaks pyshp / struct.pack
-            if issubclass(ftype, (str, unicode)):
+            if issubclass(ftype, str):
                 sw.field(str(fname), "C")
             elif issubclass(ftype, numbers.Number):
                 sw.field(str(fname), "N", decimal=30)
@@ -231,7 +231,7 @@ def transect(request):
 
         if not segments:
             break
-        p1, p2 = p2, segments[p2].keys()[0]
+        p1, p2 = p2, list(segments[p2].keys())[0]
 
     return Response(ordered_segments)
 

@@ -132,6 +132,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 SQL_ROOT = os.path.join(BASE_DIR, "../database")
 
 try:
-    from local_settings import *
+    from .local_settings import *
 except ImportError:
     pass
