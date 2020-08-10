@@ -9,7 +9,7 @@ import zipfile
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import connections, ProgrammingError
 from django.db.models.functions import Coalesce
-from rest_framework.decorators import api_view, list_route, renderer_classes
+from rest_framework.decorators import action, api_view, renderer_classes
 from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -153,7 +153,7 @@ class ShapefileRenderer(BaseRenderer):
 
 
 # request as .../transect/?line= x1 y1,x2 y2, ...,xn yn&layers=layer1,layer2..
-@list_route()
+@action(detail=False)
 @api_view()
 def transect(request):
     for required in ['line', 'layers']:
@@ -240,7 +240,7 @@ def transect(request):
 # boundary is the boundary-layer name, eg seamap:SeamapAus_BOUNDARIES_CMR2014
 # habitat is the habitat-layer name, eg seamap:FINALPRODUCT_SeamapAus
 # x and y (lon + lat) are in espg3112
-@list_route()
+@action(detail=False)
 @api_view()
 @renderer_classes((TemplateHTMLRenderer, ShapefileRenderer))
 def regions(request):
@@ -303,7 +303,7 @@ def regions(request):
 # boundary is the boundary-layer name, eg seamap:SeamapAus_BOUNDARIES_CMR2014
 # habitat is the habitat-layer name, eg seamap:FINALPRODUCT_SeamapAus
 # x and y (lon + lat) are in espg3112
-@list_route()
+@action(detail=False)
 @api_view()
 @renderer_classes((ShapefileRenderer,))
 def subset(request):
