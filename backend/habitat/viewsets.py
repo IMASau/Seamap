@@ -2,7 +2,7 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from catalogue.models import Layer
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from decimal import Decimal, getcontext
 import numbers
 import zipfile
@@ -15,10 +15,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.serializers import ValidationError
 import shapefile
-try:
-    from io import StringIO
-except ImportError:
-    from io import BytesIO as StringIO
+from io import BytesIO
 
 # SQL Template to invoke the habitat transect intersection procedure.
 # There's an awkward situation of two types of parameters involved
@@ -100,7 +97,11 @@ class ShapefileRenderer(BaseRenderer):
 
     def render(self, data, media_type=None, renderer_context=None):
         # Set up shapefile writer:
-        sw = shapefile.Writer(shapeType=shapefile.POLYGON)
+        shp = BytesIO()
+        shx = BytesIO()
+        dbf = BytesIO()
+        sw = shapefile.Writer(shp=shp, shx=shx, dbf=dbf, shapeType=shapefile.POLYGON)
+
         fields = data['fields']
         # Define shp-table column structure from field metadata:
         geom_idx = None
@@ -117,7 +118,7 @@ class ShapefileRenderer(BaseRenderer):
         for row in data['data']:
             row = list(row)
             geom = row.pop(geom_idx)
-            geom = GEOSGeometry(buffer(geom))
+            geom = GEOSGeometry(memoryview(geom))
             if geom.geom_type == 'Point':
                 sw.record(*row)
                 sw.point(*geom.coords)
@@ -126,7 +127,7 @@ class ShapefileRenderer(BaseRenderer):
                 geoms = (g for g in geom if g.geom_type == 'Polygon') if geom.num_geom > 1 else [geom]
                 for g in geoms:
                     sw.record(*row)
-                    sw.poly(parts=g.coords)
+                    sw.poly(g.coords)
             # coords = geom.coords
             # pyshp doesn't natively handle multipolygons
             # yet, so if we have one of those just flatten
@@ -134,16 +135,10 @@ class ShapefileRenderer(BaseRenderer):
             # if geom.num_geom > 1:
             #     # coords = [parts for poly in coords for parts in poly]
             #     coords = [part for g in geom for part in g.coords if g.geom_type == 'Polygon']
+        sw.close()
 
-        shp = StringIO()
-        shx = StringIO()
-        dbf = StringIO()
-        sw.saveShp(shp)
-        sw.saveShx(shx)
-        sw.saveDbf(dbf)
-
-        zipstream = StringIO()
         filename = data['file_name']
+        zipstream = BytesIO()
         with zipfile.ZipFile(zipstream, 'w') as responsezip:
             responsezip.writestr(filename + '.shp', shp.getvalue())
             responsezip.writestr(filename + '.shx', shx.getvalue())
@@ -272,9 +267,14 @@ def regions(request):
         if boundary_info:
             boundary_name, boundary_area = boundary_info
 
-            cursor.execute(SQL_GET_STATS.format('geom.STAsBinary(),' if is_download else ''),
+            cursor.execute(SQL_GET_STATS.format('geom.STAsBinary() as geom,' if is_download else ''),
                            [boundary_area, boundary_name, boundary, habitat])
-            results = cursor.fetchall()
+
+            # Convert plain list of tuples to list of dicts by zipping
+            # with column names (emulates the raw pyodbc protocol):
+            columns = [col[0] for col in cursor.description]
+            namedrow = namedtuple('Result', [col for col in columns])
+            results = [namedrow(*row) for row in cursor.fetchall()]
 
             if is_download:
                 return Response({'data': results,
