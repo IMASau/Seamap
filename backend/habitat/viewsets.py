@@ -100,42 +100,41 @@ class ShapefileRenderer(BaseRenderer):
         shp = BytesIO()
         shx = BytesIO()
         dbf = BytesIO()
-        sw = shapefile.Writer(shp=shp, shx=shx, dbf=dbf, shapeType=shapefile.POLYGON)
 
-        fields = data['fields']
-        # Define shp-table column structure from field metadata:
-        geom_idx = None
-        for idx, field in enumerate(fields):
-            fname,ftype = field[:2]
-            fname = str(fname)  # it's unicode out of the box, with breaks pyshp / struct.pack
-            if issubclass(ftype, str):
-                sw.field(str(fname), "C")
-            elif issubclass(ftype, numbers.Number):
-                sw.field(str(fname), "N", decimal=30)
-            else:
-                geom_idx = idx
+        with shapefile.Writer(shp=shp, shx=shx, dbf=dbf, shapeType=shapefile.POLYGON) as sw:
+            fields = data['fields']
+            # Define shp-table column structure from field metadata:
+            geom_idx = None
+            for idx, field in enumerate(fields):
+                fname,ftype = field[:2]
+                fname = str(fname)  # it's unicode out of the box, with breaks pyshp / struct.pack
+                if issubclass(ftype, str):
+                    sw.field(str(fname), "C")
+                elif issubclass(ftype, numbers.Number):
+                    sw.field(str(fname), "N", decimal=30)
+                else:
+                    geom_idx = idx
 
-        for row in data['data']:
-            row = list(row)
-            geom = row.pop(geom_idx)
-            geom = GEOSGeometry(memoryview(geom))
-            if geom.geom_type == 'Point':
-                sw.record(*row)
-                sw.point(*geom.coords)
-            else:
-                # For some reason MSSQL is giving me the occasional (2-point) LineString; filter those:
-                geoms = (g for g in geom if g.geom_type == 'Polygon') if geom.num_geom > 1 else [geom]
-                for g in geoms:
+            for row in data['data']:
+                row = list(row)
+                geom = row.pop(geom_idx)
+                geom = GEOSGeometry(memoryview(geom))
+                if geom.geom_type == 'Point':
                     sw.record(*row)
-                    sw.poly(g.coords)
-            # coords = geom.coords
-            # pyshp doesn't natively handle multipolygons
-            # yet, so if we have one of those just flatten
-            # it out to parts ourselves:
-            # if geom.num_geom > 1:
-            #     # coords = [parts for poly in coords for parts in poly]
-            #     coords = [part for g in geom for part in g.coords if g.geom_type == 'Polygon']
-        sw.close()
+                    sw.point(*geom.coords)
+                else:
+                    # For some reason MSSQL is giving me the occasional (2-point) LineString; filter those:
+                    geoms = (g for g in geom if g.geom_type == 'Polygon') if geom.num_geom > 1 else [geom]
+                    for g in geoms:
+                        sw.record(*row)
+                        sw.poly(g.coords)
+                # coords = geom.coords
+                # pyshp doesn't natively handle multipolygons
+                # yet, so if we have one of those just flatten
+                # it out to parts ourselves:
+                # if geom.num_geom > 1:
+                #     # coords = [parts for poly in coords for parts in poly]
+                #     coords = [part for g in geom for part in g.coords if g.geom_type == 'Polygon']
 
         filename = data['file_name']
         zipstream = BytesIO()
