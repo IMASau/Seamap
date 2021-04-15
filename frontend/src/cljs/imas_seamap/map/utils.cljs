@@ -168,7 +168,7 @@
                                download-type]
   (-> (url/url server_url)
       (assoc :query {:service      "wfs"
-                     :version      "1.1.0"
+                     :version      "1.0.0" ; Not 1.1.0, which swaps the lon-lat ordering in bbox!
                      :request      "GetFeature"
                      :outputFormat (type->format-str download-type)
                      :typeName     (or detail_layer layer_name)
