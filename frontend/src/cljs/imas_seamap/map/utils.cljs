@@ -5,6 +5,7 @@
   (:require [cemerick.url :as url]
             [clojure.string :as string]
             [imas-seamap.db :refer [api-url-base]]
+            [imas-seamap.utils :refer [merge-in]]
             [oops.core :refer [gcall ocall]]
             [debux.cs.core :refer-macros [dbg]]))
 
@@ -172,9 +173,12 @@
                      :request      "GetFeature"
                      :outputFormat (type->format-str download-type)
                      :typeName     (or detail_layer layer_name)
-                     :srsName      "EPSG:4326"
-                     ;; (note, bbox could be param or layer extent):
-                     :bbox         (bounds->str (or bounds bounding_box))})
+                     :srsName      "EPSG:4326"})
+      ;; only include bbox when we're requesting a sub-region (there's
+      ;; an issue where including the bbox, for the full region,
+      ;; causes issues.  I don't think this was always the case, but
+      ;; not investigating further)
+      (merge-in (when bounds {:query {:bbox (bounds->str bounds)}}))
       str))
 
 (defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as layer}
