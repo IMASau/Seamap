@@ -27,11 +27,14 @@
      :east  x1
      :north y1}))
 
+;;; Note, the namespace format (",EPSG:4326") used here has important
+;;; correlation with the WFS version used; see
+;;; https://docs.geoserver.org/latest/en/user/services/wfs/axis_order.html
 (defn bounds->str
   ([bounds] (bounds->str 4326 bounds))
-  ([epsg-code {:keys [north south east west] :as bounds}]
+  ([epsg-code {:keys [north south east west] :as _bounds}]
    (assert (integer? epsg-code))
-   (string/join "," [west south east north (str "urn:ogc:def:crs:EPSG:" epsg-code)])))
+   (string/join "," [west south east north (str "EPSG:" epsg-code)])))
 
 (defn bounds->geojson [{:keys [north south east west]}]
   {:type "Polygon"
@@ -169,7 +172,7 @@
                                download-type]
   (-> (url/url server_url)
       (assoc :query {:service      "wfs"
-                     :version      "1.0.0" ; Not 1.1.0, which swaps the lon-lat ordering in bbox!
+                     :version      "1.1.0"
                      :request      "GetFeature"
                      :outputFormat (type->format-str download-type)
                      :typeName     (or detail_layer layer_name)
