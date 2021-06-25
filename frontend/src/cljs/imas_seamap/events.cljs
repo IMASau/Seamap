@@ -154,23 +154,44 @@
 (defn layer-receive-metadata [db [_ layer raw-response]]
   (let [zipped           (-> raw-response xml/parse-str zip/xml-zip)
         constraints      (zx/xml1-> zipped
-                                    :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/MD_Metadata
-                                    :xmlns.http%3A%2F%2Fwww.isotc211.org%2F2005%2Fgmd/identificationInfo
-                                    :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/MD_DataIdentification
-                                    :xmlns.http%3A%2F%2Fwww.isotc211.org%2F2005%2Fgmd/resourceConstraints
-                                    :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/MD_Commons)
-        license-link     (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/licenseLink zx/text)
-        license-img      (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/imageLink zx/text)
-        license-name     (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/licenseName zx/text)
-        attr-constraints (zx/xml->  constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/attributionConstraints zx/text)
-        other            (zx/xml1-> constraints :xmlns.http%3A%2F%2Fschemas.aodn.org.au%2Fmcp-2.0/otherConstraints zx/text)]
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmdb%2F2.0/MD_Metadata
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmdb%2F2.0/identificationInfo
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmri%2F1.0/MD_DataIdentification
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmri%2F1.0/resourceConstraints
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmco%2F1.0/MD_LegalConstraints)
+        license-link     (zx/xml1-> constraints
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmco%2F1.0/reference
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fcit%2F2.0/CI_Citation
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fcit%2F2.0/onlineResource
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fcit%2F2.0/CI_OnlineResource
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fcit%2F2.0/linkage
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fgco%2F1.0/CharacterString
+                                    zx/text)
+        license-img      (zx/xml1-> constraints
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmco%2F1.0/graphic
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmcc%2F1.0/MD_BrowseGraphic
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmcc%2F1.0/linkage
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fcit%2F2.0/CI_OnlineResource
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fcit%2F2.0/linkage
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fgco%2F1.0/CharacterString
+                                    zx/text)
+        license-name     (zx/xml1-> constraints
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmco%2F1.0/reference
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fcit%2F2.0/CI_Citation
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fcit%2F2.0/title
+                                    :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fgco%2F1.0/CharacterString
+                                    zx/text)
+        other (zx/xml->  constraints
+                         :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmco%2F1.0/otherConstraints
+                         :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fgco%2F1.0/CharacterString
+                         zx/text)]
     (assoc-in db [:display :info-card]
               {:layer        layer
                :license-name license-name
                :license-link license-link
                :license-img  license-img
-               :constraints  (if (seq? attr-constraints) (first attr-constraints) attr-constraints)
-               :other        (flatten [(when (seq? attr-constraints) (rest attr-constraints)) other])})))
+               :constraints  (if (seq? other) (first other) other)
+               :other        (when (seq? other) (rest other))})))
 
 (defn layer-receive-metadata-err [db [_ & err]]
   (assoc-in db [:display :info-card] :display.info/error))
