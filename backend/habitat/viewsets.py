@@ -315,14 +315,20 @@ def subset(request):
 
     table_name = Layer.objects.get(pk=layer_id).table_name
 
+    # ISA-68: cursor.columns() metadata is currently being returned as
+    # tuples, instead of Row objects that can be accessed by name.
+    # Avoid the drama, just use numeric indices:
+    NAME_IDX = 3
+    TYPE_IDX = 5
+
     geom_col = None
     colnames = []
     field_metadata = []
     with connections['transects'].cursor() as cursor:
         columns = cursor.columns(table=table_name)
         for row in cursor.fetchall():
-            colname = row.column_name
-            typename = row.type_name
+            colname = row[NAME_IDX]
+            typename = row[TYPENAME]
             if typename == 'geometry':
                 geom_col = colname
             else:
