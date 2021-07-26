@@ -328,7 +328,7 @@ def subset(request):
         columns = cursor.columns(table=table_name)
         for row in cursor.fetchall():
             colname = row[NAME_IDX]
-            typename = row[TYPENAME]
+            typename = row[TYPE_IDX]
             if typename == 'geometry':
                 geom_col = colname
             else:
