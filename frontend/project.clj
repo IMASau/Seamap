@@ -82,4 +82,17 @@
                                       imas-seamap.db/api-url-base "https://data.imas.utas.edu.au/seamap/api/"
                                       imas-seamap.db/img-url-base "/app/img/"}
                     :pseudo-names    false
+                    :pretty-print    false}}
+
+    {:id           "mindev"
+     :source-paths ["src/cljs" "src/clj"]
+     :compiler     {:main            imas-seamap.core
+                    :output-to       "resources/public/js/compiled/app.js"
+                    :output-dir      "resources/public/js/compiled/app-dev"
+                    :source-map      "resources/public/js/compiled/app.js.map"
+                    :optimizations   :advanced
+                    :closure-defines {goog.DEBUG                   false
+                                      imas-seamap.db/api-url-base "https://data-dev.imas.utas.edu.au/seamap/api/"
+                                      imas-seamap.db/img-url-base "/app/img/"}
+                    :pseudo-names    false
                     :pretty-print    false}}]})
