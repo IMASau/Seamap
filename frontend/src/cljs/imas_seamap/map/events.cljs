@@ -39,22 +39,23 @@
                                                    :habitat     1
                                                    :third-party 2})
                                              (apply min))]]
-                     (let [params {:REQUEST      "GetFeatureInfo"
-                                   :LAYERS       layers
-                                   :QUERY_LAYERS layers
-                                   :WIDTH        (:x size)
-                                   :HEIGHT       (:y size)
-                                   :BBOX         (bounds->str bounds)
-                                   :STYLES       ""
-                                   :X            x
-                                   :Y            y
-                                   :TRANSPARENT  true
-                                   :CRS          "EPSG:4326"
-                                   :SRS          "EPSG:4326"
-                                   :FORMAT       "image/png"
-                                   :INFO_FORMAT  "text/html"
-                                   :SERVICE      "WMS"
-                                   :VERSION      "1.1.1"}]
+                     (let [params {:REQUEST       "GetFeatureInfo"
+                                   :LAYERS        layers
+                                   :QUERY_LAYERS  layers
+                                   :WIDTH         (:x size)
+                                   :HEIGHT        (:y size)
+                                   :BBOX          (bounds->str bounds)
+                                   :FEATURE_COUNT 5
+                                   :STYLES        ""
+                                   :X             x
+                                   :Y             y
+                                   :TRANSPARENT   true
+                                   :CRS           "EPSG:4326"
+                                   :SRS           "EPSG:4326"
+                                   :FORMAT        "image/png"
+                                   :INFO_FORMAT   "text/html"
+                                   :SERVICE       "WMS"
+                                   :VERSION       "1.1.1"}]
                        {:method          :get
                         :uri             server-url
                         :params          params

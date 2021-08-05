@@ -2,8 +2,8 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from django.conf import settings
-from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import include, re_path
 from rest_framework.routers import DefaultRouter
 
 from catalogue.viewsets import ClassificationViewset, DescriptorViewset, LayerViewset, GroupViewset, GroupPriorityViewset, OrganisationViewset
@@ -19,14 +19,14 @@ router.register(r'priorities', GroupPriorityViewset)
 router.register(r'descriptors', DescriptorViewset)
 
 urlpatterns = [
-    url(r'^api/habitat/transect', transect),
-    url(r'^api/habitat/regions', regions, name='habitat-regions'),
-    url(r'^api/habitat/subset', subset),
-    url(r'^api/', include(router.urls)),
+    re_path(r'^api/habitat/transect', transect),
+    re_path(r'^api/habitat/regions', regions, name='habitat-regions'),
+    re_path(r'^api/habitat/subset', subset),
+    re_path(r'^api/', include(router.urls)),
 ]
 
 if settings.DEBUG:
     urlpatterns += [
-        url(r'^admin/', admin.site.urls),
-        url(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
+        re_path(r'^admin/', admin.site.urls),
+        re_path(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
     ]

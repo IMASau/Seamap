@@ -2,7 +2,7 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -17,6 +17,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='layer',
             name='layer_group',
-            field=models.ForeignKey(default=1, to='catalogue.LayerGroup'),
+            field=models.ForeignKey(default=1, to='catalogue.LayerGroup', on_delete=models.PROTECT),
         ),
     ]

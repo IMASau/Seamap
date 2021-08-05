@@ -1,7 +1,7 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
-from __future__ import unicode_literals
+
 import re
 
 from django.core.validators import MinValueValidator, RegexValidator
@@ -88,9 +88,9 @@ class Layer(models.Model):
     layer_name = models.CharField(max_length = 200)
     detail_layer = models.CharField(max_length = 200, blank=True, null=True)
     table_name = models.CharField(max_length = 200, blank=True, null=True)
-    category = models.ForeignKey(Category)
-    data_classification = models.ForeignKey(DataClassification, blank=True, null=True)
-    organisation = models.ForeignKey(Organisation, blank=True, null=True)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    data_classification = models.ForeignKey(DataClassification, blank=True, null=True, on_delete=models.PROTECT)
+    organisation = models.ForeignKey(Organisation, blank=True, null=True, on_delete=models.PROTECT)
     # Bounding box; store as four separate fields
     minx = models.DecimalField(max_digits=20, decimal_places=17)
     miny = models.DecimalField(max_digits=20, decimal_places=17)
@@ -98,7 +98,7 @@ class Layer(models.Model):
     maxy = models.DecimalField(max_digits=20, decimal_places=17)
     metadata_url = models.URLField(max_length = 200)
     description = models.CharField(max_length = 500)
-    server_type = models.ForeignKey(ServerType)
+    server_type = models.ForeignKey(ServerType, on_delete=models.PROTECT)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
@@ -108,8 +108,8 @@ class Layer(models.Model):
 @python_2_unicode_compatible
 class LayerGroupPriority(models.Model):
     priority = models.IntegerField(default=1, validators=[MinValueValidator(1)])
-    group = models.ForeignKey(LayerGroup, related_name='layerpriorities')
-    layer = models.ForeignKey(Layer, related_name='grouppriorities')
+    group = models.ForeignKey(LayerGroup, related_name='layerpriorities', on_delete=models.PROTECT)
+    layer = models.ForeignKey(Layer, related_name='grouppriorities', on_delete=models.PROTECT)
 
     def __str__(self):
         return '{}:[{} / {}]'.format(self.priority,

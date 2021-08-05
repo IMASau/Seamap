@@ -2,23 +2,20 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from catalogue.models import Layer
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from decimal import Decimal, getcontext
 import numbers
 import zipfile
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import connections, ProgrammingError
 from django.db.models.functions import Coalesce
-from rest_framework.decorators import api_view, list_route, renderer_classes
+from rest_framework.decorators import action, api_view, renderer_classes
 from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.serializers import ValidationError
 import shapefile
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import BytesIO as StringIO
+from io import BytesIO
 
 # SQL Template to invoke the habitat transect intersection procedure.
 # There's an awkward situation of two types of parameters involved
@@ -85,7 +82,7 @@ PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
-    [x0,y0,x1,y1] = map(float, parts)
+    [x0,y0,x1,y1] = list(map(float, parts))
     return [x0,y0,x1,y1]
 
 
@@ -100,50 +97,47 @@ class ShapefileRenderer(BaseRenderer):
 
     def render(self, data, media_type=None, renderer_context=None):
         # Set up shapefile writer:
-        sw = shapefile.Writer(shapeType=shapefile.POLYGON)
-        fields = data['fields']
-        # Define shp-table column structure from field metadata:
-        geom_idx = None
-        for idx, field in enumerate(fields):
-            fname,ftype = field[:2]
-            fname = str(fname)  # it's unicode out of the box, with breaks pyshp / struct.pack
-            if issubclass(ftype, (str, unicode)):
-                sw.field(str(fname), "C")
-            elif issubclass(ftype, numbers.Number):
-                sw.field(str(fname), "N", decimal=30)
-            else:
-                geom_idx = idx
+        shp = BytesIO()
+        shx = BytesIO()
+        dbf = BytesIO()
 
-        for row in data['data']:
-            row = list(row)
-            geom = row.pop(geom_idx)
-            geom = GEOSGeometry(buffer(geom))
-            if geom.geom_type == 'Point':
-                sw.record(*row)
-                sw.point(*geom.coords)
-            else:
-                # For some reason MSSQL is giving me the occasional (2-point) LineString; filter those:
-                geoms = (g for g in geom if g.geom_type == 'Polygon') if geom.num_geom > 1 else [geom]
-                for g in geoms:
+        with shapefile.Writer(shp=shp, shx=shx, dbf=dbf, shapeType=shapefile.POLYGON) as sw:
+            fields = data['fields']
+            # Define shp-table column structure from field metadata:
+            geom_idx = None
+            for idx, field in enumerate(fields):
+                fname,ftype = field[:2]
+                fname = str(fname)  # it's unicode out of the box, with breaks pyshp / struct.pack
+                if issubclass(ftype, str):
+                    sw.field(str(fname), "C")
+                elif issubclass(ftype, numbers.Number):
+                    sw.field(str(fname), "N", decimal=30)
+                else:
+                    geom_idx = idx
+
+            for row in data['data']:
+                row = list(row)
+                geom = row.pop(geom_idx)
+                geom = GEOSGeometry(memoryview(geom))
+                if geom.geom_type == 'Point':
                     sw.record(*row)
-                    sw.poly(parts=g.coords)
-            # coords = geom.coords
-            # pyshp doesn't natively handle multipolygons
-            # yet, so if we have one of those just flatten
-            # it out to parts ourselves:
-            # if geom.num_geom > 1:
-            #     # coords = [parts for poly in coords for parts in poly]
-            #     coords = [part for g in geom for part in g.coords if g.geom_type == 'Polygon']
+                    sw.point(*geom.coords)
+                else:
+                    # For some reason MSSQL is giving me the occasional (2-point) LineString; filter those:
+                    geoms = (g for g in geom if g.geom_type == 'Polygon') if geom.num_geom > 1 else [geom]
+                    for g in geoms:
+                        sw.record(*row)
+                        sw.poly(g.coords)
+                # coords = geom.coords
+                # pyshp doesn't natively handle multipolygons
+                # yet, so if we have one of those just flatten
+                # it out to parts ourselves:
+                # if geom.num_geom > 1:
+                #     # coords = [parts for poly in coords for parts in poly]
+                #     coords = [part for g in geom for part in g.coords if g.geom_type == 'Polygon']
 
-        shp = StringIO()
-        shx = StringIO()
-        dbf = StringIO()
-        sw.saveShp(shp)
-        sw.saveShx(shx)
-        sw.saveDbf(dbf)
-
-        zipstream = StringIO()
         filename = data['file_name']
+        zipstream = BytesIO()
         with zipfile.ZipFile(zipstream, 'w') as responsezip:
             responsezip.writestr(filename + '.shp', shp.getvalue())
             responsezip.writestr(filename + '.shx', shx.getvalue())
@@ -153,7 +147,7 @@ class ShapefileRenderer(BaseRenderer):
 
 
 # request as .../transect/?line= x1 y1,x2 y2, ...,xn yn&layers=layer1,layer2..
-@list_route()
+@action(detail=False)
 @api_view()
 def transect(request):
     for required in ['line', 'layers']:
@@ -231,7 +225,7 @@ def transect(request):
 
         if not segments:
             break
-        p1, p2 = p2, segments[p2].keys()[0]
+        p1, p2 = p2, list(segments[p2].keys())[0]
 
     return Response(ordered_segments)
 
@@ -240,7 +234,7 @@ def transect(request):
 # boundary is the boundary-layer name, eg seamap:SeamapAus_BOUNDARIES_CMR2014
 # habitat is the habitat-layer name, eg seamap:FINALPRODUCT_SeamapAus
 # x and y (lon + lat) are in espg3112
-@list_route()
+@action(detail=False)
 @api_view()
 @renderer_classes((TemplateHTMLRenderer, ShapefileRenderer))
 def regions(request):
@@ -272,9 +266,14 @@ def regions(request):
         if boundary_info:
             boundary_name, boundary_area = boundary_info
 
-            cursor.execute(SQL_GET_STATS.format('geom.STAsBinary(),' if is_download else ''),
+            cursor.execute(SQL_GET_STATS.format('geom.STAsBinary() as geom,' if is_download else ''),
                            [boundary_area, boundary_name, boundary, habitat])
-            results = cursor.fetchall()
+
+            # Convert plain list of tuples to list of dicts by zipping
+            # with column names (emulates the raw pyodbc protocol):
+            columns = [col[0] for col in cursor.description]
+            namedrow = namedtuple('Result', [col for col in columns])
+            results = [namedrow(*row) for row in cursor.fetchall()]
 
             if is_download:
                 return Response({'data': results,
@@ -303,7 +302,7 @@ def regions(request):
 # boundary is the boundary-layer name, eg seamap:SeamapAus_BOUNDARIES_CMR2014
 # habitat is the habitat-layer name, eg seamap:FINALPRODUCT_SeamapAus
 # x and y (lon + lat) are in espg3112
-@list_route()
+@action(detail=False)
 @api_view()
 @renderer_classes((ShapefileRenderer,))
 def subset(request):
@@ -316,14 +315,20 @@ def subset(request):
 
     table_name = Layer.objects.get(pk=layer_id).table_name
 
+    # ISA-68: cursor.columns() metadata is currently being returned as
+    # tuples, instead of Row objects that can be accessed by name.
+    # Avoid the drama, just use numeric indices:
+    NAME_IDX = 3
+    TYPE_IDX = 5
+
     geom_col = None
     colnames = []
     field_metadata = []
     with connections['transects'].cursor() as cursor:
         columns = cursor.columns(table=table_name)
         for row in cursor.fetchall():
-            colname = row.column_name
-            typename = row.type_name
+            colname = row[NAME_IDX]
+            typename = row[TYPE_IDX]
             if typename == 'geometry':
                 geom_col = colname
             else:

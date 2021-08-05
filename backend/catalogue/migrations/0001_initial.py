@@ -2,7 +2,7 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import django.core.validators
@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 ('legend_url', models.URLField()),
                 ('date_start', models.DateField()),
                 ('date_end', models.DateField()),
-                ('category', models.ForeignKey(to='catalogue.Category')),
+                ('category', models.ForeignKey(to='catalogue.Category', on_delete=models.PROTECT)),
             ],
         ),
         migrations.CreateModel(
@@ -48,6 +48,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='layer',
             name='server_type',
-            field=models.ForeignKey(to='catalogue.ServerType'),
+            field=models.ForeignKey(to='catalogue.ServerType', on_delete=models.PROTECT),
         ),
     ]

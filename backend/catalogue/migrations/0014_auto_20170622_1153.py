@@ -2,7 +2,7 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -22,11 +22,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='layergrouppriority',
             name='group',
-            field=models.ForeignKey(related_name='layerpriorities', to='catalogue.LayerGroup'),
+            field=models.ForeignKey(related_name='layerpriorities', to='catalogue.LayerGroup', on_delete=models.PROTECT),
         ),
         migrations.AlterField(
             model_name='layergrouppriority',
             name='layer',
-            field=models.ForeignKey(related_name='grouppriorities', to='catalogue.Layer'),
+            field=models.ForeignKey(related_name='grouppriorities', to='catalogue.Layer', on_delete=models.PROTECT),
         ),
     ]

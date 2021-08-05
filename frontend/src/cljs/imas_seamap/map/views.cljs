@@ -228,6 +228,7 @@
                         :on-load      on-load-end
                         :transparent  true
                         :opacity      1
+                        :tiled        true
                         :format       "image/png"}
                        extra-params)]))
        (sort-layers active-layers layer-priorities logic-type))

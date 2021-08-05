@@ -86,17 +86,27 @@
   (let [ids (set ids)]
     (filter #(contains? ids (:id %)) layers)))
 
-(defn geonetwork-force-xml [geonetwork-url]
+(defn geonetwork-force-xml
+  "Turn a Geonetwork record URL into the xml-downoad equivalent for the
+  same record.  Assume Geonetwork 3, and handles URLs in the two formats
+  https://metadata.imas.utas.edu.au/geonetwork/srv/eng/catalog.search#/metadata/4739e4b0-4dba-4ec5-b658-02c09f27ab9a
+  and
+  https://metadata.imas.utas.edu.au/geonetwork/srv/api/records/4739e4b0-4dba-4ec5-b658-02c09f27ab9a,
+  returning the format
+  https://metadata.imas.utas.edu.au/geonetwork/srv/api/records/4739e4b0-4dba-4ec5-b658-02c09f27ab9a/formatters/xml"
+  [geonetwork-url]
   (let [url            (url/url geonetwork-url)
-        update-service #(update % :path string/replace #"/[^/]+$" "/xml.metadata.get")]
-    (if (string/includes? geonetwork-url "search#!")
-      (let [uuid (-> url :anchor (subs 1))]
+        update-service #(update % :path str "/formatters/xml")]
+    (if (string/includes? geonetwork-url "catalog.search")
+      ;; Hash format; reconstruct:
+      (let [uuid (-> url :anchor (subs 10))]
         (-> url
+            (update :path string/replace #"eng?/catalog.search$" "api/records/")
+            (update :path str uuid)
             update-service
-            (update :query assoc :uuid uuid)
             (assoc :anchor nil)
             str))
-      ;; Regular format; switch to XML format:
+      ;; Regular format (/srv/api/records/<uuid>); switch to XML format:
       (-> url
           update-service
           str))))
