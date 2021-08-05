@@ -2,7 +2,7 @@ Django==2.2.16
 django-cors-headers==3.4.0
 django-extensions==3.0.3
 django-mssql-backend==2.8.1
-djangorestframework==3.11.1
+djangorestframework==3.11.2
 pyodbc==4.0.30
 pyshp==2.1.0
 sqlparse==0.3.1
