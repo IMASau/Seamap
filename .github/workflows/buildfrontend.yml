@@ -1,0 +1,93 @@
+name: Build frontend
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+
+jobs:
+  frontend-build:
+    name: Build Front-end
+    runs-on: ubuntu-latest
+    env:
+      LEIN_ROOT: nbd
+      JVM_OPTS: -Xmx3200m
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      # Introduces slugified variables; eg "master" instead of "refs/heads/master"
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v3.x
+
+      - name: Conditionally set build profile based on branch (master)
+        if: endswith(github.ref, '/master')
+        run: |
+          echo "PROFILE=min" >> $GITHUB_ENV
+      - name: Conditionally set build profile based on branch (develope)
+        if: endswith(github.ref, '/develop')
+        run: |
+          echo "PROFILE=mindev" >> $GITHUB_ENV
+
+      # - name: Set up / restore caching
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ~/.cache/yarn
+      #     key: yarn-packages-${{ hashFiles('yarn.lock') }}
+      #     restore-keys: |
+      #       yarn-packages-
+
+      - name: Cache maven deps as well
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: m2-deps-${{ hashFiles('project.clj') }}
+          restore-keys: |
+            m2-deps-
+
+      # - name: Install Dependencies
+      #   run: yarn install --frozen-lockfile
+
+      - name: Set up Java for Clojure
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Install Clojure tools
+        uses: DeLaGuardo/setup-clojure@master
+        with:
+          lein: 'latest'
+      - name: Build project
+        run: lein cljsbuild once "${{ env.PROFILE }}"
+
+      - run: tar -c -z -v -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" resources/public/js/app.js resources/public/js/app.js.map resources/public/css resources/public/resources
+
+      - name: Create timestamp for release tag-name
+        id: tag_name
+        run: echo "::set-output name=tag_name::$(date +%Y%m%d%H%M%S)"
+
+      - name: Cut a release, for download by Ansible
+        id: create_release
+        uses: actions/create-release@v1
+        # env:
+        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag_name.outputs.tag_name }}
+          release_name: Release ${{ github.ref }} (${{ env.GITHUB_REF_SLUG }})
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        # env:
+        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "frontend/${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz"
+          asset_name: "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz"
+          asset_content_type: application/gzip
