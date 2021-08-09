@@ -277,7 +277,7 @@
      [catalogue-header layer-spec other-props]
      [catalogue-controls layer-spec other-props]]]])
 
-(defn layer-group [{:keys [expanded] :or {:expanded false} :as props} layers active-layers loading-fn error-fn expanded-fn]
+(defn layer-group [{:keys [expanded] :or {expanded false} :as props} layers active-layers loading-fn error-fn expanded-fn]
   (let [expanded (reagent/atom expanded)]
     (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn expanded-fn]
       [:div.layer-group.height-managed
