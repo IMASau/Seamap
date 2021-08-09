@@ -15,7 +15,7 @@
             [goog.object :as gobj]
             [goog.dom :as dom]
             [oops.core :refer [oget ocall]]
-            [debux.cs.core :refer [dbg]]))
+            [debux.cs.core :refer-macros [dbg]]))
 
 (def css-transition-group
   (reagent/adapt-react-class (oget js/window "React.addons.CSSTransitionGroup")))
