@@ -47,8 +47,6 @@ jobs:
         with:
           path: ~/.m2
           key: m2-deps-${{ hashFiles('project.clj') }}
-          restore-keys: |
-            m2-deps-
 
       # - name: Install Dependencies
       #   run: yarn install --frozen-lockfile
@@ -58,7 +56,7 @@ jobs:
         with:
           java-version: 11
 
-      - name: Install Clojure tools
+      - name: Install Leiningen
         uses: DeLaGuardo/setup-clojure@master
         with:
           lein: 'latest'
