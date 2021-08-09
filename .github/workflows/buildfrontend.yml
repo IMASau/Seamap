@@ -74,8 +74,8 @@ jobs:
       - name: Cut a release, for download by Ansible
         id: create_release
         uses: actions/create-release@v1
-        # env:
-        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag_name.outputs.tag_name }}
           release_name: Release ${{ github.ref }} (${{ env.GITHUB_REF_SLUG }})
@@ -84,8 +84,8 @@ jobs:
       - name: Upload Release Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
-        # env:
-        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: "frontend/${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz"
