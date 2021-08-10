@@ -46,7 +46,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2
-          key: m2-deps-${{ hashFiles('project.clj') }}
+          key: m2-deps-${{ hashFiles('**/project.clj') }}
 
       # - name: Install Dependencies
       #   run: yarn install --frozen-lockfile
