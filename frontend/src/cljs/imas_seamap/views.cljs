@@ -18,6 +18,7 @@
             [debux.cs.core :refer-macros [dbg]]))
 
 (def css-transition-group
+  ;; "The most straightforward way to migrate is to use <TransitionGroup> instead of <CSSTransitionGroup>:"
   (reagent/adapt-react-class (oget js/window "React.addons.CSSTransitionGroup")))
 
 (def container-dimensions
