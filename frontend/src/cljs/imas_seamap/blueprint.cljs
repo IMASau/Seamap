@@ -3,47 +3,47 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.blueprint
   "A collection of components adapted from blueprintjs"
-  (:require [oops.core :refer [gget]]
-            [reagent.core :as reagent]))
+  (:require [reagent.core :as reagent]
+            ["@blueprintjs/core" :as Blueprint :refer [Intent Position Elevation]]))
 
 
-(def button          (reagent/adapt-react-class (gget "Blueprint.Button")))
+(def button          (reagent/adapt-react-class Blueprint/Button))
 
-(def card            (reagent/adapt-react-class (gget "Blueprint.Card")))
+(def card            (reagent/adapt-react-class Blueprint/Card))
 
-(def clipped-text    (reagent/adapt-react-class (gget "Blueprint.Text")))
+(def clipped-text    (reagent/adapt-react-class Blueprint/Text))
 
-(def collapse        (reagent/adapt-react-class (gget "Blueprint.Collapse")))
+(def collapse        (reagent/adapt-react-class Blueprint/Collapse))
 
-(def dialogue        (reagent/adapt-react-class (gget "Blueprint.Dialog")))
+(def dialogue        (reagent/adapt-react-class Blueprint/Dialog))
 
-(def icon            (reagent/adapt-react-class (gget "Blueprint.Icon")))
+(def icon            (reagent/adapt-react-class Blueprint/Icon))
 
-(def non-ideal-state (reagent/adapt-react-class (gget "Blueprint.NonIdealState")))
+(def non-ideal-state (reagent/adapt-react-class Blueprint/NonIdealState))
 
-(def overlay         (reagent/adapt-react-class (gget "Blueprint.Overlay")))
+(def overlay         (reagent/adapt-react-class Blueprint/Overlay))
 
-(def popover         (reagent/adapt-react-class (gget "Blueprint.Popover")))
+(def popover         (reagent/adapt-react-class Blueprint/Popover))
 
-(def menu            (reagent/adapt-react-class (gget "Blueprint.Menu")))
+(def menu            (reagent/adapt-react-class Blueprint/Menu))
 
-(def menu-item       (reagent/adapt-react-class (gget "Blueprint.MenuItem")))
+(def menu-item       (reagent/adapt-react-class Blueprint/MenuItem))
 
-(def spinner         (reagent/adapt-react-class (gget "Blueprint.Spinner")))
+(def spinner         (reagent/adapt-react-class Blueprint/Spinner))
 
-(def switch          (reagent/adapt-react-class (gget "Blueprint.Switch")))
+(def switch          (reagent/adapt-react-class Blueprint/Switch))
 
-(def tabs            (reagent/adapt-react-class (gget "Blueprint.Tabs2")))
+(def tabs            (reagent/adapt-react-class Blueprint/Tabs2))
 
-(def tab             (reagent/adapt-react-class (gget "Blueprint.Tab2")))
+(def tab             (reagent/adapt-react-class Blueprint/Tab2))
 
-(def tooltip         (reagent/adapt-react-class (gget "Blueprint.Tooltip")))
+(def tooltip         (reagent/adapt-react-class Blueprint/Tooltip))
 
-(def tree            (reagent/adapt-react-class (gget "Blueprint.Tree")))
+(def tree            (reagent/adapt-react-class Blueprint/Tree))
 
-(def hotkeys         (reagent/adapt-react-class (gget "Blueprint.Hotkeys")))
+(def hotkeys         (reagent/adapt-react-class Blueprint/Hotkeys))
 
-(def hotkey          (reagent/adapt-react-class (gget "Blueprint.Hotkey")))
+(def hotkey          (reagent/adapt-react-class Blueprint/Hotkey))
 
 (defn hotkeys-target
   [view hotkeys]
@@ -55,20 +55,20 @@
 
 ;;; Intents:
 
-(def INTENT-NONE    (gget "Blueprint.Intent.NONE"))
-(def INTENT-PRIMARY (gget "Blueprint.Intent.PRIMARY"))
-(def INTENT-SUCCESS (gget "Blueprint.Intent.SUCCESS"))
-(def INTENT-WARNING (gget "Blueprint.Intent.WARNING"))
-(def INTENT-DANGER  (gget "Blueprint.Intent.DANGER"))
+(def INTENT-NONE    (. Intent -NONE))
+(def INTENT-PRIMARY (. Intent -PRIMARY))
+(def INTENT-SUCCESS (. Intent -SUCCESS))
+(def INTENT-WARNING (. Intent -WARNING))
+(def INTENT-DANGER  (. Intent -DANGER))
 
 ;;; Other constants:
 
-(def RIGHT  (gget "Blueprint.Position.RIGHT"))
-(def BOTTOM (gget "Blueprint.Position.BOTTOM"))
-(def LEFT   (gget "Blueprint.Position.LEFT"))
-(def TOP    (gget "Blueprint.Position.TOP"))
+(def RIGHT  (. Position -RIGHT))
+(def BOTTOM (. Position -BOTTOM))
+(def LEFT   (. Position -LEFT))
+(def TOP    (. Position -TOP))
 
-(def ELEVATION-ONE   (gget "Blueprint.Elevation.ONE"))
-(def ELEVATION-TWO   (gget "Blueprint.Elevation.TWO"))
-(def ELEVATION-THREE (gget "Blueprint.Elevation.THREE"))
-(def ELEVATION-FOUR  (gget "Blueprint.Elevation.FOUR"))
+(def ELEVATION-ONE   (. Elevation -ONE))
+(def ELEVATION-TWO   (. Elevation -TWO))
+(def ELEVATION-THREE (. Elevation -THREE))
+(def ELEVATION-FOUR  (. Elevation -FOUR))

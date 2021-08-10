@@ -8,19 +8,23 @@
             [imas-seamap.utils :refer [copy-text select-values] :refer-macros [handler-dispatch]]
             [imas-seamap.map.utils :refer [sort-layers bounds->geojson download-type->str]]
             [oops.core :refer [ocall oget gget]]
+            ["react-leaflet" :as ReactLeaflet]
+            ["react-leaflet-control" :as ReactLeafletControl]
+            ["react-leaflet-draw" :as ReactLeafletDraw]
+            ["react-leaflet-easyprint" :as ReactLeafletEasyprint]
             [debux.cs.core :refer-macros [dbg]]))
 
-(def tile-layer    (r/adapt-react-class (gget "ReactLeaflet.TileLayer")))
-(def wms-layer     (r/adapt-react-class (gget "ReactLeaflet.WMSTileLayer")))
-(def geojson-layer (r/adapt-react-class (gget "ReactLeaflet.GeoJSON")))
-(def leaflet-map   (r/adapt-react-class (gget "ReactLeaflet.Map")))
-(def marker        (r/adapt-react-class (gget "ReactLeaflet.Marker")))
-(def popup         (r/adapt-react-class (gget "ReactLeaflet.Popup")))
-(def feature-group (r/adapt-react-class (gget "ReactLeaflet.FeatureGroup")))
-(def edit-control  (r/adapt-react-class (gget "ReactLeaflet.EditControl")))
-(def circle-marker (r/adapt-react-class (gget "ReactLeaflet.CircleMarker")))
-(def print-control (r/adapt-react-class (gget "ReactLeaflet.PrintControl")))
-(def custom-control (r/adapt-react-class (gget "ReactLeaflet.ReactControl")))
+(def tile-layer    (r/adapt-react-class ReactLeaflet/TileLayer))
+(def wms-layer     (r/adapt-react-class ReactLeaflet/WMSTileLayer))
+(def geojson-layer (r/adapt-react-class ReactLeaflet/GeoJSON))
+(def leaflet-map   (r/adapt-react-class ReactLeaflet/Map))
+(def marker        (r/adapt-react-class ReactLeaflet/Marker))
+(def popup         (r/adapt-react-class ReactLeaflet/Popup))
+(def feature-group (r/adapt-react-class ReactLeaflet/FeatureGroup))
+(def edit-control  (r/adapt-react-class ReactLeafletDraw/EditControl))
+(def circle-marker (r/adapt-react-class ReactLeaflet/CircleMarker))
+(def print-control (r/adapt-react-class ReactLeafletEasyprint/PrintControl))
+(def custom-control (r/adapt-react-class ReactLeafletControl/Control))
 
 (defn bounds->map [bounds]
   {:north (ocall bounds :getNorth)
