@@ -33,9 +33,9 @@
 
 (def switch          (reagent/adapt-react-class Blueprint/Switch))
 
-(def tabs            (reagent/adapt-react-class Blueprint/Tabs2))
+(def tabs            (reagent/adapt-react-class Blueprint/Tabs))
 
-(def tab             (reagent/adapt-react-class Blueprint/Tab2))
+(def tab             (reagent/adapt-react-class Blueprint/Tab))
 
 (def tooltip         (reagent/adapt-react-class Blueprint/Tooltip))
 
