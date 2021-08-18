@@ -13,7 +13,7 @@
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in]]
             [imas-seamap.map.utils :as mutils :refer [applicable-layers bbox-intersects? habitat-layer? download-link]]
             [re-frame.core :as re-frame]
-            [debux.cs.core :refer-macros [dbg]]))
+            [debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn not-yet-implemented
   "Register this handler against event symbols that don't have a

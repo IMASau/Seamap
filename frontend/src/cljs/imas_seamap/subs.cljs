@@ -6,7 +6,7 @@
     (:require [clojure.set :refer [rename-keys]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
               [re-frame.core :as re-frame]
-              [debux.cs.core :refer-macros [dbg]]))
+              [debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn scale-distance
   "Given a line from two x-y points and a percentage, return the point

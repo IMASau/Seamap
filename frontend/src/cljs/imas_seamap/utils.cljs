@@ -8,7 +8,7 @@
             [clojure.walk :refer [keywordize-keys]]
             [goog.crypt.base64 :as b64]
             [cognitect.transit :as t]
-            [debux.cs.core :refer-macros [dbg]]
+            [debux.cs.core :refer [dbg] :include-macros true]
             [imas-seamap.blueprint :as b]))
 
 ;;; Taken from https://github.com/district0x/district-cljs-utils/

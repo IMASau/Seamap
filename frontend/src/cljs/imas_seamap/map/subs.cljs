@@ -6,7 +6,7 @@
             [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer]]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
-            [debux.cs.core :refer-macros [dbg]]))
+            [debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
 

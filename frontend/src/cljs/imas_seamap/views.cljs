@@ -11,7 +11,7 @@
             [imas-seamap.map.events :refer [process-layer]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer-macros [handler-fn handler-dispatch]]
+            [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [goog.object :as gobj]
             [goog.dom :as dom]
             [oops.core :refer [oget ocall]]

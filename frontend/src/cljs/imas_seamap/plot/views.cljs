@@ -5,11 +5,11 @@
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [imas-seamap.blueprint :refer [button non-ideal-state spinner]]
-            [imas-seamap.utils :refer-macros [handler-dispatch]]
+            [imas-seamap.utils :refer [handler-dispatch] :include-macros true]
             [goog.dom :as dom]
             [goog.object :as gobj]
             [goog.math :as gmaths]
-            [debux.cs.core :refer-macros [dbg]]))
+            [debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn randColour []
   (str "rgb(" (rand-int 255) "," (rand-int 255) "," (rand-int 255) ")"))

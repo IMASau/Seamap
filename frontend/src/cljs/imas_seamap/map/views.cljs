@@ -5,14 +5,14 @@
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.utils :refer [copy-text select-values] :refer-macros [handler-dispatch]]
+            [imas-seamap.utils :refer [copy-text select-values handler-dispatch] :include-macros true]
             [imas-seamap.map.utils :refer [sort-layers bounds->geojson download-type->str]]
             [oops.core :refer [ocall oget gget]]
             ["react-leaflet" :as ReactLeaflet]
             ["react-leaflet-control" :as ReactLeafletControl]
             ["react-leaflet-draw" :as ReactLeafletDraw]
             ["react-leaflet-easyprint" :as ReactLeafletEasyprint]
-            [debux.cs.core :refer-macros [dbg]]))
+            [debux.cs.core :refer [dbg] :include-macros true]))
 
 (def tile-layer    (r/adapt-react-class ReactLeaflet/TileLayer))
 (def wms-layer     (r/adapt-react-class ReactLeaflet/WMSTileLayer))

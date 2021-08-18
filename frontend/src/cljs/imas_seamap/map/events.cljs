@@ -10,7 +10,7 @@
             [re-frame.core :as re-frame]
             [imas-seamap.utils :refer [encode-state ids->layers]]
             [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112]]
-            [debux.cs.core :refer-macros [dbg]]
+            [debux.cs.core :refer [dbg] :include-macros true]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]))
