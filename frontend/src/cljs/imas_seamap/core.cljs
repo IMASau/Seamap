@@ -7,7 +7,7 @@
             [com.smxemail.re-frame-cookie-fx]
             [day8.re-frame.async-flow-fx]
             [day8.re-frame.http-fx]
-            [oops.core :refer [gcall]]
+            ["@blueprintjs/core" :as Blueprint]
             [cemerick.url :as url]
             [imas-seamap.analytics :refer [analytics-for]]
             [imas-seamap.events :as events]
@@ -167,7 +167,7 @@
 
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
-  (gcall "Blueprint.FocusStyleManager.onlyShowFocusOnTabs")
+  (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
   (reagent/render
    [views/layout-app]
    (.getElementById js/document "app")))
