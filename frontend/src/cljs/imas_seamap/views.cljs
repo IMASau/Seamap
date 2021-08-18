@@ -229,7 +229,7 @@
                                :else    [:transect.draw/enable  "Draw Transect"])]
     [:div#transect-btn-wrapper {:data-helper-text "Click to draw a transect"}
      [b/button {:id "transect-button"
-                :icon-name "edit"
+                :icon "edit"
                 :class-name "pt-fill draw-transect height-static"
                 :on-click (handler-dispatch [dispatch-key])
                 :text label}]]))
@@ -242,7 +242,7 @@
                                       :else      [:map.layer.selection/enable  "Select Region"])]
     [:div#select-btn-wrapper {:data-helper-text "Click to select a region"}
      [b/button {:id         "transect-button"
-                :icon-name  "widget"
+                :icon       "widget"
                 :class-name "pt-fill select-region height-static"
                 :on-click   (handler-dispatch [dispatch-key])
                 :text       label}]]))
@@ -306,7 +306,7 @@
 (defn settings-controls []
   [:div#settings
    [b/button {:id         "reset-button"
-              :icon-name  "undo"
+              :icon       "undo"
               :class-name "pt-fill"
               :on-click   (handler-dispatch [:re-boot])
               :text       "Reset Interface"}]])
@@ -337,9 +337,8 @@
       :data-helper-text "This shows the habitat data along a bathymetry transect you can draw"
       :data-helper-position "top"}
      [:div.drag-handle [:span.pt-icon-large.pt-icon-drag-handle-horizontal]]
-     [css-transition-group {:transition-name "plot-height"
-                            :transition-enter-timeout 300
-                            :transition-leave-timeout 300}
+     [css-transition-group {:classnames "plot-height"
+                            :timeout {:enter 300 :exit 300}}
       (if @show-plot
         [plot-component-animatable {:on-add force-resize :on-remove force-resize}
          transect-display-component (assoc @transect-results
@@ -457,9 +456,9 @@
                                                                                layer
                                                                                bbox
                                                                                :map.layer.download/csv])}]])}
-   [b/button {:text            title
-              :disabled        disabled?
-              :right-icon-name "caret-down"}]])
+   [b/button {:text       title
+              :disabled   disabled?
+              :right-icon "caret-down"}]])
 
 (defn info-card []
   (let [layer-info       @(re-frame/subscribe [:map.layer/info])
@@ -545,10 +544,10 @@
                                         ^{:key (:layer_name layer)}
                                         [b/menu-item {:text     (:name layer)
                                                       :on-click #(re-frame/dispatch [:map.region-stats/select-habitat layer])}])])}
-     [b/button {:text            (get habitat-layer :name "Select Habitat Layer for statistics...")
-                :class-name      "pt-fill pt-text-overflow-ellipsis"
-                :intent          (when-not habitat-layer b/INTENT-WARNING)
-                :right-icon-name "caret-down"}]]]
+     [b/button {:text       (get habitat-layer :name "Select Habitat Layer for statistics...")
+                :class-name "pt-fill pt-text-overflow-ellipsis"
+                :intent     (when-not habitat-layer b/INTENT-WARNING)
+                :right-icon "caret-down"}]]]
    [:div.pt-callout.pt-icon-help.height-managed
     [:h5 "Hints"]
     [:p "Choose a management boundary and select a habitat layer for
