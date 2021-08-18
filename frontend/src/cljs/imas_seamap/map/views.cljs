@@ -7,7 +7,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [copy-text select-values handler-dispatch] :include-macros true]
             [imas-seamap.map.utils :refer [sort-layers bounds->geojson download-type->str]]
-            [oops.core :refer [ocall oget gget]]
+            ["leaflet" :as L]
             ["react-leaflet" :as ReactLeaflet]
             ["react-leaflet-control" :as ReactLeafletControl]
             ["react-leaflet-draw" :as ReactLeafletDraw]
@@ -24,13 +24,13 @@
 (def edit-control  (r/adapt-react-class ReactLeafletDraw/EditControl))
 (def circle-marker (r/adapt-react-class ReactLeaflet/CircleMarker))
 (def print-control (r/adapt-react-class ReactLeafletEasyprint))
-(def custom-control (r/adapt-react-class ReactLeafletControl))
+(def custom-control (r/adapt-react-class ReactLeafletControl/default)) ; Might be a misinterpretation of the module ("exports.default=..."
 
 (defn bounds->map [bounds]
-  {:north (ocall bounds :getNorth)
-   :south (ocall bounds :getSouth)
-   :east  (ocall bounds :getEast)
-   :west  (ocall bounds :getWest)})
+  {:north (. bounds getNorth)
+   :south (. bounds getSouth)
+   :east  (. bounds getEast)
+   :west  (. bounds getWest)})
 
 (defn map->bounds [{:keys [west south east north] :as bounds}]
   [[south west]
@@ -53,20 +53,20 @@
        ;; Note need to round; fractional offsets (eg as in wordpress
        ;; navbar) cause fractional x/y which causes geoserver to
        ;; return errors in GetFeatureInfo
-       (ocall "containerPoint.round")
+       (.. -containerPoint -round)
        (js->clj :keywordize-keys true)
        (select-keys [:x :y]))
    (-> e
-       (oget "latlng")
+       (. -latlng)
        (js->clj :keywordize-keys true)
        (select-keys [:lat :lng]))))
 
 (defn leaflet-props [e]
-  (let [m (oget e :target)]
-    {:zoom   (ocall m :getZoom)
-     :size   (-> m (ocall :getSize) (js->clj :keywordize-keys true) (select-keys [:x :y]))
-     :center (-> m (ocall :getCenter) latlng->vec)
-     :bounds (-> m (ocall :getBounds) bounds->map)}))
+  (let [m (. e -target)]
+    {:zoom   (. m getZoom)
+     :size   (-> m (. getSize) (js->clj :keywordize-keys true) (select-keys [:x :y]))
+     :center (-> m (. getCenter) latlng->vec)
+     :bounds (-> m (. getBounds) bounds->map)}))
 
 (defn on-map-clicked
   "Initial handler for map click events; intent is these only apply to image layers"
@@ -89,9 +89,9 @@
 ;;; it's necessary I prefer the API consistency of passing the layer
 ;;; to the dispatch.
 (defn event->layer-tuple [e]
-  (let [target (oget e :target)]
-    [(oget target :_url)
-     (oget target [:options :layers])]))
+  (let [target (. e -target)]
+    [(. target -_url)
+     (.. target -options -layers)]))
 (defn on-load-start [e]
   (let [lt (event->layer-tuple e)
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
@@ -155,8 +155,8 @@
     [:div {:dangerouslySetInnerHTML {:__html info-body}}]))
 
 (defn- add-raw-handler-once [js-obj event-name handler]
-  (when-not (ocall js-obj :listens event-name)
-    (ocall js-obj :on event-name handler)))
+  (when-not (. js-obj listens event-name)
+    (. js-obj on event-name handler)))
 
 (defn map-component [sidebar]
   (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
@@ -188,7 +188,7 @@
      [leaflet-map (merge
                    {:id                   "map"
                     :class-name           "sidebar-map"
-                    :crs                  (gget "L.CRS.EPSG4326")
+                    :crs                  L/CRS.EPSG4326
                     :use-fly-to           true
                     :center               center
                     :zoom                 zoom
@@ -198,9 +198,9 @@
                     :when-ready           on-map-view-changed
                     :ref                  (fn [map]
                                             (when map
-                                              (add-raw-handler-once (oget map :leafletElement) "easyPrint-start"
+                                              (add-raw-handler-once (. map -leafletElement) "easyPrint-start"
                                                                     #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
-                                              (add-raw-handler-once (oget map :leafletElement) "easyPrint-finished"
+                                              (add-raw-handler-once (. map -leafletElement) "easyPrint-finished"
                                                                     #(re-frame/dispatch [:ui/hide-loading]))))
                     :on-click             on-map-clicked
                     :close-popup-on-click false ; We'll handle that ourselves
@@ -256,9 +256,9 @@
                                      :polyline  {:allowIntersection false
                                                  :metric            "metric"}}
                         :on-mounted (fn [e]
-                                      (ocall e "_toolbars.draw._modes.polyline.handler.enable")
-                                      (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
-                        :on-created #(re-frame/dispatch [:transect/query (-> % (ocall "layer.toGeoJSON") (js->clj :keywordize-keys true))])}]])
+                                      (.. e -_toolbars -draw -_modes -polyline -handler enable)
+                                      (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
+                        :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]])
       (when selecting?
         [feature-group
          [edit-control {:draw       {:rectangle true
@@ -267,10 +267,10 @@
                                      :polygon   false
                                      :polyline  false}
                         :on-mounted (fn [e]
-                                      (ocall e "_toolbars.draw._modes.rectangle.handler.enable")
-                                      (ocall e "_map.once" "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable])))
+                                      (.. e -_toolbars -draw -_modes -rectangle -handler enable)
+                                      (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable]))))
                         :on-created #(re-frame/dispatch [:map.layer.selection/finalise
-                                                         (-> % (ocall "layer.getBounds") bounds->map)])}]])
+                                                         (-> % (.. -layer getBounds) bounds->map)])}]])
 
       [share-control]
 
