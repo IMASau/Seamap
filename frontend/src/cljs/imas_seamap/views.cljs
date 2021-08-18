@@ -15,6 +15,7 @@
             [goog.object :as gobj]
             [goog.dom :as dom]
             [oops.core :refer [oget ocall]]
+            ["@blueprintjs/core" :as Blueprint]
             ["react-transition-group" :refer [TransitionGroup]]
             ["react-container-dimensions" :as ContainerDimensions]
             ["react-leaflet-sidebarv2" :refer [Sidebar Tab]]
@@ -349,12 +350,15 @@
 
 (defn show-messages []
   (let [info-message (re-frame/subscribe [:info/message])
-        toaster      (ocall (oget js/window "Blueprint.Toaster") "create")]
+        ;toaster      (Blueprint/Toaster.create)
+        ]
     (fn []
       (let [{:keys [message] :as msg} @info-message
             msg (assoc msg :onDismiss #(re-frame/dispatch [:info/clear-message]))]
         (when message
-          (ocall toaster "show" (clj->js msg))))
+          (js/console.log message)
+          ;(. toaster show (clj->js msg))
+          ))
       nil)))
 
 
