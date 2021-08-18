@@ -6,18 +6,20 @@
             [clojure.string :as string]
             [imas-seamap.db :refer [api-url-base]]
             [imas-seamap.utils :refer [merge-in]]
-            [oops.core :refer [gcall ocall]]
-            [debux.cs.core :refer-macros [dbg]]))
+            ;; ["proj4" :refer [Proj]]
+            ["proj4" :as proj4]
+            [oops.core :refer [ocall]]
+            [debux.cs.core :refer [dbg] :include-macros true]))
 
 
 (def ^:private EPSG-3112
-  (gcall "proj4"
-         "+proj=lcc +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=134 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+  (proj4
+   "+proj=lcc +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=134 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
 
 (defn wgs84->epsg3112 [pt]
   ;; pt is a vector of [lon lat]
   (js->clj
-   (ocall EPSG-3112 :forward (clj->js pt))))
+   (EPSG-3112.forward (clj->js pt))))
 
 (defn bounds->projected [project-fn {:keys [north south east west] :as bounds}]
   (let [[x0 y0] (wgs84->epsg3112 [west south])

@@ -4,7 +4,8 @@
 (ns imas-seamap.blueprint
   "A collection of components adapted from blueprintjs"
   (:require [reagent.core :as reagent]
-            ["@blueprintjs/core" :as Blueprint :refer [Intent Position Elevation]]))
+            ["@blueprintjs/core" :as Blueprint :refer [Intent Position Elevation]]
+            ["create-react-class" :as create-react-class]))
 
 
 (def button          (reagent/adapt-react-class Blueprint/Button))
@@ -47,10 +48,10 @@
 
 (defn hotkeys-target
   [view hotkeys]
-  (let [c (js/React.createClass
+  (let [c (create-react-class
            #js {:renderHotkeys (fn [_] (reagent/as-element hotkeys))
                 :render        (fn [_] (reagent/as-element view))})]
-    (js/Blueprint.HotkeysTarget c)
+    (Blueprint/HotkeysTarget c)
     (reagent/adapt-react-class c)))
 
 ;;; Intents:

@@ -15,17 +15,20 @@
             [goog.object :as gobj]
             [goog.dom :as dom]
             [oops.core :refer [oget ocall]]
-            [debux.cs.core :refer-macros [dbg]]))
+            ["react-transition-group" :refer [TransitionGroup]]
+            ["react-container-dimensions" :as ContainerDimensions]
+            ["react-leaflet-sidebarv2" :refer [Sidebar Tab]]
+            [debux.cs.core :refer [dbg] :include-macros true]))
 
 (def css-transition-group
   ;; "The most straightforward way to migrate is to use <TransitionGroup> instead of <CSSTransitionGroup>:"
-  (reagent/adapt-react-class (oget js/window "React.addons.CSSTransitionGroup")))
+  (reagent/adapt-react-class TransitionGroup))
 
 (def container-dimensions
-  (reagent/adapt-react-class (oget js/window "React.ContainerDimensions")))
+  (reagent/adapt-react-class ContainerDimensions))
 
-(def sidebar     (reagent/adapt-react-class (oget js/window "ReactSidebar.Sidebar")))
-(def sidebar-tab (reagent/adapt-react-class (oget js/window "ReactSidebar.Tab")))
+(def sidebar     (reagent/adapt-react-class Sidebar))
+(def sidebar-tab (reagent/adapt-react-class Tab))
 
 (defn with-params [url params]
   (let [u (goog/Uri. url)]

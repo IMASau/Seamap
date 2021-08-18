@@ -23,8 +23,8 @@
 (def feature-group (r/adapt-react-class ReactLeaflet/FeatureGroup))
 (def edit-control  (r/adapt-react-class ReactLeafletDraw/EditControl))
 (def circle-marker (r/adapt-react-class ReactLeaflet/CircleMarker))
-(def print-control (r/adapt-react-class ReactLeafletEasyprint/PrintControl))
-(def custom-control (r/adapt-react-class ReactLeafletControl/Control))
+(def print-control (r/adapt-react-class ReactLeafletEasyprint))
+(def custom-control (r/adapt-react-class ReactLeafletControl))
 
 (defn bounds->map [bounds]
   {:north (ocall bounds :getNorth)
