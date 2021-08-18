@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@blueprintjs/core": "^3.47.0",
+    "create-react-class": "^15.7.0",
     "leaflet": "^1.4.0",
     "leaflet-draw": "^1.0.3",
     "proj4": "^2.7.5",
