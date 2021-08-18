@@ -63,7 +63,7 @@ jobs:
       - name: Build project
         run: lein cljsbuild once "${{ env.PROFILE }}"
 
-      - run: tar -c -z -v -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" resources/public/js/compiled/app.js resources/public/js/compiled/app.js.map
+      - run: tar -c -z -v -C resources/public -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" js/compiled/app.js js/compiled/app.js.map css img
 
       - name: Create timestamp for release tag-name
         id: tag_name
