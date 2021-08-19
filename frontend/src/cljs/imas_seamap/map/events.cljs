@@ -370,7 +370,7 @@
                                                        :bbox      bbox})
    :dispatch [:info/show-message (r/as-element
                                   [:div "Open layer info ("
-                                   [b/icon {:icon-name "info-sign" :icon-size 14}]
+                                   [b/icon {:icon "info-sign" :icon-size 14}]
                                    ") to download selection"])
               b/INTENT-NONE]})
 

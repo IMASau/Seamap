@@ -439,19 +439,19 @@
               :content            (reagent/as-element
                                    [b/menu
                                     [b/menu-item {:text     "GeoTIFF"
-                                                  :label    (reagent/as-element [b/icon {:icon-name "globe"}])
+                                                  :label    (reagent/as-element [b/icon {:icon "globe"}])
                                                   :on-click (handler-dispatch [:map.layer/download
                                                                                layer
                                                                                bbox
                                                                                :map.layer.download/geotiff])}]
                                     [b/menu-item {:text     "SHP File"
-                                                  :label    (reagent/as-element [b/icon {:icon-name "polygon-filter"}])
+                                                  :label    (reagent/as-element [b/icon {:icon "polygon-filter"}])
                                                   :on-click (handler-dispatch [:map.layer/download
                                                                                layer
                                                                                bbox
                                                                                :map.layer.download/shp])}]
                                     [b/menu-item {:text     "CSV"
-                                                  :label    (reagent/as-element [b/icon {:icon-name "th"}])
+                                                  :label    (reagent/as-element [b/icon {:icon "th"}])
                                                   :on-click (handler-dispatch [:map.layer/download
                                                                                layer
                                                                                bbox

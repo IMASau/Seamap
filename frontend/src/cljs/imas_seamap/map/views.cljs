@@ -93,7 +93,7 @@
   (let [type-str (download-type->str download-type)]
     [b/dialogue {:is-open   display-link
                  :title     (str "Download " type-str)
-                 :icon-name "import"
+                 :icon "import"
                  :on-close  (handler-dispatch [:ui.download/close-dialogue])}
      [:div.bp3-dialog-body
       [:p [:a {:href link :target "_blank"}
@@ -116,7 +116,7 @@
                     (re-frame/dispatch  [:info/show-message "URL copied to clipboard!" {:intent   b/INTENT-SUCCESS
                                                                                         :iconName "clipboard"}]))}
     [b/tooltip {:content "Copy Shareable URL to clipboard" :position b/RIGHT}
-     [b/icon {:icon-name "clipboard"}]]]])
+     [b/icon {:icon "clipboard"}]]]])
 
 (defn popup-component [{:keys [status info-body had-insecure?] :as _feature-popup}]
   (case status
