@@ -180,7 +180,7 @@
                         ;; warped in the js->clj conversion
                         ;; (specifically, values that were keywords become strings)
                         :do-layer-toggle #(re-frame/dispatch [:map/toggle-layer layer])
-                        :secondaryLabel (reagent/as-component [catalogue-controls layer layer-state])}))
+                        :secondaryLabel (reagent/as-element [catalogue-controls layer layer-state])}))
                     layer-subset))}))
 
 (defn layer-catalogue-tree [layers ordering id layer-props]
@@ -211,10 +211,10 @@
               :on-change       select-tab
               :class-name      "group-scrollable height-managed"}
       [b/tab {:id    "org" :title "By Organisation"
-              :panel (reagent/as-component
+              :panel (reagent/as-element
                       [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props])}]
       [b/tab {:id    "cat" :title "By Category"
-              :panel (reagent/as-component
+              :panel (reagent/as-element
                       [layer-catalogue-tree layers [:data_classification] "cat" layer-props])}]]]))
 
 (defn transect-toggle []

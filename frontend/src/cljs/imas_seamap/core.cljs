@@ -2,7 +2,7 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.core
-  (:require [reagent.core :as reagent]
+  (:require [reagent.dom :as rdom]
             [re-frame.core :as re-frame]
             [com.smxemail.re-frame-cookie-fx]
             [day8.re-frame.async-flow-fx]
@@ -167,7 +167,7 @@
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
-  (reagent/render
+  (rdom/render
    [views/layout-app]
    (.getElementById js/document "app")))
 
