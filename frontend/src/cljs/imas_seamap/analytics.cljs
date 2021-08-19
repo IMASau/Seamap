@@ -5,8 +5,7 @@
   "Google analytics integration; ultimately, provides an interceptor
   that can generate GA events from re-frame events.  The events and
   formatting is customisable."
-  (:require [oops.core :refer [gget gcall]]
-            [re-frame.interceptor :refer [->interceptor get-coeffect]]))
+  (:require [re-frame.interceptor :refer [->interceptor get-coeffect]]))
 
 
 (defn event->action [kw]
@@ -32,12 +31,11 @@
 ;;; developer console (also note that by default the analytics
 ;;; interceptor is disabled in the dev profile)
 (defn track-event [ga-event]
-  (when (gget "ga")
-    (gcall "ga"
-           "send"
-           (-> {:hitType "event"}
-               (merge ga-event)
-               clj->js))))
+  (when (exists? js/ga)
+    (. js/ga send
+       (-> {:hitType "event"}
+           (merge ga-event)
+           clj->js))))
 
 (defn analytics-for [events-to-log]
   (let [loggable-events (set events-to-log)]

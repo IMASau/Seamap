@@ -5,7 +5,6 @@
                 [org.clojure/data.xml            "0.2.0-alpha6"]
                 [org.clojure/data.zip            "1.0.0"]
                 [com.cemerick/url                "0.1.1"]
-                [binaryage/oops                  "0.5.5"]
                 [binaryage/devtools              "1.0.3"]
                 [cider/cider-nrepl               "0.26.0"]
                 [reagent/reagent                 "0.8.0"]

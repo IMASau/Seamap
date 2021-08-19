@@ -8,7 +8,6 @@
             [imas-seamap.utils :refer [merge-in]]
             ;; ["proj4" :refer [Proj]]
             ["proj4" :as proj4]
-            [oops.core :refer [ocall]]
             [debux.cs.core :refer [dbg] :include-macros true]))
 
 

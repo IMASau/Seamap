@@ -14,7 +14,6 @@
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [goog.object :as gobj]
             [goog.dom :as dom]
-            [oops.core :refer [oget ocall]]
             ["@blueprintjs/core" :as Blueprint]
             ["react-transition-group" :refer [TransitionGroup]]
             ["react-container-dimensions" :as ContainerDimensions]
@@ -272,7 +271,7 @@
                                 :placeholder "Search Layers..."
                                 :value       @filter-text
                                 :on-change   (handler-dispatch
-                                               [:map.layers/filter (oget event :target :value)])}]]))
+                                               [:map.layers/filter (.. event -target -value)])}]]))
 
 
 (defn layer-card [{:keys [name] :as layer-spec} {:keys [active? loading? errors? expanded?] :as other-props}]
