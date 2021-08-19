@@ -7,24 +7,8 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [copy-text select-values handler-dispatch] :include-macros true]
             [imas-seamap.map.utils :refer [sort-layers bounds->geojson download-type->str]]
-            ["leaflet" :as L]
-            ["react-leaflet" :as ReactLeaflet]
-            ["react-leaflet-control" :as ReactLeafletControl]
-            ["react-leaflet-draw" :as ReactLeafletDraw]
-            ["react-leaflet-easyprint" :as ReactLeafletEasyprint]
+            [imas-seamap.interop.leaflet :as leaflet]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
-
-(def tile-layer    (r/adapt-react-class ReactLeaflet/TileLayer))
-(def wms-layer     (r/adapt-react-class ReactLeaflet/WMSTileLayer))
-(def geojson-layer (r/adapt-react-class ReactLeaflet/GeoJSON))
-(def leaflet-map   (r/adapt-react-class ReactLeaflet/Map))
-(def marker        (r/adapt-react-class ReactLeaflet/Marker))
-(def popup         (r/adapt-react-class ReactLeaflet/Popup))
-(def feature-group (r/adapt-react-class ReactLeaflet/FeatureGroup))
-(def edit-control  (r/adapt-react-class ReactLeafletDraw/EditControl))
-(def circle-marker (r/adapt-react-class ReactLeaflet/CircleMarker))
-(def print-control (r/adapt-react-class ReactLeafletEasyprint))
-(def custom-control (r/adapt-react-class ReactLeafletControl/default)) ; Might be a misinterpretation of the module ("exports.default=..."
 
 (defn bounds->map [bounds]
   {:north (. bounds getNorth)
@@ -124,7 +108,7 @@
                   :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]]))
 
 (defn share-control [_props]
-  [custom-control {:position "topleft" :class-name "leaflet-bar"}
+  [leaflet/custom-control {:position "topleft" :class-name "leaflet-bar"}
    ;; The copy-text has to be here rather than in a handler, because
    ;; Firefox won't do execCommand('copy') outside of a "short-lived
    ;; event handler"
@@ -168,43 +152,44 @@
         layer-params                                  @(re-frame/subscribe [:map.layers/params])
         logic-type                                    @(re-frame/subscribe [:map.layers/logic])
         ;; base-layer-terrestris                               [wms-layer {:url "http://ows.terrestris.de/osm/service" :layers "OSM-WMS"}]
-        base-layer-eoc                                [tile-layer {:url         (str "https://tiles.geoservice.dlr.de/service/wmts?"
+        base-layer-eoc                                [leaflet/tile-layer {:url         (str "https://tiles.geoservice.dlr.de/service/wmts?"
+                                                                                             "Service=WMTS&Request=GetTile&"
+                                                                                             "Version=1.0.0&Format=image/png&"
+                                                                                             "layer=eoc:basemap&tilematrixset=EPSG:4326&"
+                                                                                             "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")
+                                                                           :attribution (str "Base Data &copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors "
+                                                                                             "| Rendering &copy; <a href=\"http://www.dlr.de/eoc/\">DLR/EOC</a>")}]
+        base-layer-eoc-overlay                        [leaflet/tile-layer {:url (str "https://tiles.geoservice.dlr.de/service/wmts?"
                                                                                      "Service=WMTS&Request=GetTile&"
                                                                                      "Version=1.0.0&Format=image/png&"
-                                                                                     "layer=eoc:basemap&tilematrixset=EPSG:4326&"
-                                                                                     "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")
-                                                                   :attribution (str "Base Data &copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors "
-                                                                                     "| Rendering &copy; <a href=\"http://www.dlr.de/eoc/\">DLR/EOC</a>")}]
-        base-layer-eoc-overlay                        [tile-layer {:url (str "https://tiles.geoservice.dlr.de/service/wmts?"
-                                                                             "Service=WMTS&Request=GetTile&"
-                                                                             "Version=1.0.0&Format=image/png&"
-                                                                             "layer=eoc:baseoverlay&tilematrixset=EPSG:4326&"
-                                                                             "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")}]]
+                                                                                     "layer=eoc:baseoverlay&tilematrixset=EPSG:4326&"
+                                                                                     "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")}]]
     [:div.map-wrapper
      sidebar
      [download-component download-info]
 
-     [leaflet-map (merge
-                   {:id                   "map"
-                    :class-name           "sidebar-map"
-                    :crs                  L/CRS.EPSG4326
-                    :use-fly-to           true
-                    :center               center
-                    :zoom                 zoom
-                    :keyboard             false ; handled externally
-                    :on-zoomend           on-map-view-changed
-                    :on-moveend           on-map-view-changed
-                    :when-ready           on-map-view-changed
-                    :ref                  (fn [map]
-                                            (when map
-                                              (add-raw-handler-once (. map -leafletElement) "easyPrint-start"
-                                                                    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
-                                              (add-raw-handler-once (. map -leafletElement) "easyPrint-finished"
-                                                                    #(re-frame/dispatch [:ui/hide-loading]))))
-                    :on-click             on-map-clicked
-                    :close-popup-on-click false ; We'll handle that ourselves
-                    :on-popupclose        on-popup-closed}
-                   (when (seq bounds) {:bounds (map->bounds bounds)}))
+     [leaflet/leaflet-map
+      (merge
+       {:id                   "map"
+        :class-name           "sidebar-map"
+        :crs                  leaflet/crs-epsg4326
+        :use-fly-to           true
+        :center               center
+        :zoom                 zoom
+        :keyboard             false ; handled externally
+        :on-zoomend           on-map-view-changed
+        :on-moveend           on-map-view-changed
+        :when-ready           on-map-view-changed
+        :ref                  (fn [map]
+                                (when map
+                                  (add-raw-handler-once (. map -leafletElement) "easyPrint-start"
+                                                        #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
+                                  (add-raw-handler-once (. map -leafletElement) "easyPrint-finished"
+                                                        #(re-frame/dispatch [:ui/hide-loading]))))
+        :on-click             on-map-clicked
+        :close-popup-on-click false ; We'll handle that ourselves
+        :on-popupclose        on-popup-closed}
+       (when (seq bounds) {:bounds (map->bounds bounds)}))
 
       base-layer-eoc
       base-layer-eoc-overlay
@@ -222,63 +207,63 @@
            ;; selecting, it triggers a reload of that layer, which
            ;; triggers draw:stop it seems)
            ^{:key (str server_url layer_name)}
-           [wms-layer (merge
-                       {:url          server_url
-                        :layers       layer_name
-                        :z-index      (inc i)
-                        :on-loading   on-load-start
-                        :on-tileerror on-tile-error
-                        :on-load      on-load-end
-                        :transparent  true
-                        :opacity      1
-                        :tiled        true
-                        :format       "image/png"}
-                       extra-params)]))
+           [leaflet/wms-layer (merge
+                               {:url          server_url
+                                :layers       layer_name
+                                :z-index      (inc i)
+                                :on-loading   on-load-start
+                                :on-tileerror on-tile-error
+                                :on-load      on-load-end
+                                :transparent  true
+                                :opacity      1
+                                :tiled        true
+                                :format       "image/png"}
+                               extra-params)]))
        (sort-layers active-layers layer-priorities logic-type))
       (when query
-        [geojson-layer {:data (clj->js query)}])
+        [leaflet/geojson-layer {:data (clj->js query)}])
       (when region
-        [geojson-layer {:data (clj->js (bounds->geojson region))}])
+        [leaflet/geojson-layer {:data (clj->js (bounds->geojson region))}])
       (when (and query mouse-loc)
-        [circle-marker {:center      mouse-loc
-                        :radius      3
-                        :fillColor   "#3f8ffa"
-                        :color       "#3f8ffa"
-                        :opacity     1
-                        :fillOpacity 1}])
+        [leaflet/circle-marker {:center      mouse-loc
+                                :radius      3
+                                :fillColor   "#3f8ffa"
+                                :color       "#3f8ffa"
+                                :opacity     1
+                                :fillOpacity 1}])
       (when drawing?
-        [feature-group
-         [edit-control {:draw       {:rectangle false
-                                     :circle    false
-                                     :marker    false
-                                     :polygon   false
-                                     :polyline  {:allowIntersection false
-                                                 :metric            "metric"}}
-                        :on-mounted (fn [e]
-                                      (.. e -_toolbars -draw -_modes -polyline -handler enable)
-                                      (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
-                        :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]])
+        [leaflet/feature-group
+         [leaflet/edit-control {:draw       {:rectangle false
+                                             :circle    false
+                                             :marker    false
+                                             :polygon   false
+                                             :polyline  {:allowIntersection false
+                                                         :metric            "metric"}}
+                                :on-mounted (fn [e]
+                                              (.. e -_toolbars -draw -_modes -polyline -handler enable)
+                                              (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
+                                :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]])
       (when selecting?
-        [feature-group
-         [edit-control {:draw       {:rectangle true
-                                     :circle    false
-                                     :marker    false
-                                     :polygon   false
-                                     :polyline  false}
-                        :on-mounted (fn [e]
-                                      (.. e -_toolbars -draw -_modes -rectangle -handler enable)
-                                      (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable]))))
-                        :on-created #(re-frame/dispatch [:map.layer.selection/finalise
-                                                         (-> % (.. -layer getBounds) bounds->map)])}]])
+        [leaflet/feature-group
+         [leaflet/edit-control {:draw       {:rectangle true
+                                             :circle    false
+                                             :marker    false
+                                             :polygon   false
+                                             :polyline  false}
+                                :on-mounted (fn [e]
+                                              (.. e -_toolbars -draw -_modes -rectangle -handler enable)
+                                              (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable]))))
+                                :on-created #(re-frame/dispatch [:map.layer.selection/finalise
+                                                                 (-> % (.. -layer getBounds) bounds->map)])}]])
 
       [share-control]
 
-      [print-control {:position   "topleft" :title "Export as PNG" :export-only true
+      [leaflet/print-control {:position   "topleft" :title "Export as PNG" :export-only true
                       :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
 
       (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
         ^{:key (str location)}
-        [popup {:position location :max-width 600 :auto-pan false}
+        [leaflet/popup {:position location :max-width 600 :auto-pan false}
          ^{:key (or info-body (:status fi))}
          [popup-component fi]])]]))
