@@ -24,7 +24,7 @@ body.page-template-default.admin-bar #app {
 .welcome-splash {
     background: white;
 }
-.welcome-splash .pt-dialog-header {
+.welcome-splash .bp3-dialog-header {
     box-shadow: none;
 }
 
@@ -80,7 +80,7 @@ footer {
     flex-grow: 0;
     flex-shrink: 0;
 }
-.pt-collapse>.pt-collapse-body,
+.bp3-collapse>.bp3-collapse-body,
 .height-managed {
     display: flex;
     flex-direction: column;
@@ -97,18 +97,18 @@ footer {
     background-color: #F5F8FA;
 }
 
-.pt-portal {
+.bp3-portal {
     z-index: 2000;              /* Must be greater than leaflet */
 }
 
-.pt-overlay-backdrop {
+.bp3-overlay-backdrop {
     z-index: 2000;              /* Must be greater than leaflet */
 }
-.pt-overlay-content {
+.bp3-overlay-content {
     z-index: 2001;
 }
 
-.pt-toast-container {
+.bp3-toast-container {
     z-index: 2001;
 }
 
@@ -142,7 +142,7 @@ footer {
     margin-bottom: 10px;
 }
 
-.layer-wrapper .pt-card {
+.layer-wrapper .bp3-card {
     padding: 10px;
 }
 
@@ -184,11 +184,11 @@ footer {
 }
 
 .layer-active .header-text,
-.layer-active .pt-icon-eye-on {
+.layer-active .bp3-icon-eye-on {
     color: #0F9960;
 }
 
-.layer-active .pt-icon-eye-on:hover {
+.layer-active .bp3-icon-eye-on:hover {
     color: #C23030;
 }
 .layer-active .header-text {
@@ -224,17 +224,17 @@ footer {
 .catalogue-add {
     margin-bottom: 5px;
 }
-.pt-tree-node-secondary-label {
+.bp3-tree-node-secondary-label {
     flex: 0 0 auto;
 }
-.pt-tree-node-content-2 {
+.bp3-tree-node-content-2 {
     padding-left: 25px;
 }
-.layer-active .pt-tree-node-content {
+.layer-active .bp3-tree-node-content {
     align-items: normal;
     height: auto;
 }
-.pt-tree-node-label > .layer-wrapper.layer-active {
+.bp3-tree-node-label > .layer-wrapper.layer-active {
     padding-top: 5px;
 }
 .catalogue-layer-controls > span {
@@ -435,7 +435,7 @@ rect#background {
     list-style-type: none;
 }
 /* Another chrome-only hack (otherwise we get an extra 0.4px on the close-button) */
-.pt-dialog-footer-actions .pt-popover-target {
+.bp3-dialog-footer-actions .bp3-popover-target {
     vertical-align: unset;
 }
 

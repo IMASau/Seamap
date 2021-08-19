@@ -424,7 +424,7 @@
   [non-ideal-state
    {:title       "Error"
     :description "There was an error querying the data"
-    :visual      "pt-icon-error"}])
+    :visual      "bp3-icon-error"}])
 
 (def test-data
   {:transect.results/bathymetry (generate-bathymetry)

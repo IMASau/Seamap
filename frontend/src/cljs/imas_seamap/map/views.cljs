@@ -95,14 +95,14 @@
                  :title     (str "Download " type-str)
                  :icon-name "import"
                  :on-close  (handler-dispatch [:ui.download/close-dialogue])}
-     [:div.pt-dialog-body
+     [:div.bp3-dialog-body
       [:p [:a {:href link :target "_blank"}
            "Click here to download"
            (when bbox " region")
            " as "
            type-str]]]
-     [:div.pt-dialog-footer
-      [:div.pt-dialog-footer-actions
+     [:div.bp3-dialog-footer
+      [:div.bp3-dialog-footer-actions
        [b/button {:text     "Done"
                   :intent   b/INTENT-PRIMARY
                   :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]]))

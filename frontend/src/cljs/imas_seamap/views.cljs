@@ -105,7 +105,7 @@
 (defn help-button []
   [:div.layer-controls.help-button
    [b/tooltip {:content "Show the quick-help guide"}
-    [:span.control.pt-icon-large.pt-icon-help.pt-text-muted
+    [:span.control.bp3-icon-large.bp3-icon-help.bp3-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
 
 (defn legend-display [{:keys [server_url layer_name]}]
@@ -129,7 +129,7 @@
     [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
      [:div (when (or loading? errors?) {:class "header-status-icons"})
       (when (and active? loading?) [b/spinner {:class-name "pt-small layer-spinner"}])
-      (when (and active? errors?) [:span.layer-warning.pt-icon.pt-icon-small.pt-icon-warning-sign])]
+      (when (and active? errors?) [:span.layer-warning.bp3-icon.bp3-icon-small.bp3-icon-warning-sign])]
      [b/clipped-text {:ellipsize true :class-name "header-text"}
       name]
      [b/collapse {:is-open (and active? expanded?)
@@ -139,13 +139,13 @@
 (defn catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
   [:div.catalogue-layer-controls (when active? {:class-name "layer-active"})
    [b/tooltip {:content "Layer info / Download data"}
-    [:span.control.pt-icon-small.pt-icon-info-sign.pt-text-muted
+    [:span.control.bp3-icon-small.bp3-icon-info-sign.bp3-text-muted
      {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
    [b/tooltip {:content "Zoom to layer"}
-    [:span.control.pt-icon-standard.pt-icon-zoom-to-fit.pt-text-muted
+    [:span.control.bp3-icon-standard.bp3-icon-zoom-to-fit.bp3-text-muted
      {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
    [b/tooltip {:content (if active? "Hide layer" "Show layer")}
-    [:span.control.pt-icon-large.pt-text-muted
+    [:span.control.bp3-icon-large.bp3-text-muted
      {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
       :on-click (handler-dispatch [:map/toggle-layer layer])}]]])
 
@@ -249,7 +249,7 @@
         user-triggered?        (= trigger :map.logic.trigger/user)
         [checked? label icon]  (if (= type :map.layer-logic/automatic)
                                  [true  " Automatic Layer Selection" [:i.fa.fa-magic]]
-                                 [false " Choose Layers Manually"    [:span.pt-icon-standard.pt-icon-hand]])]
+                                 [false " Choose Layers Manually"    [:span.bp3-icon-standard.bp3-icon-hand]])]
     [:div#logic-toggle.logic-toggle
      (merge {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
              :data-text-width "380px"}
@@ -261,9 +261,9 @@
 
 (defn layer-search-filter []
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
-    [:div.pt-input-group {:data-helper-text "Filter Layers"}
-     [:span.pt-icon.pt-icon-search]
-     [:input.pt-input.pt-round {:id          "layer-search"
+    [:div.bp3-input-group {:data-helper-text "Filter Layers"}
+     [:span.bp3-icon.bp3-icon-search]
+     [:input.bp3-input.bp3-round {:id          "layer-search"
                                 :type        "search"
                                 :placeholder "Search Layers..."
                                 :value       @filter-text
@@ -273,7 +273,7 @@
 
 (defn layer-card [layer-spec {:keys [active? _loading? _errors? _expanded?] :as other-props}]
   [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
-   [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "layer-active pt-interactive")}
+   [:div.layer-card.bp3-card.bp3-elevation-1 {:class-name (when active? "layer-active pt-interactive")}
     [:div.header-row.height-static
      [catalogue-header layer-spec other-props]
      [catalogue-controls layer-spec other-props]]]])
@@ -285,7 +285,7 @@
        (merge {:class-name (str classes (if @expanded " expanded" " collapsed"))}
               (when id {:id id}))
        [:h1 {:on-click (handler-fn (swap! expanded not))}
-        [:span.pt-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")}]
+        [:span.bp3-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")}]
         (str title " (" (count layers) ")")]
        [b/collapse {:is-open               @expanded
                     :keep-children-mounted true
@@ -333,7 +333,7 @@
      {:on-click (handler-dispatch [:transect.plot/toggle-visibility])
       :data-helper-text "This shows the habitat data along a bathymetry transect you can draw"
       :data-helper-position "top"}
-     [:div.drag-handle [:span.pt-icon-large.pt-icon-drag-handle-horizontal]]
+     [:div.drag-handle [:span.bp3-icon-large.bp3-icon-drag-handle-horizontal]]
      [css-transition-group {:classnames "plot-height"
                             :timeout {:enter 300 :exit 300}}
       (when @show-plot
@@ -379,7 +379,7 @@
                  :class-name "welcome-splash"
                  :is-open    open?
                  :on-close   #(re-frame/dispatch [:welcome-layer/close])}
-     [:div#welcome-splash.pt-dialog-body
+     [:div#welcome-splash.bp3-dialog-body
       [:p "Seamap Australia is a nationally synthesised product of
       seafloor habitat data collected from various stakeholders around
       Australia. Source datasets were reclassified according to a
@@ -399,8 +399,8 @@
       [:p "Please cite as Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
        [:i "Seamap Australia - a national seafloor habitat classification scheme."]
        " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]]
-     [:div.pt-dialog-footer
-      [:div.pt-dialog-footer-actions
+     [:div.bp3-dialog-footer
+      [:div.bp3-dialog-footer-actions
        [b/button {:text       "Get Started!"
                   :intent     b/INTENT-PRIMARY
                   :auto-focus true
@@ -468,7 +468,7 @@
     [b/dialogue {:title    title
                  :is-open  (and layer-info (not (:hidden? layer-info)))
                  :on-close #(re-frame/dispatch [:map.layer/close-info])}
-     [:div.pt-dialog-body
+     [:div.bp3-dialog-body
       (case layer-info
         :display.info/loading
         [b/non-ideal-state
@@ -482,8 +482,8 @@
           :visual      "error"}]
 
         [metadata-record layer-info])]
-     [:div.pt-dialog-footer
-      [:div.pt-dialog-footer-actions
+     [:div.bp3-dialog-footer
+      [:div.bp3-dialog-footer-actions
        (when (#{:habitat :imagery} (:category layer))
          [:div
           [download-menu {:title     "Download Selection..."
@@ -500,7 +500,7 @@
 (defn- as-icon [icon-name description]
   (reagent/as-element [b/tooltip {:content  description
                                   :position RIGHT}
-                       [:span.pt-icon-standard {:class-name (str "pt-icon-" icon-name)}]]))
+                       [:span.bp3-icon-standard {:class-name (str "pt-icon-" icon-name)}]]))
 
 (defn layer-tab [layers active-layers loading-fn error-fn expanded-fn]
   [:div.sidebar-tab.height-managed
@@ -533,7 +533,7 @@
                          :loading?  (loading-fn layer)
                          :errors?   (error-fn layer)
                          :expanded? (expanded-fn layer)}])]
-   [:label.pt-label.height-managed
+   [:label.bp3-label.height-managed
     "Habitat layer for region statistics (only one active layer may be selected at a time):"
     [b/popover {:position           b/BOTTOM
                 :class-name         "full-width"
@@ -548,7 +548,7 @@
                 :class-name "pt-fill pt-text-overflow-ellipsis"
                 :intent     (when-not habitat-layer b/INTENT-WARNING)
                 :right-icon "caret-down"}]]]
-   [:div.pt-callout.pt-icon-help.height-managed
+   [:div.bp3-callout.bp3-icon-help.height-managed
     [:h5 "Hints"]
     [:p "Choose a management boundary and select a habitat layer for
     spatial summaries. Note that only visible habitat layers will be
@@ -567,7 +567,7 @@
     [sidebar {:id        "floating-sidebar"
               :selected  selected
               :collapsed collapsed
-              :closeIcon (reagent/as-element [:span.pt-icon-standard.pt-icon-caret-left])
+              :closeIcon (reagent/as-element [:span.bp3-icon-standard.bp3-icon-caret-left])
               :on-close  #(re-frame/dispatch [:ui.sidebar/close])
               :on-open   #(re-frame/dispatch [:ui.sidebar/open %])}
      [sidebar-tab {:header "Habitats"
@@ -596,7 +596,7 @@
       [thirdparty-layer-tab third-party active-layers loading-layers error-layers expanded-layers]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
-                   :icon   (reagent/as-element [:span.pt-icon-standard.pt-icon-cog])
+                   :icon   (reagent/as-element [:span.bp3-icon-standard.bp3-icon-cog])
                    :id     "tab-settings"}
       [settings-controls]]]))
 
