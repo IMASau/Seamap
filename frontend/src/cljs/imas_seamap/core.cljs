@@ -8,7 +8,6 @@
             [day8.re-frame.async-flow-fx]
             [day8.re-frame.http-fx]
             ["@blueprintjs/core" :as Blueprint]
-            [cemerick.url :as url]
             [imas-seamap.analytics :refer [analytics-for]]
             [imas-seamap.events :as events]
             [imas-seamap.fx]

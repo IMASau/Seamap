@@ -2,11 +2,9 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.subs
-    (:require-macros [reagent.ratom :refer [reaction]])
     (:require [clojure.set :refer [rename-keys]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
-              [re-frame.core :as re-frame]
-              [debux.cs.core :refer [dbg] :include-macros true]))
+              #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn scale-distance
   "Given a line from two x-y points and a percentage, return the point
@@ -37,11 +35,11 @@
         ->pctg #(/ % total-distance)
         pct (/ pct 100)
         pct-distances (map (fn [[d1 d2 seg]] [(->pctg d1) (->pctg d2) seg]) seg-distances)
-        [lower upper [s1 s2]] (first (filter (fn [[p1 p2 s]] (<= p1 pct p2)) pct-distances))
+        [lower upper [s1 s2]] (first (filter (fn [[p1 p2 _s]] (<= p1 pct p2)) pct-distances))
         remainder-pct (/ (- pct lower) (- upper lower))]
     (scale-distance s1 s2 remainder-pct)))
 
-(defn feature-info [{:keys [feature] :as db} _]
+(defn feature-info [{:keys [feature] :as _db} _]
   (if-let [{:keys [status info location had-insecure?]} feature]
     {:has-info? true
      :had-insecure? had-insecure?
@@ -50,14 +48,14 @@
      :location ((juxt :lat :lng) location)}
     {:has-info? false}))
 
-(defn download-info [{:keys [map] :as db} _]
+(defn download-info [db _]
   (-> db
       (get-in [:map :controls :download])
       (rename-keys {:selecting :outlining?
                     :type      :download-type
                     :layer     :download-layer})))
 
-(defn transect-info [{:keys [map transect] :as db} _]
+(defn transect-info [{:keys [map transect] :as _db} _]
   (merge
    {:drawing? (boolean (get-in map [:controls :transect]))
     :query (:query transect)}
@@ -66,7 +64,7 @@
                   (point-along-line (-> transect :query :geometry :coordinates)
                                     pctg))})))
 
-(defn- transect-query-status [{:keys [habitat bathymetry] :as args}]
+(defn- transect-query-status [{:keys [habitat bathymetry]}]
   (cond
     (every? nil? [habitat bathymetry])      :transect.results.status/empty
     (every? string? [habitat bathymetry])   :transect.results.status/error
@@ -76,7 +74,7 @@
 
 (defn transect-results [{{:keys [query habitat bathymetry] :as transect} :transect
                          :keys [habitat-colours habitat-titles]
-                         :as db} _]
+                         :as _db} _]
   (letfn [(always-vec [d] (if (vector? d) d []))]
     {:transect.results/query        query
      :transect.results/status       (transect-query-status transect)
@@ -101,7 +99,7 @@
       (map? info) (assoc :hidden? (or (:selecting download)
                                       (:display-link download))))))
 
-(defn sorting-info [{:keys [sorting] :as db} _] sorting)
+(defn sorting-info [{:keys [sorting] :as _db} _] sorting)
 
 (defn catalogue-tab [db _]
   (get-in db [:display :catalogue :tab]))

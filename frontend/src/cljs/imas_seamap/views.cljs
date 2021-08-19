@@ -2,23 +2,19 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.views
-  (:require [clojure.set :refer [difference]]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [RIGHT]]
             [imas-seamap.db :refer [img-url-base]]
-            [imas-seamap.map.events :refer [process-layer]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
-            [goog.object :as gobj]
-            [goog.dom :as dom]
             ["@blueprintjs/core" :as Blueprint]
             ["react-transition-group" :refer [TransitionGroup]]
             ["react-container-dimensions" :as ContainerDimensions]
             ["react-leaflet-sidebarv2" :refer [Sidebar Tab]]
-            [debux.cs.core :refer [dbg] :include-macros true]))
+            #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (def css-transition-group
   ;; "The most straightforward way to migrate is to use <TransitionGroup> instead of <CSSTransitionGroup>:"
@@ -77,7 +73,7 @@
                                     :top (- (/ height 2) (/ *line-height* 2))}
                           "right"  {:left (+ width *horiz-bar* *padding*)
                                     :top (- (/ height 2) (/ *line-height* 2))}))
-        wrapper-props (fn [posn {:keys [top left width height] :as elem-props}]
+        wrapper-props (fn [posn {:keys [top left width height] :as _elem-props}]
                         (let [vertical-padding   (when (#{"top" "bottom"} posn) *padding*)
                               horizontal-padding (when (#{"left" "right"} posn) *padding*)]
                           {:width  (+ width horizontal-padding) ; allow for css padding
@@ -88,7 +84,7 @@
     [b/overlay {:is-open  open?
                 :on-close #(re-frame/dispatch [:help-layer/close])}
      (when open?
-       (for [{:keys [top right bottom left width height
+       (for [{:keys [width height
                      helperText helperPosition
                      textWidth]
                     :or {helperPosition "right"}
@@ -111,7 +107,7 @@
     [:span.control.pt-icon-large.pt-icon-help.pt-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
 
-(defn legend-display [{:keys [server_url layer_name] :as layer-spec}]
+(defn legend-display [{:keys [server_url layer_name]}]
   (let [legend-url (with-params server_url
                      {:REQUEST "GetLegendGraphic"
                       :LAYER layer_name
@@ -122,7 +118,7 @@
     [:div.legend-wrapper
      [:img {:src legend-url}]]))
 
-(defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading? expanded?] :as layer-state}]
+(defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading? expanded?] :as _layer-state}]
   [b/tooltip {:content (if expanded? "Click to hide legend" "Click to show legend")
               :class-name "header-text"
               :position RIGHT
@@ -139,7 +135,7 @@
                   :className "layer-legend"}
       [legend-display layer]]]]])
 
-(defn catalogue-controls [layer {:keys [active? errors? loading?] :as layer-state}]
+(defn catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
   [:div.catalogue-layer-controls (when active? {:class-name "layer-active"})
    [b/tooltip {:content "Layer info / Download data"}
     [:span.control.pt-icon-small.pt-icon-info-sign.pt-text-muted
@@ -197,7 +193,7 @@
                    (let [node (js->clj node :keywordize-keys true)]
                      (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
         on-click (fn [node]
-                   (let [{:keys [childNodes do-layer-toggle id] :as node} (js->clj node :keywordize-keys true)]
+                   (let [{:keys [childNodes id]} (js->clj node :keywordize-keys true)]
                      (when (seq childNodes )
                        ;; If we have children, toggle expanded state, else add to map
                        (re-frame/dispatch [:ui.catalogue/toggle-node id]))))]
@@ -274,14 +270,14 @@
                                                [:map.layers/filter (.. event -target -value)])}]]))
 
 
-(defn layer-card [{:keys [name] :as layer-spec} {:keys [active? loading? errors? expanded?] :as other-props}]
+(defn layer-card [layer-spec {:keys [active? _loading? _errors? _expanded?] :as other-props}]
   [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
    [:div.layer-card.pt-card.pt-elevation-1 {:class-name (when active? "layer-active pt-interactive")}
     [:div.header-row.height-static
      [catalogue-header layer-spec other-props]
      [catalogue-controls layer-spec other-props]]]])
 
-(defn layer-group [{:keys [expanded] :or {expanded false} :as props} layers active-layers loading-fn error-fn expanded-fn]
+(defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _loading-fn _error-fn _expanded-fn]
   (let [expanded (reagent/atom expanded)]
     (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn expanded-fn]
       [:div.layer-group.height-managed
@@ -313,15 +309,15 @@
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
-                                  :as   props}
-                                 child-component
-                                 child-props]
+                                  :as   _props}
+                                 _child-component
+                                 _child-props]
   (reagent/create-class
    {:display-name           "plot-component-animatable"
     :component-will-unmount on-remove
     :component-did-mount    on-add
     :reagent-render
-    (fn [props child-component child-props]
+    (fn [_props child-component child-props]
       [:div.plot-container
        [container-dimensions
         #(reagent/as-element [child-component
@@ -339,7 +335,7 @@
      [:div.drag-handle [:span.pt-icon-large.pt-icon-drag-handle-horizontal]]
      [css-transition-group {:classnames "plot-height"
                             :timeout {:enter 300 :exit 300}}
-      (if @show-plot
+      (when @show-plot
         [plot-component-animatable {:on-add force-resize :on-remove force-resize}
          transect-display-component (assoc @transect-results
                                            :on-mousemove
@@ -411,7 +407,7 @@
 
 (defn metadata-record [{:keys [license-name license-link license-img constraints other]
                         {:keys [category organisation name metadata_url]} :layer
-                        :as layer-info}]
+                        :as _layer-info}]
   [:div.metadata-record {:class-name (clojure.core/name category)}
    [:div.metadata-header.clearfix
     (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
@@ -563,7 +559,7 @@
    [help-button]])
 
 (defn seamap-sidebar []
-  (let [{:keys [collapsed selected] :as sidebar-state}                             @(re-frame/subscribe [:ui/sidebar])
+  (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
         {:keys [groups active-layers loading-layers error-layers expanded-layers]} @(re-frame/subscribe [:map/layers])
         {:keys [habitat-layer]}                                                    @(re-frame/subscribe [:map/region-stats])
         {:keys [habitat boundaries bathymetry imagery third-party]}                groups]
@@ -605,7 +601,7 @@
 
 (def hotkeys-combos
   (let [keydown-wrapper
-        (fn [{:keys [label combo] :as m} keydown-v]
+        (fn [m keydown-v]
           (assoc m :global    true
                    :group     "Keyboard Shortcuts"
                    :onKeyDown #(re-frame/dispatch keydown-v)))]

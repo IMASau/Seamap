@@ -9,7 +9,6 @@
   itself."
   (:require [clojure.data.xml :as xml]
             [clojure.data.zip.xml :as zx]
-            [clojure.java.io :as io]
             [clojure.zip :as zip]
             [globber.glob :refer [glob]]))
 

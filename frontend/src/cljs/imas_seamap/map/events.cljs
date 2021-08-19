@@ -3,17 +3,12 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
-            [clojure.data.xml :as xml]
-            [clojure.data.zip.xml :as zx]
-            [clojure.string :as string]
-            [clojure.zip :as zip]
-            [re-frame.core :as re-frame]
             [imas-seamap.utils :refer [encode-state ids->layers]]
             [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112]]
-            [debux.cs.core :refer [dbg] :include-macros true]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
-            [reagent.core :as r]))
+            [reagent.core :as r]
+            #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
 ;;; Seamap is hosted under https, meaning the browser will block ajax
@@ -21,7 +16,7 @@
 ;;; using http need specil handling:
 (defn- is-insecure? [url] (-> url string/lower-case (string/starts-with? "http:")))
 
-(defn get-feature-info [{:keys [db] :as context} [_ {:keys [size bounds] :as props} {:keys [x y] :as point}]]
+(defn get-feature-info [{:keys [db] :as _context} [_ {:keys [size bounds] :as _props} {:keys [x y] :as point}]]
   (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))))
         by-server     (group-by :server_url active-layers)
         ;; Note, top layer, last in the list, must be first in our search string:
@@ -76,7 +71,7 @@
       had-insecure?
       {:db (assoc db :feature {:status :feature-info/none-queryable :location point})})))
 
-(defn get-habitat-region-statistics [{:keys [db] :as ctx} [_ props point]]
+(defn get-habitat-region-statistics [{:keys [db] :as _ctx} [_ _props point]]
   (let [boundary   (->> db :map :active-layers (filter #(= :boundaries (:category %))) first :id)
         habitat    (region-stats-habitat-layer db)
         [x y]      (wgs84->epsg3112 ((juxt :lng :lat) point))
@@ -104,7 +99,7 @@
   just want to issue a (or multiple) getFeatureInfo requests, but if
   we're in calculating-region-statistics mode we want to issue a
   different request, and it's cleaner to handle those separately."
-  [{:keys [db] :as ctx} [_ props point :as event-v]]
+  [{:keys [db] :as ctx} [_ _props _point :as event-v]]
   (cond (:feature db) ; If we're clicking the map but there's a popup open, just close it
         {:dispatch [:map/popup-closed]}
 
@@ -126,22 +121,22 @@
           body  (first (array-seq (.querySelectorAll parsed "body")))
           db' (update-in db [:feature-query :response-remain] dec)
           {:keys [response-priority response-remain candidate had-insecure?]} (:feature-query db')
-          higher-priority? (< priority response-priority)]
-      (let [candidate' (merge {:location point :had-insecure? had-insecure?}
-                              (if (.-firstElementChild body)
-                                {:info (.-innerHTML body)}
-                                {:status :feature-info/empty}))]
-        (cond-> db'
+          higher-priority? (< priority response-priority)
+          candidate' (merge {:location point :had-insecure? had-insecure?}
+                            (if (.-firstElementChild body)
+                              {:info (.-innerHTML body)}
+                              {:status :feature-info/empty}))]
+      (cond-> db'
           ;; If this response has a higher priority, update the response candidate
-          higher-priority?
-          (assoc-in [:feature-query :candidate] candidate')
+        higher-priority?
+        (assoc-in [:feature-query :candidate] candidate')
           ;; If this is the last response expected, update the displayed feature
-          (zero? response-remain)
-          (assoc :feature (if higher-priority? candidate' candidate)))))))
+        (zero? response-remain)
+        (assoc :feature (if higher-priority? candidate' candidate))))))
 
-(defn got-feature-info-error [db [_ request_id priority _]]
+(defn got-feature-info-error [db [_ _request_id priority _]]
   (let [db (update-in db [:feature-query :response-remain] dec)
-        {:keys [response-priority response-remain candidate]} (:feature-query db)
+        {:keys [response-priority response-remain]} (:feature-query db)
         higher-priority? (< priority response-priority)]
     (if (and (zero? response-remain) higher-priority?)
       (assoc-in db [:feature :status] :feature-info/error)
@@ -288,14 +283,14 @@
                                            (+ x (* horiz (- east  west)))])]
     (update-in db [:map :center] shift-centre)))
 
-(defn layer-visible? [{:keys [west south east north] :as bounds}
-                      {:keys [bounding_box]          :as layer}]
+(defn layer-visible? [{:keys [west south east north] :as _bounds}
+                      {:keys [bounding_box]          :as _layer}]
   (not (or (> (:south bounding_box) north)
            (< (:north bounding_box) south)
            (> (:west  bounding_box) east)
            (< (:east  bounding_box) west))))
 
-(defn visible-layers [{:keys [west south east north] :as bounds} layers]
+(defn visible-layers [{:keys [_west _south _east _north] :as bounds} layers]
   (filter (partial layer-visible? bounds) layers))
 
 (defn update-active-layers
@@ -322,11 +317,10 @@
   ;; themselves are loaded... by which time the state will have been
   ;; re-set.  So we have this two step process.
   [{:keys [db]} _]
-  (let [{:keys [active legend-ids logic]} (:map db)
+  (let [{:keys [active _legend-ids logic]} (:map db)
         active-layers          (if (= (:type logic) :map.layer-logic/manual)
                                  (vec (ids->layers active (get-in db [:map :layers])))
                                  (vec (applicable-layers db :category :habitat)))
-        expanded-layers        (ids->layers legend-ids active-layers)
         db                     (assoc-in db [:map :active-layers] active-layers)]
     {:db       db
      :put-hash (encode-state db)
@@ -380,7 +374,7 @@
                                    ") to download selection"])
               b/INTENT-NONE]})
 
-(defn map-toggle-selecting [{:keys [db] :as ctx} _]
+(defn map-toggle-selecting [{:keys [db]} _]
   {:dispatch
    (cond
      (get-in db [:map :controls :download :selecting]) [:map.layer.selection/disable]

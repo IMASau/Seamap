@@ -12,7 +12,7 @@
             ["react-leaflet-control" :as ReactLeafletControl]
             ["react-leaflet-draw" :as ReactLeafletDraw]
             ["react-leaflet-easyprint" :as ReactLeafletEasyprint]
-            [debux.cs.core :refer [dbg] :include-macros true]))
+            #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (def tile-layer    (r/adapt-react-class ReactLeaflet/TileLayer))
 (def wms-layer     (r/adapt-react-class ReactLeaflet/WMSTileLayer))
@@ -32,13 +32,13 @@
    :east  (. bounds getEast)
    :west  (. bounds getWest)})
 
-(defn map->bounds [{:keys [west south east north] :as bounds}]
+(defn map->bounds [{:keys [west south east north] :as _bounds}]
   [[south west]
    [north east]])
 
 (defn point->latlng [[x y]] {:lat y :lng x})
 
-(defn point-distance [[x1 y1 :as p1] [x2 y2 :as p2]]
+(defn point-distance [[x1 y1 :as _p1] [x2 y2 :as _p2]]
   (let [xd (- x2 x1) yd (- y2 y1)]
     (js/Math.sqrt (+ (* xd xd) (* yd yd)))))
 
@@ -73,7 +73,7 @@
   [e]
   (re-frame/dispatch [:map/clicked (leaflet-props e) (mouseevent->coords e)]))
 
-(defn on-popup-closed [e]
+(defn on-popup-closed [_e]
   (re-frame/dispatch [:map/popup-closed]))
 
 (defn on-map-view-changed [e]
@@ -105,7 +105,7 @@
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
     (re-frame/dispatch [:map.layer/load-finished layer])))
 
-(defn download-component [{:keys [display-link link bbox download-type] :as download-info}]
+(defn download-component [{:keys [display-link link bbox download-type] :as _download-info}]
   (let [type-str (download-type->str download-type)]
     [b/dialogue {:is-open   display-link
                  :title     (str "Download " type-str)
@@ -123,7 +123,7 @@
                   :intent   b/INTENT-PRIMARY
                   :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]]))
 
-(defn share-control [props]
+(defn share-control [_props]
   [custom-control {:position "topleft" :class-name "leaflet-bar"}
    ;; The copy-text has to be here rather than in a handler, because
    ;; Firefox won't do execCommand('copy') outside of a "short-lived
@@ -134,7 +134,7 @@
     [b/tooltip {:content "Copy Shareable URL to clipboard" :position b/RIGHT}
      [b/icon {:icon-name "clipboard"}]]]])
 
-(defn popup-component [{:keys [status info-body had-insecure?] :as feature-popup}]
+(defn popup-component [{:keys [status info-body had-insecure?] :as _feature-popup}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
                                   {:visual (r/as-element [b/spinner {:intent "success"}])}]
@@ -159,28 +159,27 @@
     (. js-obj on event-name handler)))
 
 (defn map-component [sidebar]
-  (let [{:keys [center zoom bounds controls active-layers]} @(re-frame/subscribe [:map/props])
-        {:keys [has-info? info-body location] :as fi}       @(re-frame/subscribe [:map.feature/info])
-        {:keys [drawing? query mouse-loc]}                  @(re-frame/subscribe [:transect/info])
-        {:keys [selecting? region]}                         @(re-frame/subscribe [:map.layer.selection/info])
-        download-info                                       @(re-frame/subscribe [:download/info])
-        layer-priorities                                    @(re-frame/subscribe [:map.layers/priorities])
-        layer-params                                        @(re-frame/subscribe [:map.layers/params])
-        logic-type                                          @(re-frame/subscribe [:map.layers/logic])
+  (let [{:keys [center zoom bounds active-layers]}    @(re-frame/subscribe [:map/props])
+        {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
+        {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
+        {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
+        download-info                                 @(re-frame/subscribe [:download/info])
+        layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
+        layer-params                                  @(re-frame/subscribe [:map.layers/params])
+        logic-type                                    @(re-frame/subscribe [:map.layers/logic])
         ;; base-layer-terrestris                               [wms-layer {:url "http://ows.terrestris.de/osm/service" :layers "OSM-WMS"}]
-        base-layer-eoc                                      [tile-layer {:url (str "https://tiles.geoservice.dlr.de/service/wmts?"
-                                                                                   "Service=WMTS&Request=GetTile&"
-                                                                                   "Version=1.0.0&Format=image/png&"
-                                                                                   "layer=eoc:basemap&tilematrixset=EPSG:4326&"
-                                                                                   "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")
-                                                                         :attribution (str "Base Data &copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors "
-                                                                                           "| Rendering &copy; <a href=\"http://www.dlr.de/eoc/\">DLR/EOC</a>")}]
-        base-layer-eoc-overlay                              [tile-layer {:url (str "https://tiles.geoservice.dlr.de/service/wmts?"
-                                                                                   "Service=WMTS&Request=GetTile&"
-                                                                                   "Version=1.0.0&Format=image/png&"
-                                                                                   "layer=eoc:baseoverlay&tilematrixset=EPSG:4326&"
-                                                                                   "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")}]
-        ]
+        base-layer-eoc                                [tile-layer {:url         (str "https://tiles.geoservice.dlr.de/service/wmts?"
+                                                                                     "Service=WMTS&Request=GetTile&"
+                                                                                     "Version=1.0.0&Format=image/png&"
+                                                                                     "layer=eoc:basemap&tilematrixset=EPSG:4326&"
+                                                                                     "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")
+                                                                   :attribution (str "Base Data &copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors "
+                                                                                     "| Rendering &copy; <a href=\"http://www.dlr.de/eoc/\">DLR/EOC</a>")}]
+        base-layer-eoc-overlay                        [tile-layer {:url (str "https://tiles.geoservice.dlr.de/service/wmts?"
+                                                                             "Service=WMTS&Request=GetTile&"
+                                                                             "Version=1.0.0&Format=image/png&"
+                                                                             "layer=eoc:baseoverlay&tilematrixset=EPSG:4326&"
+                                                                             "TileMatrix=EPSG:4326:{z}&TileCol={x}&TileRow={y}")}]]
     [:div.map-wrapper
      sidebar
      [download-component download-info]
@@ -274,7 +273,7 @@
 
       [share-control]
 
-      [print-control {:position "topleft" :title "Export as PNG" :export-only true
+      [print-control {:position   "topleft" :title "Export as PNG" :export-only true
                       :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
 
       (when has-info?

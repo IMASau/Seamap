@@ -6,9 +6,8 @@
             [clojure.string :as string]
             [imas-seamap.db :refer [api-url-base]]
             [imas-seamap.utils :refer [merge-in]]
-            ;; ["proj4" :refer [Proj]]
             ["proj4" :as proj4]
-            [debux.cs.core :refer [dbg] :include-macros true]))
+            #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
 (def ^:private EPSG-3112
@@ -20,9 +19,9 @@
   (js->clj
    (EPSG-3112.forward (clj->js pt))))
 
-(defn bounds->projected [project-fn {:keys [north south east west] :as bounds}]
-  (let [[x0 y0] (wgs84->epsg3112 [west south])
-        [x1 y1] (wgs84->epsg3112 [east north])]
+(defn bounds->projected [project-fn {:keys [north south east west] :as _bounds}]
+  (let [[x0 y0] (project-fn [west south])
+        [x1 y1] (project-fn [east north])]
     {:west  x0
      :south y0
      :east  x1
@@ -96,9 +95,8 @@
          (map last))))
 
 (defn applicable-layers
-  [{{:keys [layers groups priorities priority-cutoff zoom zoom-cutover bounds logic]} :map :as db}
-   & {:keys [bbox category server_type]
-      :or   {bbox bounds}}]
+  [{{:keys [layers groups priorities priority-cutoff zoom zoom-cutover bounds logic]} :map :as _db}
+   & {:keys [category server_type]}]
   ;; Generic utility to retrieve a list of relevant layers, filtered as necessary.
   ;; figures out cut-off point, and restricts to those on the right side of it;
   ;; filters to those groups intersecting the bbox;
@@ -128,7 +126,7 @@
   its priority in *some* group is higher than the priority-cutoff.
   This only applies to habitat and bathymetry layers; other categories
   aren't handled via priorities and are always included."
-  [{{:keys [layers priorities priority-cutoff]} :map :as db}]
+  [{{:keys [layers priorities priority-cutoff]} :map :as _db}]
   (let [priority-layer-ids (->> priorities
                                 (filter #(< (:priority %) priority-cutoff))
                                 (map :layer)
@@ -151,7 +149,7 @@
         :map.layer.download/geotiff "GeoTIFF"}
        type-key))
 
-(defmulti download-link (fn [layer bounds download-type] (type->servertype download-type)))
+(defmulti download-link (fn [_layer _bounds download-type] (type->servertype download-type)))
 
 (defmethod download-link :api [{:keys [id] :as layer} bounds download-type]
   ;; At the moment we still use geoserver for CSV downloads (all), and
@@ -168,7 +166,7 @@
                          :format   "raw"})
           str))))
 
-(defmethod download-link :wfs [{:keys [server_url detail_layer layer_name bounding_box] :as layer}
+(defmethod download-link :wfs [{:keys [server_url detail_layer layer_name] :as _layer}
                                bounds
                                download-type]
   (-> (url/url server_url)
@@ -185,7 +183,7 @@
       (merge-in (when bounds {:query {:bbox (bounds->str bounds)}}))
       str))
 
-(defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as layer}
+(defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
                                bounds
                                download-type]
   ;; Crude ratio calculations for approximating image dimensions (note, bbox could be param or layer extent):

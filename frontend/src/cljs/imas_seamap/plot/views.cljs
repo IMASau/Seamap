@@ -2,14 +2,14 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.plot.views
-  (:require [re-frame.core :as re-frame]
-            [reagent.core :as reagent]
+  (:require [reagent.core :as reagent]
+            [clojure.string :as string]
             [imas-seamap.blueprint :refer [button non-ideal-state spinner]]
             [imas-seamap.utils :refer [handler-dispatch] :include-macros true]
             [goog.dom :as dom]
             [goog.object :as gobj]
             [goog.math :as gmaths]
-            [debux.cs.core :refer [dbg] :include-macros true]))
+            #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn randColour []
   (str "rgb(" (rand-int 255) "," (rand-int 255) "," (rand-int 255) ")"))
@@ -62,14 +62,14 @@
     (if (zero? max-val) 0.1 max-val)))
 
 
-(defn depth-to-y-pos [{:keys [depth graph-range offset min-depth spread margin] :as props}]
-  (let [[m-left m-right m-top m-bottom] margin]
+(defn depth-to-y-pos [{:keys [depth graph-range offset min-depth spread margin]}]
+  (let [[_m-left _m-right m-top _m-bottom] margin]
     (+ (* graph-range (- 1 offset) (/ (- depth min-depth) spread)) m-top)))
 
 
 (defn percentage-to-x-pos [{:keys [percentage origin graph-domain margin]}]
-  (let [[m-left m-right m-top m-bottom] margin
-        [ox oy] origin]
+  (let [[m-left _m-right _m-top _m-bottom] margin
+        [ox _oy] origin]
     (+ m-left ox (* (/ percentage 100) graph-domain))))
 
 
@@ -82,21 +82,20 @@
        peek
        second))
 
-(defn graph-line-string [{:keys [:transect.results/bathymetry origin margin graph-domain graph-range offset min-depth max-depth spread] :as props}]
-  (let [[m-left m-right m-top m-bottom] margin
-        [ox oy] origin
+(defn graph-line-string [{:keys [:transect.results/bathymetry margin graph-range] :as props}]
+  (let [[_m-left _m-right m-top _m-bottom] margin
         [[p1 d1] & remaining] bathymetry
-        [p2 d2] remaining
+        [_p2 d2] remaining
         first-x-pos (percentage-to-x-pos (merge props {:percentage p1}))
-        graph-start (clojure.string/join (vector (str "M " first-x-pos " " (if (nil? d1) (+ m-top graph-range) (depth-to-y-pos (merge props {:depth d1}))) " L ")
+        graph-start (string/join (vector (str "M " first-x-pos " " (if (nil? d1) (+ m-top graph-range) (depth-to-y-pos (merge props {:depth d1}))) " L ")
                                                  (if (and (not (nil? d1)) (nil? d2))
                                                    (str first-x-pos " " (+ m-top graph-range) " ")
                                                    "")))
-        graph-middle (clojure.string/join (for [[[_ prev-d] [p d] [_ next-d]] (map vector bathymetry remaining (rest remaining))]
+        graph-middle (string/join (for [[[_ prev-d] [p d] [_ next-d]] (map vector bathymetry remaining (rest remaining))]
                                             (let [x-pos (percentage-to-x-pos (merge props {:percentage p}))]
                                               (if (nil? d)
                                                 (str "" x-pos " " (+ m-top graph-range) " ")
-                                                (clojure.string/join (vector (when-not prev-d (str x-pos " " (+ m-top graph-range) " "))
+                                                (string/join (vector (when-not prev-d (str x-pos " " (+ m-top graph-range) " "))
                                                                              (str x-pos " " (depth-to-y-pos (merge props {:depth d})) " ")
                                                                              (when-not next-d (str x-pos " " (+ m-top graph-range) " "))))))))
         [last-p last-d] (last bathymetry)
@@ -151,8 +150,8 @@
         y-steps (int (/ graph-range 30))
         x-ticks   (loose-label-ticks 0 max-x)
         x-ticks   (if (< (last x-ticks) max-x) (butlast x-ticks) x-ticks)
-        [m-left m-right m-top m-bottom] margin
-        [ox oy] origin]
+        [m-left _m-right m-top _m-bottom] margin
+        [ox _oy] origin]
     (when (pos? y-steps)
       [:g {:style {:line-height line-height
                    :font-size   font-size}}
@@ -227,13 +226,12 @@
         horizontal-scroll (gobj/get (dom/getDocumentScroll) "x")
         indent-from-page (+ indent-from-client horizontal-scroll)
         [m-left _ _ _] margin
-        [ox oy] origin
+        [ox _oy] origin
         dist-from-y-axis (- pagex (+ indent-from-page ox m-left))]
     (/ dist-from-y-axis graph-domain)))
 
 
-(defn mouse-move-graph [{:keys [:transect.results/bathymetry
-                                :transect.results/habitat
+(defn mouse-move-graph [{:keys [:transect.results/habitat
                                 :transect.results/zone-legend
                                 graph-domain graph-range
                                 tooltip-content tooltip-width
@@ -241,8 +239,8 @@
                                 max-x
                                 event on-mousemove] :as props}]
   (let [pagex                              (gobj/get event "pageX")
-        [m-left m-right m-top m-bottom]    margin
-        [ox oy]                            origin
+        [m-left _m-right m-top _m-bottom]  margin
+        [ox _oy]                           origin
         percentage                         (min (max (* 100 (mouse-pos-to-percentage (merge props {:pagex pagex}))) 0) 100)
         depth                              (depth-at-percentage (merge props {:percentage percentage}))
         pointx                             (percentage-to-x-pos (merge props {:percentage percentage}))
@@ -265,17 +263,17 @@
                                               (str "Distance: " distance distance-unit)]
                                   :datapoint {:cx pointx
                                               :cy pointy}})
-    (if on-mousemove (on-mousemove {:percentage percentage
+    (when on-mousemove (on-mousemove {:percentage percentage
                                     :habitat    zone-label
                                     :depth      depth}))))
 
 
-(defn mouse-leave-graph [{:keys [tooltip-content on-mouseout] :as props}]
+(defn mouse-leave-graph [{:keys [tooltip-content on-mouseout]}]
   (swap! tooltip-content merge {:tooltip {:style {:visibility "hidden"}}})
   (when on-mouseout (on-mouseout)))
 
 
-(defn transect-graph [props]
+(defn transect-graph [_props]
   (let [tooltip-content (reagent/atom {:tooltip   {:style {:visibility "hidden"}}
                                        :datapoint {:cx 0 :cy 0 :r 5}
                                        :line      {:x1 0 :y1 0 :x2 20 :y2 20}
@@ -332,7 +330,7 @@
 
             ;; draw habitat zones
             [:g#habitat-zones
-             (for [{:keys [start_percentage end_percentage name] :as zone} habitat
+             (for [{:keys [start_percentage end_percentage name] :as _zone} habitat
                    :let [zone-colour (get zone-colours name)]]
                (when (and name zone-colour)
                  (let [x-pos (percentage-to-x-pos (merge props {:percentage   start_percentage
