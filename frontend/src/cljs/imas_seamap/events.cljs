@@ -11,14 +11,14 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in]]
-            [imas-seamap.map.utils :as mutils :refer [applicable-layers bbox-intersects? habitat-layer? download-link]]
+            [imas-seamap.map.utils :as mutils :refer [applicable-layers habitat-layer? download-link]]
             [re-frame.core :as re-frame]
-            [debux.cs.core :refer [dbg] :include-macros true]))
+            #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn not-yet-implemented
   "Register this handler against event symbols that don't have a
   handler yet"
-  [db [sym & args :as event-v]]
+  [db [sym & _args :as _event-v]]
   (js/console.warn "Warning: no handler for" sym "implemented yet")
   db)
 
@@ -49,8 +49,8 @@
 ;;; default-db without throwing away ajax-loaded layer info, so we
 ;;; restore that manually first.
 (defn re-boot [{:keys [habitat-colours habitat-titles sorting]
-                {:keys [layers organisations priorities groups] :as map-state} :map
-                :as db} _]
+                {:keys [layers organisations priorities groups] :as _map-state} :map
+                :as _db} _]
   (-> db/default-db
       (update :map merge {:layers        layers
                           :organisations organisations
@@ -193,7 +193,7 @@
                :constraints  (if (seq? other) (first other) other)
                :other        (when (seq? other) (rest other))})))
 
-(defn layer-receive-metadata-err [db [_ & err]]
+(defn layer-receive-metadata-err [db [_ & _err]]
   (assoc-in db [:display :info-card] :display.info/error))
 
 (defn layer-close-info [db _]
@@ -253,7 +253,7 @@
         (update-in [:transect :habitat] clear-loading)
         (update-in [:transect :bathymetry] clear-loading))))
 
-(defn transect-query-error [{:keys [db]} [_ type query-id {:keys [last-error failure response] :as http-response}]]
+(defn transect-query-error [{:keys [db]} [_ type query-id {:keys [last-error failure response] :as _http-response}]]
   (when (= query-id
            (get-in db [:transect :query-id]))
     (let [status-text (cond
@@ -268,8 +268,7 @@
        :dispatch [:info/show-message status-text b/INTENT-DANGER]})))
 
 (defn transect-query-habitat [{:keys [db]} [_ query-id linestring]]
-  (let [bbox           (geojson-linestring->bbox linestring)
-        habitat-layers (->> db :map :active-layers (filter habitat-layer?))
+  (let [habitat-layers (->> db :map :active-layers (filter habitat-layer?))
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it
         ;; must be at the front of the list:
@@ -294,7 +293,7 @@
     (assoc-in [:transect :habitat] response)))
 
 (defn transect-query-bathymetry [{:keys [db]} [_ query-id linestring]]
-  (if-let [{:keys [server_url layer_name] :as bathy-layer}
+  (if-let [{:keys [server_url layer_name] :as _bathy-layer}
            (first (applicable-layers db :category :bathymetry
                                         :server_type :ncwms))]
     {:db         db
@@ -403,7 +402,7 @@
 (defn clear-message [db _]
   (assoc-in db [:info :message] nil))
 
-(defn copy-share-url [{:keys [db]} _]
+(defn copy-share-url [_ctx _]
   (copy-text js/location.href)
   {:dispatch [:info/show-message "URL copied to clipboard!" {:intent   b/INTENT-SUCCESS
                                                          :iconName "clipboard"}]})
