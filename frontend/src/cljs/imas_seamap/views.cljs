@@ -12,7 +12,8 @@
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             ["@blueprintjs/core" :as Blueprint]
             ["react-transition-group" :refer [TransitionGroup]]
-            ["react-container-dimensions" :as ContainerDimensions]
+            ["react-sizeme" :refer [SizeMe]]
+            ;; ["react-container-dimensions" :as ContainerDimensions]
             ["react-leaflet-sidebarv2" :refer [Sidebar Tab]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -21,7 +22,7 @@
   (reagent/adapt-react-class TransitionGroup))
 
 (def container-dimensions
-  (reagent/adapt-react-class ContainerDimensions))
+  (reagent/adapt-react-class SizeMe))
 
 (def sidebar     (reagent/adapt-react-class Sidebar))
 (def sidebar-tab (reagent/adapt-react-class Tab))

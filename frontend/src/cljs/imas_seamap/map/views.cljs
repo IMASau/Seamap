@@ -258,7 +258,7 @@
 
       [share-control]
 
-      [leaflet/print-control {:position   "topleft" :title "Export as PNG" :export-only true
+      #_[leaflet/print-control {:position   "topleft" :title "Export as PNG" :export-only true
                       :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
 
       (when has-info?
