@@ -128,7 +128,7 @@
                                       :on-click (handler-dispatch [:map.layer.legend/toggle layer])})
     [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
      [:div (when (or loading? errors?) {:class "header-status-icons"})
-      (when (and active? loading?) [b/spinner {:class "pt-small layer-spinner"}])
+      (when (and active? loading?) [b/spinner {:class "bp3-small layer-spinner"}])
       (when (and active? errors?) [:span.layer-warning.bp3-icon.bp3-icon-small.bp3-icon-warning-sign])]
      [b/clipped-text {:ellipsize true :class "header-text"}
       name]
@@ -146,7 +146,7 @@
      {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
    [b/tooltip {:content (if active? "Hide layer" "Show layer")}
     [:span.control.bp3-icon-large.bp3-text-muted
-     {:class (if active? "pt-icon-eye-on" "pt-icon-eye-off")
+     {:class (if active? "bp3-icon-eye-on" "bp3-icon-eye-off")
       :on-click (handler-dispatch [:map/toggle-layer layer])}]]])
 
 (defn- ->sort-by [sorting-info ordering-key]
@@ -227,7 +227,7 @@
     [:div#transect-btn-wrapper {:data-helper-text "Click to draw a transect"}
      [b/button {:id "transect-button"
                 :icon "edit"
-                :class "pt-fill draw-transect height-static"
+                :class "bp3-fill draw-transect height-static"
                 :on-click (handler-dispatch [dispatch-key])
                 :text label}]]))
 
@@ -240,7 +240,7 @@
     [:div#select-btn-wrapper {:data-helper-text "Click to select a region"}
      [b/button {:id         "transect-button"
                 :icon       "widget"
-                :class "pt-fill select-region height-static"
+                :class "bp3-fill select-region height-static"
                 :on-click   (handler-dispatch [dispatch-key])
                 :text       label}]]))
 
@@ -273,7 +273,7 @@
 
 (defn layer-card [layer-spec {:keys [active? _loading? _errors? _expanded?] :as other-props}]
   [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
-   [:div.layer-card.bp3-card.bp3-elevation-1 {:class (when active? "layer-active pt-interactive")}
+   [:div.layer-card.bp3-card.bp3-elevation-1 {:class (when active? "layer-active bp3-interactive")}
     [:div.header-row.height-static
      [catalogue-header layer-spec other-props]
      [catalogue-controls layer-spec other-props]]]])
@@ -285,7 +285,7 @@
        (merge {:class (str classes (if @expanded " expanded" " collapsed"))}
               (when id {:id id}))
        [:h1 {:on-click (handler-fn (swap! expanded not))}
-        [:span.bp3-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")}]
+        [:span.bp3-icon-standard {:class (if @expanded "bp3-icon-chevron-down" "bp3-icon-chevron-right")}]
         (str title " (" (count layers) ")")]
        [b/collapse {:is-open               @expanded
                     :keep-children-mounted true
@@ -304,7 +304,7 @@
   [:div#settings
    [b/button {:id         "reset-button"
               :icon       "undo"
-              :class "pt-fill"
+              :class "bp3-fill"
               :on-click   (handler-dispatch [:re-boot])
               :text       "Reset Interface"}]])
 
@@ -435,7 +435,7 @@
 (defn- download-menu [{:keys [title disabled? layer bbox]}]
   [b/popover {:position           b/BOTTOM
               :is-disabled        disabled?
-              :popover-class-name "pt-minimal"
+              :popover-class-name "bp3-minimal"
               :content            (reagent/as-element
                                    [b/menu
                                     [b/menu-item {:text     "GeoTIFF"
@@ -537,7 +537,7 @@
     "Habitat layer for region statistics (only one active layer may be selected at a time):"
     [b/popover {:position           b/BOTTOM
                 :class         "full-width"
-                :popover-class-name "pt-minimal"
+                :popover-class-name "bp3-minimal"
                 :content            (reagent/as-element
                                      [b/menu
                                       (for [layer (filter #(= :habitat (:category %)) active-layers)]
@@ -545,7 +545,7 @@
                                         [b/menu-item {:text     (:name layer)
                                                       :on-click #(re-frame/dispatch [:map.region-stats/select-habitat layer])}])])}
      [b/button {:text       (get habitat-layer :name "Select Habitat Layer for statistics...")
-                :class "pt-fill pt-text-overflow-ellipsis"
+                :class "bp3-fill bp3-text-overflow-ellipsis"
                 :intent     (when-not habitat-layer b/INTENT-WARNING)
                 :right-icon "caret-down"}]]]
    [:div.bp3-callout.bp3-icon-help.height-managed
