@@ -95,9 +95,9 @@
                         (pos? height)
                         (not (string/blank? helperText)))]
          ^{:key (hash eprops)}
-         [:div.helper-layer-wrapper {:class-name posn-cls
+         [:div.helper-layer-wrapper {:class posn-cls
                                      :style (wrapper-props helperPosition eprops)}
-          [:div.helper-layer-tooltip {:class-name posn-cls
+          [:div.helper-layer-tooltip {:class posn-cls
                                       :style (posn->offsets helperPosition width height)}
            [:div.helper-layer-tooltiptext {:style {:width (or textWidth *text-width*)}}
             helperText]]]))]))
@@ -121,23 +121,23 @@
 
 (defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading? expanded?] :as _layer-state}]
   [b/tooltip {:content (if expanded? "Click to hide legend" "Click to show legend")
-              :class-name "header-text"
+              :class "header-text"
               :position RIGHT
               :is-disabled (not active?)}
-   [:div.layer-wrapper (when active? {:class-name "layer-active"
+   [:div.layer-wrapper (when active? {:class "layer-active"
                                       :on-click (handler-dispatch [:map.layer.legend/toggle layer])})
     [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
      [:div (when (or loading? errors?) {:class "header-status-icons"})
-      (when (and active? loading?) [b/spinner {:class-name "pt-small layer-spinner"}])
+      (when (and active? loading?) [b/spinner {:class "pt-small layer-spinner"}])
       (when (and active? errors?) [:span.layer-warning.bp3-icon.bp3-icon-small.bp3-icon-warning-sign])]
-     [b/clipped-text {:ellipsize true :class-name "header-text"}
+     [b/clipped-text {:ellipsize true :class "header-text"}
       name]
      [b/collapse {:is-open (and active? expanded?)
                   :className "layer-legend"}
       [legend-display layer]]]]])
 
 (defn catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
-  [:div.catalogue-layer-controls (when active? {:class-name "layer-active"})
+  [:div.catalogue-layer-controls (when active? {:class "layer-active"})
    [b/tooltip {:content "Layer info / Download data"}
     [:span.control.bp3-icon-small.bp3-icon-info-sign.bp3-text-muted
      {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
@@ -210,7 +210,7 @@
     [:div.height-managed
      [b/tabs {:selected-tab-id selected-tab
               :on-change       select-tab
-              :class-name      "group-scrollable height-managed"}
+              :class      "group-scrollable height-managed"}
       [b/tab {:id    "org" :title "By Organisation"
               :panel (reagent/as-element
                       [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props])}]
@@ -227,7 +227,7 @@
     [:div#transect-btn-wrapper {:data-helper-text "Click to draw a transect"}
      [b/button {:id "transect-button"
                 :icon "edit"
-                :class-name "pt-fill draw-transect height-static"
+                :class "pt-fill draw-transect height-static"
                 :on-click (handler-dispatch [dispatch-key])
                 :text label}]]))
 
@@ -240,7 +240,7 @@
     [:div#select-btn-wrapper {:data-helper-text "Click to select a region"}
      [b/button {:id         "transect-button"
                 :icon       "widget"
-                :class-name "pt-fill select-region height-static"
+                :class "pt-fill select-region height-static"
                 :on-click   (handler-dispatch [dispatch-key])
                 :text       label}]]))
 
@@ -254,7 +254,7 @@
      (merge {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
              :data-text-width "380px"}
             (when-not (or checked? user-triggered?)
-              {:class-name "external-trigger"}))
+              {:class "external-trigger"}))
      [b/switch {:checked   checked?
                 :label     (reagent/as-element [:span icon label])
                 :on-change (handler-dispatch [:map.layers.logic/toggle true])}]]))
@@ -273,7 +273,7 @@
 
 (defn layer-card [layer-spec {:keys [active? _loading? _errors? _expanded?] :as other-props}]
   [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
-   [:div.layer-card.bp3-card.bp3-elevation-1 {:class-name (when active? "layer-active pt-interactive")}
+   [:div.layer-card.bp3-card.bp3-elevation-1 {:class (when active? "layer-active pt-interactive")}
     [:div.header-row.height-static
      [catalogue-header layer-spec other-props]
      [catalogue-controls layer-spec other-props]]]])
@@ -282,7 +282,7 @@
   (let [expanded (reagent/atom expanded)]
     (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn expanded-fn]
       [:div.layer-group.height-managed
-       (merge {:class-name (str classes (if @expanded " expanded" " collapsed"))}
+       (merge {:class (str classes (if @expanded " expanded" " collapsed"))}
               (when id {:id id}))
        [:h1 {:on-click (handler-fn (swap! expanded not))}
         [:span.bp3-icon-standard {:class (if @expanded "pt-icon-chevron-down" "pt-icon-chevron-right")}]
@@ -304,7 +304,7 @@
   [:div#settings
    [b/button {:id         "reset-button"
               :icon       "undo"
-              :class-name "pt-fill"
+              :class "pt-fill"
               :on-click   (handler-dispatch [:re-boot])
               :text       "Reset Interface"}]])
 
@@ -376,7 +376,7 @@
 (defn welcome-dialogue []
   (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
     [b/dialogue {:title      "Welcome to Seamap Australia!"
-                 :class-name "welcome-splash"
+                 :class "welcome-splash"
                  :is-open    open?
                  :on-close   #(re-frame/dispatch [:welcome-layer/close])}
      [:div#welcome-splash.bp3-dialog-body
@@ -409,10 +409,10 @@
 (defn metadata-record [{:keys [license-name license-link license-img constraints other]
                         {:keys [category organisation name metadata_url]} :layer
                         :as _layer-info}]
-  [:div.metadata-record {:class-name (clojure.core/name category)}
+  [:div.metadata-record {:class (clojure.core/name category)}
    [:div.metadata-header.clearfix
     (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
-      [:img.metadata-img.org-logo {:class-name (string/replace logo #"\..+$" "")
+      [:img.metadata-img.org-logo {:class (string/replace logo #"\..+$" "")
                                    :src        (str img-url-base logo)}])
     [:h3 name]]
    [:h6.metadata-subheader "Citation Information:"]
@@ -500,7 +500,7 @@
 (defn- as-icon [icon-name description]
   (reagent/as-element [b/tooltip {:content  description
                                   :position RIGHT}
-                       [:span.bp3-icon-standard {:class-name (str "pt-icon-" icon-name)}]]))
+                       [:span.bp3-icon-standard {:class (str "bp3-icon-" icon-name)}]]))
 
 (defn layer-tab [layers active-layers loading-fn error-fn expanded-fn]
   [:div.sidebar-tab.height-managed
@@ -536,7 +536,7 @@
    [:label.bp3-label.height-managed
     "Habitat layer for region statistics (only one active layer may be selected at a time):"
     [b/popover {:position           b/BOTTOM
-                :class-name         "full-width"
+                :class         "full-width"
                 :popover-class-name "pt-minimal"
                 :content            (reagent/as-element
                                      [b/menu
@@ -545,7 +545,7 @@
                                         [b/menu-item {:text     (:name layer)
                                                       :on-click #(re-frame/dispatch [:map.region-stats/select-habitat layer])}])])}
      [b/button {:text       (get habitat-layer :name "Select Habitat Layer for statistics...")
-                :class-name "pt-fill pt-text-overflow-ellipsis"
+                :class "pt-fill pt-text-overflow-ellipsis"
                 :intent     (when-not habitat-layer b/INTENT-WARNING)
                 :right-icon "caret-down"}]]]
    [:div.bp3-callout.bp3-icon-help.height-managed

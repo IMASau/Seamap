@@ -108,7 +108,7 @@
                   :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]]))
 
 (defn share-control [_props]
-  [leaflet/custom-control {:position "topleft" :class-name "leaflet-bar"}
+  [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
    ;; The copy-text has to be here rather than in a handler, because
    ;; Firefox won't do execCommand('copy') outside of a "short-lived
    ;; event handler"
@@ -171,7 +171,7 @@
      [leaflet/leaflet-map
       (merge
        {:id                   "map"
-        :class-name           "sidebar-map"
+        :class           "sidebar-map"
         :crs                  leaflet/crs-epsg4326
         :use-fly-to           true
         :center               center
