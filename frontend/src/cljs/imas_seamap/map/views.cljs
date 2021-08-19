@@ -53,7 +53,7 @@
        ;; Note need to round; fractional offsets (eg as in wordpress
        ;; navbar) cause fractional x/y which causes geoserver to
        ;; return errors in GetFeatureInfo
-       (.. -containerPoint -round)
+       (.. -containerPoint round)
        (js->clj :keywordize-keys true)
        (select-keys [:x :y]))
    (-> e
