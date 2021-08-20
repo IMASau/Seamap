@@ -121,20 +121,20 @@
 (defn popup-component [{:keys [status info-body had-insecure?] :as _feature-popup}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
-                                  {:visual (r/as-element [b/spinner {:intent "success"}])}]
+                                  {:icon (r/as-element [b/spinner {:intent "success"}])}]
     :feature-info/empty          [b/non-ideal-state
                                   (merge
-                                   {:title  "No Results"
+                                   {:title       "No Results"
                                     :description "Try clicking elsewhere or adding another layer"
-                                    :visual "warning-sign"}
+                                    :icon        "warning-sign"}
                                    (when had-insecure? {:description "(Could not query all displayed external data layers)"}))]
     :feature-info/none-queryable [b/non-ideal-state
                                   {:title       "Invalid Info"
                                    :description "Could not query the external data provider"
-                                   :visual      "warning-sign"}]
+                                   :icon        "warning-sign"}]
     :feature-info/error          [b/non-ideal-state
-                                  {:title  "Server Error"
-                                   :visual "error"}]
+                                  {:title "Server Error"
+                                   :icon  "error"}]
     ;; Default; we have actual content:
     [:div {:dangerouslySetInnerHTML {:__html info-body}}]))
 

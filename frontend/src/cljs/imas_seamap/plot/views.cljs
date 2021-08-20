@@ -418,13 +418,13 @@
     :description (reagent/as-element
                   [button {:text     "Cancel"
                            :on-click (handler-dispatch [:transect.query/cancel])}])
-    :visual      (reagent/as-element [spinner {:intent "success"}])}])
+    :icon        (reagent/as-element [spinner {:intent "success"}])}])
 
 (defn- transect-error []
   [non-ideal-state
    {:title       "Error"
     :description "There was an error querying the data"
-    :visual      "bp3-icon-error"}])
+    :icon        "bp3-icon-error"}])
 
 (def test-data
   {:transect.results/bathymetry (generate-bathymetry)
@@ -439,7 +439,7 @@
     :transect.results.status/partial
     [:div
      [:div.transect-overlay
-      [non-ideal-state {:visual      (reagent/as-element [spinner {:intent "success"}])
+      [non-ideal-state {:icon        (reagent/as-element [spinner {:intent "success"}])
                         :description (reagent/as-element
                                       [button {:text     "Cancel"
                                                :on-click (handler-dispatch [:transect.query/cancel])}])}]]

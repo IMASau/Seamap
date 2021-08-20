@@ -114,7 +114,7 @@
                                       :on-click (handler-dispatch [:map.layer.legend/toggle layer])})
     [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
      [:div (when (or loading? errors?) {:class "header-status-icons"})
-      (when (and active? loading?) [b/spinner {:class "bp3-small layer-spinner"}])
+      (when (and active? loading?) [b/spinner {:className "bp3-small layer-spinner"}])
       (when (and active? errors?) [:span.layer-warning.bp3-icon.bp3-icon-small.bp3-icon-warning-sign])]
      [b/clipped-text {:ellipsize true :class "header-text"}
       name]
@@ -355,10 +355,10 @@
          [b/non-ideal-state
           {:title       error-msg
            :description "We were unable to load everything we need to get started.  Please try again later."
-           :visual      "error"}]
+           :icon      "error"}]
          [b/non-ideal-state
           {:title  main-msg
-           :visual (reagent/as-element [b/spinner {:intent "success"}])}])])))
+           :icon (reagent/as-element [b/spinner {:intent "success"}])}])])))
 
 (defn welcome-dialogue []
   (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
@@ -459,14 +459,14 @@
       (case layer-info
         :display.info/loading
         [b/non-ideal-state
-         {:title  "Loading Metadata..."
-          :visual (reagent/as-element [b/spinner {:intent "success"}])}]
+         {:title "Loading Metadata..."
+          :icon  (reagent/as-element [b/spinner {:intent "success"}])}]
 
         :display.info/error
         [b/non-ideal-state
          {:title       "Error"
           :description "Unable to load metadata record.  Please try again later."
-          :visual      "error"}]
+          :icon        "error"}]
 
         [metadata-record layer-info])]
      [:div.bp3-dialog-footer
