@@ -233,23 +233,25 @@
                                 :fillOpacity 1}])
       (when drawing?
         [leaflet/feature-group
-         [leaflet/edit-control {:draw       {:rectangle false
-                                             :circle    false
-                                             :marker    false
-                                             :polygon   false
-                                             :polyline  {:allowIntersection false
-                                                         :metric            "metric"}}
+         [leaflet/edit-control {:draw       {:rectangle    false
+                                             :circle       false
+                                             :marker       false
+                                             :circlemarker false
+                                             :polygon      false
+                                             :polyline     {:allowIntersection false
+                                                            :metric            "metric"}}
                                 :on-mounted (fn [e]
                                               (.. e -_toolbars -draw -_modes -polyline -handler enable)
                                               (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
                                 :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]])
       (when selecting?
         [leaflet/feature-group
-         [leaflet/edit-control {:draw       {:rectangle true
-                                             :circle    false
-                                             :marker    false
-                                             :polygon   false
-                                             :polyline  false}
+         [leaflet/edit-control {:draw       {:rectangle    true
+                                             :circle       false
+                                             :marker       false
+                                             :circlemarker false
+                                             :polygon      false
+                                             :polyline     false}
                                 :on-mounted (fn [e]
                                               (.. e -_toolbars -draw -_modes -rectangle -handler enable)
                                               (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable]))))
