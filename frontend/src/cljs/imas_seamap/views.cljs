@@ -5,13 +5,12 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]
-            [imas-seamap.blueprint :as b :refer [RIGHT]]
+            [imas-seamap.blueprint :as b :refer [RIGHT use-hotkeys]]
             [imas-seamap.db :refer [img-url-base]]
-            [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions sidebar sidebar-tab]]
+            [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions sidebar sidebar-tab use-memo]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
-            ["@blueprintjs/core" :as Blueprint]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn with-params [url params]
@@ -592,87 +591,87 @@
   (let [keydown-wrapper
         (fn [m keydown-v]
           (assoc m :global    true
-                   :group     "Keyboard Shortcuts"
-                   :onKeyDown #(re-frame/dispatch keydown-v)))]
-    [b/hotkeys nil
-     [b/hotkey (keydown-wrapper
-                {:label "Zoom In"                :combo "plus"}
-                [:map/zoom-in])]
-     [b/hotkey (keydown-wrapper
-                {:label "Zoom Out"               :combo "-"}
-                [:map/zoom-out])]
-     [b/hotkey (keydown-wrapper
-                {:label "Pan Up"                 :combo "up"}
-                [:map/pan-direction :up])]
-     [b/hotkey (keydown-wrapper
-                {:label "Pan Down"               :combo "down"}
-                [:map/pan-direction :down])]
-     [b/hotkey (keydown-wrapper
-                {:label "Pan Left"               :combo "left"}
-                [:map/pan-direction :left])]
-     [b/hotkey (keydown-wrapper
-                {:label "Pan Right"              :combo "right"}
-                [:map/pan-direction :right])]
-     [b/hotkey (keydown-wrapper
-                {:label "Toggle Plot Panel"      :combo "p"}
-                [:transect.plot/toggle-visibility])]
-     [b/hotkey (keydown-wrapper
-                {:label "Toggle Sidebar"         :combo "s"}
-                [:ui.sidebar/toggle])]
-     [b/hotkey (keydown-wrapper
-                {:label "Start/Clear Transect"   :combo "t"}
-                [:transect.draw/toggle])]
-     [b/hotkey (keydown-wrapper
-                {:label "Start/Clear Region"     :combo "r"}
-                [:map.layer.selection/toggle])]
-     [b/hotkey (keydown-wrapper
-                {:label "Cancel"                 :combo "esc"}
-                [:ui.drawing/cancel])]
-     [b/hotkey (keydown-wrapper
-                {:label "Toggle Layer Logic"     :combo "m"}
-                [:map.layers.logic/toggle])]
-     [b/hotkey (keydown-wrapper
-                {:label "Start Searching Layers" :combo "/" :prevent-default true}
-                [:ui.search/focus])]
-     [b/hotkey (keydown-wrapper
-                {:label "Reset"                  :combo "shift + r"}
-                [:re-boot])]
-     [b/hotkey (keydown-wrapper
-                {:label "Copy Shareable URL"     :combo "c"}
-                [:copy-share-url])]
-     [b/hotkey (keydown-wrapper
-                {:label "Show Help Overlay"      :combo "h"}
-                [:help-layer/toggle])]]))
+                 :group     "Keyboard Shortcuts"
+                 :onKeyDown #(re-frame/dispatch keydown-v)))]
+    ;; See note on `use-hotkeys' for rationale invoking `clj->js' here:
+    (clj->js
+     [(keydown-wrapper
+       {:label "Zoom In"                :combo "plus"}
+       [:map/zoom-in])
+      (keydown-wrapper
+       {:label "Zoom Out"               :combo "-"}
+       [:map/zoom-out])
+      (keydown-wrapper
+       {:label "Pan Up"                 :combo "up"}
+       [:map/pan-direction :up])
+      (keydown-wrapper
+       {:label "Pan Down"               :combo "down"}
+       [:map/pan-direction :down])
+      (keydown-wrapper
+       {:label "Pan Left"               :combo "left"}
+       [:map/pan-direction :left])
+      (keydown-wrapper
+       {:label "Pan Right"              :combo "right"}
+       [:map/pan-direction :right])
+      (keydown-wrapper
+       {:label "Toggle Plot Panel"      :combo "p"}
+       [:transect.plot/toggle-visibility])
+      (keydown-wrapper
+       {:label "Toggle Sidebar"         :combo "s"}
+       [:ui.sidebar/toggle])
+      (keydown-wrapper
+       {:label "Start/Clear Transect"   :combo "t"}
+       [:transect.draw/toggle])
+      (keydown-wrapper
+       {:label "Start/Clear Region"     :combo "r"}
+       [:map.layer.selection/toggle])
+      (keydown-wrapper
+       {:label "Cancel"                 :combo "esc"}
+       [:ui.drawing/cancel])
+      (keydown-wrapper
+       {:label "Toggle Layer Logic"     :combo "m"}
+       [:map.layers.logic/toggle])
+      (keydown-wrapper
+       {:label "Start Searching Layers" :combo "/" :prevent-default true}
+       [:ui.search/focus])
+      (keydown-wrapper
+       {:label "Reset"                  :combo "shift + r"}
+       [:re-boot])
+      (keydown-wrapper
+       {:label "Copy Shareable URL"     :combo "c"}
+       [:copy-share-url])
+      (keydown-wrapper
+       {:label "Show Help Overlay"      :combo "h"}
+       [:help-layer/toggle])])))
 
-(def layout-app
-  (b/hotkeys-target
-
-   [:div#main-wrapper
-    [:div#content-wrapper
-     [map-component [seamap-sidebar]]
-     [plot-component]]
-    [helper-overlay
-     :layer-search
-     :logic-toggle
-     :plot-footer
-     {:selector ".group-scrollable"
-      :helperText "Layers available in your current field of view (zoom out to see more)"}
-     {:selector ".group-scrollable > .layer-wrapper:first-child"
-      :helperPosition "bottom"
-      :helperText "Toggle layer visibility, view more info, show legend, and download data"}
-     {:selector ".sidebar-tabs ul:first-child"
-      :helperText "Choose between habitat, bathymetry, and other layer types"}
-     :transect-btn-wrapper
-     :select-btn-wrapper
-     {:selector ".sidebar-tabs ul:nth-child(2)" :helperText "Reset interface"}
-     {:id "habitat-group"     :helperText "Layers showing sea-floor habitats"}
-     {:id "bathy-group"       :helperText "Layers showing bathymetry data"}
-     {:id "imagery-group"     :helperText "Layers showing photos collected"}
-     {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
-    [show-messages]
-    [welcome-dialogue]
-    [info-card]
-    [loading-display]]
-
-   hotkeys-combos))
+(defn layout-app []
+  (let [hot-keys (use-memo (fn [] hotkeys-combos))
+        ;; We don't need the results of this, just need to ensure it's called!
+        _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)]
+    [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
+     [:div#content-wrapper
+      [map-component [seamap-sidebar]]
+      [plot-component]]
+     [helper-overlay
+      :layer-search
+      :logic-toggle
+      :plot-footer
+      {:selector   ".group-scrollable"
+       :helperText "Layers available in your current field of view (zoom out to see more)"}
+      {:selector       ".group-scrollable > .layer-wrapper:first-child"
+       :helperPosition "bottom"
+       :helperText     "Toggle layer visibility, view more info, show legend, and download data"}
+      {:selector   ".sidebar-tabs ul:first-child"
+       :helperText "Choose between habitat, bathymetry, and other layer types"}
+      :transect-btn-wrapper
+      :select-btn-wrapper
+      {:selector ".sidebar-tabs ul:nth-child(2)" :helperText "Reset interface"}
+      {:id "habitat-group" :helperText "Layers showing sea-floor habitats"}
+      {:id "bathy-group" :helperText "Layers showing bathymetry data"}
+      {:id "imagery-group" :helperText "Layers showing photos collected"}
+      {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
+     [show-messages]
+     [welcome-dialogue]
+     [info-card]
+     [loading-display]]))
 

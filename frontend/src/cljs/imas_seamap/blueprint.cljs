@@ -42,17 +42,16 @@
 
 (def tree            (reagent/adapt-react-class Blueprint/Tree))
 
-(def hotkeys         (reagent/adapt-react-class Blueprint/Hotkeys))
+(def hotkeys-provider (reagent/adapt-react-class Blueprint/HotkeysProvider))
 
-(def hotkey          (reagent/adapt-react-class Blueprint/Hotkey))
+(def use-hotkeys
+  "We need to be careful with the use of this; it needs a native-js
+  array, but if we wrap
+  this (use-hotkeys=#(Blueprint/useHotkeys (clj->js %)) for eg), the
+  identity checks will cause continuous re-rendering, so make sure
+  clj-js is called *once*:"
+  Blueprint/useHotkeys)
 
-(defn hotkeys-target
-  [view hotkeys]
-  (let [c (create-react-class
-           #js {:renderHotkeys (fn [_] (reagent/as-element hotkeys))
-                :render        (fn [_] (reagent/as-element view))})]
-    (Blueprint/HotkeysTarget c)
-    (reagent/adapt-react-class c)))
 
 ;;; Intents:
 

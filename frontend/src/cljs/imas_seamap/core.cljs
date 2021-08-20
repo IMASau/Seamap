@@ -9,6 +9,7 @@
             [day8.re-frame.http-fx]
             ["@blueprintjs/core" :as Blueprint]
             [imas-seamap.analytics :refer [analytics-for]]
+            [imas-seamap.blueprint :refer [hotkeys-provider]]
             [imas-seamap.events :as events]
             [imas-seamap.fx]
             [imas-seamap.interceptors :refer [debug-excluding]]
@@ -168,7 +169,8 @@
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
   (rdom/render
-   [views/layout-app]
+   [hotkeys-provider
+    [:f> views/layout-app]]
    (.getElementById js/document "app")))
 
 (defn ^:export init []

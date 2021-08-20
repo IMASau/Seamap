@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.interop.react
   (:require [reagent.core :as reagent]
+            ["react" :as react]
             ["react-transition-group" :refer [TransitionGroup CSSTransition]]
             ["react-sizeme" :refer [SizeMe]]
             ["react-leaflet-sidebarv2" :refer [Sidebar Tab]]))
@@ -19,3 +20,5 @@
 
 (def sidebar     (reagent/adapt-react-class Sidebar))
 (def sidebar-tab (reagent/adapt-react-class Tab))
+
+(def use-memo react/useMemo)
