@@ -7,28 +7,12 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [RIGHT]]
             [imas-seamap.db :refer [img-url-base]]
+            [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions sidebar sidebar-tab]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             ["@blueprintjs/core" :as Blueprint]
-            ["react-transition-group" :refer [TransitionGroup CSSTransition]]
-            ["react-sizeme" :refer [SizeMe]]
-            ;; ["react-container-dimensions" :as ContainerDimensions]
-            ["react-leaflet-sidebarv2" :refer [Sidebar Tab]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
-
-(def css-transition-group
-  ;; "The most straightforward way to migrate is to use <TransitionGroup> instead of <CSSTransitionGroup>:"
-  (reagent/adapt-react-class TransitionGroup))
-
-(def css-transition
-  (reagent/adapt-react-class CSSTransition))
-
-(def container-dimensions
-  (reagent/adapt-react-class SizeMe))
-
-(def sidebar     (reagent/adapt-react-class Sidebar))
-(def sidebar-tab (reagent/adapt-react-class Tab))
 
 (defn with-params [url params]
   (let [u (goog/Uri. url)]
