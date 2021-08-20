@@ -362,7 +362,7 @@ footer {
 .plot-height-enter {
     height: 10px;
 }
-.plot-height-leave {
+.plot-height-exit {
     height: 10px;
     transition: height 300ms ease-in;
 }
@@ -370,7 +370,7 @@ footer {
     height: 200px;
     transition: height 300ms ease-in;
 }
-.plot-height-leave-active {
+.plot-height-exit-active {
     height: 10px;
 }
 

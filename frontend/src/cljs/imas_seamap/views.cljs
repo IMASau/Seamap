@@ -11,7 +11,7 @@
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             ["@blueprintjs/core" :as Blueprint]
-            ["react-transition-group" :refer [TransitionGroup]]
+            ["react-transition-group" :refer [TransitionGroup CSSTransition]]
             ["react-sizeme" :refer [SizeMe]]
             ;; ["react-container-dimensions" :as ContainerDimensions]
             ["react-leaflet-sidebarv2" :refer [Sidebar Tab]]
@@ -20,6 +20,9 @@
 (def css-transition-group
   ;; "The most straightforward way to migrate is to use <TransitionGroup> instead of <CSSTransitionGroup>:"
   (reagent/adapt-react-class TransitionGroup))
+
+(def css-transition
+  (reagent/adapt-react-class CSSTransition))
 
 (def container-dimensions
   (reagent/adapt-react-class SizeMe))
@@ -334,15 +337,16 @@
       :data-helper-text "This shows the habitat data along a bathymetry transect you can draw"
       :data-helper-position "top"}
      [:div.drag-handle [:span.bp3-icon-large.bp3-icon-drag-handle-horizontal]]
-     [css-transition-group {:classnames "plot-height"
-                            :timeout {:enter 300 :exit 300}}
+     [css-transition-group
       (when @show-plot
-        [plot-component-animatable {:on-add force-resize :on-remove force-resize}
-         transect-display-component (assoc @transect-results
-                                           :on-mousemove
-                                           #(re-frame/dispatch [:transect.plot/mousemove %])
-                                           :on-mouseout
-                                           #(re-frame/dispatch [:transect.plot/mouseout]))])]]))
+        [css-transition {:class-names "plot-height"
+                         :timeout    {:enter 300 :exit 300}}
+         [plot-component-animatable {:on-add force-resize :on-remove force-resize}
+          transect-display-component (assoc @transect-results
+                                            :on-mousemove
+                                            #(re-frame/dispatch [:transect.plot/mousemove %])
+                                            :on-mouseout
+                                            #(re-frame/dispatch [:transect.plot/mouseout]))]])]]))
 
 (defn show-messages []
   (let [info-message (re-frame/subscribe [:info/message])
