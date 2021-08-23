@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - master
+      - feature/shadow-cljs-build
 
 jobs:
   frontend-build:
@@ -34,36 +35,34 @@ jobs:
         run: |
           echo "PROFILE=mindev" >> $GITHUB_ENV
 
-      # - name: Set up / restore caching
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: ~/.cache/yarn
-      #     key: yarn-packages-${{ hashFiles('yarn.lock') }}
-      #     restore-keys: |
-      #       yarn-packages-
-
-      - name: Cache maven deps as well
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: m2-deps-${{ hashFiles('**/project.clj') }}
-
-      # - name: Install Dependencies
-      #   run: yarn install --frozen-lockfile
-
       - name: Set up Java for Clojure
         uses: actions/setup-java@v1
         with:
           java-version: 11
 
-      - name: Install Leiningen
-        uses: DeLaGuardo/setup-clojure@master
+      - name: Set up / restore caching
+        uses: actions/cache@v2
         with:
-          lein: 'latest'
-      - name: Build project
-        run: lein cljsbuild once "${{ env.PROFILE }}"
+          path: node_modules
+          key: npm-packages-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-packages-
 
-      - run: tar -c -z -v -C resources/public -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" js/compiled/app.js js/compiled/app.js.map css img
+      - name: Cache maven deps as well
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: m2-deps-${{ hashFiles('shadow-cljs.edn') }}
+          restore-keys: |
+            m2-deps-
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build project
+        run: npx shadow-cljs release ${{ env.PROFILE }}
+
+      - run: tar -c -z -v -C resources/public -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" js/main.js js/main.js.map css img
 
       - name: Create timestamp for release tag-name
         id: tag_name
@@ -76,7 +75,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag_name.outputs.tag_name }}
-          release_name: Frontend (${{ env.GITHUB_REF_SLUG }} - ${{ steps.tag_name.outputs.tag_name }})
+          release_name: Frontend (${{ env.GITHUB_REF_SLUG }} - ${{ env.GITHUB_SHA_SHORT }})
           draft: false
           prerelease: false
       - name: Upload Release Asset
