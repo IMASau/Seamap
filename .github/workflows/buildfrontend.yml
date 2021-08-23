@@ -46,7 +46,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2
-          key: m2-deps-${{ hashFiles('project.clj') }}
+          key: m2-deps-${{ hashFiles('**/project.clj') }}
 
       # - name: Install Dependencies
       #   run: yarn install --frozen-lockfile
@@ -63,7 +63,7 @@ jobs:
       - name: Build project
         run: lein cljsbuild once "${{ env.PROFILE }}"
 
-      - run: tar -c -z -v -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" resources/public/js/compiled/app.js resources/public/js/compiled/app.js.map
+      - run: tar -c -z -v -C resources/public -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" js/compiled/app.js js/compiled/app.js.map css img
 
       - name: Create timestamp for release tag-name
         id: tag_name
@@ -76,7 +76,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag_name.outputs.tag_name }}
-          release_name: Release ${{ github.ref }} (${{ env.GITHUB_SHA_SHORT }})
+          release_name: Frontend (${{ env.GITHUB_REF_SLUG }} - ${{ steps.tag_name.outputs.tag_name }})
           draft: false
           prerelease: false
       - name: Upload Release Asset
