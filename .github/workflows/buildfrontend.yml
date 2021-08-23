@@ -31,7 +31,7 @@ jobs:
         run: |
           echo "PROFILE=min" >> $GITHUB_ENV
       - name: Conditionally set build profile based on branch (develop)
-        if: endswith(github.ref, '/develop')
+        if: endswith(github.ref, '/develop') || endswith(github.ref, '/feature/shadow-cljs-build')
         run: |
           echo "PROFILE=mindev" >> $GITHUB_ENV
 
