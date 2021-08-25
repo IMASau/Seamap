@@ -4,6 +4,7 @@
 (ns imas-seamap.core
   (:require [reagent.dom :as rdom]
             [re-frame.core :as re-frame]
+            [re-frame.db]
             [com.smxemail.re-frame-cookie-fx]
             [day8.re-frame.async-flow-fx :as async-flow-fx]
             [day8.re-frame.http-fx]
@@ -172,6 +173,10 @@
    [hotkeys-provider
     [:f> views/layout-app]]
    (.getElementById js/document "app")))
+
+(when goog/DEBUG
+  (defn show-db []
+    @re-frame.db/app-db))
 
 (defn ^:export init []
   (register-handlers! config)

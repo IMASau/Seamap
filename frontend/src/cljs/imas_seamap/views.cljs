@@ -174,6 +174,7 @@
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
+                  (js/console.log "**** on-open:" node)
                   (let [node (js->clj node :keywordize-keys true)]
                     (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
         on-close (fn [node]
