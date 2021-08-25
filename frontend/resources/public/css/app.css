@@ -219,6 +219,7 @@ footer {
 
 .catalogue-layer-controls {
     flex: 0 0 auto;
+    display: flex;
 }
 
 .catalogue-add {
