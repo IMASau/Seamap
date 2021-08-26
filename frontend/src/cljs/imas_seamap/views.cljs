@@ -335,20 +335,6 @@
                                             :on-mouseout
                                             #(re-frame/dispatch [:transect.plot/mouseout]))]])]]))
 
-(defn show-messages []
-  (let [info-message (re-frame/subscribe [:info/message])
-        ;toaster      (Blueprint/Toaster.create)
-        ]
-    (fn []
-      (let [{:keys [message] :as msg} @info-message
-            msg (assoc msg :onDismiss #(re-frame/dispatch [:info/clear-message]))]
-        (when message
-          (js/console.log message)
-          ;(. toaster show (clj->js msg))
-          ))
-      nil)))
-
-
 (defn loading-display []
   (let [loading?  @(re-frame/subscribe [:app/loading?])
         main-msg  @(re-frame/subscribe [:app/load-normal-msg])
@@ -674,7 +660,6 @@
       {:id "bathy-group" :helperText "Layers showing bathymetry data"}
       {:id "imagery-group" :helperText "Layers showing photos collected"}
       {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
-     [show-messages]
      [welcome-dialogue]
      [info-card]
      [loading-display]]))

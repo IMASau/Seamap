@@ -113,8 +113,7 @@
    ;; Firefox won't do execCommand('copy') outside of a "short-lived
    ;; event handler"
    [:a {:on-click #(do (copy-text js/location.href)
-                       (re-frame/dispatch  [:info/show-message "URL copied to clipboard!" {:intent   b/INTENT-SUCCESS
-                                                                                           :iconName "clipboard"}]))}
+                       (re-frame/dispatch  [:copy-share-url]))}
     [b/tooltip {:content "Copy Shareable URL to clipboard" :position b/RIGHT}
      [b/icon {:icon "clipboard"}]]]])
 

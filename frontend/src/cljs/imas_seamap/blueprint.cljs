@@ -52,6 +52,7 @@
   clj-js is called *once*:"
   Blueprint/useHotkeys)
 
+(defonce toaster (Blueprint/Toaster.create))
 
 ;;; Intents:
 

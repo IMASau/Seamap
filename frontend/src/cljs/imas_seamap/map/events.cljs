@@ -366,13 +366,13 @@
   (update-in db [:map :controls :download] dissoc :bbox))
 
 (defn map-finalise-selection [{:keys [db]} [_ bbox]]
-  {:db (update-in db [:map :controls :download] merge {:selecting false
-                                                       :bbox      bbox})
-   :dispatch [:info/show-message (r/as-element
-                                  [:div "Open layer info ("
-                                   [b/icon {:icon "info-sign" :icon-size 14}]
-                                   ") to download selection"])
-              b/INTENT-NONE]})
+  {:db      (update-in db [:map :controls :download] merge {:selecting false
+                                                            :bbox      bbox})
+   :message [(r/as-element
+              [:div "Open layer info ("
+               [b/icon {:icon "info-sign" :icon-size 14}]
+               ") to download selection"])
+             b/INTENT-NONE]})
 
 (defn map-toggle-selecting [{:keys [db]} _]
   {:dispatch

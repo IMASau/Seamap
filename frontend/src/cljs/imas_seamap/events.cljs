@@ -264,8 +264,8 @@
                         (str "Error querying " (name type) ": " (or (:status-text response)
                                                                     (:debug-message  response)
                                                                     last-error)))]
-      {:db       (assoc-in db [:transect type] status-text)
-       :dispatch [:info/show-message status-text b/INTENT-DANGER]})))
+      {:db      (assoc-in db [:transect type] status-text)
+       :message [status-text b/INTENT-DANGER]})))
 
 (defn transect-query-habitat [{:keys [db]} [_ query-id linestring]]
   (let [habitat-layers (->> db :map :active-layers (filter habitat-layer?))
@@ -390,22 +390,19 @@
   (js/console.info "AJAX error response" response)
   db)
 
-(defn show-message [db [_ message intent-or-opts]]
-  (let [msg (merge {:intent b/INTENT-WARNING}
-                   (if (map? intent-or-opts) intent-or-opts {:intent intent-or-opts})
-                   {:message        message
-                    :__cache-buster (js/Date.now)})]
-   (assoc-in db [:info :message] msg)))
+(defn show-message [_ctx [_ message intent-or-opts]]
+  (let [opts (merge {:intent b/INTENT-WARNING}
+                   (if (map? intent-or-opts) intent-or-opts {:intent intent-or-opts}))]
+   {:message [message opts]}))
 
-;;; A bit of a misnomer really; it cleans up the db, but won't
-;;; override the timeout if a message is still displayed.
 (defn clear-message [db _]
-  (assoc-in db [:info :message] nil))
+  (. b/toaster clear)
+  db)
 
 (defn copy-share-url [_ctx _]
   (copy-text js/location.href)
-  {:dispatch [:info/show-message "URL copied to clipboard!" {:intent   b/INTENT-SUCCESS
-                                                         :iconName "clipboard"}]})
+  {:message ["URL copied to clipboard!"
+             {:intent b/INTENT-SUCCESS :icon "clipboard"}]})
 
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]
   {:db       (assoc-in db [:display :catalogue :tab] tabid)
