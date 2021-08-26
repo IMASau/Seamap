@@ -148,7 +148,10 @@
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
         :let [sorting-id (get-in sorting-info [ordering val 1])
-              id-str (str id-base "|" sorting-id)]]
+              id-str (str id-base "|" sorting-id)]
+        ;; Sometime we don't have the full db available yet, which
+        ;; would generate duplicate keys if we passed them through
+        :when sorting-id]
     {:id id-str
      :label val ; (Implicit assumption that the group-by value is a string)
      :isExpanded (get expanded-states id-str false)
@@ -162,7 +165,7 @@
                                          :errors?   (error-fn layer)}]
                         {:id (str id-str "-" i)
                          :className (when (:active? layer-state) "layer-active")
-                        :label (reagent/as-element [catalogue-header layer layer-state])
+                         :label (reagent/as-element [catalogue-header layer layer-state])
                         ;; A hack, but if we just add the layer it gets
                         ;; warped in the js->clj conversion
                         ;; (specifically, values that were keywords become strings)
@@ -170,11 +173,10 @@
                         :secondaryLabel (reagent/as-element [catalogue-controls layer layer-state])}))
                     layer-subset))}))
 
-(defn layer-catalogue-tree [layers ordering id layer-props]
+(defn layer-catalogue-tree [_layers _ordering _id _layer-props]
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
-                  (js/console.log "**** on-open:" node)
                   (let [node (js->clj node :keywordize-keys true)]
                     (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
         on-close (fn [node]
@@ -182,14 +184,15 @@
                      (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
         on-click (fn [node]
                    (let [{:keys [childNodes id]} (js->clj node :keywordize-keys true)]
-                     (when (seq childNodes )
+                     (when (seq childNodes)
                        ;; If we have children, toggle expanded state, else add to map
                        (re-frame/dispatch [:ui.catalogue/toggle-node id]))))]
-    [:div.tab-body.layer-controls {:id id}
-     [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props)
-              :onNodeCollapse on-close
-              :onNodeExpand on-open
-              :onNodeClick on-click}]]))
+    (fn [layers ordering id layer-props]
+     [:div.tab-body.layer-controls {:id id}
+      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props)
+               :onNodeCollapse on-close
+               :onNodeExpand on-open
+               :onNodeClick on-click}]])))
 
 (defn layer-catalogue [layers layer-props]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab])
