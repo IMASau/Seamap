@@ -169,8 +169,8 @@
                         ;; A hack, but if we just add the layer it gets
                         ;; warped in the js->clj conversion
                         ;; (specifically, values that were keywords become strings)
-                        :do-layer-toggle #(re-frame/dispatch [:map/toggle-layer layer])
-                        :secondaryLabel (reagent/as-element [catalogue-controls layer layer-state])}))
+                         ;; :do-layer-toggle #(re-frame/dispatch [:map/toggle-layer layer])
+                         :secondaryLabel (reagent/as-element [catalogue-controls layer layer-state])}))
                     layer-subset))}))
 
 (defn layer-catalogue-tree [_layers _ordering _id _layer-props]
