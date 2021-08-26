@@ -174,9 +174,8 @@
     [:f> views/layout-app]]
    (.getElementById js/document "app")))
 
-(when goog/DEBUG
-  (defn show-db []
-    @re-frame.db/app-db))
+(defn ^:export show-db []
+  @re-frame.db/app-db)
 
 (defn ^:export init []
   (register-handlers! config)
@@ -184,6 +183,3 @@
   (dev-setup)
   (mount-root))
 
-(defn figwheel-reload []
-  (register-handlers! config)
-  (mount-root))
