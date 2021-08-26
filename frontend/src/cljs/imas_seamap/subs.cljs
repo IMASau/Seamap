@@ -99,7 +99,7 @@
       (map? info) (assoc :hidden? (or (:selecting download)
                                       (:display-link download))))))
 
-(defn sorting-info [{:keys [sorting] :as _db} _] sorting)
+(defn sorting-info [db _] (get db :sorting))
 
 (defn catalogue-tab [db _]
   (get-in db [:display :catalogue :tab]))
