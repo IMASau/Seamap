@@ -310,7 +310,8 @@
     :reagent-render
     (fn [_props child-component child-props]
       [:div.plot-container
-       [container-dimensions
+       [container-dimensions {:monitor-height true
+                              :no-placeholder true}
         #(reagent/as-element [child-component
                               (merge child-props
                                      (js->clj % :keywordize-keys true))])]])}))
@@ -319,21 +320,22 @@
   (let [show-plot (re-frame/subscribe [:transect.plot/show?])
         force-resize #(js/window.dispatchEvent (js/Event. "resize"))
         transect-results (re-frame/subscribe [:transect/results])]
-    [:footer#plot-footer
-     {:on-click (handler-dispatch [:transect.plot/toggle-visibility])
-      :data-helper-text "This shows the habitat data along a bathymetry transect you can draw"
-      :data-helper-position "top"}
-     [:div.drag-handle [:span.bp3-icon-large.bp3-icon-drag-handle-horizontal]]
-     [css-transition-group
-      (when @show-plot
-        [css-transition {:class-names "plot-height"
-                         :timeout    {:enter 300 :exit 300}}
-         [plot-component-animatable {:on-add force-resize :on-remove force-resize}
-          transect-display-component (assoc @transect-results
-                                            :on-mousemove
-                                            #(re-frame/dispatch [:transect.plot/mousemove %])
-                                            :on-mouseout
-                                            #(re-frame/dispatch [:transect.plot/mouseout]))]])]]))
+    (fn []
+      [:footer#plot-footer
+       {:on-click (handler-dispatch [:transect.plot/toggle-visibility])
+        :data-helper-text "This shows the habitat data along a bathymetry transect you can draw"
+        :data-helper-position "top"}
+       [:div.drag-handle [:span.bp3-icon-large.bp3-icon-drag-handle-horizontal]]
+       [css-transition-group
+        (when @show-plot
+          [css-transition {:class-names "plot-height"
+                           :timeout    {:enter 300 :exit 300}}
+           [plot-component-animatable {:on-add force-resize :on-remove force-resize}
+            transect-display-component (assoc @transect-results
+                                              :on-mousemove
+                                              #(re-frame/dispatch [:transect.plot/mousemove %])
+                                              :on-mouseout
+                                              #(re-frame/dispatch [:transect.plot/mouseout]))]])]])))
 
 (defn loading-display []
   (let [loading?  @(re-frame/subscribe [:app/loading?])

@@ -282,7 +282,7 @@
     (fn [{:keys [:transect.results/bathymetry
                  :transect.results/habitat
                  :transect.results/zone-colours
-                 width height margin
+                 size margin
                  font-size-tooltip font-size-axes]
           :as   props
           :or   {font-size-tooltip 16
@@ -294,6 +294,7 @@
             origin                          [(* 3 line-height-axes) (* 3 line-height-axes)]
             [ox oy]                         origin
             [m-left m-right m-top m-bottom] margin
+            {:keys [width height]}          size
             graph-range                     (- height (+ m-top m-bottom oy))
             graph-domain                    (- width (+ m-left m-right ox))
             max-depth                       (* 1.01 (max-depth bathymetry))
@@ -432,18 +433,18 @@
    :zone-colour-mapping         habitat-zone-colours})
 
 (defn transect-display-component [{:keys [:transect.results/status] :as results}]
-  (case status
-    :transect.results.status/empty   [transect-no-data]
-    :transect.results.status/loading [transect-loading]
-    :transect.results.status/error   [transect-error]
-    :transect.results.status/partial
-    [:div
-     [:div.transect-overlay
-      [non-ideal-state {:icon        (reagent/as-element [spinner {:intent "success"}])
-                        :description (reagent/as-element
-                                      [button {:text     "Cancel"
-                                               :on-click (handler-dispatch [:transect.query/cancel])}])}]]
-     [transect-graph results]]
-    ;; Default:
-    [transect-graph results]))
+  [:div {:style {:position "relative" :height "100%"}}
+   [:div {:style {:position "absolute" :width "100%" :height (str (get-in [:results :size :height] results) "px")}}
+    (case status
+      :transect.results.status/empty   [transect-no-data]
+      :transect.results.status/loading [transect-loading]
+      :transect.results.status/error   [transect-error]
+      :transect.results.status/partial
+      [:div.transect-overlay
+       [non-ideal-state {:icon        (reagent/as-element [spinner {:intent "success"}])
+                         :description (reagent/as-element
+                                       [button {:text     "Cancel"
+                                                :on-click (handler-dispatch [:transect.query/cancel])}])}]]
+      ;; Default:
+      [transect-graph results])]])
 
