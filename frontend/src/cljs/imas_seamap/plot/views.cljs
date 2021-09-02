@@ -282,7 +282,7 @@
     (fn [{:keys [:transect.results/bathymetry
                  :transect.results/habitat
                  :transect.results/zone-colours
-                 size margin
+                 width height margin
                  font-size-tooltip font-size-axes]
           :as   props
           :or   {font-size-tooltip 16
@@ -294,7 +294,6 @@
             origin                          [(* 3 line-height-axes) (* 3 line-height-axes)]
             [ox oy]                         origin
             [m-left m-right m-top m-bottom] margin
-            {:keys [width height]}          size
             graph-range                     (- height (+ m-top m-bottom oy))
             graph-domain                    (- width (+ m-left m-right ox))
             max-depth                       (* 1.01 (max-depth bathymetry))
@@ -432,9 +431,9 @@
    :transect.results/habitat    (generate-habitat habitat-zone-colours)
    :zone-colour-mapping         habitat-zone-colours})
 
-(defn transect-display-component [{:keys [:transect.results/status] :as results}]
+(defn transect-display-component [{:keys [:transect.results/status size] :as results}]
   [:div {:style {:position "relative" :height "100%"}}
-   [:div {:style {:position "absolute" :width "100%" :height (str (get-in [:results :size :height] results) "px")}}
+   [:div {:style {:position "absolute" :width "100%" :height (str (:height size) "px")}}
     (case status
       :transect.results.status/empty   [transect-no-data]
       :transect.results.status/loading [transect-loading]
@@ -445,6 +444,7 @@
                          :description (reagent/as-element
                                        [button {:text     "Cancel"
                                                 :on-click (handler-dispatch [:transect.query/cancel])}])}]]
-      ;; Default:
-      [transect-graph results])]])
+      ;; Default (merge the "size" map, from the SizeMe component, so
+      ;; width + height are available as assumed by transect-graph):
+      [transect-graph (merge results size)])]])
 
