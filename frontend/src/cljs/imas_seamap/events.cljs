@@ -294,13 +294,14 @@
 
 (defn transect-query-bathymetry [{:keys [db]} [_ query-id linestring]]
   (if-let [{:keys [server_url layer_name] :as _bathy-layer}
-           (first (applicable-layers db :category :bathymetry
-                                        :server_type :ncwms))]
+           (first (applicable-layers db :category :bathy-transect
+                                     :server_type :ncwms))]
     {:db         db
      :http-xhrio {:method          :get
                   :uri             server_url
                   :params          {:REQUEST    "GetTransect"
                                     :LAYER      layer_name
+                                    :SERVICE    "WMS"
                                     :LINESTRING (coords->linestring linestring)
                                     :CRS        "EPSG:4326"
                                     :format     "text/xml"
