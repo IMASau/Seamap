@@ -108,8 +108,7 @@
 (defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading? expanded?] :as _layer-state}]
   [b/tooltip {:content (if expanded? "Click to hide legend" "Click to show legend")
               :class "header-text"
-              :position RIGHT
-              :is-disabled (not active?)}
+              :disabled (not active?)}
    [:div.layer-wrapper (when active? {:class "layer-active"
                                       :on-click (handler-dispatch [:map.layer.legend/toggle layer])})
     [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})

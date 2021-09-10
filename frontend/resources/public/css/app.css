@@ -142,6 +142,10 @@ footer {
     margin-bottom: 10px;
 }
 
+.layer-wrapper {
+    min-width: 0;
+}
+
 .layer-wrapper .bp3-card {
     padding: 10px;
 }
@@ -159,6 +163,10 @@ footer {
 }
 .layer-wrapper:hover .subheader-row {
     height: 20px;
+}
+
+.header-text .bp3-popover-target {
+    display: flex;
 }
 
 .layer-wrapper .header-text {
