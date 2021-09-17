@@ -392,16 +392,16 @@
     (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
       [:img.metadata-img.org-logo {:class (string/replace logo #"\..+$" "")
                                    :src        (str img-url-base logo)}])
-    [:h3 name]]
-   [:h6.metadata-subheader "Citation Information:"]
+    [:h3.bp3-heading name]]
+   [:h6.bp3-heading.metadata-subheader "Citation Information:"]
    [:div
     [:p.citation  constraints]]
    (when (seq other)
      [:div
-      [:h6.metadata-subheader "Usage:"]
+      [:h6.bp3-heading.metadata-subheader "Usage:"]
       (map-indexed (fn [i o] (when o ^{:key i} [:p.other-constraints o])) other)])
    [:div.license-info.clearfix
-    [:h6 "License Information:"]
+    [:h6.bp3-heading "License Information:"]
     (when license-img [:img.license.metadata-img {:src license-img}])
     [:a {:href license-link :target "_blank"} license-name]]
    [:div.more-info
