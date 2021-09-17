@@ -32,14 +32,8 @@
                 :closure-defines {goog.DEBUG                  false
                                   imas-seamap.db/api-url-base "https://data.imas.utas.edu.au/seamap/api/"
                                   imas-seamap.db/img-url-base "/app/img/"}
-                :compiler        {:main          imas-seamap.core
-                                  :output-to     "resources/public/js/compiled/app.js"
-                                  :output-dir    "resources/public/js/compiled/app"
-                                  :source-map    "resources/public/js/compiled/app.js.map"
-                                  :optimizations :advanced
-
-                                  :pseudo-names false
-                                  :pretty-print false}}
+                :output-dir      "resources/public/js/compiled/app"
+                :modules         {:app {:init-fn imas_seamap.core/init}}}
 
           :mindev {:target           :browser
                    :output-dir       "resources/public/js/compiled/"
