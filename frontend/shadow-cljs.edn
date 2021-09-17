@@ -28,12 +28,13 @@
                                    day8.re-frame.trace.preload
                                    imas-seamap.specs.preload]}
 
-          :min {:target          :browser
-                :closure-defines {goog.DEBUG                  false
-                                  imas-seamap.db/api-url-base "https://data.imas.utas.edu.au/seamap/api/"
-                                  imas-seamap.db/img-url-base "/app/img/"}
-                :output-dir      "resources/public/js/compiled/app"
-                :modules         {:app {:init-fn imas_seamap.core/init}}}
+          :min {:target           :browser
+                :closure-defines  {goog.DEBUG                  false
+                                   imas-seamap.db/api-url-base "https://data.imas.utas.edu.au/seamap/api/"
+                                   imas-seamap.db/img-url-base "/app/img/"}
+                :output-dir       "resources/public/js/compiled/"
+                :modules          {:app {:init-fn imas_seamap.core/init}}
+                :compiler-options {:source-map true}}
 
           :mindev {:target           :browser
                    :output-dir       "resources/public/js/compiled/"
