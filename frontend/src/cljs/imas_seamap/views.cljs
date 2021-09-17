@@ -273,7 +273,7 @@
       [:div.layer-group.height-managed
        (merge {:class (str classes (if @expanded " expanded" " collapsed"))}
               (when id {:id id}))
-       [:h1 {:on-click (handler-fn (swap! expanded not))}
+       [:h1.bp3-heading {:on-click (handler-fn (swap! expanded not))}
         [:span.bp3-icon-standard {:class (if @expanded "bp3-icon-chevron-down" "bp3-icon-chevron-right")}]
         (str title " (" (count layers) ")")]
        [b/collapse {:is-open               @expanded
