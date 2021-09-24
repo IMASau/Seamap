@@ -97,7 +97,6 @@ class Layer(models.Model):
     maxx = models.DecimalField(max_digits=20, decimal_places=17)
     maxy = models.DecimalField(max_digits=20, decimal_places=17)
     metadata_url = models.URLField(max_length = 200)
-    description = models.CharField(max_length = 500)
     server_type = models.ForeignKey(ServerType, on_delete=models.PROTECT)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
 
