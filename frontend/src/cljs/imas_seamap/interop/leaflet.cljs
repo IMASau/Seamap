@@ -12,6 +12,7 @@
 
 
 (def crs-epsg4326  L/CRS.EPSG4326)
+(def crs-epsg3857  L/CRS.EPSG3857)
 (def tile-layer    (r/adapt-react-class ReactLeaflet/TileLayer))
 (def wms-layer     (r/adapt-react-class ReactLeaflet/WMSTileLayer))
 (def geojson-layer (r/adapt-react-class ReactLeaflet/GeoJSON))

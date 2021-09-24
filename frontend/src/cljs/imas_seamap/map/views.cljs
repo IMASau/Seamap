@@ -151,6 +151,8 @@
         layer-params                                  @(re-frame/subscribe [:map.layers/params])
         logic-type                                    @(re-frame/subscribe [:map.layers/logic])
         ;; base-layer-terrestris                               [wms-layer {:url "http://ows.terrestris.de/osm/service" :layers "OSM-WMS"}]
+        base-layer-experimental                       [leaflet/tile-layer {:url "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                                                                           :attribution "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors &copy; <a href=\"https://carto.com/attributions\">CARTO</a>"}]
         base-layer-eoc                                [leaflet/tile-layer {:url         (str "https://tiles.geoservice.dlr.de/service/wmts?"
                                                                                              "Service=WMTS&Request=GetTile&"
                                                                                              "Version=1.0.0&Format=image/png&"
@@ -171,7 +173,8 @@
       (merge
        {:id                   "map"
         :class           "sidebar-map"
-        :crs                  leaflet/crs-epsg4326
+        ;; :crs                  leaflet/crs-epsg4326
+        :crs                  leaflet/crs-epsg3857
         :use-fly-to           true
         :center               center
         :zoom                 zoom
@@ -190,8 +193,9 @@
         :on-popupclose        on-popup-closed}
        (when (seq bounds) {:bounds (map->bounds bounds)}))
 
-      base-layer-eoc
-      base-layer-eoc-overlay
+      base-layer-experimental
+      ;; base-layer-eoc
+      ;; base-layer-eoc-overlay
 
       ;; We enforce the layer ordering by an incrementing z-index (the
       ;; order of this list is otherwise ignored, as the underlying
