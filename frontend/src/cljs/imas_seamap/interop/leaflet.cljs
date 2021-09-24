@@ -7,8 +7,7 @@
             ["react-leaflet" :as ReactLeaflet]
             ["react-leaflet-control" :as ReactLeafletControl]
             ["react-leaflet-draw" :as ReactLeafletDraw]
-            ;; Remove for now, should be easy to wrap for React 17 later 
-            ;; ["react-leaflet-easyprint" :as ReactLeafletEasyprint]
+            ["react-leaflet-easyprint" :as ReactLeafletEasyprint]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
@@ -22,5 +21,5 @@
 (def feature-group (r/adapt-react-class ReactLeaflet/FeatureGroup))
 (def edit-control  (r/adapt-react-class ReactLeafletDraw/EditControl))
 (def circle-marker (r/adapt-react-class ReactLeaflet/CircleMarker))
-;; (def print-control (r/adapt-react-class ReactLeafletEasyprint))
+(def print-control (r/adapt-react-class (ReactLeaflet/withLeaflet ReactLeafletEasyprint)))
 (def custom-control (r/adapt-react-class ReactLeafletControl/default)) ; Might be a misinterpretation of the module ("exports.default=..."

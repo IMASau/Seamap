@@ -259,8 +259,9 @@
 
       [share-control]
 
-      #_[leaflet/print-control {:position   "topleft" :title "Export as PNG" :export-only true
-                      :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
+      [leaflet/print-control {:position   "topleft" :title "Export as PNG"
+                              :export-only true
+                              :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
 
       (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
