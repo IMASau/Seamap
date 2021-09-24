@@ -1,11 +1,15 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+from decimal import Decimal, getcontext
+from io import BytesIO
+import numbers
+import shapefile
+import zipfile
+
 from catalogue.models import Layer
 from collections import defaultdict, namedtuple
-from decimal import Decimal, getcontext
-import numbers
-import zipfile
+
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import connections, ProgrammingError
 from django.db.models.functions import Coalesce
@@ -14,8 +18,7 @@ from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.serializers import ValidationError
-import shapefile
-from io import BytesIO
+
 
 # SQL Template to invoke the habitat transect intersection procedure.
 # There's an awkward situation of two types of parameters involved
