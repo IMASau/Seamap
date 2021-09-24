@@ -4,15 +4,20 @@
 from decimal import Decimal, getcontext
 from io import BytesIO
 import numbers
+import os
 import shapefile
+import subprocess
+import tempfile
 import zipfile
 
 from catalogue.models import Layer
 from collections import defaultdict, namedtuple
 
+from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import connections, ProgrammingError
 from django.db.models.functions import Coalesce
+from django.http import FileResponse
 from rest_framework.decorators import action, api_view, renderer_classes
 from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
@@ -301,6 +306,49 @@ def regions(request):
                         template_name='habitat/regions.html')
 
 
+OGR2OGR_DB_TEMPLATE = "MSSQL:Driver={driver};Server={server},{port};Database={database};uid={user};pwd={password};"
+OGR2OGR_SQL_TEMPLATE = "select {geom}.STIntersection(geometry::Point({x1},{y1},3112).STUnion(geometry::Point({x2},{y2},3112)).STEnvelope()) geom,{columns} from {table} where {geom}.STIntersects(geometry::Point({x1},{y1},3112).STUnion(geometry::Point({x2},{y2},3112)).STEnvelope()) = 1"
+
+# Not a view function itself, but returns a Response.  Used as an
+# optional performance gain in the subset view below.
+def ogr2ogr_subset(table_name, geom_col, colnames, bounds):
+    db = settings.DATABASES['default']
+    connstr = OGR2OGR_DB_TEMPLATE.format(driver=settings.OGR2OGR_DRIVER or db['OPTIONS']['driver'],
+                                         server=db['HOST'],
+                                         port=db['PORT'],
+                                         database=db['NAME'],
+                                         user=db['USER'],
+                                         password=db['PASSWORD'])
+    [x1,y1,x2,y2] = bounds
+    querystr = OGR2OGR_SQL_TEMPLATE.format(geom=geom_col,
+                                           table=table_name,
+                                           columns=','.join(colnames),
+                                           x1=x1,y1=y1,x2=x2,y2=y2)
+    # Note, the contents will be cleaned up along with the directory:
+    with tempfile.TemporaryDirectory(prefix=table_name) as tmpdir:
+        subprocess.run([settings.OGR2OGR_PATH,
+                        '--config', 'MSSQLSPATIAL_USE_GEOMETRY_COLUMNS', 'NO',
+                        '-f', 'ESRI Shapefile',
+                        f'{table_name}.shp',
+                        connstr,
+                        '-sql', querystr,
+                        '-overwrite',
+                        '-nlt', 'PROMOTE_TO_MULTI',
+                        '-lco', 'SHPT=POLYGON',
+                        '-a_srs', 'EPSG:3112'],
+                       check=True, cwd=tmpdir, capture_output=True)
+        file_listing = os.listdir(tmpdir)
+        zipfile_name = os.path.join(tmpdir, table_name)
+        zf = zipfile.ZipFile(zipfile_name, 'w')
+        for f in file_listing:
+            zf.write(os.path.join(tmpdir, f), f)
+        zf.close()
+        return FileResponse(open(zipfile_name, 'rb'),
+                            as_attachment=True,
+                            filename=f'{table_name}.zip',
+                            content_type='application/zip')
+
+
 # .../subset?bounds=1,1,11,...&layer_id=layerid
 # boundary is the boundary-layer name, eg seamap:SeamapAus_BOUNDARIES_CMR2014
 # habitat is the habitat-layer name, eg seamap:FINALPRODUCT_SeamapAus
@@ -336,6 +384,10 @@ def subset(request):
                 geom_col = colname
             else:
                 colnames.append(colname)
+
+        # Optionally use ogr2ogr for performance gains:
+        if settings.OGR2OGR_PATH:
+            return ogr2ogr_subset(table_name, geom_col, colnames, parse_bounds(bounds_str))
 
         subset_sql = SQL_GET_SUBSET.format(geom_col, ','.join(colnames), table_name, geom_col)
         cursor.execute(subset_sql, parse_bounds(bounds_str))
