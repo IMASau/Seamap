@@ -315,7 +315,7 @@ def ogr2ogr_subset(table_name, geom_col, colnames, bounds):
     db = settings.DATABASES['default']
     connstr = OGR2OGR_DB_TEMPLATE.format(driver=settings.OGR2OGR_DRIVER or db['OPTIONS']['driver'],
                                          server=db['HOST'],
-                                         port=db['PORT'],
+                                         port=db['PORT'] or '1433',
                                          database=db['NAME'],
                                          user=db['USER'],
                                          password=db['PASSWORD'])
