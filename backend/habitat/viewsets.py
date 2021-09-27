@@ -336,7 +336,7 @@ def ogr2ogr_subset(table_name, geom_col, colnames, bounds):
                         '-nlt', 'PROMOTE_TO_MULTI',
                         '-lco', 'SHPT=POLYGON',
                         '-a_srs', 'EPSG:3112'],
-                       check=True, cwd=tmpdir, capture_output=True)
+                       check=True, cwd=tmpdir)
         file_listing = os.listdir(tmpdir)
         zipfile_name = os.path.join(tmpdir, table_name)
         zf = zipfile.ZipFile(zipfile_name, 'w')
