@@ -105,6 +105,16 @@ class Layer(models.Model):
 
 
 @python_2_unicode_compatible
+class BaseLayer(models.Model):
+    name = models.CharField(max_length = 200, unique=True)
+    server_url = models.URLField(max_length = 200)
+    attribution = models.CharField(max_length = 200, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+@python_2_unicode_compatible
 class LayerGroupPriority(models.Model):
     priority = models.IntegerField(default=1, validators=[MinValueValidator(1)])
     group = models.ForeignKey(LayerGroup, related_name='layerpriorities', on_delete=models.PROTECT)
