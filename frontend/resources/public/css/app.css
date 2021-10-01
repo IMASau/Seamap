@@ -526,7 +526,7 @@ rect#background {
 }
 
 /* Leaflet layers control overrides: */
-input.leaflet-controls-layer-selector[type="radio"] {
+input.leaflet-control-layers-selector[type="radio"] {
     margin-top: 0;
 }
 .leaflet-control-layers-list {
