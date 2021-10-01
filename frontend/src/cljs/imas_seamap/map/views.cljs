@@ -181,7 +181,29 @@
         :on-popupclose        on-popup-closed}
        (when (seq bounds) {:bounds (map->bounds bounds)}))
 
-      base-layer-osm
+      [leaflet/layers-control {:position "topright"}
+       ;; TODO: turn contents into sub (selected layer, plus name/url/attribution)
+       [leaflet/layers-control-basemap {:name "OSM" :checked true}
+        base-layer-osm]
+       [leaflet/layers-control-basemap {:name "ESRI World shaded-relief"}
+        [leaflet/tile-layer {:url "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}"
+                             :attribution "Tiles &copy; Esri &mdash; Source: Esri"}]]
+       [leaflet/layers-control-basemap {:name "CartoDB Dark"}
+        [leaflet/tile-layer {:url "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                             :attribution "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors &copy; <a href=\"https://carto.com/attributions\">CARTO</a>"}]]
+       [leaflet/layers-control-basemap {:name "ESRI World Imagery"}
+        [leaflet/tile-layer {:url "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                             :attribution "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"}]]
+       [leaflet/layers-control-basemap {:name "Stadia OSM Bright"}
+        [leaflet/tile-layer {:url "https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png"
+                             :attribution "&copy; <a href=\"https://stadiamaps.com/\">Stadia Maps</a>, &copy; <a href=\"https://openmaptiles.org/\">OpenMapTiles</a> &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a> contributors"}]]
+       [leaflet/layers-control-basemap {:name "GEBCO Greyscale"}
+        [leaflet/tile-layer {:url "https://tiles.arcgis.com/tiles/C8EMgrsFcRFL6LrL/arcgis/rest/services/GEBCO_grayscale_basemap_NCEI/MapServer/WMTS/tile/1.0.0/GEBCO_grayscale_basemap_NCEI/default/default028mm/{z}/{y}/{x}.jpeg"
+                             :attribution "&copy; General Bathymetric Chart of the Oceans (GEBCO); NOAA National Centers for Environmental Information (NCEI)
+"}]]
+       [leaflet/layers-control-basemap {:name "GEBCO Colour"}
+        [leaflet/tile-layer {:url "https://tiles.arcgis.com/tiles/C8EMgrsFcRFL6LrL/arcgis/rest/services/GEBCO_basemap_NCEI/MapServer/WMTS/tile/1.0.0/GEBCO_basemap_NCEI/default/default028mm/{z}/{y}/{x}.jpeg"
+                             :attribution "&copy; General Bathymetric Chart of the Oceans (GEBCO); NOAA National Centers for Environmental Information (NCEI)"}]]]
 
       ;; We enforce the layer ordering by an incrementing z-index (the
       ;; order of this list is otherwise ignored, as the underlying

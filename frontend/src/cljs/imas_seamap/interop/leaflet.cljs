@@ -24,3 +24,7 @@
 (def circle-marker (r/adapt-react-class ReactLeaflet/CircleMarker))
 (def print-control (r/adapt-react-class (ReactLeaflet/withLeaflet ReactLeafletEasyprint)))
 (def custom-control (r/adapt-react-class ReactLeafletControl/default)) ; Might be a misinterpretation of the module ("exports.default=..."
+
+;;; Multiple basemaps:
+(def layers-control         (r/adapt-react-class ReactLeaflet/LayersControl))
+(def layers-control-basemap (r/adapt-react-class ReactLeaflet/LayersControl.BaseLayer))
