@@ -64,6 +64,11 @@
 (defn on-map-view-changed [e]
   (re-frame/dispatch [:map/view-updated (leaflet-props e)]))
 
+(defn on-base-layer-changed [e]
+  ;; We only have easy access to the name, but we require that to be unique:
+  (re-frame/dispatch [:map/base-layer-changed
+                      (-> e (js->clj :keywordize-keys true) :name)]))
+
 ;;; Rather round-about logic: we want to attach a callback based on a
 ;;; specific layer, but because closure are created fresh they fail
 ;;; equality tests and thus the map re-renders, causing flickering.
@@ -150,10 +155,7 @@
         download-info                                 @(re-frame/subscribe [:download/info])
         layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
         layer-params                                  @(re-frame/subscribe [:map.layers/params])
-        logic-type                                    @(re-frame/subscribe [:map.layers/logic])
-        base-layer-osm                                [leaflet/tile-layer {:url "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                                                           :attribution "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"}]
-]
+        logic-type                                    @(re-frame/subscribe [:map.layers/logic])]
     [:div.map-wrapper
      sidebar
      [download-component download-info]
@@ -171,6 +173,7 @@
         :on-zoomend           on-map-view-changed
         :on-moveend           on-map-view-changed
         :when-ready           on-map-view-changed
+        :on-baselayerchange   on-base-layer-changed
         :ref                  (fn [map]
                                 (when map
                                   (add-raw-handler-once (. map -leafletElement) "easyPrint-start"
@@ -185,10 +188,10 @@
       ;; Basemap selection:
       [leaflet/layers-control {:position "topright" :auto-z-index false}
        ;; TODO: turn contents into sub
-       (for [{:keys [name url attribution]} (-> @db/app-db :map :base-layers)]
-        [leaflet/layers-control-basemap {:name name :checked (= name "OSM")}
+       (for [{:keys [name server_url attribution] :as base-layer} (-> @db/app-db :map :base-layers)]
+        [leaflet/layers-control-basemap {:name name :checked (= base-layer (-> @db/app-db :layer-state :base-layer))}
          ^{:key name}
-         [leaflet/tile-layer {:url url :attribution attribution :z-index 1}]])]
+         [leaflet/tile-layer {:url server_url :attribution attribution}]])]
 
       ;; We enforce the layer ordering by an incrementing z-index (the
       ;; order of this list is otherwise ignored, as the underlying

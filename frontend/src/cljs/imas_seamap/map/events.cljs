@@ -16,6 +16,12 @@
 ;;; using http need specil handling:
 (defn- is-insecure? [url] (-> url string/lower-case (string/starts-with? "http:")))
 
+(defn base-layer-changed [db [_ layer-name]]
+  (let [base-layers (-> db :map :base-layers)
+        selected-base-layer (first (filter (comp #(= layer-name %) :name) base-layers))]
+    (when selected-base-layer
+      (assoc-in db [:layer-state :base-layer] selected-base-layer))))
+
 (defn get-feature-info [{:keys [db] :as _context} [_ {:keys [size bounds] :as _props} {:keys [x y] :as point}]]
   (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))))
         by-server     (group-by :server_url active-layers)
@@ -167,6 +173,11 @@
     (->> layers
          (filter (comp legends :id))
          set)))
+
+(defn update-base-layers [db [_ layers]]
+  (-> db
+      (assoc-in [:map :base-layers] layers)
+      (assoc-in [:layer-state :base-layer] (first layers))))
 
 (defn update-layers [{:keys [legend-ids] :as db} [_ layers]]
   (let [layers (process-layers layers)]

@@ -16,6 +16,7 @@
 (s/def :map.layer/layer_name string?)
 (s/def :map.layer/detail_layer (s/nilable string?))
 (s/def :map.layer/category keyword?)
+(s/def :map.layer/attribution string?)
 
 (s/def :map.layer.bb/west  float?)
 (s/def :map.layer.bb/south float?)
@@ -38,10 +39,19 @@
                    :map.layer/metadata_url
                    :map.layer/description
                    :map.layer/server_type]))
+(s/def :map/base-layer
+  (s/keys :req-un [:map.layer/name
+                   :map.layer/server_url
+                   :map.layer/attribution]))
+
 (s/def :map/layers (s/coll-of :map/layer))
+
+(s/def :map/base-layers (s/coll-of :map/base-layer
+                                   :kind vector?))
 
 (s/def :map/active-layers (s/coll-of :map/layer
                                      :kind vector?))
+
 
 (s/def :map.layer-group.priority/layer integer?)
 (s/def :map.layer-group.priority/group integer?)
@@ -100,6 +110,7 @@
                    :map/zoom-cutover
                    :map/controls
                    :map/layers
+                   :map/base-layers
                    :map/active-layers
                    :map/groups
                    :map/organisations
@@ -111,9 +122,11 @@
 (s/def :map.state/seen-errors (s/coll-of :map/layer :kind set?))
 (s/def :map.state/legend-shown (s/coll-of :map/layer :kind set?))
 (s/def :map.state/loading-state (s/map-of :map/layer :layer/loading-state))
+(s/def :map.state/base-layer :map/base-layer)
 (s/def ::layer-state (s/keys :opt-un [:map.state/loading-state
                                       :map.state/seen-errors
-                                      :map.state/legend-shown]))
+                                      :map.state/legend-shown
+                                      :map.state/base-layer]))
 
 (s/def ::transect-results-format
   (s/or :empty   nil?

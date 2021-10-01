@@ -89,6 +89,7 @@
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
     :map/toggle-layer                     [mevents/toggle-layer]
+    :map/base-layer-changed               mevents/base-layer-changed
     :map.layer/load-start                 mevents/layer-started-loading
     :map.layer/load-error                 mevents/layer-loading-error
     :map.layer/load-finished              mevents/layer-finished-loading
@@ -109,6 +110,7 @@
     :map.layer.selection/finalise         [mevents/map-finalise-selection]
     :map.layer.selection/toggle           [mevents/map-toggle-selecting]
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
+    :map/update-base-layers               mevents/update-base-layers
     :map/update-layers                    mevents/update-layers
     :map/update-groups                    mevents/update-groups
     :map/update-organisations             mevents/update-organisations
