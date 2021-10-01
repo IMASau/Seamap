@@ -524,3 +524,11 @@ rect#background {
         left: 55px;
     }
 }
+
+/* Leaflet layers control overrides: */
+input.leaflet-controls-layer-selector[type="radio"] {
+    margin-top: 0;
+}
+.leaflet-control-layers-list {
+    padding: 0;
+}
