@@ -130,3 +130,11 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 SQL_ROOT = os.path.join(BASE_DIR, "../database")
+
+# Use ogr2ogr to dramatically speed up shpfile-subsetting.  If false-y
+# the pure-python fallback will be used, otherwise set to the path to
+# the ogr2ogr executable:
+OGR2OGR_PATH = None
+# Use to override the OPTIONS.driver value in the database settings
+# (eg, if django is using a different driver to ogr2ogr)
+OGR2OGR_DRIVER = None
