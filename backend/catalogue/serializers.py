@@ -3,7 +3,7 @@
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from django.db.models import Min, Max
 from rest_framework import serializers
-from catalogue.models import DataClassification, Organisation, HabitatDescriptor, Layer, LayerGroup, LayerGroupPriority
+from catalogue.models import DataClassification, Organisation, HabitatDescriptor, BaseLayer, Layer, LayerGroup, LayerGroupPriority
 
 
 class OrganisationSerializer(serializers.ModelSerializer):
@@ -22,6 +22,12 @@ class HabitatSerializer(serializers.ModelSerializer):
     class Meta:
         model = HabitatDescriptor
         fields = ('name', 'title', 'colour')
+
+
+class BaseLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseLayer
+        fields = '__all__'
 
 
 class LayerSerializer(serializers.ModelSerializer):

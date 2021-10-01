@@ -6,12 +6,13 @@ from django.contrib import admin
 from django.urls import include, re_path
 from rest_framework.routers import DefaultRouter
 
-from catalogue.viewsets import ClassificationViewset, DescriptorViewset, LayerViewset, GroupViewset, GroupPriorityViewset, OrganisationViewset
+from catalogue.viewsets import ClassificationViewset, DescriptorViewset, BaseLayerViewset, LayerViewset, GroupViewset, GroupPriorityViewset, OrganisationViewset
 from habitat.viewsets import regions, subset, transect
 
 
 router = DefaultRouter()
 router.register(r'classifications', ClassificationViewset)
+router.register(r'baselayers', BaseLayerViewset)
 router.register(r'layers', LayerViewset)
 router.register(r'groups', GroupViewset)
 router.register(r'organisations', OrganisationViewset)
