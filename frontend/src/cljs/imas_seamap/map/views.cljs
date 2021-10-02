@@ -149,6 +149,7 @@
 
 (defn map-component [sidebar]
   (let [{:keys [center zoom bounds active-layers]}    @(re-frame/subscribe [:map/props])
+        {:keys [base-layers current-base-layer]}      @(re-frame/subscribe [:map/base-layers])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
@@ -187,9 +188,8 @@
 
       ;; Basemap selection:
       [leaflet/layers-control {:position "topright" :auto-z-index false}
-       ;; TODO: turn contents into sub
-       (for [{:keys [name server_url attribution] :as base-layer} (-> @db/app-db :map :base-layers)]
-        [leaflet/layers-control-basemap {:name name :checked (= base-layer (-> @db/app-db :layer-state :base-layer))}
+       (for [{:keys [name server_url attribution] :as base-layer} base-layers]
+        [leaflet/layers-control-basemap {:name name :checked (= base-layer current-base-layer)}
          ^{:key name}
          [leaflet/tile-layer {:url server_url :attribution attribution}]])]
 
