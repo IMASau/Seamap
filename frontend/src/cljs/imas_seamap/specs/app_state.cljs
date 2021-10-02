@@ -149,7 +149,7 @@
 ;;; catalogue
 (s/def :display.catalogue/tab string?)
 (s/def :display.catalogue/expanded (s/coll-of string? :kind set?))
-(s/def :display/catalogue (s/keys opt-un [:display.catalogue/tab :display.catalogue/expanded]))
+(s/def :display/catalogue (s/keys :opt-un [:display.catalogue/tab :display.catalogue/expanded]))
 ;;; overlays
 (s/def :display/help-overlay boolean?)
 (s/def :display/welcome-overlay boolean?)
