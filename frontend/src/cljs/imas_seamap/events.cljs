@@ -50,13 +50,15 @@
 ;;; default-db without throwing away ajax-loaded layer info, so we
 ;;; restore that manually first.
 (defn re-boot [{:keys [habitat-colours habitat-titles sorting]
-                {:keys [layers organisations priorities groups] :as _map-state} :map
+                {:keys [layers base-layers organisations priorities groups] :as _map-state} :map
                 :as _db} _]
   (-> db/default-db
       (update :map merge {:layers        layers
+                          :base-layers   base-layers
                           :organisations organisations
                           :groups        groups
                           :priorities    priorities})
+      (assoc-in [:layer-state :base-layer] (first base-layers))
       (merge {:habitat-colours habitat-colours
               :habitat-titles  habitat-titles
               :sorting         sorting})))
