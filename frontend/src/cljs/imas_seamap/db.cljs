@@ -12,6 +12,7 @@
                      :zoom-cutover    10
                      :bounds          {}
                      :layers          []
+                     ;; Given we have to find by name, there's an argument for making this a map of name->layer
                      :base-layers     []
                      :organisations   []
                      :priorities      []
