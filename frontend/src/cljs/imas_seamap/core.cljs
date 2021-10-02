@@ -26,6 +26,7 @@
   {:subs
    {:map/props                            msubs/map-props
     :map/layers                           msubs/map-layers
+    :map/base-layers                      msubs/map-base-layers
     :map/organisations                    msubs/organisations
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
