@@ -49,9 +49,8 @@
      :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers}))
 
-(defn map-base-layers [{:keys [map layer-state]} _]
-  {:base-layers        (:base-layers map)
-   :current-base-layer (:base-layer layer-state)})
+(defn map-base-layers [{:keys [map]} _]
+  (select-keys map [:base-layers :active-base-layer]))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
