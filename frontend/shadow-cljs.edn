@@ -19,7 +19,7 @@
  :dev-http {3451 "resources/public"}
 
  :builds {:dev {:target           :browser
-                :output-dir       "resources/public/js/compiled/"
+                :output-dir       "resources/public/js/"
                 :closure-defines  {goog.DEBUG                            true
                                    "re_frame.trace.trace_enabled_QMARK_" true}
                 :modules          {:app {:init-fn imas_seamap.core/init}}
