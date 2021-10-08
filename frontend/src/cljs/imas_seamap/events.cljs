@@ -53,12 +53,12 @@
                 {:keys [layers base-layers organisations priorities groups] :as _map-state} :map
                 :as _db} _]
   (-> db/default-db
-      (update :map merge {:layers        layers
-                          :base-layers   base-layers
-                          :organisations organisations
-                          :groups        groups
-                          :priorities    priorities})
-      (assoc-in [:layer-state :base-layer] (first base-layers))
+      (update :map merge {:layers            layers
+                          :base-layers       base-layers
+                          :active-base-layer (first base-layers)
+                          :organisations     organisations
+                          :groups            groups
+                          :priorities        priorities})
       (merge {:habitat-colours habitat-colours
               :habitat-titles  habitat-titles
               :sorting         sorting})))

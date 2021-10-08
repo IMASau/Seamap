@@ -16,11 +16,13 @@
 ;;; using http need specil handling:
 (defn- is-insecure? [url] (-> url string/lower-case (string/starts-with? "http:")))
 
-(defn base-layer-changed [db [_ layer-name]]
+(defn base-layer-changed [{:keys [db]} [_ layer-name]]
   (let [base-layers (-> db :map :base-layers)
         selected-base-layer (first (filter (comp #(= layer-name %) :name) base-layers))]
     (when selected-base-layer
-      (assoc-in db [:layer-state :base-layer] selected-base-layer))))
+      (let [db (assoc-in db [:map :active-base-layer] selected-base-layer)]
+        {:db db
+         :put-hash (encode-state db)}))))
 
 (defn get-feature-info [{:keys [db] :as _context} [_ {:keys [size bounds] :as _props} {:keys [x y] :as point}]]
   (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))))
@@ -326,13 +328,20 @@
   ;; during boot we may have loaded hash-state, but we can't hydrate
   ;; the id from the hash state into actual layers, until the layers
   ;; themselves are loaded... by which time the state will have been
-  ;; re-set.  So we have this two step process.
+  ;; re-set.  So we have this two step process.  Ditto :active-base /
+  ;; :active-base-layer
   [{:keys [db]} _]
-  (let [{:keys [active _legend-ids logic]} (:map db)
-        active-layers          (if (= (:type logic) :map.layer-logic/manual)
-                                 (vec (ids->layers active (get-in db [:map :layers])))
-                                 (vec (applicable-layers db :category :habitat)))
-        db                     (assoc-in db [:map :active-layers] active-layers)]
+  (let [{:keys [active active-base _legend-ids logic]} (:map db)
+        active-layers (if (= (:type logic) :map.layer-logic/manual)
+                        (vec (ids->layers active (get-in db [:map :layers])))
+                        (vec (applicable-layers db :category :habitat)))
+        active-base   (->> (get-in db [:map :base-layers]) (filter (comp #(= active-base %) :id)) first)
+        active-base   (or active-base   ; If no base is set (eg no existing hash-state), use the first candidate
+                          (first (get-in db [:map :base-layers])))
+        db            (-> db
+                          (assoc-in [:map :active-layers] active-layers)
+                          (assoc-in [:map :active-base-layer] active-base)
+                          (assoc :initialised true))]
     {:db       db
      :put-hash (encode-state db)
      :dispatch [:ui/hide-loading]}))
@@ -359,13 +368,18 @@
                            [:map/popup-closed]]}))))
 
 (defn map-view-updated [{:keys [db]} [_ {:keys [zoom center bounds]}]]
-  {:db       (-> db
-                 (update-in [:map] assoc
-                            :zoom zoom
-                            :center center
-                            :bounds bounds)
-                 update-active-layers)
-   :put-hash (encode-state db)})
+  ;; Race-condition warning: this is called when the map changes to
+  ;; keep state synchronised, but the map can start generating events
+  ;; before the rest of the app is ready... avoid this by flagging
+  ;; initialised state:
+  (when (:initialised db)
+    {:db       (-> db
+                   (update-in [:map] assoc
+                              :zoom zoom
+                              :center center
+                              :bounds bounds)
+                   update-active-layers)
+     :put-hash (encode-state db)}))
 
 (defn map-start-selecting [db _]
   (assoc-in db [:map :controls :download :selecting] true))

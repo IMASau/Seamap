@@ -8,8 +8,8 @@
             [clojure.walk :refer [keywordize-keys]]
             [goog.crypt.base64 :as b64]
             [cognitect.transit :as t]
-            [debux.cs.core :refer [dbg] :include-macros true]
-            [imas-seamap.blueprint :as b]))
+            [imas-seamap.blueprint :as b]
+            #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 ;;; Taken from https://github.com/district0x/district-cljs-utils/
 (letfn [(merge-in* [a b]
@@ -41,9 +41,10 @@
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
   [{map-state :map :as db}]
-  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers])
-                       (rename-keys {:active-layers :active})
-                       (update :active (partial map :id)))
+  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer])
+                       (rename-keys {:active-layers :active :active-base-layer :active-base})
+                       (update :active (partial map :id))
+                       (update :active-base :id))
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]
                                       [:display :catalogue]
@@ -69,6 +70,7 @@
                  [:transect :show?]
                  [:transect :query]
                  [:map :active]
+                 [:map :active-base]
                  [:map :center]
                  [:map :zoom]
                  :legend-ids]))

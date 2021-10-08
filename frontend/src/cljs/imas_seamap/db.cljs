@@ -7,13 +7,15 @@
 (goog-define img-url-base "/img/")
 
 (def default-db
-  {:map             {:center          [-27.819644755 132.133333]
+  {:initialised     false               ; Flag to prevent early updates
+   :map             {:center          [-27.819644755 132.133333]
                      :zoom            4
                      :zoom-cutover    10
                      :bounds          {}
                      :layers          []
                      ;; Given we have to find by name, there's an argument for making this a map of name->layer
                      :base-layers     []
+                     :active-base-layer nil
                      :organisations   []
                      :priorities      []
                      :priority-cutoff 2 ; priorities <= this value will be displayed in auto mode
@@ -25,8 +27,7 @@
                                        :download nil}}
    :layer-state     {:loading-state {}
                      :seen-errors   #{}
-                     :legend-shown  #{}
-                     :base-layer    nil}
+                     :legend-shown  #{}}
    :filters         {:layers       ""
                      :other-layers ""}
    :transect        {:query      nil
