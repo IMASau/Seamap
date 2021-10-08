@@ -32,6 +32,8 @@
 
 (def spinner         (reagent/adapt-react-class Blueprint/Spinner))
 
+(def slider          (reagent/adapt-react-class Blueprint/Slider))
+
 (def switch          (reagent/adapt-react-class Blueprint/Switch))
 
 (def tabs            (reagent/adapt-react-class Blueprint/Tabs))
