@@ -189,9 +189,9 @@
       ;; Basemap selection:
       [leaflet/layers-control {:position "topright" :auto-z-index false}
        (for [{:keys [name server_url attribution] :as base-layer} base-layers]
-        [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
          ^{:key name}
-         [leaflet/tile-layer {:url server_url :attribution attribution}]])]
+         [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
+          [leaflet/tile-layer {:url server_url :attribution attribution}]])]
 
       ;; We enforce the layer ordering by an incrementing z-index (the
       ;; order of this list is otherwise ignored, as the underlying
