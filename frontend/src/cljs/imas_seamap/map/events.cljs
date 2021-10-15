@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
+            [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers]]
             [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112]]
             [ajax.core :as ajax]
@@ -158,6 +159,10 @@
 
 (defn map-set-others-layer-filter [db [_ filter-text]]
   (assoc-in db [:filters :other-layers] filter-text))
+
+(defn layer-set-opacity [db [_ layer opacity]]
+  (s/assert (s/int-in 0 100) opacity)
+  (assoc-in db [:layer-state :opacity layer] opacity))
 
 (defn process-layer [layer]
   (-> layer

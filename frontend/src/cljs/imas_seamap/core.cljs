@@ -99,6 +99,7 @@
     :map.layer/update-metadata            events/layer-receive-metadata
     :map.layer/metadata-error             events/layer-receive-metadata-err
     :map.layer/download                   events/download-show-link
+    :map.layer/opacity-changed            mevents/layer-set-opacity
     :map.layers/filter                    mevents/map-set-layer-filter
     :map.layers/others-filter             mevents/map-set-others-layer-filter
     :map.layers.logic/toggle              [mevents/map-layer-logic-toggle]
