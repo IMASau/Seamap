@@ -105,20 +105,23 @@
     [:div.legend-wrapper
      [:img {:src legend-url}]]))
 
-(defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading? expanded?] :as _layer-state}]
+(defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading? expanded? opacity] :as _layer-state}]
   [b/tooltip {:content (if expanded? "Click to hide legend" "Click to show legend")
               :class "header-text"
               :disabled (not active?)}
    [:div.layer-wrapper (when active? {:class "layer-active"
-                                      :on-click (handler-dispatch [:map.layer.legend/toggle layer])})
+                                      ;:on-click (handler-dispatch [:map.layer.legend/toggle layer])
+                                      })
     [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
      [:div (when (or loading? errors?) {:class "header-status-icons"})
       (when (and active? loading?) [b/spinner {:className "bp3-small layer-spinner"}])
       (when (and active? errors?) [:span.layer-warning.bp3-icon.bp3-icon-small.bp3-icon-warning-sign])]
-     [b/clipped-text {:ellipsize true :class "header-text"}
+     [b/clipped-text {:ellipsize true :class "header-text"
+                      :on-click (handler-dispatch [:map.layer.legend/toggle layer])}
       name]
      [b/collapse {:is-open (and active? expanded?)
                   :className "layer-legend"}
+      [b/slider {:label-renderer false :initial-value 0 :max 100 :value opacity}]
       [legend-display layer]]]]])
 
 (defn catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
@@ -260,16 +263,16 @@
                                                [:map.layers/filter (.. event -target -value)])}]]))
 
 
-(defn layer-card [layer-spec {:keys [active? _loading? _errors? _expanded?] :as other-props}]
+(defn layer-card [layer-spec {:keys [active? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
   [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
    [:div.layer-card.bp3-card.bp3-elevation-1 {:class (when active? "layer-active bp3-interactive")}
     [:div.header-row.height-static
      [catalogue-header layer-spec other-props]
      [catalogue-controls layer-spec other-props]]]])
 
-(defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _loading-fn _error-fn _expanded-fn]
+(defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
   (let [expanded (reagent/atom expanded)]
-    (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn expanded-fn]
+    (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
       [:div.layer-group.height-managed
        (merge {:class (str classes (if @expanded " expanded" " collapsed"))}
               (when id {:id id}))
@@ -287,7 +290,8 @@
            [layer-card layer {:active?   (some #{layer} active-layers)
                               :loading?  (loading-fn layer)
                               :errors?   (error-fn layer)
-                              :expanded? (expanded-fn layer)}])]]])))
+                              :expanded? (expanded-fn layer)
+                              :opacity   (opacity-fn layer)}])]]])))
 
 (defn settings-controls []
   [:div#settings
@@ -480,16 +484,16 @@
                                   :position RIGHT}
                        [:span.bp3-icon-standard {:class (str "bp3-icon-" icon-name)}]]))
 
-(defn layer-tab [layers active-layers loading-fn error-fn expanded-fn]
+(defn layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
    [layer-logic-toggle]
    [layer-search-filter]
-   [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn]
+   [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(defn thirdparty-layer-tab [layers active-layers loading-fn error-fn expanded-fn]
+(defn thirdparty-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
@@ -498,10 +502,11 @@
    [layer-catalogue layers {:active-layers active-layers
                             :loading-fn    loading-fn
                             :error-fn      error-fn
-                            :expanded-fn   expanded-fn}]
+                            :expanded-fn   expanded-fn
+                            :opacity-fn    opacity-fn}]
    [help-button]])
 
-(defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn expanded-fn]
+(defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
    [:div.boundary-layers.height-managed.group-scrollable
     [:h6 "Boundary Layers"]
@@ -510,7 +515,8 @@
       [layer-card layer {:active?   (some #{layer} active-layers)
                          :loading?  (loading-fn layer)
                          :errors?   (error-fn layer)
-                         :expanded? (expanded-fn layer)}])]
+                         :expanded? (expanded-fn layer)
+                         :opacity   (opacity-fn layer)}])]
    [:label.bp3-label.height-managed
     "Habitat layer for region statistics (only one active layer may be selected at a time):"
     [b/popover {:position           b/BOTTOM
@@ -539,7 +545,7 @@
 
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
-        {:keys [groups active-layers loading-layers error-layers expanded-layers]} @(re-frame/subscribe [:map/layers])
+        {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
         {:keys [habitat-layer]}                                                    @(re-frame/subscribe [:map/region-stats])
         {:keys [habitat boundaries bathymetry imagery third-party]}                groups]
     [sidebar {:id        "floating-sidebar"
@@ -552,26 +558,26 @@
                    :icon   (as-icon "home"
                                     (str "Habitat Layers (" (count habitat) ")"))
                    :id     "tab-habitat"}
-      [layer-tab habitat active-layers loading-layers error-layers expanded-layers]]
+      [layer-tab habitat active-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Bathymetry"
                    :icon   (as-icon "timeline-area-chart"
                                     (str "Bathymetry Layers (" (count bathymetry) ")"))
                    :id     "tab-bathy"}
-      [layer-tab bathymetry active-layers loading-layers error-layers expanded-layers]]
+      [layer-tab bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Imagery"
                    :icon   (as-icon "media"
                                     (str "Imagery Layers (" (count imagery) ")"))
                    :id     "tab-imagery"}
-      [layer-tab imagery active-layers loading-layers error-layers expanded-layers]]
+      [layer-tab imagery active-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Management Regions"
                    :icon   (as-icon "heatmap" "Management Region Layers")
                    :id     "tab-management"}
-      [management-layer-tab boundaries habitat-layer active-layers loading-layers error-layers expanded-layers]]
+      [management-layer-tab boundaries habitat-layer active-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Third-Party"
                    :icon   (as-icon "more"
                                     (str "Third-Party Layers (" (count third-party) ")"))
                    :id     "tab-thirdparty"}
-      [thirdparty-layer-tab third-party active-layers loading-layers error-layers expanded-layers]]
+      [thirdparty-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.bp3-icon-standard.bp3-icon-cog])

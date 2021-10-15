@@ -47,7 +47,8 @@
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (->> layer-state :seen-errors set)
      :expanded-layers (->> layer-state :legend-shown set)
-     :active-layers   active-layers}))
+     :active-layers   active-layers
+     :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:base-layers :active-base-layer]))
