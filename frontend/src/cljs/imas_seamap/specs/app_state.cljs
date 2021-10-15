@@ -111,9 +111,11 @@
 (s/def :map.state/seen-errors (s/coll-of :map/layer :kind set?))
 (s/def :map.state/legend-shown (s/coll-of :map/layer :kind set?))
 (s/def :map.state/loading-state (s/map-of :map/layer :layer/loading-state))
+(s/def :map.state/opacity (s/map-of :map/layer (s/int-in 0 100)))
 (s/def ::layer-state (s/keys :opt-un [:map.state/loading-state
                                       :map.state/seen-errors
-                                      :map.state/legend-shown]))
+                                      :map.state/legend-shown
+                                      :map.state/opacity]))
 
 (s/def ::transect-results-format
   (s/or :empty   nil?
