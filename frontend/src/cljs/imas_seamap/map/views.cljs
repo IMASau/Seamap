@@ -143,6 +143,8 @@
 
 (defn map-component [sidebar]
   (let [{:keys [center zoom bounds active-layers]}    @(re-frame/subscribe [:map/props])
+        {:keys [layer-opacities]}                     @(re-frame/subscribe [:map/layers])
+        {:keys [base-layers active-base-layer]}       @(re-frame/subscribe [:map/base-layers])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
@@ -204,7 +206,7 @@
                                 :on-tileerror on-tile-error
                                 :on-load      on-load-end
                                 :transparent  true
-                                :opacity      1
+                                :opacity      (/ (layer-opacities layer) 100)
                                 :tiled        true
                                 :format       "image/png"}
                                extra-params)]))
