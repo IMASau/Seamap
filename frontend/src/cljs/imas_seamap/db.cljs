@@ -27,7 +27,8 @@
                                        :download nil}}
    :layer-state     {:loading-state {}
                      :seen-errors   #{}
-                     :legend-shown  #{}}
+                     :legend-shown  #{}
+                     :opacity       {}}
    :filters         {:layers       ""
                      :other-layers ""}
    :transect        {:query      nil
