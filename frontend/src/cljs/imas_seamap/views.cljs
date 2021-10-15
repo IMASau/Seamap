@@ -121,7 +121,8 @@
       name]
      [b/collapse {:is-open (and active? expanded?)
                   :className "layer-legend"}
-      [b/slider {:label-renderer false :initial-value 0 :max 100 :value opacity}]
+      [b/slider {:label-renderer false :initial-value 0 :max 100 :value opacity
+                 :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
       [legend-display layer]]]]])
 
 (defn catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
