@@ -41,11 +41,18 @@
    :coordinates [[[west south] [west north] [east north] [east south] [west south]]]})
 
 (defn bbox-intersects? [b1 b2]
-  (not
-   (or (> (:west b1)  (:east b2))
-       (< (:east b1)  (:west b2))
-       (> (:south b1) (:north b2))
-       (< (:north b1) (:south b2)))))
+  ;; Corner case handled here: if either bounds is empty, just return
+  ;; true.  Map bounds are populated by leaflet events, and at startup
+  ;; we haven't received any such events yet, so the map bounds are
+  ;; empty and we would otherwise filter out all (otherwise
+  ;; applicable) layers.
+  (or (empty? b1)
+      (empty? b2)
+      (not
+       (or (> (:west b1)  (:east b2))
+           (< (:east b1)  (:west b2))
+           (> (:south b1) (:north b2))
+           (< (:north b1) (:south b2))))))
 
 (defn habitat-layer? [layer] (-> layer :category (= :habitat)))
 
