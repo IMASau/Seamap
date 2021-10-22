@@ -26,7 +26,8 @@
                      :controls        {:transect false
                                        :download nil}}
    :layer-state     {:loading-state {}
-                     :seen-errors   #{}
+                     :tile-count    {}
+                     :error-count   {}
                      :legend-shown  #{}
                      :opacity       {}}
    :filters         {:layers       ""

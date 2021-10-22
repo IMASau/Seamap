@@ -86,6 +86,10 @@
   (let [lt (event->layer-tuple e)
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
     (re-frame/dispatch [:map.layer/load-start layer])))
+(defn on-tile-load-start [e]
+  (let [lt (event->layer-tuple e)
+        layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
+    (re-frame/dispatch [:map.layer/tile-load-start layer])))
 (defn on-tile-error [e]
   (let [lt (event->layer-tuple e)
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
@@ -212,6 +216,7 @@
                                 :layers       layer_name
                                 :z-index      (+ 2 i) ; base layers is zindex 1, start content at 2
                                 :on-loading   on-load-start
+                                :on-tileloadstart on-tile-load-start
                                 :on-tileerror on-tile-error
                                 :on-load      on-load-end
                                 :transparent  true

@@ -92,6 +92,7 @@
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/base-layer-changed               [mevents/base-layer-changed]
     :map.layer/load-start                 mevents/layer-started-loading
+    :map.layer/tile-load-start            mevents/layer-tile-started-loading
     :map.layer/load-error                 mevents/layer-loading-error
     :map.layer/load-finished              mevents/layer-finished-loading
     :map.layer/show-info                  [events/layer-show-info]

@@ -29,6 +29,20 @@
         search-re  (-> filter-text string/trim (string/split #"\s+") make-re)]
     (re-find search-re layer-text)))
 
+(defn- make-error-fn
+  "Given maps of layer->error-count and layer->total-tile-count, returns
+  a function that takes a layer and returns a boolean indicating if
+  the layer is problematic or not (ie, rather than just saying we
+  should notify the user about any error, we want to notify above a
+  certain threshold)"
+  [error-counts load-counts]
+  (fn [layer]
+    (let [error-count (get error-counts layer 0)
+          total-count (get load-counts layer 0)]
+      (and (pos? total-count)
+           (> (/ error-count total-count)
+              0.4)))))       ; Might be nice to make this configurable eventually
+
 (defn map-layers [{:keys [map layer-state filters] :as db} _]
   (let [{:keys [layers active-layers bounds logic]} (get-in db [:map])
         ;; Ignore filtering etc for boundary layers:
@@ -45,7 +59,7 @@
     {:groups          (assoc (group-by :category filtered-layers)
                              :boundaries boundaries)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
-     :error-layers    (->> layer-state :seen-errors set)
+     :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
      :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))}))

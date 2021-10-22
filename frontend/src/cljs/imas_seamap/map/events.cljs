@@ -233,8 +233,11 @@
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
 
+(defn layer-tile-started-loading [db [_ layer]]
+  (update-in db [:layer-state :tile-count layer] inc)) ; note, (inc nil) => 1
+
 (defn layer-loading-error [db [_ layer]]
-  (update-in db [:layer-state :seen-errors] conj layer))
+  (update-in db [:layer-state :error-count layer] inc)) ; note, (inc nil) => 1
 
 (defn layer-finished-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loaded))

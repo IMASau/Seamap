@@ -121,12 +121,14 @@
                    :map/logic]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
-(s/def :map.state/seen-errors (s/coll-of :map/layer :kind set?))
+(s/def :map.state/error-count (s/map-of :map/layer integer?))
+(s/def :map.state/tile-count (s/map-of :map/layer integer?))
 (s/def :map.state/legend-shown (s/coll-of :map/layer :kind set?))
 (s/def :map.state/loading-state (s/map-of :map/layer :layer/loading-state))
 (s/def :map.state/opacity (s/map-of :map/layer (s/int-in 0 100)))
 (s/def ::layer-state (s/keys :opt-un [:map.state/loading-state
-                                      :map.state/seen-errors
+                                      :map.state/error-count
+                                      :map.state/tile-count
                                       :map.state/legend-shown
                                       :map.state/opacity]))
 
