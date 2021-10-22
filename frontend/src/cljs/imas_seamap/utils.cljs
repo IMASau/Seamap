@@ -53,9 +53,11 @@
                        (assoc :map pruned-map)
                        #_(update-in [:display :catalogue :expanded] #(into {} (filter second %))))
         legends    (->> db :layer-state :legend-shown (map :id))
+        opacities  (->> db :layer-state :opacity (reduce (fn [acc [k v]] (if (= v 100) acc (conj acc [(:id k) v]))) {}))
         db*        (-> db
                        (dissoc :layer-state)
-                       (assoc :legend-ids legends))]
+                       (assoc :legend-ids legends)
+                       (assoc :opacity-ids opacities))]
     (b64/encodeString (t/write (t/writer :json) db*))))
 
 (defn filter-state
@@ -71,7 +73,8 @@
                  [:map :active]
                  [:map :center]
                  [:map :zoom]
-                 :legend-ids]))
+                 :legend-ids
+                 :opacity-ids]))
 
 (defn parse-state [hash-str]
   (try
