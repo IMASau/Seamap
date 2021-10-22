@@ -160,9 +160,11 @@
 (defn map-set-others-layer-filter [db [_ filter-text]]
   (assoc-in db [:filters :other-layers] filter-text))
 
-(defn layer-set-opacity [db [_ layer opacity]]
+(defn layer-set-opacity [{:keys [db]} [_ layer opacity]]
   (s/assert (s/int-in 0 100) opacity)
-  (assoc-in db [:layer-state :opacity layer] opacity))
+  (let [db (assoc-in db [:layer-state :opacity layer] opacity)]
+    {:db       db
+     :put-hash (encode-state db)}))
 
 (defn process-layer [layer]
   (-> layer
