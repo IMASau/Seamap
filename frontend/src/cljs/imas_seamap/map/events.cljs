@@ -181,16 +181,25 @@
          (filter (comp legends :id))
          set)))
 
+(defn init-layer-opacities [layers opacity-maps]
+  (->> layers
+       (reduce (fn [acc lyr]
+                 (if-let [o (get opacity-maps (:id lyr))]
+                   (conj acc [lyr o])
+                   acc))
+               {})))
+
 (defn update-base-layers [db [_ layers]]
   (-> db
       (assoc-in [:map :base-layers] layers)
       (assoc-in [:map :active-base-layer] (first layers))))
 
-(defn update-layers [{:keys [legend-ids] :as db} [_ layers]]
+(defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
   (let [layers (process-layers layers)]
     (-> db
         (assoc-in [:map :layers] layers)
-        (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids)))))
+        (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
+        (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))))
 
 (defn update-groups [db [_ groups]]
   (assoc-in db [:map :groups] groups))
