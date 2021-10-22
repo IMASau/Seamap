@@ -146,7 +146,7 @@
 (defn layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   {:keys [active-layers loading-fn expanded-fn error-fn] :as layer-props}]
+   {:keys [active-layers loading-fn expanded-fn error-fn opacity-fn] :as layer-props}]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
@@ -165,7 +165,8 @@
                       (let [layer-state {:active?   (some #{layer} active-layers)
                                          :loading?  (loading-fn layer)
                                          :expanded? (expanded-fn layer)
-                                         :errors?   (error-fn layer)}]
+                                         :errors?   (error-fn layer)
+                                         :opacity  (opacity-fn layer)}]
                         {:id (str id-str "-" i)
                          :className (when (:active? layer-state) "layer-active")
                          :label (reagent/as-element [catalogue-header layer layer-state])
