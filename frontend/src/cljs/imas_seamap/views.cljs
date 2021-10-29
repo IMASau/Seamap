@@ -391,7 +391,7 @@
                   :on-click   (handler-dispatch [:welcome-layer/close])}]]]]))
 
 (defn metadata-record [{:keys [license-name license-link license-img constraints other]
-                        {:keys [category organisation name metadata_url]} :layer
+                        {:keys [category organisation name metadata_url server_url layer_name]} :layer
                         :as _layer-info}]
   [:div.metadata-record {:class (clojure.core/name category)}
    [:div.metadata-header.clearfix
@@ -406,6 +406,13 @@
      [:div
       [:h6.bp3-heading.metadata-subheader "Usage:"]
       (map-indexed (fn [i o] (when o ^{:key i} [:p.other-constraints o])) other)])
+   [:h6.bp3-heading "Desktop Access:"]
+   [:div
+    [:p "You can access the data online at"]
+    [:div.server-info
+     [:span "WMS:"]
+     [:span.server-url [:a {:href server_url} server_url]]
+     [:span.server-layer layer_name]]]
    [:div.license-info.clearfix
     [:h6.bp3-heading "License Information:"]
     (when license-img [:img.license.metadata-img {:src license-img}])

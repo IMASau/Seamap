@@ -464,6 +464,15 @@ rect#background {
     float: left;
     margin-right: 5px;
 }
+.metadata-record .server-info {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    margin-left: 10px;
+    line-height: 1.5em;
+}
+.metadata-record .server-layer {
+    grid-column-start: 2;
+}
 .org-logo {
     /* width: 90px; */
     height: 50px;
