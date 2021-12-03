@@ -454,7 +454,7 @@ rect#background {
     -ms-user-select: text;
     user-select: text;
 }
-.metadata-record div {
+.metadata-record .section {
     margin-bottom: 15px;
 }
 .metadata-record .more-info {
@@ -495,6 +495,10 @@ rect#background {
 .metadata-record.boundaries .license-info,
 .metadata-record.boundaries .download-instructions {
     display: none;
+}
+
+.clickable {
+    cursor: pointer;
 }
 
 .region-stats table {

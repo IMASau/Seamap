@@ -390,38 +390,44 @@
                   :auto-focus true
                   :on-click   (handler-dispatch [:welcome-layer/close])}]]]]))
 
-(defn metadata-record [{:keys [license-name license-link license-img constraints other]
-                        {:keys [category organisation name metadata_url server_url layer_name]} :layer
-                        :as _layer-info}]
-  [:div.metadata-record {:class (clojure.core/name category)}
-   [:div.metadata-header.clearfix
-    (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
-      [:img.metadata-img.org-logo {:class (string/replace logo #"\..+$" "")
-                                   :src        (str img-url-base logo)}])
-    [:h3.bp3-heading name]]
-   [:h6.bp3-heading.metadata-subheader "Citation Information:"]
-   [:div
-    [:p.citation  constraints]]
-   (when (seq other)
-     [:div
-      [:h6.bp3-heading.metadata-subheader "Usage:"]
-      (map-indexed (fn [i o] (when o ^{:key i} [:p.other-constraints o])) other)])
-   [:h6.bp3-heading "Desktop Access:"]
-   [:div
-    [:p "You can access the data online at"]
-    [:div.server-info
-     [:span "WMS:"]
-     [:span.server-url [:a {:href server_url} server_url]]
-     [:span.server-layer layer_name]]]
-   [:div.license-info.clearfix
-    [:h6.bp3-heading "License Information:"]
-    (when license-img [:img.license.metadata-img {:src license-img}])
-    [:a {:href license-link :target "_blank"} license-name]]
-   [:div.more-info
-    [:a {:href metadata_url :target "_blank"} "Click here for the full metadata record."]]
-   [:div
-    [:p.download-instructions
-     "Downloading implies acceptance of all citation and usage requirements."]]])
+(defn metadata-record [_props]
+  (let [expanded (reagent/atom false)]
+    (fn  [{:keys [license-name license-link license-img constraints other]
+           {:keys [category organisation name metadata_url server_url layer_name]} :layer
+           :as _layer-info}]
+      [:div.metadata-record {:class (clojure.core/name category)}
+       [:div.metadata-header.clearfix.section
+        (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
+          [:img.metadata-img.org-logo {:class (string/replace logo #"\..+$" "")
+                                       :src        (str img-url-base logo)}])
+        [:h3.bp3-heading name]]
+       [:h6.bp3-heading.metadata-subheader "Citation Information:"]
+       [:div.section
+        [:p.citation  constraints]]
+       (when (seq other)
+         [:div.section
+          [:h6.bp3-heading.metadata-subheader "Usage:"]
+          (map-indexed (fn [i o] (when o ^{:key i} [:p.other-constraints o])) other)])
+       [:h6.bp3-heading.clickable {:on-click (handler-fn (swap! expanded not))}
+        [:span.bp3-icon-standard {:class (if @expanded "bp3-icon-chevron-down" "bp3-icon-chevron-right")}]
+        "API Access"]
+       [b/collapse {:is-open               @expanded
+                    :keep-children-mounted true
+                    :className             "height-managed"}
+        [:p "You can access the data online at"]
+        [:div.server-info.section
+         [:span "WMS:"]
+         [:span.server-url [:a {:href server_url} server_url]]
+         [:span.server-layer layer_name]]]
+       [:div.license-info.clearfix.section
+        [:h6.bp3-heading "License Information:"]
+        (when license-img [:img.license.metadata-img {:src license-img}])
+        [:a {:href license-link :target "_blank"} license-name]]
+       [:div.more-info.section
+        [:a {:href metadata_url :target "_blank"} "Click here for the full metadata record."]]
+       [:div.section
+        [:p.download-instructions
+         "Downloading implies acceptance of all citation and usage requirements."]]])))
 
 (defn- download-menu [{:keys [title disabled? layer bbox]}]
   [b/popover {:position           b/BOTTOM
