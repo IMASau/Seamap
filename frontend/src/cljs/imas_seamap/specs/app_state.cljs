@@ -13,6 +13,7 @@
 
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
+(s/def :map.layer/legend_url string?)
 (s/def :map.layer/layer_name string?)
 (s/def :map.layer/detail_layer (s/nilable string?))
 (s/def :map.layer/category keyword?)
@@ -32,6 +33,7 @@
 (s/def :map/layer
   (s/keys :req-un [:map.layer/name
                    :map.layer/server_url
+                   :map.layer/legend_url
                    :map.layer/layer_name
                    :map.layer/detail_layer
                    :map.layer/category
