@@ -88,8 +88,12 @@
    (catch js/Object e {})))
 
 (defn ids->layers [ids layers]
-  (let [ids (set ids)]
-    (filter #(contains? ids (:id %)) layers)))
+  ;; Preserve the ordering of ids (these come from the serialised state, so dictates the stacking order)
+  ;; For efficiency, create a lookup-by-id map:
+  (let [id-layer-map (->> layers
+                          (map #(vector (:id %) %))
+                          (into {}))]
+    (map id-layer-map ids)))
 
 (defn geonetwork-force-xml
   "Turn a Geonetwork record URL into the xml-downoad equivalent for the
