@@ -29,6 +29,7 @@
     "babel-loader": "^8.2.3"
   },
   "scripts": {
+    "watch": "npx shadow-cljs watch dev",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   }
