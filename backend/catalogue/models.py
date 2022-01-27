@@ -85,7 +85,7 @@ class LayerGroup(models.Model):
 class Layer(models.Model):
     name = models.CharField(max_length = 200)
     server_url = models.URLField(max_length = 200)
-    legend_url = models.URLField(max_length = 250)
+    legend_url = models.URLField(max_length = 250, null=True, blank=True)
     layer_name = models.CharField(max_length = 200)
     detail_layer = models.CharField(max_length = 200, blank=True, null=True)
     table_name = models.CharField(max_length = 200, blank=True, null=True)
@@ -97,7 +97,7 @@ class Layer(models.Model):
     miny = models.DecimalField(max_digits=20, decimal_places=17)
     maxx = models.DecimalField(max_digits=20, decimal_places=17)
     maxy = models.DecimalField(max_digits=20, decimal_places=17)
-    metadata_url = models.URLField(max_length = 200)
+    metadata_url = models.URLField(max_length = 250)
     server_type = models.ForeignKey(ServerType, on_delete=models.PROTECT)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
 
@@ -109,7 +109,7 @@ class Layer(models.Model):
 class BaseLayer(models.Model):
     name = models.CharField(max_length = 200, unique=True)
     server_url = models.URLField(max_length = 200)
-    attribution = models.CharField(max_length = 200, unique=True)
+    attribution = models.CharField(max_length = 200)
 
     def __str__(self):
         return self.name
