@@ -30,7 +30,7 @@
 
           :min {:target          :browser
                 :closure-defines {goog.DEBUG                  false
-                                  imas-seamap.db/api-url-base "https://data.imas.utas.edu.au/atlas/api/"
+                                  imas-seamap.db/api-url-base "https://marineatlasdata-dev.imas.utas.edu.au/api/"
                                   imas-seamap.db/img-url-base "/app/img/"}
                 :output-dir      "resources/public/js/compiled/app"
                 :modules         {:app {:init-fn imas_seamap.core/init}}}
@@ -38,7 +38,7 @@
           :mindev {:target           :browser
                    :output-dir       "resources/public/js/compiled/"
                    :closure-defines  {goog.DEBUG                  false
-                                      imas-seamap.db/api-url-base "https://data-dev.imas.utas.edu.au/atlas/api/"
+                                      imas-seamap.db/api-url-base "https://marineatlasdata-dev.imas.utas.edu.au/api/"
                                       imas-seamap.db/img-url-base "/app/img/"}
                    :modules          {:app {:init-fn imas_seamap.core/init}}
                    :compiler-options {:pseudo-names true

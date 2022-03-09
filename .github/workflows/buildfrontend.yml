@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - master
+      - tasmania-marine-atlas
 
 jobs:
   frontend-build:
@@ -29,8 +30,8 @@ jobs:
         if: endswith(github.ref, '/master')
         run: |
           echo "PROFILE=min" >> $GITHUB_ENV
-      - name: Conditionally set build profile based on branch (develop)
-        if: endswith(github.ref, '/develop')
+      - name: Conditionally set build profile based on branch (atlas-develop)
+        if: endswith(github.ref, '/tasmania-marine-atlas')
         run: |
           echo "PROFILE=mindev" >> $GITHUB_ENV
 
