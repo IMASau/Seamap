@@ -103,7 +103,8 @@
                           :FORMAT "image/png"
                           :TRANSPARENT true
                           :SERVICE "WMS"
-                          :VERSION "1.1.1"}))]
+                          :VERSION "1.1.1"
+                          :LEGEND_OPTIONS "forceLabels:on"}))]
     [:div.legend-wrapper
      [:img {:src legend-url}]]))
 
