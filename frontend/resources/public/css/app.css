@@ -545,3 +545,15 @@ input.leaflet-control-layers-selector[type="radio"] {
 .leaflet-control-layers-list {
     padding: 0;
 }
+
+#coorindate-control strong {
+    display: none;
+}
+
+#coorindate-control {
+    background-color: #FFFFFF80;
+    color: #333333;
+    font: 11px "Helvetica Neue";
+    border: 2px solid #777;
+    min-width: 170;
+}

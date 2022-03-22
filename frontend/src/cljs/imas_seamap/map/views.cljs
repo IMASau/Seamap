@@ -267,7 +267,8 @@
        [leaflet/scale-control]]
 
       [leaflet/coordinates-control
-       {:position "bottomright"}]
+       {:position "bottomright"
+        :style {}}]
 
       [share-control]
 
