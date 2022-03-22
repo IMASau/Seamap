@@ -186,7 +186,7 @@
                                                         #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
                                   (add-raw-handler-once (. map -leafletElement) "easyPrint-finished"
                                                         #(re-frame/dispatch [:ui/hide-loading]))))
-        :on-click             on-map-clicked
+        :on-mouseup           on-map-clicked ; we trigger this event on mouseup rather than on click, due to the order they occur (click happens after mouseup) – we want this to happen early due to another mouseup event that occurs at the ened of selecting a region
         :close-popup-on-click false ; We'll handle that ourselves
         :on-popupclose        on-popup-closed}
        (when (seq bounds) {:bounds (map->bounds bounds)}))
