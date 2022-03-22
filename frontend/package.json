@@ -16,6 +16,7 @@
     "react-leaflet-draw": "0.19.0",
     "react-leaflet-easyprint": "^2.0.0",
     "react-leaflet-sidebarv2": "^0.6.0",
+    "react-leaflet-coordinates": "^1.0.1",
     "react-sizeme": "^3.0.1",
     "react-transition-group": "4.4.2",
     "shadow-cljs": "^2.15.3"

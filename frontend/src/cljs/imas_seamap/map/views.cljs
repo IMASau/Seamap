@@ -266,6 +266,9 @@
       [leaflet/feature-group
        [leaflet/scale-control]]
 
+      [leaflet/coordinates-control
+       {:position "bottomright"}]
+
       [share-control]
 
       [leaflet/print-control {:position   "topleft" :title "Export as PNG"

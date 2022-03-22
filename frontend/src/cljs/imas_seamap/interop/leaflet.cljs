@@ -8,6 +8,7 @@
             ["react-leaflet-control" :as ReactLeafletControl]
             ["react-leaflet-draw" :as ReactLeafletDraw]
             ["react-leaflet-easyprint" :as ReactLeafletEasyprint]
+            ["react-leaflet-coordinates" :as ReactLeafletCoordinates]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
@@ -25,6 +26,7 @@
 (def print-control (r/adapt-react-class (ReactLeaflet/withLeaflet ReactLeafletEasyprint)))
 (def scale-control (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def custom-control (r/adapt-react-class ReactLeafletControl/default)) ; Might be a misinterpretation of the module ("exports.default=..."
+(def coordinates-control (r/adapt-react-class ReactLeafletCoordinates/CoordinatesControl))
 
 ;;; Multiple basemaps:
 (def layers-control         (r/adapt-react-class ReactLeaflet/LayersControl))
