@@ -267,7 +267,9 @@
         (conj active-layers layer)))))
 
 (defn toggle-layer [{:keys [db]} [_ layer]]
-  (let [db (update-in db [:map :active-layers] (partial toggle-layer-logic layer))]
+  (let [db (-> db
+               (update-in [:map :active-layers] (partial toggle-layer-logic layer))
+               (update-in [:layer-state :legend-shown] #(conj (set %) layer)))]
     {:db       db
      :put-hash (encode-state db)
      ;; If someone triggers this, we also switch to manual mode:
