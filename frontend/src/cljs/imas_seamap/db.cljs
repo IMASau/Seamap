@@ -44,7 +44,7 @@
                      :catalogue       {:tab      "org"
                                        :expanded #{}}
                      :sidebar         {:collapsed false
-                                       :selected  "tab-habitat"}}
+                                       :selected  "tab-management"}}
    :config          {:layer-url          (str api-url-base "layers/")
                      :base-layer-url     (str api-url-base "baselayers/")
                      :group-url          (str api-url-base "groups/")
