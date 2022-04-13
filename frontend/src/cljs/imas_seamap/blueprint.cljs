@@ -46,6 +46,8 @@
 
 (def hotkeys-provider (reagent/adapt-react-class Blueprint/HotkeysProvider))
 
+(def checkbox        (reagent/adapt-react-class Blueprint/Checkbox))
+
 (def use-hotkeys
   "We need to be careful with the use of this; it needs a native-js
   array, but if we wrap
