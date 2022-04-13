@@ -590,9 +590,9 @@
                    :icon   (as-icon "heatmap" "Management Region Layers")
                    :id     "tab-management"}
       [management-layer-tab boundaries habitat-layer active-layers loading-layers error-layers expanded-layers layer-opacities]]
-     [sidebar-tab {:header "Third-Party"
+     [sidebar-tab {:header "Data Layers"
                    :icon   (as-icon "more"
-                                    (str "Third-Party Layers (" (count third-party) ")"))
+                                    (str "Data Layers (" (count third-party) ")"))
                    :id     "tab-thirdparty"}
       [thirdparty-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Settings"
