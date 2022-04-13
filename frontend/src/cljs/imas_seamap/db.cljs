@@ -8,8 +8,8 @@
 
 (def default-db
   {:initialised     false               ; Flag to prevent early updates
-   :map             {:center          [-27.819644755 132.133333]
-                     :zoom            4
+   :map             {:center          [-42.20157676555315 146.74253188097842]
+                     :zoom            7
                      :zoom-cutover    10
                      :bounds          {}
                      :layers          []
