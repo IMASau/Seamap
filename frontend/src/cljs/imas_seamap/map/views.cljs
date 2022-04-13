@@ -263,6 +263,9 @@
                                 :on-created #(re-frame/dispatch [:map.layer.selection/finalise
                                                                  (-> % (.. -layer getBounds) bounds->map)])}]])
 
+      [leaflet/feature-group
+       [leaflet/scale-control]]
+      
       [share-control]
 
       [leaflet/print-control {:position   "topleft" :title "Export as PNG"

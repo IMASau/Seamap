@@ -23,6 +23,7 @@
 (def edit-control  (r/adapt-react-class ReactLeafletDraw/EditControl))
 (def circle-marker (r/adapt-react-class ReactLeaflet/CircleMarker))
 (def print-control (r/adapt-react-class (ReactLeaflet/withLeaflet ReactLeafletEasyprint)))
+(def scale-control (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def custom-control (r/adapt-react-class ReactLeafletControl/default)) ; Might be a misinterpretation of the module ("exports.default=..."
 
 ;;; Multiple basemaps:
