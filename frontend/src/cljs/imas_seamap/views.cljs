@@ -571,21 +571,21 @@
               :closeIcon (reagent/as-element [:span.bp3-icon-standard.bp3-icon-caret-left])
               :on-close  #(re-frame/dispatch [:ui.sidebar/close])
               :on-open   #(re-frame/dispatch [:ui.sidebar/open %])}
-     [sidebar-tab {:header "Habitats"
-                   :icon   (as-icon "home"
-                                    (str "Habitat Layers (" (count habitat) ")"))
-                   :id     "tab-habitat"}
-      [layer-tab habitat active-layers loading-layers error-layers expanded-layers layer-opacities]]
-     [sidebar-tab {:header "Bathymetry"
-                   :icon   (as-icon "timeline-area-chart"
-                                    (str "Bathymetry Layers (" (count bathymetry) ")"))
-                   :id     "tab-bathy"}
-      [layer-tab bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities]]
-     [sidebar-tab {:header "Imagery"
-                   :icon   (as-icon "media"
-                                    (str "Imagery Layers (" (count imagery) ")"))
-                   :id     "tab-imagery"}
-      [layer-tab imagery active-layers loading-layers error-layers expanded-layers layer-opacities]]
+     #_[sidebar-tab {:header "Habitats"
+                     :icon   (as-icon "home"
+                                      (str "Habitat Layers (" (count habitat) ")"))
+                     :id     "tab-habitat"}
+        [layer-tab habitat active-layers loading-layers error-layers expanded-layers layer-opacities]]
+     #_[sidebar-tab {:header "Bathymetry"
+                     :icon   (as-icon "timeline-area-chart"
+                                      (str "Bathymetry Layers (" (count bathymetry) ")"))
+                     :id     "tab-bathy"}
+        [layer-tab bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities]]
+     #_[sidebar-tab {:header "Imagery"
+                     :icon   (as-icon "media"
+                                      (str "Imagery Layers (" (count imagery) ")"))
+                     :id     "tab-imagery"}
+        [layer-tab imagery active-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Management Regions"
                    :icon   (as-icon "heatmap" "Management Region Layers")
                    :id     "tab-management"}
