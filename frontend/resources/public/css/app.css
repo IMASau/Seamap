@@ -204,21 +204,12 @@ footer {
 }
 
 .layer-active .header-text-wrapper.has-icons {
-    margin-left: 25px;
+    display: flex;
+    flex-direction: row;
 }
 
 .header-status-icons {
-    position: absolute;
-    left: 0;
-    flex: 1 1 auto;
-}
-.header-status-icons .layer-spinner {
-    position: absolute;
-}
-.header-status-icons .layer-warning {
-    position: absolute;
-    top: 3px;
-    left: 5px
+    padding-right: 10px
 }
 
 .layer-wrapper .legend-wrapper {
@@ -557,3 +548,4 @@ input.leaflet-control-layers-selector[type="radio"] {
     border: 2px solid #777;
     min-width: 170;
 }
+
