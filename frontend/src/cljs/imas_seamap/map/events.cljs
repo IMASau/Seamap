@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -43,7 +43,8 @@
                                                    :habitat     1
                                                    :third-party 2})
                                              (apply min))]]
-                     (let [params {:REQUEST       "GetFeatureInfo"
+                     (let [info-format "text/html";"application/json" ;; TODO: method for switching between these when one doesn't have data?
+                           params {:REQUEST       "GetFeatureInfo"
                                    :LAYERS        layers
                                    :QUERY_LAYERS  layers
                                    :WIDTH         (:x size)
@@ -57,14 +58,14 @@
                                    :CRS           "EPSG:4326"
                                    :SRS           "EPSG:4326"
                                    :FORMAT        "image/png"
-                                   :INFO_FORMAT   "text/html"
+                                   :INFO_FORMAT   info-format
                                    :SERVICE       "WMS"
                                    :VERSION       "1.1.1"}]
                        {:method          :get
                         :uri             server-url
                         :params          params
                         :response-format (ajax/text-response-format)
-                        :on-success      [:map/got-featureinfo request-id priority point]
+                        :on-success      [:map/got-featureinfo request-id priority point info-format]
                         :on-failure      [:map/got-featureinfo-err request-id priority]}))
        ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
        :db         (assoc db :feature-query {:request-id        request-id
@@ -122,19 +123,18 @@
             (get-habitat-region-statistics ctx event-v)
             (get-feature-info ctx event-v)))))
 
-(defn got-feature-info [db [_ request-id priority point response]]
+(defn got-feature-info [db [_ request-id priority point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
     db                           ; Ignore late responses to old clicks
 
-    (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
-          body  (first (array-seq (.querySelectorAll parsed "body")))
+    (let [feature-info (case info-format
+                         "text/html" (feature-info-html response)
+                         "application/json" (feature-info-json response)
+                         (feature-info-html response))
           db' (update-in db [:feature-query :response-remain] dec)
           {:keys [response-priority response-remain candidate had-insecure?]} (:feature-query db')
           higher-priority? (< priority response-priority)
-          candidate' (merge {:location point :had-insecure? had-insecure?}
-                            (if (.-firstElementChild body)
-                              {:info (.-innerHTML body)}
-                              {:status :feature-info/empty}))]
+          candidate' (merge {:location point :had-insecure? had-insecure?} feature-info)]
       (cond-> db'
           ;; If this response has a higher priority, update the response candidate
         higher-priority?

@@ -210,3 +210,20 @@
                        :layers      (or detail_layer layer_name)})
         str)))
 
+(defn feature-info-html
+  [response]
+  (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
+        body  (first (array-seq (.querySelectorAll parsed "body")))]
+    (if (.-firstElementChild body)
+      {:info (.-innerHTML body)}
+      {:status :feature-info/empty})))
+
+(defn feature-info-json
+  [response]
+  (let [parsed (js->clj (.parse js/JSON response))
+        id (get-in parsed ["features" 0 "id"])
+        properties (map (fn [[label value]] {:label label :value value}) (get-in parsed ["features" 0 "properties"]))
+        property-list-items (reduce (fn [acc {:keys [label value]}] (str acc "<ul><b>" label ":</b> " value "</ul>")) "" properties)]
+    (if (or id (not-empty properties))
+      {:info (str "<h5>" id "</h5>" property-list-items)}
+      {:status :feature-info/empty})))
