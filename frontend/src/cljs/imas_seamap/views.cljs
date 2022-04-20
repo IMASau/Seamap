@@ -596,6 +596,11 @@
                                     (str "Third-Party Layers (" (count third-party) ")"))
                    :id     "tab-thirdparty"}
       [thirdparty-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities]]
+     [sidebar-tab {:header "Active Layers"
+                   :icon   (as-icon "eye-open"
+                                    (str "Active Layers (" (count active-layers) ")"))
+                   :id     "tab-activelayers"}
+      [layer-tab active-layers active-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.bp3-icon-standard.bp3-icon-cog])
