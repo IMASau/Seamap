@@ -125,8 +125,9 @@
                                          (group-ids (:group %)))
                                    priorities)
         layer-ids          (->> group-priorities (map :layer) (into #{}))
-        selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %) (match-server? %)) layers)]
-    (sort-layers selected-layers priorities logic-type)))
+        selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %) (match-server? %)) layers)
+        filtered-layers (filter #(bbox-intersects? bounds (:bounding_box %)) selected-layers)]
+    (sort-layers filtered-layers priorities logic-type)))
 
 (defn all-priority-layers
   "Return the list of priority layers: that is, every layer for which
