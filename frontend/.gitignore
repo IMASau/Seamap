@@ -19,3 +19,4 @@ pom.xml.asc
 /doc/api
 /.nrepl-history
 figwheel_server.log
+/frontend/src/gen/
