@@ -62,7 +62,7 @@ jobs:
       - name: Build project
         run: npx shadow-cljs release ${{ env.PROFILE }}
 
-      - run: ls -lR resouces/public
+      - run: ls -lR resources/public
       - run: tar -c -z -v -C resources/public -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" js/compiled/app.js js/compiled/app.js.map css img index.html
 
       - name: Create timestamp for release tag-name
