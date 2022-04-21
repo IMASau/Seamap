@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/cli": "^7.14.8",
+    "@babel/preset-env": "^7.15.0",
     "@blueprintjs/core": "^3.47.0",
     "create-react-class": "^15.7.0",
     "leaflet": "^1.7.1",
@@ -32,6 +34,8 @@
   },
   "scripts": {
     "watch": "npx shadow-cljs watch dev",
+    "build-js": "babel src/stories --out-dir src/gen --source-maps inline",
+    "watch-js": "babel src/stories --out-dir src/gen --source-maps inline --watch",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   }
