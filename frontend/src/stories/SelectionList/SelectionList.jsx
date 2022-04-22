@@ -95,31 +95,8 @@ function PortalAwareItem({ provided, snapshot, itemLabel, removeButton, classNam
         </div>
     );
 
-    const c2 = (
-        <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            style={getItemStyle(
-                snapshot.isDragging,
-                provided.draggableProps.style
-            )}
-            className={"DragHandleWrapper " + className}
-        >
-            <div className="DragHandleWrapperHandle"
-                {...provided.dragHandleProps}>
-                { isDragDisabled ? <span/> : <DragHandle /> }
-            </div>
-            <div className="DragHandleWrapperLabel">
-                {itemLabel}
-            </div>
-            <div className="DragHandleWrapperRemoveButton">
-                {removeButton}
-            </div>
-        </div>
-    );
-
     if (!usePortal) {
-        return c2;
+        return child;
     } else {
         return ReactDOM.createPortal(child, portal);
     }
