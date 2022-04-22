@@ -5,6 +5,6 @@
   (:require [reagent.core :as reagent]
             ["/SelectionList/SelectionList" :as SelectionList]))
 
-(assert SelectionList/SelectionList)
+(assert SelectionList/ItemsSelectionList)
 
-(def SelectionList (reagent/adapt-react-class SelectionList/SelectionList))
+(def ItemsSelectionList (reagent/adapt-react-class SelectionList/ItemsSelectionList))
