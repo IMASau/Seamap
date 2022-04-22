@@ -89,9 +89,13 @@ function PortalAwareItem({ provided, snapshot, itemLabel, removeButton, classNam
             <div className="DragHandleWrapperLabel">
                 {itemLabel}
             </div>
-            <div className="DragHandleWrapperRemoveButton">
-                {removeButton}
-            </div>
+            {
+                removeButton
+                ? <div className="DragHandleWrapperRemoveButton">
+                    {removeButton}
+                </div>
+                : null
+            }
         </div>
     );
 
@@ -286,5 +290,70 @@ SimpleSelectionList.propTypes = {
     onReorder: PropTypes.func,
     onItemClick: PropTypes.func,
     onRemoveClick: PropTypes.func,
+    disabled: PropTypes.bool,
+}
+
+export function ItemsSelectionList({ items, onReorder, disabled }) {
+
+    const [stateValue, setStateValue] = useCachedState(items);
+    const isDragDisabled = disabled || !onReorder;
+
+    const onDragEnd = (result) => {
+        if (result.destination) {
+            // Optimistially reorder to avoid glitch
+            setStateValue(reorder(
+                stateValue,
+                result.source.index,
+                result.destination.index
+            ))
+            onReorder(
+                result.source.index,
+                result.destination.index
+            )
+        }
+    }
+
+    return (
+        <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="droppable">
+                {(provided, snapshot) => (
+                    <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        style={getListStyle(snapshot.isDraggingOver)}
+                    >
+                        {stateValue.map((item, index) => {
+                            const {key, content} = item
+                            return (
+                                <Draggable key={key}
+                                    draggableId={key}
+                                    index={index}
+                                    isDragDisabled={isDragDisabled}>
+                                    {(provided, snapshot) => (
+                                        <PortalAwareItem
+                                            provided={provided}
+                                            snapshot={snapshot}
+                                            className="SelectionListItem"
+                                            itemLabel={content}
+                                            isDragDisabled={isDragDisabled}
+                                        />
+                                    )}
+                                </Draggable>
+                            )
+                        })}
+                        {provided.placeholder}
+                    </div>
+                )}
+            </Droppable>
+        </DragDropContext>
+    )
+}
+
+ItemsSelectionList.propTypes = {
+    items: PropTypes.arrayOf(PropTypes.shape({
+        key: PropTypes.string.isRequired,
+        content: PropTypes.element.isRequired
+    })).isRequired,
+    onReorder: PropTypes.func,
     disabled: PropTypes.bool,
 }
