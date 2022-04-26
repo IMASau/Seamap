@@ -327,7 +327,7 @@
            [components/items-selection-list
             {:items layer-card-items
              :disabled false
-             :on-reorder (fn [src-idx dst-idx])}])]]])))
+             :data-path [:map :active-layers]}])]]])))
 
 (defn settings-controls []
   [:div#settings
