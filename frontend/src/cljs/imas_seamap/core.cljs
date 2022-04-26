@@ -136,7 +136,8 @@
     :ui.search/focus                      [events/focus-search]
     :ui.sidebar/open                      [events/sidebar-open]
     :ui.sidebar/close                     events/sidebar-close
-    :ui.sidebar/toggle                    events/sidebar-toggle}})
+    :ui.sidebar/toggle                    events/sidebar-toggle
+    :imas-seamap.components/selection-list-reorder    events/selection-list-reorder}})
 
 (def events-for-analytics
   [:help-layer/open

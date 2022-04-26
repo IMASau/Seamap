@@ -448,3 +448,11 @@
   (-> db
       (assoc-in [:map :controls :transect] false)
       (assoc-in [:map :controls :download :selecting] false)))
+
+(defn selection-list-reorder
+  [db [_ src-idx dst-idx data-path]]
+  (let [data (get-in db data-path)
+        element (get data src-idx)
+        removed (into [] (concat (subvec data 0 src-idx) (subvec data (+ src-idx 1) (count data))))
+        readded (into [] (concat (subvec removed 0 dst-idx) [element] (subvec removed dst-idx (count removed))))]
+    (assoc-in db data-path readded)))
