@@ -6,7 +6,9 @@
             [reagent.core :as reagent]))
 
 (defn items-selection-list
-  [{:keys [items]}]
+  [{:keys [items disabled on-reorder]}]
   (let [items (map (fn [{:keys [key content]}] {:key key :content (reagent/as-element content)}) items)]
    [ui-controls/ItemsSelectionList
-    {:items items}]))
+    {:items items
+     :disabled disabled
+     :onReorder on-reorder}]))

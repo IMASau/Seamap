@@ -11,6 +11,7 @@
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
+            [imas-seamap.components :as components]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn with-params [url params]
@@ -298,6 +299,36 @@
                               :expanded? (expanded-fn layer)
                               :opacity   (opacity-fn layer)}])]]])))
 
+(defn reorderable-layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
+  (let [expanded (reagent/atom expanded)]
+    (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+      [:div.layer-group.height-managed
+       (merge {:class (str classes (if @expanded " expanded" " collapsed"))}
+              (when id {:id id}))
+       [:h1.bp3-heading {:on-click (handler-fn (swap! expanded not))}
+        [:span.bp3-icon-standard {:class (if @expanded "bp3-icon-chevron-down" "bp3-icon-chevron-right")}]
+        (str title " (" (count layers) ")")]
+       [b/collapse {:is-open               @expanded
+                    :keep-children-mounted true
+                    :className             "height-managed"}
+        (when-let [extra-component (:extra-component props)]
+          extra-component)
+        [:div.height-managed.group-scrollable
+         (let [layer-card-items (map
+                                 (fn [layer]
+                                   {:key (:layer_name layer)
+                                    :content [layer-card layer
+                                              {:active?   (some #{layer} active-layers)
+                                               :loading?  (loading-fn layer)
+                                               :errors?   (error-fn layer)
+                                               :expanded? (expanded-fn layer)
+                                               :opacity   (opacity-fn layer)}]})
+                                 layers)]
+           [components/items-selection-list
+            {:items layer-card-items
+             :disabled false
+             :on-reorder (fn [src-idx dst-idx])}])]]])))
+
 (defn settings-controls []
   [:div#settings
    [b/button {:id         "reset-button"
@@ -561,6 +592,15 @@
     benthic habitat data."]]
    [help-button]])
 
+(defn active-layers-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+  [:div.sidebar-tab.height-managed
+   [transect-toggle]
+   [selection-button]
+   [layer-logic-toggle]
+   [layer-search-filter]
+   [reorderable-layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+   [help-button]])
+
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
         {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
@@ -600,7 +640,7 @@
                    :icon   (as-icon "eye-open"
                                     (str "Active Layers (" (count active-layers) ")"))
                    :id     "tab-activelayers"}
-      [layer-tab active-layers active-layers loading-layers error-layers expanded-layers layer-opacities]]
+      [active-layers-tab active-layers active-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.bp3-icon-standard.bp3-icon-cog])
