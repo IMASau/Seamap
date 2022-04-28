@@ -545,3 +545,9 @@ input.leaflet-control-layers-selector[type="radio"] {
 .leaflet-control-layers-list {
     padding: 0;
 }
+
+/* Fixes checkbox alignment inside of layer card controls */
+.catalogue-layer-controls .bp3-checkbox {
+    margin-bottom: 0;
+    margin-left: 3px;
+}
