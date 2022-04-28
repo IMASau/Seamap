@@ -56,7 +56,10 @@ jobs:
             m2-deps-
 
       - name: Install Dependencies
-        run: npm install
+        run: yarn
+
+      - name: Install Dependencies
+        run: yarn build-js
 
       - name: Build project
         run: npx shadow-cljs release ${{ env.PROFILE }}
