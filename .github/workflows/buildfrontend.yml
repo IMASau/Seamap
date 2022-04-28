@@ -58,7 +58,7 @@ jobs:
       - name: Install Dependencies
         run: yarn
 
-      - name: Install Dependencies
+      - name: Components build
         run: yarn build-js
 
       - name: Build project
