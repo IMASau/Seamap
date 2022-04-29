@@ -152,7 +152,7 @@
     (. js-obj on event-name handler)))
 
 (defn map-component [sidebar]
-  (let [{:keys [center zoom bounds active-layers]}    @(re-frame/subscribe [:map/props])
+  (let [{:keys [center zoom bounds visible-layers]}    @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities]}                     @(re-frame/subscribe [:map/layers])
         {:keys [base-layers active-base-layer]}       @(re-frame/subscribe [:map/base-layers])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
@@ -224,7 +224,7 @@
                                 :tiled        true
                                 :format       "image/png"}
                                extra-params)]))
-       (sort-layers active-layers layer-priorities logic-type))
+       (sort-layers visible-layers layer-priorities logic-type))
       (when query
         [leaflet/geojson-layer {:data (clj->js query)}])
       (when region
