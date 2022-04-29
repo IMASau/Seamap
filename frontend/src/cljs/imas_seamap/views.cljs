@@ -142,6 +142,23 @@
      {:checked active?
       :on-change (handler-dispatch [:map/toggle-layer layer])}]]])
 
+(defn active-layer-catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
+  [:div.catalogue-layer-controls (when active? {:class "layer-active"})
+   [b/tooltip {:content "Layer info / Download data"}
+    [:span.control.bp3-icon-small.bp3-icon-info-sign.bp3-text-muted
+     {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
+   [b/tooltip {:content "Zoom to layer"}
+    [:span.control.bp3-icon-standard.bp3-icon-zoom-to-fit.bp3-text-muted
+     {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
+   [b/tooltip {:content (if active? "Hide layer" "Show layer")}
+    [:span.control.bp3-icon-large.bp3-text-muted
+     {:class (if active? "bp3-icon-eye-on" "bp3-icon-eye-off")
+      :on-click (handler-dispatch [:map/toggle-layer layer])}]]
+   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
+    [b/checkbox
+     {:checked active?
+      :on-change (handler-dispatch [:map/toggle-layer layer])}]]])
+
 (defn- ->sort-by [sorting-info ordering-key]
   (let [name-key-mapping (get sorting-info ordering-key)]
     ;; Sort by key first, then name (ie, return vector of [key name])
@@ -276,6 +293,13 @@
      [catalogue-header layer-spec other-props]
      [catalogue-controls layer-spec other-props]]]])
 
+(defn active-layer-card [layer-spec {:keys [active? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
+  [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
+   [:div.layer-card.bp3-card.bp3-elevation-1 {:class (when active? "layer-active bp3-interactive")}
+    [:div.header-row.height-static
+     [catalogue-header layer-spec other-props]
+     [active-layer-catalogue-controls layer-spec other-props]]]])
+
 (defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
   (let [expanded (reagent/atom expanded)]
     (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
@@ -317,7 +341,7 @@
          (let [layer-card-items (map
                                  (fn [layer]
                                    {:key (:layer_name layer)
-                                    :content [layer-card layer
+                                    :content [active-layer-card layer
                                               {:active?   (some #{layer} active-layers)
                                                :loading?  (loading-fn layer)
                                                :errors?   (error-fn layer)
