@@ -624,3 +624,9 @@ input.leaflet-control-layers-selector[type="radio"] {
     background-color: #d9822b24;
 }
 /* SelectionList.css end */
+
+/* Fixes checkbox alignment inside of layer card controls */
+.catalogue-layer-controls .bp3-checkbox {
+    margin-bottom: 0;
+    margin-left: 3px;
+}
