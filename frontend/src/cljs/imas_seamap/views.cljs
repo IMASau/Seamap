@@ -152,7 +152,7 @@
      {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
    [b/tooltip {:content (if active? "Hide layer" "Show layer")}
     [:span.control.bp3-icon-large.bp3-text-muted
-     {:class (if active? "bp3-icon-eye-on" "bp3-icon-eye-off")
+     {:class (if visible? "bp3-icon-eye-on" "bp3-icon-eye-off")
       :on-click (handler-dispatch [:map/toggle-layer-visibility layer])}]]
    [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
     [b/checkbox
