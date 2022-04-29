@@ -53,9 +53,9 @@
         layers                                      (if (= (:type logic) :map.layer-logic/automatic)
                                                       (all-priority-layers db)
                                                       layers)
-        visible-layers                              (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
-        {:keys [third-party]}                       (group-by :category visible-layers)
-        filtered-layers                             (filter (partial match-layer filter-text) visible-layers)]
+        viewport-layers                              (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
+        {:keys [third-party]}                       (group-by :category viewport-layers)
+        filtered-layers                             (filter (partial match-layer filter-text) viewport-layers)]
     {:groups          (assoc (group-by :category filtered-layers)
                              :boundaries boundaries)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)

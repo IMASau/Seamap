@@ -322,7 +322,7 @@
            (> (:west  bounding_box) east)
            (< (:east  bounding_box) west))))
 
-(defn visible-layers [{:keys [_west _south _east _north] :as bounds} layers]
+(defn viewport-layers [{:keys [_west _south _east _north] :as bounds} layers]
   (filter (partial layer-visible? bounds) layers))
 
 (defn update-active-layers
