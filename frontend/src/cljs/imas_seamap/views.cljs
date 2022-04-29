@@ -137,7 +137,7 @@
    [b/tooltip {:content "Zoom to layer"}
     [:span.control.bp3-icon-standard.bp3-icon-zoom-to-fit.bp3-text-muted
      {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
-   [b/tooltip {:content (if active? "Hide layer" "Show layer")}
+   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
     [b/checkbox
      {:checked active?
       :on-change (handler-dispatch [:map/toggle-layer layer])}]]])
