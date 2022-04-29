@@ -274,6 +274,15 @@
      :dispatch-n [[:map.layers.logic/manual]
                   [:map/popup-closed]]}))
 
+(defn toggle-layer-visibility
+  [{:keys [db]} [_ layer]]
+  (let [db (update-in db [:map :visible-layers] (partial toggle-layer-logic layer))]
+    {:db       db
+     :put-hash (encode-state db)
+     ;; If someone triggers this, we also switch to manual mode:
+     :dispatch-n [[:map.layers.logic/manual]
+                  [:map/popup-closed]]}))
+
 (defn toggle-legend-display [{:keys [db]} [_ layer]]
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))]
     {:db       db
