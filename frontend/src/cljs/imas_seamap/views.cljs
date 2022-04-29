@@ -142,7 +142,7 @@
      {:checked active?
       :on-change (handler-dispatch [:map/toggle-layer layer])}]]])
 
-(defn active-layer-catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
+(defn active-layer-catalogue-controls [layer {:keys [active? visible? _errors? _loading?] :as _layer-state}]
   [:div.catalogue-layer-controls (when active? {:class "layer-active"})
    [b/tooltip {:content "Layer info / Download data"}
     [:span.control.bp3-icon-small.bp3-icon-info-sign.bp3-text-muted
@@ -293,7 +293,7 @@
      [catalogue-header layer-spec other-props]
      [catalogue-controls layer-spec other-props]]]])
 
-(defn active-layer-card [layer-spec {:keys [active? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
+(defn active-layer-card [layer-spec {:keys [active? visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
   [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
    [:div.layer-card.bp3-card.bp3-elevation-1 {:class (when active? "layer-active bp3-interactive")}
     [:div.header-row.height-static
@@ -323,9 +323,9 @@
                               :expanded? (expanded-fn layer)
                               :opacity   (opacity-fn layer)}])]]])))
 
-(defn reorderable-layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
+(defn reorderable-layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _visible-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
   (let [expanded (reagent/atom expanded)]
-    (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+    (fn [{:keys [id title classes] :as props} layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
       [:div.layer-group.height-managed
        (merge {:class (str classes (if @expanded " expanded" " collapsed"))}
               (when id {:id id}))
@@ -343,6 +343,7 @@
                                    {:key (:layer_name layer)
                                     :content [active-layer-card layer
                                               {:active?   (some #{layer} active-layers)
+                                               :visible?  (some #{layer} visible-layers)
                                                :loading?  (loading-fn layer)
                                                :errors?   (error-fn layer)
                                                :expanded? (expanded-fn layer)
@@ -616,18 +617,19 @@
     benthic habitat data."]]
    [help-button]])
 
-(defn active-layers-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+(defn active-layers-tab
+  [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
    [layer-logic-toggle]
    [layer-search-filter]
-   [reorderable-layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+   [reorderable-layer-group {:expanded true :title "Layers"} layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
-        {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
+        {:keys [groups active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
         {:keys [habitat-layer]}                                                    @(re-frame/subscribe [:map/region-stats])
         {:keys [habitat boundaries bathymetry imagery third-party]}                groups]
     [sidebar {:id        "floating-sidebar"
@@ -664,7 +666,7 @@
                    :icon   (as-icon "eye-open"
                                     (str "Active Layers (" (count active-layers) ")"))
                    :id     "tab-activelayers"}
-      [active-layers-tab active-layers active-layers loading-layers error-layers expanded-layers layer-opacities]]
+      [active-layers-tab active-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.bp3-icon-standard.bp3-icon-cog])
