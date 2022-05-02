@@ -224,7 +224,7 @@
                                 :tiled        true
                                 :format       "image/png"}
                                extra-params)]))
-       visible-layers)
+       (reverse visible-layers))
       (when query
         [leaflet/geojson-layer {:data (clj->js query)}])
       (when region
