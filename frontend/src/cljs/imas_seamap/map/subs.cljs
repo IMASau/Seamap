@@ -44,7 +44,7 @@
               0.4)))))       ; Might be nice to make this configurable eventually
 
 (defn map-layers [{:keys [map layer-state filters] :as db} _]
-  (let [{:keys [layers active-layers visible-layers bounds logic]} (get-in db [:map])
+  (let [{:keys [layers active-layers hidden-layers bounds logic]} (get-in db [:map])
         ;; Ignore filtering etc for boundary layers:
         boundaries                                  (->> layers
                                                          (filter #(= :boundaries (:category %)))
@@ -62,7 +62,7 @@
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
      :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers
-     :visible-layers  visible-layers
+     :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))}))
 
 (defn map-base-layers [{:keys [map]} _]
