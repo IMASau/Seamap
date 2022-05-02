@@ -268,13 +268,7 @@
 
 (defn toggle-layer [{:keys [db]} [_ layer]]
   (let [db (update-in db [:map :active-layers] (partial toggle-layer-logic layer))
-        active-layers (get-in db [:map :active-layers])
-        visible-layers (get-in db [:map :visible-layers])
-        active? (some #{layer} active-layers)
-        visible? (some #{layer} visible-layers)
-        db (if (= active? visible?)
-             db
-             (update-in db [:map :visible-layers] (partial toggle-layer-logic layer)))]
+        db (update-in db [:map :hidden-layers] #(disj % layer))]
     {:db       db
      :put-hash (encode-state db)
      ;; If someone triggers this, we also switch to manual mode:
@@ -283,7 +277,9 @@
 
 (defn toggle-layer-visibility
   [{:keys [db]} [_ layer]]
-  (let [db (update-in db [:map :visible-layers] (partial toggle-layer-logic layer))]
+  (let [hidden-layers (get-in db [:map :hidden-layers])
+        hidden? (contains? hidden-layers layer)
+        db (update-in db [:map :hidden-layers] #((if hidden? disj conj) % layer))]
     {:db       db
      :put-hash (encode-state db)
      ;; If someone triggers this, we also switch to manual mode:

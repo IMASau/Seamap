@@ -152,8 +152,8 @@
     (. js-obj on event-name handler)))
 
 (defn map-component [sidebar]
-  (let [{:keys [center zoom bounds visible-layers]}    @(re-frame/subscribe [:map/props])
-        {:keys [layer-opacities]}                     @(re-frame/subscribe [:map/layers])
+  (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
+        {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [base-layers active-base-layer]}       @(re-frame/subscribe [:map/base-layers])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
@@ -224,7 +224,7 @@
                                 :tiled        true
                                 :format       "image/png"}
                                extra-params)]))
-       (sort-layers visible-layers layer-priorities logic-type))
+       (reverse visible-layers))
       (when query
         [leaflet/geojson-layer {:data (clj->js query)}])
       (when region
