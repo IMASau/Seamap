@@ -139,7 +139,7 @@
      {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
    [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
     [b/checkbox
-     {:checked active?
+     {:checked (boolean active?)
       :on-change (handler-dispatch [:map/toggle-layer layer])}]]])
 
 (defn active-layer-catalogue-controls [layer {:keys [active? visible? _errors? _loading?] :as _layer-state}]
@@ -156,7 +156,7 @@
       :on-click (handler-dispatch [:map/toggle-layer-visibility layer])}]]
    [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
     [b/checkbox
-     {:checked active?
+     {:checked (boolean active?)
       :on-change (handler-dispatch [:map/toggle-layer layer])}]]])
 
 (defn- ->sort-by [sorting-info ordering-key]
