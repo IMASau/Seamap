@@ -21,7 +21,7 @@
                      :priority-cutoff 2 ; priorities <= this value will be displayed in auto mode
                      :groups          []
                      :active-layers   []
-                     :visible-layers  []
+                     :hidden-layers   #{}
                      :logic           {:type    :map.layer-logic/automatic
                                        :trigger :map.logic.trigger/automatic}
                      :controls        {:transect false
