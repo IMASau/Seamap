@@ -66,6 +66,12 @@ jobs:
 
       - run: tar -c -z -v -C resources/public -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" js/compiled/app.js js/compiled/app.js.map css img index.html
 
+      - if: endswith(github.ref, '/develop')
+        run: |
+          app_tag=$(jq '.[0]."output-name"' 'js/compiled/manifest.json')
+          app_tag=$(echo $app_tag | sed 's/^"//;s/"$//')
+          sed -i '' "s/app\.js/$app_tag/" 'index.html'
+
       - name: Create timestamp for release tag-name
         id: tag_name
         run: echo "::set-output name=tag_name::$(date +%Y%m%d%H%M%S)"
