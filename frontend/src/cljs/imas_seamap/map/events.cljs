@@ -110,7 +110,10 @@
   we're in calculating-region-statistics mode we want to issue a
   different request, and it's cleaner to handle those separately."
   [{:keys [db] :as ctx} [_ _props _point :as event-v]]
-  (cond (:feature db) ; If we're clicking the map but there's a popup open, just close it
+  (cond (get-in db [:map :controls :ignore-click])
+        {:dispatch [:map/toggle-ignore-click]}
+
+        (:feature db) ; If we're clicking the map but there's a popup open, just close it
         {:dispatch [:map/popup-closed]}
 
         ;; Only invoke if we aren't drawing a transect (ie, different click):
@@ -122,6 +125,9 @@
           (if (= "tab-management" (get-in db [:display :sidebar :selected]))
             (get-habitat-region-statistics ctx event-v)
             (get-feature-info ctx event-v)))))
+
+(defn toggle-ignore-click [db _]
+  (update-in db [:map :controls :ignore-click] not))
 
 (defn got-feature-info [db [_ request-id priority point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
@@ -413,7 +419,9 @@
      :put-hash (encode-state db)}))
 
 (defn map-start-selecting [db _]
-  (assoc-in db [:map :controls :download :selecting] true))
+  (-> db
+      (assoc-in [:map :controls :ignore-click] true)
+      (assoc-in [:map :controls :download :selecting] true)))
 
 (defn map-cancel-selecting [db _]
   (assoc-in db [:map :controls :download :selecting] false))
