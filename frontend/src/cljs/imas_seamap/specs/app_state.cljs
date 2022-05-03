@@ -18,6 +18,7 @@
 (s/def :map.layer/detail_layer (s/nilable string?))
 (s/def :map.layer/category keyword?)
 (s/def :map.layer/attribution string?)
+(s/def :map.layer/info_format_type integer?)
 
 (s/def :map.layer.bb/west  float?)
 (s/def :map.layer.bb/south float?)
@@ -40,7 +41,8 @@
                    :map.layer/bounding_box
                    :map.layer/metadata_url
                    :map.layer/description
-                   :map.layer/server_type]))
+                   :map.layer/server_type
+                   :map.layer/info_format_type]))
 (s/def :map/base-layer
   (s/keys :req-un [:map.layer/name
                    :map.layer/server_url
