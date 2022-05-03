@@ -100,6 +100,7 @@ class Layer(models.Model):
     metadata_url = models.URLField(max_length = 250)
     server_type = models.ForeignKey(ServerType, on_delete=models.PROTECT)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
+    info_format_type = models.IntegerField()
 
     def __str__(self):
         return self.name
