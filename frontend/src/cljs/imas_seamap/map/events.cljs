@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -43,7 +43,7 @@
                                                    :habitat     1
                                                    :third-party 2})
                                              (apply min))]]
-                     (let [info-format "text/html";"application/json" ;; TODO: method for switching between these when one doesn't have data?
+                     (let [info-format (get-layers-info-format active-layers)
                            params {:REQUEST       "GetFeatureInfo"
                                    :LAYERS        layers
                                    :QUERY_LAYERS  layers

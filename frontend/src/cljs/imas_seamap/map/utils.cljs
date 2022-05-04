@@ -228,3 +228,14 @@
     (if (or id (not-empty properties))
       {:info (str "<h5>" id "</h5>" property-list-items)}
       {:status :feature-info/empty})))
+
+(def info-format
+  {1 "text/html"
+   2 "application/json"
+   3 nil})
+
+(defn get-layers-info-format
+  [layers]
+  (let [info-formats (map (fn [layer] (:info_format_type layer)) layers)
+        info-format (get info-format (apply max info-formats))]
+    info-format))
