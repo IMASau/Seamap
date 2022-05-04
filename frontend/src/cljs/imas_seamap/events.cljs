@@ -66,7 +66,7 @@
 (defn loading-screen [db [_ msg]]
   (assoc db
          :loading true
-         :loading-message (or msg "Loading Seamap Layers...")))
+         :loading-message (or msg "Loading Tasmania Marine Atlas Layers...")))
 
 (defn application-loaded [db _]
   (assoc db :loading false))
