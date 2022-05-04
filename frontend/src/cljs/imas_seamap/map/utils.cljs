@@ -7,6 +7,7 @@
             [imas-seamap.db :refer [api-url-base]]
             [imas-seamap.utils :refer [merge-in]]
             ["proj4" :as proj4]
+            [clojure.string :as str]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
@@ -224,7 +225,23 @@
   (let [parsed (js->clj (.parse js/JSON response))
         id (get-in parsed ["features" 0 "id"])
         properties (map (fn [[label value]] {:label label :value value}) (get-in parsed ["features" 0 "properties"]))
-        property-list-items (reduce (fn [acc {:keys [label value]}] (str acc "<ul><b>" label ":</b> " value "</ul>")) "" properties)]
+        property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
+        property-rows (str/join "" (map (fn [property] (property-to-row property)) properties))]
     (if (or id (not-empty properties))
-      {:info (str "<h5>" id "</h5>" property-list-items)}
+      {:info (str
+              "<div class=\"feature-info-json\">"
+              "<h4>" id "</h4>"
+              "<table>" property-rows "</table>"
+              "</div>")}
       {:status :feature-info/empty})))
+
+(def info-format
+  {1 "text/html"
+   2 "application/json"
+   3 nil})
+
+(defn get-layers-info-format
+  [layers]
+  (let [info-formats (map (fn [layer] (:info_format_type layer)) layers)
+        info-format (get info-format (apply max info-formats))]
+    info-format))
