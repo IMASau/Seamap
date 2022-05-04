@@ -198,6 +198,7 @@
                {})))
 
 (defn update-base-layers [db [_ layers]]
+  (sort-by #(or (:sort_key %) "zzzzzzzzzz") layers)
   (-> db
       (assoc-in [:map :base-layers] layers)
       (assoc-in [:map :active-base-layer] (first layers))))
