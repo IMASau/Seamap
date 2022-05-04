@@ -111,6 +111,7 @@ class BaseLayer(models.Model):
     name = models.CharField(max_length = 200, unique=True)
     server_url = models.URLField(max_length = 200)
     attribution = models.CharField(max_length = 200)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
         return self.name
