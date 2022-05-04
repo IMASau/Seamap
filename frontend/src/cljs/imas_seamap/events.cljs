@@ -23,9 +23,10 @@
   db)
 
 (defn boot-flow []
-  {:first-dispatch [:initialise-layers]
+  {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen-all-of? :events [:map/update-base-layers
+   [{:when :seen? :events :ui/show-loading :dispatch [:initialise-layers]}
+    {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-layers
                                   :map/update-groups
                                   :map/update-organisations
