@@ -630,3 +630,21 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-bottom: 0;
     margin-left: 3px;
 }
+
+.feature-info-json {
+    max-height: 257px;
+    overflow-y: scroll;
+}
+
+.feature-info-json table {
+    border-spacing: 0;
+}
+
+.feature-info-json tr:nth-child(odd) {
+    background-color: rgb(235, 235, 235);
+}
+
+.feature-info-json td {
+    padding: 3px 0px 3px 10px;
+    vertical-align: top;
+}
