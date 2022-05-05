@@ -198,10 +198,24 @@
                {})))
 
 (defn update-base-layers [db [_ layers]]
-  (sort-by #(or (:sort_key %) "zzzzzzzzzz") layers)
-  (-> db
-      (assoc-in [:map :base-layers] layers)
-      (assoc-in [:map :active-base-layer] (first layers))))
+  (let [layers (map #(assoc % :layer_group nil) layers) ; TODO: Remove key added to existing layers for the purposes of frontend testing
+        layers (conj layers ; TODO: Remove extra layers included for the purposes of testing (both on layer group '1')
+                     {:id          37
+                      :name        "ESRI World Ocean (Composite)"
+                      :server_url  "https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}"
+                      :attribution "Sources: Esri, GEBCO, NOAA, National Geographic, DeLorme, HERE, Geonames.org, and other contributors"
+                      :sort_key    nil
+                      :layer_group 1}
+                     {:id          38
+                      :name        "ESRI World Ocean Reference"
+                      :server_url  "https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}"
+                      :attribution "Sources: Esri, GEBCO, NOAA, National Geographic, DeLorme, HERE, Geonames.org, and other contributors"
+                      :sort_key    nil
+                      :layer_group 1})
+        layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers)]
+    (-> db
+        (assoc-in [:map :base-layers] layers)
+        (assoc-in [:map :active-base-layer] (first layers)))))
 
 (defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
   (let [layers (process-layers layers)]
