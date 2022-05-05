@@ -245,3 +245,29 @@
   (let [info-formats (map (fn [layer] (:info_format_type layer)) layers)
         info-format (get info-format (apply max info-formats))]
     info-format))
+
+(defn group-basemap-layers
+  "Groups each basemap layer by their layer group
+   TODO: Connect basemaps on to basemap layer groups from DB, rather than by an ID"
+  [layers]
+  (let [layers-grouped (group-by :layer_group layers)
+        
+        ungrouped-layers (get layers-grouped nil) ; Extract the independent layers (those without a layer group)
+        layers-grouped (dissoc layers-grouped nil)
+
+        basemap-groups (reduce-kv (fn [acc key layers] ; Construct basemap groups - TODO: use info from basemap in DB
+                                    (let [bottom-layer (first layers)] ; TODO: select bottom layer by z-index
+                                      (conj acc
+                                            (-> bottom-layer
+                                                (assoc :id key) ; TODO: add basemap group name
+                                                (assoc :layers (drop 1 layers)))))) ; TODO: sort layers by z-index
+                                  [] layers-grouped)
+        
+        max-id (apply max (map :id basemap-groups))
+        ungrouped-layers-groups (map-indexed (fn [idx layer]
+                                               (-> layer
+                                                   (assoc :id (+ max-id idx 1))
+                                                   (assoc :layers [])))
+                                             ungrouped-layers)
+        basemap-groups (concat basemap-groups ungrouped-layers-groups)]
+    basemap-groups))
