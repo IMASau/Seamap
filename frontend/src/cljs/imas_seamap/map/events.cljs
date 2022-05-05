@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -212,10 +212,11 @@
                       :attribution "Sources: Esri, GEBCO, NOAA, National Geographic, DeLorme, HERE, Geonames.org, and other contributors"
                       :sort_key    nil
                       :layer_group 1})
-        layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers)]
+        layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers)
+        layer-groups (group-basemap-layers layers)]
     (-> db
-        (assoc-in [:map :base-layers] layers)
-        (assoc-in [:map :active-base-layer] (first layers)))))
+        (assoc-in [:map :base-layers] layer-groups)
+        (assoc-in [:map :active-base-layer] (first layer-groups)))))
 
 (defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
   (let [layers (process-layers layers)]
