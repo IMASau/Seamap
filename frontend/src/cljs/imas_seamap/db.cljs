@@ -46,11 +46,12 @@
                                        :expanded #{}}
                      :sidebar         {:collapsed false
                                        :selected  "tab-habitat"}}
-   :config          {:layer-url          (str api-url-base "layers/")
-                     :base-layer-url     (str api-url-base "baselayers/")
-                     :group-url          (str api-url-base "groups/")
-                     :organisation-url   (str api-url-base "organisations/")
-                     :classification-url (str api-url-base "classifications/")
-                     :priority-url       (str api-url-base "priorities/")
-                     :region-stats-url   (str api-url-base "habitat/regions/")
-                     :descriptor-url     (str api-url-base "descriptors/")}})
+   :config          {:layer-url            (str api-url-base "layers/")
+                     :base-layer-url       (str api-url-base "baselayers/")
+                     :base-layer-group-url (str api-url-base "baselayergroups/")
+                     :group-url            (str api-url-base "groups/")
+                     :organisation-url     (str api-url-base "organisations/")
+                     :classification-url   (str api-url-base "classifications/")
+                     :priority-url         (str api-url-base "priorities/")
+                     :region-stats-url     (str api-url-base "habitat/regions/")
+                     :descriptor-url       (str api-url-base "descriptors/")}})

@@ -197,6 +197,9 @@
                    acc))
                {})))
 
+(defn update-base-layer-groups [db [_ groups]]
+  db)
+
 (defn update-base-layers [db [_ layers]]
   (let [layers (map #(assoc % :layer_group nil) layers) ; TODO: Remove key added to existing layers for the purposes of frontend testing
         layers (conj layers ; TODO: Remove extra layers included for the purposes of testing (both on layer group '1')

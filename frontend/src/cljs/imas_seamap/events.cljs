@@ -79,7 +79,7 @@
    :dispatch [:db-initialised]})
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url base-layer-url group-url organisation-url classification-url priority-url descriptor-url]} (:config db)]
+  (let [{:keys [layer-url base-layer-url base-layer-group-url group-url organisation-url classification-url priority-url descriptor-url]} (:config db)]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -90,6 +90,11 @@
                    :uri             base-layer-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-base-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             base-layer-group-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-base-layer-groups]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             group-url

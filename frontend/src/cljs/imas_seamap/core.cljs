@@ -115,6 +115,7 @@
     :map.layer.selection/toggle           [mevents/map-toggle-selecting]
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers
+    :map/update-base-layer-groups         mevents/update-base-layer-groups
     :map/update-layers                    mevents/update-layers
     :map/update-groups                    mevents/update-groups
     :map/update-organisations             mevents/update-organisations
