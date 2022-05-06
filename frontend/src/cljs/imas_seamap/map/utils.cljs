@@ -234,14 +234,16 @@
         id (get-in parsed ["features" 0 "id"])
         properties (map (fn [[label value]] {:label label :value value}) (get-in parsed ["features" 0 "properties"]))
         property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
-        property-rows (str/join "" (map (fn [property] (property-to-row property)) properties))]
+        property-rows (str/join "" (map (fn [property] (property-to-row property)) properties))
+        properties []
+        id nil]
     (if (or id (not-empty properties))
       {:info (str
               "<div class=\"feature-info-json\">"
               "<h4>" id "</h4>"
               "<table>" property-rows "</table>"
               "</div>")}
-      {:status :feature-info/empty})))
+      (feature-info-none))))
 
 (def info-format
   {1 "text/html"
