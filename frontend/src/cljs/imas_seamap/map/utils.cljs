@@ -249,7 +249,7 @@
 (defn group-basemap-layers
   "Groups each basemap layer by their layer group
    TODO: Connect basemaps on to basemap layer groups from DB, rather than by an ID"
-  [layers]
+  [layers groups]
   (let [layers-grouped (group-by :layer_group layers)
         
         ungrouped-layers (get layers-grouped nil) ; Extract the independent layers (those without a layer group)
