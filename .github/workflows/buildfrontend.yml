@@ -64,6 +64,14 @@ jobs:
       - name: Build project
         run: npx shadow-cljs release ${{ env.PROFILE }}
 
+      - name: Conditionally update app.js path in index (master)
+        if: endswith(github.ref, '/master')
+        run: sed -i 's/app.js/compiled\/app\/app.js/' 'resources/public/index.html'
+
+      - name: Conditionally update app.js path in index (develop)
+        if: endswith(github.ref, '/master')
+        run: sed -i 's/app.js/compiled\/app.js/' 'resources/public/index.html'
+
       - name: Insert app.js tag
         if: endswith(github.ref, '/develop')
         run: |
