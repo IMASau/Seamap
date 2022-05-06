@@ -27,6 +27,7 @@
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:initialise-layers]}
     {:when :seen-all-of? :events [:map/update-base-layers
+                                  :map/update-base-layer-groups
                                   :map/update-layers
                                   :map/update-groups
                                   :map/update-organisations
@@ -50,12 +51,12 @@
 ;;; default-db without throwing away ajax-loaded layer info, so we
 ;;; restore that manually first.
 (defn re-boot [{:keys [habitat-colours habitat-titles sorting]
-                {:keys [layers base-layers organisations priorities groups] :as _map-state} :map
+                {:keys [layers grouped-base-layers organisations priorities groups] :as _map-state} :map
                 :as _db} _]
   (-> db/default-db
       (update :map merge {:layers            layers
-                          :base-layers       base-layers
-                          :active-base-layer (first base-layers)
+                          :grouped-base-layers grouped-base-layers
+                          :active-base-layer (first grouped-base-layers)
                           :organisations     organisations
                           :groups            groups
                           :priorities        priorities})

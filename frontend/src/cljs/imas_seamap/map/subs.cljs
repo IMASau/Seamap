@@ -66,7 +66,7 @@
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))}))
 
 (defn map-base-layers [{:keys [map]} _]
-  (select-keys map [:base-layers :active-base-layer]))
+  (select-keys map [:grouped-base-layers :active-base-layer]))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))

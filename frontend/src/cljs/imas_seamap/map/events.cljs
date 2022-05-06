@@ -18,8 +18,8 @@
 (defn- is-insecure? [url] (-> url string/lower-case (string/starts-with? "http:")))
 
 (defn base-layer-changed [{:keys [db]} [_ layer-name]]
-  (let [base-layers (-> db :map :base-layers)
-        selected-base-layer (first (filter (comp #(= layer-name %) :name) base-layers))]
+  (let [grouped-base-layers (-> db :map :grouped-base-layers)
+        selected-base-layer (first (filter (comp #(= layer-name %) :name) grouped-base-layers))]
     (when selected-base-layer
       (let [db (assoc-in db [:map :active-base-layer] selected-base-layer)]
         {:db db
@@ -198,13 +198,16 @@
                {})))
 
 (defn update-base-layer-groups [db [_ groups]]
-  db)
+  (let [layers (get-in db [:map :base-layers])]
+    (-> db
+        (assoc-in [:map :base-layer-groups] groups))))
 
 (defn update-base-layers [db [_ layers]]
   (let [layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers)
         layer-groups (group-basemap-layers layers)]
     (-> db
-        (assoc-in [:map :base-layers] layer-groups)
+        (assoc-in [:map :base-layers] layers)
+        (assoc-in [:map :grouped-base-layers] layer-groups)
         (assoc-in [:map :active-base-layer] (first layer-groups)))))
 
 (defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
@@ -377,9 +380,9 @@
         active-layers (if (= (:type logic) :map.layer-logic/manual)
                         (vec (ids->layers active (get-in db [:map :layers])))
                         (vec (applicable-layers db :category :habitat)))
-        active-base   (->> (get-in db [:map :base-layers]) (filter (comp #(= active-base %) :id)) first)
+        active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         active-base   (or active-base   ; If no base is set (eg no existing hash-state), use the first candidate
-                          (first (get-in db [:map :base-layers])))
+                          (first (get-in db [:map :grouped-base-layers])))
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)

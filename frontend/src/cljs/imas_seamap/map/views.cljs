@@ -154,7 +154,7 @@
 (defn map-component [sidebar]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
-        {:keys [base-layers active-base-layer]}       @(re-frame/subscribe [:map/base-layers])
+        {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
@@ -193,7 +193,7 @@
 
       ;; Basemap selection:
       [leaflet/layers-control {:position "topright" :auto-z-index false}
-       (for [{:keys [name server_url attribution] :as base-layer} base-layers]
+       (for [{:keys [name server_url attribution] :as base-layer} grouped-base-layers]
          ^{:key name}
          [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
           [leaflet/tile-layer {:url server_url :attribution attribution}]])]
