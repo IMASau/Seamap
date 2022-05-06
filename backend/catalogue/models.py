@@ -127,3 +127,13 @@ class LayerGroupPriority(models.Model):
         return '{}:[{} / {}]'.format(self.priority,
                                      str(self.layer),
                                      str(self.group))
+
+
+@python_2_unicode_compatible
+class BaseLayerGroup(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length = 200)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
+
+    def __str__(self):
+        return self.name

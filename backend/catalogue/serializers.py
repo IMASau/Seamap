@@ -3,7 +3,7 @@
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from django.db.models import Min, Max
 from rest_framework import serializers
-from catalogue.models import DataClassification, Organisation, HabitatDescriptor, BaseLayer, Layer, LayerGroup, LayerGroupPriority
+from catalogue.models import DataClassification, Organisation, HabitatDescriptor, BaseLayer, Layer, LayerGroup, LayerGroupPriority, BaseLayerGroup
 
 
 class OrganisationSerializer(serializers.ModelSerializer):
@@ -84,3 +84,8 @@ class GroupPrioritySerializer(serializers.ModelSerializer):
     class Meta:
         model = LayerGroupPriority
         fields = ('layer', 'group', 'priority')
+
+class BaseLayerGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseLayerGroup
+        fields = '__all__'

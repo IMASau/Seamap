@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.urls import include, re_path
 from rest_framework.routers import DefaultRouter
 
-from catalogue.viewsets import ClassificationViewset, DescriptorViewset, BaseLayerViewset, LayerViewset, GroupViewset, GroupPriorityViewset, OrganisationViewset
+from catalogue.viewsets import ClassificationViewset, DescriptorViewset, BaseLayerViewset, LayerViewset, GroupViewset, GroupPriorityViewset, OrganisationViewset, BaseLayerGroupViewset
 from habitat.viewsets import regions, subset, transect
 
 
@@ -18,6 +18,7 @@ router.register(r'groups', GroupViewset)
 router.register(r'organisations', OrganisationViewset)
 router.register(r'priorities', GroupPriorityViewset)
 router.register(r'descriptors', DescriptorViewset)
+router.register(r'baselayergroups', BaseLayerGroupViewset)
 
 urlpatterns = [
     re_path(r'^api/habitat/transect', transect),
