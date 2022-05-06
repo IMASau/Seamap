@@ -247,27 +247,29 @@
     info-format))
 
 (defn group-basemap-layers
-  "Groups each basemap layer by their layer group
-   TODO: Connect basemaps on to basemap layer groups from DB, rather than by an ID"
+  "Groups each basemap layer by their layer group"
   [layers groups]
   (let [layers-grouped (group-by :layer_group layers)
         
         ungrouped-layers (get layers-grouped nil) ; Extract the independent layers (those without a layer group)
         layers-grouped (dissoc layers-grouped nil)
 
-        basemap-groups (reduce-kv (fn [acc key layers] ; Construct basemap groups - TODO: use info from basemap in DB
-                                    (let [bottom-layer (first layers)] ; TODO: select bottom layer by z-index
+        basemap-groups (reduce-kv (fn [acc key layers]
+                                    (let [layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers) ; using sort key to sort layers into z-order
+                                          bottom-layer (first layers)
+                                          group (first (filter #(= (:id %) key) groups))]
                                       (conj acc
                                             (-> bottom-layer
-                                                (assoc :id key) ; TODO: add basemap group name
-                                                (assoc :layers (drop 1 layers)))))) ; TODO: sort layers by z-index
+                                                (merge group)
+                                                (assoc :layers (drop 1 layers))))))
                                   [] layers-grouped)
         
-        max-id (apply max (map :id basemap-groups))
+        max-id (apply max (map :id basemap-groups)) ; using max id to avoid collisions with existing groups
         ungrouped-layers-groups (map-indexed (fn [idx layer]
                                                (-> layer
                                                    (assoc :id (+ max-id idx 1))
                                                    (assoc :layers [])))
                                              ungrouped-layers)
-        basemap-groups (concat basemap-groups ungrouped-layers-groups)]
+        basemap-groups (concat basemap-groups ungrouped-layers-groups)
+        basemap-groups (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) basemap-groups)]
     basemap-groups))

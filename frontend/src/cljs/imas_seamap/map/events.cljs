@@ -206,8 +206,7 @@
         (assoc-in [:map :active-base-layer] (first layer-groups)))))
 
 (defn update-base-layers [db [_ layers]]
-  (let [layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers)
-        groups (get-in db [:map :base-layer-groups])
+  (let [groups (get-in db [:map :base-layer-groups])
         layer-groups (group-basemap-layers layers groups)]
     (-> db
         (assoc-in [:map :base-layers] layers)
