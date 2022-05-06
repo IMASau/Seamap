@@ -112,6 +112,7 @@ class BaseLayer(models.Model):
     server_url = models.URLField(max_length = 200)
     attribution = models.CharField(max_length = 200)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
+    layer_group = models.IntegerField(null=True)
 
     def __str__(self):
         return self.name
