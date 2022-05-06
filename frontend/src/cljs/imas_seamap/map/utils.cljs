@@ -235,6 +235,14 @@
               "</div>")}
       {:status :feature-info/empty})))
 
+(defn feature-info-none
+  []
+  {:info (str
+          "<div>"
+          "<h4>No info available</h4>"
+          "Layer summary not configured"
+          "</div>")})
+
 (def info-format
   {1 "text/html"
    2 "application/json"

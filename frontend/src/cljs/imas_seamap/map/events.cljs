@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -143,11 +143,10 @@
 (defn got-feature-info [db [_ request-id priority point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
     db                           ; Ignore late responses to old clicks
-
     (let [feature-info (case info-format
                          "text/html" (feature-info-html response)
                          "application/json" (feature-info-json response)
-                         (feature-info-html response))
+                         (feature-info-none))
           db' (update-in db [:feature-query :response-remain] dec)
           {:keys [response-priority response-remain candidate had-insecure?]} (:feature-query db')
           higher-priority? (< priority response-priority)
