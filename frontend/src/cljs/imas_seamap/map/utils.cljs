@@ -243,7 +243,7 @@
               "<h4>" id "</h4>"
               "<table>" property-rows "</table>"
               "</div>")}
-      (feature-info-none))))
+      {:status :feature-info/empty})))
 
 (def info-format
   {1 "text/html"
