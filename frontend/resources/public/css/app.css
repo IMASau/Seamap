@@ -135,6 +135,10 @@ footer {
 .layer-group.expanded.needs-extra {
     min-height: 150px;
 }
+.active-layer-group {
+    padding-top: 10px;
+    overflow-y: hidden;
+}
 
 .group-scrollable{
     overflow-y: auto;
@@ -402,6 +406,11 @@ rect#background {
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
+}
+
+.active-layer-group > h1 {
+    font-size: 16px;
+    font-weight: bold;
 }
 
 .leaflet-grab {
