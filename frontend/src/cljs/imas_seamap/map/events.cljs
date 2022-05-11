@@ -32,7 +32,7 @@
         layers->str   #(->> % (map layer-name) reverse (string/join ","))
         request-id    (gensym)
         had-insecure? (->> db :map :active-layers (some #(is-insecure? (:server_url %))))
-        info-format (get-layers-info-format active-layers)]
+        info-format   (get-layers-info-format active-layers)]
     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
     (cond
       (seq active-layers)
@@ -50,38 +50,37 @@
         info-format
         (assoc
          :http-xhrio
-         (when info-format
-           (for [[server-url active-layers] by-server
-                 :let [layers   (layers->str active-layers)
-                       priority (->> active-layers
-                                     (map :category)
-                                     (map {:imagery     0
-                                           :habitat     1
-                                           :third-party 2})
-                                     (apply min))]]
-             (let [params {:REQUEST       "GetFeatureInfo"
-                           :LAYERS        layers
-                           :QUERY_LAYERS  layers
-                           :WIDTH         (:x size)
-                           :HEIGHT        (:y size)
-                           :BBOX          (bounds->str bounds)
-                           :FEATURE_COUNT 5
-                           :STYLES        ""
-                           :X             x
-                           :Y             y
-                           :TRANSPARENT   true
-                           :CRS           "EPSG:4326"
-                           :SRS           "EPSG:4326"
-                           :FORMAT        "image/png"
-                           :INFO_FORMAT   info-format
-                           :SERVICE       "WMS"
-                           :VERSION       "1.1.1"}]
-               {:method          :get
-                :uri             server-url
-                :params          params
-                :response-format (ajax/text-response-format)
-                :on-success      [:map/got-featureinfo request-id priority point info-format]
-                :on-failure      [:map/got-featureinfo-err request-id priority]}))))
+         (for [[server-url active-layers] by-server
+               :let [layers   (layers->str active-layers)
+                     priority (->> active-layers
+                                   (map :category)
+                                   (map {:imagery     0
+                                         :habitat     1
+                                         :third-party 2})
+                                   (apply min))]]
+           (let [params {:REQUEST       "GetFeatureInfo"
+                         :LAYERS        layers
+                         :QUERY_LAYERS  layers
+                         :WIDTH         (:x size)
+                         :HEIGHT        (:y size)
+                         :BBOX          (bounds->str bounds)
+                         :FEATURE_COUNT 5
+                         :STYLES        ""
+                         :X             x
+                         :Y             y
+                         :TRANSPARENT   true
+                         :CRS           "EPSG:4326"
+                         :SRS           "EPSG:4326"
+                         :FORMAT        "image/png"
+                         :INFO_FORMAT   info-format
+                         :SERVICE       "WMS"
+                         :VERSION       "1.1.1"}]
+             {:method          :get
+              :uri             server-url
+              :params          params
+              :response-format (ajax/text-response-format)
+              :on-success      [:map/got-featureinfo request-id priority point info-format]
+              :on-failure      [:map/got-featureinfo-err request-id priority]})))
         
         (not info-format)
         (assoc
