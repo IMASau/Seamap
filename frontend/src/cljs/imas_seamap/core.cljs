@@ -45,6 +45,7 @@
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
     :welcome-layer/open?                  subs/welcome-layer-open?
+    :seamap-drawer/open?                  subs/seamap-drawer-open?
     :ui.catalogue/tab                     subs/catalogue-tab
     :ui.catalogue/nodes                   subs/catalogue-nodes
     :ui/sidebar                           subs/sidebar-state
