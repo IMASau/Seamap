@@ -13,3 +13,14 @@
     {:items items
      :disabled disabled
      :onReorder (fn [src-idx dst-idx] (re-frame/dispatch [::selection-list-reorder src-idx dst-idx data-path]))}]))
+
+(defn seamap-drawer
+  []
+  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])]
+    [ui-controls/Drawer
+     {:title "Seamap Australia"
+      :position "left"
+      :size "460px"
+      :children nil
+      :isOpen  open?
+      :onClose #(re-frame/dispatch [:seamap-drawer/close])}]))

@@ -123,3 +123,6 @@
 
 (defn user-message [db _]
   (get-in db [:info :message]))
+
+(defn seamap-drawer-open? [db _]
+  (get-in db [:display :seamap-drawer]))
