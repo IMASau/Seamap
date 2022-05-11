@@ -323,36 +323,27 @@
                               :expanded? (expanded-fn layer)
                               :opacity   (opacity-fn layer)}])]]])))
 
-(defn reorderable-layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _visible-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
-  (let [expanded (reagent/atom expanded)]
-    (fn [{:keys [id title classes] :as props} layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-      [:div.layer-group.height-managed
-       (merge {:class (str classes (if @expanded " expanded" " collapsed"))}
-              (when id {:id id}))
-       [:h1.bp3-heading {:on-click (handler-fn (swap! expanded not))}
-        [:span.bp3-icon-standard {:class (if @expanded "bp3-icon-chevron-down" "bp3-icon-chevron-right")}]
-        (str title " (" (count layers) ")")]
-       [b/collapse {:is-open               @expanded
-                    :keep-children-mounted true
-                    :className             "height-managed"}
-        (when-let [extra-component (:extra-component props)]
-          extra-component)
-        [:div.height-managed.group-scrollable
-         (let [layer-card-items (map
-                                 (fn [layer]
-                                   {:key (:layer_name layer)
-                                    :content [active-layer-card layer
-                                              {:active?   (some #{layer} active-layers)
-                                               :visible?  (some #{layer} visible-layers)
-                                               :loading?  (loading-fn layer)
-                                               :errors?   (error-fn layer)
-                                               :expanded? (expanded-fn layer)
-                                               :opacity   (opacity-fn layer)}]})
-                                 layers)]
-           [components/items-selection-list
-            {:items layer-card-items
-             :disabled false
-             :data-path [:map :active-layers]}])]]])))
+(defn active-layer-group
+  [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
+  [:div.active-layer-group.height-managed
+   [:h1.bp3-heading
+    (str "Layers (" (count layers) ")")]
+   [:div.height-managed.group-scrollable
+    (let [layer-card-items (map
+                            (fn [layer]
+                              {:key (:layer_name layer)
+                               :content [active-layer-card layer
+                                         {:active?   (some #{layer} active-layers)
+                                          :visible?  (some #{layer} visible-layers)
+                                          :loading?  (loading-fn layer)
+                                          :errors?   (error-fn layer)
+                                          :expanded? (expanded-fn layer)
+                                          :opacity   (opacity-fn layer)}]})
+                            layers)]
+      [components/items-selection-list
+       {:items layer-card-items
+        :disabled false
+        :data-path [:map :active-layers]}])]])
 
 (defn settings-controls []
   [:div#settings
@@ -620,11 +611,7 @@
 (defn active-layers-tab
   [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
-   [transect-toggle]
-   [selection-button]
-   [layer-logic-toggle]
-   [layer-search-filter]
-   [reorderable-layer-group {:expanded true :title "Layers"} layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
+   [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
 (defn seamap-sidebar []
