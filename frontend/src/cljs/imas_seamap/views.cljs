@@ -638,6 +638,11 @@
               :closeIcon (reagent/as-element [:span.bp3-icon-standard.bp3-icon-caret-left])
               :on-close  #(re-frame/dispatch [:ui.sidebar/close])
               :on-open   #(re-frame/dispatch [:ui.sidebar/open %])}
+     [sidebar-tab {:header "Active Layers"
+                   :icon   (as-icon "eye-open"
+                                    (str "Active Layers (" (count active-layers) ")"))
+                   :id     "tab-activelayers"}
+      [active-layers-tab active-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Habitats"
                    :icon   (as-icon "home"
                                     (str "Habitat Layers (" (count habitat) ")"))
@@ -662,11 +667,6 @@
                                     (str "Third-Party Layers (" (count third-party) ")"))
                    :id     "tab-thirdparty"}
       [thirdparty-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities]]
-     [sidebar-tab {:header "Active Layers"
-                   :icon   (as-icon "eye-open"
-                                    (str "Active Layers (" (count active-layers) ")"))
-                   :id     "tab-activelayers"}
-      [active-layers-tab active-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.bp3-icon-standard.bp3-icon-cog])
