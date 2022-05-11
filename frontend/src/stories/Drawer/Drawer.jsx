@@ -17,3 +17,12 @@ export function Drawer({isOpen, title, onClose, children, position, size}) {
 		</BPCore.Drawer>
 	);
 }
+
+Drawer.propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+	title: PropTypes.node.isRequired,
+	onClose: PropTypes.func.isRequired,
+	children: PropTypes.node.isRequired,
+	position: PropTypes.string,
+	size: PropTypes.string,
+}
