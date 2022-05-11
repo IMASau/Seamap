@@ -25,8 +25,28 @@
         {:db db
          :put-hash (encode-state db)}))))
 
+(defn bounds-for-zoom
+  "GetFeatureInfo requires the pixel coordinates and dimensions around a
+  geographic point, to translate a click into a feature. The
+  convenient option of using the map viewport for both, as provided by
+  leaflet, can cause inaccuracies when zoomed out. So, we calculate a
+  smaller region by using the viewport dimensions to approximate a
+  narrower pixel region."
+  [{:keys [lat lng] :as _point}
+                     {:keys [x y] :as _map-size}
+                     {:keys [north south east west] :as _map-bounds}
+                     {:keys [width height] :as _img-size}]
+  (let [x-scale (/ (Math/abs (- west east)) x)
+        y-scale (/ (Math/abs (- north south)) y)
+        img-x-bounds (* x-scale width)
+        img-y-bounds (* y-scale height)]
+    {:north (+ lat (/ img-y-bounds 2))
+     :south (- lat (/ img-y-bounds 2))
+     :east (+ lng (/ img-x-bounds 2))
+     :west (- lng (/ img-x-bounds 2))}))
+
 (defn get-feature-info-request
-  [info-format request-id by-server size bounds x y point]
+  [info-format request-id by-server img-size img-bounds]
   (let [layers->str   #(->> % (map layer-name) reverse (string/join ","))]
    ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
     (for [[server-url active-layers] by-server
@@ -40,13 +60,13 @@
       (let [params {:REQUEST       "GetFeatureInfo"
                     :LAYERS        layers
                     :QUERY_LAYERS  layers
-                    :WIDTH         (:x size)
-                    :HEIGHT        (:y size)
-                    :BBOX          (bounds->str bounds)
+                    :WIDTH         (:width img-size)
+                    :HEIGHT        (:height img-size)
+                    :BBOX          (bounds->str img-bounds)
                     :FEATURE_COUNT 5
                     :STYLES        ""
-                    :X             x
-                    :Y             y
+                    :X             50
+                    :Y             50
                     :TRANSPARENT   true
                     :CRS           "EPSG:4326"
                     :SRS           "EPSG:4326"
@@ -64,9 +84,20 @@
 (defn get-feature-info [{:keys [db] :as _context} [_ {:keys [size bounds] :as _props} {:keys [x y] :as point}]]
   (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))))
         by-server     (group-by :server_url active-layers)
+        ;; Note, we don't use the entire viewport for the pixel bounds because of inaccuracies when zoomed out.
+        img-size      {:width 101 :height 101}
+        img-bounds    (bounds-for-zoom point size bounds img-size)
         ;; Note, top layer, last in the list, must be first in our search string:
         request-id    (gensym)
-        had-insecure? (->> db :map :active-layers (some #(is-insecure? (:server_url %))))
+(defn get-feature-info [{:keys [db] :as _context} [_ {:keys [size bounds] :as _props} {:keys [x y] :as point}]]
+  (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))))
+        by-server     (group-by :server_url active-layers)
+        ;; Note, we don't use the entire viewport for the pixel bounds because of inaccuracies when zoomed out.
+        img-size      {:width 101 :height 101}
+        img-bounds    (bounds-for-zoom point size bounds img-size)
+        ;; Note, top layer, last in the list, must be first in our search string:
+        request-id    (gensym)
+          had-insecure? (->> db :map :active-layers (some #(is-insecure? (:server_url %))))
         info-format   (get-layers-info-format active-layers)
         db            (if had-insecure?
                         {:db (assoc db :feature {:status :feature-info/none-queryable :location point})} ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
@@ -85,7 +116,7 @@
     (if had-insecure?
       db
       (if info-format
-        (assoc db :http-xhrio (get-feature-info-request info-format request-id by-server size bounds x y point))
+        (assoc db :http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds))
         (assoc db :dispatch [:map/got-featureinfo request-id nil point nil])))))
 
 (defn get-habitat-region-statistics [{:keys [db] :as _ctx} [_ _props point]]
