@@ -748,6 +748,5 @@
       {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
      [welcome-dialogue]
      [info-card]
-     [loading-display]
-     [components/seamap-drawer]]))
+     [loading-display]]))
 
