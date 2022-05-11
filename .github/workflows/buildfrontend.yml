@@ -69,7 +69,7 @@ jobs:
         run: sed -i 's/app.js/compiled\/app\/app.js/' 'resources/public/index.html'
 
       - name: Conditionally update app.js path in index (develop)
-        if: endswith(github.ref, '/master')
+        if: endswith(github.ref, '/develop')
         run: sed -i 's/app.js/compiled\/app.js/' 'resources/public/index.html'
 
       - name: Insert app.js tag
