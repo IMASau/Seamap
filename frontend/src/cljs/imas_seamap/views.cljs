@@ -693,6 +693,9 @@
        {:label "Toggle Sidebar"         :combo "s"}
        [:ui.sidebar/toggle])
       (keydown-wrapper
+       {:label "Toggle Seamap Drawer"   :combo "a"} ;; TODO: Better label and perhaps different key mapping?
+       [:seamap-drawer/toggle])
+      (keydown-wrapper
        {:label "Start/Clear Transect"   :combo "t"}
        [:transect.draw/toggle])
       (keydown-wrapper
@@ -745,5 +748,6 @@
       {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
      [welcome-dialogue]
      [info-card]
-     [loading-display]]))
+     [loading-display]
+     [components/seamap-drawer]]))
 
