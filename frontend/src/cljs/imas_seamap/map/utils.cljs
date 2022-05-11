@@ -212,6 +212,14 @@
                        :layers      (or detail_layer layer_name)})
         str)))
 
+(defn feature-info-none
+  []
+  {:info (str
+          "<div>"
+          "<h4>No info available</h4>"
+          "Layer summary not configured"
+          "</div>")})
+
 (defn feature-info-html
   [response]
   (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
