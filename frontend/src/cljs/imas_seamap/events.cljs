@@ -462,3 +462,12 @@
         removed (into [] (concat (subvec data 0 src-idx) (subvec data (+ src-idx 1) (count data))))
         readded (into [] (concat (subvec removed 0 dst-idx) [element] (subvec removed dst-idx (count removed))))]
     (assoc-in db data-path readded)))
+
+(defn seamap-drawer-toggle [db _]
+  (update-in db [:display :seamap-drawer] not))
+
+(defn seamap-drawer-open [db _]
+  (assoc-in db [:display :seamap-drawer] true))
+
+(defn seamap-drawer-close [db _]
+  (assoc-in db [:display :seamap-drawer] false))

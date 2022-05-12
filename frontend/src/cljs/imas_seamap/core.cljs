@@ -45,6 +45,7 @@
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
     :welcome-layer/open?                  subs/welcome-layer-open?
+    :seamap-drawer/open?                  subs/seamap-drawer-open?
     :ui.catalogue/tab                     subs/catalogue-tab
     :ui.catalogue/nodes                   subs/catalogue-nodes
     :ui/sidebar                           subs/sidebar-state
@@ -140,7 +141,10 @@
     :ui.sidebar/open                      [events/sidebar-open]
     :ui.sidebar/close                     events/sidebar-close
     :ui.sidebar/toggle                    events/sidebar-toggle
-    :imas-seamap.components/selection-list-reorder    events/selection-list-reorder}})
+    :imas-seamap.components/selection-list-reorder events/selection-list-reorder
+    :seamap-drawer/toggle                 events/seamap-drawer-toggle
+    :seamap-drawer/open                   events/seamap-drawer-open
+    :seamap-drawer/close                  events/seamap-drawer-close}})
 
 (def events-for-analytics
   [:help-layer/open
