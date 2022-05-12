@@ -657,3 +657,11 @@ input.leaflet-control-layers-selector[type="radio"] {
     padding: 3px 0px 3px 10px;
     vertical-align: top;
 }
+
+.seamap-drawer-header {
+    padding: 12px;
+}
+
+.seamap-drawer-header img {
+    height: 36px;
+}

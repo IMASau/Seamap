@@ -18,7 +18,11 @@
   []
   (let [open? @(re-frame/subscribe [:seamap-drawer/open?])]
     [ui-controls/Drawer
-     {:title "Seamap Australia"
+     {:title
+      (reagent/as-element
+       [:div.seamap-drawer-header
+        [:img
+        {:src "img/Seamap2_V2_RGB.png"}]])
       :position "left"
       :size "460px"
       :children nil
