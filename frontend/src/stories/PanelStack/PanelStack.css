@@ -1,0 +1,14 @@
+.bp3-panel-stack {
+	height: 200px;
+}
+
+.panel-stack-content {
+	padding: 8px;
+	display: flex;
+    align-items: center;
+	flex-direction: column;
+}
+
+.panel-stack-content > div {
+	padding: 8px 0;
+}
