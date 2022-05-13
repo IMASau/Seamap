@@ -145,7 +145,9 @@
     :imas-seamap.components/selection-list-reorder events/selection-list-reorder
     :seamap-drawer/toggle                 events/seamap-drawer-toggle
     :seamap-drawer/open                   events/seamap-drawer-open
-    :seamap-drawer/close                  events/seamap-drawer-close}})
+    :seamap-drawer/close                  events/seamap-drawer-close
+    :drawer-panels/open                   events/drawer-panels-open
+    :drawer-panels/close                  events/drawer-panels-close}})
 
 (def events-for-analytics
   [:help-layer/open

@@ -471,3 +471,9 @@
 
 (defn seamap-drawer-close [db _]
   (assoc-in db [:display :seamap-drawer] false))
+
+(defn drawer-panels-open [db [_ panel props]]
+  (update-in db [:display :drawer-panels] #(conj % {:panel panel :props props})))
+
+(defn drawer-panels-close [db _]
+  (update-in db [:display :drawer-panels] drop-last))
