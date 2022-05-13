@@ -665,3 +665,12 @@ input.leaflet-control-layers-selector[type="radio"] {
 .seamap-drawer-header img {
     height: 36px;
 }
+
+.bp3-drawer .bp3-panel-stack {
+    flex: 1;
+}
+
+.bp3-drawer {
+    display: flex;
+    flex-direction: column;
+}
