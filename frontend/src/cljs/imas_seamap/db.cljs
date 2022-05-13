@@ -45,6 +45,7 @@
    :display         {:help-overlay    false
                      :welcome-overlay false
                      :seamap-drawer   false
+                     :drawer-panels   []
                      :catalogue       {:tab      "org"
                                        :expanded #{}}
                      :sidebar         {:collapsed false
