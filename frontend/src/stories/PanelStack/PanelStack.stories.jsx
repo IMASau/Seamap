@@ -22,7 +22,7 @@ const FieldTemplate  = (args) => {
 	}
 
 	const chocolatePanel = {
-		content: () => (
+		content: (
 			<div className='panel-stack-content'>
 				<div>
 					This is the chocolate panel!
@@ -39,7 +39,7 @@ const FieldTemplate  = (args) => {
 	}
 
 	const straweberryPanel = {
-		content: () => (
+		content: (
 			<div className='panel-stack-content'>
 				<div>
 					This is the strawberry panel!
@@ -56,7 +56,7 @@ const FieldTemplate  = (args) => {
 	}
 
 	const vanillaPanel = {
-		content: () => (
+		content: (
 			<div className='panel-stack-content'>
 				<div>
 					This is the vanilla panel!

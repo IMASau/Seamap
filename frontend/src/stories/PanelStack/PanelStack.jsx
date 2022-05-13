@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import * as BPCore from "@blueprintjs/core";
 
 export function Panel({content}) {
-	return content()
+	return content
 }
 
 export function PanelStack({panels, onClose}) {
