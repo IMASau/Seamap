@@ -14,6 +14,13 @@
      :disabled disabled
      :onReorder (fn [src-idx dst-idx] (re-frame/dispatch [::selection-list-reorder src-idx dst-idx data-path]))}]))
 
+(defn panel-stack
+  [{:keys [panels on-close]}]
+  (let [panels (map #(update % :content reagent/as-element) panels)]
+    [ui-controls/PanelStack
+     {:panels panels
+      :onClose on-close}]))
+
 (defn seamap-drawer
   []
   (let [open? @(re-frame/subscribe [:seamap-drawer/open?])]
