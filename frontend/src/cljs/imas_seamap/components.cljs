@@ -4,7 +4,8 @@
 (ns imas-seamap.components
   (:require [imas-seamap.interop.ui-controls :as ui-controls]
             [reagent.core :as reagent]
-            [re-frame.core :as re-frame]))
+            [re-frame.core :as re-frame]
+            [imas-seamap.blueprint :as b]))
 
 (defn items-selection-list
   [{:keys [items disabled data-path]}]
@@ -23,7 +24,20 @@
 
 (defn seamap-drawer
   []
-  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])]
+  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])
+        panels @(re-frame/subscribe [:drawer-panels/panels])
+        display-panels
+        (concat [{:title   "Base Panel"
+                  :content [b/button
+                            {:on-click #(re-frame/dispatch [:drawer-panels/open :panel-a {:data 1}])}
+                            "Add Panel"]}]
+                (map
+                 (fn [panel]
+                   {:title   "Panel 1"
+                    :content [b/button
+                              {:on-click #(re-frame/dispatch [:drawer-panels/open :panel-a {:data 1}])}
+                              "Add Panel"]})
+                 panels))]
     [ui-controls/Drawer
      {:title
       (reagent/as-element
@@ -32,6 +46,10 @@
         {:src "img/Seamap2_V2_RGB.png"}]])
       :position "left"
       :size "460px"
-      :children nil
+      :children
+      (reagent/as-element
+       [panel-stack
+        {:panels display-panels
+         :on-close #(re-frame/dispatch [:drawer-panels/close])}])
       :isOpen  open?
       :onClose #(re-frame/dispatch [:seamap-drawer/close])}]))
