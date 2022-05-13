@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {PanelStack, Panel} from './PanelStack';
+import {PanelStack} from './PanelStack';
 import './PanelStack.css';
 import '@blueprintjs/core/lib/css/blueprint.css';
 import {Button, Intent} from '@blueprintjs/core';
@@ -14,79 +14,70 @@ export default {
 
 const FieldTemplate  = (args) => {
 	function open(panel) {
-		setStack(stack => [...stack, panel])
+		setPanels(panels => [...panels, panel])
 	}
 
 	function close() {
-		setStack(stack.slice(0, stack.length-1))
+		setPanels(panels.slice(0, panels.length-1))
 	}
 
 	const chocolatePanel = {
-		props: {
-			content: () => (
-				<div className='panel-stack-content'>
-					<div>
-						This is the chocolate panel!
-					</div>
-					<Button
-						onClick={() => open(chocolatePanel)}
-						intent={Intent.PRIMARY}
-					>
-						Open Another Chocolate Panel
-					</Button>
+		content: () => (
+			<div className='panel-stack-content'>
+				<div>
+					This is the chocolate panel!
 				</div>
-			),
-		},
-		component: Panel,
+				<Button
+					onClick={() => open(chocolatePanel)}
+					intent={Intent.PRIMARY}
+				>
+					Open Another Chocolate Panel
+				</Button>
+			</div>
+		),
 		title: "Chocolate"
 	}
 
 	const straweberryPanel = {
-		props: {
-			content: () => (
-				<div className='panel-stack-content'>
-					<div>
-						This is the strawberry panel!
-					</div>
-					<Button
-						onClick={() => open(chocolatePanel)}
-						intent={Intent.PRIMARY}
-					>
-						Open Chocolate Panel
-					</Button>
+		content: () => (
+			<div className='panel-stack-content'>
+				<div>
+					This is the strawberry panel!
 				</div>
-			),
-		},
-		component: Panel,
+				<Button
+					onClick={() => open(chocolatePanel)}
+					intent={Intent.PRIMARY}
+				>
+					Open Chocolate Panel
+				</Button>
+			</div>
+		),
 		title: "Strawberry"
 	}
 
 	const vanillaPanel = {
-		props: {
-			content: () => (
-				<div className='panel-stack-content'>
-					<div>
-						This is the vanilla panel!
-					</div>
-					<Button
-						onClick={() => open(straweberryPanel)}
-						intent={Intent.PRIMARY}
-					>
-						Open Strawberry Panel
-					</Button>
+		content: () => (
+			<div className='panel-stack-content'>
+				<div>
+					This is the vanilla panel!
 				</div>
-			),
-		},
-		component: Panel,
+				<Button
+					onClick={() => open(straweberryPanel)}
+					intent={Intent.PRIMARY}
+				>
+					Open Strawberry Panel
+				</Button>
+			</div>
+		),
 		title: "Vanilla"
 	}
 
-	const [stack, setStack] = React.useState([vanillaPanel])
+	const [panels, setPanels] = React.useState([vanillaPanel])
 
 	return (
 		<PanelStack
 			{...args}
-			stack={stack}
+			panels={panels}
 			onClose={close}
 			onOpen={open}
 		/>
