@@ -460,6 +460,7 @@
 
 (defn map-start-selecting [db _]
   (-> db
+      (assoc-in [:display :seamap-drawer] false)
       (assoc-in [:map :controls :ignore-click] true)
       (assoc-in [:map :controls :download :selecting] true)))
 
