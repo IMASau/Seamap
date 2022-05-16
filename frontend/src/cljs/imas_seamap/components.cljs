@@ -22,6 +22,18 @@
      {:panels panels
       :onClose on-close}]))
 
+(defn drawer
+  [{:keys [title position size isOpen onClose]} & children]
+  (let [title (reagent/as-element title)
+        children (reagent/as-element children)]
+   [ui-controls/Drawer
+    {:title    title
+     :position position
+     :size     size
+     :children children
+     :isOpen   isOpen
+     :onClose  onClose}]))
+
 (defn seamap-drawer
   []
   (let [open? @(re-frame/subscribe [:seamap-drawer/open?])
@@ -38,18 +50,15 @@
                               {:on-click #(re-frame/dispatch [:drawer-panels/open :panel-a {:data 1}])}
                               "Add Panel"]})
                  panels))]
-    [ui-controls/Drawer
+    [drawer
      {:title
-      (reagent/as-element
-       [:div.seamap-drawer-header
-        [:img
-        {:src "img/Seamap2_V2_RGB.png"}]])
+      [:div.seamap-drawer-header
+       [:img
+        {:src "img/Seamap2_V2_RGB.png"}]]
       :position "left"
-      :size "460px"
-      :children
-      (reagent/as-element
-       [panel-stack
-        {:panels display-panels
-         :on-close #(re-frame/dispatch [:drawer-panels/close])}])
-      :isOpen  open?
-      :onClose #(re-frame/dispatch [:seamap-drawer/close])}]))
+      :size     "460px"
+      :isOpen   open?
+      :onClose  #(re-frame/dispatch [:seamap-drawer/close])}
+     [panel-stack
+      {:panels display-panels
+       :on-close #(re-frame/dispatch [:drawer-panels/close])}]]))
