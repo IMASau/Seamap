@@ -695,8 +695,46 @@
 
 (defn management-layers-panel
   []
-  {:title   "Management Regions Layers"
-   :content "Management Regions Layers (WIP)"})
+  (let [{:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
+        {:keys [boundaries]} groups
+        {:keys [habitat-layer]}                                                    @(re-frame/subscribe [:map/region-stats])]
+    {:title   "Management Region Layers"
+     :content
+     [:div.sidebar-tab.height-managed
+      [:div.boundary-layers.height-managed.group-scrollable.layer-group
+       [:h1.bp3-heading "Boundary Layers"]
+       (for [layer boundaries]
+         ^{:key (:layer_name layer)}
+         [layer-card layer {:active?   (some #{layer} active-layers)
+                            :loading?  (loading-layers layer)
+                            :errors?   (error-layers layer)
+                            :expanded? (expanded-layers layer)
+                            :opacity   (layer-opacities layer)}])]
+      [:div
+       [:label.bp3-label.height-managed
+        "Habitat layer for region statistics (only one active layer may be selected at a time):"
+        [b/popover {:position           b/BOTTOM
+                    :class         "full-width"
+                    :popover-class-name "bp3-minimal"
+                    :content            (reagent/as-element
+                                         [b/menu
+                                          (for [layer (filter #(= :habitat (:category %)) active-layers)]
+                                            ^{:key (:layer_name layer)}
+                                            [b/menu-item {:text     (:name layer)
+                                                          :on-click #(re-frame/dispatch [:map.region-stats/select-habitat layer])}])])}
+         [b/button {:text       (get habitat-layer :name "Select Habitat Layer for statistics...")
+                    :class "bp3-fill bp3-text-overflow-ellipsis"
+                    :intent     (when-not habitat-layer b/INTENT-WARNING)
+                    :right-icon "caret-down"}]]]
+       [:div.bp3-callout.bp3-icon-help.height-managed
+        [:h5 "Hints"]
+        [:p "Choose a management boundary and select a habitat layer for
+    spatial summaries. Note that only visible habitat layers will be
+    available for selection."]
+
+        [:p "Click on a management boundary (on the map) to generate
+    habitat statistics for that region, and to download the subsetted
+    benthic habitat data."]]]]}))
 
 (defn thirdparty-layers-panel
   []
