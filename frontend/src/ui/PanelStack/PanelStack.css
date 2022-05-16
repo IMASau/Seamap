@@ -5,7 +5,7 @@
 .panel-stack-content {
 	padding: 8px;
 	display: flex;
-    align-items: center;
+	align-items: center;
 	flex-direction: column;
 }
 

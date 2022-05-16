@@ -2,10 +2,6 @@ import React from 'react';
 import PropTypes from "prop-types";
 import * as BPCore from "@blueprintjs/core";
 
-export function Panel({content}) {
-	return content
-}
-
 export function PanelStack({panels, onClose}) {
 	const stack = panels.map(
 		({content, title}) => {
@@ -13,7 +9,7 @@ export function PanelStack({panels, onClose}) {
 				props: {
 					content: content
 				},
-				component: Panel,
+				component: ({content}) => content,
 				title: title
 			}
 		}
