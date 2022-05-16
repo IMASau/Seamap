@@ -33,32 +33,3 @@
      :children children
      :isOpen   isOpen
      :onClose  onClose}]))
-
-(defn seamap-drawer
-  []
-  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])
-        panels @(re-frame/subscribe [:drawer-panels/panels])
-        display-panels
-        (concat [{:title   "Base Panel"
-                  :content [b/button
-                            {:on-click #(re-frame/dispatch [:drawer-panels/open :panel-a {:data 1}])}
-                            "Add Panel"]}]
-                (map
-                 (fn [panel]
-                   {:title   "Panel 1"
-                    :content [b/button
-                              {:on-click #(re-frame/dispatch [:drawer-panels/open :panel-a {:data 1}])}
-                              "Add Panel"]})
-                 panels))]
-    [drawer
-     {:title
-      [:div.seamap-drawer-header
-       [:img
-        {:src "img/Seamap2_V2_RGB.png"}]]
-      :position "left"
-      :size     "460px"
-      :isOpen   open?
-      :onClose  #(re-frame/dispatch [:seamap-drawer/close])}
-     [panel-stack
-      {:panels display-panels
-       :on-close #(re-frame/dispatch [:drawer-panels/close])}]]))

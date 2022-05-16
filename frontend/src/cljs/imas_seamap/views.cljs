@@ -614,6 +614,35 @@
    [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
+(defn seamap-drawer
+  []
+  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])
+        panels @(re-frame/subscribe [:drawer-panels/panels])
+        display-panels
+        (concat [{:title   "Base Panel"
+                  :content [b/button
+                            {:on-click #(re-frame/dispatch [:drawer-panels/open :panel-a {:data 1}])}
+                            "Add Panel"]}]
+                (map
+                 (fn [panel]
+                   {:title   "Panel 1"
+                    :content [b/button
+                              {:on-click #(re-frame/dispatch [:drawer-panels/open :panel-a {:data 1}])}
+                              "Add Panel"]})
+                 panels))]
+    [components/drawer
+     {:title
+      [:div.seamap-drawer-header
+       [:img
+        {:src "img/Seamap2_V2_RGB.png"}]]
+      :position "left"
+      :size     "460px"
+      :isOpen   open?
+      :onClose  #(re-frame/dispatch [:seamap-drawer/close])}
+     [components/panel-stack
+      {:panels display-panels
+       :on-close #(re-frame/dispatch [:drawer-panels/close])}]]))
+
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
         {:keys [groups active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
