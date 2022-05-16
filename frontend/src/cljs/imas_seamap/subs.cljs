@@ -127,5 +127,5 @@
 (defn seamap-drawer-open? [db _]
   (get-in db [:display :seamap-drawer]))
 
-(defn drawer-panels [db _]
-  (get-in db [:display :drawer-panels]))
+(defn drawer-panel-stack [db _]
+  (get-in db [:display :drawer-panel-stack]))
