@@ -654,13 +654,45 @@
               [b/button
                {:icon     "more"
                 :text     "Third-Party Layers"
-                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/thirdpartylayers])}]]
+                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/thirdparty-layers])}]]
              [:div.seamap-drawer-group
               [:h1.bp3-heading.bp3-icon-cog
                "Settings"]
               [b/button
                {:icon     "undo"
                 :text     "Reset Interface"}]]]})
+
+(defn habitat-layers-panel
+  []
+  {:title   "Habitat Layers"
+   :content "Habitat Layers (WIP)"})
+
+(defn bathy-layers-panel
+  []
+  {:title   "Bathymetry Layers"
+   :content "Bathymetry Layers (WIP)"})
+
+(defn imagery-layers-panel
+  []
+  {:title   "Imagery Layers"
+   :content "Imagery Layers (WIP)"})
+
+(defn management-layers-panel
+  []
+  {:title   "Management Regions Layers"
+   :content "Management Regions Layers (WIP)"})
+
+(defn thirdparty-layers-panel
+  []
+  {:title   "Third-Party Layers"
+   :content "Third-Party Layers (WIP)"})
+
+(def seamap-drawer-panels
+  {:drawer-panel/habitat-layers    habitat-layers-panel
+   :drawer-panel/bathy-layers      bathy-layers-panel
+   :drawer-panel/imagery-layers    imagery-layers-panel
+   :drawer-panel/management-layers management-layers-panel
+   :drawer-panel/thirdparty-layers thirdparty-layers-panel})
 
 (defn seamap-drawer
   []
@@ -669,11 +701,8 @@
         display-panels
         (concat [(base-panel)]
                 (map
-                 (fn [panel]
-                   {:title   "Panel 1"
-                    :content [b/button
-                              {:on-click #(re-frame/dispatch [:drawer-panels/open :panel-a {:data 1}])}
-                              "Add Panel"]})
+                 (fn [{:keys [panel props]}]
+                   ((panel seamap-drawer-panels) props))
                  panels))]
     [components/drawer
      {:title
