@@ -633,8 +633,7 @@
 (defn base-panel
   []
   (let [_ @(re-frame/subscribe [:map/layers])] ; Subs for "child" panels won't update without this sub (which shouldn't be affecting them?)
-    {:title   "Base Panel"
-     :content [:div
+    {:content [:div
                [:div.seamap-drawer-group
                 [:h1.bp3-heading.bp3-icon-settings
                  "Controls"]
