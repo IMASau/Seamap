@@ -638,23 +638,23 @@
               [b/button
                {:icon     "home"
                 :text     "Habitat Layers"
-                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/habitat-layers])}]
+                :on-click #(re-frame/dispatch [:drawer-panels/push :drawer-panel/habitat-layers])}]
               [b/button
                {:icon     "timeline-area-chart"
                 :text     "Bathymetry Layers"
-                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/bathy-layers])}]
+                :on-click #(re-frame/dispatch [:drawer-panels/push :drawer-panel/bathy-layers])}]
               [b/button
                {:icon     "media"
                 :text     "Imagery Layers"
-                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/imagery-layers])}]
+                :on-click #(re-frame/dispatch [:drawer-panels/push :drawer-panel/imagery-layers])}]
               [b/button
                {:icon     "heatmap"
                 :text     "Management Regions Layers"
-                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/management-layers])}]
+                :on-click #(re-frame/dispatch [:drawer-panels/push :drawer-panel/management-layers])}]
               [b/button
                {:icon     "more"
                 :text     "Third-Party Layers"
-                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/thirdparty-layers])}]]
+                :on-click #(re-frame/dispatch [:drawer-panels/push :drawer-panel/thirdparty-layers])}]]
              [:div.seamap-drawer-group
               [:h1.bp3-heading.bp3-icon-cog
                "Settings"]
@@ -716,7 +716,7 @@
      [:div.seamap-drawer
       [components/panel-stack
        {:panels display-panels
-        :on-close #(re-frame/dispatch [:drawer-panels/close])}]]]))
+        :on-close #(re-frame/dispatch [:drawer-panels/pop])}]]]))
 
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
