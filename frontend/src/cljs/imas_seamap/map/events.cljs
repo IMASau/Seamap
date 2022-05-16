@@ -82,7 +82,7 @@
          :on-failure      [:map/got-featureinfo-err request-id priority]}))))
 
 (defn get-feature-info [{:keys [db] :as _context} [_ {:keys [size bounds] :as _props} {:keys [x y] :as point}]]
-  (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))))
+  (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))) (remove #(some #{%} (get-in db [:map :hidden-layers]))))
         by-server     (group-by :server_url active-layers)
         ;; Note, we don't use the entire viewport for the pixel bounds because of inaccuracies when zoomed out.
         img-size      {:width 101 :height 101}
