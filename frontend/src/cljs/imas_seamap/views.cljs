@@ -638,17 +638,9 @@
                [:div.seamap-drawer-group
                 [:h1.bp3-heading.bp3-icon-settings
                  "Controls"]
-                [b/button
-                 {:icon     "edit"
-                  :text     "Draw Transect"}]
-                [b/button
-                 {:icon     "widget"
-                  :text     "Select Region"}]
-                [b/button
-                 {}
-                 [:span
-                  [:i.fa.fa-magic]
-                  "Enable Automatic layer Selection"]]]
+                [transect-toggle]
+                [selection-button]
+                [layer-logic-toggle-button]]
                [:div.seamap-drawer-group
                 [:h1.bp3-heading.bp3-icon-list-detail-view
                  "Catalogue Layers"]
@@ -677,7 +669,8 @@
                  "Settings"]
                 [b/button
                  {:icon     "undo"
-                  :text     "Reset Interface"}]]]}))
+                  :text     "Reset Interface"
+                  :on-click   #(re-frame/dispatch [:re-boot])}]]]}))
 
 (defn habitat-layers-panel
   []
