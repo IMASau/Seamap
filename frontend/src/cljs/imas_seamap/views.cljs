@@ -614,15 +614,60 @@
    [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
+(defn base-panel
+  []
+  {:title   "Base Panel"
+   :content [:div
+             [:div.seamap-drawer-group
+              [:h1.bp3-heading.bp3-icon-settings
+               "Controls"]
+              [b/button
+               {:icon     "edit"
+                :text     "Draw Transect"}]
+              [b/button
+               {:icon     "widget"
+                :text     "Select Region"}]
+              [b/button
+               {}
+               [:span
+                [:i.fa.fa-magic]
+                "Enable Automatic layer Selection"]]]
+             [:div.seamap-drawer-group
+              [:h1.bp3-heading.bp3-icon-list-detail-view
+               "Catalogue Layers"]
+              [b/button
+               {:icon     "home"
+                :text     "Habitat Layers"
+                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/habitat-layers])}]
+              [b/button
+               {:icon     "timeline-area-chart"
+                :text     "Bathymetry Layers"
+                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/bathy-layers])}]
+              [b/button
+               {:icon     "media"
+                :text     "Imagery Layers"
+                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/imagery-layers])}]
+              [b/button
+               {:icon     "heatmap"
+                :text     "Management Regions Layers"
+                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/management-layers])}]
+              [b/button
+               {:icon     "more"
+                :text     "Third-Party Layers"
+                :on-click #(re-frame/dispatch [:drawer-panels/open :drawer-panel/thirdpartylayers])}]]
+             [:div.seamap-drawer-group
+              [:h1.bp3-heading.bp3-icon-cog
+               "Settings"]
+              [b/button
+               {:icon     "undo"
+                :text     "Reset Interface"}]]]})
+
 (defn seamap-drawer
   []
   (let [open? @(re-frame/subscribe [:seamap-drawer/open?])
         panels @(re-frame/subscribe [:drawer-panels/panels])
         display-panels
-        (concat [{:title   "Base Panel"
-                  :content [b/button
-                            {:on-click #(re-frame/dispatch [:drawer-panels/open :panel-a {:data 1}])}
-                            "Add Panel"]}]
+        (concat [(base-panel)]
                 (map
                  (fn [panel]
                    {:title   "Panel 1"
@@ -639,9 +684,10 @@
       :size     "460px"
       :isOpen   open?
       :onClose  #(re-frame/dispatch [:seamap-drawer/close])}
-     [components/panel-stack
-      {:panels display-panels
-       :on-close #(re-frame/dispatch [:drawer-panels/close])}]]))
+     [:div.seamap-drawer
+      [components/panel-stack
+       {:panels display-panels
+        :on-close #(re-frame/dispatch [:drawer-panels/close])}]]]))
 
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
