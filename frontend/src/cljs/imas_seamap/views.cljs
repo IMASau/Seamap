@@ -738,8 +738,18 @@
 
 (defn thirdparty-layers-panel
   []
-  {:title   "Third-Party Layers"
-   :content "Third-Party Layers (WIP)"})
+  (let [{:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
+        {:keys [third-party]} groups]
+    {:title   "Third-Party Layers"
+     :content
+     [:div.sidebar-tab.height-managed
+      [layer-search-filter]
+      [layer-catalogue third-party
+       {:active-layers active-layers
+        :loading-fn    loading-layers
+        :error-fn      error-layers
+        :expanded-fn   expanded-layers
+        :opacity-fn    layer-opacities}]]}))
 
 (def seamap-drawer-panels
   {:drawer-panel/habitat-layers    habitat-layers-panel
