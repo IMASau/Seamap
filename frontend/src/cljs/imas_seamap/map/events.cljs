@@ -149,8 +149,8 @@
         ;; Only invoke if we aren't drawing a transect (ie, different click):
         (not (or (get-in db [:map :controls :transect])
                  (get-in db [:map :controls :download :selecting])
-                 ;; (also ignore click if there's no active layers to click on)
-                 (empty? (get-in db [:map :active-layers]))))
+                 ;; (also ignore click if there's no visible layers to click on)
+                 (empty? (remove #(some #{%} (get-in db [:map :hidden-layers])) (get-in db [:map :active-layers])))))
         (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)]
           (if (= "tab-management" (get-in db [:display :sidebar :selected]))
             (get-habitat-region-statistics ctx event-v)
