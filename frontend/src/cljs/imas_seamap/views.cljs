@@ -685,8 +685,13 @@
 
 (defn imagery-layers-panel
   []
-  {:title   "Imagery Layers"
-   :content "Imagery Layers (WIP)"})
+  (let [{:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
+        {:keys [imagery]} groups]
+    {:title   "Imagery Layers"
+     :content
+     [:div.sidebar-tab.height-managed
+      [layer-search-filter]
+      [layer-group {:expanded true :title "Layers"} imagery active-layers loading-layers error-layers expanded-layers layer-opacities]]}))
 
 (defn management-layers-panel
   []
