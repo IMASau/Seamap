@@ -34,8 +34,8 @@
   },
   "scripts": {
     "watch": "npx shadow-cljs watch dev",
-    "build-js": "babel src/stories --out-dir src/gen --source-maps inline",
-    "watch-js": "babel src/stories --out-dir src/gen --source-maps inline --watch",
+    "build-js": "babel src/ui --out-dir src/gen --source-maps inline",
+    "watch-js": "babel src/ui --out-dir src/gen --source-maps inline --watch",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   }
