@@ -274,6 +274,22 @@
                 :label     (reagent/as-element [:span icon label])
                 :on-change (handler-dispatch [:map.layers.logic/toggle true])}]]))
 
+(defn layer-logic-toggle-button []
+  (let [{:keys [type]} @(re-frame/subscribe [:map.layers/logic])]
+    [:div#logic-toggle
+     {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
+      :data-text-width "380px"}
+     (if (= type :map.layer-logic/automatic)
+       [b/button
+        {:on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}
+        [:span
+         [:i.fa.fa-magic]
+         "Automatic Layer Selection"]]
+       [b/button
+        {:icon "hand"
+         :text "Choose Layers Manually"
+         :on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}])]))
+
 (defn layer-search-filter []
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
     [:div.bp3-input-group {:data-helper-text "Filter Layers"}
