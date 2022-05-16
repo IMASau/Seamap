@@ -675,8 +675,13 @@
 
 (defn bathy-layers-panel
   []
-  {:title   "Bathymetry Layers"
-   :content "Bathymetry Layers (WIP)"})
+  (let [{:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
+        {:keys [bathymetry]} groups]
+    {:title   "Bathymetry Layers"
+     :content
+     [:div.sidebar-tab.height-managed
+      [layer-search-filter]
+      [layer-group {:expanded true :title "Layers"} bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities]]}))
 
 (defn imagery-layers-panel
   []
