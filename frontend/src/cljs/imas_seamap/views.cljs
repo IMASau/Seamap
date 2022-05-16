@@ -614,6 +614,110 @@
    [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
+(defn base-panel
+  []
+  {:title   "Base Panel"
+   :content [:div
+             [:div.seamap-drawer-group
+              [:h1.bp3-heading.bp3-icon-settings
+               "Controls"]
+              [b/button
+               {:icon     "edit"
+                :text     "Draw Transect"}]
+              [b/button
+               {:icon     "widget"
+                :text     "Select Region"}]
+              [b/button
+               {}
+               [:span
+                [:i.fa.fa-magic]
+                "Enable Automatic layer Selection"]]]
+             [:div.seamap-drawer-group
+              [:h1.bp3-heading.bp3-icon-list-detail-view
+               "Catalogue Layers"]
+              [b/button
+               {:icon     "home"
+                :text     "Habitat Layers"
+                :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/habitat-layers])}]
+              [b/button
+               {:icon     "timeline-area-chart"
+                :text     "Bathymetry Layers"
+                :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/bathy-layers])}]
+              [b/button
+               {:icon     "media"
+                :text     "Imagery Layers"
+                :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/imagery-layers])}]
+              [b/button
+               {:icon     "heatmap"
+                :text     "Management Regions Layers"
+                :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/management-layers])}]
+              [b/button
+               {:icon     "more"
+                :text     "Third-Party Layers"
+                :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers])}]]
+             [:div.seamap-drawer-group
+              [:h1.bp3-heading.bp3-icon-cog
+               "Settings"]
+              [b/button
+               {:icon     "undo"
+                :text     "Reset Interface"}]]]})
+
+(defn habitat-layers-panel
+  []
+  {:title   "Habitat Layers"
+   :content "Habitat Layers (WIP)"})
+
+(defn bathy-layers-panel
+  []
+  {:title   "Bathymetry Layers"
+   :content "Bathymetry Layers (WIP)"})
+
+(defn imagery-layers-panel
+  []
+  {:title   "Imagery Layers"
+   :content "Imagery Layers (WIP)"})
+
+(defn management-layers-panel
+  []
+  {:title   "Management Regions Layers"
+   :content "Management Regions Layers (WIP)"})
+
+(defn thirdparty-layers-panel
+  []
+  {:title   "Third-Party Layers"
+   :content "Third-Party Layers (WIP)"})
+
+(def seamap-drawer-panels
+  {:drawer-panel/habitat-layers    habitat-layers-panel
+   :drawer-panel/bathy-layers      bathy-layers-panel
+   :drawer-panel/imagery-layers    imagery-layers-panel
+   :drawer-panel/management-layers management-layers-panel
+   :drawer-panel/thirdparty-layers thirdparty-layers-panel})
+
+(defn seamap-drawer
+  []
+  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])
+        panels @(re-frame/subscribe [:drawer-panel-stack/panels])
+        display-panels
+        (concat [(base-panel)]
+                (map
+                 (fn [{:keys [panel props]}]
+                   ((panel seamap-drawer-panels) props))
+                 panels))]
+    [components/drawer
+     {:title
+      [:div.seamap-drawer-header
+       [:img
+        {:src "img/Seamap2_V2_RGB.png"}]]
+      :position "left"
+      :size     "460px"
+      :isOpen   open?
+      :onClose  #(re-frame/dispatch [:seamap-drawer/close])}
+     [:div.seamap-drawer
+      [components/panel-stack
+       {:panels display-panels
+        :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]]]))
+
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
         {:keys [groups active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])

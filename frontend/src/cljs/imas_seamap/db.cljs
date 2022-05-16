@@ -42,13 +42,14 @@
    :region-stats    {:habitat-layer nil}
    :habitat-colours {}
    :habitat-titles  {}
-   :display         {:help-overlay    false
-                     :welcome-overlay false
-                     :seamap-drawer   false
-                     :catalogue       {:tab      "org"
-                                       :expanded #{}}
-                     :sidebar         {:collapsed false
-                                       :selected  "tab-activelayers"}}
+   :display         {:help-overlay       false
+                     :welcome-overlay    false
+                     :seamap-drawer      false
+                     :drawer-panel-stack []
+                     :catalogue          {:tab      "org"
+                                          :expanded #{}}
+                     :sidebar            {:collapsed false
+                                          :selected  "tab-activelayers"}}
    :config          {:layer-url            (str api-url-base "layers/")
                      :base-layer-url       (str api-url-base "baselayers/")
                      :base-layer-group-url (str api-url-base "baselayergroups/")

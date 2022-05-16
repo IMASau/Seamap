@@ -46,7 +46,7 @@
      :west (- lng (/ img-x-bounds 2))}))
 
 (defn get-feature-info-request
-  [info-format request-id by-server img-size img-bounds]
+  [info-format request-id by-server img-size img-bounds point]
   (let [layers->str   #(->> % (map layer-name) reverse (string/join ","))]
    ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
     (for [[server-url active-layers] by-server
@@ -89,14 +89,6 @@
         img-bounds    (bounds-for-zoom point size bounds img-size)
         ;; Note, top layer, last in the list, must be first in our search string:
         request-id    (gensym)
-(defn get-feature-info [{:keys [db] :as _context} [_ {:keys [size bounds] :as _props} {:keys [x y] :as point}]]
-  (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))))
-        by-server     (group-by :server_url active-layers)
-        ;; Note, we don't use the entire viewport for the pixel bounds because of inaccuracies when zoomed out.
-        img-size      {:width 101 :height 101}
-        img-bounds    (bounds-for-zoom point size bounds img-size)
-        ;; Note, top layer, last in the list, must be first in our search string:
-        request-id    (gensym)
           had-insecure? (->> db :map :active-layers (some #(is-insecure? (:server_url %))))
         info-format   (get-layers-info-format active-layers)
         db            (if had-insecure?
@@ -116,7 +108,7 @@
     (if had-insecure?
       db
       (if info-format
-        (assoc db :http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds))
+        (assoc db :http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point))
         (assoc db :dispatch [:map/got-featureinfo request-id nil point nil])))))
 
 (defn get-habitat-region-statistics [{:keys [db] :as _ctx} [_ _props point]]

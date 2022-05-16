@@ -471,3 +471,9 @@
 
 (defn seamap-drawer-close [db _]
   (assoc-in db [:display :seamap-drawer] false))
+
+(defn drawer-panel-stack-push [db [_ panel props]]
+  (update-in db [:display :drawer-panel-stack] conj {:panel panel :props props}))
+
+(defn drawer-panel-stack-pop [db _]
+  (update-in db [:display :drawer-panel-stack] pop))

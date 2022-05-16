@@ -4,7 +4,8 @@
 (ns imas-seamap.components
   (:require [imas-seamap.interop.ui-controls :as ui-controls]
             [reagent.core :as reagent]
-            [re-frame.core :as re-frame]))
+            [re-frame.core :as re-frame]
+            [imas-seamap.blueprint :as b]))
 
 (defn items-selection-list
   [{:keys [items disabled data-path]}]
@@ -14,13 +15,21 @@
      :disabled disabled
      :onReorder (fn [src-idx dst-idx] (re-frame/dispatch [::selection-list-reorder src-idx dst-idx data-path]))}]))
 
-(defn seamap-drawer
-  []
-  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])]
-    [ui-controls/Drawer
-     {:title "Seamap Australia"
-      :position "left"
-      :size "460px"
-      :children nil
-      :isOpen  open?
-      :onClose #(re-frame/dispatch [:seamap-drawer/close])}]))
+(defn panel-stack
+  [{:keys [panels on-close]}]
+  (let [panels (map #(update % :content reagent/as-element) panels)]
+    [ui-controls/PanelStack
+     {:panels panels
+      :onClose on-close}]))
+
+(defn drawer
+  [{:keys [title position size isOpen onClose]} & children]
+  (let [title (reagent/as-element title)
+        children (reagent/as-element children)]
+   [ui-controls/Drawer
+    {:title    title
+     :position position
+     :size     size
+     :children children
+     :isOpen   isOpen
+     :onClose  onClose}]))

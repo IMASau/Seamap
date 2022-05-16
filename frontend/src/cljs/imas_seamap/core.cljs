@@ -46,6 +46,7 @@
     :help-layer/open?                     subs/help-layer-open?
     :welcome-layer/open?                  subs/welcome-layer-open?
     :seamap-drawer/open?                  subs/seamap-drawer-open?
+    :drawer-panel-stack/panels            subs/drawer-panel-stack
     :ui.catalogue/tab                     subs/catalogue-tab
     :ui.catalogue/nodes                   subs/catalogue-nodes
     :ui/sidebar                           subs/sidebar-state
@@ -144,7 +145,9 @@
     :imas-seamap.components/selection-list-reorder events/selection-list-reorder
     :seamap-drawer/toggle                 events/seamap-drawer-toggle
     :seamap-drawer/open                   events/seamap-drawer-open
-    :seamap-drawer/close                  events/seamap-drawer-close}})
+    :seamap-drawer/close                  events/seamap-drawer-close
+    :drawer-panel-stack/push              events/drawer-panel-stack-push
+    :drawer-panel-stack/pop               events/drawer-panel-stack-pop}})
 
 (def events-for-analytics
   [:help-layer/open

@@ -4,10 +4,13 @@
 (ns imas-seamap.interop.ui-controls
   (:require [reagent.core :as reagent]
             ["/SelectionList/SelectionList" :as SelectionList]
-            ["/Drawer/Drawer" :as Drawer]))
+            ["/Drawer/Drawer" :as Drawer]
+            ["/PanelStack/PanelStack" :as PanelStack]))
 
 (assert SelectionList/ItemsSelectionList)
 (assert Drawer/Drawer)
+(assert PanelStack/PanelStack)
 
 (def ItemsSelectionList (reagent/adapt-react-class SelectionList/ItemsSelectionList))
 (def Drawer             (reagent/adapt-react-class Drawer/Drawer))
+(def PanelStack         (reagent/adapt-react-class PanelStack/PanelStack))
