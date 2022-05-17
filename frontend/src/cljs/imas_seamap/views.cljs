@@ -630,46 +630,45 @@
    [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(defn base-panel
-  []
-  (let [_ @(re-frame/subscribe [:map/layers])] ; Subs for "child" panels won't update without this sub (which shouldn't be affecting them?)
-    {:content [:div
-               [:div.seamap-drawer-group
-                [:h1.bp3-heading.bp3-icon-settings
-                 "Controls"]
-                [transect-toggle]
-                [selection-button]
-                [layer-logic-toggle-button]]
-               [:div.seamap-drawer-group
-                [:h1.bp3-heading.bp3-icon-list-detail-view
-                 "Catalogue Layers"]
-                [b/button
-                 {:icon     "home"
-                  :text     "Habitat Layers"
-                  :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/habitat-layers])}]
-                [b/button
-                 {:icon     "timeline-area-chart"
-                  :text     "Bathymetry Layers"
-                  :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/bathy-layers])}]
-                [b/button
-                 {:icon     "media"
-                  :text     "Imagery Layers"
-                  :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/imagery-layers])}]
-                [b/button
-                 {:icon     "heatmap"
-                  :text     "Management Regions Layers"
-                  :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/management-layers])}]
-                [b/button
-                 {:icon     "more"
-                  :text     "Third-Party Layers"
-                  :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers])}]]
-               [:div.seamap-drawer-group
-                [:h1.bp3-heading.bp3-icon-cog
-                 "Settings"]
-                [b/button
-                 {:icon     "undo"
-                  :text     "Reset Interface"
-                  :on-click   #(re-frame/dispatch [:re-boot])}]]]}))
+(def base-panel
+  {:content
+   [:div
+    [:div.seamap-drawer-group
+     [:h1.bp3-heading.bp3-icon-settings
+      "Controls"]
+     [transect-toggle]
+     [selection-button]
+     [layer-logic-toggle-button]]
+    [:div.seamap-drawer-group
+     [:h1.bp3-heading.bp3-icon-list-detail-view
+      "Catalogue Layers"]
+     [b/button
+      {:icon     "home"
+       :text     "Habitat Layers"
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/habitat-layers {:group :habitat}])}]
+     [b/button
+      {:icon     "timeline-area-chart"
+       :text     "Bathymetry Layers"
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/bathy-layers])}]
+     [b/button
+      {:icon     "media"
+       :text     "Imagery Layers"
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/imagery-layers])}]
+     [b/button
+      {:icon     "heatmap"
+       :text     "Management Regions Layers"
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/management-layers])}]
+     [b/button
+      {:icon     "more"
+       :text     "Third-Party Layers"
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers])}]]
+    [:div.seamap-drawer-group
+     [:h1.bp3-heading.bp3-icon-cog
+      "Settings"]
+     [b/button
+      {:icon     "undo"
+       :text     "Reset Interface"
+       :on-click   #(re-frame/dispatch [:re-boot])}]]]})
 
 (defn habitat-layers-panel
   [{:keys [layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
@@ -789,7 +788,7 @@
         display-panels
         (map #(drawer-panel % map-layers region-stats) panels)]
     [components/panel-stack
-     {:panels (concat [(base-panel)] display-panels)
+     {:panels (concat [base-panel] display-panels)
       :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
 
 (defn seamap-drawer
