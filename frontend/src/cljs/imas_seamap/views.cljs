@@ -672,14 +672,12 @@
                   :on-click   #(re-frame/dispatch [:re-boot])}]]]}))
 
 (defn habitat-layers-panel
-  []
-  (let [{:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
-        {:keys [habitat]} groups]
-   {:title   "Habitat Layers"
-    :content
-    [:div.sidebar-tab.height-managed
-     [layer-search-filter]
-     [layer-group {:expanded true :title "Layers"} habitat active-layers loading-layers error-layers expanded-layers layer-opacities]]}))
+  [{:keys [layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
+  {:title   "Habitat Layers"
+   :content
+   [:div.sidebar-tab.height-managed
+    [layer-search-filter]
+    [layer-group {:expanded true :title "Layers"} layers active-layers loading-layers error-layers expanded-layers layer-opacities]]})
 
 (defn bathy-layers-panel
   []
@@ -766,17 +764,32 @@
    :drawer-panel/management-layers management-layers-panel
    :drawer-panel/thirdparty-layers thirdparty-layers-panel})
 
+(defn drawer-panel
+  [panel map-layers region-stats]
+  (let [{:keys [panel props]} panel
+        {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers
+        {:keys [habitat-layer]} region-stats]
+    (case panel
+      :drawer-panel/habitat-layers
+      (habitat-layers-panel
+       {:layers          ((:group props) groups)
+        :active-layers   active-layers
+        :loading-layers  loading-layers
+        :error-layers    error-layers
+        :expanded-layers expanded-layers
+        :layer-opacities layer-opacities})
+      
+      ((panel seamap-drawer-panels)))))
+
 (defn drawer-panel-stack
   []
-  (let [panels @(re-frame/subscribe [:drawer-panel-stack/panels])
+  (let [map-layers @(re-frame/subscribe [:map/layers])
+        region-stats @(re-frame/subscribe [:map/region-stats])
+        panels @(re-frame/subscribe [:drawer-panel-stack/panels])
         display-panels
-        (concat [(base-panel)]
-                (map
-                 (fn [{:keys [panel props]}]
-                   ((panel seamap-drawer-panels) props))
-                 panels))]
+        (map #(drawer-panel % map-layers region-stats) panels)]
     [components/panel-stack
-     {:panels display-panels
+     {:panels (concat [(base-panel)] display-panels)
       :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
 
 (defn seamap-drawer
