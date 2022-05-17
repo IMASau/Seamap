@@ -25,7 +25,7 @@
 (defn drawer
   [{:keys [title position size isOpen onClose]} & children]
   (let [title (reagent/as-element title)
-        children (reagent/as-element children)]
+        children (reagent/as-element (into [:div] children))]
    [ui-controls/Drawer
     {:title    title
      :position position

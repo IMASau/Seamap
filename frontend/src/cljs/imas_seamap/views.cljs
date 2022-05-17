@@ -786,7 +786,6 @@
       :isOpen   open?
       :onClose  #(re-frame/dispatch [:seamap-drawer/close])}
      [:div.seamap-drawer
-      {:key 1}
       [components/panel-stack
        {:panels display-panels
         :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]]]))
@@ -925,5 +924,6 @@
       {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
      [welcome-dialogue]
      [info-card]
-     [loading-display]]))
+     [loading-display]
+     [seamap-drawer]]))
 
