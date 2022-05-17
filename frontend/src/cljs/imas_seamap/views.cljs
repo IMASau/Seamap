@@ -645,15 +645,15 @@
      [b/button
       {:icon     "home"
        :text     "Habitat Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/habitat-layers {:group :habitat :title "Habitat Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/layer-panel {:group :habitat :title "Habitat Layers"}])}]
      [b/button
       {:icon     "timeline-area-chart"
        :text     "Bathymetry Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/bathy-layers])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/layer-panel {:group :bathymetry :title "Bathymetry Layers"}])}]
      [b/button
       {:icon     "media"
        :text     "Imagery Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/imagery-layers])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/layer-panel {:group :imagery :title "Imagery Layers"}])}]
      [b/button
       {:icon     "heatmap"
        :text     "Management Regions Layers"
@@ -672,31 +672,11 @@
 
 (defn layer-panel
   [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
-  {:title   title
+  {:title title
    :content
    [:div.sidebar-tab.height-managed
     [layer-search-filter]
     [layer-group {:expanded true :title "Layers"} layers active-layers loading-layers error-layers expanded-layers layer-opacities]]})
-
-(defn bathy-layers-panel
-  []
-  (let [{:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
-        {:keys [bathymetry]} groups]
-    {:title   "Bathymetry Layers"
-     :content
-     [:div.sidebar-tab.height-managed
-      [layer-search-filter]
-      [layer-group {:expanded true :title "Layers"} bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities]]}))
-
-(defn imagery-layers-panel
-  []
-  (let [{:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
-        {:keys [imagery]} groups]
-    {:title   "Imagery Layers"
-     :content
-     [:div.sidebar-tab.height-managed
-      [layer-search-filter]
-      [layer-group {:expanded true :title "Layers"} imagery active-layers loading-layers error-layers expanded-layers layer-opacities]]}))
 
 (defn management-layers-panel
   []
@@ -757,9 +737,7 @@
         :opacity-fn    layer-opacities}]]}))
 
 (def seamap-drawer-panels
-  {:drawer-panel/bathy-layers      bathy-layers-panel
-   :drawer-panel/imagery-layers    imagery-layers-panel
-   :drawer-panel/management-layers management-layers-panel
+  {:drawer-panel/management-layers management-layers-panel
    :drawer-panel/thirdparty-layers thirdparty-layers-panel})
 
 (defn drawer-panel
@@ -768,7 +746,7 @@
         {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers
         {:keys [habitat-layer]} region-stats]
     (case panel
-      :drawer-panel/habitat-layers
+      :drawer-panel/layer-panel
       (layer-panel
        (merge
         props
