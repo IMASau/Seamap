@@ -785,10 +785,9 @@
       :size     "460px"
       :isOpen   open?
       :onClose  #(re-frame/dispatch [:seamap-drawer/close])}
-     [:div.seamap-drawer
-      [components/panel-stack
-       {:panels display-panels
-        :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]]]))
+     [components/panel-stack
+      {:panels display-panels
+       :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]]))
 
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
