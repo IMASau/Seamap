@@ -11,6 +11,7 @@
 (s/def :map/zoom integer?)
 (s/def :map/zoom-cutover integer?)
 
+(s/def :map.layer/id integer?)
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
 (s/def :map.layer/legend_url string?)
@@ -18,7 +19,9 @@
 (s/def :map.layer/detail_layer (s/nilable string?))
 (s/def :map.layer/category keyword?)
 (s/def :map.layer/attribution string?)
+(s/def :map.layer/sort_key (s/nilable string?))
 (s/def :map.layer/info_format_type integer?)
+(s/def :map.layer/layer_group (s/nilable integer?))
 
 (s/def :map.layer.bb/west  float?)
 (s/def :map.layer.bb/south float?)
@@ -44,9 +47,12 @@
                    :map.layer/server_type
                    :map.layer/info_format_type]))
 (s/def :map/base-layer
-  (s/keys :req-un [:map.layer/name
+  (s/keys :req-un [:map.layer/id
+                   :map.layer/name
                    :map.layer/server_url
-                   :map.layer/attribution]))
+                   :map.layer/attribution
+                   :map.layer/sort_key
+                   :map.layer/layer_group]))
 (s/def :map/active-base-layer :map/base-layer)
 
 (s/def :map/layers (s/coll-of :map/layer))
