@@ -731,7 +731,7 @@
       :expanded-fn   expanded-layers
       :opacity-fn    layer-opacities}]]})
 
-(defn drawer-panel
+(defn drawer-panel-selection
   [panel map-layers region-stats]
   (let [{:keys [panel props]} panel
         {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers
@@ -777,7 +777,7 @@
         region-stats @(re-frame/subscribe [:map/region-stats])
         panels @(re-frame/subscribe [:drawer-panel-stack/panels])
         display-panels
-        (map #(drawer-panel % map-layers region-stats) panels)]
+        (map #(drawer-panel-selection % map-layers region-stats) panels)]
     [components/panel-stack
      {:panels (concat [base-panel] display-panels)
       :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
