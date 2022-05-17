@@ -766,16 +766,22 @@
    :drawer-panel/management-layers management-layers-panel
    :drawer-panel/thirdparty-layers thirdparty-layers-panel})
 
-(defn seamap-drawer
+(defn drawer-panel-stack
   []
-  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])
-        panels @(re-frame/subscribe [:drawer-panel-stack/panels])
+  (let [panels @(re-frame/subscribe [:drawer-panel-stack/panels])
         display-panels
         (concat [(base-panel)]
                 (map
                  (fn [{:keys [panel props]}]
                    ((panel seamap-drawer-panels) props))
                  panels))]
+    [components/panel-stack
+     {:panels display-panels
+      :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
+
+(defn seamap-drawer
+  []
+  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])]
     [components/drawer
      {:title
       [:div.seamap-drawer-header
@@ -785,9 +791,7 @@
       :size     "460px"
       :isOpen   open?
       :onClose  #(re-frame/dispatch [:seamap-drawer/close])}
-     [components/panel-stack
-      {:panels display-panels
-       :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]]))
+     [drawer-panel-stack]]))
 
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
