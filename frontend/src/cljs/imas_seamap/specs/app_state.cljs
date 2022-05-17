@@ -34,6 +34,19 @@
 (s/def :map.layer/metadata_url string?)
 (s/def :map.layer/description string?)
 (s/def :map.layer/server_type keyword?)
+
+(s/def :map.layer-group/id integer?)
+(s/def :map.layer-group/name string?)
+(s/def :map.layer-group/sort_key (s/nilable string?))
+
+(s/def :map/base-layer-group
+  (s/keys :req-un [:map.layer-group/id
+                   :map.layer-group/name
+                   :map.layer-group/sort_key]))
+
+(s/def :map/base-layer-groups (s/coll-of :map/base-layer-group
+                                         :kind vector?))
+
 (s/def :map/layer
   (s/keys :req-un [:map.layer/name
                    :map.layer/server_url
@@ -46,6 +59,7 @@
                    :map.layer/description
                    :map.layer/server_type
                    :map.layer/info_format_type]))
+
 (s/def :map/base-layer
   (s/keys :req-un [:map.layer/id
                    :map.layer/name
