@@ -53,12 +53,28 @@
                    :map.layer/attribution
                    :map.layer/sort_key
                    :map.layer/layer_group]))
-(s/def :map/active-base-layer :map/base-layer)
+
+(s/def :map.layer/layers (s/coll-of :map/base-layer
+                                    :kind vector?))
+
+(s/def :map/grouped-base-layer
+  (s/keys :req-un [:map.layer/id
+                   :map.layer/name
+                   :map.layer/server_url
+                   :map.layer/attribution
+                   :map.layer/sort_key
+                   :map.layer/layer_group
+                   :map.layer/layers]))
+
+(s/def :map/active-base-layer :map/grouped-base-layer)
 
 (s/def :map/layers (s/coll-of :map/layer))
 
 (s/def :map/base-layers (s/coll-of :map/base-layer
                                    :kind vector?))
+
+(s/def :map/grouped-base-layers(s/coll-of :map/grouped-base-layer
+                                          :kind vector?))
 
 (s/def :map/active-layers (s/coll-of :map/layer
                                      :kind vector?))
