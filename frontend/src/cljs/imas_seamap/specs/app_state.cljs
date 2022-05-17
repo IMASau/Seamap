@@ -57,6 +57,9 @@
 (s/def :map/active-layers (s/coll-of :map/layer
                                      :kind vector?))
 
+(s/def :map/hidden-layers (s/coll-of :map/layer
+                                     :kind set?))
+
 
 (s/def :map.layer-group.priority/layer integer?)
 (s/def :map.layer-group.priority/group integer?)
@@ -118,6 +121,7 @@
                    :map/base-layers
                    :map/active-base-layer
                    :map/active-layers
+                   :map/hidden-layers
                    :map/groups
                    :map/organisations
                    :map/priorities
