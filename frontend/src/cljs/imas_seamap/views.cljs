@@ -719,23 +719,17 @@
     benthic habitat data."]]]]})
 
 (defn thirdparty-layers-panel
-  []
-  (let [{:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
-        {:keys [third-party]} groups]
-    {:title   "Third-Party Layers"
-     :content
-     [:div.sidebar-tab.height-managed
-      [layer-search-filter]
-      [layer-catalogue third-party
-       {:active-layers active-layers
-        :loading-fn    loading-layers
-        :error-fn      error-layers
-        :expanded-fn   expanded-layers
-        :opacity-fn    layer-opacities}]]}))
-
-(def seamap-drawer-panels
-  {:drawer-panel/management-layers management-layers-panel
-   :drawer-panel/thirdparty-layers thirdparty-layers-panel})
+  [{:keys [layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
+  {:title   "Third-Party Layers"
+   :content
+   [:div.sidebar-tab.height-managed
+    [layer-search-filter]
+    [layer-catalogue layers
+     {:active-layers active-layers
+      :loading-fn    loading-layers
+      :error-fn      error-layers
+      :expanded-fn   expanded-layers
+      :opacity-fn    layer-opacities}]]})
 
 (defn drawer-panel
   [panel map-layers region-stats]
@@ -753,7 +747,7 @@
          :error-layers    error-layers
          :expanded-layers expanded-layers
          :layer-opacities layer-opacities}))
-      
+
       :drawer-panel/management-layers
       (management-layers-panel
        (merge
@@ -765,7 +759,17 @@
          :error-layers    error-layers
          :expanded-layers expanded-layers
          :layer-opacities layer-opacities}))
-      ((panel seamap-drawer-panels)))))
+      :drawer-panel/thirdparty-layers
+      (thirdparty-layers-panel
+       (merge
+        props
+        {:layers          (:third-party groups)
+         :habitat-layer   habitat-layer
+         :active-layers   active-layers
+         :loading-layers  loading-layers
+         :error-layers    error-layers
+         :expanded-layers expanded-layers
+         :layer-opacities layer-opacities})))))
 
 (defn drawer-panel-stack
   []
