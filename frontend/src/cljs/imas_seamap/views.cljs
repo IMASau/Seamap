@@ -645,7 +645,7 @@
      [b/button
       {:icon     "home"
        :text     "Habitat Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/habitat-layers {:group :habitat}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/habitat-layers {:group :habitat :title "Habitat Layers"}])}]
      [b/button
       {:icon     "timeline-area-chart"
        :text     "Bathymetry Layers"
@@ -670,9 +670,9 @@
        :text     "Reset Interface"
        :on-click   #(re-frame/dispatch [:re-boot])}]]]})
 
-(defn habitat-layers-panel
-  [{:keys [layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
-  {:title   "Habitat Layers"
+(defn layer-panel
+  [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
+  {:title   title
    :content
    [:div.sidebar-tab.height-managed
     [layer-search-filter]
@@ -757,8 +757,7 @@
         :opacity-fn    layer-opacities}]]}))
 
 (def seamap-drawer-panels
-  {:drawer-panel/habitat-layers    habitat-layers-panel
-   :drawer-panel/bathy-layers      bathy-layers-panel
+  {:drawer-panel/bathy-layers      bathy-layers-panel
    :drawer-panel/imagery-layers    imagery-layers-panel
    :drawer-panel/management-layers management-layers-panel
    :drawer-panel/thirdparty-layers thirdparty-layers-panel})
@@ -770,13 +769,15 @@
         {:keys [habitat-layer]} region-stats]
     (case panel
       :drawer-panel/habitat-layers
-      (habitat-layers-panel
-       {:layers          ((:group props) groups)
-        :active-layers   active-layers
-        :loading-layers  loading-layers
-        :error-layers    error-layers
-        :expanded-layers expanded-layers
-        :layer-opacities layer-opacities})
+      (layer-panel
+       (merge
+        props
+        {:layers          ((:group props) groups)
+         :active-layers   active-layers
+         :loading-layers  loading-layers
+         :error-layers    error-layers
+         :expanded-layers expanded-layers
+         :layer-opacities layer-opacities}))
       
       ((panel seamap-drawer-panels)))))
 
