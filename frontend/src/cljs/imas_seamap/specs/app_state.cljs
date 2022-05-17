@@ -205,10 +205,26 @@
 (s/def :sidebar/collapsed boolean?)
 (s/def :sidebar/selected string?)
 (s/def :display/sidebar (s/keys :req-un [:sidebar/collapsed :sidebar/selected]))
-(s/def ::display (s/keys :req-un [:display/catalogue
-                                  :display/help-overlay
-                                  :display/welcome-overlay
-                                  :display/sidebar]))
+;;; drawer
+(s/def :display/seamap-drawer boolean?)
+(s/def :display.drawer-panel/panel #{:drawer-panel/habitat-layers
+                                     :drawer-panel/bathy-layers
+                                     :drawer-panel/imagery-layers
+                                     :drawer-panel/management-layers
+                                     :drawer-panel/thirdparty-layers})
+(s/def :display.drawer-panel/props (s/nilable map?))
+(s/def :display/drawer-panel
+  (s/keys :req-un [:display.drawer-panel/panel
+                   :display.drawer-panel/props]))
+(s/def :display/drawer-panels (s/coll-of :display/drawer-panel
+                                         :kind vector?))
+(s/def ::display
+  (s/keys :req-un [:display/catalogue
+                   :display/help-overlay
+                   :display/welcome-overlay
+                   :display/sidebar
+                   :display/seamap-drawer
+                   :display/drawer-panels]))
 
 (s/def :filters/layers       string?)
 (s/def :filters/other-layers string?)
