@@ -207,9 +207,7 @@
 (s/def :display/sidebar (s/keys :req-un [:sidebar/collapsed :sidebar/selected]))
 ;;; drawer
 (s/def :display/seamap-drawer boolean?)
-(s/def :display.drawer-panel/panel #{:drawer-panel/habitat-layers
-                                     :drawer-panel/bathy-layers
-                                     :drawer-panel/imagery-layers
+(s/def :display.drawer-panel/panel #{:drawer-panel/layer-panel
                                      :drawer-panel/management-layers
                                      :drawer-panel/thirdparty-layers})
 (s/def :display.drawer-panel/props (s/nilable map?))
