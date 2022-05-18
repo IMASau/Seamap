@@ -357,9 +357,10 @@
                                           :opacity   (opacity-fn layer)}]})
                             layers)]
       [components/items-selection-list
-       {:items layer-card-items
-        :disabled false
-        :data-path [:map :active-layers]}])]])
+       {:items       layer-card-items
+        :disabled    false
+        :data-path   [:map :active-layers]
+        :is-reversed true}])]])
 
 (defn settings-controls []
   [:div#settings
