@@ -467,13 +467,17 @@
      :put-hash (encode-state db)}))
 
 (defn seamap-drawer-toggle [db _]
-  (update-in db [:display :seamap-drawer] not))
+  (-> db
+      (update-in [:display :seamap-drawer] not)
+      (assoc-in [:display :drawer-panel-stack] [])))
 
 (defn seamap-drawer-open [db _]
   (assoc-in db [:display :seamap-drawer] true))
 
 (defn seamap-drawer-close [db _]
-  (assoc-in db [:display :seamap-drawer] false))
+  (-> db
+      (assoc-in [:display :seamap-drawer] false)
+      (assoc-in [:display :drawer-panel-stack] [])))
 
 (defn drawer-panel-stack-push [db [_ panel props]]
   (update-in db [:display :drawer-panel-stack] conj {:panel panel :props props}))
