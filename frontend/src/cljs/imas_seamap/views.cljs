@@ -274,6 +274,22 @@
                 :label     (reagent/as-element [:span icon label])
                 :on-change (handler-dispatch [:map.layers.logic/toggle true])}]]))
 
+(defn layer-logic-toggle-button []
+  (let [{:keys [type]} @(re-frame/subscribe [:map.layers/logic])]
+    [:div#logic-toggle
+     {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
+      :data-text-width "380px"}
+     (if (= type :map.layer-logic/automatic)
+       [b/button
+        {:on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}
+        [:span
+         [:i.fa.fa-magic]
+         "Automatic Layer Selection"]]
+       [b/button
+        {:icon "hand"
+         :text "Choose Layers Manually"
+         :on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}])]))
+
 (defn layer-search-filter []
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
     [:div.bp3-input-group {:data-helper-text "Filter Layers"}
@@ -614,96 +630,161 @@
    [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(defn base-panel
-  []
-  {:title   "Base Panel"
-   :content [:div
-             [:div.seamap-drawer-group
-              [:h1.bp3-heading.bp3-icon-settings
-               "Controls"]
-              [b/button
-               {:icon     "edit"
-                :text     "Draw Transect"}]
-              [b/button
-               {:icon     "widget"
-                :text     "Select Region"}]
-              [b/button
-               {}
-               [:span
-                [:i.fa.fa-magic]
-                "Enable Automatic layer Selection"]]]
-             [:div.seamap-drawer-group
-              [:h1.bp3-heading.bp3-icon-list-detail-view
-               "Catalogue Layers"]
-              [b/button
-               {:icon     "home"
-                :text     "Habitat Layers"
-                :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/habitat-layers])}]
-              [b/button
-               {:icon     "timeline-area-chart"
-                :text     "Bathymetry Layers"
-                :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/bathy-layers])}]
-              [b/button
-               {:icon     "media"
-                :text     "Imagery Layers"
-                :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/imagery-layers])}]
-              [b/button
-               {:icon     "heatmap"
-                :text     "Management Regions Layers"
-                :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/management-layers])}]
-              [b/button
-               {:icon     "more"
-                :text     "Third-Party Layers"
-                :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers])}]]
-             [:div.seamap-drawer-group
-              [:h1.bp3-heading.bp3-icon-cog
-               "Settings"]
-              [b/button
-               {:icon     "undo"
-                :text     "Reset Interface"}]]]})
+(def base-panel
+  {:content
+   [:div
+    [:div.seamap-drawer-group
+     [:h1.bp3-heading.bp3-icon-settings
+      "Controls"]
+     [transect-toggle]
+     [selection-button]
+     [layer-logic-toggle-button]]
+    [:div.seamap-drawer-group
+     [:h1.bp3-heading.bp3-icon-list-detail-view
+      "Catalogue Layers"]
+     [b/button
+      {:icon     "home"
+       :text     "Habitat Layers"
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/layer-panel {:group :habitat :title "Habitat Layers"}])}]
+     [b/button
+      {:icon     "timeline-area-chart"
+       :text     "Bathymetry Layers"
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/layer-panel {:group :bathymetry :title "Bathymetry Layers"}])}]
+     [b/button
+      {:icon     "media"
+       :text     "Imagery Layers"
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/layer-panel {:group :imagery :title "Imagery Layers"}])}]
+     [b/button
+      {:icon     "heatmap"
+       :text     "Management Regions Layers"
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/management-layers])}]
+     [b/button
+      {:icon     "more"
+       :text     "Third-Party Layers"
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers])}]]
+    [:div.seamap-drawer-group
+     [:h1.bp3-heading.bp3-icon-cog
+      "Settings"]
+     [b/button
+      {:icon     "undo"
+       :text     "Reset Interface"
+       :on-click   #(re-frame/dispatch [:re-boot])}]]]})
 
-(defn habitat-layers-panel
-  []
-  {:title   "Habitat Layers"
-   :content "Habitat Layers (WIP)"})
-
-(defn bathy-layers-panel
-  []
-  {:title   "Bathymetry Layers"
-   :content "Bathymetry Layers (WIP)"})
-
-(defn imagery-layers-panel
-  []
-  {:title   "Imagery Layers"
-   :content "Imagery Layers (WIP)"})
+(defn layer-panel
+  [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
+  {:title title
+   :content
+   [:div.sidebar-tab.height-managed
+    [layer-search-filter]
+    [layer-group {:expanded true :title "Layers"} layers active-layers loading-layers error-layers expanded-layers layer-opacities]]})
 
 (defn management-layers-panel
-  []
-  {:title   "Management Regions Layers"
-   :content "Management Regions Layers (WIP)"})
+  [{:keys [layers habitat-layer active-layers loading-layers error-layers expanded-layers layer-opacities]}]
+  {:title "Management Region Layers"
+   :content
+   [:div.sidebar-tab.height-managed
+    [:div.boundary-layers.height-managed.group-scrollable.layer-group
+     [:h1.bp3-heading "Boundary Layers"]
+     (for [layer layers]
+       ^{:key (:layer_name layer)}
+       [layer-card layer {:active?   (some #{layer} active-layers)
+                          :loading?  (loading-layers layer)
+                          :errors?   (error-layers layer)
+                          :expanded? (expanded-layers layer)
+                          :opacity   (layer-opacities layer)}])]
+    [:div
+     [:label.bp3-label.height-managed
+      "Habitat layer for region statistics (only one active layer may be selected at a time):"
+      [b/popover {:position           b/BOTTOM
+                  :class         "full-width"
+                  :popover-class-name "bp3-minimal"
+                  :content            (reagent/as-element
+                                       [b/menu
+                                        (for [layer (filter #(= :habitat (:category %)) active-layers)]
+                                          ^{:key (:layer_name layer)}
+                                          [b/menu-item {:text     (:name layer)
+                                                        :on-click #(re-frame/dispatch [:map.region-stats/select-habitat layer])}])])}
+       [b/button {:text       (get habitat-layer :name "Select Habitat Layer for statistics...")
+                  :class "bp3-fill bp3-text-overflow-ellipsis"
+                  :intent     (when-not habitat-layer b/INTENT-WARNING)
+                  :right-icon "caret-down"}]]]
+     [:div.bp3-callout.bp3-icon-help.height-managed
+      [:h5 "Hints"]
+      [:p "Choose a management boundary and select a habitat layer for
+    spatial summaries. Note that only visible habitat layers will be
+    available for selection."]
+
+      [:p "Click on a management boundary (on the map) to generate
+    habitat statistics for that region, and to download the subsetted
+    benthic habitat data."]]]]})
 
 (defn thirdparty-layers-panel
-  []
+  [{:keys [layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
   {:title   "Third-Party Layers"
-   :content "Third-Party Layers (WIP)"})
+   :content
+   [:div.sidebar-tab.height-managed
+    [layer-search-filter]
+    [layer-catalogue layers
+     {:active-layers active-layers
+      :loading-fn    loading-layers
+      :error-fn      error-layers
+      :expanded-fn   expanded-layers
+      :opacity-fn    layer-opacities}]]})
 
-(def seamap-drawer-panels
-  {:drawer-panel/habitat-layers    habitat-layers-panel
-   :drawer-panel/bathy-layers      bathy-layers-panel
-   :drawer-panel/imagery-layers    imagery-layers-panel
-   :drawer-panel/management-layers management-layers-panel
-   :drawer-panel/thirdparty-layers thirdparty-layers-panel})
+(defn drawer-panel-selection
+  [panel map-layers region-stats]
+  (let [{:keys [panel props]} panel
+        {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers
+        {:keys [habitat-layer]} region-stats]
+    (case panel
+      :drawer-panel/layer-panel
+      (layer-panel
+       (merge
+        props
+        {:layers          ((:group props) groups)
+         :active-layers   active-layers
+         :loading-layers  loading-layers
+         :error-layers    error-layers
+         :expanded-layers expanded-layers
+         :layer-opacities layer-opacities}))
+
+      :drawer-panel/management-layers
+      (management-layers-panel
+       (merge
+        props
+        {:layers          (:boundaries groups)
+         :habitat-layer   habitat-layer
+         :active-layers   active-layers
+         :loading-layers  loading-layers
+         :error-layers    error-layers
+         :expanded-layers expanded-layers
+         :layer-opacities layer-opacities}))
+      :drawer-panel/thirdparty-layers
+      (thirdparty-layers-panel
+       (merge
+        props
+        {:layers          (:third-party groups)
+         :habitat-layer   habitat-layer
+         :active-layers   active-layers
+         :loading-layers  loading-layers
+         :error-layers    error-layers
+         :expanded-layers expanded-layers
+         :layer-opacities layer-opacities})))))
+
+(defn drawer-panel-stack
+  []
+  (let [map-layers @(re-frame/subscribe [:map/layers])
+        region-stats @(re-frame/subscribe [:map/region-stats])
+        panels @(re-frame/subscribe [:drawer-panel-stack/panels])
+        display-panels
+        (map #(drawer-panel-selection % map-layers region-stats) panels)]
+    [components/panel-stack
+     {:panels (concat [base-panel] display-panels)
+      :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
 
 (defn seamap-drawer
   []
-  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])
-        panels @(re-frame/subscribe [:drawer-panel-stack/panels])
-        display-panels
-        (concat [(base-panel)]
-                (map
-                 (fn [{:keys [panel props]}]
-                   ((panel seamap-drawer-panels) props))
-                 panels))]
+  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])]
     [components/drawer
      {:title
       [:div.seamap-drawer-header
@@ -713,10 +794,7 @@
       :size     "460px"
       :isOpen   open?
       :onClose  #(re-frame/dispatch [:seamap-drawer/close])}
-     [:div.seamap-drawer
-      [components/panel-stack
-       {:panels display-panels
-        :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]]]))
+     [drawer-panel-stack]]))
 
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
