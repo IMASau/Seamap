@@ -24,13 +24,14 @@
       :onClose on-close}]))
 
 (defn drawer
-  [{:keys [title position size isOpen onClose]} & children]
+  [{:keys [title position size isOpen onClose hasBackdrop]} & children]
   (let [title (reagent/as-element title)
         children (reagent/as-element (into [:div] children))]
    [ui-controls/Drawer
-    {:title    title
-     :position position
-     :size     size
-     :children children
-     :isOpen   isOpen
-     :onClose  onClose}]))
+    {:title       title
+     :position    position
+     :size        size
+     :children    children
+     :isOpen      isOpen
+     :onClose     onClose
+     :hasBackdrop hasBackdrop}]))
