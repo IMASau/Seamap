@@ -11,33 +11,29 @@
 (s/def :map/zoom integer?)
 (s/def :map/zoom-cutover integer?)
 
-(s/def :map.layer/id integer?)
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
 (s/def :map.layer/legend_url string?)
 (s/def :map.layer/layer_name string?)
 (s/def :map.layer/detail_layer (s/nilable string?))
 (s/def :map.layer/category keyword?)
-(s/def :map.layer/attribution string?)
-(s/def :map.layer/sort_key (s/nilable string?))
-(s/def :map.layer/info_format_type integer?)
-
-(s/def :map.layer.bb/west  float?)
-(s/def :map.layer.bb/south float?)
-(s/def :map.layer.bb/east  float?)
-(s/def :map.layer.bb/north float?)
-(s/def :map.layer/bounding_box (s/keys :req-un [:map.layer.bb/west
-                                                :map.layer.bb/south
-                                                :map.layer.bb/east
-                                                :map.layer.bb/north]))
+(s/def :map.layer.bounding_box/west  float?)
+(s/def :map.layer.bounding_box/south float?)
+(s/def :map.layer.bounding_box/east  float?)
+(s/def :map.layer.bounding_box/north float?)
+(s/def :map.layer/bounding_box
+  (s/keys :req-un [:map.layer.bounding_box/west
+                   :map.layer.bounding_box/south
+                   :map.layer.bounding_box/east
+                   :map.layer.bounding_box/north]))
 (s/def :map.layer/metadata_url string?)
 (s/def :map.layer/description string?)
 (s/def :map.layer/server_type keyword?)
+(s/def :map.layer/info_format_type integer?)
 
 (s/def :map.layer-group/id integer?)
 (s/def :map.layer-group/name string?)
 (s/def :map.layer-group/sort_key (s/nilable string?))
-
 (s/def :map/base-layer-group
   (s/keys :req-un [:map.layer-group/id
                    :map.layer-group/name
@@ -60,11 +56,11 @@
                    :map.layer/info_format_type]))
 
 
-(s/def :map.base-layer/id :map.layer/id)
+(s/def :map.base-layer/id integer?)
 (s/def :map.base-layer/name :map.layer/name)
 (s/def :map.base-layer/server_url :map.layer/server_url)
-(s/def :map.base-layer/attribution :map.layer/attribution)
-(s/def :map.base-layer/sort_key :map.layer/sort_key)
+(s/def :map.base-layer/attribution string?)
+(s/def :map.base-layer/sort_key (s/nilable string?))
 (s/def :map.base-layer/layer_group (s/nilable integer?))
 (s/def :map/base-layer
   (s/keys :req-un [:map.base-layer/id
