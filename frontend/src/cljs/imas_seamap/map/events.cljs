@@ -63,7 +63,7 @@
                     :WIDTH         (:width img-size)
                     :HEIGHT        (:height img-size)
                     :BBOX          (bounds->str img-bounds)
-                    :FEATURE_COUNT 5
+                    :FEATURE_COUNT 10
                     :STYLES        ""
                     :X             50
                     :Y             50
