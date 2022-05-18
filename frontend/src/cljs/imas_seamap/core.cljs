@@ -142,7 +142,7 @@
     :ui.sidebar/open                      [events/sidebar-open]
     :ui.sidebar/close                     events/sidebar-close
     :ui.sidebar/toggle                    events/sidebar-toggle
-    :imas-seamap.components/selection-list-reorder events/selection-list-reorder
+    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
     :seamap-drawer/toggle                 events/seamap-drawer-toggle
     :seamap-drawer/open                   events/seamap-drawer-open
     :seamap-drawer/close                  events/seamap-drawer-close

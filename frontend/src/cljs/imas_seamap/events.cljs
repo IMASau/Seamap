@@ -457,12 +457,14 @@
       (assoc-in [:map :controls :download :selecting] false)))
 
 (defn selection-list-reorder
-  [db [_ src-idx dst-idx data-path]]
+  [{:keys [db]} [_ src-idx dst-idx data-path]]
   (let [data (get-in db data-path)
         element (get data src-idx)
         removed (into [] (concat (subvec data 0 src-idx) (subvec data (+ src-idx 1) (count data))))
-        readded (into [] (concat (subvec removed 0 dst-idx) [element] (subvec removed dst-idx (count removed))))]
-    (assoc-in db data-path readded)))
+        readded (into [] (concat (subvec removed 0 dst-idx) [element] (subvec removed dst-idx (count removed))))
+        db (assoc-in db data-path readded)]
+    {:db db
+     :put-hash (encode-state db)}))
 
 (defn seamap-drawer-toggle [db _]
   (update-in db [:display :seamap-drawer] not))
