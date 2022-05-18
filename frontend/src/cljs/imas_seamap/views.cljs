@@ -930,5 +930,6 @@
       {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
      [welcome-dialogue]
      [info-card]
-     [loading-display]]))
+     [loading-display]
+     [seamap-drawer]]))
 
