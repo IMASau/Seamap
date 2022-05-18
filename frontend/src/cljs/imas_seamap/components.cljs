@@ -4,16 +4,17 @@
 (ns imas-seamap.components
   (:require [imas-seamap.interop.ui-controls :as ui-controls]
             [reagent.core :as reagent]
-            [re-frame.core :as re-frame]
-            [imas-seamap.blueprint :as b]))
+            [re-frame.core :as re-frame]))
 
 (defn items-selection-list
-  [{:keys [items disabled data-path]}]
+  [{:keys [items disabled data-path is-reversed]}]
   (let [items (map (fn [{:keys [key content]}] {:key key :content (reagent/as-element content)}) items)]
+    (js/console.log "is-reversed")
+    (js/console.log is-reversed)
    [ui-controls/ItemsSelectionList
-    {:items items
+    {:items (if is-reversed (reverse items) items)
      :disabled disabled
-     :onReorder (fn [src-idx dst-idx] (re-frame/dispatch [::selection-list-reorder src-idx dst-idx data-path]))}]))
+     :onReorder (fn [src-idx dst-idx] (re-frame/dispatch [::selection-list-reorder (if is-reversed (- (count items) src-idx 1) src-idx) (if is-reversed (- (count items) dst-idx 1) dst-idx) data-path]))}]))
 
 (defn panel-stack
   [{:keys [panels on-close]}]
