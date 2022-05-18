@@ -340,6 +340,7 @@
 
 (defn transect-drawing-start [db _]
   (-> db
+      (assoc-in [:display :seamap-drawer] false)
       (assoc-in [:map :controls :transect] true)
       (assoc-in [:transect :query] nil)))
 
