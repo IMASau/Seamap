@@ -21,7 +21,6 @@
 (s/def :map.layer/attribution string?)
 (s/def :map.layer/sort_key (s/nilable string?))
 (s/def :map.layer/info_format_type integer?)
-(s/def :map.layer/layer_group (s/nilable integer?))
 
 (s/def :map.layer.bb/west  float?)
 (s/def :map.layer.bb/south float?)
@@ -60,25 +59,32 @@
                    :map.layer/server_type
                    :map.layer/info_format_type]))
 
-(s/def :map/base-layer
-  (s/keys :req-un [:map.layer/id
-                   :map.layer/name
-                   :map.layer/server_url
-                   :map.layer/attribution
-                   :map.layer/sort_key
-                   :map.layer/layer_group]))
 
-(s/def :map.layer/layers (s/coll-of :map/base-layer
+(s/def :map.base-layer/id :map.layer/id)
+(s/def :map.base-layer/name :map.layer/name)
+(s/def :map.base-layer/server_url :map.layer/server_url)
+(s/def :map.base-layer/attribution :map.layer/attribution)
+(s/def :map.base-layer/sort_key :map.layer/sort_key)
+(s/def :map.base-layer/layer_group (s/nilable integer?))
+(s/def :map/base-layer
+  (s/keys :req-un [:map.base-layer/id
+                   :map.base-layer/name
+                   :map.base-layer/server_url
+                   :map.base-layer/attribution
+                   :map.base-layer/sort_key
+                   :map.base-layer/layer_group]))
+
+(s/def :map.base-layer/layers (s/coll-of :map/base-layer
                                     :kind vector?))
 
 (s/def :map/grouped-base-layer
-  (s/keys :req-un [:map.layer/id
-                   :map.layer/name
-                   :map.layer/server_url
-                   :map.layer/attribution
-                   :map.layer/sort_key
-                   :map.layer/layer_group
-                   :map.layer/layers]))
+  (s/keys :req-un [:map.base-layer/id
+                   :map.base-layer/name
+                   :map.base-layer/server_url
+                   :map.base-layer/attribution
+                   :map.base-layer/sort_key
+                   :map.base-layer/layer_group
+                   :map.base-layer/layers]))
 
 (s/def :map/active-base-layer :map/grouped-base-layer)
 
