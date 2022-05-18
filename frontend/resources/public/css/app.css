@@ -809,6 +809,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-right: 6px;
 }
 
+/* Allow interactivity with underneath elements while drawer is open */
 .bp3-overlay.bp3-overlay-open.bp3-overlay-container {
     width: 0;
     height: 0;
