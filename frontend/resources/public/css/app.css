@@ -808,3 +808,8 @@ input.leaflet-control-layers-selector[type="radio"] {
 .seamap-drawer-group h1::before {
     margin-right: 6px;
 }
+
+.bp3-overlay.bp3-overlay-open.bp3-overlay-container {
+    width: 0;
+    height: 0;
+}
