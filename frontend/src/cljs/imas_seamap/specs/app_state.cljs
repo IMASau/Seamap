@@ -30,18 +30,6 @@
 (s/def :map.layer/description string?)
 (s/def :map.layer/server_type keyword?)
 (s/def :map.layer/info_format_type integer?)
-
-(s/def :map.layer-group/id integer?)
-(s/def :map.layer-group/name string?)
-(s/def :map.layer-group/sort_key (s/nilable string?))
-(s/def :map/base-layer-group
-  (s/keys :req-un [:map.layer-group/id
-                   :map.layer-group/name
-                   :map.layer-group/sort_key]))
-
-(s/def :map/base-layer-groups (s/coll-of :map/base-layer-group
-                                         :kind vector?))
-
 (s/def :map/layer
   (s/keys :req-un [:map.layer/name
                    :map.layer/server_url
@@ -72,6 +60,17 @@
 
 (s/def :map.base-layer/layers (s/coll-of :map/base-layer
                                     :kind vector?))
+
+
+(s/def :map.base-layer-group/id :map.base-layer/id)
+(s/def :map.base-layer-group/name :map.layer/name)
+(s/def :map.base-layer-group/sort_key :map.base-layer/sort_key)
+(s/def :map/base-layer-group
+  (s/keys :req-un [:map.base-layer-group/id
+                   :map.base-layer-group/name
+                   :map.base-layer-group/sort_key]))
+(s/def :map/base-layer-groups (s/coll-of :map/base-layer-group
+                                         :kind vector?))
 
 
 (s/def :map.grouped-base-layer/id :map.base-layer/id)
