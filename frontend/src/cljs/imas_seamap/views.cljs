@@ -791,10 +791,11 @@
       [:div.seamap-drawer-header
        [:img
         {:src "img/Seamap2_V2_RGB.png"}]]
-      :position "left"
-      :size     "460px"
-      :isOpen   open?
-      :onClose  #(re-frame/dispatch [:seamap-drawer/close])}
+      :position    "left"
+      :size        "460px"
+      :isOpen      open?
+      :onClose     #(re-frame/dispatch [:seamap-drawer/close])
+      :hasBackdrop false}
      [drawer-panel-stack]]))
 
 (defn seamap-sidebar []
