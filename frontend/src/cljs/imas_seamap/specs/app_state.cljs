@@ -77,14 +77,23 @@
 (s/def :map.base-layer/layers (s/coll-of :map/base-layer
                                     :kind vector?))
 
+
+(s/def :map.grouped-base-layer/id :map.base-layer/id)
+(s/def :map.grouped-base-layer/name :map.base-layer/name)
+(s/def :map.grouped-base-layer/server_url :map.base-layer/server_url)
+(s/def :map.grouped-base-layer/attribution :map.base-layer/attribution)
+(s/def :map.grouped-base-layer/sort_key :map.base-layer/sort_key)
+(s/def :map.grouped-base-layer/layer_group :map.base-layer/layer_group)
+(s/def :map.grouped-base-layer/layers (s/coll-of :map/base-layer
+                                                 :kind vector?))
 (s/def :map/grouped-base-layer
-  (s/keys :req-un [:map.base-layer/id
-                   :map.base-layer/name
-                   :map.base-layer/server_url
-                   :map.base-layer/attribution
-                   :map.base-layer/sort_key
-                   :map.base-layer/layer_group
-                   :map.base-layer/layers]))
+  (s/keys :req-un [:map.grouped-base-layer/id
+                   :map.grouped-base-layer/name
+                   :map.grouped-base-layer/server_url
+                   :map.grouped-base-layer/attribution
+                   :map.grouped-base-layer/sort_key
+                   :map.grouped-base-layer/layer_group
+                   :map.grouped-base-layer/layers]))
 
 (s/def :map/active-base-layer :map/grouped-base-layer)
 
