@@ -9,8 +9,6 @@
 (defn items-selection-list
   [{:keys [items disabled data-path is-reversed]}]
   (let [items (map (fn [{:keys [key content]}] {:key key :content (reagent/as-element content)}) items)]
-    (js/console.log "is-reversed")
-    (js/console.log is-reversed)
    [ui-controls/ItemsSelectionList
     {:items (if is-reversed (reverse items) items)
      :disabled disabled
