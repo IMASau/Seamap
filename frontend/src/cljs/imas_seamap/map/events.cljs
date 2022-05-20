@@ -180,13 +180,15 @@
         (assoc db :feature (get-in db [:feature-query :candidate])) ;; If this is the last response expected, update the displayed feature
         db))))
 
-(defn got-feature-info-error [db [_ _request_id priority _]]
-  (let [db (update-in db [:feature-query :response-remain] dec)
-        {:keys [response-priority response-remain]} (:feature-query db)
-        higher-priority? (< priority response-priority)]
-    (if (and (zero? response-remain) higher-priority?)
-      (assoc-in db [:feature :status] :feature-info/error)
-      db)))
+(defn got-feature-info-error [db [_ request-id priority _ _ _]]
+  (if (not= request-id (get-in db [:feature-query :request-id]))
+    db ; Ignore late responses to old clicks
+    (let [db (update-in db [:feature-query :response-remain] dec)
+          {:keys [response-priority response-remain]} (:feature-query db)
+          higher-priority? (< priority response-priority)]
+      (if (and (zero? response-remain) higher-priority?)
+        (assoc-in db [:feature :status] :feature-info/error)
+        db))))
 
 (defn destroy-popup [db _]
   (assoc db :feature nil))
