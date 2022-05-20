@@ -17,20 +17,19 @@
 (s/def :map.layer/layer_name string?)
 (s/def :map.layer/detail_layer (s/nilable string?))
 (s/def :map.layer/category keyword?)
-(s/def :map.layer/attribution string?)
-(s/def :map.layer/info_format_type integer?)
-
-(s/def :map.layer.bb/west  float?)
-(s/def :map.layer.bb/south float?)
-(s/def :map.layer.bb/east  float?)
-(s/def :map.layer.bb/north float?)
-(s/def :map.layer/bounding_box (s/keys :req-un [:map.layer.bb/west
-                                                :map.layer.bb/south
-                                                :map.layer.bb/east
-                                                :map.layer.bb/north]))
+(s/def :map.layer.bounding_box/west  float?)
+(s/def :map.layer.bounding_box/south float?)
+(s/def :map.layer.bounding_box/east  float?)
+(s/def :map.layer.bounding_box/north float?)
+(s/def :map.layer/bounding_box
+  (s/keys :req-un [:map.layer.bounding_box/west
+                   :map.layer.bounding_box/south
+                   :map.layer.bounding_box/east
+                   :map.layer.bounding_box/north]))
 (s/def :map.layer/metadata_url string?)
 (s/def :map.layer/description string?)
 (s/def :map.layer/server_type keyword?)
+(s/def :map.layer/info_format_type integer?)
 (s/def :map/layer
   (s/keys :req-un [:map.layer/name
                    :map.layer/server_url
@@ -43,19 +42,69 @@
                    :map.layer/description
                    :map.layer/server_type
                    :map.layer/info_format_type]))
+
+
+(s/def :map.base-layer/id integer?)
+(s/def :map.base-layer/name :map.layer/name)
+(s/def :map.base-layer/server_url :map.layer/server_url)
+(s/def :map.base-layer/attribution string?)
+(s/def :map.base-layer/sort_key (s/nilable string?))
+(s/def :map.base-layer/layer_group (s/nilable integer?))
 (s/def :map/base-layer
-  (s/keys :req-un [:map.layer/name
-                   :map.layer/server_url
-                   :map.layer/attribution]))
-(s/def :map/active-base-layer :map/base-layer)
+  (s/keys :req-un [:map.base-layer/id
+                   :map.base-layer/name
+                   :map.base-layer/server_url
+                   :map.base-layer/attribution
+                   :map.base-layer/sort_key
+                   :map.base-layer/layer_group]))
+
+(s/def :map.base-layer/layers (s/coll-of :map/base-layer
+                                    :kind vector?))
+
+
+(s/def :map.base-layer-group/id :map.base-layer/id)
+(s/def :map.base-layer-group/name :map.layer/name)
+(s/def :map.base-layer-group/sort_key :map.base-layer/sort_key)
+(s/def :map/base-layer-group
+  (s/keys :req-un [:map.base-layer-group/id
+                   :map.base-layer-group/name
+                   :map.base-layer-group/sort_key]))
+(s/def :map/base-layer-groups (s/coll-of :map/base-layer-group
+                                         :kind vector?))
+
+
+(s/def :map.grouped-base-layer/id :map.base-layer/id)
+(s/def :map.grouped-base-layer/name :map.base-layer/name)
+(s/def :map.grouped-base-layer/server_url :map.base-layer/server_url)
+(s/def :map.grouped-base-layer/attribution :map.base-layer/attribution)
+(s/def :map.grouped-base-layer/sort_key :map.base-layer/sort_key)
+(s/def :map.grouped-base-layer/layer_group :map.base-layer/layer_group)
+(s/def :map.grouped-base-layer/layers (s/coll-of :map/base-layer
+                                                 :kind vector?))
+(s/def :map/grouped-base-layer
+  (s/keys :req-un [:map.grouped-base-layer/id
+                   :map.grouped-base-layer/name
+                   :map.grouped-base-layer/server_url
+                   :map.grouped-base-layer/attribution
+                   :map.grouped-base-layer/sort_key
+                   :map.grouped-base-layer/layer_group
+                   :map.grouped-base-layer/layers]))
+
+(s/def :map/active-base-layer :map/grouped-base-layer)
 
 (s/def :map/layers (s/coll-of :map/layer))
 
 (s/def :map/base-layers (s/coll-of :map/base-layer
                                    :kind vector?))
 
+(s/def :map/grouped-base-layers(s/coll-of :map/grouped-base-layer
+                                          :kind vector?))
+
 (s/def :map/active-layers (s/coll-of :map/layer
                                      :kind vector?))
+
+(s/def :map/hidden-layers (s/coll-of :map/layer
+                                     :kind set?))
 
 
 (s/def :map.layer-group.priority/layer integer?)
@@ -118,6 +167,7 @@
                    :map/base-layers
                    :map/active-base-layer
                    :map/active-layers
+                   :map/hidden-layers
                    :map/groups
                    :map/organisations
                    :map/priorities
@@ -165,10 +215,24 @@
 (s/def :sidebar/collapsed boolean?)
 (s/def :sidebar/selected string?)
 (s/def :display/sidebar (s/keys :req-un [:sidebar/collapsed :sidebar/selected]))
-(s/def ::display (s/keys :req-un [:display/catalogue
-                                  :display/help-overlay
-                                  :display/welcome-overlay
-                                  :display/sidebar]))
+;;; drawer
+(s/def :display/seamap-drawer boolean?)
+(s/def :display.drawer-panel/panel #{:drawer-panel/layer-panel
+                                     :drawer-panel/management-layers
+                                     :drawer-panel/thirdparty-layers})
+(s/def :display.drawer-panel/props (s/nilable map?))
+(s/def :display/drawer-panel
+  (s/keys :req-un [:display.drawer-panel/panel
+                   :display.drawer-panel/props]))
+(s/def :display/drawer-panels (s/coll-of :display/drawer-panel
+                                         :kind vector?))
+(s/def ::display
+  (s/keys :req-un [:display/catalogue
+                   :display/help-overlay
+                   :display/welcome-overlay
+                   :display/sidebar
+                   :display/seamap-drawer
+                   :display/drawer-panels]))
 
 (s/def :filters/layers       string?)
 (s/def :filters/other-layers string?)
