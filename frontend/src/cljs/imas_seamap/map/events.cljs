@@ -89,7 +89,7 @@
         img-bounds    (bounds-for-zoom point size bounds img-size)
         ;; Note, top layer, last in the list, must be first in our search string:
         request-id    (gensym)
-          had-insecure? (->> db :map :active-layers (some #(is-insecure? (:server_url %))))
+        had-insecure? (->> db :map :active-layers (some #(is-insecure? (:server_url %))))
         info-format   (get-layers-info-format active-layers)
         db            (if had-insecure?
                         {:db (assoc db :feature {:status :feature-info/none-queryable :location point})} ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
@@ -161,22 +161,24 @@
 
 (defn got-feature-info [db [_ request-id priority point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
-    db                           ; Ignore late responses to old clicks
-    (let [feature-info (case info-format
+    db ; Ignore late responses to old clicks
+    (let [db (update-in db [:feature-query :response-remain] dec)
+          {:keys [response-remain had-insecure? candidate]} (:feature-query db)
+
+          feature-info (case info-format
                          "text/html" (feature-info-html response)
                          "application/json" (feature-info-json response)
                          (feature-info-none))
-          db' (update-in db [:feature-query :response-remain] dec)
-          {:keys [response-priority response-remain candidate had-insecure?]} (:feature-query db')
-          higher-priority? (< priority response-priority)
-          candidate' (merge {:location point :had-insecure? had-insecure?} feature-info)]
-      (cond-> db'
-          ;; If this response has a higher priority, update the response candidate
-        higher-priority?
-        (assoc-in [:feature-query :candidate] candidate')
-          ;; If this is the last response expected, update the displayed feature
-        (zero? response-remain)
-        (assoc :feature (if higher-priority? candidate' candidate))))))
+          feature-info (update feature-info :info str (:info candidate)) ;; Merge existing candidate info into retrieved info
+
+          candidate (merge candidate {:location point :had-insecure? had-insecure?} feature-info)
+          candidate (if (seq (:info candidate)) (dissoc candidate :status) candidate) ;; Remove "error" status if current candidate has info
+
+          db (assoc-in db [:feature-query :candidate] candidate)]
+      
+      (if (zero? response-remain)
+        (assoc db :feature (get-in db [:feature-query :candidate])) ;; If this is the last response expected, update the displayed feature
+        db))))
 
 (defn got-feature-info-error [db [_ _request_id priority _]]
   (let [db (update-in db [:feature-query :response-remain] dec)
