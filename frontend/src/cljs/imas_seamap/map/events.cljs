@@ -184,22 +184,22 @@
 (defn got-feature-info [db [_ request-id point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
-    (let [db (update-in db [:feature-query :response-remain] dec)
-          db (update-in db [:feature-query :responses] conj {:response response :info-format info-format})
-          response-remain (get-in db [:feature-query :response-remain])]
-      (if (zero? response-remain)
-        (display-feature-info db point) ;; If this is the last response expected, update the displayed feature
-        db))))
+    (-> db
+        (update-in [:feature-query :response-remain] dec)
+        (update-in [:feature-query :responses] conj {:response response :info-format info-format})
+        (cond->
+          (zero? (dec (get-in db [:feature-query :response-remain])))
+          (display-feature-info point))))) ;; If this is the last response expected, update the displayed feature
 
 (defn got-feature-info-error [db [_ request-id point _]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
-    (let [db (update-in db [:feature-query :response-remain] dec)
-          db (update-in db [:feature-query :responses] conj nil)
-          response-remain (get-in db [:feature-query :response-remain])]
-      (if (zero? response-remain)
-        (display-feature-info db point) ;; If this is the last response expected, update the displayed feature
-        db))))
+    (-> db
+        (update-in [:feature-query :response-remain] dec)
+        (update-in [:feature-query :responses] conj nil)
+        (cond->
+         (zero? (dec (get-in db [:feature-query :response-remain])))
+          (display-feature-info point))))) ;; If this is the last response expected, update the displayed feature
 
 (defn destroy-popup [db _]
   (assoc db :feature nil))
