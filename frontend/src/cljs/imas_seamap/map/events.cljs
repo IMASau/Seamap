@@ -94,7 +94,6 @@
                           {:request-id        request-id
                            :response-remain   (count by-server)
                            :had-insecure?     had-insecure?
-                           :candidate         nil
                            :responses         []}
                           :feature
                           {:status   :feature-info/waiting
@@ -122,7 +121,6 @@
                     :on-failure      [:map/got-featureinfo-err request-id point]}
        :db         (assoc db :feature-query {:request-id        request-id
                                              :response-remain   1
-                                             :candidate         nil
                                              :responses         []}
                           :feature       {:status   :feature-info/waiting
                                           :location point})})))
