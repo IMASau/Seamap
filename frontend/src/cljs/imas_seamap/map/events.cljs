@@ -73,7 +73,7 @@
          :params          params
          :response-format (ajax/text-response-format)
          :on-success      [:map/got-featureinfo request-id point info-format]
-         :on-failure      [:map/got-featureinfo-err request-id]}))))
+         :on-failure      [:map/got-featureinfo-err request-id point]}))))
 
 (defn get-feature-info [{:keys [db] :as _context} [_ {:keys [size bounds] :as _props} {:keys [x y] :as point}]]
   (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))) (remove #(some #{%} (get-in db [:map :hidden-layers]))))
@@ -94,7 +94,8 @@
                           {:request-id        request-id
                            :response-remain   (count by-server)
                            :had-insecure?     had-insecure?
-                           :candidate         nil}
+                           :candidate         nil
+                           :responses         []}
                           :feature
                           {:status   :feature-info/waiting
                            :location point})})]
@@ -118,10 +119,11 @@
                                       :y        y}
                     :response-format (ajax/text-response-format)
                     :on-success      [:map/got-featureinfo request-id point nil]
-                    :on-failure      [:map/got-featureinfo-err request-id]}
+                    :on-failure      [:map/got-featureinfo-err request-id point]}
        :db         (assoc db :feature-query {:request-id        request-id
                                              :response-remain   1
-                                             :candidate         nil}
+                                             :candidate         nil
+                                             :responses         []}
                           :feature       {:status   :feature-info/waiting
                                           :location point})})))
 
@@ -150,37 +152,53 @@
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))
 
+(defn display-feature-info [db point]
+  (let [responses      (get-in db [:feature-query :responses])
+        response-infos (map
+                        (fn [response]
+                          (if response
+                            (let [{:keys [response info-format]} response]
+                              (case info-format
+                                "text/html" (feature-info-html response)
+                                "application/json" (feature-info-json response)
+                                (feature-info-none)))
+                            {:status :feature-info/empty}))
+                        responses)
+        response-info  (reduce
+                        (fn [acc response-info]
+                          (cond-> acc
+                            (:info response-info)
+                            (update :info str (:info response-info))
+                            (:status response-info)
+                            (assoc :status (:status response-info))
+                            (or (:info response-info) (:info acc))
+                            (dissoc :status)))
+                        {} response-infos)
+        had-insecure?  (get-in db [:feature-query :had-insecure?])
+        candidate      (merge
+                        {:location point
+                         :had-insecure? had-insecure?}
+                        response-info)]
+        (assoc db :feature candidate)))
+
 (defn got-feature-info [db [_ request-id point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
     (let [db (update-in db [:feature-query :response-remain] dec)
-          {:keys [response-remain had-insecure? candidate]} (:feature-query db)
-
-          feature-info (case info-format
-                         "text/html" (feature-info-html response)
-                         "application/json" (feature-info-json response)
-                         (feature-info-none))
-          feature-info (update feature-info :info str (:info candidate)) ;; Merge existing candidate info into retrieved info
-
-          candidate (merge candidate {:location point :had-insecure? had-insecure?} feature-info)
-          candidate (if (seq (:info candidate)) (dissoc candidate :status) candidate) ;; Remove "error" status if current candidate has info
-
-          db (assoc-in db [:feature-query :candidate] candidate)]
-      
+          db (update-in db [:feature-query :responses] conj {:response response :info-format info-format})
+          response-remain (get-in db [:feature-query :response-remain])]
       (if (zero? response-remain)
-        (assoc db :feature (get-in db [:feature-query :candidate])) ;; If this is the last response expected, update the displayed feature
+        (display-feature-info db point) ;; If this is the last response expected, update the displayed feature
         db))))
 
-(defn got-feature-info-error [db [_ request-id _]]
+(defn got-feature-info-error [db [_ request-id point _]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
     (let [db (update-in db [:feature-query :response-remain] dec)
-          {:keys [response-remain candidate]} (:feature-query db)
-
-          candidate (if (seq (:info candidate)) candidate (assoc candidate :status :feature-info/error)) ;; Add "error" status if current candidate has no info
-          db (assoc-in db [:feature-query :candidate] candidate)]
+          db (update-in db [:feature-query :responses] conj nil)
+          response-remain (get-in db [:feature-query :response-remain])]
       (if (zero? response-remain)
-        (assoc db :feature (get-in db [:feature-query :candidate])) ;; If this is the last response expected, update the displayed feature
+        (display-feature-info db point) ;; If this is the last response expected, update the displayed feature
         db))))
 
 (defn destroy-popup [db _]
@@ -204,7 +222,8 @@
       ;; If category is contours, turn it into bathymetry but with a contours attribute set:
       (as-> lyr (if (= (:category lyr) :contours) (assoc lyr :contours true) lyr))
       (update :category    #(if (= % :contours) :bathymetry %))
-      (update :server_type (comp keyword string/lower-case))))
+      (update :server_type (comp keyword string/lower-case))
+      (update :server_url #(if (= % "https://geoserver-dev.imas.utas.edu.au/geoserver/wms") "https://geoserver.imas.utas.edu.au/geoserver/wms" %))))
 
 (defn process-layers [layers]
   (mapv process-layer layers))
