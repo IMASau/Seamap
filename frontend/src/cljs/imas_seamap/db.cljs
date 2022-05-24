@@ -59,4 +59,4 @@
                      :priority-url         (str api-url-base "priorities/")
                      :region-stats-url     (str api-url-base "habitat/regions/")
                      :descriptor-url       (str api-url-base "descriptors/")
-                     :serialized-hashstate-url (str api-url-base "serialized-hashstate/")}})
+                     :serialized-hashstate-url (str api-url-base "serializedhashstates/")}})
