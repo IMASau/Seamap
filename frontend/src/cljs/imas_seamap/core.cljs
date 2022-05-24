@@ -70,7 +70,9 @@
     :help-layer/close                     events/help-layer-close
     :welcome-layer/open                   [events/welcome-layer-open (re-frame/inject-cofx :cookie/get [:seen-welcome])]
     :welcome-layer/close                  [events/welcome-layer-close]
-    :copy-share-url                       [events/copy-share-url]
+    :create-save-state                    [events/create-save-state]
+    :create-save-state-success            [events/create-save-state-success]
+    :create-save-state-failure            [events/create-save-state-failure]
     :info/show-message                    [events/show-message]
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]

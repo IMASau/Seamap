@@ -899,7 +899,7 @@
        [:re-boot])
       (keydown-wrapper
        {:label "Copy Shareable URL"     :combo "c"}
-       [:copy-share-url])
+       [:create-save-state])
       (keydown-wrapper
        {:label "Show Help Overlay"      :combo "h"}
        [:help-layer/toggle])])))

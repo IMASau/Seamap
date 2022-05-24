@@ -445,10 +445,31 @@
   (. b/toaster clear)
   db)
 
-(defn copy-share-url [_ctx _]
+(defn create-save-state [{:keys [db]} _]
   (copy-text js/location.href)
-  {:message ["URL copied to clipboard!"
-             {:intent b/INTENT-SUCCESS :icon "clipboard"}]})
+  (let [create-save-state-url (get-in db [:config :create-save-state-url])]
+    {:message    ["Creating save state..."
+                  {:intent b/INTENT-NONE}]
+     :http-xhrio [{:method          :post
+                   :uri             create-save-state-url
+                   :params          {:hashstate (encode-state db)}
+                   :format          (ajax/json-request-format)
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:create-save-state-success]
+                   :on-failure      [:create-save-state-failure]}]}))
+
+(defn create-save-state-success
+  [{:keys [db]} [_ response]]
+  (let [url (str js/location.origin js/location.pathname "#view=" (:id response))]
+    (copy-text url)
+    {:db db
+     :message ["URL copied to clipboard!"
+               {:intent b/INTENT-SUCCESS :icon "clipboard"}]}))
+
+(defn create-save-state-failure
+  [_ _]
+  {:message ["Failed to generate URL!"
+             {:intent b/INTENT-WARNING :icon "warning-sign"}]})
 
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]
   {:db       (assoc-in db [:display :catalogue :tab] tabid)
