@@ -60,6 +60,8 @@
     :re-boot                              events/re-boot
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
+    :get-serialized-hashstate             [events/get-serialized-hashstate]
+    :got-serialized-hashstate             events/got-serialized-hashstate
     :initialise-db                        [events/initialise-db]
     :initialise-layers                    [events/initialise-layers]
     :loading-failed                       events/loading-failed

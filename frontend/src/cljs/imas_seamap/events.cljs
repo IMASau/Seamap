@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state]]
             [imas-seamap.map.utils :as mutils :refer [applicable-layers habitat-layer? download-link]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -80,6 +80,33 @@
 (defn initialise-db [_ _]
   {:db db/default-db
    :dispatch [:db-initialised]})
+
+(defn get-serialized-hashstate
+  [{:keys [db]} _]
+  (let [serialized-hashstate-url (get-in db [:config :serialized-hashstate-url])
+        shortcode                (get db :shortcode)]
+    (cond-> {:db db}
+      shortcode
+      (assoc
+       :http-xhrio
+       [{:method :get
+         :uri             serialized-hashstate-url
+         :response-format (ajax/json-response-format {:keywords? true})
+         :on-success      [:got-serialized-hashstate]
+         :on-failure      [:ajax/default-err-handler]}])
+      (not shortcode)
+      (assoc :dispatch [:got-serialized-hashstate]))))
+
+(defn got-serialized-hashstate
+  [db [_ response]]
+  (let [shortcode (:shortcode db)
+        hash-val  (when response (:hashstate (first (filter (fn [{:keys [id]}] (= id shortcode)) response))))
+        hash-state (parse-state hash-val)]
+    (if shortcode
+      (cond-> (merge-in db/default-db hash-state)
+        (seq hash-state)
+        (assoc-in [:map :logic :type] :map.layer-logic/manual))
+      db)))
 
 (defn initialise-layers [{:keys [db]} _]
   (let [{:keys [layer-url base-layer-url base-layer-group-url group-url organisation-url classification-url priority-url descriptor-url]} (:config db)]
