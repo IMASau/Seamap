@@ -138,3 +138,12 @@ class BaseLayerGroup(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@python_2_unicode_compatible
+class SerializedHashstate(models.Model):
+    id = models.CharField(max_length = 36, primary_key=True)
+    hashstate = models.CharField(max_length = 800)
+
+    def __str__(self):
+        return self.id
