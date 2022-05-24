@@ -25,7 +25,8 @@
 (defn boot-flow []
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:initialise-layers]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:get-serialized-hashstate]}
+    {:when :seen? :events :got-serialized-hashstate :dispatch [:initialise-layers]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
