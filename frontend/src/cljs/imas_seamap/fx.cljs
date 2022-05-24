@@ -24,9 +24,13 @@
 
 
 (defn cofx-hash-state [cofx _]
-  (let [hash-val (. js/location -hash)]
-    (merge cofx
-           (when-not (string/blank? hash-val)
-             {:hash-state (parse-state (subs hash-val 1))}))))
+  (let [hash (subs (. js/location -hash) 1)
+        matches  (re-matches #"^view=(.*)$" hash) ;; Checking for shortcode
+        shortcode (when matches (nth matches 1)) ;; Use shortcode if one exists
+        hash-val (when-not matches  hash)] ;; Use hash-val if shortcode does not exist
+    (js/console.log hash-val)
+    (cond-> (assoc cofx :shortcode shortcode)
+      (seq hash-val)
+      (assoc :hash-state (parse-state hash-val)))))
 
 (re-frame/reg-cofx :hash-state cofx-hash-state)
