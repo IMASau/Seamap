@@ -41,9 +41,11 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot [{:keys [hash-state]} _]
-  (let [initial-db (cond-> (merge-in db/default-db hash-state)
-                     (seq hash-state) (assoc-in [:map :logic :type] :map.layer-logic/manual))]
+(defn boot [hash-val _]
+  (let [{:keys [hash-state shortcode]} hash-val
+        initial-db (cond-> (merge-in db/default-db hash-state {:shortcode shortcode})
+                     (seq hash-state)
+                     (assoc-in [:map :logic :type] :map.layer-logic/manual))]
     {:db         initial-db
      :async-flow (boot-flow)}))
 

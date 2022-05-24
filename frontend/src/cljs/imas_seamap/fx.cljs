@@ -28,7 +28,6 @@
         matches  (re-matches #"^view=(.*)$" hash) ;; Checking for shortcode
         shortcode (when matches (nth matches 1)) ;; Use shortcode if one exists
         hash-val (when-not matches  hash)] ;; Use hash-val if shortcode does not exist
-    (js/console.log hash-val)
     (cond-> (assoc cofx :shortcode shortcode)
       (seq hash-val)
       (assoc :hash-state (parse-state hash-val)))))
