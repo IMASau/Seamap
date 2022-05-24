@@ -141,7 +141,7 @@ class BaseLayerGroup(models.Model):
 
 
 @python_2_unicode_compatible
-class SerializedHashstate(models.Model):
+class SaveState(models.Model):
     id = models.CharField(max_length = 36, primary_key=True)
     hashstate = models.CharField(max_length = 800)
 

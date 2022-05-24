@@ -25,8 +25,8 @@
 (defn boot-flow []
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:get-serialized-hashstate]}
-    {:when :seen? :events :got-serialized-hashstate :dispatch [:initialise-layers]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state]}
+    {:when :seen? :events :got-save-state :dispatch [:initialise-layers]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
@@ -82,23 +82,23 @@
   {:db db/default-db
    :dispatch [:db-initialised]})
 
-(defn get-serialized-hashstate
+(defn get-save-state
   [{:keys [db]} _]
-  (let [serialized-hashstate-url (get-in db [:config :serialized-hashstate-url])
+  (let [save-state-url (get-in db [:config :save-state-url])
         shortcode                (get db :shortcode)]
     (cond-> {:db db}
       shortcode
       (assoc
        :http-xhrio
        [{:method :get
-         :uri             serialized-hashstate-url
+         :uri             save-state-url
          :response-format (ajax/json-response-format {:keywords? true})
-         :on-success      [:got-serialized-hashstate]
+         :on-success      [:got-save-state]
          :on-failure      [:ajax/default-err-handler]}])
       (not shortcode)
-      (assoc :dispatch [:got-serialized-hashstate]))))
+      (assoc :dispatch [:got-save-state]))))
 
-(defn got-serialized-hashstate
+(defn got-save-state
   [db [_ response]]
   (let [shortcode (:shortcode db)
         hash-val  (when response (:hashstate (first (filter (fn [{:keys [id]}] (= id shortcode)) response))))

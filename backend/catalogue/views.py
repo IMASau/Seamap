@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from .models import SerializedHashstate
+from .models import SaveState
 from rest_framework.decorators import api_view
 from uuid import uuid4
 
@@ -11,7 +11,7 @@ def create_save_state(request):
 
 	try:
 		id = str(uuid4())
-		SerializedHashstate.objects.create(
+		SaveState.objects.create(
 			id=id,
 			hashstate=request.data["hashstate"]
 		)

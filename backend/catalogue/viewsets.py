@@ -3,8 +3,8 @@
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from django.db.models import Value
 from django.db.models.functions import Coalesce
-from catalogue.models import Organisation, HabitatDescriptor, BaseLayer, Layer, LayerGroup, LayerGroupPriority, DataClassification, BaseLayerGroup, SerializedHashstate
-from catalogue.serializers import ClassificationSerializer, OrganisationSerializer, HabitatSerializer, BaseLayerSerializer, LayerSerializer, GroupSerializer, GroupPrioritySerializer, BaseLayerGroupSerializer, SerializedHashstateSerializer
+from catalogue.models import Organisation, HabitatDescriptor, BaseLayer, Layer, LayerGroup, LayerGroupPriority, DataClassification, BaseLayerGroup, SaveState
+from catalogue.serializers import ClassificationSerializer, OrganisationSerializer, HabitatSerializer, BaseLayerSerializer, LayerSerializer, GroupSerializer, GroupPrioritySerializer, BaseLayerGroupSerializer, SaveStateSerializer
 from rest_framework import viewsets
 
 
@@ -53,6 +53,6 @@ class BaseLayerGroupViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = BaseLayerGroupSerializer
 
 
-class SerializedHashstateViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = SerializedHashstate.objects.all()
-    serializer_class = SerializedHashstateSerializer
+class SaveStateViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = SaveState.objects.all()
+    serializer_class = SaveStateSerializer

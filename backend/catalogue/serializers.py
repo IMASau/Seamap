@@ -3,7 +3,7 @@
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from django.db.models import Min, Max
 from rest_framework import serializers
-from catalogue.models import DataClassification, Organisation, HabitatDescriptor, BaseLayer, Layer, LayerGroup, LayerGroupPriority, BaseLayerGroup, SerializedHashstate
+from catalogue.models import DataClassification, Organisation, HabitatDescriptor, BaseLayer, Layer, LayerGroup, LayerGroupPriority, BaseLayerGroup, SaveState
 
 
 class OrganisationSerializer(serializers.ModelSerializer):
@@ -92,7 +92,7 @@ class BaseLayerGroupSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SerializedHashstateSerializer(serializers.ModelSerializer):
+class SaveStateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SerializedHashstate
+        model = SaveState
         fields = '__all__'
