@@ -146,3 +146,7 @@
       (.focus prev-focus-el))
     (.removeAllRanges (.getSelection js/window))
     (js/window.document.body.removeChild el)))
+
+(defn append-params-from-map
+  [url params]
+  (reduce-kv (fn [acc key val] (str acc "?" (name key) "=" val)) url params))
