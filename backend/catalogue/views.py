@@ -10,12 +10,10 @@ def get_exception_message(e):
 def create_save_state(request):
 
 	try:
-		id = str(uuid4())
-		SaveState.objects.create(
-			id=id,
+		save_state = SaveState.objects.create(
 			hashstate=request.data["hashstate"]
 		)
-		return JsonResponse({"id": id})
+		return JsonResponse({"id": save_state.id})
 	except Exception as e:
 		print(e)
 		return JsonResponse({"message": get_exception_message(e), "args": e.args}, status=400)
