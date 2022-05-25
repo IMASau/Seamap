@@ -23,13 +23,19 @@
 (re-frame/reg-fx :message show-message)
 
 
-(defn cofx-hash-state [cofx _]
+(defn cofx-hash-code [cofx _]
   (let [hash (subs (. js/location -hash) 1)
-        matches  (re-matches #"^view=(.*)$" hash) ;; Checking for shortcode
-        shortcode (when matches (nth matches 1)) ;; Use shortcode if one exists
-        hash-val (when-not matches  hash)] ;; Use hash-val if shortcode does not exist
-    (cond-> (assoc cofx :shortcode shortcode)
-      (seq hash-val)
-      (assoc :hash-state (parse-state hash-val)))))
+        matches  (re-matches #"^view=(.*)$" hash) ;; Checking for save-code
+        hash-code (when-not matches hash)]        ;; Use hash-code if save-code does not exist
+    (assoc cofx :hash-code hash-code)))
 
-(re-frame/reg-cofx :hash-state cofx-hash-state)
+(re-frame/reg-cofx :hash-code cofx-hash-code)
+
+
+(defn cofx-save-code [cofx _]
+  (let [hash (subs (. js/location -hash) 1)
+        matches  (re-matches #"^view=(.*)$" hash) ;; Checking for save-code
+        save-code (when matches (nth matches 1))] ;; Use save-code if one exists
+    (assoc cofx :save-code save-code)))
+
+(re-frame/reg-cofx :save-code cofx-save-code)

@@ -25,8 +25,7 @@
 (defn boot-flow []
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state]}
-    {:when :seen? :events :got-save-state :dispatch [:initialise-layers]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:initialise-layers]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
@@ -42,13 +41,52 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot [hash-val _]
-  (let [{:keys [hash-state shortcode]} hash-val
-        initial-db (cond-> (merge-in db/default-db hash-state {:shortcode shortcode})
-                     (seq hash-state)
-                     (assoc-in [:map :logic :type] :map.layer-logic/manual))]
-    {:db         initial-db
-     :async-flow (boot-flow)}))
+(defn boot-flow-hash-state [hash-code]
+  {:first-dispatch [:ui/show-loading]
+   :rules
+   [{:when :seen? :events :ui/show-loading :dispatch [:load-hash-state hash-code]}
+    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+    {:when :seen-all-of? :events [:map/update-base-layers
+                                  :map/update-base-layer-groups
+                                  :map/update-layers
+                                  :map/update-groups
+                                  :map/update-organisations
+                                  :map/update-classifications
+                                  :map/update-priorities
+                                  :map/update-descriptors]
+     :dispatch-n [[:map/initialise-display]
+                  [:transect/maybe-query]]}
+    {:when :seen? :events :ui/hide-loading
+     :dispatch [:welcome-layer/open]
+     :halt? true}
+    {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
+
+(defn boot-flow-save-state [save-code]
+  {:first-dispatch [:ui/show-loading]
+   :rules
+   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state save-code]}
+    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+    {:when :seen-all-of? :events [:map/update-base-layers
+                                  :map/update-base-layer-groups
+                                  :map/update-layers
+                                  :map/update-groups
+                                  :map/update-organisations
+                                  :map/update-classifications
+                                  :map/update-priorities
+                                  :map/update-descriptors]
+     :dispatch-n [[:map/initialise-display]
+                  [:transect/maybe-query]]}
+    {:when :seen? :events :ui/hide-loading
+     :dispatch [:welcome-layer/open]
+     :halt? true}
+    {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
+
+(defn boot [{:keys [save-code hash-code]} _]
+  {:db         db/default-db
+   :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
+                 (seq save-code) (boot-flow-save-state save-code) ; A shortform save-code that can be used to query for a hash-code
+                 (seq hash-code) (boot-flow-hash-state hash-code) ; A hash-code that can be decoded into th DB's initial state
+                 :else           (boot-flow))})                   ; No information, so we start with an empty DB
 
 ;;; Reset state.  Gets a bit messy because we can't just return
 ;;; default-db without throwing away ajax-loaded layer info, so we
@@ -82,32 +120,28 @@
   {:db db/default-db
    :dispatch [:db-initialised]})
 
-(defn get-save-state
-  [{:keys [db]} _]
-  (let [save-state-url (get-in db [:config :save-state-url])
-        shortcode                (get db :shortcode)]
-    (cond-> {:db db}
-      shortcode
-      (assoc
-       :http-xhrio
-       [{:method :get
-         :uri             save-state-url
-         :response-format (ajax/json-response-format {:keywords? true})
-         :on-success      [:got-save-state]
-         :on-failure      [:ajax/default-err-handler]}])
-      (not shortcode)
-      (assoc :dispatch [:got-save-state]))))
+(defn load-hash-state
+  [db [_ hash-code]]
+  (let [db (merge-in db (parse-state hash-code))
+        db (assoc-in db [:map :logic :type] :map.layer-logic/manual)]
+    db))
 
-(defn got-save-state
-  [db [_ response]]
-  (let [shortcode (:shortcode db)
-        hash-val  (when response (:hashstate (first (filter (fn [{:keys [id]}] (= id shortcode)) response))))
-        hash-state (parse-state hash-val)]
-    (if shortcode
-      (cond-> (merge-in db/default-db hash-state)
-        (seq hash-state)
-        (assoc-in [:map :logic :type] :map.layer-logic/manual))
-      db)))
+(defn get-save-state
+  [{:keys [db]} [_ save-code]]
+  (let [save-state-url (get-in db [:config :save-state-url])]
+    {:db db
+     :http-xhrio
+     [{:method :get
+       :uri             save-state-url
+       :response-format (ajax/json-response-format {:keywords? true})
+       :on-success      [:load-save-state save-code]
+       :on-failure      [:ajax/default-err-handler]}]}))
+
+(defn load-save-state
+  [{:keys [db]} [_ save-code save-states]]
+  (let [hash-code  (:hashstate (first (filter (fn [{:keys [id]}] (= id save-code)) save-states)))]
+    {:db db
+     :dispatch [:load-hash-state hash-code]}))
 
 (defn initialise-layers [{:keys [db]} _]
   (let [{:keys [layer-url base-layer-url base-layer-group-url group-url organisation-url classification-url priority-url descriptor-url]} (:config db)]

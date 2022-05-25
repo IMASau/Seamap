@@ -56,12 +56,13 @@
     :info/message                         subs/user-message}
 
    :events
-   {:boot                                 [events/boot (re-frame/inject-cofx :hash-state)]
+   {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code)]
     :re-boot                              events/re-boot
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
+    :load-hash-state                      events/load-hash-state
     :get-save-state                       [events/get-save-state]
-    :got-save-state                       events/got-save-state
+    :load-save-state                      [events/load-save-state]
     :initialise-db                        [events/initialise-db]
     :initialise-layers                    [events/initialise-layers]
     :loading-failed                       events/loading-failed
