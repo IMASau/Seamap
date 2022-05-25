@@ -59,5 +59,4 @@
                      :priority-url          (str api-url-base "priorities/")
                      :region-stats-url      (str api-url-base "habitat/regions/")
                      :descriptor-url        (str api-url-base "descriptors/")
-                     :save-state-url        (str api-url-base "savestates")
-                     :create-save-state-url (str api-url-base "createsavestate/")}})
+                     :save-state-url        (str api-url-base "savestates")}})

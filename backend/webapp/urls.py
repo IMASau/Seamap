@@ -5,10 +5,9 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, re_path
 from rest_framework.routers import DefaultRouter
-from rest_framework.generics import CreateAPIView
 
-from catalogue.viewsets import ClassificationViewset, DescriptorViewset, BaseLayerViewset, LayerViewset, GroupViewset, GroupPriorityViewset, OrganisationViewset, BaseLayerGroupViewset, SaveStateViewset
-from catalogue.serializers import SaveStateSerializer
+from catalogue.viewsets import ClassificationViewset, DescriptorViewset, BaseLayerViewset, LayerViewset, GroupViewset, GroupPriorityViewset, OrganisationViewset, BaseLayerGroupViewset
+from catalogue.views import SaveStateView
 from habitat.viewsets import regions, subset, transect
 
 
@@ -21,13 +20,12 @@ router.register(r'organisations', OrganisationViewset)
 router.register(r'priorities', GroupPriorityViewset)
 router.register(r'descriptors', DescriptorViewset)
 router.register(r'baselayergroups', BaseLayerGroupViewset)
-router.register(r'savestates', SaveStateViewset)
 
 urlpatterns = [
     re_path(r'^api/habitat/transect', transect),
     re_path(r'^api/habitat/regions', regions, name='habitat-regions'),
     re_path(r'^api/habitat/subset', subset),
-    re_path(r'^api/createsavestate', CreateAPIView.as_view(serializer_class=SaveStateSerializer)),
+    re_path(r'^api/savestates', SaveStateView.as_view()),
     re_path(r'^api/', include(router.urls)),
 ]
 

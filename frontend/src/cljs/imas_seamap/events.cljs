@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map]]
             [imas-seamap.map.utils :as mutils :refer [applicable-layers habitat-layer? download-link]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -131,15 +131,15 @@
   (let [save-state-url (get-in db [:config :save-state-url])]
     {:db db
      :http-xhrio
-     [{:method :get
-       :uri             save-state-url
+     [{:method          :get
+       :uri             (append-params-from-map save-state-url {:id save-code})
        :response-format (ajax/json-response-format {:keywords? true})
-       :on-success      [:load-save-state save-code]
+       :on-success      [:load-save-state]
        :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn load-save-state
-  [{:keys [db]} [_ save-code save-states]]
-  (let [hash-code  (:hashstate (first (filter (fn [{:keys [id]}] (= id save-code)) save-states)))]
+  [{:keys [db]} [_ save-state]]
+  (let [hash-code  (:hashstate (first save-state))]
     {:db db
      :dispatch [:load-hash-state hash-code]}))
 
@@ -481,11 +481,11 @@
 
 (defn create-save-state [{:keys [db]} _]
   (copy-text js/location.href)
-  (let [create-save-state-url (get-in db [:config :create-save-state-url])]
+  (let [save-state-url (get-in db [:config :save-state-url])]
     {:message    ["Creating save state..."
                   {:intent b/INTENT-NONE}]
      :http-xhrio [{:method          :post
-                   :uri             create-save-state-url
+                   :uri             save-state-url
                    :params          {:hashstate (encode-state db)}
                    :format          (ajax/json-request-format)
                    :response-format (ajax/json-response-format {:keywords? true})

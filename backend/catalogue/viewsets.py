@@ -51,8 +51,3 @@ class GroupPriorityViewset(viewsets.ReadOnlyModelViewSet):
 class BaseLayerGroupViewset(viewsets.ReadOnlyModelViewSet):
     queryset = BaseLayerGroup.objects.all()
     serializer_class = BaseLayerGroupSerializer
-
-
-class SaveStateViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = SaveState.objects.all()
-    serializer_class = SaveStateSerializer
