@@ -217,8 +217,7 @@
       ;; If category is contours, turn it into bathymetry but with a contours attribute set:
       (as-> lyr (if (= (:category lyr) :contours) (assoc lyr :contours true) lyr))
       (update :category    #(if (= % :contours) :bathymetry %))
-      (update :server_type (comp keyword string/lower-case))
-      (update :server_url #(if (= % "https://geoserver-dev.imas.utas.edu.au/geoserver/wms") "https://geoserver.imas.utas.edu.au/geoserver/wms" %))))
+      (update :server_type (comp keyword string/lower-case))))
 
 (defn process-layers [layers]
   (mapv process-layer layers))
