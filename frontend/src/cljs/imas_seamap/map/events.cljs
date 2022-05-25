@@ -151,33 +151,30 @@
   (update-in db [:map :controls :ignore-click] not))
 
 (defn display-feature-info [db point]
-  (let [responses      (get-in db [:feature-query :responses])
-        response-infos (map
-                        (fn [response]
-                          (if response
-                            (let [{:keys [response info-format]} response]
-                              (case info-format
-                                "text/html" (feature-info-html response)
-                                "application/json" (feature-info-json response)
-                                (feature-info-none)))
-                            {:status :feature-info/empty}))
-                        responses)
-        response-info  (reduce
-                        (fn [acc response-info]
-                          (cond-> acc
-                            (:info response-info)
-                            (update :info str (:info response-info))
-                            (:status response-info)
-                            (assoc :status (:status response-info))
-                            (or (:info response-info) (:info acc))
-                            (dissoc :status)))
-                        {} response-infos)
-        had-insecure?  (get-in db [:feature-query :had-insecure?])
-        candidate      (merge
-                        {:location point
-                         :had-insecure? had-insecure?}
-                        response-info)]
-        (assoc db :feature candidate)))
+  (letfn [(response-to-info ; Converts a response and info format into readable information for the feature info popup
+           [response]
+            (if-let [{:keys [response info-format]} response] ; If we have a response; then
+              (case info-format                               ; process the response into readable information; else
+                "text/html"        (feature-info-html response)
+                "application/json" (feature-info-json response)
+                feature-info-none)
+              {:status :feature-info/empty}))                 ; use an empty info status
+          
+          (combine-feature-info ; Combines two feature infos into one
+           [{info-1 :info status-1 :status} {info-2 :info status-2 :status}]
+           (if (seq (str info-1 info-2))         ; If we have any info from either response; then
+             {:info (str info-1 info-2)}         ; combine the info from the responses and use that; else
+             {:status (or status-1 status-2)}))] ; just use the status from either response
+    
+    (let [responses     (get-in db [:feature-query :responses])
+          feature-infos (map response-to-info responses)
+          feature-info  (reduce combine-feature-info {} feature-infos)
+          had-insecure? (get-in db [:feature-query :had-insecure?])
+          candidate     (merge
+                         {:location point
+                          :had-insecure? had-insecure?}
+                         feature-info)]
+      (assoc db :feature candidate))))
 
 (defn got-feature-info [db [_ request-id point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
@@ -220,7 +217,8 @@
       ;; If category is contours, turn it into bathymetry but with a contours attribute set:
       (as-> lyr (if (= (:category lyr) :contours) (assoc lyr :contours true) lyr))
       (update :category    #(if (= % :contours) :bathymetry %))
-      (update :server_type (comp keyword string/lower-case))))
+      (update :server_type (comp keyword string/lower-case))
+      (update :server_url #(if (= % "https://geoserver-dev.imas.utas.edu.au/geoserver/wms") "https://geoserver.imas.utas.edu.au/geoserver/wms" %))))
 
 (defn process-layers [layers]
   (mapv process-layer layers))
