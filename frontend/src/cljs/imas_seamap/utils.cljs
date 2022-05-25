@@ -150,3 +150,7 @@
 (defn append-params-from-map
   [url params]
   (reduce-kv (fn [acc key val] (str acc "?" (name key) "=" val)) url params))
+
+(defn uuid4?
+  [val]
+  (re-matches #"^[0-9a-f]{8}\-[0-9a-f]{4}\-4[0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}$" val))

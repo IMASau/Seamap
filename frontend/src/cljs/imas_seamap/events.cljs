@@ -494,7 +494,7 @@
 
 (defn create-save-state-success
   [{:keys [db]} [_ response]]
-  (let [url (str js/location.origin js/location.pathname "#view=" (:id response))]
+  (let [url (str js/location.origin js/location.pathname "#" (:id response))]
     (copy-text url)
     {:db db
      :message ["URL copied to clipboard!"

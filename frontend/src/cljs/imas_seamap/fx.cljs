@@ -2,9 +2,8 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.fx
-  (:require [clojure.string :as string]
-            [imas-seamap.blueprint :as b :refer [toaster]]
-            [imas-seamap.utils :refer [parse-state]]
+  (:require [imas-seamap.blueprint :as b :refer [toaster]]
+            [imas-seamap.utils :refer [uuid4?]]
             [re-frame.core :as re-frame]))
 
 (defn set-location-anchor [anchor]
@@ -22,11 +21,9 @@
 
 (re-frame/reg-fx :message show-message)
 
-
 (defn cofx-hash-code [cofx _]
   (let [hash (subs (. js/location -hash) 1)
-        matches  (re-matches #"^view=(.*)$" hash) ;; Checking for save-code
-        hash-code (when-not matches hash)]        ;; Use hash-code if save-code does not exist
+        hash-code (when-not (uuid4? hash) hash)] ; Use hash-code if save-code does not exist
     (assoc cofx :hash-code hash-code)))
 
 (re-frame/reg-cofx :hash-code cofx-hash-code)
@@ -34,8 +31,7 @@
 
 (defn cofx-save-code [cofx _]
   (let [hash (subs (. js/location -hash) 1)
-        matches  (re-matches #"^view=(.*)$" hash) ;; Checking for save-code
-        save-code (when matches (nth matches 1))] ;; Use save-code if one exists
+        save-code (when (uuid4? hash) hash)] ; Use save-code if one exists
     (assoc cofx :save-code save-code)))
 
 (re-frame/reg-cofx :save-code cofx-save-code)
