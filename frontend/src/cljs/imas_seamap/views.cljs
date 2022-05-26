@@ -889,8 +889,11 @@
        {:label "Toggle Sidebar"         :combo "s"}
        [:ui.sidebar/toggle])
       (keydown-wrapper
-       {:label "Toggle Seamap Drawer"   :combo "a"} ;; TODO: Better label and perhaps different key mapping?
+       {:label "Toggle Seamap Drawer"   :combo "a"}
        [:seamap-drawer/toggle])
+      (keydown-wrapper
+       {:label "Toggle Right Drawer"    :combo "d"}
+       [:right-drawer/toggle])
       (keydown-wrapper
        {:label "Start/Clear Transect"   :combo "t"}
        [:transect.draw/toggle])
