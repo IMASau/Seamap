@@ -147,6 +147,9 @@
     :seamap-drawer/toggle                 events/seamap-drawer-toggle
     :seamap-drawer/open                   events/seamap-drawer-open
     :seamap-drawer/close                  events/seamap-drawer-close
+    :right-drawer/toggle                  events/right-drawer-toggle
+    :right-drawer/open                    events/right-drawer-open
+    :right-drawer/close                   events/right-drawer-close
     :drawer-panel-stack/push              events/drawer-panel-stack-push
     :drawer-panel-stack/pop               events/drawer-panel-stack-pop}})
 

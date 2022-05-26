@@ -479,6 +479,15 @@
       (assoc-in [:display :seamap-drawer] false)
       (assoc-in [:display :drawer-panel-stack] [])))
 
+(defn right-drawer-toggle [db _]
+  (update-in db [:display :right-drawer] not))
+
+(defn right-drawer-open [db _]
+  (assoc-in db [:display :right-drawer] true))
+
+(defn right-drawer-close [db _]
+  (assoc-in db [:display :right-drawer] false))
+
 (defn drawer-panel-stack-push [db [_ panel props]]
   (update-in db [:display :drawer-panel-stack] conj {:panel panel :props props}))
 
