@@ -634,13 +634,13 @@
 (def base-panel
   {:content
    [:div
-    [:div.seamap-drawer-group
+    [:div.left-drawer-group
      [:h1.bp3-heading.bp3-icon-settings
       "Controls"]
      [transect-toggle]
      [selection-button]
      [layer-logic-toggle-button]]
-    [:div.seamap-drawer-group
+    [:div.left-drawer-group
      [:h1.bp3-heading.bp3-icon-list-detail-view
       "Catalogue Layers"]
      [b/button
@@ -663,7 +663,7 @@
       {:icon     "more"
        :text     "Third-Party Layers"
        :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers])}]]
-    [:div.seamap-drawer-group
+    [:div.left-drawer-group
      [:h1.bp3-heading.bp3-icon-cog
       "Settings"]
      [b/button
@@ -783,18 +783,18 @@
      {:panels (concat [base-panel] display-panels)
       :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
 
-(defn seamap-drawer
+(defn left-drawer
   []
-  (let [open? @(re-frame/subscribe [:seamap-drawer/open?])]
+  (let [open? @(re-frame/subscribe [:left-drawer/open?])]
     [components/drawer
      {:title
-      [:div.seamap-drawer-header
+      [:div.left-drawer-header
        [:img
         {:src "img/Seamap2_V2_RGB.png"}]]
       :position    "left"
       :size        "460px"
       :isOpen      open?
-      :onClose     #(re-frame/dispatch [:seamap-drawer/close])
+      :onClose     #(re-frame/dispatch [:left-drawer/close])
       :hasBackdrop false}
      [drawer-panel-stack]]))
 
@@ -889,8 +889,8 @@
        {:label "Toggle Sidebar"         :combo "s"}
        [:ui.sidebar/toggle])
       (keydown-wrapper
-       {:label "Toggle Seamap Drawer"   :combo "a"}
-       [:seamap-drawer/toggle])
+       {:label "Toggle Left Drawer"   :combo "a"}
+       [:left-drawer/toggle])
       (keydown-wrapper
        {:label "Toggle Right Drawer"    :combo "d"}
        [:right-drawer/toggle])
@@ -948,6 +948,6 @@
      [welcome-dialogue]
      [info-card]
      [loading-display]
-     [seamap-drawer]
+     [left-drawer]
      [right-drawer]]))
 

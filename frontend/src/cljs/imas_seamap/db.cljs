@@ -44,7 +44,7 @@
    :habitat-titles  {}
    :display         {:help-overlay       false
                      :welcome-overlay    false
-                     :seamap-drawer      false
+                     :left-drawer        false
                      :right-drawer       false
                      :drawer-panel-stack []
                      :catalogue          {:tab      "org"

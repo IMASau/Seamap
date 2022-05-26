@@ -124,8 +124,8 @@
 (defn user-message [db _]
   (get-in db [:info :message]))
 
-(defn seamap-drawer-open? [db _]
-  (get-in db [:display :seamap-drawer]))
+(defn left-drawer-open? [db _]
+  (get-in db [:display :left-drawer]))
 
 (defn right-drawer-open? [db _]
   (get-in db [:display :right-drawer]))

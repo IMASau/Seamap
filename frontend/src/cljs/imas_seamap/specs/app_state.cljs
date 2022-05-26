@@ -216,7 +216,7 @@
 (s/def :sidebar/selected string?)
 (s/def :display/sidebar (s/keys :req-un [:sidebar/collapsed :sidebar/selected]))
 ;;; drawer
-(s/def :display/seamap-drawer boolean?)
+(s/def :display/left-drawer boolean?)
 (s/def :display/right-drawer  boolean?)
 (s/def :display.drawer-panel/panel #{:drawer-panel/layer-panel
                                      :drawer-panel/management-layers
@@ -232,7 +232,7 @@
                    :display/help-overlay
                    :display/welcome-overlay
                    :display/sidebar
-                   :display/seamap-drawer
+                   :display/left-drawer
                    :display/drawer-panels]))
 
 (s/def :filters/layers       string?)
