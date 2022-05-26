@@ -45,6 +45,7 @@
    :display         {:help-overlay       false
                      :welcome-overlay    false
                      :seamap-drawer      false
+                     :right-drawer       false
                      :drawer-panel-stack []
                      :catalogue          {:tab      "org"
                                           :expanded #{}}
