@@ -798,6 +798,18 @@
       :hasBackdrop false}
      [drawer-panel-stack]]))
 
+(defn right-drawer
+  []
+  (let [open? @(re-frame/subscribe [:right-drawer/open?])]
+    [components/drawer
+     {:title "The cooler drawer"
+      :position    "right"
+      :size        "460px"
+      :isOpen      open?
+      :onClose     #(re-frame/dispatch [:right-drawer/close])
+      :hasBackdrop false}
+     "With cooler content ;-)"]))
+
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
         {:keys [groups active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
@@ -933,5 +945,6 @@
      [welcome-dialogue]
      [info-card]
      [loading-display]
-     [seamap-drawer]]))
+     [seamap-drawer]
+     [right-drawer]]))
 
