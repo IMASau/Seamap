@@ -814,3 +814,56 @@ input.leaflet-control-layers-selector[type="radio"] {
     width: 0;
     height: 0;
 }
+
+/* L.Control.Zoominfo.css start */
+/** Slider **/
+.leaflet-control-zoominfo-wrap {
+    padding: 3px 0;
+    background-color: #fff;
+    border-bottom: 1px solid #ccc;
+}
+.leaflet-control-zoominfo-body {
+    width: 0;
+    border: solid #fff;
+    border-width: 0 9px;
+}
+
+.leaflet-control-zoominfo-body:hover {
+    cursor: pointer;
+}
+
+.leaflet-dragging .leaflet-control-zoominfo,
+.leaflet-dragging .leaflet-control-zoominfo-wrap,
+.leaflet-dragging .leaflet-control-zoominfo-body,
+.leaflet-dragging .leaflet-control-zoominfo a,
+.leaflet-dragging .leaflet-control-zoominfo a.leaflet-control-zoominfo-disabled {
+    cursor: move;
+    cursor: -webkit-grabbing;
+    cursor:    -moz-grabbing;
+}
+
+/** Leaflet Zoom Styles **/
+.leaflet-control-zoominfo a:hover {
+    background-color: #f4f4f4;
+}
+.leaflet-control-zoominfo-in:after{
+    content:"+";
+    font: bold 22px 'Lucida Console', Monaco, monospace;
+}
+.leaflet-control-zoominfo-out:after{
+    content:"−";
+    font: bold 22px 'Lucida Console', Monaco, monospace;
+}
+.leaflet-control-zoominfo a.leaflet-control-zoominfo-disabled {
+    cursor: default;
+    color: #bbb;
+}
+
+.leaflet-control-zoominfo-info { 
+    background-color: #fff;
+    text-align: center;
+    color: black;
+    padding: 4px;
+    cursor: default;
+}
+/* L.Control.Zoominfo.css end */
