@@ -818,14 +818,8 @@ input.leaflet-control-layers-selector[type="radio"] {
 /* L.Control.Zoominfo.css start */
 /** Slider **/
 .leaflet-control-zoominfo-wrap {
-    padding: 3px 0;
-    background-color: #fff;
     border-bottom: 1px solid #ccc;
-}
-.leaflet-control-zoominfo-body {
-    width: 0;
-    border: solid #fff;
-    border-width: 0 9px;
+    background-color: #fff;
 }
 
 .leaflet-control-zoominfo-body:hover {
@@ -856,14 +850,12 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 .leaflet-control-zoominfo a.leaflet-control-zoominfo-disabled {
     cursor: default;
-    color: #bbb;
 }
 
 .leaflet-control-zoominfo-info { 
-    background-color: #fff;
     text-align: center;
     color: black;
-    padding: 4px;
+    padding: 6px;
     cursor: default;
 }
 /* L.Control.Zoominfo.css end */
