@@ -9,6 +9,7 @@
             [imas-seamap.utils :refer [copy-text select-values handler-dispatch] :include-macros true]
             [imas-seamap.map.utils :refer [sort-layers bounds->geojson download-type->str]]
             [imas-seamap.interop.leaflet :as leaflet]
+            ["/L.Control.Zoominfo"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn bounds->map [bounds]
@@ -165,7 +166,6 @@
     [:div.map-wrapper
      sidebar
      [download-component download-info]
-
      [leaflet/leaflet-map
       (merge
        {:id                   "map"
@@ -175,6 +175,8 @@
         :use-fly-to           true
         :center               center
         :zoom                 zoom
+        :zoomControl          false
+        :zoominfoControl      true
         :keyboard             false ; handled externally
         :on-zoomend           on-map-view-changed
         :on-moveend           on-map-view-changed
