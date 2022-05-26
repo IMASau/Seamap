@@ -1,4 +1,4 @@
-{:source-paths ["src/cljs" "src/gen"]
+{:source-paths ["src/cljs" "src/gen" "src/thirdparty"]
 
  :dependencies [[binaryage/devtools              "1.0.3"]
                 [cljs-ajax/cljs-ajax             "0.5.5"]
