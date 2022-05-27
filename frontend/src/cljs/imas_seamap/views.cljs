@@ -856,6 +856,26 @@
                    :id     "tab-settings"}
       [settings-controls]]]))
 
+(defn floating-pills
+  []
+  [:div.floating-pills
+   [components/floating-pill-button
+    {:text     "Left Drawer"
+     :icon     "add-column-left"
+     :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
+   [components/floating-pill-button
+    {:text     "Right Drawer"
+     :icon     "add-column-right"
+     :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
+   [components/floating-pill-button
+    {:text     "Draw Transect"
+     :icon     "edit"
+     :on-click #(re-frame/dispatch [:transect.draw/toggle])}]
+   [components/floating-pill-button
+    {:text     "Select Region"
+     :icon     "widget"
+     :on-click #(re-frame/dispatch [:map.layer.selection/toggle])}]])
+
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [m keydown-v]
@@ -925,7 +945,7 @@
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      [:div#content-wrapper
-      [map-component [seamap-sidebar]]
+      [map-component [seamap-sidebar] [floating-pills]]
       [plot-component]]
      [helper-overlay
       :layer-search

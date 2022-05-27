@@ -153,7 +153,7 @@
   (when-not (. js-obj listens event-name)
     (. js-obj on event-name handler)))
 
-(defn map-component [sidebar]
+(defn map-component [sidebar floating-pills]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
@@ -166,23 +166,7 @@
         logic-type                                    @(re-frame/subscribe [:map.layers/logic])]
     [:div.map-wrapper
      sidebar
-     [:div.floating-pill-buttons
-      [components/floating-pill-button
-       {:text     "Left Drawer"
-        :icon     "add-column-left"
-        :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
-      [components/floating-pill-button
-       {:text     "Right Drawer"
-        :icon     "add-column-right"
-        :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
-      [components/floating-pill-button
-       {:text     "Draw Transect"
-        :icon     "edit"
-        :on-click #(re-frame/dispatch [:transect.draw/toggle])}]
-      [components/floating-pill-button
-       {:text     "Select Region"
-        :icon     "widget"
-        :on-click #(re-frame/dispatch [:map.layer.selection/toggle])}]]
+     floating-pills
      [download-component download-info]
      [leaflet/leaflet-map
       (merge

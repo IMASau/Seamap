@@ -860,7 +860,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 /* L.Control.Zoominfo.css end */
 
-.floating-pill-buttons {
+.floating-pills {
     position: absolute;
     z-index: 2000;
     top: -40px;
@@ -870,30 +870,30 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 @media (min-width:768px) {
-	.floating-pill-buttons {
+	.floating-pills {
         top: 10px;
 	}
 }
 
 @media (min-width:768px) and (max-width:991px) {
-	.floating-pill-buttons {
+	.floating-pills {
 		left: calc(305px + 20px);
 	}
 }
 
 @media (min-width:992px) and (max-width:1199px) {
-	.floating-pill-buttons {
+	.floating-pills {
 		left: calc(390px + 20px);
 	}
 }
 
 @media (min-width:1200px) {
-	.floating-pill-buttons {
+	.floating-pills {
 		left: calc(460px + 20px);
 	}
 }
 
-.floating-pill-buttons > *:not(:last-child) {
+.floating-pills > *:not(:last-child) {
     margin-right: 6px; 
 }
 
