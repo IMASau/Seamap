@@ -30,6 +30,7 @@
 (s/def :map.layer/description string?)
 (s/def :map.layer/server_type keyword?)
 (s/def :map.layer/info_format_type integer?)
+(s/def :map.layer/keywords (s/nilable string?))
 (s/def :map/layer
   (s/keys :req-un [:map.layer/name
                    :map.layer/server_url
@@ -41,7 +42,8 @@
                    :map.layer/metadata_url
                    :map.layer/description
                    :map.layer/server_type
-                   :map.layer/info_format_type]))
+                   :map.layer/info_format_type
+                   :map.layer/keywords]))
 
 
 (s/def :map.base-layer/id integer?)

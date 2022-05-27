@@ -24,8 +24,8 @@
   "Given a string of search words, attempt to match them *all* against
   a layer (designed so it can be used to filter a list of layers, in
   conjunction with partial)."
-  [filter-text {:keys [name layer_name description organisation data_classification] :as layer}]
-  (let [layer-text (string/join " " [name layer_name description organisation data_classification])
+  [filter-text {:keys [name layer_name description organisation data_classification keywords] :as layer}]
+  (let [layer-text (string/join " " [name layer_name description organisation data_classification keywords])
         search-re  (-> filter-text string/trim (string/split #"\s+") make-re)]
     (re-find search-re layer-text)))
 
@@ -43,7 +43,7 @@
            (> (/ error-count total-count)
               0.4)))))       ; Might be nice to make this configurable eventually
 
-(defn map-layers [{:keys [map layer-state filters] :as db} _]
+(defn map-layers [{:keys [layer-state filters] :as db} _]
   (let [{:keys [layers active-layers hidden-layers bounds logic]} (get-in db [:map])
         ;; Ignore filtering etc for boundary layers:
         boundaries                                  (->> layers
@@ -56,6 +56,8 @@
         viewport-layers                              (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
         {:keys [third-party]}                       (group-by :category viewport-layers)
         filtered-layers                             (filter (partial match-layer filter-text) viewport-layers)]
+    (js/console.log (apply str (map :keywords layers)))
+    (js/console.log (count filtered-layers))
     {:groups          (assoc (group-by :category filtered-layers)
                              :boundaries boundaries)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)

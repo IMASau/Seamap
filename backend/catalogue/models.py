@@ -101,6 +101,7 @@ class Layer(models.Model):
     server_type = models.ForeignKey(ServerType, on_delete=models.PROTECT)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
     info_format_type = models.IntegerField()
+    keywords = models.CharField(max_length = 400, null=True, blank=True)
 
     def __str__(self):
         return self.name
