@@ -9,6 +9,7 @@
             [imas-seamap.utils :refer [copy-text select-values handler-dispatch] :include-macros true]
             [imas-seamap.map.utils :refer [sort-layers bounds->geojson download-type->str]]
             [imas-seamap.interop.leaflet :as leaflet]
+            [imas-seamap.components :as components]
             ["/L.Control.Zoominfo"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -117,6 +118,27 @@
        [b/button {:text     "Done"
                   :intent   b/INTENT-PRIMARY
                   :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]]))
+
+(defn floating-pill-buttons-control
+  []
+  [leaflet/custom-control {:position "topleft"}
+   [:div.floating-pill-buttons-control
+    [components/floating-pill-button
+     {:text     "Left Drawer"
+      :icon     "add-column-left"
+      :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
+    [components/floating-pill-button
+     {:text     "Right Drawer"
+      :icon     "add-column-right"
+      :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
+    [components/floating-pill-button
+     {:text     "Draw Transect"
+      :icon     "edit"
+      :on-click #(re-frame/dispatch [:transect.draw/toggle])}]
+    [components/floating-pill-button
+     {:text     "Select Region"
+      :icon     "widget"
+      :on-click #(re-frame/dispatch [:map.layer.selection/toggle])}]]])
 
 (defn share-control [_props]
   [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
@@ -271,6 +293,8 @@
       [leaflet/coordinates-control
        {:position "bottomright"
         :style {}}]
+      
+      [floating-pill-buttons-control]
 
       [share-control]
 
