@@ -56,8 +56,6 @@
         viewport-layers                              (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
         {:keys [third-party]}                       (group-by :category viewport-layers)
         filtered-layers                             (filter (partial match-layer filter-text) viewport-layers)]
-    (js/console.log (apply str (map :keywords layers)))
-    (js/console.log (count filtered-layers))
     {:groups          (assoc (group-by :category filtered-layers)
                              :boundaries boundaries)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
