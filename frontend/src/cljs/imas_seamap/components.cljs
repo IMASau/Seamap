@@ -4,7 +4,8 @@
 (ns imas-seamap.components
   (:require [imas-seamap.interop.ui-controls :as ui-controls]
             [reagent.core :as reagent]
-            [re-frame.core :as re-frame]))
+            [re-frame.core :as re-frame]
+            [imas-seamap.blueprint :as b]))
 
 (defn items-selection-list
   [{:keys [items disabled data-path is-reversed]}]
@@ -33,3 +34,16 @@
      :isOpen      isOpen
      :onClose     onClose
      :hasBackdrop hasBackdrop}]))
+
+(defn floating-pill-button
+  [{:keys [text icon on-click disabled]}]
+  [b/button
+   {:className "floating-pill-button"
+    :text      text
+    :icon
+    (reagent/as-element
+     [b/icon
+      {:icon icon
+       :icon-size 20}])
+    :on-click  on-click
+    :disabled  disabled}])
