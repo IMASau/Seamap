@@ -858,23 +858,25 @@
 
 (defn floating-pills
   []
-  [:div.floating-pills
-   [components/floating-pill-button
-    {:text     "Left Drawer"
-     :icon     "add-column-left"
-     :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
-   [components/floating-pill-button
-    {:text     "Right Drawer"
-     :icon     "add-column-right"
-     :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
-   [components/floating-pill-button
-    {:text     "Draw Transect"
-     :icon     "edit"
-     :on-click #(re-frame/dispatch [:transect.draw/toggle])}]
-   [components/floating-pill-button
-    {:text     "Select Region"
-     :icon     "widget"
-     :on-click #(re-frame/dispatch [:map.layer.selection/toggle])}]])
+  (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))]
+    [:div
+     {:class (str "floating-pills" (when collapsed " collapsed"))}
+     [components/floating-pill-button
+      {:text     "Left Drawer"
+       :icon     "add-column-left"
+       :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
+     [components/floating-pill-button
+      {:text     "Right Drawer"
+       :icon     "add-column-right"
+       :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
+     [components/floating-pill-button
+      {:text     "Draw Transect"
+       :icon     "edit"
+       :on-click #(re-frame/dispatch [:transect.draw/toggle])}]
+     [components/floating-pill-button
+      {:text     "Select Region"
+       :icon     "widget"
+       :on-click #(re-frame/dispatch [:map.layer.selection/toggle])}]]))
 
 (def hotkeys-combos
   (let [keydown-wrapper

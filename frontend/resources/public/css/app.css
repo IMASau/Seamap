@@ -893,6 +893,10 @@ input.leaflet-control-layers-selector[type="radio"] {
 	}
 }
 
+.floating-pills.collapsed {
+    left: calc(40px + 20px);
+}
+
 .floating-pills > *:not(:last-child) {
     margin-right: 6px; 
 }
