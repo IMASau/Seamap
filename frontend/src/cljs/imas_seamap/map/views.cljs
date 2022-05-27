@@ -270,7 +270,7 @@
 
       [leaflet/coordinates-control
        {:position "bottomright"
-        :style {}}]
+        :style nil}]
 
       [share-control]
 
