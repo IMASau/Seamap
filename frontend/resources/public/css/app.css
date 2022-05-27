@@ -305,6 +305,11 @@ footer {
 .layer-active .bp3-icon-eye-on:hover {
     color: #C23030;
 }
+
+.layer-active .bp3-icon-remove:hover {
+    color: #C23030;
+}
+
 .layer-active .header-text {
     font-style: italic;
 }

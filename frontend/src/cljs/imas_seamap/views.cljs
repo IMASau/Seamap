@@ -132,7 +132,7 @@
 (defn catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
   [:div.catalogue-layer-controls (when active? {:class "layer-active"})
    [b/tooltip {:content "Layer info / Download data"}
-    [:span.control.bp3-icon-small.bp3-icon-info-sign.bp3-text-muted
+    [:span.control.bp3-icon-standard.bp3-icon-info-sign.bp3-text-muted
      {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
    [b/tooltip {:content "Zoom to layer"}
     [:span.control.bp3-icon-standard.bp3-icon-zoom-to-fit.bp3-text-muted
@@ -145,7 +145,7 @@
 (defn active-layer-catalogue-controls [layer {:keys [active? visible? _errors? _loading?] :as _layer-state}]
   [:div.catalogue-layer-controls (when active? {:class "layer-active"})
    [b/tooltip {:content "Layer info / Download data"}
-    [:span.control.bp3-icon-small.bp3-icon-info-sign.bp3-text-muted
+    [:span.control.bp3-icon-standard.bp3-icon-info-sign.bp3-text-muted
      {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
    [b/tooltip {:content "Zoom to layer"}
     [:span.control.bp3-icon-standard.bp3-icon-zoom-to-fit.bp3-text-muted
@@ -154,10 +154,10 @@
     [:span.control.bp3-icon-large.bp3-text-muted
      {:class (if visible? "bp3-icon-eye-on" "bp3-icon-eye-off")
       :on-click (handler-dispatch [:map/toggle-layer-visibility layer])}]]
-   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
-    [b/checkbox
-     {:checked (boolean active?)
-      :on-change (handler-dispatch [:map/toggle-layer layer])}]]])
+   [b/tooltip {:content "Deactivate layer"}
+    [:span.control.bp3-icon-standard.bp3-text-muted
+     {:class "bp3-icon-remove"
+      :on-click (handler-dispatch [:map/toggle-layer layer])}]]])
 
 (defn- ->sort-by [sorting-info ordering-key]
   (let [name-key-mapping (get sorting-info ordering-key)]
