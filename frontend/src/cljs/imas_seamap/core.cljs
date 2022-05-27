@@ -45,7 +45,8 @@
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
     :welcome-layer/open?                  subs/welcome-layer-open?
-    :seamap-drawer/open?                  subs/seamap-drawer-open?
+    :left-drawer/open?                    subs/left-drawer-open?
+    :right-drawer/open?                   subs/right-drawer-open?
     :drawer-panel-stack/panels            subs/drawer-panel-stack
     :ui.catalogue/tab                     subs/catalogue-tab
     :ui.catalogue/nodes                   subs/catalogue-nodes
@@ -143,9 +144,12 @@
     :ui.sidebar/close                     events/sidebar-close
     :ui.sidebar/toggle                    events/sidebar-toggle
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
-    :seamap-drawer/toggle                 events/seamap-drawer-toggle
-    :seamap-drawer/open                   events/seamap-drawer-open
-    :seamap-drawer/close                  events/seamap-drawer-close
+    :left-drawer/toggle                   events/left-drawer-toggle
+    :left-drawer/open                     events/left-drawer-open
+    :left-drawer/close                    events/left-drawer-close
+    :right-drawer/toggle                  events/right-drawer-toggle
+    :right-drawer/open                    events/right-drawer-open
+    :right-drawer/close                   events/right-drawer-close
     :drawer-panel-stack/push              events/drawer-panel-stack-push
     :drawer-panel-stack/pop               events/drawer-panel-stack-pop}})
 

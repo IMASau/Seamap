@@ -340,7 +340,7 @@
 
 (defn transect-drawing-start [db _]
   (-> db
-      (assoc-in [:display :seamap-drawer] false)
+      (assoc-in [:display :left-drawer] false)
       (assoc-in [:map :controls :transect] true)
       (assoc-in [:transect :query] nil)))
 
@@ -466,18 +466,27 @@
     {:db db
      :put-hash (encode-state db)}))
 
-(defn seamap-drawer-toggle [db _]
+(defn left-drawer-toggle [db _]
   (-> db
-      (update-in [:display :seamap-drawer] not)
+      (update-in [:display :left-drawer] not)
       (assoc-in [:display :drawer-panel-stack] [])))
 
-(defn seamap-drawer-open [db _]
-  (assoc-in db [:display :seamap-drawer] true))
+(defn left-drawer-open [db _]
+  (assoc-in db [:display :left-drawer] true))
 
-(defn seamap-drawer-close [db _]
+(defn left-drawer-close [db _]
   (-> db
-      (assoc-in [:display :seamap-drawer] false)
+      (assoc-in [:display :left-drawer] false)
       (assoc-in [:display :drawer-panel-stack] [])))
+
+(defn right-drawer-toggle [db _]
+  (update-in db [:display :right-drawer] not))
+
+(defn right-drawer-open [db _]
+  (assoc-in db [:display :right-drawer] true))
+
+(defn right-drawer-close [db _]
+  (assoc-in db [:display :right-drawer] false))
 
 (defn drawer-panel-stack-push [db [_ panel props]]
   (update-in db [:display :drawer-panel-stack] conj {:panel panel :props props}))

@@ -761,11 +761,11 @@ input.leaflet-control-layers-selector[type="radio"] {
     vertical-align: top;
 }
 
-.seamap-drawer-header {
+.left-drawer-header {
     padding: 12px;
 }
 
-.seamap-drawer-header img {
+.left-drawer-header img {
     height: 36px;
 }
 
@@ -782,30 +782,30 @@ input.leaflet-control-layers-selector[type="radio"] {
     flex: 1;
 }
 
-.seamap-drawer-group {
+.left-drawer-group {
     padding-bottom: 20px;
 }
 
-.seamap-drawer-group h1 {
+.left-drawer-group h1 {
     padding-left: 12px;
     font-size: 16px;
     margin: 0;
 }
 
-.seamap-drawer-group .bp3-button {
+.left-drawer-group .bp3-button {
     width: calc(100% - 24px);
     justify-content: flex-start;
     padding: 12px 12px;
     margin: 0px 12px 6px 12px;
 }
 
-.seamap-drawer-group .bp3-button i {
+.left-drawer-group .bp3-button i {
     margin-right: 7px;
     width: 15px;
     height: 15px;
 }
 
-.seamap-drawer-group h1::before {
+.left-drawer-group h1::before {
     margin-right: 6px;
 }
 
