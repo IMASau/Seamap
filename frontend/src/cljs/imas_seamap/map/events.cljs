@@ -150,51 +150,58 @@
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))
 
-(defn display-feature-info [db point]
+(defn responses-feature-info [responses]
   (letfn [(response-to-info ; Converts a response and info format into readable information for the feature info popup
-           [response]
+            [response]
             (if-let [{:keys [response info-format]} response] ; If we have a response; then
               (case info-format                               ; process the response into readable information; else
                 "text/html"        (feature-info-html response)
                 "application/json" (feature-info-json response)
                 feature-info-none)
               {:status :feature-info/empty}))                 ; use an empty info status
-          
+
           (combine-feature-info ; Combines two feature infos into one
-           [{info-1 :info status-1 :status} {info-2 :info status-2 :status}]
-           (if (seq (str info-1 info-2))         ; If we have any info from either response; then
-             {:info (str info-1 info-2)}         ; combine the info from the responses and use that; else
-             {:status (or status-1 status-2)}))] ; just use the status from either response
+            [{info-1 :info status-1 :status} {info-2 :info status-2 :status}]
+            (if (seq (str info-1 info-2))         ; If we have any info from either response; then
+              {:info (str info-1 info-2)}         ; combine the info from the responses and use that; else
+              {:status (or status-1 status-2)}))] ; just use the status from either response
     
-    (let [responses     (get-in db [:feature-query :responses])
-          feature-infos (map response-to-info responses)
-          feature-info  (reduce combine-feature-info {} feature-infos)
-          had-insecure? (get-in db [:feature-query :had-insecure?])
-          candidate     (merge
-                         {:location point
-                          :had-insecure? had-insecure?}
-                         feature-info)]
-      (assoc db :feature candidate))))
+    (let [feature-infos (map response-to-info responses)]
+      (reduce combine-feature-info {} feature-infos))))
 
 (defn got-feature-info [db [_ request-id point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
-    (-> db
-        (update-in [:feature-query :response-remain] dec)
-        (update-in [:feature-query :responses] conj {:response response :info-format info-format})
-        (cond->
-          (zero? (dec (get-in db [:feature-query :response-remain])))
-          (display-feature-info point))))) ;; If this is the last response expected, update the displayed feature
+    (let [had-insecure? (get-in db [:feature-query :had-insecure?])
+          responses     (conj
+                         (get-in db [:feature-query :responses])
+                         {:response response :info-format info-format})]
+      (-> db
+          (update-in [:feature-query :response-remain] dec)
+          (assoc-in [:feature-query :responses] responses)
+          (cond->
+           (zero? (dec (get-in db [:feature-query :response-remain])))
+            (assoc
+             :feature
+             (merge
+              {:location point :had-insecure? had-insecure?}
+              (responses-feature-info responses)))))))) ;; If this is the last response expected, update the displayed feature
 
 (defn got-feature-info-error [db [_ request-id point _]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
-    (-> db
-        (update-in [:feature-query :response-remain] dec)
-        (update-in [:feature-query :responses] conj nil)
-        (cond->
-         (zero? (dec (get-in db [:feature-query :response-remain])))
-          (display-feature-info point))))) ;; If this is the last response expected, update the displayed feature
+    (let [had-insecure? (get-in db [:feature-query :had-insecure?])
+          responses     (conj (get-in db [:feature-query :responses]) nil)]
+      (-> db
+          (update-in [:feature-query :response-remain] dec)
+          (assoc-in [:feature-query :responses] responses)
+          (cond->
+            (zero? (dec (get-in db [:feature-query :response-remain])))
+            (assoc
+             :feature
+             (merge
+              {:location point :had-insecure? had-insecure?}
+              (responses-feature-info responses)))))))) ;; If this is the last response expected, update the displayed feature
 
 (defn destroy-popup [db _]
   (assoc db :feature nil))
