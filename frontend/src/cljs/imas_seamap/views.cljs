@@ -216,19 +216,20 @@
                :onNodeExpand on-open
                :onNodeClick on-click}]])))
 
-(defn layer-catalogue [layers layer-props group]
+(defn layer-catalogue [layers layer-props {:keys [group tabs]}]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab group])
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab group %1])]
     [:div.height-managed
      [b/tabs {:selected-tab-id selected-tab
               :on-change       select-tab
               :class      "group-scrollable height-managed"}
-      [b/tab {:id    "org" :title "By Organisation"
-              :panel (reagent/as-element
-                      [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props group])}]
-      [b/tab {:id    "cat" :title "By Category"
-              :panel (reagent/as-element
-                      [layer-catalogue-tree layers [:data_classification] "cat" layer-props group])}]]]))
+      (for [{:keys [id title categories]} tabs]
+        [b/tab
+         {:id id
+          :key id
+          :title title
+          :panel (reagent/as-element
+                  [layer-catalogue-tree layers categories id layer-props group])}])]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -579,12 +580,20 @@
    [selection-button]
    [layer-logic-toggle]
    [layer-search-filter]
-   [layer-catalogue layers {:active-layers active-layers
-                            :loading-fn    loading-fn
-                            :error-fn      error-fn
-                            :expanded-fn   expanded-fn
-                            :opacity-fn    opacity-fn}
-    group]
+   [layer-catalogue layers
+    {:active-layers active-layers
+     :loading-fn    loading-fn
+     :error-fn      error-fn
+     :expanded-fn   expanded-fn
+     :opacity-fn    opacity-fn}
+    {:group group
+     :tabs
+     [{:id         "org"
+       :title      "By Organisation"
+       :categories [:organisation :data_classification]}
+      {:id         "cat"
+       :title      "By Category"
+       :categories [:data_classification]}]}]
    [help-button]])
 
 ;; Unused
@@ -733,7 +742,14 @@
       :error-fn      error-layers
       :expanded-fn   expanded-layers
       :opacity-fn    layer-opacities}
-     group]]})
+     {:group group
+      :tabs
+      [{:id         "org"
+        :title      "By Organisation"
+        :categories [:organisation :data_classification]}
+       {:id         "cat"
+        :title      "By Category"
+        :categories [:data_classification]}]}]]})
 
 (defn drawer-panel-selection
   [panel map-layers region-stats]
