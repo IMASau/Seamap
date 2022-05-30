@@ -198,20 +198,20 @@
                          :secondaryLabel (reagent/as-element [catalogue-controls layer layer-state])}))
                     layer-subset))}))
 
-(defn layer-catalogue-tree [_layers _ordering _id _layer-props]
-  (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes])
+(defn layer-catalogue-tree [_layers _ordering _id _layer-props group]
+  (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes group])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
                   (let [node (js->clj node :keywordize-keys true)]
-                    (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
+                    (re-frame/dispatch [:ui.catalogue/toggle-node group (:id node)])))
         on-close (fn [node]
                    (let [node (js->clj node :keywordize-keys true)]
-                     (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
+                     (re-frame/dispatch [:ui.catalogue/toggle-node group (:id node)])))
         on-click (fn [node]
                    (let [{:keys [childNodes id]} (js->clj node :keywordize-keys true)]
                      (when (seq childNodes)
                        ;; If we have children, toggle expanded state, else add to map
-                       (re-frame/dispatch [:ui.catalogue/toggle-node id]))))]
+                       (re-frame/dispatch [:ui.catalogue/toggle-node group id]))))]
     (fn [layers ordering id layer-props]
      [:div.tab-body.layer-controls {:id id}
       [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props)
@@ -219,19 +219,19 @@
                :onNodeExpand on-open
                :onNodeClick on-click}]])))
 
-(defn layer-catalogue [layers layer-props]
-  (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab])
-        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab %1])]
+(defn layer-catalogue [layers layer-props group]
+  (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab group])
+        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab group %1])]
     [:div.height-managed
      [b/tabs {:selected-tab-id selected-tab
               :on-change       select-tab
               :class      "group-scrollable height-managed"}
       [b/tab {:id    "org" :title "By Organisation"
               :panel (reagent/as-element
-                      [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props])}]
+                      [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props group])}]
       [b/tab {:id    "cat" :title "By Category"
               :panel (reagent/as-element
-                      [layer-catalogue-tree layers [:data_classification] "cat" layer-props])}]]]))
+                      [layer-catalogue-tree layers [:data_classification] "cat" layer-props group])}]]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -575,7 +575,7 @@
    [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(defn thirdparty-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+(defn thirdparty-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn group]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
@@ -585,7 +585,8 @@
                             :loading-fn    loading-fn
                             :error-fn      error-fn
                             :expanded-fn   expanded-fn
-                            :opacity-fn    opacity-fn}]
+                            :opacity-fn    opacity-fn}
+    group]
    [help-button]])
 
 (defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn expanded-fn opacity-fn]
@@ -662,7 +663,7 @@
      [b/button
       {:icon     "more"
        :text     "Third-Party Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers])}]]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers {:group :third-party}])}]]
     [:div.left-drawer-group
      [:h1.bp3-heading.bp3-icon-cog
       "Settings"]
@@ -720,7 +721,7 @@
     benthic habitat data."]]]]})
 
 (defn thirdparty-layers-panel
-  [{:keys [layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
+  [{:keys [layers active-layers loading-layers error-layers expanded-layers layer-opacities group]}]
   {:title   "Third-Party Layers"
    :content
    [:div.sidebar-tab.height-managed
@@ -730,7 +731,8 @@
       :loading-fn    loading-layers
       :error-fn      error-layers
       :expanded-fn   expanded-layers
-      :opacity-fn    layer-opacities}]]})
+      :opacity-fn    layer-opacities}
+     group]]})
 
 (defn drawer-panel-selection
   [panel map-layers region-stats]
@@ -770,7 +772,8 @@
          :loading-layers  loading-layers
          :error-layers    error-layers
          :expanded-layers expanded-layers
-         :layer-opacities layer-opacities})))))
+         :layer-opacities layer-opacities
+         :group           (:group props)})))))
 
 (defn drawer-panel-stack
   []
@@ -849,7 +852,7 @@
                    :icon   (as-icon "more"
                                     (str "Third-Party Layers (" (count third-party) ")"))
                    :id     "tab-thirdparty"}
-      [thirdparty-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities]]
+      [thirdparty-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities :third-party]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.bp3-icon-standard.bp3-icon-cog])

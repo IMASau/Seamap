@@ -47,8 +47,8 @@
                      :left-drawer        false
                      :right-drawer       false
                      :drawer-panel-stack []
-                     :catalogue          {:tab      "org"
-                                          :expanded #{}}
+                     :catalogue          {:third-party {:tab "org"
+                                                        :expanded #{}}}
                      :sidebar            {:collapsed false
                                           :selected  "tab-activelayers"}}
    :config          {:layer-url            (str api-url-base "layers/")
