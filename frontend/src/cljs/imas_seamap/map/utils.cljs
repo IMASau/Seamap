@@ -212,8 +212,7 @@
                        :layers      (or detail_layer layer_name)})
         str)))
 
-(defn feature-info-none
-  []
+(def feature-info-none
   {:info (str
           "<div>"
           "<h4>No info available</h4>"

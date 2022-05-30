@@ -50,13 +50,7 @@
   (let [layers->str   #(->> % (map layer-name) reverse (string/join ","))]
    ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
     (for [[server-url active-layers] by-server
-          :let [layers   (layers->str active-layers)
-                priority (->> active-layers
-                              (map :category)
-                              (map {:imagery     0
-                                    :habitat     1
-                                    :third-party 2})
-                              (apply min))]]
+          :let [layers   (layers->str active-layers)]]
       (let [params {:REQUEST       "GetFeatureInfo"
                     :LAYERS        layers
                     :QUERY_LAYERS  layers
@@ -78,8 +72,8 @@
          :uri             server-url
          :params          params
          :response-format (ajax/text-response-format)
-         :on-success      [:map/got-featureinfo request-id priority point info-format]
-         :on-failure      [:map/got-featureinfo-err request-id priority]}))))
+         :on-success      [:map/got-featureinfo request-id point info-format]
+         :on-failure      [:map/got-featureinfo-err request-id point]}))))
 
 (defn get-feature-info [{:keys [db] :as _context} [_ {:keys [size bounds] :as _props} {:keys [x y] :as point}]]
   (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))) (remove #(some #{%} (get-in db [:map :hidden-layers]))))
@@ -89,7 +83,7 @@
         img-bounds    (bounds-for-zoom point size bounds img-size)
         ;; Note, top layer, last in the list, must be first in our search string:
         request-id    (gensym)
-          had-insecure? (->> db :map :active-layers (some #(is-insecure? (:server_url %))))
+        had-insecure? (->> db :map :active-layers (some #(is-insecure? (:server_url %))))
         info-format   (get-layers-info-format active-layers)
         db            (if had-insecure?
                         {:db (assoc db :feature {:status :feature-info/none-queryable :location point})} ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
@@ -99,9 +93,8 @@
                           :feature-query
                           {:request-id        request-id
                            :response-remain   (count by-server)
-                           :response-priority 99
                            :had-insecure?     had-insecure?
-                           :candidate         nil}
+                           :responses         []}
                           :feature
                           {:status   :feature-info/waiting
                            :location point})})]
@@ -109,14 +102,13 @@
       db
       (if info-format
         (assoc db :http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point))
-        (assoc db :dispatch [:map/got-featureinfo request-id nil point nil])))))
+        (assoc db :dispatch [:map/got-featureinfo request-id point nil nil])))))
 
 (defn get-habitat-region-statistics [{:keys [db] :as _ctx} [_ _props point]]
   (let [boundary   (->> db :map :active-layers (filter #(= :boundaries (:category %))) first :id)
         habitat    (region-stats-habitat-layer db)
         [x y]      (wgs84->epsg3112 ((juxt :lng :lat) point))
-        request-id (gensym)
-        priority   0]
+        request-id (gensym)]
     (when (and boundary habitat)
       {:http-xhrio {:method          :get
                     :uri             (get-in db [:config :region-stats-url])
@@ -125,12 +117,11 @@
                                       :x        x
                                       :y        y}
                     :response-format (ajax/text-response-format)
-                    :on-success      [:map/got-featureinfo request-id priority point]
-                    :on-failure      [:map/got-featureinfo-err request-id priority]}
+                    :on-success      [:map/got-featureinfo request-id point nil]
+                    :on-failure      [:map/got-featureinfo-err request-id point]}
        :db         (assoc db :feature-query {:request-id        request-id
                                              :response-remain   1
-                                             :response-priority 99
-                                             :candidate         nil}
+                                             :responses         []}
                           :feature       {:status   :feature-info/waiting
                                           :location point})})))
 
@@ -159,32 +150,51 @@
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))
 
-(defn got-feature-info [db [_ request-id priority point info-format response]]
-  (if (not= request-id (get-in db [:feature-query :request-id]))
-    db                           ; Ignore late responses to old clicks
-    (let [feature-info (case info-format
-                         "text/html" (feature-info-html response)
-                         "application/json" (feature-info-json response)
-                         (feature-info-none))
-          db' (update-in db [:feature-query :response-remain] dec)
-          {:keys [response-priority response-remain candidate had-insecure?]} (:feature-query db')
-          higher-priority? (< priority response-priority)
-          candidate' (merge {:location point :had-insecure? had-insecure?} feature-info)]
-      (cond-> db'
-          ;; If this response has a higher priority, update the response candidate
-        higher-priority?
-        (assoc-in [:feature-query :candidate] candidate')
-          ;; If this is the last response expected, update the displayed feature
-        (zero? response-remain)
-        (assoc :feature (if higher-priority? candidate' candidate))))))
+(defn responses-feature-info [db point]
+  (letfn [(response-to-info ; Converts a response and info format into readable information for the feature info popup
+            [response]
+            (if-let [{:keys [response info-format]} response] ; If we have a response; then
+              (case info-format                               ; process the response into readable information; else
+                "text/html"        (feature-info-html response)
+                "application/json" (feature-info-json response)
+                feature-info-none)
+              {:status :feature-info/empty}))                 ; use an empty info status
 
-(defn got-feature-info-error [db [_ _request_id priority _]]
-  (let [db (update-in db [:feature-query :response-remain] dec)
-        {:keys [response-priority response-remain]} (:feature-query db)
-        higher-priority? (< priority response-priority)]
-    (if (and (zero? response-remain) higher-priority?)
-      (assoc-in db [:feature :status] :feature-info/error)
-      db)))
+          (combine-feature-info ; Combines two feature infos into one
+            [{info-1 :info status-1 :status} {info-2 :info status-2 :status}]
+            (if (seq (str info-1 info-2))         ; If we have any info from either response; then
+              {:info (str info-1 info-2)}         ; combine the info from the responses and use that; else
+              {:status (or status-1 status-2)}))] ; just use the status from either response
+    
+    (let [responses     (get-in db [:feature-query :responses])
+          feature-infos (map response-to-info responses)
+          feature-info  (reduce combine-feature-info {} feature-infos)
+          had-insecure? (get-in db [:feature-query :had-insecure?])]
+      (merge
+       {:location point :had-insecure? had-insecure?}
+       feature-info))))
+
+(defn got-feature-info [db [_ request-id point info-format response]]
+  (if (not= request-id (get-in db [:feature-query :request-id]))
+    db ; Ignore late responses to old clicks
+    (let [db (-> db
+                 (update-in [:feature-query :response-remain] dec)
+                 (update-in [:feature-query :responses] conj {:response response :info-format info-format}))]
+
+      (if (zero? (get-in db [:feature-query :response-remain]))
+        (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
+        db))))
+
+(defn got-feature-info-error [db [_ request-id point _]]
+  (if (not= request-id (get-in db [:feature-query :request-id]))
+    db ; Ignore late responses to old clicks
+    (let [db (-> db
+                 (update-in [:feature-query :response-remain] dec)
+                 (update-in [:feature-query :responses] conj nil))]
+      
+      (if (zero? (get-in db [:feature-query :response-remain]))
+        (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
+        db))))  
 
 (defn destroy-popup [db _]
   (assoc db :feature nil))
