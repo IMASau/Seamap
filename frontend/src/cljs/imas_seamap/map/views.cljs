@@ -9,6 +9,7 @@
             [imas-seamap.utils :refer [copy-text select-values handler-dispatch] :include-macros true]
             [imas-seamap.map.utils :refer [sort-layers bounds->geojson download-type->str]]
             [imas-seamap.interop.leaflet :as leaflet]
+            [imas-seamap.components :as components]
             ["/L.Control.Zoominfo"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -152,7 +153,7 @@
   (when-not (. js-obj listens event-name)
     (. js-obj on event-name handler)))
 
-(defn map-component [sidebar]
+(defn map-component [sidebar floating-pills]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
@@ -165,6 +166,7 @@
         logic-type                                    @(re-frame/subscribe [:map.layers/logic])]
     [:div.map-wrapper
      sidebar
+     floating-pills
      [download-component download-info]
      [leaflet/leaflet-map
       (merge
