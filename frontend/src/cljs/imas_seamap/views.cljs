@@ -763,7 +763,7 @@
       (thirdparty-layers-panel
        (merge
         props
-        {:layers          (:third-party groups)
+        {:layers          ((:group props) groups)
          :habitat-layer   habitat-layer
          :active-layers   active-layers
          :loading-layers  loading-layers
