@@ -67,8 +67,16 @@
   [state]
   (select-keys* state
                 [[:display :sidebar :selected]
-                 [:display :catalogue :tab]      ; TODO: Groups
-                 [:display :catalogue :expanded] ; TODO: Groups
+                 [:display :catalogue :habitat :tab]
+                 [:display :catalogue :habitat :expanded]
+                 [:display :catalogue :boundaries :tab]
+                 [:display :catalogue :boundaries :expanded]
+                 [:display :catalogue :bathymetry :tab]
+                 [:display :catalogue :bathymetry :expanded]
+                 [:display :catalogue :imagery :tab]
+                 [:display :catalogue :imagery :expanded]
+                 [:display :catalogue :third-party :tab]
+                 [:display :catalogue :third-party :expanded]
                  [:transect :show?]
                  [:transect :query]
                  [:map :active]

@@ -47,7 +47,7 @@
                      :left-drawer        false
                      :right-drawer       false
                      :drawer-panel-stack []
-                     :catalogue          {:habitat     {:tab "org"
+                     :catalogue          {:habitat     {:tab "org"     ; NOTE: Move away from map to vector to support arbitrary number of tabs/groups?
                                                         :expanded #{}}
                                           :boundaries  {:tab "org"
                                                         :expanded #{}}
