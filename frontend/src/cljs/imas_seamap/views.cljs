@@ -574,7 +574,7 @@
    [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(defn catalogue-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn group]
+(defn catalogue-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn group tabs]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
@@ -587,13 +587,7 @@
      :expanded-fn   expanded-fn
      :opacity-fn    opacity-fn}
     {:group group
-     :tabs
-     [{:id         "org"
-       :title      "By Organisation"
-       :categories [:organisation :data_classification]}
-      {:id         "cat"
-       :title      "By Category"
-       :categories [:data_classification]}]}]
+     :tabs tabs}]
    [help-button]])
 
 ;; Unused
@@ -655,23 +649,68 @@
      [b/button
       {:icon     "home"
        :text     "Habitat Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :habitat :title "Habitat Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
+                                      {:group :habitat
+                                       :title "Habitat Layers"
+                                       :tabs
+                                       [{:id         "org"
+                                         :title      "By Organisation"
+                                         :categories [:organisation :data_classification]}
+                                        {:id         "cat"
+                                         :title      "By Category"
+                                         :categories [:data_classification]}]}])}]
      [b/button
       {:icon     "timeline-area-chart"
        :text     "Bathymetry Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :bathymetry :title "Bathymetry Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
+                                      {:group :bathymetry
+                                       :title "Bathymetry Layers"
+                                       :tabs
+                                       [{:id         "org"
+                                         :title      "By Organisation"
+                                         :categories [:organisation :data_classification]}
+                                        {:id         "cat"
+                                         :title      "By Category"
+                                         :categories [:data_classification]}]}])}]
      [b/button
       {:icon     "media"
        :text     "Imagery Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :imagery :title "Imagery Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
+                                      {:group :imagery
+                                       :title "Imagery Layers"
+                                       :tabs
+                                       [{:id         "org"
+                                         :title      "By Organisation"
+                                         :categories [:organisation :data_classification]}
+                                        {:id         "cat"
+                                         :title      "By Category"
+                                         :categories [:data_classification]}]}])}]
      [b/button
       {:icon     "heatmap"
        :text     "Management Regions Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :boundaries :title "Management Regions Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
+                                      {:group :boundaries
+                                       :title "Management Regions Layers"
+                                       :tabs
+                                       [{:id         "org"
+                                         :title      "By Organisation"
+                                         :categories [:organisation :data_classification]}
+                                        {:id         "cat"
+                                         :title      "By Category"
+                                         :categories [:data_classification]}]}])}]
      [b/button
       {:icon     "more"
        :text     "Third-Party Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :third-party :title "Third-Party Layers"}])}]]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
+                                      {:group :third-party
+                                       :title "Third-Party Layers"
+                                       :tabs
+                                       [{:id         "org"
+                                         :title      "By Organisation"
+                                         :categories [:organisation :data_classification]}
+                                        {:id         "cat"
+                                         :title      "By Category"
+                                         :categories [:data_classification]}]}])}]]
     [:div.left-drawer-group
      [:h1.bp3-heading.bp3-icon-cog
       "Settings"]
@@ -731,7 +770,7 @@
     benthic habitat data."]]]]})
 
 (defn catalogue-layers-panel
-  [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities group]}]
+  [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities group tabs]}]
   {:title   title
    :content
    [:div.sidebar-tab.height-managed
@@ -743,13 +782,7 @@
       :expanded-fn   expanded-layers
       :opacity-fn    layer-opacities}
      {:group group
-      :tabs
-      [{:id         "org"
-        :title      "By Organisation"
-        :categories [:organisation :data_classification]}
-       {:id         "cat"
-        :title      "By Category"
-        :categories [:data_classification]}]}]]})
+      :tabs tabs}]]})
 
 (defn drawer-panel-selection
   [panel map-layers region-stats]
@@ -851,26 +884,56 @@
                    :icon   (as-icon "home"
                                     (str "Habitat Layers (" (count habitat) ")"))
                    :id     "tab-habitat"}
-      [catalogue-layer-tab habitat active-layers loading-layers error-layers expanded-layers layer-opacities :habitat]]
+      [catalogue-layer-tab habitat active-layers loading-layers error-layers expanded-layers layer-opacities :habitat
+       [{:id         "org"
+         :title      "By Organisation"
+         :categories [:organisation :data_classification]}
+        {:id         "cat"
+         :title      "By Category"
+         :categories [:data_classification]}]]]
      [sidebar-tab {:header "Bathymetry"
                    :icon   (as-icon "timeline-area-chart"
                                     (str "Bathymetry Layers (" (count bathymetry) ")"))
                    :id     "tab-bathy"}
-      [catalogue-layer-tab bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities :bathymetry]]
+      [catalogue-layer-tab bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities :bathymetry
+       [{:id         "org"
+         :title      "By Organisation"
+         :categories [:organisation :data_classification]}
+        {:id         "cat"
+         :title      "By Category"
+         :categories [:data_classification]}]]]
      [sidebar-tab {:header "Imagery"
                    :icon   (as-icon "media"
                                     (str "Imagery Layers (" (count imagery) ")"))
                    :id     "tab-imagery"}
-      [catalogue-layer-tab imagery active-layers loading-layers error-layers expanded-layers layer-opacities :imagery]]
+      [catalogue-layer-tab imagery active-layers loading-layers error-layers expanded-layers layer-opacities :imagery
+       [{:id         "org"
+         :title      "By Organisation"
+         :categories [:organisation :data_classification]}
+        {:id         "cat"
+         :title      "By Category"
+         :categories [:data_classification]}]]]
      [sidebar-tab {:header "Management Regions"
                    :icon   (as-icon "heatmap" "Management Region Layers")
                    :id     "tab-management"}
-      [catalogue-layer-tab boundaries active-layers loading-layers error-layers expanded-layers layer-opacities :boundaries]]
+      [catalogue-layer-tab boundaries active-layers loading-layers error-layers expanded-layers layer-opacities :boundaries
+       [{:id         "org"
+         :title      "By Organisation"
+         :categories [:organisation :data_classification]}
+        {:id         "cat"
+         :title      "By Category"
+         :categories [:data_classification]}]]]
      [sidebar-tab {:header "Third-Party"
                    :icon   (as-icon "more"
                                     (str "Third-Party Layers (" (count third-party) ")"))
                    :id     "tab-thirdparty"}
-      [catalogue-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities :third-party]]
+      [catalogue-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities :third-party
+       [{:id         "org"
+         :title      "By Organisation"
+         :categories [:organisation :data_classification]}
+        {:id         "cat"
+         :title      "By Category"
+         :categories [:data_classification]}]]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.bp3-icon-standard.bp3-icon-cog])
