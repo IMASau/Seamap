@@ -47,7 +47,13 @@
                      :left-drawer        false
                      :right-drawer       false
                      :drawer-panel-stack []
-                     :catalogue          {:third-party {:tab "org"
+                     :catalogue          {:habitat     {:tab "org"
+                                                        :expanded #{}}
+                                          :bathymetry  {:tab "org"
+                                                        :expanded #{}}
+                                          :imagery     {:tab "org"
+                                                        :expanded #{}}
+                                          :third-party {:tab "org"
                                                         :expanded #{}}}
                      :sidebar            {:collapsed false
                                           :selected  "tab-activelayers"}}
