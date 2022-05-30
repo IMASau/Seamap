@@ -656,7 +656,7 @@
      [b/button
       {:icon     "heatmap"
        :text     "Management Regions Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/management-layers])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers {:group :boundaries :title "Management Regions Layers"}])}]
      [b/button
       {:icon     "more"
        :text     "Third-Party Layers"
@@ -843,7 +843,7 @@
      [sidebar-tab {:header "Management Regions"
                    :icon   (as-icon "heatmap" "Management Region Layers")
                    :id     "tab-management"}
-      [management-layer-tab boundaries habitat-layer active-layers loading-layers error-layers expanded-layers layer-opacities]]
+      [thirdparty-layer-tab boundaries active-layers loading-layers error-layers expanded-layers layer-opacities :boundaries]]
      [sidebar-tab {:header "Third-Party"
                    :icon   (as-icon "more"
                                     (str "Third-Party Layers (" (count third-party) ")"))

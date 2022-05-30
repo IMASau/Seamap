@@ -49,6 +49,8 @@
                      :drawer-panel-stack []
                      :catalogue          {:habitat     {:tab "org"
                                                         :expanded #{}}
+                                          :boundaries  {:tab "org"
+                                                        :expanded #{}}
                                           :bathymetry  {:tab "org"
                                                         :expanded #{}}
                                           :imagery     {:tab "org"
