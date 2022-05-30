@@ -572,7 +572,7 @@
    [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(defn thirdparty-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn group]
+(defn catalogue-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn group]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
@@ -644,23 +644,23 @@
      [b/button
       {:icon     "home"
        :text     "Habitat Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers {:group :habitat :title "Habitat Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :habitat :title "Habitat Layers"}])}]
      [b/button
       {:icon     "timeline-area-chart"
        :text     "Bathymetry Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers {:group :bathymetry :title "Bathymetry Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :bathymetry :title "Bathymetry Layers"}])}]
      [b/button
       {:icon     "media"
        :text     "Imagery Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers {:group :imagery :title "Imagery Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :imagery :title "Imagery Layers"}])}]
      [b/button
       {:icon     "heatmap"
        :text     "Management Regions Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers {:group :boundaries :title "Management Regions Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :boundaries :title "Management Regions Layers"}])}]
      [b/button
       {:icon     "more"
        :text     "Third-Party Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers {:group :third-party :title "Third-Party Layers"}])}]]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :third-party :title "Third-Party Layers"}])}]]
     [:div.left-drawer-group
      [:h1.bp3-heading.bp3-icon-cog
       "Settings"]
@@ -717,7 +717,7 @@
     habitat statistics for that region, and to download the subsetted
     benthic habitat data."]]]]})
 
-(defn thirdparty-layers-panel
+(defn catalogue-layers-panel
   [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities group]}]
   {:title   title
    :content
@@ -759,8 +759,8 @@
          :error-layers    error-layers
          :expanded-layers expanded-layers
          :layer-opacities layer-opacities}))
-      :drawer-panel/thirdparty-layers
-      (thirdparty-layers-panel
+      :drawer-panel/catalogue-layers
+      (catalogue-layers-panel
        (merge
         props
         {:layers          ((:group props) groups)
@@ -829,26 +829,26 @@
                    :icon   (as-icon "home"
                                     (str "Habitat Layers (" (count habitat) ")"))
                    :id     "tab-habitat"}
-      [thirdparty-layer-tab habitat active-layers loading-layers error-layers expanded-layers layer-opacities :habitat]]
+      [catalogue-layer-tab habitat active-layers loading-layers error-layers expanded-layers layer-opacities :habitat]]
      [sidebar-tab {:header "Bathymetry"
                    :icon   (as-icon "timeline-area-chart"
                                     (str "Bathymetry Layers (" (count bathymetry) ")"))
                    :id     "tab-bathy"}
-      [thirdparty-layer-tab bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities :bathymetry]]
+      [catalogue-layer-tab bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities :bathymetry]]
      [sidebar-tab {:header "Imagery"
                    :icon   (as-icon "media"
                                     (str "Imagery Layers (" (count imagery) ")"))
                    :id     "tab-imagery"}
-      [thirdparty-layer-tab imagery active-layers loading-layers error-layers expanded-layers layer-opacities :imagery]]
+      [catalogue-layer-tab imagery active-layers loading-layers error-layers expanded-layers layer-opacities :imagery]]
      [sidebar-tab {:header "Management Regions"
                    :icon   (as-icon "heatmap" "Management Region Layers")
                    :id     "tab-management"}
-      [thirdparty-layer-tab boundaries active-layers loading-layers error-layers expanded-layers layer-opacities :boundaries]]
+      [catalogue-layer-tab boundaries active-layers loading-layers error-layers expanded-layers layer-opacities :boundaries]]
      [sidebar-tab {:header "Third-Party"
                    :icon   (as-icon "more"
                                     (str "Third-Party Layers (" (count third-party) ")"))
                    :id     "tab-thirdparty"}
-      [thirdparty-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities :third-party]]
+      [catalogue-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities :third-party]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.bp3-icon-standard.bp3-icon-cog])
