@@ -563,7 +563,8 @@
                                   :position RIGHT}
                        [:span.bp3-icon-standard {:class (str "bp3-icon-" icon-name)}]]))
 
-(defn layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+;; Unused
+#_(defn layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
@@ -586,7 +587,8 @@
     group]
    [help-button]])
 
-(defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn expanded-fn opacity-fn]
+;; Unused
+#_(defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
    [:div.boundary-layers.height-managed.group-scrollable
     [:h6 "Boundary Layers"]
@@ -669,7 +671,8 @@
        :text     "Reset Interface"
        :on-click   #(re-frame/dispatch [:re-boot])}]]]})
 
-(defn layer-panel
+;; Unused
+#_(defn layer-panel
   [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
   {:title title
    :content
@@ -677,7 +680,8 @@
     [layer-search-filter]
     [layer-group {:expanded true :title "Layers"} layers active-layers loading-layers error-layers expanded-layers layer-opacities]]})
 
-(defn management-layers-panel
+;; Unused
+#_(defn management-layers-panel
   [{:keys [layers habitat-layer active-layers loading-layers error-layers expanded-layers layer-opacities]}]
   {:title "Management Region Layers"
    :content
@@ -737,28 +741,30 @@
         {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers
         {:keys [habitat-layer]} region-stats]
     (case panel
-      :drawer-panel/layer-panel
-      (layer-panel
-       (merge
-        props
-        {:layers          ((:group props) groups)
-         :active-layers   active-layers
-         :loading-layers  loading-layers
-         :error-layers    error-layers
-         :expanded-layers expanded-layers
-         :layer-opacities layer-opacities}))
+      ;; Unused
+      #_:drawer-panel/layer-panel
+      #_(layer-panel
+         (merge
+          props
+          {:layers          ((:group props) groups)
+           :active-layers   active-layers
+           :loading-layers  loading-layers
+           :error-layers    error-layers
+           :expanded-layers expanded-layers
+           :layer-opacities layer-opacities}))
 
-      :drawer-panel/management-layers
-      (management-layers-panel
-       (merge
-        props
-        {:layers          (:boundaries groups)
-         :habitat-layer   habitat-layer
-         :active-layers   active-layers
-         :loading-layers  loading-layers
-         :error-layers    error-layers
-         :expanded-layers expanded-layers
-         :layer-opacities layer-opacities}))
+      ;; Unused
+      #_:drawer-panel/management-layers
+      #_(management-layers-panel
+         (merge
+          props
+          {:layers          (:boundaries groups)
+           :habitat-layer   habitat-layer
+           :active-layers   active-layers
+           :loading-layers  loading-layers
+           :error-layers    error-layers
+           :expanded-layers expanded-layers
+           :layer-opacities layer-opacities}))
       :drawer-panel/catalogue-layers
       (catalogue-layers-panel
        (merge
