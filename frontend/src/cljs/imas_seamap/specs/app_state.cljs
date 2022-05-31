@@ -209,27 +209,10 @@
 ;;; catalogue
 (s/def :display.catalogue.group/tab string?)
 (s/def :display.catalogue.group/expanded (s/coll-of string? :kind set?))
-(s/def :display.catalogue/habitat
+(s/def :display.catalogue/group
   (s/keys :req-un [:display.catalogue.group/tab
                    :display.catalogue.group/expanded]))
-(s/def :display.catalogue/boundaries
-  (s/keys :req-un [:display.catalogue.group/tab
-                   :display.catalogue.group/expanded]))
-(s/def :display.catalogue/bathymetry
-  (s/keys :req-un [:display.catalogue.group/tab
-                   :display.catalogue.group/expanded]))
-(s/def :display.catalogue/imagery
-  (s/keys :req-un [:display.catalogue.group/tab
-                   :display.catalogue.group/expanded]))
-(s/def :display.catalogue/third-party
-  (s/keys :req-un [:display.catalogue.group/tab
-                   :display.catalogue.group/expanded]))
-(s/def :display/catalogue
-  (s/keys :req-un [:display.catalogue/habitat
-                   :display.catalogue/boundaries
-                   :display.catalogue/bathymetry
-                   :display.catalogue/imagery
-                   :display.catalogue/third-party]))
+(s/def :display/catalogue (s/map-of keyword? :display.catalogue/group))
 ;;; overlays
 (s/def :display/help-overlay boolean?)
 (s/def :display/welcome-overlay boolean?)
