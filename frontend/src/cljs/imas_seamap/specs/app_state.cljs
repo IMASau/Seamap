@@ -207,9 +207,12 @@
                           :opt-un [:transect/mouse-percentage]))
 
 ;;; catalogue
-(s/def :display.catalogue/tab string?)
-(s/def :display.catalogue/expanded (s/coll-of string? :kind set?))
-(s/def :display/catalogue (s/keys :opt-un [:display.catalogue/tab :display.catalogue/expanded]))
+(s/def :display.catalogue.group/tab string?)
+(s/def :display.catalogue.group/expanded (s/coll-of string? :kind set?))
+(s/def :display.catalogue/group
+  (s/keys :req-un [:display.catalogue.group/tab
+                   :display.catalogue.group/expanded]))
+(s/def :display/catalogue (s/map-of keyword? :display.catalogue/group))
 ;;; overlays
 (s/def :display/help-overlay boolean?)
 (s/def :display/welcome-overlay boolean?)

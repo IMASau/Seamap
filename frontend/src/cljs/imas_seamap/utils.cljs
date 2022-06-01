@@ -67,8 +67,7 @@
   [state]
   (select-keys* state
                 [[:display :sidebar :selected]
-                 [:display :catalogue :tab]
-                 [:display :catalogue :expanded]
+                 [:display :catalogue]
                  [:transect :show?]
                  [:transect :query]
                  [:map :active]

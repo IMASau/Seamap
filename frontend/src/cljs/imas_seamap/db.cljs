@@ -47,8 +47,16 @@
                      :left-drawer        false
                      :right-drawer       false
                      :drawer-panel-stack []
-                     :catalogue          {:tab      "org"
-                                          :expanded #{}}
+                     :catalogue          {:habitat     {:tab "org"     ; NOTE: Move away from map to vector to support arbitrary number of tabs/groups?
+                                                        :expanded #{}}
+                                          :boundaries  {:tab "org"
+                                                        :expanded #{}}
+                                          :bathymetry  {:tab "org"
+                                                        :expanded #{}}
+                                          :imagery     {:tab "org"
+                                                        :expanded #{}}
+                                          :third-party {:tab "org"
+                                                        :expanded #{}}}
                      :sidebar            {:collapsed false
                                           :selected  "tab-activelayers"}}
    :config          {:layer-url            (str api-url-base "layers/")
