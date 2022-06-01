@@ -789,30 +789,6 @@
   (let [{:keys [panel props]} panel
         {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers]
     (case panel
-      ;; Unused
-      #_:drawer-panel/layer-panel
-      #_(layer-panel
-         (merge
-          props
-          {:layers          ((:group props) groups)
-           :active-layers   active-layers
-           :loading-layers  loading-layers
-           :error-layers    error-layers
-           :expanded-layers expanded-layers
-           :layer-opacities layer-opacities}))
-
-      ;; Unused
-      #_:drawer-panel/management-layers
-      #_(management-layers-panel
-         (merge
-          props
-          {:layers          (:boundaries groups)
-           :habitat-layer   habitat-layer
-           :active-layers   active-layers
-           :loading-layers  loading-layers
-           :error-layers    error-layers
-           :expanded-layers expanded-layers
-           :layer-opacities layer-opacities}))
       :drawer-panel/catalogue-layers
       (catalogue-layers-panel
        (merge
