@@ -75,7 +75,7 @@
          :on-success      [:map/got-featureinfo request-id point info-format]
          :on-failure      [:map/got-featureinfo-err request-id point]}))))
 
-(defn get-feature-info [{:keys [db] :as _context} [_ {:keys [size bounds] :as _props} {:keys [x y] :as point}]]
+(defn get-feature-info [{:keys [db]} [_ {:keys [size bounds]} point]]
   (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))) (remove #(some #{%} (get-in db [:map :hidden-layers]))))
         by-server     (group-by :server_url active-layers)
         ;; Note, we don't use the entire viewport for the pixel bounds because of inaccuracies when zoomed out.
@@ -104,7 +104,7 @@
         (assoc db :http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point))
         (assoc db :dispatch [:map/got-featureinfo request-id point nil nil])))))
 
-(defn get-habitat-region-statistics [{:keys [db] :as _ctx} [_ _props point]]
+(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
   (let [boundary   (->> db :map :active-layers first :id)
         habitat    (region-stats-habitat-layer db)
         [x y]      (wgs84->epsg3112 ((juxt :lng :lat) point))
@@ -130,21 +130,21 @@
   just want to issue a (or multiple) getFeatureInfo requests, but if
   we're in calculating-region-statistics mode we want to issue a
   different request, and it's cleaner to handle those separately."
-  [{:keys [db] :as ctx} [_ _props _point :as event-v]]
-  (cond (get-in db [:map :controls :ignore-click])
+  [{:keys [db] :as ctx} event-v]
+  (let [{:keys [hidden-layers active-layers]} (:map db)]
+    (cond
+      (get-in db [:map :controls :ignore-click])
         {:dispatch [:map/toggle-ignore-click]}
 
         (:feature db) ; If we're clicking the map but there's a popup open, just close it
         {:dispatch [:map/popup-closed]}
 
-        ;; Only invoke if we aren't drawing a transect (ie, different click):
-        (not (or (get-in db [:map :controls :transect])
-                 (get-in db [:map :controls :download :selecting])
-                 ;; (also ignore click if there's no visible layers to click on)
-                 (empty? (remove #(some #{%} (get-in db [:map :hidden-layers])) (get-in db [:map :active-layers])))))
+
+      (not (or                                                         ; Only invoke if:
+            (get-in db [:map :controls :transect])                     ; we aren't drawing a transect;
+            (get-in db [:map :controls :download :selecting])          ; we aren't selecting a region; and
+            (empty? (remove #((set hidden-layers) %) active-layers)))) ; there are visible layers
         (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)]
-          (if (= "tab-management" (get-in db [:display :sidebar :selected]))
-            (get-habitat-region-statistics ctx event-v)
             (get-feature-info ctx event-v)))))
 
 (defn toggle-ignore-click [db _]
