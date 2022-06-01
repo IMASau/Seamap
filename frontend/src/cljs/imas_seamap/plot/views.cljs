@@ -202,13 +202,13 @@
    [:g#textbox (merge {:transform "translate(0, 0)"} (:textbox @tooltip-content))
     [:defs
      [:clipPath {:id "tooltip-clip"}
-      [:rect {:x 0 :y 0 :width tooltip-width :height (* 3.5 line-height)}]]]
+      [:rect {:x 0 :y 0 :width tooltip-width :height (* 4.5 line-height)}]]]
     [:rect {:x      0
             :y      0
             :rx     5
             :ry     5
             :width  tooltip-width
-            :height (* 3.5 line-height)
+            :height (* 4.5 line-height)
             :style  {:opacity      0.9
                      :fill         "white"
                      :stroke       "black"
@@ -245,21 +245,23 @@
         depth                              (depth-at-percentage (merge props {:percentage percentage}))
         pointx                             (percentage-to-x-pos (merge props {:percentage percentage}))
         pointy                             (if (nil? depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth depth})))
-        {:keys [name]}                     (habitat-at-percentage (merge props {:percentage percentage}))
+        {:keys [layer_name name]}                     (habitat-at-percentage (merge props {:percentage percentage}))
         depth-label                        (if (nil? depth) "No data" (str (.toFixed depth) "m"))
         zone-label                         (if (nil? name) "No data" (get zone-legend name name))
+        layer-label                         (if layer_name layer_name "No data")
         distance                           (int (/ (* percentage max-x) 100))
         distance-unit                      (if (seq habitat) "m" "%")]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
                                   :textbox   {:transform (str "translate("
                                                               (+ m-left ox (* (/ percentage 100) (- graph-domain tooltip-width)))
-                                                              ", " (+ 10 (+ m-top (* graph-range (- 1 offset)))) ")")}
+                                                              ", " (- (+ m-top (* graph-range (- 1 offset))) 10) ")")}
                                   :line      {:x1 pointx
                                               :y1 m-top
                                               :x2 pointx
                                               :y2 (+ m-top graph-range)}
                                   :text      [(str "Depth: " depth-label)
                                               (str "Habitat: " zone-label)
+                                              (str "Layer: " layer-label)
                                               (str "Distance: " distance distance-unit)]
                                   :datapoint {:cx pointx
                                               :cy pointy}})
