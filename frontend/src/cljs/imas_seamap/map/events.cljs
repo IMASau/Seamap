@@ -75,37 +75,40 @@
          :on-success      [:map/got-featureinfo request-id point info-format]
          :on-failure      [:map/got-featureinfo-err request-id point]}))))
 
-(defn get-feature-info [{:keys [db] :as _context} [_ {:keys [size bounds] :as _props} {:keys [x y] :as point}]]
-  (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))) (remove #(some #{%} (get-in db [:map :hidden-layers]))))
-        by-server     (group-by :server_url active-layers)
+(defn get-feature-info [{:keys [db]} [_ {:keys [size bounds]} point]]
+  (let [{:keys [hidden-layers active-layers]} (:map db)
+        visible-layers (remove #((set hidden-layers) %) active-layers)
+        secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
+        by-server      (group-by :server_url secure-layers)
         ;; Note, we don't use the entire viewport for the pixel bounds because of inaccuracies when zoomed out.
-        img-size      {:width 101 :height 101}
-        img-bounds    (bounds-for-zoom point size bounds img-size)
+        img-size       {:width 101 :height 101}
+        img-bounds     (bounds-for-zoom point size bounds img-size)
         ;; Note, top layer, last in the list, must be first in our search string:
-        request-id    (gensym)
-        had-insecure? (->> db :map :active-layers (some #(is-insecure? (:server_url %))))
-        info-format   (get-layers-info-format active-layers)
-        db            (if had-insecure?
-                        {:db (assoc db :feature {:status :feature-info/none-queryable :location point})} ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
-                        {:db ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
-                         (assoc
-                          db
-                          :feature-query
-                          {:request-id        request-id
-                           :response-remain   (count by-server)
-                           :had-insecure?     had-insecure?
-                           :responses         []}
-                          :feature
-                          {:status   :feature-info/waiting
-                           :location point})})]
+        request-id     (gensym)
+        had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
+        info-format    (get-layers-info-format secure-layers)
+        db             (if had-insecure?
+                         {:db (assoc db :feature {:status :feature-info/none-queryable :location point})} ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
+                         {:db ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
+                          (assoc
+                           db
+                           :feature-query
+                           {:request-id        request-id
+                            :response-remain   (count by-server)
+                            :had-insecure?     had-insecure?
+                            :responses         []}
+                           :feature
+                           {:status   :feature-info/waiting
+                            :location point})})]
     (if had-insecure?
       db
       (if info-format
         (assoc db :http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point))
         (assoc db :dispatch [:map/got-featureinfo request-id point nil nil])))))
 
-(defn get-habitat-region-statistics [{:keys [db] :as _ctx} [_ _props point]]
-  (let [boundary   (->> db :map :active-layers (filter #(= :boundaries (:category %))) first :id)
+;; Unused - related to getting boundary and habitat region stats
+#_(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
+  (let [boundary   (->> db :map :active-layers first :id)
         habitat    (region-stats-habitat-layer db)
         [x y]      (wgs84->epsg3112 ((juxt :lng :lat) point))
         request-id (gensym)]
@@ -130,22 +133,21 @@
   just want to issue a (or multiple) getFeatureInfo requests, but if
   we're in calculating-region-statistics mode we want to issue a
   different request, and it's cleaner to handle those separately."
-  [{:keys [db] :as ctx} [_ _props _point :as event-v]]
-  (cond (get-in db [:map :controls :ignore-click])
-        {:dispatch [:map/toggle-ignore-click]}
+  [{:keys [db] :as ctx} event-v]
+  (let [{:keys [hidden-layers active-layers]} (:map db)]
+    (cond
+      (get-in db [:map :controls :ignore-click])
+      {:dispatch [:map/toggle-ignore-click]}
 
-        (:feature db) ; If we're clicking the map but there's a popup open, just close it
-        {:dispatch [:map/popup-closed]}
+      (:feature db) ; If we're clicking the map but there's a popup open, just close it
+      {:dispatch [:map/popup-closed]}
 
-        ;; Only invoke if we aren't drawing a transect (ie, different click):
-        (not (or (get-in db [:map :controls :transect])
-                 (get-in db [:map :controls :download :selecting])
-                 ;; (also ignore click if there's no visible layers to click on)
-                 (empty? (remove #(some #{%} (get-in db [:map :hidden-layers])) (get-in db [:map :active-layers])))))
-        (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)]
-          (if (= "tab-management" (get-in db [:display :sidebar :selected]))
-            (get-habitat-region-statistics ctx event-v)
-            (get-feature-info ctx event-v)))))
+      (not (or                                                         ; Only invoke if:
+            (get-in db [:map :controls :transect])                     ; we aren't drawing a transect;
+            (get-in db [:map :controls :download :selecting])          ; we aren't selecting a region; and
+            (empty? (remove #((set hidden-layers) %) active-layers)))) ; there are visible layers
+      (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)]
+        (get-feature-info ctx event-v)))))
 
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))
@@ -302,25 +304,9 @@
   "Encompases all the special-case logic in toggling active layers.
   Returns the new active layers as a vector."
   [layer active-layers]
-  (if (some #{layer} active-layers)
-    (filterv (fn [l] (not= l layer)) active-layers)
-    (let [active-layers  (filterv #(or (:contours %)
-                                       (not= :bathymetry (:category %)))
-                                  active-layers)]
-      (case (:category layer)
-        ;; if we turn on bathymetry, hide everything else (SM-58) --
-        ;; unless it's a contour layer, in which case we can keep it,
-        ;; but note still filter out other bathy layers:
-        :bathymetry (if (:contours layer)
-                      (conj active-layers layer)
-                      [layer])
-        ;; Only show one boundary-layer at a time:
-        :boundaries (conj
-                     (filterv #(not= :boundaries (:category %))
-                              active-layers)
-                     layer)
-        ;; Default:
-        (conj active-layers layer)))))
+  (if ((set active-layers) layer)
+    (filterv #(not= % layer) active-layers)
+    (conj active-layers layer)))
 
 (defn toggle-layer [{:keys [db]} [_ layer]]
   (let [db (update-in db [:map :active-layers] (partial toggle-layer-logic layer))

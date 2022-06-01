@@ -33,11 +33,11 @@
     :map.layers/priorities                msubs/map-layer-priorities
     :map.layers/logic                     msubs/map-layer-logic
     :map.layers/lookup                    msubs/map-layer-lookup
-    :map.layers/params                    msubs/map-layer-extra-params-fn
+    ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
-    :map/region-stats                     msubs/region-stats
+    ;:map/region-stats                     msubs/region-stats
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info

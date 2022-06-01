@@ -210,7 +210,7 @@
 (re-frame/reg-event-db :cookie-set-no-on-failure identity)
 
 (defn layer-show-info [{:keys [db]} [_ layer]]
-  (if-not (#{:bathymetry :boundaries :third-party} (:category layer))
+  (if (#{:habitat :imagery} (:category layer))
     {:db         (assoc-in db [:display :info-card] :display.info/loading)
      :http-xhrio {:method          :get
                   :uri             (-> layer :metadata_url geonetwork-force-xml)

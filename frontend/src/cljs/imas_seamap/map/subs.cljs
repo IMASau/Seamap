@@ -46,21 +46,15 @@
            (> (/ error-count total-count)
               0.4)))))       ; Might be nice to make this configurable eventually
 
-(defn map-layers [{:keys [layer-state filters] :as db} _]
-  (let [{:keys [layers active-layers hidden-layers bounds logic]} (get-in db [:map])
-        ;; Ignore filtering etc for boundary layers:
-        boundaries                                  (->> layers
-                                                         (filter #(= :boundaries (:category %)))
-                                                         (sort-by :name))
-        filter-text                                 (get-in db [:filters :layers])
-        layers                                      (if (= (:type logic) :map.layer-logic/automatic)
-                                                      (all-priority-layers db)
-                                                      layers)
-        viewport-layers                              (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
-        {:keys [third-party]}                       (group-by :category viewport-layers)
-        filtered-layers                             (filter (partial match-layer filter-text) viewport-layers)]
-    {:groups          (assoc (group-by :category filtered-layers)
-                             :boundaries boundaries)
+(defn map-layers [{:keys [layer-state filters map] :as db} _]
+  (let [{:keys [layers active-layers hidden-layers bounds logic]} map
+        filter-text     (:layers filters)
+        layers          (if (= (:type logic) :map.layer-logic/automatic)
+                          (all-priority-layers db)
+                          layers)
+        viewport-layers  (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
+        filtered-layers (filter (partial match-layer filter-text) viewport-layers)]
+    {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
      :expanded-layers (->> layer-state :legend-shown set)
@@ -101,7 +95,8 @@
    {}
    (get-in db [:map :layers])))
 
-(defn map-layer-extra-params-fn
+;; Unused - related to getting boundary and habitat region stats
+#_(defn map-layer-extra-params-fn
   "Creates a function that returns a map of additional WMS parameters
   for a given layer argument."
   [db _]
@@ -126,7 +121,7 @@
                                                  lng "," lat
                                                  "</gml:coordinates></gml:Point></Contains></Filter>")}
           (= layer habitat-layer)  nil
-          :default                 {:opacity 0.1}))
+          :else                    {:opacity 0.1}))
 
       ;; Displaying info-card for a layer?  Fade-out the others (note
       ;; need to ensure we don't touch the FILTER if it's a boundary
@@ -136,11 +131,11 @@
         (cond
           (= layer info-layer)              nil
           (= :boundaries (:category layer)) {:FILTER "" :opacity 0.1}
-          :default                          {:opacity 0.1}))
+          :else                             {:opacity 0.1}))
 
       ;; Everything else; reset the CQL filter for boundaries,
       ;; otherwise leave the default opacity (and everything else)
-      :default
+      :else
       (fn [layer]
         (when (= :boundaries (:category layer))
           {:FILTER ""})))))

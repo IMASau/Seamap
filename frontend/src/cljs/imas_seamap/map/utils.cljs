@@ -57,12 +57,6 @@
 
 (defn habitat-layer? [layer] (-> layer :category (= :habitat)))
 
-(def ^:private -category-ordering
-  ;; Note, bathymetry is only displayed with other categories when
-  ;; it's a contour layer, so it can go over the top of habitats
-  ;; because they'll be visible underneath:
-  (into {} (map vector [:habitat :bathymetry :imagery :third-party :boundaries] (range))))
-
 (defn layer-name
   "Returns the most specific layer name; ie either detail_layer if
   defined, or layer_name otherwise"
@@ -97,9 +91,9 @@
                            1))]
     ;; Schwarztian transform (map-sort-map):
     (->> layers
-         (map (fn [{:keys [category id] :as layer}]
-                [(-category-ordering category) (layer-priority id) layer]))
-         (sort-by (comp vec (partial take 2)))
+         (map (fn [{:keys [id] :as layer}]
+                [(layer-priority id) layer]))
+         (sort-by (comp vec (partial take 1)))
          (map last))))
 
 (defn applicable-layers

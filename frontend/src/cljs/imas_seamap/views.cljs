@@ -785,41 +785,15 @@
       :tabs tabs}]]})
 
 (defn drawer-panel-selection
-  [panel map-layers region-stats]
+  [panel map-layers]
   (let [{:keys [panel props]} panel
-        {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers
-        {:keys [habitat-layer]} region-stats]
+        {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers]
     (case panel
-      ;; Unused
-      #_:drawer-panel/layer-panel
-      #_(layer-panel
-         (merge
-          props
-          {:layers          ((:group props) groups)
-           :active-layers   active-layers
-           :loading-layers  loading-layers
-           :error-layers    error-layers
-           :expanded-layers expanded-layers
-           :layer-opacities layer-opacities}))
-
-      ;; Unused
-      #_:drawer-panel/management-layers
-      #_(management-layers-panel
-         (merge
-          props
-          {:layers          (:boundaries groups)
-           :habitat-layer   habitat-layer
-           :active-layers   active-layers
-           :loading-layers  loading-layers
-           :error-layers    error-layers
-           :expanded-layers expanded-layers
-           :layer-opacities layer-opacities}))
       :drawer-panel/catalogue-layers
       (catalogue-layers-panel
        (merge
         props
         {:layers          ((:group props) groups)
-         :habitat-layer   habitat-layer
          :active-layers   active-layers
          :loading-layers  loading-layers
          :error-layers    error-layers
@@ -829,10 +803,9 @@
 (defn drawer-panel-stack
   []
   (let [map-layers @(re-frame/subscribe [:map/layers])
-        region-stats @(re-frame/subscribe [:map/region-stats])
         panels @(re-frame/subscribe [:drawer-panel-stack/panels])
         display-panels
-        (map #(drawer-panel-selection % map-layers region-stats) panels)]
+        (map #(drawer-panel-selection % map-layers) panels)]
     [components/panel-stack
      {:panels (concat [base-panel] display-panels)
       :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
@@ -867,7 +840,6 @@
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
         {:keys [groups active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
-        {:keys [habitat-layer]}                                                    @(re-frame/subscribe [:map/region-stats])
         {:keys [habitat boundaries bathymetry imagery third-party]}                groups]
     [sidebar {:id        "floating-sidebar"
               :selected  selected

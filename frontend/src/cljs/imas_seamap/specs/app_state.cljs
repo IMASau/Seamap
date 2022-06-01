@@ -223,9 +223,7 @@
 ;;; drawer
 (s/def :display/left-drawer boolean?)
 (s/def :display/right-drawer  boolean?)
-(s/def :display.drawer-panel/panel #{:drawer-panel/layer-panel
-                                     :drawer-panel/management-layers
-                                     :drawer-panel/thirdparty-layers})
+(s/def :display.drawer-panel/panel #{:drawer-panel/catalogue-layers})
 (s/def :display.drawer-panel/props (s/nilable map?))
 (s/def :display/drawer-panel
   (s/keys :req-un [:display.drawer-panel/panel
