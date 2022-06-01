@@ -304,23 +304,7 @@
   [layer active-layers]
   (if (some #{layer} active-layers)
     (filterv (fn [l] (not= l layer)) active-layers)
-    (let [active-layers  (filterv #(or (:contours %)
-                                       (not= :bathymetry (:category %)))
-                                  active-layers)]
-      (case (:category layer)
-        ;; if we turn on bathymetry, hide everything else (SM-58) --
-        ;; unless it's a contour layer, in which case we can keep it,
-        ;; but note still filter out other bathy layers:
-        :bathymetry (if (:contours layer)
-                      (conj active-layers layer)
-                      [layer])
-        ;; Only show one boundary-layer at a time:
-        :boundaries (conj
-                     (filterv #(not= :boundaries (:category %))
-                              active-layers)
-                     layer)
-        ;; Default:
-        (conj active-layers layer)))))
+    (conj active-layers layer)))
 
 (defn toggle-layer [{:keys [db]} [_ layer]]
   (let [db (update-in db [:map :active-layers] (partial toggle-layer-logic layer))
