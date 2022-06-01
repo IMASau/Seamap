@@ -162,7 +162,7 @@
         {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
-        layer-params                                  @(re-frame/subscribe [:map.layers/params])
+        ;layer-params                                  @(re-frame/subscribe [:map.layers/params])
         logic-type                                    @(re-frame/subscribe [:map.layers/logic])]
     [:div.map-wrapper
      sidebar
@@ -208,7 +208,7 @@
       ;; then orders in the map by update not by list):
       (map-indexed
        (fn [i {:keys [server_url layer_name] :as layer}]
-         (let [extra-params (layer-params layer)]
+         (let [#_extra-params #_(layer-params layer)]
            ;; This extra key aspect (hash of extra params) shouldn't
            ;; be necessary anyway, and now it interferes with
            ;; download-selection (if we fade out other layers when
@@ -227,7 +227,7 @@
                                 :opacity      (/ (layer-opacities layer) 100)
                                 :tiled        true
                                 :format       "image/png"}
-                               extra-params)]))
+                               #_extra-params)]))
        (concat (:layers active-base-layer) visible-layers))
       (when query
         [leaflet/geojson-layer {:data (clj->js query)}])

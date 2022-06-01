@@ -134,18 +134,17 @@
   (let [{:keys [hidden-layers active-layers]} (:map db)]
     (cond
       (get-in db [:map :controls :ignore-click])
-        {:dispatch [:map/toggle-ignore-click]}
+      {:dispatch [:map/toggle-ignore-click]}
 
-        (:feature db) ; If we're clicking the map but there's a popup open, just close it
-        {:dispatch [:map/popup-closed]}
-
+      (:feature db) ; If we're clicking the map but there's a popup open, just close it
+      {:dispatch [:map/popup-closed]}
 
       (not (or                                                         ; Only invoke if:
             (get-in db [:map :controls :transect])                     ; we aren't drawing a transect;
             (get-in db [:map :controls :download :selecting])          ; we aren't selecting a region; and
             (empty? (remove #((set hidden-layers) %) active-layers)))) ; there are visible layers
-        (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)]
-            (get-feature-info ctx event-v)))))
+      (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)]
+        (get-feature-info ctx event-v)))))
 
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))

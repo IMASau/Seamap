@@ -95,7 +95,7 @@
    {}
    (get-in db [:map :layers])))
 
-(defn map-layer-extra-params-fn
+#_(defn map-layer-extra-params-fn
   "Creates a function that returns a map of additional WMS parameters
   for a given layer argument."
   [db _]
@@ -120,7 +120,7 @@
                                                  lng "," lat
                                                  "</gml:coordinates></gml:Point></Contains></Filter>")}
           (= layer habitat-layer)  nil
-          :default                 {:opacity 0.1}))
+          :else                    {:opacity 0.1}))
 
       ;; Displaying info-card for a layer?  Fade-out the others (note
       ;; need to ensure we don't touch the FILTER if it's a boundary
@@ -130,11 +130,11 @@
         (cond
           (= layer info-layer)              nil
           (= :boundaries (:category layer)) {:FILTER "" :opacity 0.1}
-          :default                          {:opacity 0.1}))
+          :else                             {:opacity 0.1}))
 
       ;; Everything else; reset the CQL filter for boundaries,
       ;; otherwise leave the default opacity (and everything else)
-      :default
+      :else
       (fn [layer]
         (when (= :boundaries (:category layer))
           {:FILTER ""})))))
