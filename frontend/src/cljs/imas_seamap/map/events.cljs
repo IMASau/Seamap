@@ -105,7 +105,7 @@
         (assoc db :dispatch [:map/got-featureinfo request-id point nil nil])))))
 
 (defn get-habitat-region-statistics [{:keys [db] :as _ctx} [_ _props point]]
-  (let [boundary   (->> db :map :active-layers (filter #(= :boundaries (:category %))) first :id)
+  (let [boundary   (->> db :map :active-layers first :id)
         habitat    (region-stats-habitat-layer db)
         [x y]      (wgs84->epsg3112 ((juxt :lng :lat) point))
         request-id (gensym)]
