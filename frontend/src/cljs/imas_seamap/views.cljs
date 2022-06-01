@@ -171,13 +171,10 @@
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
-        :let [sorting-id (get-in sorting-info [ordering val 1])
-              id-str (str id-base "|" sorting-id)]
-        ;; Sometime we don't have the full db available yet, which
-        ;; would generate duplicate keys if we passed them through
-        :when sorting-id]
+        :let [sorting-id (or (get-in sorting-info [ordering val 1]) "nil")
+              id-str (str id-base "|" sorting-id)]]
     {:id id-str
-     :label val ; (Implicit assumption that the group-by value is a string)
+     :label (or val "Ungrouped") ; (Implicit assumption that the group-by value is a string)
      :isExpanded (get expanded-states id-str false)
      :childNodes (if (seq ordering-remainder)
                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props)
@@ -198,20 +195,20 @@
                          :secondaryLabel (reagent/as-element [catalogue-controls layer layer-state])}))
                     layer-subset))}))
 
-(defn layer-catalogue-tree [_layers _ordering _id _layer-props]
-  (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes])
+(defn layer-catalogue-tree [_layers _ordering _id _layer-props group]
+  (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes group])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
                   (let [node (js->clj node :keywordize-keys true)]
-                    (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
+                    (re-frame/dispatch [:ui.catalogue/toggle-node group (:id node)])))
         on-close (fn [node]
                    (let [node (js->clj node :keywordize-keys true)]
-                     (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
+                     (re-frame/dispatch [:ui.catalogue/toggle-node group (:id node)])))
         on-click (fn [node]
                    (let [{:keys [childNodes id]} (js->clj node :keywordize-keys true)]
                      (when (seq childNodes)
                        ;; If we have children, toggle expanded state, else add to map
-                       (re-frame/dispatch [:ui.catalogue/toggle-node id]))))]
+                       (re-frame/dispatch [:ui.catalogue/toggle-node group id]))))]
     (fn [layers ordering id layer-props]
      [:div.tab-body.layer-controls {:id id}
       [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props)
@@ -219,19 +216,20 @@
                :onNodeExpand on-open
                :onNodeClick on-click}]])))
 
-(defn layer-catalogue [layers layer-props]
-  (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab])
-        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab %1])]
+(defn layer-catalogue [layers layer-props {:keys [group tabs]}]
+  (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab group])
+        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab group %1])]
     [:div.height-managed
      [b/tabs {:selected-tab-id selected-tab
               :on-change       select-tab
               :class      "group-scrollable height-managed"}
-      [b/tab {:id    "org" :title "By Organisation"
-              :panel (reagent/as-element
-                      [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props])}]
-      [b/tab {:id    "cat" :title "By Category"
-              :panel (reagent/as-element
-                      [layer-catalogue-tree layers [:data_classification] "cat" layer-props])}]]]))
+      (for [{:keys [id title categories]} tabs]
+        [b/tab
+         {:id id
+          :key id
+          :title title
+          :panel (reagent/as-element
+                  [layer-catalogue-tree layers categories id layer-props group])}])]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -566,7 +564,8 @@
                                   :position RIGHT}
                        [:span.bp3-icon-standard {:class (str "bp3-icon-" icon-name)}]]))
 
-(defn layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+;; Unused
+#_(defn layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
@@ -575,20 +574,24 @@
    [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(defn thirdparty-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+(defn catalogue-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn group tabs]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
    [layer-logic-toggle]
    [layer-search-filter]
-   [layer-catalogue layers {:active-layers active-layers
-                            :loading-fn    loading-fn
-                            :error-fn      error-fn
-                            :expanded-fn   expanded-fn
-                            :opacity-fn    opacity-fn}]
+   [layer-catalogue layers
+    {:active-layers active-layers
+     :loading-fn    loading-fn
+     :error-fn      error-fn
+     :expanded-fn   expanded-fn
+     :opacity-fn    opacity-fn}
+    {:group group
+     :tabs tabs}]
    [help-button]])
 
-(defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn expanded-fn opacity-fn]
+;; Unused
+#_(defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
    [:div.boundary-layers.height-managed.group-scrollable
     [:h6 "Boundary Layers"]
@@ -646,23 +649,68 @@
      [b/button
       {:icon     "home"
        :text     "Habitat Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/layer-panel {:group :habitat :title "Habitat Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
+                                      {:group :habitat
+                                       :title "Habitat Layers"
+                                       :tabs
+                                       [{:id         "org"
+                                         :title      "By Organisation"
+                                         :categories [:organisation :data_classification]}
+                                        {:id         "cat"
+                                         :title      "By Category"
+                                         :categories [:data_classification]}]}])}]
      [b/button
       {:icon     "timeline-area-chart"
        :text     "Bathymetry Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/layer-panel {:group :bathymetry :title "Bathymetry Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
+                                      {:group :bathymetry
+                                       :title "Bathymetry Layers"
+                                       :tabs
+                                       [{:id         "org"
+                                         :title      "By Organisation"
+                                         :categories [:organisation :data_classification]}
+                                        {:id         "cat"
+                                         :title      "By Category"
+                                         :categories [:data_classification]}]}])}]
      [b/button
       {:icon     "media"
        :text     "Imagery Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/layer-panel {:group :imagery :title "Imagery Layers"}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
+                                      {:group :imagery
+                                       :title "Imagery Layers"
+                                       :tabs
+                                       [{:id         "org"
+                                         :title      "By Organisation"
+                                         :categories [:organisation :data_classification]}
+                                        {:id         "cat"
+                                         :title      "By Category"
+                                         :categories [:data_classification]}]}])}]
      [b/button
       {:icon     "heatmap"
        :text     "Management Regions Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/management-layers])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
+                                      {:group :boundaries
+                                       :title "Management Regions Layers"
+                                       :tabs
+                                       [{:id         "org"
+                                         :title      "By Organisation"
+                                         :categories [:organisation :data_classification]}
+                                        {:id         "cat"
+                                         :title      "By Category"
+                                         :categories [:data_classification]}]}])}]
      [b/button
       {:icon     "more"
        :text     "Third-Party Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/thirdparty-layers])}]]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
+                                      {:group :third-party
+                                       :title "Third-Party Layers"
+                                       :tabs
+                                       [{:id         "org"
+                                         :title      "By Organisation"
+                                         :categories [:organisation :data_classification]}
+                                        {:id         "cat"
+                                         :title      "By Category"
+                                         :categories [:data_classification]}]}])}]]
     [:div.left-drawer-group
      [:h1.bp3-heading.bp3-icon-cog
       "Settings"]
@@ -671,7 +719,8 @@
        :text     "Reset Interface"
        :on-click   #(re-frame/dispatch [:re-boot])}]]]})
 
-(defn layer-panel
+;; Unused
+#_(defn layer-panel
   [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
   {:title title
    :content
@@ -679,7 +728,8 @@
     [layer-search-filter]
     [layer-group {:expanded true :title "Layers"} layers active-layers loading-layers error-layers expanded-layers layer-opacities]]})
 
-(defn management-layers-panel
+;; Unused
+#_(defn management-layers-panel
   [{:keys [layers habitat-layer active-layers loading-layers error-layers expanded-layers layer-opacities]}]
   {:title "Management Region Layers"
    :content
@@ -719,9 +769,9 @@
     habitat statistics for that region, and to download the subsetted
     benthic habitat data."]]]]})
 
-(defn thirdparty-layers-panel
-  [{:keys [layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
-  {:title   "Third-Party Layers"
+(defn catalogue-layers-panel
+  [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities group tabs]}]
+  {:title   title
    :content
    [:div.sidebar-tab.height-managed
     [layer-search-filter]
@@ -730,7 +780,9 @@
       :loading-fn    loading-layers
       :error-fn      error-layers
       :expanded-fn   expanded-layers
-      :opacity-fn    layer-opacities}]]})
+      :opacity-fn    layer-opacities}
+     {:group group
+      :tabs tabs}]]})
 
 (defn drawer-panel-selection
   [panel map-layers region-stats]
@@ -738,33 +790,35 @@
         {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers
         {:keys [habitat-layer]} region-stats]
     (case panel
-      :drawer-panel/layer-panel
-      (layer-panel
+      ;; Unused
+      #_:drawer-panel/layer-panel
+      #_(layer-panel
+         (merge
+          props
+          {:layers          ((:group props) groups)
+           :active-layers   active-layers
+           :loading-layers  loading-layers
+           :error-layers    error-layers
+           :expanded-layers expanded-layers
+           :layer-opacities layer-opacities}))
+
+      ;; Unused
+      #_:drawer-panel/management-layers
+      #_(management-layers-panel
+         (merge
+          props
+          {:layers          (:boundaries groups)
+           :habitat-layer   habitat-layer
+           :active-layers   active-layers
+           :loading-layers  loading-layers
+           :error-layers    error-layers
+           :expanded-layers expanded-layers
+           :layer-opacities layer-opacities}))
+      :drawer-panel/catalogue-layers
+      (catalogue-layers-panel
        (merge
         props
         {:layers          ((:group props) groups)
-         :active-layers   active-layers
-         :loading-layers  loading-layers
-         :error-layers    error-layers
-         :expanded-layers expanded-layers
-         :layer-opacities layer-opacities}))
-
-      :drawer-panel/management-layers
-      (management-layers-panel
-       (merge
-        props
-        {:layers          (:boundaries groups)
-         :habitat-layer   habitat-layer
-         :active-layers   active-layers
-         :loading-layers  loading-layers
-         :error-layers    error-layers
-         :expanded-layers expanded-layers
-         :layer-opacities layer-opacities}))
-      :drawer-panel/thirdparty-layers
-      (thirdparty-layers-panel
-       (merge
-        props
-        {:layers          (:third-party groups)
          :habitat-layer   habitat-layer
          :active-layers   active-layers
          :loading-layers  loading-layers
@@ -830,26 +884,56 @@
                    :icon   (as-icon "home"
                                     (str "Habitat Layers (" (count habitat) ")"))
                    :id     "tab-habitat"}
-      [layer-tab habitat active-layers loading-layers error-layers expanded-layers layer-opacities]]
+      [catalogue-layer-tab habitat active-layers loading-layers error-layers expanded-layers layer-opacities :habitat
+       [{:id         "org"
+         :title      "By Organisation"
+         :categories [:organisation :data_classification]}
+        {:id         "cat"
+         :title      "By Category"
+         :categories [:data_classification]}]]]
      [sidebar-tab {:header "Bathymetry"
                    :icon   (as-icon "timeline-area-chart"
                                     (str "Bathymetry Layers (" (count bathymetry) ")"))
                    :id     "tab-bathy"}
-      [layer-tab bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities]]
+      [catalogue-layer-tab bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities :bathymetry
+       [{:id         "org"
+         :title      "By Organisation"
+         :categories [:organisation :data_classification]}
+        {:id         "cat"
+         :title      "By Category"
+         :categories [:data_classification]}]]]
      [sidebar-tab {:header "Imagery"
                    :icon   (as-icon "media"
                                     (str "Imagery Layers (" (count imagery) ")"))
                    :id     "tab-imagery"}
-      [layer-tab imagery active-layers loading-layers error-layers expanded-layers layer-opacities]]
+      [catalogue-layer-tab imagery active-layers loading-layers error-layers expanded-layers layer-opacities :imagery
+       [{:id         "org"
+         :title      "By Organisation"
+         :categories [:organisation :data_classification]}
+        {:id         "cat"
+         :title      "By Category"
+         :categories [:data_classification]}]]]
      [sidebar-tab {:header "Management Regions"
                    :icon   (as-icon "heatmap" "Management Region Layers")
                    :id     "tab-management"}
-      [management-layer-tab boundaries habitat-layer active-layers loading-layers error-layers expanded-layers layer-opacities]]
+      [catalogue-layer-tab boundaries active-layers loading-layers error-layers expanded-layers layer-opacities :boundaries
+       [{:id         "org"
+         :title      "By Organisation"
+         :categories [:organisation :data_classification]}
+        {:id         "cat"
+         :title      "By Category"
+         :categories [:data_classification]}]]]
      [sidebar-tab {:header "Third-Party"
                    :icon   (as-icon "more"
                                     (str "Third-Party Layers (" (count third-party) ")"))
                    :id     "tab-thirdparty"}
-      [thirdparty-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities]]
+      [catalogue-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities :third-party
+       [{:id         "org"
+         :title      "By Organisation"
+         :categories [:organisation :data_classification]}
+        {:id         "cat"
+         :title      "By Category"
+         :categories [:data_classification]}]]]
      [sidebar-tab {:header "Settings"
                    :anchor "bottom"
                    :icon   (reagent/as-element [:span.bp3-icon-standard.bp3-icon-cog])

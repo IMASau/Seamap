@@ -420,14 +420,14 @@
   {:message ["URL copied to clipboard!"
              {:intent b/INTENT-SUCCESS :icon "clipboard"}]})
 
-(defn catalogue-select-tab [{:keys [db]} [_ tabid]]
-  {:db       (assoc-in db [:display :catalogue :tab] tabid)
+(defn catalogue-select-tab [{:keys [db]} [_ group tabid]]
+  {:db       (assoc-in db [:display :catalogue group :tab] tabid)
    :put-hash (encode-state db)})
 
-(defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
-  (let [nodes         (get-in db [:display :catalogue :expanded])
+(defn catalogue-toggle-node [{:keys [db]} [_ group nodeid]]
+  (let [nodes         (get-in db [:display :catalogue group :expanded])
         updated-nodes (if (contains? nodes nodeid) (disj nodes nodeid) (conj nodes nodeid))
-        db            (assoc-in db [:display :catalogue :expanded] updated-nodes)]
+        db            (assoc-in db [:display :catalogue group :expanded] updated-nodes)]
     {:db       db
      :put-hash (encode-state db)}))
 
