@@ -302,8 +302,8 @@
   "Encompases all the special-case logic in toggling active layers.
   Returns the new active layers as a vector."
   [layer active-layers]
-  (if (some #{layer} active-layers)
-    (filterv (fn [l] (not= l layer)) active-layers)
+  (if ((set active-layers) layer)
+    (filterv #(not= % layer) active-layers)
     (conj active-layers layer)))
 
 (defn toggle-layer [{:keys [db]} [_ layer]]
