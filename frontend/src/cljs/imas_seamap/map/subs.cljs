@@ -95,6 +95,7 @@
    {}
    (get-in db [:map :layers])))
 
+;; Unused - related to getting boundary and habitat region stats
 #_(defn map-layer-extra-params-fn
   "Creates a function that returns a map of additional WMS parameters
   for a given layer argument."

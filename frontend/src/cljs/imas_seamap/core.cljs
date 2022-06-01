@@ -37,7 +37,7 @@
     :map.layer/info                       subs/map-layer-info
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
-    :map/region-stats                     msubs/region-stats
+    ;:map/region-stats                     msubs/region-stats
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info

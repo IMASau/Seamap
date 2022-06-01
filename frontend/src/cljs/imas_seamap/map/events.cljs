@@ -104,7 +104,8 @@
         (assoc db :http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point))
         (assoc db :dispatch [:map/got-featureinfo request-id point nil nil])))))
 
-(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
+;; Unused - related to getting boundary and habitat region stats
+#_(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
   (let [boundary   (->> db :map :active-layers first :id)
         habitat    (region-stats-habitat-layer db)
         [x y]      (wgs84->epsg3112 ((juxt :lng :lat) point))
