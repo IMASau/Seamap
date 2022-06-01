@@ -76,28 +76,30 @@
          :on-failure      [:map/got-featureinfo-err request-id point]}))))
 
 (defn get-feature-info [{:keys [db]} [_ {:keys [size bounds]} point]]
-  (let [active-layers (->> db :map :active-layers (remove #(is-insecure? (:server_url %))) (remove #(#{:bathymetry} (:category %))) (remove #(some #{%} (get-in db [:map :hidden-layers]))))
-        by-server     (group-by :server_url active-layers)
+  (let [{:keys [hidden-layers active-layers]} (:map db)
+        visible-layers (remove #((set hidden-layers) %) active-layers)
+        secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
+        by-server      (group-by :server_url secure-layers)
         ;; Note, we don't use the entire viewport for the pixel bounds because of inaccuracies when zoomed out.
-        img-size      {:width 101 :height 101}
-        img-bounds    (bounds-for-zoom point size bounds img-size)
+        img-size       {:width 101 :height 101}
+        img-bounds     (bounds-for-zoom point size bounds img-size)
         ;; Note, top layer, last in the list, must be first in our search string:
-        request-id    (gensym)
-        had-insecure? (->> db :map :active-layers (some #(is-insecure? (:server_url %))))
-        info-format   (get-layers-info-format active-layers)
-        db            (if had-insecure?
-                        {:db (assoc db :feature {:status :feature-info/none-queryable :location point})} ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
-                        {:db ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
-                         (assoc
-                          db
-                          :feature-query
-                          {:request-id        request-id
-                           :response-remain   (count by-server)
-                           :had-insecure?     had-insecure?
-                           :responses         []}
-                          :feature
-                          {:status   :feature-info/waiting
-                           :location point})})]
+        request-id     (gensym)
+        had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
+        info-format    (get-layers-info-format secure-layers)
+        db             (if had-insecure?
+                         {:db (assoc db :feature {:status :feature-info/none-queryable :location point})} ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
+                         {:db ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
+                          (assoc
+                           db
+                           :feature-query
+                           {:request-id        request-id
+                            :response-remain   (count by-server)
+                            :had-insecure?     had-insecure?
+                            :responses         []}
+                           :feature
+                           {:status   :feature-info/waiting
+                            :location point})})]
     (if had-insecure?
       db
       (if info-format
