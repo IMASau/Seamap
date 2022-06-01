@@ -57,10 +57,13 @@
     :info/message                         subs/user-message}
 
    :events
-   {:boot                                 [events/boot (re-frame/inject-cofx :hash-state)]
+   {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code)]
     :re-boot                              events/re-boot
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
+    :load-hash-state                      events/load-hash-state
+    :get-save-state                       [events/get-save-state]
+    :load-save-state                      [events/load-save-state]
     :initialise-db                        [events/initialise-db]
     :initialise-layers                    [events/initialise-layers]
     :loading-failed                       events/loading-failed
@@ -69,7 +72,9 @@
     :help-layer/close                     events/help-layer-close
     :welcome-layer/open                   [events/welcome-layer-open (re-frame/inject-cofx :cookie/get [:seen-welcome])]
     :welcome-layer/close                  [events/welcome-layer-close]
-    :copy-share-url                       [events/copy-share-url]
+    :create-save-state                    [events/create-save-state]
+    :create-save-state-success            [events/create-save-state-success]
+    :create-save-state-failure            [events/create-save-state-failure]
     :info/show-message                    [events/show-message]
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]

@@ -7,6 +7,7 @@ from django.urls import include, re_path
 from rest_framework.routers import DefaultRouter
 
 from catalogue.viewsets import ClassificationViewset, DescriptorViewset, BaseLayerViewset, LayerViewset, GroupViewset, GroupPriorityViewset, OrganisationViewset, BaseLayerGroupViewset
+from catalogue.views import SaveStateView
 from habitat.viewsets import regions, subset, transect
 
 
@@ -24,6 +25,7 @@ urlpatterns = [
     re_path(r'^api/habitat/transect', transect),
     re_path(r'^api/habitat/regions', regions, name='habitat-regions'),
     re_path(r'^api/habitat/subset', subset),
+    re_path(r'^api/savestates', SaveStateView.as_view()),
     re_path(r'^api/', include(router.urls)),
 ]
 
