@@ -38,7 +38,7 @@ declare @line geometry = geometry::STGeomFromText(%s, 3112);
 declare @tmphabitat as HabitatTableType;
 
 insert into @tmphabitat
-    select habitat as name, geom from (
+    select layer_name, habitat as name, geom from (
         {}
     ) polys
     order by priority asc;
@@ -48,9 +48,10 @@ SELECT segments.segment.STStartPoint().STX as 'start x',
        segments.segment.STEndPoint().STX   as 'end x',
        segments.segment.STEndPoint().STY   as 'start y',
        segments.segment.STLength()         as 'length',
+       segments.layer_name,
        segments.name
 FROM(
-    SELECT segment, name
+    SELECT segment, layer_name, name
     FROM path_intersections(@line, @tmphabitat)
 ) as segments;
 """
@@ -179,7 +180,7 @@ def transect(request):
     # ordering, we add a priority to sort by -- which means
     # generating a union-all statement by layer:
     layers = request.query_params.get('layers').lower().split(',')
-    layer_stmt = ('select habitat, geom, {} as priority '
+    layer_stmt = ('select layer_name, habitat, geom, {} as priority '
                   'from SeamapAus_Regions_VIEW '
                   'where lower(layer_name) = %s and geom.STIntersects(@line) = 1')
     layers_placeholder = '\nUNION ALL\n'.join( layer_stmt.format(i) for i,_ in enumerate(layers) )
@@ -190,9 +191,9 @@ def transect(request):
         while True:
             try:
                 for row in cursor.fetchall():
-                    [startx, starty, endx, endy, length, name] = row
+                    [startx, starty, endx, endy, length, layer_name, name] = row
                     p1, p2 = (D(startx), D(starty)), (D(endx), D(endy))
-                    segment = p1, p2, name, length
+                    segment = p1, p2, layer_name, name, length
                     if p1 == p2:
                         continue
                     distance += length
@@ -206,16 +207,17 @@ def transect(request):
                 if not cursor.nextset():
                     break
 
-    p1, p2, _, _ = start_segment
+    p1, p2, _, _, _ = start_segment
     if p1 != start_pt:
         p1, p2 = p2, p1
     start_distance = 0
     # p1 is the start point; it will always be the "known" point, and p2 is the next one to find:
     while True:
-        _, _, name, length = segments[p1][p2]
+        _, _, layer_name, name, length = segments[p1][p2]
         end_distance = start_distance + length
         end_percentage = start_percentage + 100*length/float(distance)
-        ordered_segments.append({'name': name,
+        ordered_segments.append({'layer_name': layer_name,
+                                 'name': name,
                                  'start_distance': start_distance,
                                  'end_distance': end_distance,
                                  'start_percentage': start_percentage,
