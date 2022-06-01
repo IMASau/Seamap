@@ -7,7 +7,7 @@
             [re-frame.db :as db]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [copy-text select-values handler-dispatch] :include-macros true]
-            [imas-seamap.map.utils :refer [sort-layers bounds->geojson download-type->str]]
+            [imas-seamap.map.utils :refer [bounds->geojson download-type->str]]
             [imas-seamap.interop.leaflet :as leaflet]
             [imas-seamap.components :as components]
             ["/L.Control.Zoominfo"]
