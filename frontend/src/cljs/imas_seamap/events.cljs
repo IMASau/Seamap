@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map]]
             [imas-seamap.map.utils :as mutils :refer [applicable-layers habitat-layer? download-link]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -41,11 +41,52 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot [{:keys [hash-state]} _]
-  (let [initial-db (cond-> (merge-in db/default-db hash-state)
-                     (seq hash-state) (assoc-in [:map :logic :type] :map.layer-logic/manual))]
-    {:db         initial-db
-     :async-flow (boot-flow)}))
+(defn boot-flow-hash-state [hash-code]
+  {:first-dispatch [:ui/show-loading]
+   :rules
+   [{:when :seen? :events :ui/show-loading :dispatch [:load-hash-state hash-code]}
+    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+    {:when :seen-all-of? :events [:map/update-base-layers
+                                  :map/update-base-layer-groups
+                                  :map/update-layers
+                                  :map/update-groups
+                                  :map/update-organisations
+                                  :map/update-classifications
+                                  :map/update-priorities
+                                  :map/update-descriptors]
+     :dispatch-n [[:map/initialise-display]
+                  [:transect/maybe-query]]}
+    {:when :seen? :events :ui/hide-loading
+     :dispatch [:welcome-layer/open]
+     :halt? true}
+    {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
+
+(defn boot-flow-save-state [save-code]
+  {:first-dispatch [:ui/show-loading]
+   :rules
+   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state save-code]}
+    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+    {:when :seen-all-of? :events [:map/update-base-layers
+                                  :map/update-base-layer-groups
+                                  :map/update-layers
+                                  :map/update-groups
+                                  :map/update-organisations
+                                  :map/update-classifications
+                                  :map/update-priorities
+                                  :map/update-descriptors]
+     :dispatch-n [[:map/initialise-display]
+                  [:transect/maybe-query]]}
+    {:when :seen? :events :ui/hide-loading
+     :dispatch [:welcome-layer/open]
+     :halt? true}
+    {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
+
+(defn boot [{:keys [save-code hash-code]} _]
+  {:db         db/default-db
+   :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
+                 (seq save-code) (boot-flow-save-state save-code) ; A shortform save-code that can be used to query for a hash-code
+                 (seq hash-code) (boot-flow-hash-state hash-code) ; A hash-code that can be decoded into th DB's initial state
+                 :else           (boot-flow))})                   ; No information, so we start with an empty DB
 
 ;;; Reset state.  Gets a bit messy because we can't just return
 ;;; default-db without throwing away ajax-loaded layer info, so we
@@ -78,6 +119,29 @@
 (defn initialise-db [_ _]
   {:db db/default-db
    :dispatch [:db-initialised]})
+
+(defn load-hash-state
+  [db [_ hash-code]]
+  (let [db (merge-in db (parse-state hash-code))
+        db (assoc-in db [:map :logic :type] :map.layer-logic/manual)]
+    db))
+
+(defn get-save-state
+  [{:keys [db]} [_ save-code]]
+  (let [save-state-url (get-in db [:config :save-state-url])]
+    {:db db
+     :http-xhrio
+     [{:method          :get
+       :uri             (append-params-from-map save-state-url {:id save-code})
+       :response-format (ajax/json-response-format {:keywords? true})
+       :on-success      [:load-save-state]
+       :on-failure      [:ajax/default-err-handler]}]}))
+
+(defn load-save-state
+  [{:keys [db]} [_ save-state]]
+  (let [hash-code  (:hashstate (first save-state))]
+    {:db db
+     :dispatch [:load-hash-state hash-code]}))
 
 (defn initialise-layers [{:keys [db]} _]
   (let [{:keys [layer-url base-layer-url base-layer-group-url group-url organisation-url classification-url priority-url descriptor-url]} (:config db)]
@@ -415,10 +479,31 @@
   (. b/toaster clear)
   db)
 
-(defn copy-share-url [_ctx _]
+(defn create-save-state [{:keys [db]} _]
   (copy-text js/location.href)
-  {:message ["URL copied to clipboard!"
-             {:intent b/INTENT-SUCCESS :icon "clipboard"}]})
+  (let [save-state-url (get-in db [:config :save-state-url])]
+    {:message    ["Creating save state..."
+                  {:intent b/INTENT-NONE}]
+     :http-xhrio [{:method          :post
+                   :uri             save-state-url
+                   :params          {:hashstate (encode-state db)}
+                   :format          (ajax/json-request-format)
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:create-save-state-success]
+                   :on-failure      [:create-save-state-failure]}]}))
+
+(defn create-save-state-success
+  [{:keys [db]} [_ response]]
+  (let [url (str js/location.origin js/location.pathname "#" (:id response))]
+    (copy-text url)
+    {:db db
+     :message ["URL copied to clipboard!"
+               {:intent b/INTENT-SUCCESS :icon "clipboard"}]}))
+
+(defn create-save-state-failure
+  [_ _]
+  {:message ["Failed to generate URL!"
+             {:intent b/INTENT-WARNING :icon "warning-sign"}]})
 
 (defn catalogue-select-tab [{:keys [db]} [_ group tabid]]
   {:db       (assoc-in db [:display :catalogue group :tab] tabid)

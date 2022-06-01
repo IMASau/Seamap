@@ -7,6 +7,7 @@ import re
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+from uuid import uuid4
 
 
 @python_2_unicode_compatible
@@ -139,3 +140,12 @@ class BaseLayerGroup(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@python_2_unicode_compatible
+class SaveState(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    hashstate = models.CharField(max_length = 800)
+
+    def __str__(self):
+        return self.id
