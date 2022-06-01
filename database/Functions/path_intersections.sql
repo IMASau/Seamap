@@ -4,6 +4,7 @@
 
 CREATE FUNCTION path_intersections(@transect geometry, @habitat HabitatTableType READONLY)
 RETURNS @TransectSegments TABLE (
+  layer_name VARCHAR(max),
   name varchar(max),
   segment geometry
 )
@@ -32,8 +33,8 @@ BEGIN
   )
   ,
   -- We have to handle overlaps (both in the datasets, and when using multiple datasets)
-  overlappers (id, name, geom) AS (
-    SELECT vl.id, vl.name, vr.geom
+  overlappers (id, layer_name, name, geom) AS (
+    SELECT vl.id, vl.layer_name, vl.name, vr.geom
 	FROM @habitat vl
 	LEFT JOIN @habitat vr ON vl.geom.STIntersects(vr.geom) = 1 AND vl.id > vr.id
   )
@@ -44,25 +45,25 @@ BEGIN
 	GROUP BY id
   )
   ,
-  valid_flattened_polygons (id, name, geom) AS (
-    SELECT p.id, p.name, p.geom.STDifference(agg.geom)
+  valid_flattened_polygons (id, layer_name, name, geom) AS (
+    SELECT p.id, p.layer_name, p.name, p.geom.STDifference(agg.geom)
 	FROM @habitat p JOIN aggregated_overlappers agg
 	ON p.id = agg.id
   )
   ,
   -- Intermediate results are just all the intersections; we'll flatten them as the final step:
   intermediate_results AS (
-    SELECT name, geom.STIntersection(@transect) AS intersections
+    SELECT layer_name, name, geom.STIntersection(@transect) AS intersections
     FROM
-      (SELECT name, geom FROM valid_flattened_polygons
+      (SELECT layer_name, name, geom FROM valid_flattened_polygons
       UNION ALL
-      SELECT null AS name, diff AS geom FROM external_area
+      SELECT null AS layer_name, null AS name, diff AS geom FROM external_area
       ) AS results
   )
 
   -- Finally, flatten into the results table:
   INSERT INTO @TransectSegments
-    SELECT ir.name, simplified.geom
+    SELECT ir.layer_name, ir.name, simplified.geom
     FROM intermediate_results AS ir
     CROSS APPLY simplify_geoms(ir.intersections) AS simplified;
   RETURN;
