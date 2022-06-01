@@ -244,11 +244,11 @@
         percentage                         (min (max (* 100 (mouse-pos-to-percentage (merge props {:pagex pagex}))) 0) 100)
         depth                              (depth-at-percentage (merge props {:percentage percentage}))
         pointx                             (percentage-to-x-pos (merge props {:percentage percentage}))
-        pointy                             (if (nil? depth) (+ graph-range m-top) (depth-to-y-pos (merge props {:depth depth})))
-        {:keys [layer_name name]}                     (habitat-at-percentage (merge props {:percentage percentage}))
-        depth-label                        (if (nil? depth) "No data" (str (.toFixed depth) "m"))
-        zone-label                         (if (nil? name) "No data" (get zone-legend name name))
-        layer-label                         (if layer_name layer_name "No data")
+        pointy                             (if depth (depth-to-y-pos (merge props {:depth depth})) (+ graph-range m-top))
+        {:keys [layer_name name]}          (habitat-at-percentage (merge props {:percentage percentage}))
+        depth-label                        (if depth (str (.toFixed depth) "m") "No data")
+        zone-label                         (or (get zone-legend name name) "No data")
+        layer-label                        (or layer_name "No data")
         distance                           (int (/ (* percentage max-x) 100))
         distance-unit                      (if (seq habitat) "m" "%")]
     (swap! tooltip-content merge {:tooltip   {:style {:visibility "visible"}}
