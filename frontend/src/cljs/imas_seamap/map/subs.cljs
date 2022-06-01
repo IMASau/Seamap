@@ -46,21 +46,15 @@
            (> (/ error-count total-count)
               0.4)))))       ; Might be nice to make this configurable eventually
 
-(defn map-layers [{:keys [layer-state filters] :as db} _]
-  (let [{:keys [layers active-layers hidden-layers bounds logic]} (get-in db [:map])
-        ;; Ignore filtering etc for boundary layers:
-        boundaries                                  (->> layers
-                                                         (filter #(= :boundaries (:category %)))
-                                                         (sort-by :name))
-        filter-text                                 (get-in db [:filters :layers])
-        layers                                      (if (= (:type logic) :map.layer-logic/automatic)
-                                                      (all-priority-layers db)
-                                                      layers)
-        viewport-layers                              (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
-        {:keys [third-party]}                       (group-by :category viewport-layers)
-        filtered-layers                             (filter (partial match-layer filter-text) viewport-layers)]
-    {:groups          (assoc (group-by :category filtered-layers)
-                             :boundaries boundaries)
+(defn map-layers [{:keys [layer-state filters map] :as db} _]
+  (let [{:keys [layers active-layers hidden-layers bounds logic]} map
+        filter-text     (:layers filters)
+        layers          (if (= (:type logic) :map.layer-logic/automatic)
+                          (all-priority-layers db)
+                          layers)
+        viewport-layers  (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
+        filtered-layers (filter (partial match-layer filter-text) viewport-layers)]
+    {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
      :expanded-layers (->> layer-state :legend-shown set)
