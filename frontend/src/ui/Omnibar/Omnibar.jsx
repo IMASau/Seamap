@@ -47,9 +47,10 @@ function filterItems(query, items) {
 	}
 }
 
-export function Omnibar({isOpen, onClose, items, onItemSelect}) {
+export function Omnibar({placeholder, isOpen, onClose, items, onItemSelect}) {
 	return (
 		<BPSelect.Omnibar
+			inputProps={typeof placeholder === 'string' ? {placeholder: placeholder} : null}
 			isOpen={isOpen}
 			onClose={onClose}
 			items={items}
@@ -61,6 +62,7 @@ export function Omnibar({isOpen, onClose, items, onItemSelect}) {
 }
 
 Omnibar.propTypes = {
+	placeholder: PropTypes.string,
 	isOpen: PropTypes.bool.isRequired,
 	onClose: PropTypes.func.isRequired,
 	items: PropTypes.arrayOf(PropTypes.shape({

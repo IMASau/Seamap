@@ -50,6 +50,7 @@ const FieldTemplate = (args) => {
 		<Button onClick={open} intent={Intent.PRIMARY}>Open Omnibar</Button>
 		<Omnibar
 			{...args}
+			placeholder={"Search components..."}
 			isOpen={isOpen}
 			onClose={close}
 			items={items}
