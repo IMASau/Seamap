@@ -47,7 +47,7 @@ function filterItems(query, items) {
 	}
 }
 
-export function Omnibar({isOpen, onClose, items}) {
+export function Omnibar({isOpen, onClose, items, onItemSelect}) {
 	return (
 		<BPSelect.Omnibar
 			isOpen={isOpen}
@@ -55,7 +55,7 @@ export function Omnibar({isOpen, onClose, items}) {
 			items={items}
 			itemRenderer={ItemRenderer}
 			itemListPredicate={filterItems}
-			onItemSelect={({id}) => console.log(id)}
+			onItemSelect={({id}) => onItemSelect(id)}
 		/>
 	);
 }
@@ -68,5 +68,6 @@ Omnibar.propTypes = {
 		text: PropTypes.string.isRequired,
 		breadcrumbs: PropTypes.arrayOf(PropTypes.string),
 		keywords: PropTypes.string.isRequired
-	})).isRequired
+	})).isRequired,
+	onItemSelect: PropTypes.func.isRequired
 }

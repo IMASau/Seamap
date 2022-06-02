@@ -10,24 +10,25 @@ export default {
 	title: 'Example/Omnibar',
 	component: Omnibar,
 	argTypes: {
+		onItemSelect: {action: 'onItemSelect'},
 	}
 };
 
 const items = [
 	{
-		id: 1,
+		id: 'chocolate',
 		text: "Menu item",
 		breadcrumbs: ["Core", "Components", "Menu"],
 		keywords: "Chocolate Strawberry"
 	},
 	{
-		id: 2,
+		id: 'strawberry',
 		text: "Extended example",
 		breadcrumbs: ["Core", "Components", "Numeric input"],
 		keywords: "Strawberry Vanilla"
 	},
 	{
-		id: 3,
+		id: 'vanilla',
 		text: "Basic example",
 		breadcrumbs: ["Core", "Components", "Numeric input"],
 		keywords: "Vanilla Chocolate"
