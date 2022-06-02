@@ -59,7 +59,8 @@
      :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers
      :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
-     :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))}))
+     :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
+     :all-layers      layers}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
