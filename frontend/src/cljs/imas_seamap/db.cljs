@@ -42,23 +42,24 @@
    :region-stats    {:habitat-layer nil}
    :habitat-colours {}
    :habitat-titles  {}
-   :display         {:help-overlay       false
-                     :welcome-overlay    false
-                     :left-drawer        false
-                     :right-drawer       false
-                     :drawer-panel-stack []
-                     :catalogue          {:habitat     {:tab "org"     ; NOTE: Move away from map to vector to support arbitrary number of tabs/groups?
-                                                        :expanded #{}}
-                                          :boundaries  {:tab "org"
-                                                        :expanded #{}}
-                                          :bathymetry  {:tab "org"
-                                                        :expanded #{}}
-                                          :imagery     {:tab "org"
-                                                        :expanded #{}}
-                                          :third-party {:tab "org"
-                                                        :expanded #{}}}
-                     :sidebar            {:collapsed false
-                                          :selected  "tab-activelayers"}}
+   :display         {:help-overlay          false
+                     :welcome-overlay       false
+                     :left-drawer           false
+                     :right-drawer          false
+                     :layers-search-omnibar false
+                     :drawer-panel-stack    []
+                     :catalogue             {:habitat     {:tab "org"     ; NOTE: Move away from map to vector to support arbitrary number of tabs/groups?
+                                                           :expanded #{}}
+                                             :boundaries  {:tab "org"
+                                                           :expanded #{}}
+                                             :bathymetry  {:tab "org"
+                                                           :expanded #{}}
+                                             :imagery     {:tab "org"
+                                                           :expanded #{}}
+                                             :third-party {:tab "org"
+                                                           :expanded #{}}}
+                     :sidebar               {:collapsed false
+                                             :selected  "tab-activelayers"}}
    :config          {:layer-url             (str api-url-base "layers/")
                      :base-layer-url        (str api-url-base "baselayers/")
                      :base-layer-group-url  (str api-url-base "baselayergroups/")

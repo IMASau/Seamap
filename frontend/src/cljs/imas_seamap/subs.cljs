@@ -130,5 +130,8 @@
 (defn right-drawer-open? [db _]
   (get-in db [:display :right-drawer]))
 
+(defn layers-search-omnibar-open? [db _]
+  (get-in db [:display :layers-search-omnibar]))
+
 (defn drawer-panel-stack [db _]
   (get-in db [:display :drawer-panel-stack]))
