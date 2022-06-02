@@ -5,7 +5,8 @@
   (:require [reagent.core :as reagent]
             ["/SelectionList/SelectionList" :as SelectionList]
             ["/Drawer/Drawer" :as Drawer]
-            ["/PanelStack/PanelStack" :as PanelStack]))
+            ["/PanelStack/PanelStack" :as PanelStack]
+            ["/Omnibar/Omnibar" :as Omnibar]))
 
 (assert SelectionList/ItemsSelectionList)
 (assert Drawer/Drawer)
@@ -14,3 +15,4 @@
 (def ItemsSelectionList (reagent/adapt-react-class SelectionList/ItemsSelectionList))
 (def Drawer             (reagent/adapt-react-class Drawer/Drawer))
 (def PanelStack         (reagent/adapt-react-class PanelStack/PanelStack))
+(def Omnibar            (reagent/adapt-react-class Omnibar/Omnibar))
