@@ -839,8 +839,7 @@
 
 (defn seamap-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
-        {:keys [groups active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
-        {:keys [habitat boundaries bathymetry imagery third-party]}                groups]
+        {:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
     [sidebar {:id        "floating-sidebar"
               :selected  selected
               :collapsed collapsed
@@ -851,66 +850,7 @@
                    :icon   (as-icon "eye-open"
                                     (str "Active Layers (" (count active-layers) ")"))
                    :id     "tab-activelayers"}
-      [active-layers-tab active-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]
-     [sidebar-tab {:header "Habitats"
-                   :icon   (as-icon "home"
-                                    (str "Habitat Layers (" (count habitat) ")"))
-                   :id     "tab-habitat"}
-      [catalogue-layer-tab habitat active-layers loading-layers error-layers expanded-layers layer-opacities :habitat
-       [{:id         "org"
-         :title      "By Organisation"
-         :categories [:organisation :data_classification]}
-        {:id         "cat"
-         :title      "By Category"
-         :categories [:data_classification]}]]]
-     [sidebar-tab {:header "Bathymetry"
-                   :icon   (as-icon "timeline-area-chart"
-                                    (str "Bathymetry Layers (" (count bathymetry) ")"))
-                   :id     "tab-bathy"}
-      [catalogue-layer-tab bathymetry active-layers loading-layers error-layers expanded-layers layer-opacities :bathymetry
-       [{:id         "org"
-         :title      "By Organisation"
-         :categories [:organisation :data_classification]}
-        {:id         "cat"
-         :title      "By Category"
-         :categories [:data_classification]}]]]
-     [sidebar-tab {:header "Imagery"
-                   :icon   (as-icon "media"
-                                    (str "Imagery Layers (" (count imagery) ")"))
-                   :id     "tab-imagery"}
-      [catalogue-layer-tab imagery active-layers loading-layers error-layers expanded-layers layer-opacities :imagery
-       [{:id         "org"
-         :title      "By Organisation"
-         :categories [:organisation :data_classification]}
-        {:id         "cat"
-         :title      "By Category"
-         :categories [:data_classification]}]]]
-     [sidebar-tab {:header "Management Regions"
-                   :icon   (as-icon "heatmap" "Management Region Layers")
-                   :id     "tab-management"}
-      [catalogue-layer-tab boundaries active-layers loading-layers error-layers expanded-layers layer-opacities :boundaries
-       [{:id         "org"
-         :title      "By Organisation"
-         :categories [:organisation :data_classification]}
-        {:id         "cat"
-         :title      "By Category"
-         :categories [:data_classification]}]]]
-     [sidebar-tab {:header "Third-Party"
-                   :icon   (as-icon "more"
-                                    (str "Third-Party Layers (" (count third-party) ")"))
-                   :id     "tab-thirdparty"}
-      [catalogue-layer-tab third-party active-layers loading-layers error-layers expanded-layers layer-opacities :third-party
-       [{:id         "org"
-         :title      "By Organisation"
-         :categories [:organisation :data_classification]}
-        {:id         "cat"
-         :title      "By Category"
-         :categories [:data_classification]}]]]
-     [sidebar-tab {:header "Settings"
-                   :anchor "bottom"
-                   :icon   (reagent/as-element [:span.bp3-icon-standard.bp3-icon-cog])
-                   :id     "tab-settings"}
-      [settings-controls]]]))
+      [active-layers-tab active-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]]))
 
 (defn floating-pills
   []
