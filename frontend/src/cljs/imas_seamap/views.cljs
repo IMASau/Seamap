@@ -994,8 +994,8 @@
        {:label "Toggle Right Drawer"    :combo "d"}
        [:right-drawer/toggle])
       (keydown-wrapper
-       {:label "Open Layers Search"   :combo "shift + s"}
-       [:layers-search-omnibar/open])
+       {:label "Toggle Layers Search"   :combo "shift + s"}
+       [:layers-search-omnibar/toggle])
       (keydown-wrapper
        {:label "Start/Clear Transect"   :combo "t"}
        [:transect.draw/toggle])
