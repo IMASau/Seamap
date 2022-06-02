@@ -837,7 +837,7 @@
       :hasBackdrop false}
      "With cooler content ;-)"]))
 
-(defn seamap-sidebar []
+(defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
         {:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
     [sidebar {:id        "floating-sidebar"
@@ -943,7 +943,7 @@
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      [:div#content-wrapper
-      [map-component [seamap-sidebar] [floating-pills]]
+      [map-component [active-layers-sidebar] [floating-pills]]
       [plot-component]]
      [helper-overlay
       :layer-search
