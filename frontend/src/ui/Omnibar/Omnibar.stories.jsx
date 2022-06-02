@@ -17,17 +17,20 @@ const items = [
 	{
 		id: 1,
 		text: "Menu item",
-		breadcrumbs: ["Core", "Components", "Menu"]
+		breadcrumbs: ["Core", "Components", "Menu"],
+		keywords: "Chocolate Strawberry"
 	},
 	{
 		id: 2,
 		text: "Extended example",
-		breadcrumbs: ["Core", "Components", "Numeric input"]
+		breadcrumbs: ["Core", "Components", "Numeric input"],
+		keywords: "Strawberry Vanilla"
 	},
 	{
 		id: 3,
 		text: "Basic example",
-		breadcrumbs: ["Core", "Components", "Numeric input"]
+		breadcrumbs: ["Core", "Components", "Numeric input"],
+		keywords: "Vanilla Chocolate"
 	}
 ]
 
