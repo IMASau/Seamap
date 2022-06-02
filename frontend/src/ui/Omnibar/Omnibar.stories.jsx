@@ -13,6 +13,24 @@ export default {
 	}
 };
 
+const items = [
+	{
+		id: 1,
+		text: "Menu item",
+		breadcrumbs: ["Core", "Components", "Menu"]
+	},
+	{
+		id: 2,
+		text: "Extended example",
+		breadcrumbs: ["Core", "Components", "Numeric input"]
+	},
+	{
+		id: 3,
+		text: "Basic example",
+		breadcrumbs: ["Core", "Components", "Numeric input"]
+	}
+]
+
 const FieldTemplate = (args) => {
 	const [isOpen, setOpen] = React.useState(false);
 
@@ -30,6 +48,7 @@ const FieldTemplate = (args) => {
 			{...args}
 			isOpen={isOpen}
 			onClose={close}
+			items={items}
 		/>
 	</div>);
 }

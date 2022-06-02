@@ -17,39 +17,42 @@ function Breadcrumbs({items}) {
 	)
 }
 
-function ItemRenderer(item, {handleClick, handleFocus, modifiers, query}) {
-	var path = ["Core", "Components", "Menu"]
-
+function ItemRenderer({id, text, breadcrumbs}, {handleClick, handleFocus, modifiers, query}) {
 	return (
 		<BPCore.MenuItem
 			active={modifiers.active}
 			disabled={modifiers.disabled}
-			key={item}
+			key={id}
 			onClick={handleClick}
 			onFocus={handleFocus}
 			text={(
 				<>
-					<div>{item}</div>
-					<Breadcrumbs items={path}/>
+					<div>{text}</div>
+					{breadcrumbs ? <Breadcrumbs items={breadcrumbs}/> : null}
 				</>
 			)}
 		/>
 	);
 }
 
-export function Omnibar({isOpen, onClose}) {
+export function Omnibar({isOpen, onClose, items}) {
 	return (
 		<BPSelect.Omnibar
 			isOpen={isOpen}
 			onClose={onClose}
-			items={["Menu item", "B", "C"]}
+			items={items}
 			itemRenderer={ItemRenderer}
-			onItemSelect={onClose}
+			onItemSelect={({id}) => console.log(id)}
 		/>
 	);
 }
 
 Omnibar.propTypes = {
 	isOpen: PropTypes.bool.isRequired,
-	onClose: PropTypes.func.isRequired
+	onClose: PropTypes.func.isRequired,
+	items: PropTypes.arrayOf(PropTypes.shape({
+		id: PropTypes.any.isRequired,
+		text: PropTypes.string.isRequired,
+		breadcrumbs: PropTypes.arrayOf(PropTypes.string)
+	})).isRequired
 }
