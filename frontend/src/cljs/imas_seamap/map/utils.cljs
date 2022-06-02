@@ -57,6 +57,11 @@
 
 (defn habitat-layer? [layer] (-> layer :category (= :habitat)))
 
+(defn layer-search-keywords
+  "Returns the complete search keywords of a layer, space-separated."
+  [{:keys [name layer_name description organisation data_classification keywords]}]
+  (string/join " " [name layer_name description organisation data_classification keywords]))
+
 (defn layer-name
   "Returns the most specific layer name; ie either detail_layer if
   defined, or layer_name otherwise"
