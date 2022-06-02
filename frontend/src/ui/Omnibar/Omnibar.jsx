@@ -12,7 +12,7 @@ function Breadcrumbs({items}) {
 
 	return (
 		<small className='bp3-text-muted'>
-			{caretted}
+			{caretted.map((e, i)=><span key={i}>{e}</span>)}
 		</small>
 	)
 }
@@ -30,9 +30,7 @@ function ItemRenderer(item, {handleClick, handleFocus, modifiers, query}) {
 			text={(
 				<>
 					<div>{item}</div>
-					<Breadcrumbs
-						items={path}
-					/>
+					<Breadcrumbs items={path}/>
 				</>
 			)}
 		/>
@@ -43,10 +41,10 @@ export function Omnibar({isOpen, onClose}) {
 	return (
 		<BPSelect.Omnibar
 			isOpen={isOpen}
-			onClose={() => onClose ? onClose() : null}
+			onClose={onClose}
 			items={["Menu item", "B", "C"]}
 			itemRenderer={ItemRenderer}
-			onItemSelect={(props)=>close()}
+			onItemSelect={onClose}
 		/>
 	);
 }
