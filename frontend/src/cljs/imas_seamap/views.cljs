@@ -967,11 +967,14 @@
        {:label "Toggle Sidebar"         :combo "s"}
        [:ui.sidebar/toggle])
       (keydown-wrapper
-       {:label "Toggle Left Drawer"   :combo "a"}
+       {:label "Toggle Left Drawer"     :combo "a"}
        [:left-drawer/toggle])
       (keydown-wrapper
        {:label "Toggle Right Drawer"    :combo "d"}
        [:right-drawer/toggle])
+      (keydown-wrapper
+       {:label "Open Layers Search"   :combo "shift + s"}
+       [:layers-search-omnibar/open])
       (keydown-wrapper
        {:label "Start/Clear Transect"   :combo "t"}
        [:transect.draw/toggle])
