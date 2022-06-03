@@ -50,13 +50,7 @@
                 document.body.appendChild(heightRef);
 
                 heightRef = document.getElementById('heightRef');
-                console.log(heightRef)
-                console.log(heightRef.parentNode)
                 var pxPermm = heightRef.offsetHeight;
-                console.log("pxPermm")
-                console.log(pxPermm)
-
-                //heightRef.parentNode.removeChild(heightRef);
 
                 return function pxTOmm(px) {
                     return px / pxPermm;
@@ -78,8 +72,6 @@
                 var scaleFactor = RealWorlMetersPer100Pixels / ScreenMetersPer100Pixels;
 
                 //.replace formats the scale with commas 50000 -> 50,000
-                console.log(RealWorlMetersPer100Pixels)
-                console.log(ScreenMetersPer100Pixels)
                 this._mScale.innerHTML = '1:' + Math.round(scaleFactor).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
             }
 
