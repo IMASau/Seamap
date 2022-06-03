@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -56,14 +56,14 @@
                     :QUERY_LAYERS  layers
                     :WIDTH         (:width img-size)
                     :HEIGHT        (:height img-size)
-                    :BBOX          (bounds->str img-bounds)
+                    :BBOX          (bounds->str 3112 (bounds->projected wgs84->epsg3112 img-bounds))
                     :FEATURE_COUNT 10
                     :STYLES        ""
                     :X             50
                     :Y             50
                     :TRANSPARENT   true
-                    :CRS           "EPSG:4326"
-                    :SRS           "EPSG:4326"
+                    :CRS           "EPSG:3112"
+                    :SRS           "EPSG:3112"
                     :FORMAT        "image/png"
                     :INFO_FORMAT   info-format
                     :SERVICE       "WMS"
