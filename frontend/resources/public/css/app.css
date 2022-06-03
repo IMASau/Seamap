@@ -926,3 +926,9 @@ input.leaflet-control-layers-selector[type="radio"] {
 .leaflet-top.leaflet-left {
     top: 46px;
 }
+
+/* Omnibar.css start */
+.bp3-omnibar .bp3-menu-item.bp3-active small {
+    color: hsla(0,0%,100%,.7);
+}
+/* Omnibar.css end */

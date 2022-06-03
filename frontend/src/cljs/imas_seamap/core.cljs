@@ -47,6 +47,7 @@
     :welcome-layer/open?                  subs/welcome-layer-open?
     :left-drawer/open?                    subs/left-drawer-open?
     :right-drawer/open?                   subs/right-drawer-open?
+    :layers-search-omnibar/open?          subs/layers-search-omnibar-open?
     :drawer-panel-stack/panels            subs/drawer-panel-stack
     :ui.catalogue/tab                     subs/catalogue-tab
     :ui.catalogue/nodes                   subs/catalogue-nodes
@@ -99,6 +100,8 @@
     :map/got-featureinfo-err              mevents/got-feature-info-error
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
+    :map/add-layer                        [mevents/add-layer]
+    :map/add-layer-from-omnibar           [mevents/add-layer-from-omnibar]
     :map/base-layer-changed               [mevents/base-layer-changed]
     :map.layer/load-start                 mevents/layer-started-loading
     :map.layer/tile-load-start            mevents/layer-tile-started-loading
@@ -155,6 +158,9 @@
     :right-drawer/toggle                  events/right-drawer-toggle
     :right-drawer/open                    events/right-drawer-open
     :right-drawer/close                   events/right-drawer-close
+    :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
+    :layers-search-omnibar/open           events/layers-search-omnibar-open
+    :layers-search-omnibar/close          events/layers-search-omnibar-close
     :drawer-panel-stack/push              events/drawer-panel-stack-push
     :drawer-panel-stack/pop               events/drawer-panel-stack-pop}})
 

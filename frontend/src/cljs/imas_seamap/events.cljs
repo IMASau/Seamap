@@ -573,6 +573,15 @@
 (defn right-drawer-close [db _]
   (assoc-in db [:display :right-drawer] false))
 
+(defn layers-search-omnibar-toggle [db _]
+  (update-in db [:display :layers-search-omnibar] not))
+
+(defn layers-search-omnibar-open [db _]
+  (assoc-in db [:display :layers-search-omnibar] true))
+
+(defn layers-search-omnibar-close [db _]
+  (assoc-in db [:display :layers-search-omnibar] false))
+
 (defn drawer-panel-stack-push [db [_ panel props]]
   (update-in db [:display :drawer-panel-stack] conj {:panel panel :props props}))
 

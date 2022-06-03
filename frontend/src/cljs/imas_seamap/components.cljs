@@ -47,3 +47,12 @@
        :icon-size 20}])
     :on-click  on-click
     :disabled  disabled}])
+
+(defn omnibar
+  [{:keys [placeholder, isOpen, onClose, items, onItemSelect]}]
+  [ui-controls/Omnibar
+   {:placeholder  placeholder
+    :isOpen       isOpen
+    :onClose      onClose
+    :items        items
+    :onItemSelect onItemSelect}])
