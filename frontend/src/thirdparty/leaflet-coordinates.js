@@ -90,6 +90,12 @@ L.Control.CoordinateControl = L.Control.extend({
 		coordinatesContainer.setAttribute('style', this._style);
 		coordinatesContainer.setAttribute('class', 'coordinate-control');
 
+		if (_this._coordinates === 'degrees') {
+			coordinatesContainer.innerHTML = _this.convertDecimalLatToDegrees(lat) + _this.convertDecimalLngToDegrees(lng);
+		} else {
+			coordinatesContainer.innerHTML = `<div class="coordinate-control-latitude">${(0).toFixed(2)}</div><div class="coordinate-control-longitude">${(0).toFixed(2)}</div>`;
+		}
+
 		map.on('mousemove', function (e) {
 			const lat = e.latlng.lat ?? 0;
 			const lng = posmod((e.latlng.lng ?? 0 + 180), 360) - 180;
