@@ -496,5 +496,4 @@
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ layer]]
   {:db       (assoc-in db [:display :layers-search-omnibar] false)
-   :put-hash (encode-state db)
    :dispatch [:map/add-layer layer]})
