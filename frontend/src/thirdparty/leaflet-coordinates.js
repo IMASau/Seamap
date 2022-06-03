@@ -8,36 +8,6 @@ var L = _interopDefault(require('leaflet'));
 var PropTypes = _interopDefault(require('prop-types'));
 var reactLeaflet = require('react-leaflet');
 
-function styleInject(css, ref) {
-  if ( ref === void 0 ) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') { return; }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css = ".leaflet-container.crosshair-cursor-enabled {cursor:crosshair;}";
-styleInject(css);
-
 var classCallCheck = function (instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -100,56 +70,35 @@ var possibleConstructorReturn = function (self, call) {
   return call && (typeof call === "object" || typeof call === "function") ? call : self;
 };
 
-var reactToCSS = require('react-style-object-to-css');
-
-var coordinatesControlDefaultStyle = {
-	width: '290px',
-	margin: '0',
-	border: '1px solid rgba(0,0,0,0.2)',
-	borderRadius: '4px',
-	backgroundColor: 'rgba(255, 255, 255, 0.7)',
-	outline: 'none',
-	fontSize: '11px',
-	boxShadow: 'none',
-	color: '#333',
-	padding: '2px 2px',
-	minHeight: '18px'
-};
-
 L.Control.CoordinateControl = L.Control.extend({
 	_style: null,
-	_coordinateButton: null,
+	_coordinatesContainer: null,
 	_coordinates: 'decimal',
 	initialize: function initialize(element) {
 		this.options.position = element.position;
 
 		this._coordinates = element.coordinates || 'decimal';
-
-		if (element.style === undefined) {
-			this._style = reactToCSS(coordinatesControlDefaultStyle);
-		} else {
-			this._style = reactToCSS(element.style);
-		}
 	},
 	onAdd: function onAdd(map) {
 		var _this = this;
 
-		var coordinateButton = L.DomUtil.create('button');
-		coordinateButton.setAttribute('style', this._style);
-		coordinateButton.setAttribute('id', 'coorindate-control');
+		var coordinatesContainer = L.DomUtil.create('div');
+		coordinatesContainer.setAttribute('style', this._style);
+		coordinatesContainer.setAttribute('class', 'coordinate-control');
 
 		map.on('mousemove', function (e) {
+			const lat = e.latlng.lat;
+			const lng = e.latlng.lng % 180;
+
 			if (_this._coordinates === 'degrees') {
-				coordinateButton.innerHTML = "<strong>Latitude: </strong>" + _this.convertDecimalLatToDegrees(e.latlng.lat) + " <strong>Longitude: </strong> " + _this.convertDecimalLngToDegrees(e.latlng.lng);
+				coordinatesContainer.innerHTML = _this.convertDecimalLatToDegrees(lat) + _this.convertDecimalLngToDegrees(lng);
 			} else {
-				var lat = e.latlng.lat.toLocaleString('en-US', { minimumFractionDigits: 8, useGrouping: false });
-				var lng = e.latlng.lng.toLocaleString('en-US', { minimumFractionDigits: 8, useGrouping: false });
-				coordinateButton.innerHTML = "<strong>Latitude: </strong>" + lat + "&nbsp; <strong>Longitude: </strong>" + lng;
+				coordinatesContainer.innerHTML = `<div class="coordinate-control-latitude">${lat.toFixed(2)}</div><div class="coordinate-control-longitude">${lng.toFixed(2)}</div>`;
 			}
 		});
 
-		this._coordinateButton = coordinateButton;
-		return coordinateButton;
+		this._coordinatesContainer = coordinatesContainer;
+		return coordinatesContainer;
 	},
 	convertDecimalLatToDegrees: function convertDecimalLatToDegrees(lat) {
 		var dms = this.convertDDToDMS(lat, false);
