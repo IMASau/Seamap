@@ -70,6 +70,10 @@ var possibleConstructorReturn = function (self, call) {
   return call && (typeof call === "object" || typeof call === "function") ? call : self;
 };
 
+function posmod(val, mod) {
+	return (val % mod + mod) % mod;
+}
+
 L.Control.CoordinateControl = L.Control.extend({
 	_style: null,
 	_coordinatesContainer: null,
@@ -87,8 +91,8 @@ L.Control.CoordinateControl = L.Control.extend({
 		coordinatesContainer.setAttribute('class', 'coordinate-control');
 
 		map.on('mousemove', function (e) {
-			const lat = e.latlng.lat;
-			const lng = e.latlng.lng % 180;
+			const lat = e.latlng.lat ?? 0;
+			const lng = posmod((e.latlng.lng ?? 0 + 180), 360) - 180;
 
 			if (_this._coordinates === 'degrees') {
 				coordinatesContainer.innerHTML = _this.convertDecimalLatToDegrees(lat) + _this.convertDecimalLngToDegrees(lng);
