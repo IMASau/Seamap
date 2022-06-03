@@ -100,7 +100,8 @@
     :map/got-featureinfo-err              mevents/got-feature-info-error
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
-    :map/add-layer-from-omnibar           mevents/add-layer-from-omnibar
+    :map/add-layer                        [mevents/add-layer]
+    :map/add-layer-from-omnibar           [mevents/add-layer-from-omnibar]
     :map/base-layer-changed               [mevents/base-layer-changed]
     :map.layer/load-start                 mevents/layer-started-loading
     :map.layer/tile-load-start            mevents/layer-tile-started-loading

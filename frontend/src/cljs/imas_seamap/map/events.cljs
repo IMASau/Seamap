@@ -482,10 +482,19 @@
      (get-in db [:map :controls :download :bbox])      [:map.layer.selection/clear]
      :default                                          [:map.layer.selection/enable])})
 
-(defn add-layer-from-omnibar
-  [db [_ layer]]
+(defn add-layer
+  [{:keys [db]} [_ layer]]
   (let [active-layers (get-in db [:map :active-layers])
         db            (if-not ((set active-layers) layer)
                         (update-in db [:map :active-layers] conj layer)
                         db)]
-    (assoc-in db [:display :layers-search-omnibar] false)))
+    {:db         db
+     :put-hash   (encode-state db)
+     :dispatch-n [[:map.layers.logic/manual]
+                  [:map/popup-closed]]}))
+
+(defn add-layer-from-omnibar
+  [{:keys [db]} [_ layer]]
+  {:db       (assoc-in db [:display :layers-search-omnibar] false)
+   :put-hash (encode-state db)
+   :dispatch [:map/add-layer layer]})

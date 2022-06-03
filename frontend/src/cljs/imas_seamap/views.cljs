@@ -947,10 +947,10 @@
          {:keys [all-layers]} @(re-frame/subscribe [:map/layers])
          items                (map layer-omnibar-item all-layers)]
      [components/omnibar
-      {:placeholder "Search Layers..."
-       :isOpen      open?
-       :onClose     #(re-frame/dispatch [:layers-search-omnibar/close])
-       :items       items
+      {:placeholder  "Search Layers..."
+       :isOpen       open?
+       :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
+       :items        items
        :onItemSelect (fn [id]
                        (let [layer (first (filter #(= (:id %) id) all-layers))]
                          (re-frame/dispatch [:map/add-layer-from-omnibar layer])))}])))
