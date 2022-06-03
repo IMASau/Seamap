@@ -951,9 +951,9 @@
        :isOpen      open?
        :onClose     #(re-frame/dispatch [:layers-search-omnibar/close])
        :items       items
-       :onItemSelect #(let []
-                        (js/console.log (str "Selected item #" %))
-                        (re-frame/dispatch [:layers-search-omnibar/close]))}])))
+       :onItemSelect (fn [id]
+                       (let [layer (first (filter #(= (:id %) id) all-layers))]
+                         (re-frame/dispatch [:map/add-layer-from-omnibar layer])))}])))
 
 (def hotkeys-combos
   (let [keydown-wrapper

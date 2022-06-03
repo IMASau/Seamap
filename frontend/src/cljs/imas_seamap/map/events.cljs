@@ -481,3 +481,11 @@
      (get-in db [:map :controls :download :selecting]) [:map.layer.selection/disable]
      (get-in db [:map :controls :download :bbox])      [:map.layer.selection/clear]
      :default                                          [:map.layer.selection/enable])})
+
+(defn add-layer-from-omnibar
+  [db [_ layer]]
+  (let [active-layers (get-in db [:map :active-layers])
+        db            (if-not ((set active-layers) layer)
+                        (update-in db [:map :active-layers] conj layer)
+                        db)]
+    (assoc-in db [:display :layers-search-omnibar] false)))
