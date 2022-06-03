@@ -501,4 +501,5 @@
                  [:left-drawer/open]
                  [:drawer-panel-stack/push :drawer-panel/catalogue-layers (category catalogue-layers-panel-props)]
                  [:ui.catalogue/select-tab category "org"]
-                 [:ui.catalogue/catalogue-add-nodes-to-layer category layer "org" [:organisation :data_classification]]])})
+                 [:ui.catalogue/catalogue-add-nodes-to-layer category layer "org" [:organisation :data_classification]]
+                 [:map/pan-to-layer layer]])})
