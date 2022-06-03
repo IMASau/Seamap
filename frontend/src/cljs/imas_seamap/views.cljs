@@ -12,7 +12,7 @@
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
-            [imas-seamap.map.utils :refer [layer-search-keywords]]
+            [imas-seamap.map.utils :refer [layer-search-keywords catalogue-layers-panel-props]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn with-params [url params]
@@ -650,68 +650,23 @@
      [b/button
       {:icon     "home"
        :text     "Habitat Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
-                                      {:group :habitat
-                                       :title "Habitat Layers"
-                                       :tabs
-                                       [{:id         "org"
-                                         :title      "By Organisation"
-                                         :categories [:organisation :data_classification]}
-                                        {:id         "cat"
-                                         :title      "By Category"
-                                         :categories [:data_classification]}]}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:habitat catalogue-layers-panel-props)])}]
      [b/button
       {:icon     "timeline-area-chart"
        :text     "Bathymetry Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
-                                      {:group :bathymetry
-                                       :title "Bathymetry Layers"
-                                       :tabs
-                                       [{:id         "org"
-                                         :title      "By Organisation"
-                                         :categories [:organisation :data_classification]}
-                                        {:id         "cat"
-                                         :title      "By Category"
-                                         :categories [:data_classification]}]}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:bathymetry catalogue-layers-panel-props)])}]
      [b/button
       {:icon     "media"
        :text     "Imagery Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
-                                      {:group :imagery
-                                       :title "Imagery Layers"
-                                       :tabs
-                                       [{:id         "org"
-                                         :title      "By Organisation"
-                                         :categories [:organisation :data_classification]}
-                                        {:id         "cat"
-                                         :title      "By Category"
-                                         :categories [:data_classification]}]}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:imagery catalogue-layers-panel-props)])}]
      [b/button
       {:icon     "heatmap"
        :text     "Management Regions Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
-                                      {:group :boundaries
-                                       :title "Management Regions Layers"
-                                       :tabs
-                                       [{:id         "org"
-                                         :title      "By Organisation"
-                                         :categories [:organisation :data_classification]}
-                                        {:id         "cat"
-                                         :title      "By Category"
-                                         :categories [:data_classification]}]}])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:boundaries catalogue-layers-panel-props)])}]
      [b/button
       {:icon     "more"
        :text     "Third-Party Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers
-                                      {:group :third-party
-                                       :title "Third-Party Layers"
-                                       :tabs
-                                       [{:id         "org"
-                                         :title      "By Organisation"
-                                         :categories [:organisation :data_classification]}
-                                        {:id         "cat"
-                                         :title      "By Category"
-                                         :categories [:data_classification]}]}])}]]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:third-party catalogue-layers-panel-props)])}]]
     [:div.left-drawer-group
      [:h1.bp3-heading.bp3-icon-cog
       "Settings"]
