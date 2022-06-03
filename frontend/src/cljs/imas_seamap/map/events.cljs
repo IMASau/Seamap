@@ -499,4 +499,5 @@
    :dispatch-n (concat
                 [[:map/add-layer layer]
                  [:left-drawer/open]
-                 [:drawer-panel-stack/push :drawer-panel/catalogue-layers (category catalogue-layers-panel-props)]])})
+                 [:drawer-panel-stack/push :drawer-panel/catalogue-layers (category catalogue-layers-panel-props)]
+                 [:ui.catalogue/select-tab category "org"]])})
