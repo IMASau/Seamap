@@ -6,6 +6,7 @@
     "@babel/cli": "^7.14.8",
     "@babel/preset-env": "^7.15.0",
     "@blueprintjs/core": "^3.47.0",
+    "@blueprintjs/select": "^3.19.1",
     "create-react-class": "^15.7.0",
     "leaflet": "1.7.1",
     "leaflet-draw": "^1.0.4",

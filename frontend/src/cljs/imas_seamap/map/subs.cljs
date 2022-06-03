@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
-            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer]]
+            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer layer-search-keywords]]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer [dbg] :include-macros true]))
@@ -24,13 +24,12 @@
   "Given a string of search words, attempt to match them *all* against
   a layer (designed so it can be used to filter a list of layers, in
   conjunction with partial)."
-  [filter-text {:keys [name layer_name description organisation data_classification keywords] :as layer}]
-  (let [layer-text (string/join " " [name layer_name description organisation data_classification keywords])]
-    (if-let [search-re (try
-                         (-> filter-text string/trim (string/split #"\s+") make-re)
-                         (catch :default e nil))]
-      (re-find search-re layer-text)
-      false)))
+  [filter-text layer]
+  (if-let [search-re (try
+                       (-> filter-text string/trim (string/split #"\s+") make-re)
+                       (catch :default e nil))]
+    (re-find search-re (layer-search-keywords layer))
+    false))
 
 (defn- make-error-fn
   "Given maps of layer->error-count and layer->total-tile-count, returns
@@ -60,7 +59,8 @@
      :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers
      :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
-     :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))}))
+     :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
+     :all-layers      layers}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))

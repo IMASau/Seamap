@@ -12,6 +12,7 @@
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
+            [imas-seamap.map.utils :refer [layer-search-keywords]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn with-params [url params]
@@ -874,6 +875,26 @@
        :icon     "widget"
        :on-click #(re-frame/dispatch [:map.layer.selection/toggle])}]]))
 
+(defn layers-search-omnibar
+  []
+  (letfn [(layer-omnibar-item
+           [{:keys [id name organisation data_classification] :as layer}]
+           {:id          id
+            :text        name
+            :breadcrumbs (map #(or % "Ungrouped") [organisation data_classification])
+            :keywords    (layer-search-keywords layer)})]
+   (let [open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
+         {:keys [all-layers]} @(re-frame/subscribe [:map/layers])
+         items                (map layer-omnibar-item all-layers)]
+     [components/omnibar
+      {:placeholder  "Search Layers..."
+       :isOpen       open?
+       :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
+       :items        items
+       :onItemSelect (fn [id]
+                       (let [layer (first (filter #(= (:id %) id) all-layers))]
+                         (re-frame/dispatch [:map/add-layer-from-omnibar layer])))}])))
+
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [m keydown-v]
@@ -907,11 +928,14 @@
        {:label "Toggle Sidebar"         :combo "s"}
        [:ui.sidebar/toggle])
       (keydown-wrapper
-       {:label "Toggle Left Drawer"   :combo "a"}
+       {:label "Toggle Left Drawer"     :combo "a"}
        [:left-drawer/toggle])
       (keydown-wrapper
        {:label "Toggle Right Drawer"    :combo "d"}
        [:right-drawer/toggle])
+      (keydown-wrapper
+       {:label "Toggle Layers Search"   :combo "shift + s"}
+       [:layers-search-omnibar/toggle])
       (keydown-wrapper
        {:label "Start/Clear Transect"   :combo "t"}
        [:transect.draw/toggle])
@@ -967,5 +991,6 @@
      [info-card]
      [loading-display]
      [left-drawer]
-     [right-drawer]]))
+     [right-drawer]
+     [layers-search-omnibar]]))
 

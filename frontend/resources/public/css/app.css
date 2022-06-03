@@ -927,6 +927,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     top: 46px;
 }
 
+
 /* leaflet.scalefactor.css start */
 .leaflet-control-scalefactor{
 	border: 2px solid #777;
@@ -946,3 +947,9 @@ input.leaflet-control-layers-selector[type="radio"] {
 	margin-left: 5px;
 }
 /* leaflet.scalefactor.css end */
+
+/* Omnibar.css start */
+.bp3-omnibar .bp3-menu-item.bp3-active small {
+    color: hsla(0,0%,100%,.7);
+}
+/* Omnibar.css end */
