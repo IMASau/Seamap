@@ -523,6 +523,21 @@
     {:db       db
      :put-hash (encode-state db)}))
 
+(defn catalogue-add-nodes-to-layer
+  "Opens nodes in catalogue along path to specified layer"
+  [{:keys [db]} [_ group layer tab categories]]
+  (let [sorting-info (:sorting db)
+        node-ids   (reduce
+                    (fn [node-ids category]
+                      (let [sorting-id (or (get-in sorting-info [category (category layer) 1]) "nil")
+                            node-id (-> (last node-ids)
+                                        (or tab)
+                                        (str "|" sorting-id))]
+                        (conj node-ids node-id)))
+                    [] categories)]
+    {:db       db
+     :dispatch-n (map #(vec [:ui.catalogue/add-node group %]) node-ids)}))
+
 (defn sidebar-open [{:keys [db]} [_ tabid]]
   (let [{:keys [selected collapsed]} (get-in db [:display :sidebar])
         db (-> db
