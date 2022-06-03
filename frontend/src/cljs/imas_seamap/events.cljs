@@ -511,7 +511,14 @@
 
 (defn catalogue-toggle-node [{:keys [db]} [_ group nodeid]]
   (let [nodes         (get-in db [:display :catalogue group :expanded])
-        updated-nodes (if (contains? nodes nodeid) (disj nodes nodeid) (conj nodes nodeid))
+        updated-nodes (if (nodes nodeid) (disj nodes nodeid) (conj nodes nodeid))
+        db            (assoc-in db [:display :catalogue group :expanded] updated-nodes)]
+    {:db       db
+     :put-hash (encode-state db)}))
+
+(defn catalogue-add-node [{:keys [db]} [_ group nodeid]]
+  (let [nodes         (get-in db [:display :catalogue group :expanded])
+        updated-nodes (conj nodes nodeid)
         db            (assoc-in db [:display :catalogue group :expanded] updated-nodes)]
     {:db       db
      :put-hash (encode-state db)}))
