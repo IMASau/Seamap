@@ -586,9 +586,9 @@
                                       (str "Imagery Layers (" (count imagery) ")"))
                      :id     "tab-imagery"}
         [layer-tab imagery active-layers loading-layers error-layers expanded-layers layer-opacities]]
-     [sidebar-tab {:header "Management Regions"
-                   :icon   (as-icon "heatmap" "Management Region Layers")
-                   :id     "tab-management"}
+     #_[sidebar-tab {:header "Management Regions"
+                     :icon   (as-icon "heatmap" "Management Region Layers")
+                     :id     "tab-management"}
       [management-layer-tab boundaries habitat-layer active-layers loading-layers error-layers expanded-layers layer-opacities]]
      [sidebar-tab {:header "Data Layers"
                    :icon   (as-icon "more"
