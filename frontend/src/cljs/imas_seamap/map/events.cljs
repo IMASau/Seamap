@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected catalogue-layers-panel-props]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -494,8 +494,9 @@
                   [:map/popup-closed]]}))
 
 (defn add-layer-from-omnibar
-  [{:keys [db]} [_ layer]]
+  [{:keys [db]} [_ {:keys [category] :as layer}]]
   {:db       (assoc-in db [:display :layers-search-omnibar] false)
    :dispatch-n (concat
                 [[:map/add-layer layer]
-                 [:left-drawer/open]])})
+                 [:left-drawer/open]
+                 [:drawer-panel-stack/push :drawer-panel/catalogue-layers (category catalogue-layers-panel-props)]])})
