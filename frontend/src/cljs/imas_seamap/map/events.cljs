@@ -496,4 +496,6 @@
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ layer]]
   {:db       (assoc-in db [:display :layers-search-omnibar] false)
-   :dispatch [:map/add-layer layer]})
+   :dispatch-n (concat
+                [[:map/add-layer layer]
+                 [:left-drawer/open]])})
