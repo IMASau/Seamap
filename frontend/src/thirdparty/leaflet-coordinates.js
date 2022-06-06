@@ -98,7 +98,7 @@ L.Control.CoordinateControl = L.Control.extend({
 
 		map.on('mousemove', function (e) {
 			const lat = e.latlng.lat ?? 0;
-			const lng = posmod((e.latlng.lng ?? 0 + 180), 360) - 180;
+			const lng = posmod(((e.latlng.lng ?? 0) + 180), 360) - 180;
 
 			if (_this._coordinates === 'degrees') {
 				coordinatesContainer.innerHTML = _this.convertDecimalLatToDegrees(lat) + _this.convertDecimalLngToDegrees(lng);
