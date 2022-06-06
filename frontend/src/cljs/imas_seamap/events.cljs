@@ -510,11 +510,28 @@
    :put-hash (encode-state db)})
 
 (defn catalogue-toggle-node [{:keys [db]} [_ group nodeid]]
-  (let [nodes         (get-in db [:display :catalogue group :expanded])
-        updated-nodes (if (contains? nodes nodeid) (disj nodes nodeid) (conj nodes nodeid))
-        db            (assoc-in db [:display :catalogue group :expanded] updated-nodes)]
-    {:db       db
+  (let [nodes         (get-in db [:display :catalogue group :expanded])]
+    {:db       (update-in db [:display :catalogue group :expanded] (if (nodes nodeid) disj conj) nodeid)
      :put-hash (encode-state db)}))
+
+(defn catalogue-add-node [{:keys [db]} [_ group nodeid]]
+  {:db       (update-in db [:display :catalogue group :expanded] conj nodeid)
+   :put-hash (encode-state db)})
+
+(defn catalogue-add-nodes-to-layer
+  "Opens nodes in catalogue along path to specified layer"
+  [{:keys [db]} [_ group layer tab categories]]
+  (let [sorting-info (:sorting db)
+        node-ids   (reduce
+                    (fn [node-ids category]
+                      (let [sorting-id (get-in sorting-info [category (category layer) 1] "nil")
+                            node-id (-> (last node-ids)
+                                        (or tab)
+                                        (str "|" sorting-id))]
+                        (conj node-ids node-id)))
+                    [] categories)]
+    {:db       db
+     :dispatch-n (map #(vec [:ui.catalogue/add-node group %]) node-ids)}))
 
 (defn sidebar-open [{:keys [db]} [_ tabid]]
   (let [{:keys [selected collapsed]} (get-in db [:display :sidebar])
