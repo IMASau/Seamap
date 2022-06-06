@@ -33,13 +33,25 @@
   smaller region by using the viewport dimensions to approximate a
   narrower pixel region."
   [{:keys [lat lng] :as _point}
-                     {:keys [x y] :as _map-size}
-                     {:keys [north south east west] :as _map-bounds}
-                     {:keys [width height] :as _img-size}]
+   {:keys [x y] :as _map-size}
+   {:keys [north south east west] :as _map-bounds}
+   {:keys [width height] :as _img-size}]
   (let [x-scale (/ (Math/abs (- west east)) x)
         y-scale (/ (Math/abs (- north south)) y)
         img-x-bounds (* x-scale width)
         img-y-bounds (* y-scale height)]
+    {:north (+ lat (/ img-y-bounds 2))
+     :south (- lat (/ img-y-bounds 2))
+     :east (+ lng (/ img-x-bounds 2))
+     :west (- lng (/ img-x-bounds 2))}))
+
+(defn bounds-for-point
+  "Uses current bounds and a map point coordinate to get the map bounds centered
+   on that point."
+  [{:keys [lat lng]}
+   {:keys [north south east west]}]
+  (let [img-x-bounds (Math/abs (- west east))
+        img-y-bounds (Math/abs (- north south))]
     {:north (+ lat (/ img-y-bounds 2))
      :south (- lat (/ img-y-bounds 2))
      :east (+ lng (/ img-x-bounds 2))
@@ -88,23 +100,23 @@
         had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
         info-format    (get-layers-info-format secure-layers)
         db             (if had-insecure?
-                         {:db (assoc db :feature {:status :feature-info/none-queryable :location point})} ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
-                         {:db ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
-                          (assoc
-                           db
-                           :feature-query
-                           {:request-id        request-id
-                            :response-remain   (count by-server)
-                            :had-insecure?     had-insecure?
-                            :responses         []}
-                           :feature
-                           {:status   :feature-info/waiting
-                            :location point})})]
-    (if had-insecure?
-      db
-      (if info-format
-        (assoc db :http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point))
-        (assoc db :dispatch [:map/got-featureinfo request-id point nil nil])))))
+                         (assoc db :feature {:status :feature-info/none-queryable :location point}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
+                         (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
+                          db
+                          :feature-query
+                          {:request-id        request-id
+                           :response-remain   (count by-server)
+                           :had-insecure?     had-insecure?
+                           :responses         []}
+                          :feature
+                          {:status   :feature-info/waiting
+                           :location point}))
+        db             (assoc-in db [:map :bounds] (bounds-for-point point bounds))]
+    (merge
+     {:db db}
+     (if info-format
+       {:http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point)}
+       {:dispatch [:map/got-featureinfo request-id point nil nil]}))))
 
 ;; Unused - related to getting boundary and habitat region stats
 #_(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
