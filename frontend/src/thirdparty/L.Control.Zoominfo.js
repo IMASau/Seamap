@@ -104,7 +104,7 @@
       },
 
       _updateInfoValue: function () {
-        this._ui.info.innerHTML = '<strong>'+ this._map.getZoom() + '</strong>';
+        this._ui.info.innerHTML = '<strong>'+ Math.round(this._map.getZoom()) + '</strong>';
       },
       _updateDisabled: function () {
         var zoomLevel = this._map.getZoom(),
