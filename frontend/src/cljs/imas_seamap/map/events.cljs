@@ -47,15 +47,16 @@
 
 (defn bounds-for-point
   "Uses current bounds and a map point coordinate to get the map bounds centered
-   on that point."
+   on that point. Called from get-feature-info, where we have both the geographic
+   bounds and xy map coordinates."
   [{:keys [lat lng]}
    {:keys [north south east west]}]
-  (let [img-x-bounds (Math/abs (- west east))
-        img-y-bounds (Math/abs (- north south))]
-    {:north (+ lat (/ img-y-bounds 2))
-     :south (- lat (/ img-y-bounds 2))
-     :east (+ lng (/ img-x-bounds 2))
-     :west (- lng (/ img-x-bounds 2))}))
+  (let [x-bounds (Math/abs (- west east))
+        y-bounds (Math/abs (- north south))]
+    {:north (+ lat (/ y-bounds 2))
+     :south (- lat (/ y-bounds 2))
+     :east (+ lng (/ x-bounds 2))
+     :west (- lng (/ x-bounds 2))}))
 
 (defn get-feature-info-request
   [info-format request-id by-server img-size img-bounds point]
