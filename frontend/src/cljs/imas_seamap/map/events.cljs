@@ -32,7 +32,7 @@
   leaflet, can cause inaccuracies when zoomed out. So, we calculate a
   smaller region by using the viewport dimensions to approximate a
   narrower pixel region."
-  [{:keys [lat lng] :as _point}
+  [{:keys [lat lng]}
                      {:keys [x y] :as _map-size}
                      {:keys [north south east west] :as _map-bounds}
                      {:keys [width height] :as _img-size}]
@@ -88,23 +88,22 @@
         had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
         info-format    (get-layers-info-format secure-layers)
         db             (if had-insecure?
-                         {:db (assoc db :feature {:status :feature-info/none-queryable :location point})} ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
-                         {:db ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
-                          (assoc
-                           db
-                           :feature-query
-                           {:request-id        request-id
-                            :response-remain   (count by-server)
-                            :had-insecure?     had-insecure?
-                            :responses         []}
-                           :feature
-                           {:status   :feature-info/waiting
-                            :location point})})]
-    (if had-insecure?
-      db
-      (if info-format
-        (assoc db :http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point))
-        (assoc db :dispatch [:map/got-featureinfo request-id point nil nil])))))
+                         (assoc db :feature {:status :feature-info/none-queryable :location point}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
+                         (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
+                          db
+                          :feature-query
+                          {:request-id        request-id
+                           :response-remain   (count by-server)
+                           :had-insecure?     had-insecure?
+                           :responses         []}
+                          :feature
+                          {:status   :feature-info/waiting
+                           :location point}))]
+    (merge
+     {:db db}
+     (if info-format
+       {:http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point)}
+       {:dispatch [:map/got-featureinfo request-id point nil nil]}))))
 
 ;; Unused - related to getting boundary and habitat region stats
 #_(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
