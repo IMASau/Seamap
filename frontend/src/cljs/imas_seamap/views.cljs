@@ -172,7 +172,7 @@
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
-        :let [sorting-id (or (get-in sorting-info [ordering val 1]) "nil")
+        :let [sorting-id (get-in sorting-info [ordering val 1] "nil")
               id-str (str id-base "|" sorting-id)]]
     {:id id-str
      :label (or val "Ungrouped") ; (Implicit assumption that the group-by value is a string)
