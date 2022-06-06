@@ -209,15 +209,14 @@
 (re-frame/reg-event-db :cookie-set-no-on-success identity)
 (re-frame/reg-event-db :cookie-set-no-on-failure identity)
 
-(defn layer-show-info [{:keys [db]} [_ layer]]
-  (if (#{:habitat :imagery} (:category layer))
+(defn layer-show-info [{:keys [db]} [_ {:keys [metadata_url] :as layer}]]
+  (if (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-[0-9a-f]{4}\-4[0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}$" metadata_url)
     {:db         (assoc-in db [:display :info-card] :display.info/loading)
      :http-xhrio {:method          :get
                   :uri             (-> layer :metadata_url geonetwork-force-xml)
                   :response-format (ajax/text-response-format)
                   :on-success      [:map.layer/update-metadata layer]
                   :on-failure      [:map.layer/metadata-error]}}
-    ;; For third-party/boundary/bathymetry layers, just show the basic layer info from the catalogue:
     {:db (assoc-in db [:display :info-card :layer] layer)}))
 
 ;; (xml/alias-uri 'mcp "http://schemas.aodn.org.au/mcp-2.0")
