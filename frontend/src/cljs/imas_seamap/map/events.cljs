@@ -229,9 +229,6 @@
 (defn process-layer [layer]
   (-> layer
       (update :category    (comp keyword string/lower-case))
-      ;; If category is contours, turn it into bathymetry but with a contours attribute set:
-      (as-> lyr (if (= (:category lyr) :contours) (assoc lyr :contours true) lyr))
-      (update :category    #(if (= % :contours) :bathymetry %))
       (update :server_type (comp keyword string/lower-case))))
 
 (defn process-layers [layers]
