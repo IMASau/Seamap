@@ -638,6 +638,13 @@
    [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
+(defn catalogue-layers-button
+  [{:keys [icon category]}]
+  [b/button
+   {:icon     icon
+    :text     "Habitat Layers"
+    :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title "A"}])}])
+
 (defn base-panel
   []
   {:content
@@ -651,26 +658,21 @@
     [:div.left-drawer-group
      [:h1.bp3-heading.bp3-icon-list-detail-view
       "Catalogue Layers"]
-     [b/button
+     [catalogue-layers-button
       {:icon     "home"
-       :text     "Habitat Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :habitat :title "A"}])}]
-     [b/button
+       :category :habitat}]
+     [catalogue-layers-button
       {:icon     "timeline-area-chart"
-       :text     "Bathymetry Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :bathymetry :title "A"}])}]
-     [b/button
+       :category :bathymetry}]
+     [catalogue-layers-button
       {:icon     "media"
-       :text     "Imagery Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :imagery :title "A"}])}]
-     [b/button
+       :category :imagery}]
+     [catalogue-layers-button
       {:icon     "heatmap"
-       :text     "Management Regions Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :boundaries :title "A"}])}]
-     [b/button
+       :category :boundaries}]
+     [catalogue-layers-button
       {:icon     "more"
-       :text     "Third-Party Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :third-party :title "A"}])}]]
+       :category :third-party}]]
     [:div.left-drawer-group
      [:h1.bp3-heading.bp3-icon-cog
       "Settings"]
