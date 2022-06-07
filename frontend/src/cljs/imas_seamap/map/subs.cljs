@@ -65,6 +65,9 @@
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
 
+(defn categories [db _]
+  (get-in db [:map :categories]))
+
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
    :region     (get-in db [:map :controls :download :bbox])})
