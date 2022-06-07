@@ -644,7 +644,7 @@
     [b/button
      {:icon     icon
       :text     title
-      :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group (:name category) :title title}])}]))
+      :on-click #(re-frame/dispatch [:drawer-panel-stack/open-catalogue-panel (:name category)])}]))
 
 (defn base-panel
   []

@@ -516,14 +516,11 @@
 
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ {:keys [category] :as layer}]]
-  (let [categories (get-in db [:map :categories])
-        categories (map-on-key categories :name)
-        title      (str (get-in categories [category :display_name]) " Layers")]
-    {:db       (assoc-in db [:display :layers-search-omnibar] false)
-     :dispatch-n (concat
-                  [[:map/add-layer layer]
-                   [:left-drawer/open]
-                   [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title title}]
-                   [:ui.catalogue/select-tab category "org"]
-                   [:ui.catalogue/catalogue-add-nodes-to-layer category layer "org" [:organisation :data_classification]]
-                   [:map/pan-to-layer layer]])}))
+  {:db       (assoc-in db [:display :layers-search-omnibar] false)
+   :dispatch-n (concat
+                [[:map/add-layer layer]
+                 [:left-drawer/open]
+                 [:drawer-panel-stack/open-catalogue-panel category]
+                 [:ui.catalogue/select-tab category "org"]
+                 [:ui.catalogue/catalogue-add-nodes-to-layer category layer "org" [:organisation :data_classification]]
+                 [:map/pan-to-layer layer]])})
