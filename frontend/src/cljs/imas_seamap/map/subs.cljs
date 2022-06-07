@@ -66,7 +66,11 @@
   (select-keys map [:grouped-base-layers :active-base-layer]))
 
 (defn categories [db _]
-  (get-in db [:map :categories]))
+  (let [categories (get-in db [:map :categories])]
+    (reduce
+     (fn [categories {:keys [name] :as category}]
+       (assoc categories name category))
+     {} categories)))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
