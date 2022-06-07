@@ -284,51 +284,16 @@
 (def catalogue-layers-panel-props
   {:habitat
    {:group :habitat
-    :title "Habitat Layers"
-    :tabs
-    [{:id         "org"
-      :title      "By Organisation"
-      :categories [:organisation :data_classification]}
-     {:id         "cat"
-      :title      "By Category"
-      :categories [:data_classification]}]}
+    :title "Habitat Layers"}
    :bathymetry
    {:group :bathymetry
-    :title "Bathymetry Layers"
-    :tabs
-    [{:id         "org"
-      :title      "By Organisation"
-      :categories [:organisation :data_classification]}
-     {:id         "cat"
-      :title      "By Category"
-      :categories [:data_classification]}]}
+    :title "Bathymetry Layers"}
    :imagery
    {:group :imagery
-    :title "Imagery Layers"
-    :tabs
-    [{:id         "org"
-      :title      "By Organisation"
-      :categories [:organisation :data_classification]}
-     {:id         "cat"
-      :title      "By Category"
-      :categories [:data_classification]}]}
+    :title "Imagery Layers"}
    :boundaries
    {:group :boundaries
-    :title "Management Regions Layers"
-    :tabs
-    [{:id         "org"
-      :title      "By Organisation"
-      :categories [:organisation :data_classification]}
-     {:id         "cat"
-      :title      "By Category"
-      :categories [:data_classification]}]}
+    :title "Management Regions Layers"}
    :third-party
    {:group :third-party
-    :title "Third-Party Layers"
-    :tabs
-    [{:id         "org"
-      :title      "By Organisation"
-      :categories [:organisation :data_classification]}
-     {:id         "cat"
-      :title      "By Category"
-      :categories [:data_classification]}]}})
+    :title "Third-Party Layers"}})

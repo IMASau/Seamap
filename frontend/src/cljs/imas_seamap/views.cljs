@@ -217,20 +217,23 @@
                :onNodeExpand on-open
                :onNodeClick on-click}]])))
 
-(defn layer-catalogue [layers layer-props {:keys [group tabs]}]
+(defn layer-catalogue [layers layer-props group]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab group])
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab group %1])]
     [:div.height-managed
      [b/tabs {:selected-tab-id selected-tab
               :on-change       select-tab
               :class      "group-scrollable height-managed"}
-      (for [{:keys [id title categories]} tabs]
-        [b/tab
-         {:id id
-          :key id
-          :title title
-          :panel (reagent/as-element
-                  [layer-catalogue-tree layers categories id layer-props group])}])]]))
+      [b/tab
+       {:id    "org"
+        :title "By Organisation"
+        :panel (reagent/as-element
+                [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props group])}]
+      [b/tab
+       {:id    "cat"
+        :title "By Category"
+        :panel (reagent/as-element
+                [layer-catalogue-tree layers [:data_classification] "cat" layer-props group])}]]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -575,7 +578,8 @@
    [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(defn catalogue-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn group tabs]
+;; Unused
+#_(defn catalogue-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn group]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
@@ -587,8 +591,7 @@
      :error-fn      error-fn
      :expanded-fn   expanded-fn
      :opacity-fn    opacity-fn}
-    {:group group
-     :tabs tabs}]
+    group]
    [help-button]])
 
 ;; Unused
@@ -726,7 +729,7 @@
     benthic habitat data."]]]]})
 
 (defn catalogue-layers-panel
-  [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities group tabs]}]
+  [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities group]}]
   {:title   title
    :content
    [:div.sidebar-tab.height-managed
@@ -737,8 +740,7 @@
       :error-fn      error-layers
       :expanded-fn   expanded-layers
       :opacity-fn    layer-opacities}
-     {:group group
-      :tabs tabs}]]})
+     group]]})
 
 (defn drawer-panel-selection
   [panel map-layers]
