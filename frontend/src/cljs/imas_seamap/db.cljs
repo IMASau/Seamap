@@ -62,4 +62,6 @@
                      :region-stats-url      (str api-url-base "habitat/regions/")
                      :descriptor-url        (str api-url-base "descriptors/")
                      :save-state-url        (str api-url-base "savestates")
-                     :category-url          (str api-url-base "categories/")}})
+                     :category-url          (str api-url-base "categories/")
+                     :init-catalogue-state  {:tab      "org"
+                                             :expanded #{}}}})
