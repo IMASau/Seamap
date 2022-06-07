@@ -65,7 +65,7 @@
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
 
-(defn categories [db _]
+(defn categories-map [db _]
   (let [categories (get-in db [:map :categories])]
     (reduce
      (fn [categories {:keys [name] :as category}]

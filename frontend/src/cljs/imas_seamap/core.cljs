@@ -28,7 +28,7 @@
     :map/layers                           msubs/map-layers
     :map/base-layers                      msubs/map-base-layers
     :map/organisations                    msubs/organisations
-    :map/categories                       msubs/categories
+    :map/categories-map                   msubs/categories-map
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/priorities                msubs/map-layer-priorities
