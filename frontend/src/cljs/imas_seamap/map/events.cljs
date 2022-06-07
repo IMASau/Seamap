@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected catalogue-layers-panel-props]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -516,7 +516,7 @@
    :dispatch-n (concat
                 [[:map/add-layer layer]
                  [:left-drawer/open]
-                 [:drawer-panel-stack/push :drawer-panel/catalogue-layers (category catalogue-layers-panel-props)]
+                 [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title "A"}]
                  [:ui.catalogue/select-tab category "org"]
                  [:ui.catalogue/catalogue-add-nodes-to-layer category layer "org" [:organisation :data_classification]]
                  [:map/pan-to-layer layer]])})

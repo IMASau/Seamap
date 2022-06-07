@@ -279,21 +279,3 @@
         basemap-groups (concat basemap-groups ungrouped-layers-groups)
         basemap-groups (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) basemap-groups)]
     basemap-groups))
-
-;; We need a better place for these - our goal is to genericize the catalogues
-(def catalogue-layers-panel-props
-  {:habitat
-   {:group :habitat
-    :title "Habitat Layers"}
-   :bathymetry
-   {:group :bathymetry
-    :title "Bathymetry Layers"}
-   :imagery
-   {:group :imagery
-    :title "Imagery Layers"}
-   :boundaries
-   {:group :boundaries
-    :title "Management Regions Layers"}
-   :third-party
-   {:group :third-party
-    :title "Third-Party Layers"}})

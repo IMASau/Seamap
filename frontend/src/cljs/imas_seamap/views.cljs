@@ -12,7 +12,7 @@
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
-            [imas-seamap.map.utils :refer [layer-search-keywords catalogue-layers-panel-props]]
+            [imas-seamap.map.utils :refer [layer-search-keywords]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn with-params [url params]
@@ -638,7 +638,8 @@
    [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(def base-panel
+(defn base-panel
+  []
   {:content
    [:div
     [:div.left-drawer-group
@@ -653,23 +654,23 @@
      [b/button
       {:icon     "home"
        :text     "Habitat Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:habitat catalogue-layers-panel-props)])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :habitat :title "A"}])}]
      [b/button
       {:icon     "timeline-area-chart"
        :text     "Bathymetry Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:bathymetry catalogue-layers-panel-props)])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :bathymetry :title "A"}])}]
      [b/button
       {:icon     "media"
        :text     "Imagery Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:imagery catalogue-layers-panel-props)])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :imagery :title "A"}])}]
      [b/button
       {:icon     "heatmap"
        :text     "Management Regions Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:boundaries catalogue-layers-panel-props)])}]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :boundaries :title "A"}])}]
      [b/button
       {:icon     "more"
        :text     "Third-Party Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:third-party catalogue-layers-panel-props)])}]]
+       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group :third-party :title "A"}])}]]
     [:div.left-drawer-group
      [:h1.bp3-heading.bp3-icon-cog
       "Settings"]
@@ -765,7 +766,7 @@
         display-panels
         (map #(drawer-panel-selection % map-layers) panels)]
     [components/panel-stack
-     {:panels (concat [base-panel] display-panels)
+     {:panels (concat [(base-panel)] display-panels)
       :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
 
 (defn left-drawer
