@@ -2,8 +2,6 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 
-import re
-
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
@@ -14,6 +12,7 @@ from uuid import uuid4
 class Category(models.Model):
     "Category for semantic grouping in the UI; eg bathymetry or habitat"
     name = models.CharField(max_length = 200)
+    display_name = models.CharField(max_length = 200, null=True)
 
     def __str__(self):
         return self.name
