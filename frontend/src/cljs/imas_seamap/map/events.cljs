@@ -301,13 +301,26 @@
            :habitat-titles  titles
            :habitat-colours colours)))
 
-(defn update-categories [db [_ categories]]
+(defn update-categories
+  "Adds the categories to the db, as well as setting the initial state of the
+   catalogue (in instances where the catalogue doesn't have a state)."
+  [db [_ categories]]
   (let [categories (map
                     (fn [{:keys [name display_name]}]
                       {:name (keyword (string/lower-case name))
                        :display_name (or display_name (string/capitalize name))})
-                    categories)]
-    (assoc-in db [:map :categories] (set categories))))
+                    categories)
+        catalogue  (reduce
+                    (fn [catalogue {:keys [name]}]
+                      (assoc
+                       catalogue name
+                       {:tab      "org"
+                        :expanded #{}}))
+                    {} categories)
+        catalogue  (merge catalogue (get-in db [:display :catalogue]))] ; Override initial state with states we have
+    (-> db
+        (assoc-in [:map :categories] (set categories))
+        (assoc-in [:display :catalogue] catalogue))))
 
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
