@@ -20,7 +20,7 @@ router.register(r'organisations', OrganisationViewset)
 router.register(r'priorities', GroupPriorityViewset)
 router.register(r'descriptors', DescriptorViewset)
 router.register(r'baselayergroups', BaseLayerGroupViewset)
-router.register(r'category', CategoryViewset)
+router.register(r'categories', CategoryViewset)
 
 urlpatterns = [
     re_path(r'^api/habitat/transect', transect),
