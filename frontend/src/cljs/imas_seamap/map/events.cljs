@@ -302,7 +302,11 @@
            :habitat-colours colours)))
 
 (defn update-categories [db [_ categories]]
-  (let [categories (map #(update % :name (comp keyword string/lower-case)) categories)]
+  (let [categories (map
+                    (fn [{:keys [name display_name]}]
+                      {:name (keyword (string/lower-case name))
+                       :display_name (or display_name (string/capitalize name))})
+                    categories)]
     (assoc-in db [:map :categories] (set categories))))
 
 (defn layer-started-loading [db [_ layer]]
