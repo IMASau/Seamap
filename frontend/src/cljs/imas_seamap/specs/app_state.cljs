@@ -11,12 +11,21 @@
 (s/def :map/zoom integer?)
 (s/def :map/zoom-cutover integer?)
 
+;;; categories
+(s/def :map.category/name keyword?)
+(s/def :map.category/display_name string?)
+(s/def :map/category
+  (s/keys :req-un [:map.category/name
+                   :map.category/display_name]))
+(s/def :map/categories (s/coll-of :map/category
+                                  :kind set?))
+
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
 (s/def :map.layer/legend_url string?)
 (s/def :map.layer/layer_name string?)
 (s/def :map.layer/detail_layer (s/nilable string?))
-(s/def :map.layer/category keyword?)
+(s/def :map.layer/category :map.category/name)
 (s/def :map.layer.bounding_box/west  float?)
 (s/def :map.layer.bounding_box/south float?)
 (s/def :map.layer.bounding_box/east  float?)
@@ -165,6 +174,7 @@
                    :map/zoom
                    :map/zoom-cutover
                    :map/controls
+                   :map/categories
                    :map/layers
                    :map/base-layers
                    :map/active-base-layer

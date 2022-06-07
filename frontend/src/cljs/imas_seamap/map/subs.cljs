@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
+            [imas-seamap.utils :refer [map-on-key]]
             [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer layer-search-keywords]]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
@@ -64,6 +65,10 @@
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
+
+(defn categories-map [db _]
+  (let [categories (get-in db [:map :categories])]
+    (map-on-key categories :name)))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))

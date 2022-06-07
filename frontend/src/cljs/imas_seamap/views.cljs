@@ -12,7 +12,7 @@
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
-            [imas-seamap.map.utils :refer [layer-search-keywords catalogue-layers-panel-props]]
+            [imas-seamap.map.utils :refer [layer-search-keywords]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn with-params [url params]
@@ -217,20 +217,23 @@
                :onNodeExpand on-open
                :onNodeClick on-click}]])))
 
-(defn layer-catalogue [layers layer-props {:keys [group tabs]}]
+(defn layer-catalogue [layers layer-props group]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab group])
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab group %1])]
     [:div.height-managed
      [b/tabs {:selected-tab-id selected-tab
               :on-change       select-tab
               :class      "group-scrollable height-managed"}
-      (for [{:keys [id title categories]} tabs]
-        [b/tab
-         {:id id
-          :key id
-          :title title
-          :panel (reagent/as-element
-                  [layer-catalogue-tree layers categories id layer-props group])}])]]))
+      [b/tab
+       {:id    "org"
+        :title "By Organisation"
+        :panel (reagent/as-element
+                [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props group])}]
+      [b/tab
+       {:id    "cat"
+        :title "By Category"
+        :panel (reagent/as-element
+                [layer-catalogue-tree layers [:data_classification] "cat" layer-props group])}]]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -575,7 +578,8 @@
    [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(defn catalogue-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn group tabs]
+;; Unused
+#_(defn catalogue-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn group]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
@@ -587,8 +591,7 @@
      :error-fn      error-fn
      :expanded-fn   expanded-fn
      :opacity-fn    opacity-fn}
-    {:group group
-     :tabs tabs}]
+    group]
    [help-button]])
 
 ;; Unused
@@ -635,45 +638,50 @@
    [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(def base-panel
-  {:content
-   [:div
-    [:div.left-drawer-group
-     [:h1.bp3-heading.bp3-icon-settings
-      "Controls"]
-     [transect-toggle]
-     [selection-button]
-     [layer-logic-toggle-button]]
-    [:div.left-drawer-group
-     [:h1.bp3-heading.bp3-icon-list-detail-view
-      "Catalogue Layers"]
-     [b/button
-      {:icon     "home"
-       :text     "Habitat Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:habitat catalogue-layers-panel-props)])}]
-     [b/button
-      {:icon     "timeline-area-chart"
-       :text     "Bathymetry Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:bathymetry catalogue-layers-panel-props)])}]
-     [b/button
-      {:icon     "media"
-       :text     "Imagery Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:imagery catalogue-layers-panel-props)])}]
-     [b/button
-      {:icon     "heatmap"
-       :text     "Management Regions Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:boundaries catalogue-layers-panel-props)])}]
-     [b/button
-      {:icon     "more"
-       :text     "Third-Party Layers"
-       :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers (:third-party catalogue-layers-panel-props)])}]]
-    [:div.left-drawer-group
-     [:h1.bp3-heading.bp3-icon-cog
-      "Settings"]
-     [b/button
-      {:icon     "undo"
-       :text     "Reset Interface"
-       :on-click   #(re-frame/dispatch [:re-boot])}]]]})
+(defn catalogue-layers-button
+  [{:keys [icon category]}]
+  (let [title (str (:display_name category) " Layers")]
+    [b/button
+     {:icon     icon
+      :text     title
+      :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group (:name category) :title title}])}]))
+
+(defn base-panel
+  []
+  (let [categories @(re-frame/subscribe [:map/categories-map])]
+    {:content
+     [:div
+      [:div.left-drawer-group
+       [:h1.bp3-heading.bp3-icon-settings
+        "Controls"]
+       [transect-toggle]
+       [selection-button]
+       [layer-logic-toggle-button]]
+      [:div.left-drawer-group
+       [:h1.bp3-heading.bp3-icon-list-detail-view
+        "Catalogue Layers"]
+       [catalogue-layers-button
+        {:icon     "home"
+         :category (:habitat categories)}]
+       [catalogue-layers-button
+        {:icon     "timeline-area-chart"
+         :category (:bathymetry categories)}]
+       [catalogue-layers-button
+        {:icon     "media"
+         :category (:imagery categories)}]
+       [catalogue-layers-button
+        {:icon     "heatmap"
+         :category (:boundaries categories)}]
+       [catalogue-layers-button
+        {:icon     "more"
+         :category (:third-party categories)}]]
+      [:div.left-drawer-group
+       [:h1.bp3-heading.bp3-icon-cog
+        "Settings"]
+       [b/button
+        {:icon     "undo"
+         :text     "Reset Interface"
+         :on-click   #(re-frame/dispatch [:re-boot])}]]]}))
 
 ;; Unused
 #_(defn layer-panel
@@ -726,7 +734,7 @@
     benthic habitat data."]]]]})
 
 (defn catalogue-layers-panel
-  [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities group tabs]}]
+  [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities group]}]
   {:title   title
    :content
    [:div.sidebar-tab.height-managed
@@ -737,8 +745,7 @@
       :error-fn      error-layers
       :expanded-fn   expanded-layers
       :opacity-fn    layer-opacities}
-     {:group group
-      :tabs tabs}]]})
+     group]]})
 
 (defn drawer-panel-selection
   [panel map-layers]
@@ -763,7 +770,7 @@
         display-panels
         (map #(drawer-panel-selection % map-layers) panels)]
     [components/panel-stack
-     {:panels (concat [base-panel] display-panels)
+     {:panels (concat [(base-panel)] display-panels)
       :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
 
 (defn left-drawer

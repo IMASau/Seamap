@@ -4,8 +4,8 @@
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [encode-state ids->layers]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str region-stats-habitat-layer wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected catalogue-layers-panel-props]]
+            [imas-seamap.utils :refer [encode-state ids->layers map-on-key]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -301,6 +301,14 @@
            :habitat-titles  titles
            :habitat-colours colours)))
 
+(defn update-categories [db [_ categories]]
+  (let [categories (map
+                    (fn [{:keys [name display_name]}]
+                      {:name (keyword (string/lower-case name))
+                       :display_name (or display_name (string/capitalize name))})
+                    categories)]
+    (assoc-in db [:map :categories] (set categories))))
+
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
 
@@ -508,11 +516,14 @@
 
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ {:keys [category] :as layer}]]
-  {:db       (assoc-in db [:display :layers-search-omnibar] false)
-   :dispatch-n (concat
-                [[:map/add-layer layer]
-                 [:left-drawer/open]
-                 [:drawer-panel-stack/push :drawer-panel/catalogue-layers (category catalogue-layers-panel-props)]
-                 [:ui.catalogue/select-tab category "org"]
-                 [:ui.catalogue/catalogue-add-nodes-to-layer category layer "org" [:organisation :data_classification]]
-                 [:map/pan-to-layer layer]])})
+  (let [categories (get-in db [:map :categories])
+        categories (map-on-key categories :name)
+        title      (str (get-in categories [category :display_name]) " Layers")]
+    {:db       (assoc-in db [:display :layers-search-omnibar] false)
+     :dispatch-n (concat
+                  [[:map/add-layer layer]
+                   [:left-drawer/open]
+                   [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title title}]
+                   [:ui.catalogue/select-tab category "org"]
+                   [:ui.catalogue/catalogue-add-nodes-to-layer category layer "org" [:organisation :data_classification]]
+                   [:map/pan-to-layer layer]])}))

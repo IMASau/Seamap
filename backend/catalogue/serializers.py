@@ -1,32 +1,33 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+import catalogue.models as models
+
 from django.db.models import Min, Max
 from rest_framework import serializers
-from catalogue.models import DataClassification, Organisation, HabitatDescriptor, BaseLayer, Layer, LayerGroup, LayerGroupPriority, BaseLayerGroup, SaveState
 
 
 class OrganisationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Organisation
+        model = models.Organisation
         fields = ('id', 'name', 'logo', 'sort_key')
 
 
 class ClassificationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = DataClassification
+        model = models.DataClassification
         fields = ('id', 'name', 'sort_key')
 
 
 class HabitatSerializer(serializers.ModelSerializer):
     class Meta:
-        model = HabitatDescriptor
+        model = models.HabitatDescriptor
         fields = ('name', 'title', 'colour')
 
 
 class BaseLayerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = BaseLayer
+        model = models.BaseLayer
         fields = '__all__'
 
 
@@ -56,7 +57,7 @@ class LayerSerializer(serializers.ModelSerializer):
                 'north': obj.maxy}
 
     class Meta:
-        model = Layer
+        model = models.Layer
         exclude = ('minx', 'miny', 'maxx', 'maxy', 'sort_key',)
 
 
@@ -74,7 +75,7 @@ class GroupSerializer(serializers.ModelSerializer):
                 'north': bounds['maxy']}
 
     class Meta:
-        model = LayerGroup
+        model = models.LayerGroup
         fields = '__all__'
 
 
@@ -82,17 +83,22 @@ class GroupPrioritySerializer(serializers.ModelSerializer):
     # We only want the ids here, so we don't need to follow the
     # foreign key relations here
     class Meta:
-        model = LayerGroupPriority
+        model = models.LayerGroupPriority
         fields = ('layer', 'group', 'priority')
 
 
 class BaseLayerGroupSerializer(serializers.ModelSerializer):
     class Meta:
-        model = BaseLayerGroup
+        model = models.BaseLayerGroup
         fields = '__all__'
 
 
 class SaveStateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SaveState
+        model = models.SaveState
         fields = '__all__'
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Category
+        fields = ('name', 'display_name')

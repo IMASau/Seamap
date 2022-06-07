@@ -12,6 +12,7 @@
                      :zoom            4
                      :zoom-cutover    10
                      :bounds          {}
+                     :categories      #{}
                      :layers          []
                      ;; Given we have to find by name, there's an argument for making this a map of name->layer - UPDATE: possibly changed with basemap layer grouping feature
                      :base-layers     []
@@ -69,4 +70,5 @@
                      :priority-url          (str api-url-base "priorities/")
                      :region-stats-url      (str api-url-base "habitat/regions/")
                      :descriptor-url        (str api-url-base "descriptors/")
-                     :save-state-url        (str api-url-base "savestates")}})
+                     :save-state-url        (str api-url-base "savestates")
+                     :category-url          (str api-url-base "categories/")}})

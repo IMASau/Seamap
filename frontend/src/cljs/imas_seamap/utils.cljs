@@ -153,3 +153,16 @@
 (defn uuid4?
   [val]
   (re-matches #"^[0-9a-f]{8}\-[0-9a-f]{4}\-4[0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}$" val))
+
+(defn map-on-key
+  "Takes a seq of hashmaps and converts it to a hashmap of hashmaps, where the key
+   for each hashmap is a value within that hashmap.
+   
+   Params:
+    - seq: sequence of hashmaps we're converting to a hashmap.
+    - key: key for the hashmaps whose value corresponds to that hashmap's key."
+  [seq key]
+  (reduce
+   (fn [seq val]
+     (assoc seq (key val) val))
+   {} seq))
