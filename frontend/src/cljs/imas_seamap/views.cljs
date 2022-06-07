@@ -640,46 +640,48 @@
 
 (defn catalogue-layers-button
   [{:keys [icon category]}]
-  [b/button
-   {:icon     icon
-    :text     "Habitat Layers"
-    :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title "A"}])}])
+  (let [title (str (:display_name category) " Layers")]
+    [b/button
+     {:icon     icon
+      :text     title
+      :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group (:name category) :title title}])}]))
 
 (defn base-panel
   []
-  {:content
-   [:div
-    [:div.left-drawer-group
-     [:h1.bp3-heading.bp3-icon-settings
-      "Controls"]
-     [transect-toggle]
-     [selection-button]
-     [layer-logic-toggle-button]]
-    [:div.left-drawer-group
-     [:h1.bp3-heading.bp3-icon-list-detail-view
-      "Catalogue Layers"]
-     [catalogue-layers-button
-      {:icon     "home"
-       :category :habitat}]
-     [catalogue-layers-button
-      {:icon     "timeline-area-chart"
-       :category :bathymetry}]
-     [catalogue-layers-button
-      {:icon     "media"
-       :category :imagery}]
-     [catalogue-layers-button
-      {:icon     "heatmap"
-       :category :boundaries}]
-     [catalogue-layers-button
-      {:icon     "more"
-       :category :third-party}]]
-    [:div.left-drawer-group
-     [:h1.bp3-heading.bp3-icon-cog
-      "Settings"]
-     [b/button
-      {:icon     "undo"
-       :text     "Reset Interface"
-       :on-click   #(re-frame/dispatch [:re-boot])}]]]})
+  (let [categories @(re-frame/subscribe [:map/categories-map])]
+    {:content
+     [:div
+      [:div.left-drawer-group
+       [:h1.bp3-heading.bp3-icon-settings
+        "Controls"]
+       [transect-toggle]
+       [selection-button]
+       [layer-logic-toggle-button]]
+      [:div.left-drawer-group
+       [:h1.bp3-heading.bp3-icon-list-detail-view
+        "Catalogue Layers"]
+       [catalogue-layers-button
+        {:icon     "home"
+         :category (:habitat categories)}]
+       [catalogue-layers-button
+        {:icon     "timeline-area-chart"
+         :category (:bathymetry categories)}]
+       [catalogue-layers-button
+        {:icon     "media"
+         :category (:imagery categories)}]
+       [catalogue-layers-button
+        {:icon     "heatmap"
+         :category (:boundaries categories)}]
+       [catalogue-layers-button
+        {:icon     "more"
+         :category (:third-party categories)}]]
+      [:div.left-drawer-group
+       [:h1.bp3-heading.bp3-icon-cog
+        "Settings"]
+       [b/button
+        {:icon     "undo"
+         :text     "Reset Interface"
+         :on-click   #(re-frame/dispatch [:re-boot])}]]]}))
 
 ;; Unused
 #_(defn layer-panel
