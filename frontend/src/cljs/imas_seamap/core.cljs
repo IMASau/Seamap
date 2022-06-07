@@ -133,6 +133,7 @@
     :map/update-classifications           mevents/update-classifications
     :map/update-priorities                mevents/update-priorities
     :map/update-descriptors               mevents/update-descriptors
+    :map/update-categories                mevents/update-categories
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          mevents/map-zoom-in

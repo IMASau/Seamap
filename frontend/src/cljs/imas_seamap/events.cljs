@@ -144,7 +144,7 @@
      :dispatch [:load-hash-state hash-code]}))
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url base-layer-url base-layer-group-url group-url organisation-url classification-url priority-url descriptor-url]} (:config db)]
+  (let [{:keys [layer-url base-layer-url base-layer-group-url group-url organisation-url classification-url priority-url descriptor-url category-url]} (:config db)]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -185,6 +185,11 @@
                    :uri             organisation-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-organisations]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             category-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-categories]
                    :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn help-layer-toggle [db _]

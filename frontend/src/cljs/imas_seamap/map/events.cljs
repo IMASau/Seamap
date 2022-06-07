@@ -301,6 +301,10 @@
            :habitat-titles  titles
            :habitat-colours colours)))
 
+(defn update-categories [db [_ categories]]
+  (let [categories (map #(update % :name (comp keyword string/lower-case)) categories)]
+    (assoc-in db [:map :categories] (set categories))))
+
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
 
