@@ -4,7 +4,7 @@
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [encode-state ids->layers]]
+            [imas-seamap.utils :refer [encode-state ids->layers map-on-key]]
             [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
@@ -517,10 +517,7 @@
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ {:keys [category] :as layer}]]
   (let [categories (get-in db [:map :categories])
-        categories (reduce
-                    (fn [categories {:keys [name] :as category}]
-                      (assoc categories name category))
-                    {} categories)
+        categories (map-on-key categories :name)
         title      (str (get-in categories [category :display_name]) " Layers")]
     {:db       (assoc-in db [:display :layers-search-omnibar] false)
      :dispatch-n (concat
