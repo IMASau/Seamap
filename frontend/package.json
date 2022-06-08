@@ -31,7 +31,8 @@
     "@storybook/addon-essentials": "^6.3.12",
     "@storybook/addon-links": "^6.3.12",
     "@storybook/react": "^6.3.12",
-    "babel-loader": "^8.2.3"
+    "babel-loader": "^8.2.3",
+    "sass": "^1.39.0"
   },
   "scripts": {
     "watch": "npx shadow-cljs watch dev",
