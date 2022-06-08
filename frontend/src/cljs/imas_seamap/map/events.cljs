@@ -69,7 +69,9 @@
                     :QUERY_LAYERS  layers
                     :WIDTH         (:width img-size)
                     :HEIGHT        (:height img-size)
-                    :BBOX          (bounds->str 3112 (bounds->projected wgs84->epsg3112 img-bounds))
+                    :BBOX          (->> img-bounds
+                                        (bounds->projected wgs84->epsg3112)
+                                        (bounds->str 3112))
                     :FEATURE_COUNT 10
                     :STYLES        ""
                     :X             50
