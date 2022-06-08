@@ -49,16 +49,7 @@
                      :right-drawer          false
                      :layers-search-omnibar false
                      :drawer-panel-stack    []
-                     :catalogue             {:habitat     {:tab "cat"     ; NOTE: Move away from map to vector to support arbitrary number of tabs/groups?
-                                                           :expanded #{}}
-                                             :boundaries  {:tab "cat"
-                                                           :expanded #{}}
-                                             :bathymetry  {:tab "cat"
-                                                           :expanded #{}}
-                                             :imagery     {:tab "cat"
-                                                           :expanded #{}}
-                                             :third-party {:tab "cat"
-                                                           :expanded #{}}}
+                     :catalogue             {}
                      :sidebar               {:collapsed false
                                              :selected  "tab-activelayers"}}
    :config          {:layer-url             (str api-url-base "layers/")
@@ -71,4 +62,6 @@
                      :region-stats-url      (str api-url-base "habitat/regions/")
                      :descriptor-url        (str api-url-base "descriptors/")
                      :save-state-url        (str api-url-base "savestates")
-                     :category-url          (str api-url-base "categories/")}})
+                     :category-url          (str api-url-base "categories/")
+                     :init-catalogue-state  {:tab      "cat"
+                                             :expanded #{}}}})

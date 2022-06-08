@@ -527,10 +527,10 @@
               :right-icon "caret-down"}]])
 
 (defn info-card []
-  (let [layer-info       @(re-frame/subscribe [:map.layer/info])
-        layer            (:layer layer-info)
-        title            (or (get-in layer-info [:layer :name]) "Layer Information")
-        {:keys [region]} @(re-frame/subscribe [:map.layer.selection/info])]
+  (let [layer-info                       @(re-frame/subscribe [:map.layer/info])
+        {:keys [metadata_url] :as layer} (:layer layer-info)
+        title                            (or (get-in layer-info [:layer :name]) "Layer Information")
+        {:keys [region]}                 @(re-frame/subscribe [:map.layer.selection/info])]
     [b/dialogue {:title    title
                  :is-open  (and layer-info (not (:hidden? layer-info)))
                  :on-close #(re-frame/dispatch [:map.layer/close-info])}
@@ -550,7 +550,7 @@
         [metadata-record layer-info])]
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions
-       (when (#{:habitat :imagery} (:category layer))
+       (when (and metadata_url (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-[0-9a-f]{4}\-4[0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}$" metadata_url))
          [:div
           [download-menu {:title     "Download Selection..."
                           :layer     layer
@@ -644,7 +644,7 @@
     [b/button
      {:icon     icon
       :text     title
-      :on-click #(re-frame/dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group (:name category) :title title}])}]))
+      :on-click #(re-frame/dispatch [:drawer-panel-stack/open-catalogue-panel (:name category)])}]))
 
 (defn base-panel
   []

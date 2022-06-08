@@ -229,9 +229,6 @@
 (defn process-layer [layer]
   (-> layer
       (update :category    (comp keyword string/lower-case))
-      ;; If category is contours, turn it into bathymetry but with a contours attribute set:
-      (as-> lyr (if (= (:category lyr) :contours) (assoc lyr :contours true) lyr))
-      (update :category    #(if (= % :contours) :bathymetry %))
       (update :server_type (comp keyword string/lower-case))))
 
 (defn process-layers [layers]
@@ -301,13 +298,26 @@
            :habitat-titles  titles
            :habitat-colours colours)))
 
-(defn update-categories [db [_ categories]]
-  (let [categories (map
-                    (fn [{:keys [name display_name]}]
-                      {:name (keyword (string/lower-case name))
-                       :display_name (or display_name (string/capitalize name))})
-                    categories)]
-    (assoc-in db [:map :categories] (set categories))))
+(defn update-categories
+  "Adds the categories to the db, as well as setting the initial state of the
+   catalogue (in instances where the catalogue doesn't have a state)."
+  [db [_ categories]]
+  (let [categories           (map
+                              (fn [{:keys [name display_name]}]
+                                {:name (keyword (string/lower-case name))
+                                 :display_name (or display_name (string/capitalize name))})
+                              categories)
+        init-catalogue-state (get-in db [:config :init-catalogue-state])
+        catalogue            (reduce
+                              (fn [catalogue {:keys [name]}]
+                                (assoc
+                                 catalogue name
+                                 init-catalogue-state))
+                              {} categories)
+        catalogue            (merge catalogue (get-in db [:display :catalogue]))] ; Override initial state with states we have
+    (-> db
+        (assoc-in [:map :categories] (set categories))
+        (assoc-in [:display :catalogue] catalogue))))
 
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
@@ -516,14 +526,11 @@
 
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ {:keys [category] :as layer}]]
-  (let [categories (get-in db [:map :categories])
-        categories (map-on-key categories :name)
-        title      (str (get-in categories [category :display_name]) " Layers")]
-    {:db       (assoc-in db [:display :layers-search-omnibar] false)
-     :dispatch-n (concat
-                  [[:map/add-layer layer]
-                   [:left-drawer/open]
-                   [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title title}]
-                   [:ui.catalogue/select-tab category "cat"]
-                   [:ui.catalogue/catalogue-add-nodes-to-layer category layer "cat" [:data_classification]]
-                   [:map/pan-to-layer layer]])}))
+  {:db       (assoc-in db [:display :layers-search-omnibar] false)
+   :dispatch-n (concat
+                [[:map/add-layer layer]
+                 [:left-drawer/open]
+                 [:drawer-panel-stack/open-catalogue-panel category]
+                 [:ui.catalogue/select-tab category "cat"]
+                 [:ui.catalogue/catalogue-add-nodes-to-layer category layer "cat" [:data_classification]]
+                 [:map/pan-to-layer layer]])})

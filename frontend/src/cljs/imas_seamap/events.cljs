@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map map-on-key]]
             [imas-seamap.map.utils :as mutils :refer [applicable-layers habitat-layer? download-link]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -608,3 +608,10 @@
 
 (defn drawer-panel-stack-pop [db _]
   (update-in db [:display :drawer-panel-stack] pop))
+
+(defn open-catalogue-panel [{:keys [db]} [_ category]]
+  (let [categories (get-in db [:map :categories])
+        categories (map-on-key categories :name)
+        title      (str (get-in categories [category :display_name]) " Layers")]
+    {:db db
+     :dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title title}]}))
