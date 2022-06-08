@@ -11,7 +11,7 @@
             [imas-seamap.interop.leaflet :as leaflet]
             [imas-seamap.components :as components]
             ["/leaflet-zoominfo/L.Control.Zoominfo"]
-            ["/leaflet.scalefactor"]
+            ["/leaflet-scalefactor/leaflet.scalefactor"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn bounds->map [bounds]
