@@ -42,8 +42,8 @@
         img-y-bounds (* y-scale height)]
     {:north (+ lat (/ img-y-bounds 2))
      :south (- lat (/ img-y-bounds 2))
-     :east (+ lng (/ img-x-bounds 2))
-     :west (- lng (/ img-x-bounds 2))}))
+     :east  (+ lng (/ img-x-bounds 2))
+     :west  (- lng (/ img-x-bounds 2))}))
 
 (defn bounds-for-point
   "Uses current bounds and a map point coordinate to get the map bounds centered
@@ -55,8 +55,8 @@
         y-bounds (Math/abs (- north south))]
     {:north (+ lat (/ y-bounds 2))
      :south (- lat (/ y-bounds 2))
-     :east (+ lng (/ x-bounds 2))
-     :west (- lng (/ x-bounds 2))}))
+     :east  (+ lng (/ x-bounds 2))
+     :west  (- lng (/ x-bounds 2))}))
 
 (defn get-feature-info-request
   [info-format request-id by-server img-size img-bounds point]
