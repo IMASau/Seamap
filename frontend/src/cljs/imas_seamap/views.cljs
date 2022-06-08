@@ -825,7 +825,7 @@
        :icon     "add-column-left"
        :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
      [components/floating-pill-button
-      {:text     "Right Drawer"
+      {:text     "State of Knowledge"
        :icon     "add-column-right"
        :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
      [components/floating-pill-button
