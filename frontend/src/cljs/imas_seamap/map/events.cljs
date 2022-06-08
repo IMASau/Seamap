@@ -524,6 +524,6 @@
                   [[:map/add-layer layer]
                    [:left-drawer/open]
                    [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title title}]
-                   [:ui.catalogue/select-tab category "org"]
-                   [:ui.catalogue/catalogue-add-nodes-to-layer category layer "org" [:organisation :data_classification]]
+                   [:ui.catalogue/select-tab category "cat"]
+                   [:ui.catalogue/catalogue-add-nodes-to-layer category layer "cat" [:data_classification]]
                    [:map/pan-to-layer layer]])}))

@@ -49,15 +49,15 @@
                      :right-drawer          false
                      :layers-search-omnibar false
                      :drawer-panel-stack    []
-                     :catalogue             {:habitat     {:tab "org"     ; NOTE: Move away from map to vector to support arbitrary number of tabs/groups?
+                     :catalogue             {:habitat     {:tab "cat"     ; NOTE: Move away from map to vector to support arbitrary number of tabs/groups?
                                                            :expanded #{}}
-                                             :boundaries  {:tab "org"
+                                             :boundaries  {:tab "cat"
                                                            :expanded #{}}
-                                             :bathymetry  {:tab "org"
+                                             :bathymetry  {:tab "cat"
                                                            :expanded #{}}
-                                             :imagery     {:tab "org"
+                                             :imagery     {:tab "cat"
                                                            :expanded #{}}
-                                             :third-party {:tab "org"
+                                             :third-party {:tab "cat"
                                                            :expanded #{}}}
                      :sidebar               {:collapsed false
                                              :selected  "tab-activelayers"}}

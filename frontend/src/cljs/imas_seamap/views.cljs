@@ -225,15 +225,15 @@
               :on-change       select-tab
               :class      "group-scrollable height-managed"}
       [b/tab
-       {:id    "org"
-        :title "By Organisation"
-        :panel (reagent/as-element
-                [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props group])}]
-      [b/tab
        {:id    "cat"
         :title "By Category"
         :panel (reagent/as-element
-                [layer-catalogue-tree layers [:data_classification] "cat" layer-props group])}]]]))
+                [layer-catalogue-tree layers [:data_classification] "cat" layer-props group])}]
+      [b/tab
+       {:id    "org"
+        :title "By Organisation"
+        :panel (reagent/as-element
+                [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props group])}]]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -839,12 +839,14 @@
 
 (defn layers-search-omnibar
   []
-  (letfn [(layer-omnibar-item
-           [{:keys [id name organisation data_classification] :as layer}]
-           {:id          id
-            :text        name
-            :breadcrumbs (map #(or % "Ungrouped") [organisation data_classification])
-            :keywords    (layer-search-keywords layer)})]
+  (let [categories @(re-frame/subscribe [:map/categories-map])]
+   (letfn [(layer-omnibar-item
+           [{:keys [id name category data_classification] :as layer}]
+           (let [category (:display_name (category categories))]
+             {:id          id
+              :text        name
+              :breadcrumbs (map #(or % "Ungrouped") [category data_classification])
+              :keywords    (layer-search-keywords layer)}))]
    (let [open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
          {:keys [all-layers]} @(re-frame/subscribe [:map/layers])
          items                (map layer-omnibar-item all-layers)]
@@ -855,7 +857,7 @@
        :items        items
        :onItemSelect (fn [id]
                        (let [layer (first (filter #(= (:id %) id) all-layers))]
-                         (re-frame/dispatch [:map/add-layer-from-omnibar layer])))}])))
+                         (re-frame/dispatch [:map/add-layer-from-omnibar layer])))}]))))
 
 (def hotkeys-combos
   (let [keydown-wrapper
