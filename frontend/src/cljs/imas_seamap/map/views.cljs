@@ -10,7 +10,7 @@
             [imas-seamap.map.utils :refer [bounds->geojson download-type->str]]
             [imas-seamap.interop.leaflet :as leaflet]
             [imas-seamap.components :as components]
-            ["/L.Control.Zoominfo"]
+            ["/leaflet-zoominfo/L.Control.Zoominfo"]
             ["/leaflet.scalefactor"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
