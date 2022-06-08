@@ -154,7 +154,7 @@
   (when-not (. js-obj listens event-name)
     (. js-obj on event-name handler)))
 
-(defn map-component [children]
+(defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
