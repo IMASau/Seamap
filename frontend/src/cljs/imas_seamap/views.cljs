@@ -840,28 +840,29 @@
       :icon-size 16}]
     "Search Layers..."]])
 
-(defn floating-menu-active-layers []
-  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
-    [:div.floating-menu-active-layers
-     [:div.header
-      [b/icon
-       {:icon "eye-open"
-        :icon-size 18}]
-      [:h1 (str "Active Layers (" (count active-layers) ")")]]
-     [:div.content
-      [active-layer-selection-list
-       {:layers         active-layers
-        :visible-layers visible-layers
-        :loading-fn     loading-layers
-        :error-fn       error-layers
-        :expanded-fn    expanded-layers
-        :opacity-fn     layer-opacities}]]]))
+(defn floating-menu-active-layers
+  [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
+  [:div.floating-menu-active-layers
+   [:div.header
+    [b/icon
+     {:icon "eye-open"
+      :icon-size 18}]
+    [:h1 (str "Active Layers (" (count active-layers) ")")]]
+   [:div.content
+    [active-layer-selection-list
+     {:layers         active-layers
+      :visible-layers visible-layers
+      :loading-fn     loading-layers
+      :error-fn       error-layers
+      :expanded-fn    expanded-layers
+      :opacity-fn     layer-opacities}]]])
 
 (defn floating-menu []
-  [:div.floating-menu-positioning
-   [:div.floating-menu
-    [floating-menu-bar]
-    [floating-menu-active-layers]]])
+  (let [{:keys [active-layers] :as map-layers} @(re-frame/subscribe [:map/layers])]
+    [:div.floating-menu-positioning
+     [:div.floating-menu
+      [floating-menu-bar]
+      (when (seq active-layers) [floating-menu-active-layers map-layers])]]))
 
 (defn floating-pills
   []
