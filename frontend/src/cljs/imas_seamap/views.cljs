@@ -841,12 +841,21 @@
     "Search Layers..."]])
 
 (defn floating-menu-active-layers []
-  [:div.floating-menu-active-layers
-   [:div.header
-    [b/icon
-     {:icon "eye-open"
-      :icon-size 18}]
-    [:h1 "Active Layers"]]])
+  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
+    [:div.floating-menu-active-layers
+     [:div.header
+      [b/icon
+       {:icon "eye-open"
+        :icon-size 18}]
+      [:h1 (str "Active Layers (" (count active-layers) ")")]]
+     [:div.content
+      [active-layer-selection-list
+       {:layers         active-layers
+        :visible-layers visible-layers
+        :loading-fn     loading-layers
+        :error-fn       error-layers
+        :expanded-fn    expanded-layers
+        :opacity-fn     layer-opacities}]]]))
 
 (defn floating-menu []
   [:div.floating-menu
