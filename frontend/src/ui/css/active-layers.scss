@@ -12,6 +12,12 @@ $active-layers-padding: 10px;
 	border: 2px solid rgba(0,0,0,0.2);
 	display: flex;
 	flex-direction: column;
+	max-height: 100%;
+	overflow: hidden;
+}
+
+.floating-menu > * {
+	flex-shrink: 0;
 }
 
 .floating-menu > :not(:last-child) {
@@ -58,6 +64,13 @@ $active-layers-padding: 10px;
 	margin-right: 8px;
 }
 
+.floating-menu-active-layers {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
 .floating-menu-active-layers .header {
 	height: 40px;
 	color: #fff;
@@ -78,4 +91,9 @@ $active-layers-padding: 10px;
 	line-height: 40px;
 	font-size: 14.4pt;
 	color: #fff;
+}
+
+.floating-menu-active-layers .content {
+	padding: 8px;
+	overflow-y: scroll;
 }
