@@ -7,6 +7,7 @@ $floating-pill-height: 36px;
 	left: calc($floating-menu-width + 2 * $floating-menu-padding);
 	white-space: nowrap;
 	display: flex;
+	transition: left 200ms;
 }
 
 .floating-pills > *:not(:last-child) {
@@ -34,6 +35,10 @@ $floating-pill-height: 36px;
 
 .floating-pill-button > .bp3-icon {
 	margin-right: 7px;
+}
+
+.catalogue-open .floating-pills {
+    left: calc($catalogue-drawer-width + $floating-menu-padding);
 }
 
 .leaflet-top.leaflet-left {

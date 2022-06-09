@@ -624,6 +624,14 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-right: 6px;
 }
 
+.leaflet-left {
+    transition: left 200ms;
+}
+
+.catalogue-open .leaflet-left {
+    left: calc(460px + 10px);
+}
+
 /* Allow interactivity with underneath elements while drawer is open */
 .bp3-overlay.bp3-overlay-open.bp3-overlay-container {
     width: 0;

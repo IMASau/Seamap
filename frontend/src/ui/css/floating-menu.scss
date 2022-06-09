@@ -103,3 +103,7 @@
 .leaflet-top.leaflet-left {
 	left: calc($floating-menu-width + 2 * $floating-menu-padding);
 }
+
+.catalogue-open .leaflet-top.leaflet-left {
+	left: calc($catalogue-drawer-width + $floating-menu-padding);
+}

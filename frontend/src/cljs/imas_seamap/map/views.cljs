@@ -162,16 +162,18 @@
         {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
+        catalogue-open?                               @(re-frame/subscribe [:left-drawer/open?])
         layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
         ;layer-params                                  @(re-frame/subscribe [:map.layers/params])
         logic-type                                    @(re-frame/subscribe [:map.layers/logic])]
     (into
-     [:div.map-wrapper
+     [:div
+      {:class (str "map-wrapper" (when catalogue-open? " catalogue-open"))}
       [download-component download-info]
       [leaflet/leaflet-map
        (merge
         {:id                   "map"
-         :class           "sidebar-map"
+         :class                "sidebar-map"
         ;; :crs                  leaflet/crs-epsg4326
          :crs                  leaflet/crs-epsg3857
          :use-fly-to           true
