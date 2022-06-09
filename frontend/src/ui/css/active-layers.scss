@@ -10,27 +10,37 @@ $active-layers-padding: 10px;
 	background-color: white;
 	border-radius: 12px;
 	border: 2px solid rgba(0,0,0,0.2);
+	display: flex;
+	flex-direction: column;
+}
+
+.floating-menu > :not(:last-child) {
+	border-bottom: 2px solid rgba(0,0,0,0.2);
+}
+
+.floating-menu-bar {
 	height: 48px;
 	display: flex;
 }
 
-.floating-menu > :not(:last-child) {
+.floating-menu-bar > :not(:last-child) {
 	border-right: 1px solid rgba(0,0,0,0.05);
 }
 
-.floating-menu-drawer-button {
+.floating-menu-bar-drawer-button {
 	aspect-ratio: 1;
+	height: 100%;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	cursor: pointer;
 }
 
-.floating-menu-drawer-button:hover {
+.floating-menu-bar-drawer-button:hover {
 	background-color: rgba(0,0,0,0.025);
 }
 
-.floating-menu-search-button {
+.floating-menu-bar-search-button {
 	display: flex;
 	align-items: center;
 	cursor: pointer;
@@ -40,10 +50,10 @@ $active-layers-padding: 10px;
 	user-select: none;
 }
 
-.floating-menu-search-button:hover {
+.floating-menu-bar-search-button:hover {
 	background-color: rgba(0,0,0,0.025);
 }
 
-.floating-menu-search-button > :first-child {
+.floating-menu-bar-search-button > :first-child {
 	margin-right: 8px;
 }

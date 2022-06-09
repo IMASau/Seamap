@@ -815,19 +815,23 @@
                    :id     "tab-activelayers"}
       [active-layers-tab active-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]]))
 
-(defn floating-menu []
-  [:div.floating-menu
-   [:div.floating-menu-drawer-button
+(defn floating-menu-bar []
+  [:div.floating-menu-bar
+   [:div.floating-menu-bar-drawer-button
     {:on-click #(re-frame/dispatch [:left-drawer/toggle])}
     [b/icon
      {:icon "menu"
       :icon-size 20}]]
-   [:div.floating-menu-search-button
+   [:div.floating-menu-bar-search-button
     {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
     [b/icon
      {:icon "search"
       :icon-size 16}]
     "Search Layers..."]])
+
+(defn floating-menu []
+  [:div.floating-menu
+   [floating-menu-bar]])
 
 (defn floating-pills
   []
