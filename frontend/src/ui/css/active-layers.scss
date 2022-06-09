@@ -57,3 +57,25 @@ $active-layers-padding: 10px;
 .floating-menu-bar-search-button > :first-child {
 	margin-right: 8px;
 }
+
+.floating-menu-active-layers .header {
+	height: 40px;
+	color: #fff;
+	background-color: #0074d9;
+	display: flex;
+	user-select: none;
+}
+
+.floating-menu-active-layers .header > .bp3-icon {
+	aspect-ratio: 1;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.floating-menu-active-layers .header > h1 {
+	line-height: 40px;
+	font-size: 14.4pt;
+	color: #fff;
+}

@@ -829,9 +829,18 @@
       :icon-size 16}]
     "Search Layers..."]])
 
+(defn floating-menu-active-layers []
+  [:div.floating-menu-active-layers
+   [:div.header
+    [b/icon
+     {:icon "eye-open"
+      :icon-size 18}]
+    [:h1 "Active Layers"]]])
+
 (defn floating-menu []
   [:div.floating-menu
-   [floating-menu-bar]])
+   [floating-menu-bar]
+   [floating-menu-active-layers]])
 
 (defn floating-pills
   []
