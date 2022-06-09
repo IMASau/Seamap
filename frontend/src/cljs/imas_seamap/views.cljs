@@ -311,9 +311,9 @@
      [catalogue-header layer-spec other-props]
      [catalogue-controls layer-spec other-props]]]])
 
-(defn active-layer-card [layer-spec {:keys [active? visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
+(defn active-layer-card [layer-spec {:keys [_active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
   [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
-   [:div.layer-card.bp3-card.bp3-elevation-1 {:class (when active? "layer-active bp3-interactive")}
+   [:div.layer-card.bp3-card.bp3-elevation-1.layer-active.bp3-interactive
     [:div.header-row.height-static
      [catalogue-header layer-spec other-props]
      [active-layer-catalogue-controls layer-spec other-props]]]])
