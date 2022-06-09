@@ -39,4 +39,5 @@
   color: black;
   padding: 6px;
   cursor: default;
+  user-select: none;
 }

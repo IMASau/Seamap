@@ -149,6 +149,7 @@ footer {
 
 .layer-wrapper {
     min-width: 0;
+    margin-bottom: 5px;
 }
 
 .layer-wrapper .bp3-card {
@@ -244,8 +245,13 @@ footer {
     align-items: normal;
     height: auto;
 }
-.bp3-tree-node-label > .layer-wrapper.layer-active {
-    padding-top: 5px;
+
+.bp3-tree-node-label > .layer-wrapper {
+    padding-left: 9px;
+}
+
+.bp3-tree-node-label .layer-legend {
+    padding-right: 9px;
 }
 .catalogue-layer-controls > span {
     padding-left: 2px;
@@ -385,10 +391,6 @@ footer {
 }
 
 .draw-transect::after {
-    margin-bottom: 5px;
-}
-
-.layer-wrapper {
     margin-bottom: 5px;
 }
 
@@ -622,6 +624,14 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .left-drawer-group h1::before {
     margin-right: 6px;
+}
+
+.leaflet-left {
+    transition: left 200ms, top 200ms;
+}
+
+.catalogue-open .leaflet-left {
+    left: calc(460px + 10px);
 }
 
 /* Allow interactivity with underneath elements while drawer is open */

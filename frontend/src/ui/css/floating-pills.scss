@@ -7,6 +7,7 @@ $floating-pill-height: 36px;
 	left: calc($floating-menu-width + 2 * $floating-menu-padding);
 	white-space: nowrap;
 	display: flex;
+	transition: left 200ms;
 }
 
 .floating-pills > *:not(:last-child) {
@@ -26,6 +27,7 @@ $floating-pill-height: 36px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	user-select: none;
 }
 
 .floating-pill-button:hover {
@@ -36,7 +38,12 @@ $floating-pill-height: 36px;
 	margin-right: 7px;
 }
 
-.leaflet-top.leaflet-left {
+.catalogue-open .floating-pills {
+    left: calc($catalogue-drawer-width + $floating-menu-padding);
+}
+
+.catalogue-open .leaflet-top.leaflet-left,
+.active-layers .leaflet-top.leaflet-left {
 	top: calc($floating-pill-height + $floating-menu-padding);
 }
 
