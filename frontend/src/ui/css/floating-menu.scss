@@ -22,8 +22,8 @@
 	flex-shrink: 0;
 }
 
-.floating-menu > :not(:last-child) {
-	border-bottom: 2px solid rgba(0,0,0,0.2);
+.floating-menu > :not(:first-child) {
+	border-top: 2px solid rgba(0,0,0,0.2);
 }
 
 .floating-menu-bar {
