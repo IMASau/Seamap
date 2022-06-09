@@ -1,38 +1,11 @@
+$floating-pill-height: 36px;
+
 .floating-pills {
     position: absolute;
     z-index: 2000;
-    top: -40px;
-    left: 10px;
-    transition: top .5s, left .5s;
+    top: $floating-menu-padding;
+    left: calc($floating-menu-width + 2 * $floating-menu-padding);
     white-space: nowrap;
-}
-
-@media (min-width:768px) {
-	.floating-pills {
-        top: 10px;
-	}
-}
-
-@media (min-width:768px) and (max-width:991px) {
-	.floating-pills {
-		left: calc(305px + 20px);
-	}
-}
-
-@media (min-width:992px) and (max-width:1199px) {
-	.floating-pills {
-		left: calc(390px + 20px);
-	}
-}
-
-@media (min-width:1200px) {
-	.floating-pills {
-		left: calc(460px + 20px);
-	}
-}
-
-.floating-pills.collapsed {
-    left: calc(40px + 20px);
 }
 
 .floating-pills > *:not(:last-child) {
@@ -42,9 +15,10 @@
 .floating-pill-button.bp3-button {
     background-color: white;
     padding: 0 14px;
-    height: 36px;
+    height: $floating-pill-height;
     border-radius: 14px;
-    border: 1px solid rgba(0,0,0,0.2);
+    border: 2px solid rgba(0,0,0,0.2);
+	background-clip: padding-box;
 }
 
 .floating-pill-button .bp3-button-text,
@@ -54,5 +28,9 @@
 }
 
 .leaflet-top.leaflet-left {
-    top: 46px;
+    top: calc($floating-pill-height + $floating-menu-padding);
+}
+
+.leaflet-left .leaflet-control {
+	margin-left: 0;
 }
