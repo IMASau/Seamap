@@ -815,6 +815,10 @@
                    :id     "tab-activelayers"}
       [active-layers-tab active-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]]))
 
+(defn floating-menu []
+  [:div.floating-menu
+   "TEST"])
+
 (defn floating-pills
   []
   (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))]
@@ -931,7 +935,10 @@
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      [:div#content-wrapper
-      [map-component [active-layers-sidebar] [floating-pills]]
+      [map-component
+       [floating-menu]
+       [active-layers-sidebar]
+       [floating-pills]]
       [plot-component]]
      [helper-overlay
       :layer-search
