@@ -826,7 +826,7 @@
     {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
     [b/icon
      {:icon "search"
-      :icon-size 18}]
+      :icon-size 16}]
     "Search Layers..."]])
 
 (defn floating-pills
