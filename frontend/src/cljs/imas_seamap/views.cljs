@@ -110,13 +110,19 @@
     [:div.legend-wrapper
      [:img {:src legend-url}]]))
 
-(defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading? expanded? opacity] :as _layer-state}]
+(defn catalogue-legend
+  [layer {:keys [active? _errors? _loading? expanded? opacity]}]
+  [b/collapse {:is-open (and active? expanded?)
+               :className "layer-legend"}
+   [b/slider {:label-renderer false :initial-value 0 :max 100 :value opacity
+              :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
+   [legend-display layer]])
+
+(defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading? expanded? _opacity] :as _layer-state}]
   [b/tooltip {:content (if expanded? "Click to hide legend" "Click to show legend")
               :class "header-text"
               :disabled (not active?)}
-   [:div.layer-wrapper (when active? {:class "layer-active"
-                                      ;:on-click (handler-dispatch [:map.layer.legend/toggle layer])
-                                      })
+   [:div.layer-wrapper (when active? {:class "layer-active"})
     [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
      [:div (when (or loading? errors?) {:class "header-status-icons"})
       (when (and active? loading?) [b/spinner {:className "bp3-small layer-spinner"}])
@@ -124,11 +130,7 @@
      [b/clipped-text {:ellipsize true :class "header-text"
                       :on-click (handler-dispatch [:map.layer.legend/toggle layer])}
       name]
-     [b/collapse {:is-open (and active? expanded?)
-                  :className "layer-legend"}
-      [b/slider {:label-renderer false :initial-value 0 :max 100 :value opacity
-                 :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
-      [legend-display layer]]]]])
+     [catalogue-legend layer _layer-state]]]])
 
 (defn catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
   [:div.catalogue-layer-controls (when active? {:class "layer-active"})
@@ -305,18 +307,17 @@
 
 
 (defn layer-card [layer-spec {:keys [active? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
-  [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
-   [:div.layer-card.bp3-card.bp3-elevation-1 {:class (when active? "layer-active bp3-interactive")}
-    [:div.header-row.height-static
-     [catalogue-header layer-spec other-props]
-     [catalogue-controls layer-spec other-props]]]])
+  [:div.layer-wrapper.bp3-card.bp3-elevation-1
+   {:class (when active? "layer-active bp3-interactive")}
+   [:div.header-row.height-static
+    [catalogue-header layer-spec other-props]
+    [catalogue-controls layer-spec other-props]]])
 
 (defn active-layer-card [layer-spec {:keys [_active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
-  [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
-   [:div.layer-card.bp3-card.bp3-elevation-1.layer-active.bp3-interactive
-    [:div.header-row.height-static
-     [catalogue-header layer-spec other-props]
-     [active-layer-catalogue-controls layer-spec other-props]]]])
+  [:div.layer-wrapper.bp3-card.bp3-elevation-1.layer-active.bp3-interactive
+   [:div.header-row.height-static
+    [catalogue-header layer-spec other-props]
+    [active-layer-catalogue-controls layer-spec other-props]]])
 
 (defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
   (let [expanded (reagent/atom expanded)]
