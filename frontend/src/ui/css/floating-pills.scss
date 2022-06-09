@@ -40,6 +40,6 @@ $floating-pill-height: 36px;
 	top: calc($floating-pill-height + $floating-menu-padding);
 }
 
-.leaflet-left .leaflet-control {
+.leaflet-top.leaflet-left .leaflet-control {
 	margin-left: 0;
 }

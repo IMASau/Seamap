@@ -2,7 +2,7 @@
 	position: absolute;
 	z-index: 2000;
 	top: $floating-menu-padding;
-	bottom: $floating-menu-padding;
+	bottom: 75px;
 	left: $floating-menu-padding;
 	width: $floating-menu-width;
 }
@@ -100,6 +100,6 @@
 	overflow-y: scroll;
 }
 
-.leaflet-left {
+.leaflet-top.leaflet-left {
 	left: calc($floating-menu-width + 2 * $floating-menu-padding);
 }
