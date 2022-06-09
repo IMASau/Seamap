@@ -341,28 +341,39 @@
                               :expanded? (expanded-fn layer)
                               :opacity   (opacity-fn layer)}])]]])))
 
+(defn active-layer-selection-list
+  [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn]}]
+  (let [layer-card-items
+        (map
+         (fn [layer]
+           {:key (:layer_name layer)
+            :content [active-layer-card layer
+                      {:active?   true
+                       :visible?  (some #{layer} visible-layers)
+                       :loading?  (loading-fn layer)
+                       :errors?   (error-fn layer)
+                       :expanded? (expanded-fn layer)
+                       :opacity   (opacity-fn layer)}]})
+         layers)]
+    [components/items-selection-list
+     {:items       layer-card-items
+      :disabled    false
+      :data-path   [:map :active-layers]
+      :is-reversed true}]))
+
 (defn active-layer-group
   [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.active-layer-group.height-managed
    [:h1.bp3-heading
     (str "Layers (" (count layers) ")")]
    [:div.height-managed.group-scrollable
-    (let [layer-card-items (map
-                            (fn [layer]
-                              {:key (:layer_name layer)
-                               :content [active-layer-card layer
-                                         {:active?   (some #{layer} active-layers)
-                                          :visible?  (some #{layer} visible-layers)
-                                          :loading?  (loading-fn layer)
-                                          :errors?   (error-fn layer)
-                                          :expanded? (expanded-fn layer)
-                                          :opacity   (opacity-fn layer)}]})
-                            layers)]
-      [components/items-selection-list
-       {:items       layer-card-items
-        :disabled    false
-        :data-path   [:map :active-layers]
-        :is-reversed true}])]])
+    [active-layer-selection-list
+     {:layers         layers
+      :visible-layers visible-layers
+      :loading-fn     loading-fn
+      :error-fn       error-fn
+      :expanded-fn    expanded-fn
+      :opacity-fn     opacity-fn}]]])
 
 (defn settings-controls []
   [:div#settings
