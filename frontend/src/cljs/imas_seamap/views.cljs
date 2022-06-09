@@ -870,10 +870,6 @@
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
      [components/floating-pill-button
-      {:text     "Left Drawer"
-       :icon     "add-column-left"
-       :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
-     [components/floating-pill-button
       {:text     "State of Knowledge"
        :icon     "add-column-right"
        :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
