@@ -37,16 +37,13 @@
 
 (defn floating-pill-button
   [{:keys [text icon on-click disabled]}]
-  [b/button
-   {:className "floating-pill-button"
-    :text      text
-    :icon
-    (reagent/as-element
-     [b/icon
-      {:icon icon
-       :icon-size 20}])
-    :on-click  on-click
-    :disabled  disabled}])
+  [:div
+   {:class    (str "floating-pill-button" (when disabled " disabled"))
+    :on-click (when-not disabled on-click)}
+   [b/icon
+    {:icon icon
+     :icon-size 20}]
+   text])
 
 (defn omnibar
   [{:keys [placeholder, isOpen, onClose, items, onItemSelect]}]

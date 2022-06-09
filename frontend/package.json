@@ -31,12 +31,14 @@
     "@storybook/addon-essentials": "^6.3.12",
     "@storybook/addon-links": "^6.3.12",
     "@storybook/react": "^6.3.12",
-    "babel-loader": "^8.2.3"
+    "babel-loader": "^8.2.3",
+    "sass": "^1.39.0"
   },
   "scripts": {
     "watch": "npx shadow-cljs watch dev",
     "build-js": "babel src/ui --out-dir src/gen --source-maps inline",
     "watch-js": "babel src/ui --out-dir src/gen --source-maps inline --watch",
+    "build-css": "npx sass --load-path=. --style compressed src/index.scss resources/public/css/style.npm-packaged.css",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   }

@@ -311,9 +311,9 @@
      [catalogue-header layer-spec other-props]
      [catalogue-controls layer-spec other-props]]]])
 
-(defn active-layer-card [layer-spec {:keys [active? visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
+(defn active-layer-card [layer-spec {:keys [_active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
   [:div.layer-wrapper ; {:on-click (handler-fn (when active? (swap! show-legend not)))}
-   [:div.layer-card.bp3-card.bp3-elevation-1 {:class (when active? "layer-active bp3-interactive")}
+   [:div.layer-card.bp3-card.bp3-elevation-1.layer-active.bp3-interactive
     [:div.header-row.height-static
      [catalogue-header layer-spec other-props]
      [active-layer-catalogue-controls layer-spec other-props]]]])
@@ -341,28 +341,39 @@
                               :expanded? (expanded-fn layer)
                               :opacity   (opacity-fn layer)}])]]])))
 
+(defn active-layer-selection-list
+  [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn]}]
+  (let [layer-card-items
+        (map
+         (fn [layer]
+           {:key (:layer_name layer)
+            :content [active-layer-card layer
+                      {:active?   true
+                       :visible?  (some #{layer} visible-layers)
+                       :loading?  (loading-fn layer)
+                       :errors?   (error-fn layer)
+                       :expanded? (expanded-fn layer)
+                       :opacity   (opacity-fn layer)}]})
+         layers)]
+    [components/items-selection-list
+     {:items       layer-card-items
+      :disabled    false
+      :data-path   [:map :active-layers]
+      :is-reversed true}]))
+
 (defn active-layer-group
   [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.active-layer-group.height-managed
    [:h1.bp3-heading
     (str "Layers (" (count layers) ")")]
    [:div.height-managed.group-scrollable
-    (let [layer-card-items (map
-                            (fn [layer]
-                              {:key (:layer_name layer)
-                               :content [active-layer-card layer
-                                         {:active?   (some #{layer} active-layers)
-                                          :visible?  (some #{layer} visible-layers)
-                                          :loading?  (loading-fn layer)
-                                          :errors?   (error-fn layer)
-                                          :expanded? (expanded-fn layer)
-                                          :opacity   (opacity-fn layer)}]})
-                            layers)]
-      [components/items-selection-list
-       {:items       layer-card-items
-        :disabled    false
-        :data-path   [:map :active-layers]
-        :is-reversed true}])]])
+    [active-layer-selection-list
+     {:layers         layers
+      :visible-layers visible-layers
+      :loading-fn     loading-fn
+      :error-fn       error-fn
+      :expanded-fn    expanded-fn
+      :opacity-fn     opacity-fn}]]])
 
 (defn settings-controls []
   [:div#settings
@@ -815,15 +826,49 @@
                    :id     "tab-activelayers"}
       [active-layers-tab active-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]]))
 
+(defn floating-menu-bar []
+  [:div.floating-menu-bar
+   [:div.floating-menu-bar-drawer-button
+    {:on-click #(re-frame/dispatch [:left-drawer/toggle])}
+    [b/icon
+     {:icon "menu"
+      :icon-size 20}]]
+   [:div.floating-menu-bar-search-button
+    {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
+    [b/icon
+     {:icon "search"
+      :icon-size 16}]
+    "Search Layers..."]])
+
+(defn floating-menu-active-layers
+  [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
+  [:div.floating-menu-active-layers
+   [:div.header
+    [b/icon
+     {:icon "eye-open"
+      :icon-size 18}]
+    [:h1 (str "Active Layers (" (count active-layers) ")")]]
+   [:div.content
+    [active-layer-selection-list
+     {:layers         active-layers
+      :visible-layers visible-layers
+      :loading-fn     loading-layers
+      :error-fn       error-layers
+      :expanded-fn    expanded-layers
+      :opacity-fn     layer-opacities}]]])
+
+(defn floating-menu []
+  (let [{:keys [active-layers] :as map-layers} @(re-frame/subscribe [:map/layers])]
+    [:div.floating-menu-positioning
+     [:div.floating-menu
+      [floating-menu-bar]
+      (when (seq active-layers) [floating-menu-active-layers map-layers])]]))
+
 (defn floating-pills
   []
   (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
-     [components/floating-pill-button
-      {:text     "Left Drawer"
-       :icon     "add-column-left"
-       :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
      [components/floating-pill-button
       {:text     "State of Knowledge"
        :icon     "add-column-right"
@@ -931,7 +976,7 @@
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      [:div#content-wrapper
-      [map-component [active-layers-sidebar] [floating-pills]]
+      [map-component [floating-menu] [floating-pills]]
       [plot-component]]
      [helper-overlay
       :layer-search
