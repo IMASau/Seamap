@@ -156,7 +156,7 @@
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
-        {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
+        {:keys [layer-opacities active-layers visible-layers]} @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
@@ -168,7 +168,7 @@
         logic-type                                    @(re-frame/subscribe [:map.layers/logic])]
     (into
      [:div
-      {:class (str "map-wrapper" (when catalogue-open? " catalogue-open"))}
+      {:class (str "map-wrapper" (when catalogue-open? " catalogue-open") (when (seq active-layers) " active-layers"))}
       [download-component download-info]
       [leaflet/leaflet-map
        (merge

@@ -625,7 +625,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 .leaflet-left {
-    transition: left 200ms;
+    transition: left 200ms, top 200ms;
 }
 
 .catalogue-open .leaflet-left {

@@ -41,7 +41,7 @@ $floating-pill-height: 36px;
     left: calc($catalogue-drawer-width + $floating-menu-padding);
 }
 
-.leaflet-top.leaflet-left {
+.active-layers .leaflet-top.leaflet-left {
 	top: calc($floating-pill-height + $floating-menu-padding);
 }
 

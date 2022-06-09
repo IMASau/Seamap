@@ -1,3 +1,5 @@
+$floating-menu-bar-height: 48px;
+
 .floating-menu-positioning {
 	position: absolute;
 	z-index: 2000;
@@ -27,7 +29,7 @@
 }
 
 .floating-menu-bar {
-	height: 48px;
+	height: $floating-menu-bar-height;
 	display: flex;
 }
 
@@ -101,7 +103,19 @@
 }
 
 .leaflet-top.leaflet-left {
+	left: $floating-menu-padding;
+}
+
+.active-layers .leaflet-top.leaflet-left {
 	left: calc($floating-menu-width + 2 * $floating-menu-padding);
+}
+
+.leaflet-top.leaflet-left {
+	top: calc($floating-menu-bar-height + $floating-menu-padding);
+}
+
+.active-layers .leaflet-top.leaflet-left {
+	top: $floating-menu-padding;
 }
 
 .catalogue-open .leaflet-top.leaflet-left {
