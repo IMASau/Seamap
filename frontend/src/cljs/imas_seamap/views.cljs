@@ -817,7 +817,12 @@
 
 (defn floating-menu []
   [:div.floating-menu
-   "TEST"])
+   [:div.floating-menu-drawer-button
+    {:on-click #(re-frame/dispatch [:left-drawer/toggle])}
+    [b/icon
+     {:icon "menu"
+      :icon-size 20}]]
+   [:div]])
 
 (defn floating-pills
   []
@@ -936,8 +941,8 @@
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      [:div#content-wrapper
       [map-component
-       [floating-menu]
        [active-layers-sidebar]
+       [floating-menu]
        [floating-pills]]
       [plot-component]]
      [helper-overlay
