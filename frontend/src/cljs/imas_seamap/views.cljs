@@ -129,8 +129,7 @@
       (when (and active? errors?) [:span.layer-warning.bp3-icon.bp3-icon-small.bp3-icon-warning-sign])]
      [b/clipped-text {:ellipsize true :class "header-text"
                       :on-click (handler-dispatch [:map.layer.legend/toggle layer])}
-      name]
-     [catalogue-legend layer _layer-state]]]])
+      name]]]])
 
 (defn catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
   [:div.catalogue-layer-controls (when active? {:class "layer-active"})
@@ -190,12 +189,17 @@
                                          :opacity  (opacity-fn layer)}]
                         {:id (str id-str "-" i)
                          :className (when (:active? layer-state) "layer-active")
-                         :label (reagent/as-element [catalogue-header layer layer-state])
+                         :label (reagent/as-element
+                                 [:div.layer-wrapper
+                                  [:div.header-row.height-static
+                                   [catalogue-header layer layer-state]
+                                   [catalogue-controls layer layer-state]]
+                                  [catalogue-legend layer layer-state]])
                         ;; A hack, but if we just add the layer it gets
                         ;; warped in the js->clj conversion
                         ;; (specifically, values that were keywords become strings)
                          ;; :do-layer-toggle #(re-frame/dispatch [:map/toggle-layer layer])
-                         :secondaryLabel (reagent/as-element [catalogue-controls layer layer-state])}))
+                         #_:secondaryLabel #_(reagent/as-element [catalogue-controls layer layer-state])}))
                     layer-subset))}))
 
 (defn layer-catalogue-tree [_layers _ordering _id _layer-props group]
@@ -311,13 +315,15 @@
    {:class (when active? "layer-active bp3-interactive")}
    [:div.header-row.height-static
     [catalogue-header layer-spec other-props]
-    [catalogue-controls layer-spec other-props]]])
+    [catalogue-controls layer-spec other-props]]
+   [catalogue-legend layer-spec other-props]])
 
 (defn active-layer-card [layer-spec {:keys [_active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
   [:div.layer-wrapper.bp3-card.bp3-elevation-1.layer-active.bp3-interactive
    [:div.header-row.height-static
     [catalogue-header layer-spec other-props]
-    [active-layer-catalogue-controls layer-spec other-props]]])
+    [active-layer-catalogue-controls layer-spec other-props]]
+   [catalogue-legend layer-spec other-props]])
 
 (defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
   (let [expanded (reagent/atom expanded)]

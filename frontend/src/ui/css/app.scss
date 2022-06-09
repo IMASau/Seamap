@@ -149,6 +149,7 @@ footer {
 
 .layer-wrapper {
     min-width: 0;
+    margin-bottom: 5px;
 }
 
 .layer-wrapper .bp3-card {
@@ -244,8 +245,13 @@ footer {
     align-items: normal;
     height: auto;
 }
-.bp3-tree-node-label > .layer-wrapper.layer-active {
-    padding-top: 5px;
+
+.bp3-tree-node-label > .layer-wrapper {
+    padding-left: 9px;
+}
+
+.bp3-tree-node-label .layer-legend {
+    padding-right: 9px;
 }
 .catalogue-layer-controls > span {
     padding-left: 2px;
@@ -385,10 +391,6 @@ footer {
 }
 
 .draw-transect::after {
-    margin-bottom: 5px;
-}
-
-.layer-wrapper {
     margin-bottom: 5px;
 }
 
