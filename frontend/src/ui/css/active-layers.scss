@@ -14,7 +14,7 @@ $active-layers-padding: 10px;
 	display: flex;
 }
 
-.floating-menu > *:not(:last-child) {
+.floating-menu > :not(:last-child) {
 	border-right: 1px solid rgba(0,0,0,0.05);
 }
 
@@ -24,4 +24,26 @@ $active-layers-padding: 10px;
 	justify-content: center;
 	align-items: center;
 	cursor: pointer;
+}
+
+.floating-menu-drawer-button:hover {
+	background-color: rgba(0,0,0,0.025);
+}
+
+.floating-menu-search-button {
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	color: #5f6b7c;
+	padding: 0px 8px;
+	flex: 1;
+	user-select: none;
+}
+
+.floating-menu-search-button:hover {
+	background-color: rgba(0,0,0,0.025);
+}
+
+.floating-menu-search-button > :first-child {
+	margin-right: 8px;
 }

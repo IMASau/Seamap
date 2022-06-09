@@ -822,7 +822,12 @@
     [b/icon
      {:icon "menu"
       :icon-size 20}]]
-   [:div]])
+   [:div.floating-menu-search-button
+    {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
+    [b/icon
+     {:icon "search"
+      :icon-size 18}]
+    "Search Layers..."]])
 
 (defn floating-pills
   []
