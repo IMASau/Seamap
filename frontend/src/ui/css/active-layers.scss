@@ -1,12 +1,16 @@
 $active-layers-width: 400px;
 $active-layers-padding: 10px;
 
-.floating-menu {
+.floating-menu-positioning {
 	position: absolute;
 	z-index: 2000;
 	top: $active-layers-padding;
+	bottom: $active-layers-padding;
 	left: $active-layers-padding;
 	width: $active-layers-width;
+}
+
+.floating-menu {
 	background-color: white;
 	border-radius: 12px;
 	border: 2px solid rgba(0,0,0,0.2);

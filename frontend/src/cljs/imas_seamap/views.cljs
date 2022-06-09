@@ -858,9 +858,10 @@
         :opacity-fn     layer-opacities}]]]))
 
 (defn floating-menu []
-  [:div.floating-menu
-   [floating-menu-bar]
-   [floating-menu-active-layers]])
+  [:div.floating-menu-positioning
+   [:div.floating-menu
+    [floating-menu-bar]
+    [floating-menu-active-layers]]])
 
 (defn floating-pills
   []
@@ -978,10 +979,7 @@
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      [:div#content-wrapper
-      [map-component
-       [active-layers-sidebar]
-       [floating-menu]
-       [floating-pills]]
+      [map-component [floating-menu] [floating-pills]]
       [plot-component]]
      [helper-overlay
       :layer-search
