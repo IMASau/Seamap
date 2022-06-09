@@ -1,34 +1,43 @@
 $floating-pill-height: 36px;
 
 .floating-pills {
-    position: absolute;
-    z-index: 2000;
-    top: $floating-menu-padding;
-    left: calc($floating-menu-width + 2 * $floating-menu-padding);
-    white-space: nowrap;
+	position: absolute;
+	z-index: 2000;
+	top: $floating-menu-padding;
+	left: calc($floating-menu-width + 2 * $floating-menu-padding);
+	white-space: nowrap;
+	display: flex;
 }
 
 .floating-pills > *:not(:last-child) {
-    margin-right: 6px; 
+	margin-right: 6px; 
 }
 
-.floating-pill-button.bp3-button {
-    background-color: white;
-    padding: 0 14px;
-    height: $floating-pill-height;
-    border-radius: 14px;
-    border: 2px solid rgba(0,0,0,0.2);
+.floating-pill-button {
+	background-color: white;
+	padding: 0 14px;
+	height: $floating-pill-height;
+	border-radius: 14px;
+	border: 2px solid rgba(0,0,0,0.2);
 	background-clip: padding-box;
+	cursor: pointer;
+	color: black;
+	font-size: 14px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
-.floating-pill-button .bp3-button-text,
-.floating-pill-button .bp3-icon {
-    color: black;
-    font-size: 14px;
+.floating-pill-button:hover {
+	background-color: #f4f4f4;
+}
+
+.floating-pill-button > .bp3-icon {
+	margin-right: 7px;
 }
 
 .leaflet-top.leaflet-left {
-    top: calc($floating-pill-height + $floating-menu-padding);
+	top: calc($floating-pill-height + $floating-menu-padding);
 }
 
 .leaflet-left .leaflet-control {
