@@ -60,7 +60,9 @@
 (defn layer-search-keywords
   "Returns the complete search keywords of a layer, space-separated."
   [categories {:keys [name category layer_name description organisation data_classification keywords]}]
-  (let [category-display-name (get-in categories [category :display_name])]
+  (let [category-display-name (get-in categories [category :display_name])
+        organisation          (or "Ungrouped" organisation)
+        data_classification   (or "Ungrouped" data_classification)]
     (string/join " " [name category category-display-name layer_name description organisation data_classification keywords])))
 
 (defn layer-name
