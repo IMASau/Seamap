@@ -14,20 +14,17 @@ const options = [
 	{
 		id: 'chocolate',
 		text: "Menu item",
-		breadcrumbs: ["Core", "Components", "Menu"],
-		keywords: "Chocolate Strawberry"
+		breadcrumbs: ["Core", "Components", "Menu"]
 	},
 	{
 		id: 'strawberry',
 		text: "Extended example",
-		breadcrumbs: ["Core", "Components", "Numeric input"],
-		keywords: "Strawberry Vanilla"
+		breadcrumbs: ["Core", "Components", "Numeric input"]
 	},
 	{
 		id: 'vanilla',
 		text: "Basic example",
-		breadcrumbs: ["Core", "Components", "Numeric input"],
-		keywords: "Vanilla Chocolate"
+		breadcrumbs: ["Core", "Components", "Numeric input"]
 	}
 ]
 
