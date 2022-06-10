@@ -17,4 +17,4 @@
 (def Drawer             (reagent/adapt-react-class Drawer/Drawer))
 (def PanelStack         (reagent/adapt-react-class PanelStack/PanelStack))
 (def Omnibar            (reagent/adapt-react-class Omnibar/Omnibar))
-(def Select            (reagent/adapt-react-class Select/Select))
+(def Select             (reagent/adapt-react-class Select/Select))

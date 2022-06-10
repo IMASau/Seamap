@@ -44,7 +44,7 @@ export function Select({value, options, onChange}) {
 }
 
 Select.propTypes = {
-	value: PropTypes.string,
+	value: PropTypes.any,
 	options: PropTypes.arrayOf(PropTypes.shape({
 		id: PropTypes.any.isRequired,
 		text: PropTypes.string.isRequired,
