@@ -81,7 +81,7 @@
       (= 1 (count habitat-layers)) (first habitat-layers)
       (some #{(:habitat-layer region-stats)} habitat-layers) (:habitat-layer region-stats))))
 
-(defn sort-layers
+(defn sort-layers-presentation
   "Return layers in an order suitable for presentation (essentially,
   bathymetry at the bottom, third-party on top, and habitat layers by
   priority when in auto mode)"
@@ -128,7 +128,7 @@
         layer-ids          (->> group-priorities (map :layer) (into #{}))
         selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %) (match-server? %)) layers)
         viewport-layers (filter #(bbox-intersects? bounds (:bounding_box %)) selected-layers)]
-    (sort-layers viewport-layers priorities logic-type)))
+    (sort-layers-presentation viewport-layers priorities logic-type)))
 
 (defn all-priority-layers
   "Return the list of priority layers: that is, every layer for which
