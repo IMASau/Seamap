@@ -898,7 +898,7 @@
              {:id          id
               :text        name
               :breadcrumbs (map #(or % "Ungrouped") [category data_classification])
-              :keywords    (layer-search-keywords layer)}))]
+              :keywords    (layer-search-keywords categories layer)}))]
    (let [open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
          {:keys [all-layers]} @(re-frame/subscribe [:map/layers])
          items                (map layer-omnibar-item all-layers)]

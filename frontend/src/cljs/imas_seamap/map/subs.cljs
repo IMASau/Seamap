@@ -25,11 +25,11 @@
   "Given a string of search words, attempt to match them *all* against
   a layer (designed so it can be used to filter a list of layers, in
   conjunction with partial)."
-  [filter-text layer]
+  [filter-text categories layer]
   (if-let [search-re (try
                        (-> filter-text string/trim (string/split #"\s+") make-re)
                        (catch :default e nil))]
-    (re-find search-re (layer-search-keywords layer))
+    (re-find search-re (layer-search-keywords categories layer))
     false))
 
 (defn- make-error-fn
@@ -48,12 +48,13 @@
 
 (defn map-layers [{:keys [layer-state filters map] :as db} _]
   (let [{:keys [layers active-layers hidden-layers bounds logic]} map
+        categories      (map-on-key (:categories map) :name)
         filter-text     (:layers filters)
         layers          (if (= (:type logic) :map.layer-logic/automatic)
                           (all-priority-layers db)
                           layers)
         viewport-layers  (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
-        filtered-layers (filter (partial match-layer filter-text) viewport-layers)]
+        filtered-layers (filter (partial match-layer filter-text categories) viewport-layers)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
