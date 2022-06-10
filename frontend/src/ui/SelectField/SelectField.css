@@ -9,3 +9,7 @@
 .SelectFieldAction:hover {
 	text-decoration: underline;
 }
+
+#react-select-2-listbox .selected small {
+	color: hsla(0,0%,100%,.7);
+}

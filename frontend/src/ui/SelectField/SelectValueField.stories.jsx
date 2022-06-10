@@ -1,73 +1,49 @@
 import React from 'react';
 
-import {SimpleSelectField} from './SelectField';
+import {Select} from './SelectField';
 import './SelectField.css';
 import '@blueprintjs/core/lib/css/blueprint.css';
-import NOTES from './NOTES.mdx';
 
 export default {
-	title: 'SelectField/SimpleSelectField',
-	component: SimpleSelectField,
+	title: 'SelectField/Select',
+	component: Select,
 	argTypes: {
-		// Most are inferred from propTypes
-		onChange: {action: 'onChange'},
-		onBlur: {action: 'onBlur'},
 	}
 };
 
-const FieldTemplate = (args) => <SimpleSelectField {...args} />;
-
 const options = [
-	{value: 'chocolate', label: 'Chocolate'},
-	{value: 'strawberry', label: 'Strawberry'},
-	{value: 'vanilla', label: 'Vanilla'}
+	{
+		id: 'chocolate',
+		text: "Menu item",
+		breadcrumbs: ["Core", "Components", "Menu"],
+		keywords: "Chocolate Strawberry"
+	},
+	{
+		id: 'strawberry',
+		text: "Extended example",
+		breadcrumbs: ["Core", "Components", "Numeric input"],
+		keywords: "Strawberry Vanilla"
+	},
+	{
+		id: 'vanilla',
+		text: "Basic example",
+		breadcrumbs: ["Core", "Components", "Numeric input"],
+		keywords: "Vanilla Chocolate"
+	}
 ]
 
-export const SimpleField = FieldTemplate.bind({});
-SimpleField.args = {
-	value: null,
-	options: options,
-	placeholder: "",
-	disabled: false,
-	hasError: false,
-	getValue: (option => option.value),
-	getLabel: (option => option.label)
-};
+const FieldTemplate = (args) => {
+	const [value, setValue] = React.useState('a');
 
-export const FieldDisabledState = FieldTemplate.bind({});
-FieldDisabledState.args = {
-	value: options[0].value,
-	options: options,
-	disabled: true,
-	getValue: (option => option.value),
-	getLabel: (option => option.label)
-};
+	return (
+		<Select
+			{...args}
+			value={value}
+			options={options}
+			onChange={setValue}
+		/>
+	);
+}
 
-export const FieldWithError = FieldTemplate.bind({});
-FieldWithError.args = {
-	value: options[0].value,
-	options: options,
-	hasError: true,
-	getValue: (option => option.value),
-	getLabel: (option => option.label)
-};
-
-export const FieldWithInvalidValue = FieldTemplate.bind({});
-FieldWithInvalidValue.args = {
-	value: 'marzipan',
-	options: options,
-	hasError: true,
-	getValue: (option => option.value),
-	getLabel: (option => option.label)
-};
-
-
-export const EmptyFieldWithPlaceholder = FieldTemplate.bind({});
-EmptyFieldWithPlaceholder.args = {
-	placeholder: "This is the placeholder",
-	options: options,
-	getValue: (option => option.value),
-	getLabel: (option => option.label)
-};
-
-export const DesignDecisions = NOTES;
+export const SimpleSelect = FieldTemplate.bind({});
+SimpleSelect.args = {}
