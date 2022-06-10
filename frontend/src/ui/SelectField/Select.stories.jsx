@@ -32,7 +32,7 @@ const options = [
 ]
 
 const FieldTemplate = (args) => {
-	const [value, setValue] = React.useState('a');
+	const [value, setValue] = React.useState();
 
 	return (
 		<Select

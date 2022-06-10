@@ -42,3 +42,14 @@ export function Select({value, options, onChange}) {
 		/>
 	);
 }
+
+Select.propTypes = {
+	value: PropTypes.string,
+	options: PropTypes.arrayOf(PropTypes.shape({
+		id: PropTypes.any.isRequired,
+		text: PropTypes.string.isRequired,
+		breadcrumbs: PropTypes.arrayOf(PropTypes.string),
+		keywords: PropTypes.string.isRequired
+	})).isRequired,
+	onChange: PropTypes.func.isRequired
+}
