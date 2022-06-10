@@ -21,6 +21,7 @@
     "react-leaflet-sidebarv2": "^0.6.0",
     "react-leaflet-coordinates": "^1.0.1",
     "react-sizeme": "^3.0.1",
+    "react-select": "^5.1.0",
     "react-transition-group": "4.4.2",
 		"react-beautiful-dnd": "^13.1.0",
     "shadow-cljs": "^2.15.3"
