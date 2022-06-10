@@ -810,7 +810,7 @@
   []
   (let [open? @(re-frame/subscribe [:right-drawer/open?])]
     [components/drawer
-     {:title "The cooler drawer"
+     {:title "State of Knowledge"
       :position    "right"
       :size        "460px"
       :isOpen      open?
