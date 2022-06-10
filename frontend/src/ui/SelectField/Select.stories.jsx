@@ -1,11 +1,10 @@
 import React from 'react';
-
-import {Select} from './SelectField';
-import './SelectField.css';
+import {Select} from './Select';
+import './Select.css';
 import '@blueprintjs/core/lib/css/blueprint.css';
 
 export default {
-	title: 'SelectField/Select',
+	title: 'Select/Select',
 	component: Select,
 	argTypes: {
 	}
