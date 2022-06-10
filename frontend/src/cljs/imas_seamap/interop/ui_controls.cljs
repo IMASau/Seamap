@@ -6,7 +6,8 @@
             ["/SelectionList/SelectionList" :as SelectionList]
             ["/Drawer/Drawer" :as Drawer]
             ["/PanelStack/PanelStack" :as PanelStack]
-            ["/Omnibar/Omnibar" :as Omnibar]))
+            ["/Omnibar/Omnibar" :as Omnibar]
+            ["/Select/Select" :as Select]))
 
 (assert SelectionList/ItemsSelectionList)
 (assert Drawer/Drawer)
@@ -16,3 +17,4 @@
 (def Drawer             (reagent/adapt-react-class Drawer/Drawer))
 (def PanelStack         (reagent/adapt-react-class PanelStack/PanelStack))
 (def Omnibar            (reagent/adapt-react-class Omnibar/Omnibar))
+(def Select             (reagent/adapt-react-class Select/Select))
