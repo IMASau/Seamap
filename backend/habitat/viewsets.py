@@ -88,6 +88,11 @@ select {}.STIntersection(@bbox).STAsBinary() geom, {} from {} where {}.STInterse
 PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",DATUM["D_GDA_1994",SPHEROID["GRS_1980",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Lambert_Conformal_Conic"],PARAMETER["standard_parallel_1",-18],PARAMETER["standard_parallel_2",-36],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",134],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Meter",1]]"""
 
 
+SQL_GET_NETWORKS = "select name from SeamapAus_Networks_View;"
+SQL_GET_PARKS = "select name, network from SeamapAus_Parks_View;"
+SQL_GET_ZONES = "select name from SeamapAus_Zones_View;"
+SQL_GET_ZONES_IUCN = "select name from SeamapAus_ZonesIUCN_View;"
+
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
@@ -400,3 +405,88 @@ def subset(request):
                     content_type='application/zip',
                     headers={'Content-Disposition':
                              'attachment; filename="{}.zip"'.format(table_name)})
+
+@action(detail=False)
+@api_view()
+def networks(request):
+    networks = []
+
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_NETWORKS)
+
+        while True:
+            try:
+                for row in cursor.fetchall():
+                    [name] = row
+                    networks.append({'name': name})
+                if not cursor.nextset():
+                    break
+            except ProgrammingError:
+                if not cursor.nextset():
+                    break
+    return Response(networks)
+
+@action(detail=False)
+@api_view()
+def parks(request):
+    parks = []
+
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_PARKS)
+
+        while True:
+            try:
+                for row in cursor.fetchall():
+                    [name, network] = row
+                    parks.append({'name': name,
+                                  'network': network})
+                if not cursor.nextset():
+                    break
+            except ProgrammingError:
+                if not cursor.nextset():
+                    break
+    return Response(parks)
+
+
+@action(detail=False)
+@api_view()
+def zones(request):
+    zones = []
+
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_ZONES)
+
+        while True:
+            try:
+                for row in cursor.fetchall():
+                    [name] = row
+                    zones.append({'name': name})
+                if not cursor.nextset():
+                    break
+            except ProgrammingError:
+                if not cursor.nextset():
+                    break
+    print(zones)
+    return Response(zones)
+
+
+@action(detail=False)
+@api_view()
+def zones_iucn(request):
+    zones_iucn = []
+
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_ZONES_IUCN)
+
+        while True:
+            try:
+                for row in cursor.fetchall():
+                    [name] = row
+                    zones_iucn.append({'name': name})
+                if not cursor.nextset():
+                    break
+            except ProgrammingError:
+                if not cursor.nextset():
+                    break
+    print(zones_iucn)
+    return Response(zones_iucn)
