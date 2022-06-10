@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import AsyncSelect from "react-select/async/dist/react-select.esm";
 import Select, {components} from "react-select";
 import {SimpleListItem} from "../ListItem/ListItem";
 
@@ -144,44 +143,6 @@ export function getReactSelectComponents({Option}) {
         Option: (args) =>
             <components.Option {...args}><Option data={args.data}/></components.Option>
     }
-}
-
-export function AsyncSelectField({value, loadOptions, hasError, disabled, placeholder, getLabel, getValue, getAdded, Option, onChange, onBlur, noOptionsMessage}) {
-    const defaultOptions = !disabled
-    const isAdded = getAdded ? getAdded(value): false;
-    return (
-        <AsyncSelect
-            styles={getReactSelectCustomStyles({hasError, isAdded})}
-            components={getReactSelectComponents({Option})}
-            getOptionValue={getValue}
-            getOptionLabel={getLabel}
-            value={value}
-            loadOptions={loadOptions}
-            placeholder={placeholder}
-            onChange={(value) => onChange(value)}
-            onBlur={() => onBlur ? onBlur(): null}
-            noOptionsMessage={() => noOptionsMessage ? noOptionsMessage() : "No options"}
-            isClearable={true}
-            isDisabled={disabled}
-            defaultOptions={defaultOptions}
-            menuPortalTarget={document.body}
-        >
-        </AsyncSelect>
-    );
-}
-
-AsyncSelectField.propTypes = {
-    value: PropTypes.object,
-    loadOptions: PropTypes.func.isRequired,
-    placeholder: PropTypes.string,
-    disabled: PropTypes.bool,
-    hasError: PropTypes.bool,
-    onChange: PropTypes.func.isRequired,
-    onBlur: PropTypes.func,
-    Option: PropTypes.func.isRequired,
-    getValue: PropTypes.func.isRequired,
-    getLabel: PropTypes.func.isRequired,
-    noOptionsMessage: PropTypes.func,
 }
 
 export function SelectField({value, options, hasError, disabled, placeholder, getLabel, getValue, getAdded, Option, onChange, onBlur}) {
