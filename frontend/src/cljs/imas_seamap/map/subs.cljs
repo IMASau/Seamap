@@ -4,7 +4,7 @@
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
             [imas-seamap.utils :refer [map-on-key]]
-            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer layer-search-keywords]]
+            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer layer-search-keywords sort-layers]]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer [dbg] :include-macros true]))
@@ -50,6 +50,7 @@
   (let [{:keys [layers active-layers hidden-layers bounds logic]} map
         categories      (map-on-key (:categories map) :name)
         filter-text     (:layers filters)
+        all-layers      layers
         layers          (if (= (:type logic) :map.layer-logic/automatic)
                           (all-priority-layers db)
                           layers)
@@ -62,7 +63,7 @@
      :active-layers   active-layers
      :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
-     :all-layers      layers}))
+     :all-layers      (sort-layers categories all-layers)}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))

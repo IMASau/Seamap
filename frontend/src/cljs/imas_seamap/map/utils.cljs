@@ -81,6 +81,13 @@
       (= 1 (count habitat-layers)) (first habitat-layers)
       (some #{(:habitat-layer region-stats)} habitat-layers) (:habitat-layer region-stats))))
 
+(defn sort-layers
+  [layers categories]
+  (sort-by
+   (juxt #(get-in categories [(:category %) :display_name]) :data_classification :id)
+   #(< %1 %2) ; comparator so nil is always last (instead of first)
+   layers))
+
 (defn sort-layers-presentation
   "Return layers in an order suitable for presentation (essentially,
   bathymetry at the bottom, third-party on top, and habitat layers by
