@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers map-on-key]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected region-stats-habitat-layer]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -119,21 +119,22 @@
        {:http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point)}
        {:dispatch [:map/got-featureinfo request-id point nil nil]}))))
 
-;; Unused - related to getting boundary and habitat region stats
-#_(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
-  (let [boundary   (->> db :map :active-layers first :id)
-        habitat    (region-stats-habitat-layer db)
-        [x y]      (wgs84->epsg3112 ((juxt :lng :lat) point))
-        request-id (gensym)]
+(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
+  (let [{:keys [hidden-layers active-layers]} (:map db)
+        visible-layers (remove #((set hidden-layers) %) active-layers)
+        boundary       (first (filter #(= (:category %) :boundaries) visible-layers))
+        habitat        (region-stats-habitat-layer db)
+        [x y]          (wgs84->epsg3112 ((juxt :lng :lat) point))
+        request-id     (gensym)]
     (when (and boundary habitat)
       {:http-xhrio {:method          :get
                     :uri             (get-in db [:config :region-stats-url])
-                    :params          {:boundary boundary
+                    :params          {:boundary (:id boundary)
                                       :habitat  (:id habitat)
                                       :x        x
                                       :y        y}
                     :response-format (ajax/text-response-format)
-                    :on-success      [:map/got-featureinfo request-id point nil]
+                    :on-success      [:map/got-featureinfo request-id point "text/html"]
                     :on-failure      [:map/got-featureinfo-err request-id point]}
        :db         (assoc db :feature-query {:request-id        request-id
                                              :response-remain   1
@@ -159,8 +160,12 @@
             (get-in db [:map :controls :transect])                     ; we aren't drawing a transect;
             (get-in db [:map :controls :download :selecting])          ; we aren't selecting a region; and
             (empty? (remove #((set hidden-layers) %) active-layers)))) ; there are visible layers
-      (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)]
-        (get-feature-info ctx event-v)))))
+      (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)
+            drawer-open? (get-in db [:display :left-drawer])
+            open-catalogue (get-in (last (get-in db [:display :drawer-panel-stack])) [:props :group])]
+        (if (and drawer-open? (= open-catalogue :boundaries))
+          (get-habitat-region-statistics ctx event-v)
+          (get-feature-info ctx event-v))))))
 
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))
