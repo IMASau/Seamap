@@ -53,3 +53,10 @@
     :onClose      onClose
     :items        items
     :onItemSelect onItemSelect}])
+
+(defn select
+  [{:keys [value options onChange]}]
+  [ui-controls/Select
+   {:value value
+    :options options
+    :onChange onChange}])
