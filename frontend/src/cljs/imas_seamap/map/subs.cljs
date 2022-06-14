@@ -70,6 +70,18 @@
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))
 
+(defn networks [{:keys [map]} _]
+  (:networks map))
+
+(defn parks [{:keys [map]} _]
+  (:parks map))
+
+(defn zones [{:keys [map]} _]
+  (:zones map))
+
+(defn zones-iucn [{:keys [map]} _]
+  (:zones-iucn map))
+
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
    :region     (get-in db [:map :controls :download :bbox])})
