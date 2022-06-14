@@ -520,13 +520,14 @@ def habitat_statistics(request):
     zone_iucn = request.query_params.get('zone-iucn')
 
     habitat_stats = []
+    total_area = 0
 
     with connections['transects'].cursor() as cursor:
         if (park):
             cursor.execute(SQL_GET_PARK_AREA, [park])
-            area = cursor.fetchone()[0]
+            total_area = cursor.fetchone()[0]
 
-            cursor.execute(SQL_GET_PARK_HABITAT_STATS, [area, park])
+            cursor.execute(SQL_GET_PARK_HABITAT_STATS, [total_area, park])
 
             while True:
                 try:
@@ -540,9 +541,9 @@ def habitat_statistics(request):
                         break
         elif (network):
             cursor.execute(SQL_GET_NETWORK_AREA, [network])
-            area = cursor.fetchone()[0]
+            total_area = cursor.fetchone()[0]
 
-            cursor.execute(SQL_GET_NETWORK_HABITAT_STATS, [area, network])
+            cursor.execute(SQL_GET_NETWORK_HABITAT_STATS, [total_area, network])
 
             while True:
                 try:
@@ -554,5 +555,9 @@ def habitat_statistics(request):
                 except ProgrammingError:
                     if not cursor.nextset():
                         break
+
+    unmapped_area = (total_area / 1000000) - float(sum([v['area'] for v in habitat_stats]))
+    unmapped_percentage = 100 * unmapped_area / (total_area / 1000000)
+    habitat_stats.append({'habitat': None, 'area': unmapped_area, 'percentage': unmapped_percentage})
 
     return Response(habitat_stats)
