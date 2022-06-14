@@ -74,12 +74,13 @@
           (map
            (fn [option]
              (merge
-              {:id          (id option)
-               :text        (text option)}
+              {:id     (id option)
+               :text   (text option)
+               :option option}
               (when breadcrumbs {:breadcrumbs (breadcrumbs option)})))
            options)
           options)]
     [ui-controls/Select
      {:value    value
       :options  options
-      :onChange onChange}]))
+      :onChange (fn [id] (onChange (:option (first-where #(= (:id %) id) options))))}]))
