@@ -4,7 +4,7 @@
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [encode-state ids->layers map-on-key]]
+            [imas-seamap.utils :refer [encode-state ids->layers map-on-key first-where]]
             [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected region-stats-habitat-layer]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
@@ -19,7 +19,7 @@
 
 (defn base-layer-changed [{:keys [db]} [_ layer-name]]
   (let [grouped-base-layers (-> db :map :grouped-base-layers)
-        selected-base-layer (first (filter (comp #(= layer-name %) :name) grouped-base-layers))]
+        selected-base-layer (first-where (comp #(= layer-name %) :name) grouped-base-layers)]
     (when selected-base-layer
       (let [db (assoc-in db [:map :active-base-layer] selected-base-layer)]
         {:db db
@@ -122,7 +122,7 @@
 (defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
   (let [{:keys [hidden-layers active-layers]} (:map db)
         visible-layers (remove #((set hidden-layers) %) active-layers)
-        boundary       (first (filter #(= (:category %) :boundaries) visible-layers))
+        boundary       (first-where #(= (:category %) :boundaries) visible-layers)
         habitat        (region-stats-habitat-layer db)
         [x y]          (wgs84->epsg3112 ((juxt :lng :lat) point))
         request-id     (gensym)]

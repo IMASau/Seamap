@@ -10,7 +10,7 @@
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions sidebar sidebar-tab use-memo]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
+            [imas-seamap.utils :refer [handler-fn handler-dispatch first-where] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -908,7 +908,7 @@
        :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
        :items        items
        :onItemSelect (fn [id]
-                       (let [layer (first (filter #(= (:id %) id) all-layers))]
+                       (let [layer (first-where #(= (:id %) id) all-layers)]
                          (re-frame/dispatch [:map/add-layer-from-omnibar layer])))}]))))
 
 (def hotkeys-combos

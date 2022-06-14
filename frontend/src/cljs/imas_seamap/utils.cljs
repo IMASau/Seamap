@@ -166,3 +166,8 @@
    (fn [seq val]
      (assoc seq (key val) val))
    {} seq))
+
+(defn first-where
+  "Returns the first item in a collection that fulfills the predicate."
+  [pred coll]
+  (first (filter pred coll)))
