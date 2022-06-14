@@ -30,9 +30,13 @@
                      :controls        {:transect false
                                        :download nil}
                      :networks        []
+                     :active-network  nil
                      :parks           []
+                     :active-park     nil
                      :zones           []
-                     :zones-iucn      []}
+                     :active-zone     nil
+                     :zones-iucn      []
+                     :active-zone-iucn nil}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}
