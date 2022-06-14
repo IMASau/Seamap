@@ -556,27 +556,35 @@
                  [:ui.catalogue/catalogue-add-nodes-to-layer category layer "cat" [:data_classification]]
                  [:map/pan-to-layer layer]])})
 
-(defn update-active-network [db [_ network]]
-  (if-not (= network (get-in db [:map :active-network]))
-    (-> db
-        (assoc-in [:map :active-park] nil)
-        (assoc-in [:map :active-network] network))
-    db))
+(defn update-active-network [{:keys [db]} [_ network]]
+  (let [db (if-not (= network (get-in db [:map :active-network]))
+             (-> db
+                 (assoc-in [:map :active-park] nil)
+                 (assoc-in [:map :active-network] network))
+             db)]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
 
-(defn update-active-park [{:keys [map] :as db} [_ {:keys [network] :as park}]]
-  (-> db
-      (assoc-in [:map :active-network] (first-where #(= (:name %) network) (:networks map)))
-      (assoc-in [:map :active-park] park)))
+(defn update-active-park [{:keys [db]} [_ {:keys [network] :as park}]]
+  (let [db (-> db
+               (assoc-in [:map :active-network] (first-where #(= (:name %) network) (get-in db [:map :networks])))
+               (assoc-in [:map :active-park] park))]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
 
-(defn update-active-zone [db [_ zone]]
-  (-> db
-      (assoc-in [:map :active-zone] zone)
-      (assoc-in [:map :active-zone-iucn] nil)))
+(defn update-active-zone [{:keys [db]} [_ zone]]
+  (let [db (-> db
+               (assoc-in [:map :active-zone] zone)
+               (assoc-in [:map :active-zone-iucn] nil))]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
 
-(defn update-active-zone-iucn [db [_ zone-iucn]]
-  (-> db
-      (assoc-in [:map :active-zone-iucn] zone-iucn)
-      (assoc-in [:map :active-zone] nil)))
+(defn update-active-zone-iucn [{:keys [db]} [_ zone-iucn]]
+  (let [db (-> db
+               (assoc-in [:map :active-zone-iucn] zone-iucn)
+               (assoc-in [:map :active-zone] nil))]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
 
 (defn get-habitat-statistics [{:keys [db]}]
   (js/console.log "get-habitat-statistics")
