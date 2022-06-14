@@ -577,3 +577,23 @@
   (-> db
       (assoc-in [:map :active-zone-iucn] zone-iucn)
       (assoc-in [:map :active-zone] nil)))
+
+(defn get-habitat-statistics [{:keys [db]}]
+  (js/console.log "get-habitat-statistics")
+  (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
+        {:keys [active-network active-park active-zone active-zone-iucn]}                    (:map db)]
+   {:db db
+    :http-xhrio {:method          :get
+                 :uri             habitat-statistics-url
+                 :params          {:network   (:name active-network)
+                                   :park      (:name active-park)
+                                   :zone      (:name active-zone)
+                                   :zone-iucn (:name active-zone-iucn)}
+                 :response-format (ajax/json-response-format {:keywords? true})
+                 :on-success      [:map/got-habitat-statistics]
+                 :on-failure      [:ajax/default-err-handler]}}))
+
+(defn got-habitat-statistics [db [_ habitat-statistics]]
+  (js/console.log "got-habitat-statistics")
+  (js/console.log habitat-statistics)
+  db)

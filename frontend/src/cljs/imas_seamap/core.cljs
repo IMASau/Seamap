@@ -107,6 +107,8 @@
     :map/clicked                          [mevents/map-click-dispatcher]
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
+    :map/get-habitat-statistics           [mevents/get-habitat-statistics]
+    :map/got-habitat-statistics           mevents/got-habitat-statistics
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]

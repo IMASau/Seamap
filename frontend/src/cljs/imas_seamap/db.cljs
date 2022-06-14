@@ -75,5 +75,6 @@
                      :park-url              (str api-url-base "habitat/parks")
                      :zone-url              (str api-url-base "habitat/zones")
                      :zone-iucn-url         (str api-url-base "habitat/zonesiucn")
+                     :habitat-statistics-url (str api-url-base "habitat/habitatstatistics")
                      :init-catalogue-state  {:tab      "cat"
                                              :expanded #{}}}})
