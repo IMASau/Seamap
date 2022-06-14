@@ -48,39 +48,38 @@
 
 (defn omnibar
   [{:keys [placeholder isOpen onClose items onItemSelect keyfns]}]
-  (let [items
-        (if-let [{:keys [id text keywords breadcrumbs]} keyfns]
-          (map
-           (fn [item]
+  (letfn [(item->omnibar-item
+           [item]
+           (if-let [{:keys [id text keywords breadcrumbs]} keyfns]
              (merge
               {:id       (id item)
                :text     (text item)
                :keywords (keywords item)
                :item     item}
-              (when breadcrumbs {:breadcrumbs (breadcrumbs item)})))
-           items)
-          items)]
-    [ui-controls/Omnibar
-     {:placeholder  placeholder
-      :isOpen       isOpen
-      :onClose      onClose
-      :items        items
-      :onItemSelect (fn [id] (onItemSelect (:item (first-where #(= (:id %) id) items))))}]))
+              (when breadcrumbs {:breadcrumbs (breadcrumbs item)}))
+             item))]
+    (let [items (map item->omnibar-item items)]
+      [ui-controls/Omnibar
+       {:placeholder  placeholder
+        :isOpen       isOpen
+        :onClose      onClose
+        :items        items
+        :onItemSelect (fn [id] (onItemSelect (:item (first-where #(= (:id %) id) items))))}])))
 
 (defn select
   [{:keys [value options onChange keyfns]}]
-  (let [options
-        (if-let [{:keys [id text breadcrumbs]} keyfns]
-          (map
-           (fn [option]
+  (letfn [(option->select-option
+           [option]
+           (if-let [{:keys [id text breadcrumbs]} keyfns]
              (merge
               {:id     (id option)
                :text   (text option)
                :option option}
-              (when breadcrumbs {:breadcrumbs (breadcrumbs option)})))
-           options)
-          options)]
-    [ui-controls/Select
-     {:value    value
-      :options  options
-      :onChange (fn [id] (onChange (:option (first-where #(= (:id %) id) options))))}]))
+              (when breadcrumbs {:breadcrumbs (breadcrumbs option)}))
+             option))]
+    (let [options (map option->select-option options)
+          value   (:id (option->select-option value))]
+      [ui-controls/Select
+       {:value    value
+        :options  options
+        :onChange (fn [id] (onChange (:option (first-where #(= (:id %) id) options))))}])))
