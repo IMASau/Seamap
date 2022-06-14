@@ -891,25 +891,20 @@
 
 (defn layers-search-omnibar
   []
-  (let [categories @(re-frame/subscribe [:map/categories-map])]
-   (letfn [(layer-omnibar-item
-           [{:keys [id name category data_classification] :as layer}]
-           (let [category (:display_name (category categories))]
-             {:id          id
-              :text        name
-              :breadcrumbs (map #(or % "Ungrouped") [category data_classification])
-              :keywords    (layer-search-keywords layer)}))]
-   (let [open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
-         {:keys [all-layers]} @(re-frame/subscribe [:map/layers])
-         items                (map layer-omnibar-item all-layers)]
-     [components/omnibar
-      {:placeholder  "Search Layers..."
-       :isOpen       open?
-       :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
-       :items        items
-       :onItemSelect (fn [id]
-                       (let [layer (first-where #(= (:id %) id) all-layers)]
-                         (re-frame/dispatch [:map/add-layer-from-omnibar layer])))}]))))
+  (let [categories @(re-frame/subscribe [:map/categories-map])
+        open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
+        {:keys [all-layers]} @(re-frame/subscribe [:map/layers])]
+    [components/omnibar
+     {:placeholder  "Search Layers..."
+      :isOpen       open?
+      :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
+      :items        all-layers
+      :onItemSelect #(re-frame/dispatch [:map/add-layer-from-omnibar %])
+      :keyfns
+      {:id          :id
+       :text        :name
+       :breadcrumbs (fn [{:keys [category data_classification]}] (map #(or % "Ungrouped") [(:display_name (category categories)) data_classification]))
+       :keywords    layer-search-keywords}}]))
 
 (def hotkeys-combos
   (let [keydown-wrapper

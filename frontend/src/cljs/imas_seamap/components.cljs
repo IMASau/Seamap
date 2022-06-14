@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.components
   (:require [imas-seamap.interop.ui-controls :as ui-controls]
+            [imas-seamap.utils :refer [first-where]]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]))
@@ -46,13 +47,25 @@
    text])
 
 (defn omnibar
-  [{:keys [placeholder, isOpen, onClose, items, onItemSelect]}]
-  [ui-controls/Omnibar
-   {:placeholder  placeholder
-    :isOpen       isOpen
-    :onClose      onClose
-    :items        items
-    :onItemSelect onItemSelect}])
+  [{:keys [placeholder isOpen onClose items onItemSelect keyfns]}]
+  (let [items
+        (if-let [{:keys [id text keywords breadcrumbs]} keyfns]
+          (map
+           (fn [item]
+             (merge
+              {:id       (id item)
+               :text     (text item)
+               :keywords (keywords item)
+               :item     item}
+              (when breadcrumbs {:breadcrumbs (breadcrumbs item)})))
+           items)
+          items)]
+    [ui-controls/Omnibar
+     {:placeholder  placeholder
+      :isOpen       isOpen
+      :onClose      onClose
+      :items        items
+      :onItemSelect (fn [id] (onItemSelect (:item (first-where #(= (:id %) id) items))))}]))
 
 (defn select
   [{:keys [value options onChange keyfns]}]
