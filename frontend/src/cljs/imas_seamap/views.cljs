@@ -806,6 +806,22 @@
       :hasBackdrop false}
      [drawer-panel-stack]]))
 
+(defn habitat-statistics-table
+  [{:keys [habitat-statistics]}]
+  [:table
+   [:thead
+    [:tr
+     [:th "Habitat"]
+     [:th "Area"]
+     [:th "Percentage"]]]
+   [:tbody
+    (for [{:keys [habitat area percentage]} habitat-statistics]
+      [:tr
+       {:key habitat}
+       [:td habitat]
+       [:td area]
+       [:td percentage]])]])
+
 (defn right-drawer
   []
   [components/drawer
@@ -851,7 +867,9 @@
       :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
       :keyfns
       {:id   :name
-       :text :name}}]]])
+       :text :name}}]]
+   [habitat-statistics-table
+    {:habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])}]])
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
