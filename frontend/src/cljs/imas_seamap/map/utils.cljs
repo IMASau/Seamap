@@ -59,8 +59,11 @@
 
 (defn layer-search-keywords
   "Returns the complete search keywords of a layer, space-separated."
-  [{:keys [name layer_name description organisation data_classification keywords]}]
-  (string/join " " [name layer_name description organisation data_classification keywords]))
+  [categories {:keys [name category layer_name description organisation data_classification keywords]}]
+  (let [category-display-name (get-in categories [category :display_name])
+        organisation          (or organisation "Ungrouped")
+        data_classification   (or data_classification "Ungrouped")]
+    (string/join " " [name category category-display-name layer_name description organisation data_classification keywords])))
 
 (defn layer-name
   "Returns the most specific layer name; ie either detail_layer if
@@ -81,6 +84,13 @@
       (some #{(:habitat-layer region-stats)} habitat-layers) (:habitat-layer region-stats))))
 
 (defn sort-layers
+  [layers categories]
+  (sort-by
+   (juxt #(get-in categories [(:category %) :display_name]) :data_classification :id)
+   #(< %1 %2) ; comparator so nil is always last (instead of first)
+   layers))
+
+(defn sort-layers-presentation
   "Return layers in an order suitable for presentation (essentially,
   bathymetry at the bottom, third-party on top, and habitat layers by
   priority when in auto mode)"
@@ -127,7 +137,7 @@
         layer-ids          (->> group-priorities (map :layer) (into #{}))
         selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %) (match-server? %)) layers)
         viewport-layers (filter #(bbox-intersects? bounds (:bounding_box %)) selected-layers)]
-    (sort-layers viewport-layers priorities logic-type)))
+    (sort-layers-presentation viewport-layers priorities logic-type)))
 
 (defn all-priority-layers
   "Return the list of priority layers: that is, every layer for which
