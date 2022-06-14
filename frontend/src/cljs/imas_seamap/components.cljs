@@ -55,8 +55,18 @@
     :onItemSelect onItemSelect}])
 
 (defn select
-  [{:keys [value options onChange]}]
-  [ui-controls/Select
-   {:value value
-    :options options
-    :onChange onChange}])
+  [{:keys [value options onChange keyfns]}]
+  (let [options
+        (if-let [{:keys [id text breadcrumbs]} keyfns]
+          (map
+           (fn [option]
+             (merge
+              {:id          (id option)
+               :text        (text option)}
+              (when breadcrumbs {:breadcrumbs (breadcrumbs option)})))
+           options)
+          options)]
+    [ui-controls/Select
+     {:value    value
+      :options  options
+      :onChange onChange}]))
