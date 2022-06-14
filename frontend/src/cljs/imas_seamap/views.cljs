@@ -808,15 +808,44 @@
 
 (defn right-drawer
   []
-  (let [open? @(re-frame/subscribe [:right-drawer/open?])]
+  (let [open?      @(re-frame/subscribe [:right-drawer/open?])
+        
+        networks   @(re-frame/subscribe [:map/networks])
+        parks      @(re-frame/subscribe [:map/parks])
+        zones      @(re-frame/subscribe [:map/zones])
+        zones-iucn @(re-frame/subscribe [:map/zones-iucn])]
     [components/drawer
-     {:title "State of Knowledge"
+     {:title       "State of Knowledge"
       :position    "right"
       :size        "460px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:right-drawer/close])
       :hasBackdrop false}
-     "With cooler content ;-)"]))
+     [components/select
+      {:options  networks
+       :onChange #(js/console.log %)
+       :keyfns
+       {:id   :name
+        :text :name}}]
+     [components/select
+      {:options  parks
+       :onChange #(js/console.log %)
+       :keyfns
+       {:id          :name
+        :text        :name
+        :breadcrumbs (comp vector :network)}}]
+     [components/select
+      {:options  zones
+       :onChange #(js/console.log %)
+       :keyfns
+       {:id   :name
+        :text :name}}]
+     [components/select
+      {:options  zones-iucn
+       :onChange #(js/console.log %)
+       :keyfns
+       {:id   :name
+        :text :name}}]]))
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
