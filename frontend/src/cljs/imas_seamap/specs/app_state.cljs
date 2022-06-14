@@ -171,6 +171,7 @@
   (s/keys :req-un [:map.network/name]))
 (s/def :map/networks (s/coll-of :map/network
                                 :kind vector?))
+(s/def :map/active-network :map/network)
 
 (s/def :map.park/name string?)
 (s/def :map.park/network :map.network/name)
@@ -179,18 +180,21 @@
                    :map.network/name]))
 (s/def :map/parks (s/coll-of :map/park
                              :kind vector?))
+(s/def :map/active-park :map/park)
 
 (s/def :map.zone/name string?)
 (s/def :map/zone
   (s/keys :req-un [:map.zone/name]))
 (s/def :map/zones (s/coll-of :map/zone
                              :kind vector?))
+(s/def :map/active-zone :map/zone)
 
 (s/def :map.zone-iucn/name string?)
 (s/def :map/zone-iucn
   (s/keys :req-un [:map.zone-iucn/name]))
 (s/def :map/zones-iucn (s/coll-of :map/zone-iucn
                                   :kind vector?))
+(s/def :map/active-zone-iucn :map/zone-iucn)
 
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))
