@@ -815,35 +815,43 @@
     :isOpen      @(re-frame/subscribe [:right-drawer/open?])
     :onClose     #(re-frame/dispatch [:right-drawer/close])
     :hasBackdrop false}
-   [components/select
-    {:value    @(re-frame/subscribe [:map/active-network])
-     :options  @(re-frame/subscribe [:map/networks])
-     :onChange #(re-frame/dispatch [:map/update-active-network %])
-     :keyfns
-     {:id   :name
-      :text :name}}]
-   [components/select
-    {:value    @(re-frame/subscribe [:map/active-park])
-     :options  @(re-frame/subscribe [:map/parks])
-     :onChange #(re-frame/dispatch [:map/update-active-park %])
-     :keyfns
-     {:id          :name
-      :text        :name
-      :breadcrumbs (comp vector :network)}}]
-   [components/select
-    {:value    @(re-frame/subscribe [:map/active-zone])
-     :options  @(re-frame/subscribe [:map/zones])
-     :onChange #(re-frame/dispatch [:map/update-active-zone %])
-     :keyfns
-     {:id   :name
-      :text :name}}]
-   [components/select
-    {:value    @(re-frame/subscribe [:map/active-zone-iucn])
-     :options  @(re-frame/subscribe [:map/zones-iucn])
-     :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
-     :keyfns
-     {:id   :name
-      :text :name}}]])
+   [:div
+    "Network"
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-network])
+      :options  @(re-frame/subscribe [:map/networks])
+      :onChange #(re-frame/dispatch [:map/update-active-network %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]
+   [:div
+    "Park"
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-park])
+      :options  @(re-frame/subscribe [:map/parks])
+      :onChange #(re-frame/dispatch [:map/update-active-park %])
+      :keyfns
+      {:id          :name
+       :text        :name
+       :breadcrumbs (comp vector :network)}}]]
+   [:div
+    "Zone Category"
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-zone])
+      :options  @(re-frame/subscribe [:map/zones])
+      :onChange #(re-frame/dispatch [:map/update-active-zone %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]
+   [:div
+    "IUCN Category (Zone)"
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-zone-iucn])
+      :options  @(re-frame/subscribe [:map/zones-iucn])
+      :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]])
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
