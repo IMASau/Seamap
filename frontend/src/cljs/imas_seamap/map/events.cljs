@@ -555,3 +555,15 @@
                  [:ui.catalogue/select-tab category "cat"]
                  [:ui.catalogue/catalogue-add-nodes-to-layer category layer "cat" [:data_classification]]
                  [:map/pan-to-layer layer]])})
+
+(defn update-active-network [db [_ network]]
+  (assoc-in db [:map :active-network] network))
+
+(defn update-active-park [db [_ park]]
+  (assoc-in db [:map :active-park] park))
+
+(defn update-active-zone [db [_ zone]]
+  (assoc-in db [:map :active-zone] zone))
+
+(defn update-active-zone-iucn [db [_ zone-iucn]]
+  (assoc-in db [:map :active-zone-iucn] zone-iucn))

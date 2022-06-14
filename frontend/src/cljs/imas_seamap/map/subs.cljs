@@ -164,3 +164,15 @@
   (if org-name
     (some #(and (= org-name (:name %)) %) organisations)
     organisations))
+
+(defn active-network [{:keys [map]}]
+  (:active-network map))
+
+(defn active-park [{:keys [map]}]
+  (:active-park map))
+
+(defn active-zone [{:keys [map]}]
+  (:active-zone map))
+
+(defn active-zone-iucn [{:keys [map]}]
+  (:active-zone-iucn map))
