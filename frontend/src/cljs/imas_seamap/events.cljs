@@ -144,7 +144,7 @@
      :dispatch [:load-hash-state hash-code]}))
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url base-layer-url base-layer-group-url group-url organisation-url classification-url priority-url descriptor-url category-url]} (:config db)]
+  (let [{:keys [layer-url base-layer-url base-layer-group-url group-url organisation-url classification-url priority-url descriptor-url category-url network-url park-url zone-url zone-iucn-url]} (:config db)]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -190,6 +190,26 @@
                    :uri             category-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-categories]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             network-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-networks]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             park-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-parks]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             zone-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-zones]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             zone-iucn-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-zones-iucn]
                    :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn help-layer-toggle [db _]

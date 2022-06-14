@@ -10,7 +10,7 @@
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions sidebar sidebar-tab use-memo]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
+            [imas-seamap.utils :refer [handler-fn handler-dispatch first-where] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -808,15 +808,50 @@
 
 (defn right-drawer
   []
-  (let [open? @(re-frame/subscribe [:right-drawer/open?])]
-    [components/drawer
-     {:title "State of Knowledge"
-      :position    "right"
-      :size        "460px"
-      :isOpen      open?
-      :onClose     #(re-frame/dispatch [:right-drawer/close])
-      :hasBackdrop false}
-     "With cooler content ;-)"]))
+  [components/drawer
+   {:title       "State of Knowledge"
+    :position    "right"
+    :size        "460px"
+    :isOpen      @(re-frame/subscribe [:right-drawer/open?])
+    :onClose     #(re-frame/dispatch [:right-drawer/close])
+    :hasBackdrop false}
+   [:div
+    "Network"
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-network])
+      :options  @(re-frame/subscribe [:map/networks])
+      :onChange #(re-frame/dispatch [:map/update-active-network %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]
+   [:div
+    "Park"
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-park])
+      :options  @(re-frame/subscribe [:map/parks])
+      :onChange #(re-frame/dispatch [:map/update-active-park %])
+      :keyfns
+      {:id          :name
+       :text        :name
+       :breadcrumbs (comp vector :network)}}]]
+   [:div
+    "Zone Category"
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-zone])
+      :options  @(re-frame/subscribe [:map/zones])
+      :onChange #(re-frame/dispatch [:map/update-active-zone %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]
+   [:div
+    "IUCN Category (Zone)"
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-zone-iucn])
+      :options  @(re-frame/subscribe [:map/zones-iucn])
+      :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]])
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
@@ -891,25 +926,20 @@
 
 (defn layers-search-omnibar
   []
-  (let [categories @(re-frame/subscribe [:map/categories-map])]
-   (letfn [(layer-omnibar-item
-           [{:keys [id name category data_classification] :as layer}]
-           (let [category (:display_name (category categories))]
-             {:id          id
-              :text        name
-              :breadcrumbs (map #(or % "Ungrouped") [category data_classification])
-              :keywords    (layer-search-keywords categories layer)}))]
-   (let [open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
-         {:keys [all-layers]} @(re-frame/subscribe [:map/layers])
-         items                (map layer-omnibar-item all-layers)]
-     [components/omnibar
-      {:placeholder  "Search Layers..."
-       :isOpen       open?
-       :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
-       :items        items
-       :onItemSelect (fn [id]
-                       (let [layer (first (filter #(= (:id %) id) all-layers))]
-                         (re-frame/dispatch [:map/add-layer-from-omnibar layer])))}]))))
+  (let [categories @(re-frame/subscribe [:map/categories-map])
+        open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
+        {:keys [all-layers]} @(re-frame/subscribe [:map/layers])]
+    [components/omnibar
+     {:placeholder  "Search Layers..."
+      :isOpen       open?
+      :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
+      :items        all-layers
+      :onItemSelect #(re-frame/dispatch [:map/add-layer-from-omnibar %])
+      :keyfns
+      {:id          :id
+       :text        :name
+       :breadcrumbs (fn [{:keys [category data_classification]}] (map #(or % "Ungrouped") [(:display_name (category categories)) data_classification]))
+       :keywords    layer-search-keywords}}]))
 
 (def hotkeys-combos
   (let [keydown-wrapper

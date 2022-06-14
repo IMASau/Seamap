@@ -5,7 +5,7 @@
   (:require [cemerick.url :as url]
             [clojure.string :as string]
             [imas-seamap.db :refer [api-url-base]]
-            [imas-seamap.utils :refer [merge-in]]
+            [imas-seamap.utils :refer [merge-in first-where]]
             ["proj4" :as proj4]
             [clojure.string :as str]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -273,7 +273,7 @@
         basemap-groups (reduce-kv (fn [acc key layers]
                                     (let [layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers) ; using sort key to sort layers into z-order
                                           bottom-layer (first layers)
-                                          group (first (filter #(= (:id %) key) groups))]
+                                          group (first-where #(= (:id %) key) groups)]
                                       (conj acc
                                             (-> bottom-layer
                                                 (merge group)

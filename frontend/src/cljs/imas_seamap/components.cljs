@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.components
   (:require [imas-seamap.interop.ui-controls :as ui-controls]
+            [imas-seamap.utils :refer [first-where]]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]))
@@ -46,17 +47,39 @@
    text])
 
 (defn omnibar
-  [{:keys [placeholder, isOpen, onClose, items, onItemSelect]}]
-  [ui-controls/Omnibar
-   {:placeholder  placeholder
-    :isOpen       isOpen
-    :onClose      onClose
-    :items        items
-    :onItemSelect onItemSelect}])
+  [{:keys [placeholder isOpen onClose items onItemSelect keyfns]}]
+  (letfn [(item->omnibar-item
+           [item]
+           (if-let [{:keys [id text keywords breadcrumbs]} keyfns]
+             (merge
+              {:id       (id item)
+               :text     (text item)
+               :keywords (keywords item)
+               :item     item}
+              (when breadcrumbs {:breadcrumbs (breadcrumbs item)}))
+             item))]
+    (let [items (map item->omnibar-item items)]
+      [ui-controls/Omnibar
+       {:placeholder  placeholder
+        :isOpen       isOpen
+        :onClose      onClose
+        :items        items
+        :onItemSelect (fn [id] (onItemSelect (:item (first-where #(= (:id %) id) items))))}])))
 
 (defn select
-  [{:keys [value options onChange]}]
-  [ui-controls/Select
-   {:value value
-    :options options
-    :onChange onChange}])
+  [{:keys [value options onChange keyfns]}]
+  (letfn [(option->select-option
+           [option]
+           (if-let [{:keys [id text breadcrumbs]} keyfns]
+             (merge
+              {:id     (id option)
+               :text   (text option)
+               :option option}
+              (when breadcrumbs {:breadcrumbs (breadcrumbs option)}))
+             option))]
+    (let [options (map option->select-option options)
+          value   (:id (option->select-option value))]
+      [ui-controls/Select
+       {:value    value
+        :options  options
+        :onChange (fn [id] (onChange (:option (first-where #(= (:id %) id) options))))}])))

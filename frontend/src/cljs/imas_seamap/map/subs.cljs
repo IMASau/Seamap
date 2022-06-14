@@ -72,6 +72,18 @@
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))
 
+(defn networks [{:keys [map]} _]
+  (:networks map))
+
+(defn parks [{:keys [map]} _]
+  (:parks map))
+
+(defn zones [{:keys [map]} _]
+  (:zones map))
+
+(defn zones-iucn [{:keys [map]} _]
+  (:zones-iucn map))
+
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
    :region     (get-in db [:map :controls :download :bbox])})
@@ -154,3 +166,15 @@
   (if org-name
     (some #(and (= org-name (:name %)) %) organisations)
     organisations))
+
+(defn active-network [{:keys [map]}]
+  (:active-network map))
+
+(defn active-park [{:keys [map]}]
+  (:active-park map))
+
+(defn active-zone [{:keys [map]}]
+  (:active-zone map))
+
+(defn active-zone-iucn [{:keys [map]}]
+  (:active-zone-iucn map))

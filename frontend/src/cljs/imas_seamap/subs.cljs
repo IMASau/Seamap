@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.subs
     (:require [clojure.set :refer [rename-keys]]
+              [imas-seamap.utils :refer [first-where]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
               #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -35,7 +36,7 @@
         ->pctg #(/ % total-distance)
         pct (/ pct 100)
         pct-distances (map (fn [[d1 d2 seg]] [(->pctg d1) (->pctg d2) seg]) seg-distances)
-        [lower upper [s1 s2]] (first (filter (fn [[p1 p2 _s]] (<= p1 pct p2)) pct-distances))
+        [lower upper [s1 s2]] (first-where (fn [[p1 p2 _s]] (<= p1 pct p2)) pct-distances)
         remainder-pct (/ (- pct lower) (- upper lower))]
     (scale-distance s1 s2 remainder-pct)))
 

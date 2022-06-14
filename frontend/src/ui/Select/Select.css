@@ -1,3 +1,4 @@
-#react-select-2-listbox .selected small {
+/* Breadcrumb colour when highlighted option */
+.css-b62m3t-container > :nth-child(4) .selected small {
 	color: hsla(0,0%,100%,.7);
 }

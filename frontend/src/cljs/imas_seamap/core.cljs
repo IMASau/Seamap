@@ -29,6 +29,14 @@
     :map/base-layers                      msubs/map-base-layers
     :map/organisations                    msubs/organisations
     :map/categories-map                   msubs/categories-map
+    :map/networks                         msubs/networks
+    :map/parks                            msubs/parks
+    :map/zones                            msubs/zones
+    :map/zones-iucn                       msubs/zones-iucn
+    :map/active-network                   msubs/active-network
+    :map/active-park                      msubs/active-park
+    :map/active-zone                      msubs/active-zone
+    :map/active-zone-iucn                 msubs/active-zone-iucn
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/priorities                msubs/map-layer-priorities
@@ -135,12 +143,20 @@
     :map/update-priorities                mevents/update-priorities
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
+    :map/update-networks                  mevents/update-networks
+    :map/update-parks                     mevents/update-parks
+    :map/update-zones                     mevents/update-zones
+    :map/update-zones-iucn                mevents/update-zones-iucn
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          mevents/map-zoom-in
     :map/zoom-out                         mevents/map-zoom-out
     :map/pan-direction                    mevents/map-pan-direction
     :map/view-updated                     [mevents/map-view-updated]
+    :map/update-active-network            mevents/update-active-network
+    :map/update-active-park               mevents/update-active-park
+    :map/update-active-zone               mevents/update-active-zone
+    :map/update-active-zone-iucn          mevents/update-active-zone-iucn
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :ui/show-loading                      events/loading-screen

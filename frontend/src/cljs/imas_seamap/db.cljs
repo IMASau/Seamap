@@ -28,7 +28,15 @@
                      :logic           {:type    :map.layer-logic/automatic
                                        :trigger :map.logic.trigger/automatic}
                      :controls        {:transect false
-                                       :download nil}}
+                                       :download nil}
+                     :networks        []
+                     :active-network  nil
+                     :parks           []
+                     :active-park     nil
+                     :zones           []
+                     :active-zone     nil
+                     :zones-iucn      []
+                     :active-zone-iucn nil}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}
@@ -63,5 +71,9 @@
                      :descriptor-url        (str api-url-base "descriptors/")
                      :save-state-url        (str api-url-base "savestates")
                      :category-url          (str api-url-base "categories/")
+                     :network-url           (str api-url-base "habitat/networks")
+                     :park-url              (str api-url-base "habitat/parks")
+                     :zone-url              (str api-url-base "habitat/zones")
+                     :zone-iucn-url         (str api-url-base "habitat/zonesiucn")
                      :init-catalogue-state  {:tab      "cat"
                                              :expanded #{}}}})
