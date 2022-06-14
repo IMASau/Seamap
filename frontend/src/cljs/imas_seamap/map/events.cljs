@@ -557,13 +557,23 @@
                  [:map/pan-to-layer layer]])})
 
 (defn update-active-network [db [_ network]]
-  (assoc-in db [:map :active-network] network))
+  (if-not (= network (get-in db [:map :active-network]))
+    (-> db
+        (assoc-in [:map :active-park] nil)
+        (assoc-in [:map :active-network] network))
+    db))
 
-(defn update-active-park [db [_ park]]
-  (assoc-in db [:map :active-park] park))
+(defn update-active-park [{:keys [map] :as db} [_ {:keys [network] :as park}]]
+  (-> db
+      (assoc-in [:map :active-network] (first-where #(= (:name %) network) (:networks map)))
+      (assoc-in [:map :active-park] park)))
 
 (defn update-active-zone [db [_ zone]]
-  (assoc-in db [:map :active-zone] zone))
+  (-> db
+      (assoc-in [:map :active-zone] zone)
+      (assoc-in [:map :active-zone-iucn] nil)))
 
 (defn update-active-zone-iucn [db [_ zone-iucn]]
-  (assoc-in db [:map :active-zone-iucn] zone-iucn))
+  (-> db
+      (assoc-in [:map :active-zone-iucn] zone-iucn)
+      (assoc-in [:map :active-zone] nil)))
