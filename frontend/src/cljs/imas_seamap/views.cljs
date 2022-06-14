@@ -808,44 +808,42 @@
 
 (defn right-drawer
   []
-  (let [open?      @(re-frame/subscribe [:right-drawer/open?])
-        
-        networks   @(re-frame/subscribe [:map/networks])
-        parks      @(re-frame/subscribe [:map/parks])
-        zones      @(re-frame/subscribe [:map/zones])
-        zones-iucn @(re-frame/subscribe [:map/zones-iucn])]
-    [components/drawer
-     {:title       "State of Knowledge"
-      :position    "right"
-      :size        "460px"
-      :isOpen      open?
-      :onClose     #(re-frame/dispatch [:right-drawer/close])
-      :hasBackdrop false}
-     [components/select
-      {:options  networks
-       :onChange #(re-frame/dispatch [:map/update-active-network %])
-       :keyfns
-       {:id   :name
-        :text :name}}]
-     [components/select
-      {:options  parks
-       :onChange #(re-frame/dispatch [:map/update-active-park %])
-       :keyfns
-       {:id          :name
-        :text        :name
-        :breadcrumbs (comp vector :network)}}]
-     [components/select
-      {:options  zones
-       :onChange #(re-frame/dispatch [:map/update-active-zone %])
-       :keyfns
-       {:id   :name
-        :text :name}}]
-     [components/select
-      {:options  zones-iucn
-       :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
-       :keyfns
-       {:id   :name
-        :text :name}}]]))
+  [components/drawer
+   {:title       "State of Knowledge"
+    :position    "right"
+    :size        "460px"
+    :isOpen      @(re-frame/subscribe [:right-drawer/open?])
+    :onClose     #(re-frame/dispatch [:right-drawer/close])
+    :hasBackdrop false}
+   [components/select
+    {:value    @(re-frame/subscribe [:map/active-network])
+     :options  @(re-frame/subscribe [:map/networks])
+     :onChange #(re-frame/dispatch [:map/update-active-network %])
+     :keyfns
+     {:id   :name
+      :text :name}}]
+   [components/select
+    {:value    @(re-frame/subscribe [:map/active-park])
+     :options  @(re-frame/subscribe [:map/parks])
+     :onChange #(re-frame/dispatch [:map/update-active-park %])
+     :keyfns
+     {:id          :name
+      :text        :name
+      :breadcrumbs (comp vector :network)}}]
+   [components/select
+    {:value    @(re-frame/subscribe [:map/active-zone])
+     :options  @(re-frame/subscribe [:map/zones])
+     :onChange #(re-frame/dispatch [:map/update-active-zone %])
+     :keyfns
+     {:id   :name
+      :text :name}}]
+   [components/select
+    {:value    @(re-frame/subscribe [:map/active-zone-iucn])
+     :options  @(re-frame/subscribe [:map/zones-iucn])
+     :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
+     :keyfns
+     {:id   :name
+      :text :name}}]])
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
