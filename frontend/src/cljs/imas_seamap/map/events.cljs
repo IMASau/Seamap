@@ -587,7 +587,6 @@
      :dispatch [:map/get-habitat-statistics]}))
 
 (defn get-habitat-statistics [{:keys [db]}]
-  (js/console.log "get-habitat-statistics")
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
         {:keys [active-network active-park active-zone active-zone-iucn]}                    (:map db)]
    {:db db
@@ -602,6 +601,4 @@
                  :on-failure      [:ajax/default-err-handler]}}))
 
 (defn got-habitat-statistics [db [_ habitat-statistics]]
-  (js/console.log "got-habitat-statistics")
-  (js/console.log habitat-statistics)
-  db)
+  (assoc-in db [:map :habitat-statistics] habitat-statistics))

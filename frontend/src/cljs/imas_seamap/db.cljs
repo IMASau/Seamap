@@ -36,7 +36,8 @@
                      :zones           []
                      :active-zone     nil
                      :zones-iucn      []
-                     :active-zone-iucn nil}
+                     :active-zone-iucn nil
+                     :habitat-statistics []}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}

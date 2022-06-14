@@ -178,3 +178,6 @@
 
 (defn active-zone-iucn [{:keys [map]}]
   (:active-zone-iucn map))
+
+(defn habitat-statistics [{:keys [map]}]
+  (:habitat-statistics map))
