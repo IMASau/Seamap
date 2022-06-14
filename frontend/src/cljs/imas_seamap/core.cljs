@@ -135,6 +135,10 @@
     :map/update-priorities                mevents/update-priorities
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
+    :map/update-networks                  mevents/update-networks
+    :map/update-parks                     mevents/update-parks
+    :map/update-zones                     mevents/update-zones
+    :map/update-zones-iucn                mevents/update-zones-iucn
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          mevents/map-zoom-in

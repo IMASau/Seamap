@@ -324,6 +324,22 @@
         (assoc-in [:map :categories] (set categories))
         (assoc-in [:display :catalogue] catalogue))))
 
+(defn update-networks [db [_ networks]]
+  (let [networks (sort-by :name networks)]
+    (assoc-in db [:map :networks] networks)))
+
+(defn update-parks [db [_ parks]]
+  (let [parks (sort-by (juxt :network :name) parks)]
+    (assoc-in db [:map :parks] parks)))
+
+(defn update-zones [db [_ zones]]
+  (let [zones (sort-by :name zones)]
+    (assoc-in db [:map :zones] zones)))
+
+(defn update-zones-iucn [db [_ zones-iucn]]
+  (let [zones-iucn (sort-by (comp string/lower-case :name) zones-iucn)]
+    (assoc-in db [:map :zones-iucn] zones-iucn)))
+
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
 
