@@ -823,26 +823,26 @@
       :hasBackdrop false}
      [components/select
       {:options  networks
-       :onChange #(js/console.log %)
+       :onChange #(re-frame/dispatch [:map/update-active-network %])
        :keyfns
        {:id   :name
         :text :name}}]
      [components/select
       {:options  parks
-       :onChange #(js/console.log %)
+       :onChange #(re-frame/dispatch [:map/update-active-park %])
        :keyfns
        {:id          :name
         :text        :name
         :breadcrumbs (comp vector :network)}}]
      [components/select
       {:options  zones
-       :onChange #(js/console.log %)
+       :onChange #(re-frame/dispatch [:map/update-active-zone %])
        :keyfns
        {:id   :name
         :text :name}}]
      [components/select
       {:options  zones-iucn
-       :onChange #(js/console.log %)
+       :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
        :keyfns
        {:id   :name
         :text :name}}]]))
