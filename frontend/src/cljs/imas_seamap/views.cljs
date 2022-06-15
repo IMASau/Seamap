@@ -939,7 +939,7 @@
       {:id          :id
        :text        :name
        :breadcrumbs (fn [{:keys [category data_classification]}] (map #(or % "Ungrouped") [(:display_name (category categories)) data_classification]))
-       :keywords    layer-search-keywords}}]))
+       :keywords    #(layer-search-keywords categories %)}}]))
 
 (def hotkeys-combos
   (let [keydown-wrapper
