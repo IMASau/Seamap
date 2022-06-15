@@ -521,7 +521,7 @@ def habitat_statistics(request):
     total_area = 0
 
     with connections['transects'].cursor() as cursor:
-        if parks:
+        if park:
             cursor.execute(SQL_GET_PARK_AREA, [park])
             total_area = cursor.fetchone()[0]
 
