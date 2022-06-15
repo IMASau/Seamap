@@ -4,8 +4,8 @@
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [encode-state ids->layers map-on-key first-where]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected region-stats-habitat-layer]]
+            [imas-seamap.utils :refer [encode-state ids->layers first-where]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format feature-info-none bounds->projected region-stats-habitat-layer]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -253,21 +253,40 @@
                    acc))
                {})))
 
-(defn update-base-layer-groups [db [_ groups]]
-  (let [layers (get-in db [:map :base-layers])
-        layer-groups (group-basemap-layers layers groups)]
+(defn update-grouped-base-layers [{db-map :map :as db}]
+  (let [{layers :base-layers groups :base-layer-groups} db-map
+        grouped-layers (group-by :layer_group layers)
+        groups (map
+                (fn [{:keys [id] :as group}]
+                 (let [layers (get grouped-layers id)
+                       layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers)]
+                   (merge
+                    (first layers)
+                    group
+                    {:layers (drop 1 layers)})))
+                groups)
+        max-id (apply max (map :id groups))
+        ungrouped-layers (get grouped-layers nil)
+        ungrouped-groups (map-indexed
+                          (fn [idx layer]
+                            (merge
+                             layer
+                             {:id (+ max-id idx 1)
+                              :layers []}))
+                          ungrouped-layers)
+        groups (concat groups ungrouped-groups)
+        groups (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) groups)]
     (-> db
-        (assoc-in [:map :base-layer-groups] groups)
-        (assoc-in [:map :grouped-base-layers] layer-groups)
-        (assoc-in [:map :active-base-layer] (first layer-groups)))))
+        (assoc-in [:map :grouped-base-layers] groups)
+        (assoc-in [:map :active-base-layer] (first groups)))))
+
+(defn update-base-layer-groups [db [_ groups]]
+  (let [db (assoc-in db [:map :base-layer-groups] groups)]
+    (update-grouped-base-layers db)))
 
 (defn update-base-layers [db [_ layers]]
-  (let [groups (get-in db [:map :base-layer-groups])
-        layer-groups (group-basemap-layers layers groups)]
-    (-> db
-        (assoc-in [:map :base-layers] layers)
-        (assoc-in [:map :grouped-base-layers] layer-groups)
-        (assoc-in [:map :active-base-layer] (first layer-groups)))))
+  (let [db (assoc-in db [:map :base-layers] layers)]
+    (update-grouped-base-layers db)))
 
 (defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
   (let [layers (process-layers layers)]
