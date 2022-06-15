@@ -258,14 +258,14 @@
         grouped-layers (group-by :layer_group layers)
         groups (map
                 (fn [{:keys [id] :as group}]
-                 (let [layers (get grouped-layers id)
-                       layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers)]
-                   (merge
-                    (first layers)
-                    group
-                    {:layers (drop 1 layers)})))
+                  (let [layers (get grouped-layers id)
+                        layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers)]
+                    (merge
+                     (first layers)
+                     group
+                     {:layers (drop 1 layers)})))
                 groups)
-        max-id (apply max (map :id groups))
+        max-id (if (seq groups) (apply max (map :id groups)) 0)
         ungrouped-layers (get grouped-layers nil)
         ungrouped-groups (map-indexed
                           (fn [idx layer]
@@ -275,6 +275,7 @@
                               :layers []}))
                           ungrouped-layers)
         groups (concat groups ungrouped-groups)
+        groups (filter :server_url groups)  ;; removes empty groups
         groups (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) groups)]
     (-> db
         (assoc-in [:map :grouped-base-layers] groups)
