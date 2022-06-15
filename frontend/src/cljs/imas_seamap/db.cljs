@@ -12,7 +12,7 @@
                      :zoom            4
                      :zoom-cutover    10
                      :bounds          {}
-                     :categories      #{}
+                     :categories      []
                      :layers          []
                      ;; Given we have to find by name, there's an argument for making this a map of name->layer - UPDATE: possibly changed with basemap layer grouping feature
                      :base-layers     []

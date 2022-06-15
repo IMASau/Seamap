@@ -317,7 +317,7 @@
                               {} categories)
         catalogue            (merge catalogue (get-in db [:display :catalogue]))] ; Override initial state with states we have
     (-> db
-        (assoc-in [:map :categories] (set categories))
+        (assoc-in [:map :categories] categories)
         (assoc-in [:display :catalogue] catalogue))))
 
 (defn update-networks [db [_ networks]]

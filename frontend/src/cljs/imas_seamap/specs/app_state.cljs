@@ -18,7 +18,7 @@
   (s/keys :req-un [:map.category/name
                    :map.category/display_name]))
 (s/def :map/categories (s/coll-of :map/category
-                                  :kind set?))
+                                  :kind vector?))
 
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
