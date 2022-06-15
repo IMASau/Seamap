@@ -13,6 +13,8 @@
             [imas-seamap.utils :refer [handler-fn handler-dispatch first-where] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
+            [goog.string :as gstring]
+            [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn with-params [url params]
@@ -812,16 +814,16 @@
    [:thead
     [:tr
      [:th "Habitat"]
-     [:th "Area"]
-     [:th "Percentage"]]]
+     [:th "Area (km^2)"]
+     [:th "Percentage (%)"]]]
    [:tbody
     (if (seq habitat-statistics)
      (for [{:keys [habitat area percentage]} habitat-statistics]
       [:tr
        {:key habitat}
-       [:td habitat]
-       [:td area]
-       [:td percentage]])
+       [:td (or habitat "Unmapped")]
+       [:td (gstring/format "%.2f" area)]
+       [:td (gstring/format "%.2f" percentage)]])
       [:tr
        [:td
         {:colspan 3}
