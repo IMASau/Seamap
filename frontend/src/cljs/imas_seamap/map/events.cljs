@@ -308,6 +308,7 @@
    catalogue (in instances where the catalogue doesn't have a state)."
   [db [_ categories]]
   (let [categories           (map #(update % :name (comp keyword string/lower-case)) categories)
+        categories           (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) categories)
         init-catalogue-state (get-in db [:config :init-catalogue-state])
         catalogue            (reduce
                               (fn [catalogue {:keys [name]}]
