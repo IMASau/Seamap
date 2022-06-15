@@ -815,12 +815,17 @@
      [:th "Area"]
      [:th "Percentage"]]]
    [:tbody
-    (for [{:keys [habitat area percentage]} habitat-statistics]
+    (if (seq habitat-statistics)
+     (for [{:keys [habitat area percentage]} habitat-statistics]
       [:tr
        {:key habitat}
        [:td habitat]
        [:td area]
-       [:td percentage]])]])
+       [:td percentage]])
+      [:tr
+       [:td
+        {:colspan 3}
+        "No habitat information"]])]])
 
 (defn right-drawer
   []
