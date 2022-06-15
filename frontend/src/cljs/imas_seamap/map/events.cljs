@@ -553,24 +553,48 @@
                  [:ui.catalogue/catalogue-add-nodes-to-layer category layer "cat" [:data_classification]]
                  [:map/pan-to-layer layer]])})
 
-(defn update-active-network [db [_ network]]
-  (if-not (= network (get-in db [:map :active-network]))
-    (-> db
-        (assoc-in [:map :active-park] nil)
-        (assoc-in [:map :active-network] network))
-    db))
+(defn update-active-network [{:keys [db]} [_ network]]
+  (let [db (cond-> db
+             (not= network (get-in db [:map :active-network]))
+             (->
+              (assoc-in [:map :active-park] nil)
+              (assoc-in [:map :active-network] network)))]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
 
-(defn update-active-park [{:keys [map] :as db} [_ {:keys [network] :as park}]]
-  (-> db
-      (assoc-in [:map :active-network] (first-where #(= (:name %) network) (:networks map)))
-      (assoc-in [:map :active-park] park)))
+(defn update-active-park [{:keys [db]} [_ {:keys [network] :as park}]]
+  (let [db (-> db
+               (assoc-in [:map :active-network] (first-where #(= (:name %) network) (get-in db [:map :networks])))
+               (assoc-in [:map :active-park] park))]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
 
-(defn update-active-zone [db [_ zone]]
-  (-> db
-      (assoc-in [:map :active-zone] zone)
-      (assoc-in [:map :active-zone-iucn] nil)))
+(defn update-active-zone [{:keys [db]} [_ zone]]
+  (let [db (-> db
+               (assoc-in [:map :active-zone] zone)
+               (assoc-in [:map :active-zone-iucn] nil))]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
 
-(defn update-active-zone-iucn [db [_ zone-iucn]]
-  (-> db
-      (assoc-in [:map :active-zone-iucn] zone-iucn)
-      (assoc-in [:map :active-zone] nil)))
+(defn update-active-zone-iucn [{:keys [db]} [_ zone-iucn]]
+  (let [db (-> db
+               (assoc-in [:map :active-zone-iucn] zone-iucn)
+               (assoc-in [:map :active-zone] nil))]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
+
+(defn get-habitat-statistics [{:keys [db]}]
+  (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
+        {:keys [active-network active-park active-zone active-zone-iucn]}                    (:map db)]
+   {:http-xhrio {:method          :get
+                 :uri             habitat-statistics-url
+                 :params          {:network   (:name active-network)
+                                   :park      (:name active-park)
+                                   :zone      (:name active-zone)
+                                   :zone-iucn (:name active-zone-iucn)}
+                 :response-format (ajax/json-response-format {:keywords? true})
+                 :on-success      [:map/got-habitat-statistics]
+                 :on-failure      [:ajax/default-err-handler]}}))
+
+(defn got-habitat-statistics [db [_ habitat-statistics]]
+  (assoc-in db [:map :habitat-statistics] habitat-statistics))

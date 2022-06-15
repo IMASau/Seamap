@@ -13,6 +13,8 @@
             [imas-seamap.utils :refer [handler-fn handler-dispatch first-where] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
+            [goog.string :as gstring]
+            [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn with-params [url params]
@@ -795,6 +797,27 @@
       :hasBackdrop false}
      [drawer-panel-stack]]))
 
+(defn habitat-statistics-table
+  [{:keys [habitat-statistics]}]
+  [:table
+   [:thead
+    [:tr
+     [:th "Habitat"]
+     [:th "Area (km^2)"]
+     [:th "Percentage (%)"]]]
+   [:tbody
+    (if (seq habitat-statistics)
+     (for [{:keys [habitat area percentage]} habitat-statistics]
+      [:tr
+       {:key habitat}
+       [:td (or habitat "Unmapped")]
+       [:td (gstring/format "%.2f" area)]
+       [:td (gstring/format "%.2f" percentage)]])
+      [:tr
+       [:td
+        {:colspan 3}
+        "No habitat information"]])]])
+
 (defn right-drawer
   []
   [components/drawer
@@ -840,7 +863,9 @@
       :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
       :keyfns
       {:id   :name
-       :text :name}}]]])
+       :text :name}}]]
+   [habitat-statistics-table
+    {:habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])}]])
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])

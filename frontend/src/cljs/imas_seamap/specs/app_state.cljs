@@ -198,6 +198,16 @@
                                   :kind vector?))
 (s/def :map/active-zone-iucn :map/zone-iucn)
 
+(s/def :map.habitat-statistic/habitat (s/nilable string?))
+(s/def :map.habitat-statistic/area number?)
+(s/def :map.habitat-statistic/percentage number?)
+(s/def :map/habitat-statistic
+  (s/keys :req-un [:map.habitat-statistic/habitat
+                   :map.habitat-statistic/area
+                   :map.habitat-statistic/percentage]))
+(s/def :map/habitat-statistics (s/coll-of :map/habitat-statistic
+                                          :kind vector?))
+
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))
 

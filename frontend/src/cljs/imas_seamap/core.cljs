@@ -38,6 +38,7 @@
     :map/active-park                      msubs/active-park
     :map/active-zone                      msubs/active-zone
     :map/active-zone-iucn                 msubs/active-zone-iucn
+    :map/habitat-statistics               msubs/habitat-statistics
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/priorities                msubs/map-layer-priorities
@@ -108,6 +109,8 @@
     :map/clicked                          [mevents/map-click-dispatcher]
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
+    :map/get-habitat-statistics           [mevents/get-habitat-statistics]
+    :map/got-habitat-statistics           mevents/got-habitat-statistics
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]
@@ -154,10 +157,10 @@
     :map/zoom-out                         mevents/map-zoom-out
     :map/pan-direction                    mevents/map-pan-direction
     :map/view-updated                     [mevents/map-view-updated]
-    :map/update-active-network            mevents/update-active-network
-    :map/update-active-park               mevents/update-active-park
-    :map/update-active-zone               mevents/update-active-zone
-    :map/update-active-zone-iucn          mevents/update-active-zone-iucn
+    :map/update-active-network            [mevents/update-active-network]
+    :map/update-active-park               [mevents/update-active-park]
+    :map/update-active-zone               [mevents/update-active-zone]
+    :map/update-active-zone-iucn          [mevents/update-active-zone-iucn]
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :ui/show-loading                      events/loading-screen
