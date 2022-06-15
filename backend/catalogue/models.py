@@ -144,7 +144,7 @@ class BaseLayerGroup(models.Model):
 @python_2_unicode_compatible
 class SaveState(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    hashstate = models.CharField(max_length = 800)
+    hashstate = models.CharField(max_length = 5000)
 
     def __str__(self):
         return self.id
