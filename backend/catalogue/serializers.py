@@ -101,4 +101,4 @@ class SaveStateSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Category
-        fields = ('name', 'display_name')
+        fields = '__all__'
