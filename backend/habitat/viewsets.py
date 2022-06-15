@@ -466,7 +466,6 @@ def zones(request):
             except ProgrammingError:
                 if not cursor.nextset():
                     break
-    print(zones)
     return Response(zones)
 
 
@@ -488,5 +487,4 @@ def zones_iucn(request):
             except ProgrammingError:
                 if not cursor.nextset():
                     break
-    print(zones_iucn)
     return Response(zones_iucn)
