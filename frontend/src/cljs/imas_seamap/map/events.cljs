@@ -557,11 +557,11 @@
                  [:map/pan-to-layer layer]])})
 
 (defn update-active-network [{:keys [db]} [_ network]]
-  (let [db (if-not (= network (get-in db [:map :active-network]))
-             (-> db
-                 (assoc-in [:map :active-park] nil)
-                 (assoc-in [:map :active-network] network))
-             db)]
+  (let [db (cond-> db
+             (not= network (get-in db [:map :active-network]))
+             (->
+              (assoc-in [:map :active-park] nil)
+              (assoc-in [:map :active-network] network)))]
     {:db db
      :dispatch [:map/get-habitat-statistics]}))
 
@@ -589,8 +589,7 @@
 (defn get-habitat-statistics [{:keys [db]}]
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
         {:keys [active-network active-park active-zone active-zone-iucn]}                    (:map db)]
-   {:db db
-    :http-xhrio {:method          :get
+   {:http-xhrio {:method          :get
                  :uri             habitat-statistics-url
                  :params          {:network   (:name active-network)
                                    :park      (:name active-park)
