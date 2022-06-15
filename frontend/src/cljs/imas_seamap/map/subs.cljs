@@ -68,6 +68,9 @@
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
 
+(defn display-categories [db _]
+  (filter :display_name (get-in db [:map :categories])))
+
 (defn categories-map [db _]
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))

@@ -28,6 +28,7 @@
     :map/layers                           msubs/map-layers
     :map/base-layers                      msubs/map-base-layers
     :map/organisations                    msubs/organisations
+    :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
     :map/networks                         msubs/networks
     :map/parks                            msubs/parks
