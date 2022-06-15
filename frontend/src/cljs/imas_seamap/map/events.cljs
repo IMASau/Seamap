@@ -307,11 +307,7 @@
   "Adds the categories to the db, as well as setting the initial state of the
    catalogue (in instances where the catalogue doesn't have a state)."
   [db [_ categories]]
-  (let [categories           (map
-                              (fn [{:keys [name display_name]}]
-                                {:name (keyword (string/lower-case name))
-                                 :display_name (or display_name (string/capitalize name))})
-                              categories)
+  (let [categories           (map #(update % :name (comp keyword string/lower-case)) categories)
         init-catalogue-state (get-in db [:config :init-catalogue-state])
         catalogue            (reduce
                               (fn [catalogue {:keys [name]}]

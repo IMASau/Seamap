@@ -13,7 +13,7 @@
 
 ;;; categories
 (s/def :map.category/name keyword?)
-(s/def :map.category/display_name string?)
+(s/def :map.category/display_name (s/nilable string?))
 (s/def :map/category
   (s/keys :req-un [:map.category/name
                    :map.category/display_name]))
