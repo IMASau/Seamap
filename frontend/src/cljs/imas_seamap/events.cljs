@@ -33,7 +33,12 @@
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-priorities
-                                  :map/update-descriptors]
+                                  :map/update-descriptors
+                                  :map/update-categories
+                                  :map/update-networks
+                                  :map/update-parks
+                                  :map/update-zones
+                                  :map/update-zones-iucn]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -53,7 +58,12 @@
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-priorities
-                                  :map/update-descriptors]
+                                  :map/update-descriptors
+                                  :map/update-categories
+                                  :map/update-networks
+                                  :map/update-parks
+                                  :map/update-zones
+                                  :map/update-zones-iucn]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -73,7 +83,12 @@
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-priorities
-                                  :map/update-descriptors]
+                                  :map/update-descriptors
+                                  :map/update-categories
+                                  :map/update-networks
+                                  :map/update-parks
+                                  :map/update-zones
+                                  :map/update-zones-iucn]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
