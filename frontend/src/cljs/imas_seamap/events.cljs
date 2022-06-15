@@ -506,9 +506,7 @@
 (defn create-save-state [{:keys [db]} _]
   (copy-text js/location.href)
   (let [save-state-url (get-in db [:config :save-state-url])]
-    {:message    ["Creating save state..."
-                  {:intent b/INTENT-NONE}]
-     :http-xhrio [{:method          :post
+    {:http-xhrio [{:method          :post
                    :uri             save-state-url
                    :params          {:hashstate (encode-state db)}
                    :format          (ajax/json-request-format)
@@ -517,11 +515,10 @@
                    :on-failure      [:create-save-state-failure]}]}))
 
 (defn create-save-state-success
-  [{:keys [db]} [_ response]]
+  [_ [_ response]]
   (let [url (str js/location.origin js/location.pathname "#" (:id response))]
     (copy-text url)
-    {:db db
-     :message ["URL copied to clipboard!"
+    {:message ["URL copied to clipboard!"
                {:intent b/INTENT-SUCCESS :icon "clipboard"}]}))
 
 (defn create-save-state-failure
