@@ -86,7 +86,7 @@
 (defn sort-layers
   [layers categories]
   (sort-by
-   (juxt #(get-in categories [(:category %) :display_name]) :data_classification :id)
+   (juxt #(get-in categories [(:category %) :display_name]) :category :data_classification :id)
    #(< %1 %2) ; comparator so nil is always last (instead of first)
    layers))
 

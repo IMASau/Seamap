@@ -13,6 +13,7 @@ class Category(models.Model):
     "Category for semantic grouping in the UI; eg bathymetry or habitat"
     name = models.CharField(max_length = 200)
     display_name = models.CharField(max_length = 200, null=True)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
         return self.name

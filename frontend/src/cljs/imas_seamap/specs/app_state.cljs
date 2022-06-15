@@ -12,13 +12,15 @@
 (s/def :map/zoom-cutover integer?)
 
 ;;; categories
+(s/def :map.category/id integer?)
 (s/def :map.category/name keyword?)
-(s/def :map.category/display_name string?)
+(s/def :map.category/display_name (s/nilable string?))
+(s/def :map.category/sort_key (s/nilable string?))
 (s/def :map/category
   (s/keys :req-un [:map.category/name
                    :map.category/display_name]))
 (s/def :map/categories (s/coll-of :map/category
-                                  :kind set?))
+                                  :kind vector?))
 
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)

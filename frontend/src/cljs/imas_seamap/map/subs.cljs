@@ -68,6 +68,13 @@
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
 
+(defn display-categories
+  "Filter categories to only those that have a display name and at least one layer."
+  [{:keys [map]} _]
+  (let [{:keys [layers categories]} map
+        grouped-layers              (group-by :category layers)]
+    (filter (fn [{:keys [display_name name]}] (and display_name (seq (name grouped-layers)))) categories)))
+
 (defn categories-map [db _]
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))

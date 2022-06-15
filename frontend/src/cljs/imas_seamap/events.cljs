@@ -644,6 +644,6 @@
 (defn open-catalogue-panel [{:keys [db]} [_ category]]
   (let [categories (get-in db [:map :categories])
         categories (map-on-key categories :name)
-        title      (str (get-in categories [category :display_name]) " Layers")]
+        title      (get-in categories [category :display_name])]
     {:db db
      :dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title title}]}))
