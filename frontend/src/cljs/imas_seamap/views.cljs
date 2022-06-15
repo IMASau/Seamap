@@ -657,16 +657,16 @@
    [help-button]])
 
 (defn catalogue-layers-button
-  [{:keys [icon category]}]
-  (let [title (str (:display_name category) " Layers")]
+  [{:keys [category]}]
+  (let [title (:display_name category)]
     [b/button
-     {:icon     icon
+     {:icon     "more"
       :text     title
       :on-click #(re-frame/dispatch [:drawer-panel-stack/open-catalogue-panel (:name category)])}]))
 
 (defn base-panel
   []
-  (let [categories @(re-frame/subscribe [:map/categories-map])]
+  (let [categories @(re-frame/subscribe [:map/display-categories])]
     {:content
      [:div
       [:div.left-drawer-group
@@ -678,21 +678,10 @@
       [:div.left-drawer-group
        [:h1.bp3-heading.bp3-icon-list-detail-view
         "Catalogue Layers"]
-       [catalogue-layers-button
-        {:icon     "home"
-         :category (:habitat categories)}]
-       [catalogue-layers-button
-        {:icon     "timeline-area-chart"
-         :category (:bathymetry categories)}]
-       [catalogue-layers-button
-        {:icon     "media"
-         :category (:imagery categories)}]
-       [catalogue-layers-button
-        {:icon     "heatmap"
-         :category (:boundaries categories)}]
-       [catalogue-layers-button
-        {:icon     "more"
-         :category (:third-party categories)}]]
+       (for [category categories]
+         [catalogue-layers-button
+          {:key      (:name category)
+           :category category}])]
       [:div.left-drawer-group
        [:h1.bp3-heading.bp3-icon-cog
         "Settings"]
