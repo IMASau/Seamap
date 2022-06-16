@@ -262,30 +262,7 @@
         info-format (get info-format (apply max info-formats))]
     info-format))
 
-(defn group-basemap-layers
-  "Groups each basemap layer by their layer group"
-  [layers groups]
-  (let [layers-grouped (group-by :layer_group layers)
-        
-        ungrouped-layers (get layers-grouped nil) ; Extract the independent layers (those without a layer group)
-        layers-grouped (dissoc layers-grouped nil)
-
-        basemap-groups (reduce-kv (fn [acc key layers]
-                                    (let [layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers) ; using sort key to sort layers into z-order
-                                          bottom-layer (first layers)
-                                          group (first-where #(= (:id %) key) groups)]
-                                      (conj acc
-                                            (-> bottom-layer
-                                                (merge group)
-                                                (assoc :layers (drop 1 layers))))))
-                                  [] layers-grouped)
-        
-        max-id (apply max (map :id basemap-groups)) ; using max id to avoid collisions with existing groups
-        ungrouped-layers-groups (map-indexed (fn [idx layer]
-                                               (-> layer
-                                                   (assoc :id (+ max-id idx 1))
-                                                   (assoc :layers [])))
-                                             ungrouped-layers)
-        basemap-groups (concat basemap-groups ungrouped-layers-groups)
-        basemap-groups (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) basemap-groups)]
-    basemap-groups))
+(defn sort-by-sort-key
+  "Sorts a collection by its sort-key first and its id second."
+  [coll]
+  (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) coll))

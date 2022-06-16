@@ -165,7 +165,8 @@
         catalogue-open?                               @(re-frame/subscribe [:left-drawer/open?])
         layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
         ;layer-params                                  @(re-frame/subscribe [:map.layers/params])
-        logic-type                                    @(re-frame/subscribe [:map.layers/logic])]
+        logic-type                                    @(re-frame/subscribe [:map.layers/logic])
+        loading?                                      @(re-frame/subscribe [:app/loading?])]
     (into
      [:div
       {:class (str "map-wrapper" (when catalogue-open? " catalogue-open") (when (seq active-layers) " active-layers"))}
@@ -200,10 +201,16 @@
 
       ;; Basemap selection:
        [leaflet/layers-control {:position "topright" :auto-z-index false}
-        (for [{:keys [name server_url attribution] :as base-layer} grouped-base-layers]
-          ^{:key name}
-          [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
-           [leaflet/tile-layer {:url server_url :attribution attribution}]])]
+        ;; We don't render the basemap controls while we're loading due to an issue with
+        ;; the React Leaflet Layers Control, which will render layers in the order it
+        ;; recieves them, with new layers being added at the bottom. By avoiding rendering
+        ;; any basemaps until we have them all, we can ensure that the base layers are in
+        ;; the order we want them to be.
+        (when-not loading?
+          (for [{:keys [id name server_url attribution] :as base-layer} grouped-base-layers]
+            ^{:key id}
+            [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
+             [leaflet/tile-layer {:url server_url :attribution attribution}]]))]
 
       ;; We enforce the layer ordering by an incrementing z-index (the
       ;; order of this list is otherwise ignored, as the underlying
