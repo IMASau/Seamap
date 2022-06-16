@@ -263,17 +263,11 @@
                     (merge
                      (first layers)
                      group
-                     {:layers (drop 1 layers)})))
+                     {:id     (:id (first layers))
+                      :layers (drop 1 layers)})))
                 groups)
-        max-id (if (seq groups) (apply max (map :id groups)) 0)
         ungrouped-layers (get grouped-layers nil)
-        ungrouped-groups (map-indexed
-                          (fn [idx layer]
-                            (merge
-                             layer
-                             {:id (+ max-id idx 1)
-                              :layers []}))
-                          ungrouped-layers)
+        ungrouped-groups (map #(assoc % :layers []) ungrouped-layers)
         groups (concat groups ungrouped-groups)
         groups (filter :server_url groups)  ;; removes empty groups
         groups (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) groups)]
