@@ -272,7 +272,7 @@
         groups (filter :server_url groups)  ;; removes empty groups
         groups (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) groups)]
     (-> db
-        (assoc-in [:map :grouped-base-layers] groups)
+        (assoc-in [:map :grouped-base-layers] (vec groups))
         (assoc-in [:map :active-base-layer] (first groups)))))
 
 (defn update-base-layer-groups [db [_ groups]]
