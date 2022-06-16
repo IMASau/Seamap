@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers first-where]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format feature-info-none bounds->projected region-stats-habitat-layer]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -259,7 +259,7 @@
         groups (map
                 (fn [{:keys [id] :as group}]
                   (let [layers (get grouped-layers id)
-                        layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers)]
+                        layers (sort-by-sort-key layers)]
                     (merge
                      (first layers)
                      group
@@ -270,7 +270,7 @@
         ungrouped-groups (map #(assoc % :layers []) ungrouped-layers)
         groups (concat groups ungrouped-groups)
         groups (filter :server_url groups)  ;; removes empty groups
-        groups (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) groups)]
+        groups (sort-by-sort-key groups)]
     (-> db
         (assoc-in [:map :grouped-base-layers] (vec groups))
         (assoc-in [:map :active-base-layer] (first groups)))))
@@ -297,7 +297,7 @@
   ;; Associate a category of objects (categories, organisations) with
   ;; a tuple of its sort-key (user-assigned, to allow user-specified
   ;; ordering) and its id (which is used as a stable id)
-  (reduce (fn [acc {:keys [id name sort_key]}] (assoc acc name [(or sort_key "zzzzz") id])) {} ms))
+  (reduce (fn [acc {:keys [id name sort_key]}] (assoc acc name [(or sort_key "zzzzzzzzzz") id])) {} ms))
 
 (defn update-organisations [db [_ organisations]]
   (-> db
@@ -322,7 +322,7 @@
    catalogue (in instances where the catalogue doesn't have a state)."
   [db [_ categories]]
   (let [categories           (map #(update % :name (comp keyword string/lower-case)) categories)
-        categories           (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) categories)
+        categories           (sort-by-sort-key categories)
         init-catalogue-state (get-in db [:config :init-catalogue-state])
         catalogue            (reduce
                               (fn [catalogue {:keys [name]}]

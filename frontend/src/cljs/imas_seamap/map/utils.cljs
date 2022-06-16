@@ -261,3 +261,8 @@
   (let [info-formats (map (fn [layer] (:info_format_type layer)) layers)
         info-format (get info-format (apply max info-formats))]
     info-format))
+
+(defn sort-by-sort-key
+  "Sorts a collection by its sort-key first and its id second."
+  [coll]
+  (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) coll))
