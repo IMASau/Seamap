@@ -523,52 +523,54 @@ def habitat_statistics(request):
     zone_iucn = request.query_params.get('zone-iucn')
 
     habitat_stats = []
-    total_area = 0
+
+    boundaries = [
+        {'type': 'network', 'value': network},
+        {'type': 'park', 'value': park},
+        {'type': 'zone', 'value': zone},
+        {'type': 'zone_iucn', 'value': zone_iucn}
+    ]
 
     with connections['transects'].cursor() as cursor:
-        if park:
-            boundary_area_sql = SQL_GET_BOUNDARY_AREA.format(
-                f"park='{park}'",
-                "park"
-            )
-            cursor.execute(boundary_area_sql)
-            total_area = float(cursor.fetchone()[0])
+        boundary_area_sql = SQL_GET_BOUNDARY_AREA.format(
+            ' and '.join(f"{v['type']}=\'{v['value']}\'" for v in boundaries if v['value']),
+            ', '.join(v['type'] for v in boundaries if v['value'])
+        )
+        cursor.execute(boundary_area_sql)
+        
+        try:
+            boundary_area = float(cursor.fetchone()[0])
 
-            cursor.execute(SQL_GET_PARK_HABITAT_STATS, [total_area, park])
+            if park:
+                cursor.execute(SQL_GET_PARK_HABITAT_STATS, [boundary_area, park])
 
-            while True:
-                try:
-                    for row in cursor.fetchall():
-                        [habitat, area, percentage] = row
-                        habitat_stats.append({'habitat': habitat, 'area': area, 'percentage': percentage})
-                    if not cursor.nextset():
-                        break
-                except ProgrammingError:
-                    if not cursor.nextset():
-                        break
-        elif network:
-            boundary_area_sql = SQL_GET_BOUNDARY_AREA.format(
-                f"network='{network}'",
-                "network"
-            )
-            cursor.execute(boundary_area_sql)
-            total_area = float(cursor.fetchone()[0])
+                while True:
+                    try:
+                        for row in cursor.fetchall():
+                            [habitat, area, percentage] = row
+                            habitat_stats.append({'habitat': habitat, 'area': area, 'percentage': percentage})
+                        if not cursor.nextset():
+                            break
+                    except ProgrammingError:
+                        if not cursor.nextset():
+                            break
+            elif network:
+                cursor.execute(SQL_GET_NETWORK_HABITAT_STATS, [boundary_area, network])
 
-            cursor.execute(SQL_GET_NETWORK_HABITAT_STATS, [total_area, network])
+                while True:
+                    try:
+                        for row in cursor.fetchall():
+                            [habitat, area, percentage] = row
+                            habitat_stats.append({'habitat': habitat, 'area': area, 'percentage': percentage})
+                        if not cursor.nextset():
+                            break
+                    except ProgrammingError:
+                        if not cursor.nextset():
+                            break
 
-            while True:
-                try:
-                    for row in cursor.fetchall():
-                        [habitat, area, percentage] = row
-                        habitat_stats.append({'habitat': habitat, 'area': area, 'percentage': percentage})
-                    if not cursor.nextset():
-                        break
-                except ProgrammingError:
-                    if not cursor.nextset():
-                        break
-
-    unmapped_area = (total_area / 1000000) - float(sum([v['area'] for v in habitat_stats]))
-    unmapped_percentage = 100 * unmapped_area / (total_area / 1000000)
-    habitat_stats.append({'habitat': None, 'area': unmapped_area, 'percentage': unmapped_percentage})
-
-    return Response(habitat_stats)
+            unmapped_area = (boundary_area / 1000000) - float(sum([v['area'] for v in habitat_stats]))
+            unmapped_percentage = 100 * unmapped_area / (boundary_area / 1000000)
+            habitat_stats.append({'habitat': None, 'area': unmapped_area, 'percentage': unmapped_percentage})
+            
+        finally:
+            return Response(habitat_stats)
