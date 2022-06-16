@@ -93,7 +93,14 @@ SQL_GET_PARKS = "select name, network from SeamapAus_Parks_View;"
 SQL_GET_ZONES = "select name from SeamapAus_Zones_View;"
 SQL_GET_ZONES_IUCN = "select name from SeamapAus_ZonesIUCN_View;"
 
-SQL_GET_NETWORK_AREA = "select geom.STArea() from SeamapAus_Networks_View where name=%s;"
+SQL_GET_BOUNDARY_AREA= """
+select
+  sum(area) AS area
+from SeamapAus_BoundaryAreas_View
+where {}
+group by {}
+"""
+
 SQL_GET_NETWORK_HABITAT_STATS = """
 select habitat, area / 1000000 as area, 100 * area / %s as percentage
 from SeamapAus_Habitat_By_Region
@@ -102,8 +109,6 @@ where
   boundary_layer_id = 260 and
   habitat_layer_id = 95;
 """
-
-SQL_GET_PARK_AREA = "select geom.STArea() from SeamapAus_Parks_View where name=%s;"
 SQL_GET_PARK_HABITAT_STATS = """
 select habitat, area / 1000000 as area, 100 * area / %s as percentage
 from SeamapAus_Habitat_By_Region
@@ -522,8 +527,12 @@ def habitat_statistics(request):
 
     with connections['transects'].cursor() as cursor:
         if park:
-            cursor.execute(SQL_GET_PARK_AREA, [park])
-            total_area = cursor.fetchone()[0]
+            boundary_area_sql = SQL_GET_BOUNDARY_AREA.format(
+                f"park='{park}'",
+                "park"
+            )
+            cursor.execute(boundary_area_sql)
+            total_area = float(cursor.fetchone()[0])
 
             cursor.execute(SQL_GET_PARK_HABITAT_STATS, [total_area, park])
 
@@ -538,8 +547,12 @@ def habitat_statistics(request):
                     if not cursor.nextset():
                         break
         elif network:
-            cursor.execute(SQL_GET_NETWORK_AREA, [network])
-            total_area = cursor.fetchone()[0]
+            boundary_area_sql = SQL_GET_BOUNDARY_AREA.format(
+                f"network='{network}'",
+                "network"
+            )
+            cursor.execute(boundary_area_sql)
+            total_area = float(cursor.fetchone()[0])
 
             cursor.execute(SQL_GET_NETWORK_HABITAT_STATS, [total_area, network])
 
