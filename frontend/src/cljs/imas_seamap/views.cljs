@@ -818,9 +818,10 @@
         {:colSpan 3}
         "No habitat information"]])]])
 
-(defn boundary-select-fields
+(defn boundary-selection
   []
-  [:div
+  [:div.drawer-group
+   [:h1.bp3-heading.bp3-icon-heatmap "Boundaries"]
    [components/form-group
     {:label "Network"}
     [components/select
@@ -868,9 +869,11 @@
     :isOpen      @(re-frame/subscribe [:right-drawer/open?])
     :onClose     #(re-frame/dispatch [:right-drawer/close])
     :hasBackdrop false}
-   [boundary-select-fields]
-   [habitat-statistics-table
-    {:habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])}]])
+   [boundary-selection]
+   [:div.drawer-group
+    [:h1.bp3-heading.bp3-icon-home "Habitat"]
+    [habitat-statistics-table
+     {:habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])}]]])
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
