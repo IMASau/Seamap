@@ -109,16 +109,17 @@
 (defn re-boot [{:keys [habitat-colours habitat-titles sorting]
                 {:keys [layers grouped-base-layers organisations priorities groups] :as _map-state} :map
                 :as _db} _]
-  (-> db/default-db
-      (update :map merge {:layers            layers
-                          :grouped-base-layers grouped-base-layers
-                          :active-base-layer (first grouped-base-layers)
-                          :organisations     organisations
-                          :groups            groups
-                          :priorities        priorities})
-      (merge {:habitat-colours habitat-colours
-              :habitat-titles  habitat-titles
-              :sorting         sorting})))
+  (let [db (-> db/default-db
+               (update :map merge {:layers            layers
+                                   :grouped-base-layers grouped-base-layers
+                                   :active-base-layer (first grouped-base-layers)
+                                   :organisations     organisations
+                                   :groups            groups
+                                   :priorities        priorities})
+               (merge {:habitat-colours habitat-colours
+                       :habitat-titles  habitat-titles
+                       :sorting         sorting}))]
+    (assoc-in db [:map :active-layers] (vec (applicable-layers db :category :habitat)))))
 
 (defn loading-screen [db [_ msg]]
   (assoc db
