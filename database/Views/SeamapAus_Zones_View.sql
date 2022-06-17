@@ -1,4 +1,0 @@
-CREATE VIEW [dbo].[SeamapAus_Zones_View] AS
-SELECT DISTINCT
-  [ZONENAME] AS [name]
-FROM [dbo].[SeamapAus_BOUNDARIES_AMP2018_ZONES_UNIQUE]

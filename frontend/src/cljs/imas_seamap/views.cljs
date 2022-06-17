@@ -815,7 +815,7 @@
        [:td (gstring/format "%.2f" percentage)]])
       [:tr
        [:td
-        {:colspan 3}
+        {:colSpan 3}
         "No habitat information"]])]])
 
 (defn right-drawer
