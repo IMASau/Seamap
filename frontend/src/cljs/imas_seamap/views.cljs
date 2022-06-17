@@ -860,6 +860,13 @@
       {:id   :name
        :text :name}}]]])
 
+(defn habitat-statistics
+  []
+  [:div.drawer-group
+   [:h1.bp3-heading.bp3-icon-home "Habitat Statistics"]
+   [habitat-statistics-table
+    {:habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])}]])
+
 (defn right-drawer
   []
   [components/drawer
@@ -870,10 +877,7 @@
     :onClose     #(re-frame/dispatch [:right-drawer/close])
     :hasBackdrop false}
    [boundary-selection]
-   [:div.drawer-group
-    [:h1.bp3-heading.bp3-icon-home "Habitat"]
-    [habitat-statistics-table
-     {:habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])}]]])
+   [habitat-statistics]])
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
