@@ -1,7 +1,8 @@
 CREATE VIEW [dbo].[SeamapAus_HabitatStatistics_View] AS
 SELECT
-  [SeamapAus_AMP2018_ZONES_UNIQUE_codepreserve].[NETNAME] AS [network],
-  [SeamapAus_AMP2018_ZONES_UNIQUE_codepreserve].[RESNAME] AS [park],
+  [habitat_layer_id],
+  [NETNAME] AS [network],
+  [RESNAME] AS [park],
   [ZONENAME] AS [zone],
   [ZONEIUCN] AS [zone_iucn],
   [habitat],
