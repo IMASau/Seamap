@@ -671,20 +671,20 @@
   (let [categories @(re-frame/subscribe [:map/display-categories])]
     {:content
      [:div
-      [:div.left-drawer-group
+      [:div.drawer-group
        [:h1.bp3-heading.bp3-icon-settings
         "Controls"]
        [transect-toggle]
        [selection-button]
        [layer-logic-toggle-button]]
-      [:div.left-drawer-group
+      [:div.drawer-group
        [:h1.bp3-heading.bp3-icon-list-detail-view
         "Catalogue Layers"]
        (for [category categories]
          [catalogue-layers-button
           {:key      (:name category)
            :category category}])]
-      [:div.left-drawer-group
+      [:div.drawer-group
        [:h1.bp3-heading.bp3-icon-cog
         "Settings"]
        [b/button
