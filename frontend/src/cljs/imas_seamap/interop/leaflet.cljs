@@ -8,7 +8,7 @@
             ["react-leaflet-control" :as ReactLeafletControl]
             ["react-leaflet-draw" :as ReactLeafletDraw]
             ["react-leaflet-easyprint" :as ReactLeafletEasyprint]
-            ["/leaflet-coordinates" :as ReactLeafletCoordinates]
+            ["/leaflet-coordinates/leaflet-coordinates" :as ReactLeafletCoordinates]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 

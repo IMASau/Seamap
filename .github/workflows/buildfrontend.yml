@@ -58,6 +58,9 @@ jobs:
       - name: Install Dependencies
         run: yarn
 
+      - name: Style build
+        run: yarn build-css
+
       - name: Components build
         run: yarn build-js
 

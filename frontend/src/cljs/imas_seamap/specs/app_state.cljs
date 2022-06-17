@@ -12,13 +12,15 @@
 (s/def :map/zoom-cutover integer?)
 
 ;;; categories
+(s/def :map.category/id integer?)
 (s/def :map.category/name keyword?)
-(s/def :map.category/display_name string?)
+(s/def :map.category/display_name (s/nilable string?))
+(s/def :map.category/sort_key (s/nilable string?))
 (s/def :map/category
   (s/keys :req-un [:map.category/name
                    :map.category/display_name]))
 (s/def :map/categories (s/coll-of :map/category
-                                  :kind set?))
+                                  :kind vector?))
 
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
@@ -166,6 +168,46 @@
 (s/def :map.logic/trigger #{:map.logic.trigger/automatic :map.logic.trigger/user})
 (s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
 
+(s/def :map.network/name string?)
+(s/def :map/network
+  (s/keys :req-un [:map.network/name]))
+(s/def :map/networks (s/coll-of :map/network
+                                :kind vector?))
+(s/def :map/active-network :map/network)
+
+(s/def :map.park/name string?)
+(s/def :map.park/network :map.network/name)
+(s/def :map/park
+  (s/keys :req-un [:map.park/name
+                   :map.network/name]))
+(s/def :map/parks (s/coll-of :map/park
+                             :kind vector?))
+(s/def :map/active-park :map/park)
+
+(s/def :map.zone/name string?)
+(s/def :map/zone
+  (s/keys :req-un [:map.zone/name]))
+(s/def :map/zones (s/coll-of :map/zone
+                             :kind vector?))
+(s/def :map/active-zone :map/zone)
+
+(s/def :map.zone-iucn/name string?)
+(s/def :map/zone-iucn
+  (s/keys :req-un [:map.zone-iucn/name]))
+(s/def :map/zones-iucn (s/coll-of :map/zone-iucn
+                                  :kind vector?))
+(s/def :map/active-zone-iucn :map/zone-iucn)
+
+(s/def :map.habitat-statistic/habitat (s/nilable string?))
+(s/def :map.habitat-statistic/area number?)
+(s/def :map.habitat-statistic/percentage number?)
+(s/def :map/habitat-statistic
+  (s/keys :req-un [:map.habitat-statistic/habitat
+                   :map.habitat-statistic/area
+                   :map.habitat-statistic/percentage]))
+(s/def :map/habitat-statistics (s/coll-of :map/habitat-statistic
+                                          :kind vector?))
+
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))
 
@@ -184,7 +226,11 @@
                    :map/organisations
                    :map/priorities
                    :map/priority-cutoff
-                   :map/logic]))
+                   :map/logic
+                   :map/networks
+                   :map/parks
+                   :map/zones
+                   :map/zones-iucn]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
 (s/def :map.state/error-count (s/map-of :map/layer integer?))

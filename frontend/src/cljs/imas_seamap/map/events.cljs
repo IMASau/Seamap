@@ -4,8 +4,8 @@
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [encode-state ids->layers map-on-key]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format group-basemap-layers feature-info-none bounds->projected]]
+            [imas-seamap.utils :refer [encode-state ids->layers first-where]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -19,7 +19,7 @@
 
 (defn base-layer-changed [{:keys [db]} [_ layer-name]]
   (let [grouped-base-layers (-> db :map :grouped-base-layers)
-        selected-base-layer (first (filter (comp #(= layer-name %) :name) grouped-base-layers))]
+        selected-base-layer (first-where (comp #(= layer-name %) :name) grouped-base-layers)]
     (when selected-base-layer
       (let [db (assoc-in db [:map :active-base-layer] selected-base-layer)]
         {:db db
@@ -121,21 +121,22 @@
        {:http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point)}
        {:dispatch [:map/got-featureinfo request-id point nil nil]}))))
 
-;; Unused - related to getting boundary and habitat region stats
-#_(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
-  (let [boundary   (->> db :map :active-layers first :id)
-        habitat    (region-stats-habitat-layer db)
-        [x y]      (wgs84->epsg3112 ((juxt :lng :lat) point))
-        request-id (gensym)]
+(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
+  (let [{:keys [hidden-layers active-layers]} (:map db)
+        visible-layers (remove #((set hidden-layers) %) active-layers)
+        boundary       (first-where #(= (:category %) :boundaries) visible-layers)
+        habitat        (region-stats-habitat-layer db)
+        [x y]          (wgs84->epsg3112 ((juxt :lng :lat) point))
+        request-id     (gensym)]
     (when (and boundary habitat)
       {:http-xhrio {:method          :get
                     :uri             (get-in db [:config :region-stats-url])
-                    :params          {:boundary boundary
+                    :params          {:boundary (:id boundary)
                                       :habitat  (:id habitat)
                                       :x        x
                                       :y        y}
                     :response-format (ajax/text-response-format)
-                    :on-success      [:map/got-featureinfo request-id point nil]
+                    :on-success      [:map/got-featureinfo request-id point "text/html"]
                     :on-failure      [:map/got-featureinfo-err request-id point]}
        :db         (assoc db :feature-query {:request-id        request-id
                                              :response-remain   1
@@ -161,8 +162,12 @@
             (get-in db [:map :controls :transect])                     ; we aren't drawing a transect;
             (get-in db [:map :controls :download :selecting])          ; we aren't selecting a region; and
             (empty? (remove #((set hidden-layers) %) active-layers)))) ; there are visible layers
-      (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)]
-        (get-feature-info ctx event-v)))))
+      (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)
+            drawer-open? (get-in db [:display :left-drawer])
+            open-catalogue (get-in (last (get-in db [:display :drawer-panel-stack])) [:props :group])]
+        (if (and drawer-open? (= open-catalogue :boundaries))
+          (get-habitat-region-statistics ctx event-v)
+          (get-feature-info ctx event-v))))))
 
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))
@@ -231,9 +236,6 @@
 (defn process-layer [layer]
   (-> layer
       (update :category    (comp keyword string/lower-case))
-      ;; If category is contours, turn it into bathymetry but with a contours attribute set:
-      (as-> lyr (if (= (:category lyr) :contours) (assoc lyr :contours true) lyr))
-      (update :category    #(if (= % :contours) :bathymetry %))
       (update :server_type (comp keyword string/lower-case))))
 
 (defn process-layers [layers]
@@ -253,21 +255,35 @@
                    acc))
                {})))
 
-(defn update-base-layer-groups [db [_ groups]]
-  (let [layers (get-in db [:map :base-layers])
-        layer-groups (group-basemap-layers layers groups)]
+(defn update-grouped-base-layers [{db-map :map :as db}]
+  (let [{layers :base-layers groups :base-layer-groups} db-map
+        grouped-layers (group-by :layer_group layers)
+        groups (map
+                (fn [{:keys [id] :as group}]
+                  (let [layers (get grouped-layers id)
+                        layers (sort-by-sort-key layers)]
+                    (merge
+                     (first layers)
+                     group
+                     {:id     (:id (first layers))
+                      :layers (drop 1 layers)})))
+                groups)
+        ungrouped-layers (get grouped-layers nil)
+        ungrouped-groups (map #(assoc % :layers []) ungrouped-layers)
+        groups (concat groups ungrouped-groups)
+        groups (filter :server_url groups)  ;; removes empty groups
+        groups (sort-by-sort-key groups)]
     (-> db
-        (assoc-in [:map :base-layer-groups] groups)
-        (assoc-in [:map :grouped-base-layers] layer-groups)
-        (assoc-in [:map :active-base-layer] (first layer-groups)))))
+        (assoc-in [:map :grouped-base-layers] (vec groups))
+        (assoc-in [:map :active-base-layer] (first groups)))))
+
+(defn update-base-layer-groups [db [_ groups]]
+  (let [db (assoc-in db [:map :base-layer-groups] groups)]
+    (update-grouped-base-layers db)))
 
 (defn update-base-layers [db [_ layers]]
-  (let [groups (get-in db [:map :base-layer-groups])
-        layer-groups (group-basemap-layers layers groups)]
-    (-> db
-        (assoc-in [:map :base-layers] layers)
-        (assoc-in [:map :grouped-base-layers] layer-groups)
-        (assoc-in [:map :active-base-layer] (first layer-groups)))))
+  (let [db (assoc-in db [:map :base-layers] layers)]
+    (update-grouped-base-layers db)))
 
 (defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
   (let [layers (process-layers layers)]
@@ -283,7 +299,7 @@
   ;; Associate a category of objects (categories, organisations) with
   ;; a tuple of its sort-key (user-assigned, to allow user-specified
   ;; ordering) and its id (which is used as a stable id)
-  (reduce (fn [acc {:keys [id name sort_key]}] (assoc acc name [(or sort_key "zzzzz") id])) {} ms))
+  (reduce (fn [acc {:keys [id name sort_key]}] (assoc acc name [(or sort_key "zzzzzzzzzz") id])) {} ms))
 
 (defn update-organisations [db [_ organisations]]
   (-> db
@@ -303,13 +319,39 @@
            :habitat-titles  titles
            :habitat-colours colours)))
 
-(defn update-categories [db [_ categories]]
-  (let [categories (map
-                    (fn [{:keys [name display_name]}]
-                      {:name (keyword (string/lower-case name))
-                       :display_name (or display_name (string/capitalize name))})
-                    categories)]
-    (assoc-in db [:map :categories] (set categories))))
+(defn update-categories
+  "Adds the categories to the db, as well as setting the initial state of the
+   catalogue (in instances where the catalogue doesn't have a state)."
+  [db [_ categories]]
+  (let [categories           (map #(update % :name (comp keyword string/lower-case)) categories)
+        categories           (sort-by-sort-key categories)
+        init-catalogue-state (get-in db [:config :init-catalogue-state])
+        catalogue            (reduce
+                              (fn [catalogue {:keys [name]}]
+                                (assoc
+                                 catalogue name
+                                 init-catalogue-state))
+                              {} categories)
+        catalogue            (merge catalogue (get-in db [:display :catalogue]))] ; Override initial state with states we have
+    (-> db
+        (assoc-in [:map :categories] categories)
+        (assoc-in [:display :catalogue] catalogue))))
+
+(defn update-networks [db [_ networks]]
+  (let [networks (sort-by :name networks)]
+    (assoc-in db [:map :networks] networks)))
+
+(defn update-parks [db [_ parks]]
+  (let [parks (sort-by (juxt :network :name) parks)]
+    (assoc-in db [:map :parks] parks)))
+
+(defn update-zones [db [_ zones]]
+  (let [zones (sort-by :name zones)]
+    (assoc-in db [:map :zones] zones)))
+
+(defn update-zones-iucn [db [_ zones-iucn]]
+  (let [zones-iucn (sort-by (comp string/lower-case :name) zones-iucn)]
+    (assoc-in db [:map :zones-iucn] zones-iucn)))
 
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
@@ -518,14 +560,57 @@
 
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ {:keys [category] :as layer}]]
-  (let [categories (get-in db [:map :categories])
-        categories (map-on-key categories :name)
-        title      (str (get-in categories [category :display_name]) " Layers")]
-    {:db       (assoc-in db [:display :layers-search-omnibar] false)
-     :dispatch-n (concat
-                  [[:map/add-layer layer]
-                   [:left-drawer/open]
-                   [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title title}]
-                   [:ui.catalogue/select-tab category "org"]
-                   [:ui.catalogue/catalogue-add-nodes-to-layer category layer "org" [:organisation :data_classification]]
-                   [:map/pan-to-layer layer]])}))
+  {:db       (assoc-in db [:display :layers-search-omnibar] false)
+   :dispatch-n (concat
+                [[:map/add-layer layer]
+                 [:left-drawer/open]
+                 [:drawer-panel-stack/open-catalogue-panel category]
+                 [:ui.catalogue/select-tab category "cat"]
+                 [:ui.catalogue/catalogue-add-nodes-to-layer category layer "cat" [:data_classification]]
+                 [:map/pan-to-layer layer]])})
+
+(defn update-active-network [{:keys [db]} [_ network]]
+  (let [db (cond-> db
+             (not= network (get-in db [:map :active-network]))
+             (->
+              (assoc-in [:map :active-park] nil)
+              (assoc-in [:map :active-network] network)))]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
+
+(defn update-active-park [{:keys [db]} [_ {:keys [network] :as park}]]
+  (let [db (-> db
+               (assoc-in [:map :active-network] (first-where #(= (:name %) network) (get-in db [:map :networks])))
+               (assoc-in [:map :active-park] park))]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
+
+(defn update-active-zone [{:keys [db]} [_ zone]]
+  (let [db (-> db
+               (assoc-in [:map :active-zone] zone)
+               (assoc-in [:map :active-zone-iucn] nil))]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
+
+(defn update-active-zone-iucn [{:keys [db]} [_ zone-iucn]]
+  (let [db (-> db
+               (assoc-in [:map :active-zone-iucn] zone-iucn)
+               (assoc-in [:map :active-zone] nil))]
+    {:db db
+     :dispatch [:map/get-habitat-statistics]}))
+
+(defn get-habitat-statistics [{:keys [db]}]
+  (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
+        {:keys [active-network active-park active-zone active-zone-iucn]}                    (:map db)]
+   {:http-xhrio {:method          :get
+                 :uri             habitat-statistics-url
+                 :params          {:network   (:name active-network)
+                                   :park      (:name active-park)
+                                   :zone      (:name active-zone)
+                                   :zone-iucn (:name active-zone-iucn)}
+                 :response-format (ajax/json-response-format {:keywords? true})
+                 :on-success      [:map/got-habitat-statistics]
+                 :on-failure      [:ajax/default-err-handler]}}))
+
+(defn got-habitat-statistics [db [_ habitat-statistics]]
+  (assoc-in db [:map :habitat-statistics] habitat-statistics))

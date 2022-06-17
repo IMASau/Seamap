@@ -12,7 +12,7 @@
                      :zoom            4
                      :zoom-cutover    10
                      :bounds          {}
-                     :categories      #{}
+                     :categories      []
                      :layers          []
                      ;; Given we have to find by name, there's an argument for making this a map of name->layer - UPDATE: possibly changed with basemap layer grouping feature
                      :base-layers     []
@@ -28,7 +28,16 @@
                      :logic           {:type    :map.layer-logic/automatic
                                        :trigger :map.logic.trigger/automatic}
                      :controls        {:transect false
-                                       :download nil}}
+                                       :download nil}
+                     :networks        []
+                     :active-network  nil
+                     :parks           []
+                     :active-park     nil
+                     :zones           []
+                     :active-zone     nil
+                     :zones-iucn      []
+                     :active-zone-iucn nil
+                     :habitat-statistics []}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}
@@ -49,16 +58,7 @@
                      :right-drawer          false
                      :layers-search-omnibar false
                      :drawer-panel-stack    []
-                     :catalogue             {:habitat     {:tab "org"     ; NOTE: Move away from map to vector to support arbitrary number of tabs/groups?
-                                                           :expanded #{}}
-                                             :boundaries  {:tab "org"
-                                                           :expanded #{}}
-                                             :bathymetry  {:tab "org"
-                                                           :expanded #{}}
-                                             :imagery     {:tab "org"
-                                                           :expanded #{}}
-                                             :third-party {:tab "org"
-                                                           :expanded #{}}}
+                     :catalogue             {}
                      :sidebar               {:collapsed false
                                              :selected  "tab-activelayers"}}
    :config          {:layer-url             (str api-url-base "layers/")
@@ -71,4 +71,11 @@
                      :region-stats-url      (str api-url-base "habitat/regions/")
                      :descriptor-url        (str api-url-base "descriptors/")
                      :save-state-url        (str api-url-base "savestates")
-                     :category-url          (str api-url-base "categories/")}})
+                     :category-url          (str api-url-base "categories/")
+                     :network-url           (str api-url-base "habitat/networks")
+                     :park-url              (str api-url-base "habitat/parks")
+                     :zone-url              (str api-url-base "habitat/zones")
+                     :zone-iucn-url         (str api-url-base "habitat/zonesiucn")
+                     :habitat-statistics-url (str api-url-base "habitat/habitatstatistics")
+                     :init-catalogue-state  {:tab      "cat"
+                                             :expanded #{}}}})

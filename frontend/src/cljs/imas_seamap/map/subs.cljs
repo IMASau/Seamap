@@ -4,7 +4,7 @@
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
             [imas-seamap.utils :refer [map-on-key]]
-            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer layer-search-keywords]]
+            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer layer-search-keywords sort-layers]]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [debux.cs.core :refer [dbg] :include-macros true]))
@@ -25,11 +25,11 @@
   "Given a string of search words, attempt to match them *all* against
   a layer (designed so it can be used to filter a list of layers, in
   conjunction with partial)."
-  [filter-text layer]
+  [filter-text categories layer]
   (if-let [search-re (try
                        (-> filter-text string/trim (string/split #"\s+") make-re)
                        (catch :default e nil))]
-    (re-find search-re (layer-search-keywords layer))
+    (re-find search-re (layer-search-keywords categories layer))
     false))
 
 (defn- make-error-fn
@@ -48,12 +48,14 @@
 
 (defn map-layers [{:keys [layer-state filters map] :as db} _]
   (let [{:keys [layers active-layers hidden-layers bounds logic]} map
+        categories      (map-on-key (:categories map) :name)
         filter-text     (:layers filters)
+        all-layers      layers
         layers          (if (= (:type logic) :map.layer-logic/automatic)
                           (all-priority-layers db)
                           layers)
         viewport-layers  (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
-        filtered-layers (filter (partial match-layer filter-text) viewport-layers)]
+        filtered-layers (filter (partial match-layer filter-text categories) viewport-layers)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
@@ -61,14 +63,33 @@
      :active-layers   active-layers
      :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
-     :all-layers      layers}))
+     :all-layers      (sort-layers all-layers categories)}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
 
+(defn display-categories
+  "Filter categories to only those that have a display name and at least one layer."
+  [{:keys [map]} _]
+  (let [{:keys [layers categories]} map
+        grouped-layers              (group-by :category layers)]
+    (filter (fn [{:keys [display_name name]}] (and display_name (seq (name grouped-layers)))) categories)))
+
 (defn categories-map [db _]
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))
+
+(defn networks [{:keys [map]} _]
+  (:networks map))
+
+(defn parks [{:keys [map]} _]
+  (:parks map))
+
+(defn zones [{:keys [map]} _]
+  (:zones map))
+
+(defn zones-iucn [{:keys [map]} _]
+  (:zones-iucn map))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
@@ -152,3 +173,18 @@
   (if org-name
     (some #(and (= org-name (:name %)) %) organisations)
     organisations))
+
+(defn active-network [{:keys [map]}]
+  (:active-network map))
+
+(defn active-park [{:keys [map]}]
+  (:active-park map))
+
+(defn active-zone [{:keys [map]}]
+  (:active-zone map))
+
+(defn active-zone-iucn [{:keys [map]}]
+  (:active-zone-iucn map))
+
+(defn habitat-statistics [{:keys [map]}]
+  (:habitat-statistics map))

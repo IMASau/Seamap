@@ -5,7 +5,7 @@
   (:require [cemerick.url :as url]
             [clojure.string :as string]
             [imas-seamap.db :refer [api-url-base]]
-            [imas-seamap.utils :refer [merge-in]]
+            [imas-seamap.utils :refer [merge-in first-where]]
             ["proj4" :as proj4]
             [clojure.string :as str]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -59,8 +59,11 @@
 
 (defn layer-search-keywords
   "Returns the complete search keywords of a layer, space-separated."
-  [{:keys [name layer_name description organisation data_classification keywords]}]
-  (string/join " " [name layer_name description organisation data_classification keywords]))
+  [categories {:keys [name category layer_name description organisation data_classification keywords]}]
+  (let [category-display-name (get-in categories [category :display_name])
+        organisation          (or organisation "Ungrouped")
+        data_classification   (or data_classification "Ungrouped")]
+    (string/join " " [name category category-display-name layer_name description organisation data_classification keywords])))
 
 (defn layer-name
   "Returns the most specific layer name; ie either detail_layer if
@@ -81,6 +84,13 @@
       (some #{(:habitat-layer region-stats)} habitat-layers) (:habitat-layer region-stats))))
 
 (defn sort-layers
+  [layers categories]
+  (sort-by
+   (juxt #(get-in categories [(:category %) :display_name]) :category :data_classification :id)
+   #(< %1 %2) ; comparator so nil is always last (instead of first)
+   layers))
+
+(defn sort-layers-presentation
   "Return layers in an order suitable for presentation (essentially,
   bathymetry at the bottom, third-party on top, and habitat layers by
   priority when in auto mode)"
@@ -127,7 +137,7 @@
         layer-ids          (->> group-priorities (map :layer) (into #{}))
         selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %) (match-server? %)) layers)
         viewport-layers (filter #(bbox-intersects? bounds (:bounding_box %)) selected-layers)]
-    (sort-layers viewport-layers priorities logic-type)))
+    (sort-layers-presentation viewport-layers priorities logic-type)))
 
 (defn all-priority-layers
   "Return the list of priority layers: that is, every layer for which
@@ -252,30 +262,7 @@
         info-format (get info-format (apply max info-formats))]
     info-format))
 
-(defn group-basemap-layers
-  "Groups each basemap layer by their layer group"
-  [layers groups]
-  (let [layers-grouped (group-by :layer_group layers)
-        
-        ungrouped-layers (get layers-grouped nil) ; Extract the independent layers (those without a layer group)
-        layers-grouped (dissoc layers-grouped nil)
-
-        basemap-groups (reduce-kv (fn [acc key layers]
-                                    (let [layers (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) layers) ; using sort key to sort layers into z-order
-                                          bottom-layer (first layers)
-                                          group (first (filter #(= (:id %) key) groups))]
-                                      (conj acc
-                                            (-> bottom-layer
-                                                (merge group)
-                                                (assoc :layers (drop 1 layers))))))
-                                  [] layers-grouped)
-        
-        max-id (apply max (map :id basemap-groups)) ; using max id to avoid collisions with existing groups
-        ungrouped-layers-groups (map-indexed (fn [idx layer]
-                                               (-> layer
-                                                   (assoc :id (+ max-id idx 1))
-                                                   (assoc :layers [])))
-                                             ungrouped-layers)
-        basemap-groups (concat basemap-groups ungrouped-layers-groups)
-        basemap-groups (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) basemap-groups)]
-    basemap-groups))
+(defn sort-by-sort-key
+  "Sorts a collection by its sort-key first and its id second."
+  [coll]
+  (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) coll))

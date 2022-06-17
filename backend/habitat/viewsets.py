@@ -88,6 +88,31 @@ select {}.STIntersection(@bbox).STAsBinary() geom, {} from {} where {}.STInterse
 PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",DATUM["D_GDA_1994",SPHEROID["GRS_1980",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Lambert_Conformal_Conic"],PARAMETER["standard_parallel_1",-18],PARAMETER["standard_parallel_2",-36],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",134],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Meter",1]]"""
 
 
+SQL_GET_NETWORKS = "select name from SeamapAus_Networks_View;"
+SQL_GET_PARKS = "select name, network from SeamapAus_Parks_View;"
+SQL_GET_ZONES = "select name from SeamapAus_Zones_View;"
+SQL_GET_ZONES_IUCN = "select name from SeamapAus_ZonesIUCN_View;"
+
+SQL_GET_NETWORK_AREA = "select geom.STArea() from SeamapAus_Networks_View where name=%s;"
+SQL_GET_NETWORK_HABITAT_STATS = """
+select habitat, area / 1000000 as area, 100 * area / %s as percentage
+from SeamapAus_Habitat_By_Region
+where
+  region = %s and
+  boundary_layer_id = 260 and
+  habitat_layer_id = 95;
+"""
+
+SQL_GET_PARK_AREA = "select geom.STArea() from SeamapAus_Parks_View where name=%s;"
+SQL_GET_PARK_HABITAT_STATS = """
+select habitat, area / 1000000 as area, 100 * area / %s as percentage
+from SeamapAus_Habitat_By_Region
+where
+  region = %s and
+  boundary_layer_id = 261 and
+  habitat_layer_id = 95;
+"""
+
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
@@ -400,3 +425,137 @@ def subset(request):
                     content_type='application/zip',
                     headers={'Content-Disposition':
                              'attachment; filename="{}.zip"'.format(table_name)})
+
+@action(detail=False)
+@api_view()
+def networks(request):
+    networks = []
+
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_NETWORKS)
+
+        while True:
+            try:
+                for row in cursor.fetchall():
+                    [name] = row
+                    networks.append({'name': name})
+                if not cursor.nextset():
+                    break
+            except ProgrammingError:
+                if not cursor.nextset():
+                    break
+    return Response(networks)
+
+@action(detail=False)
+@api_view()
+def parks(request):
+    parks = []
+
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_PARKS)
+
+        while True:
+            try:
+                for row in cursor.fetchall():
+                    [name, network] = row
+                    parks.append({'name': name,
+                                  'network': network})
+                if not cursor.nextset():
+                    break
+            except ProgrammingError:
+                if not cursor.nextset():
+                    break
+    return Response(parks)
+
+
+@action(detail=False)
+@api_view()
+def zones(request):
+    zones = []
+
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_ZONES)
+
+        while True:
+            try:
+                for row in cursor.fetchall():
+                    [name] = row
+                    zones.append({'name': name})
+                if not cursor.nextset():
+                    break
+            except ProgrammingError:
+                if not cursor.nextset():
+                    break
+    return Response(zones)
+
+
+@action(detail=False)
+@api_view()
+def zones_iucn(request):
+    zones_iucn = []
+
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_ZONES_IUCN)
+
+        while True:
+            try:
+                for row in cursor.fetchall():
+                    [name] = row
+                    zones_iucn.append({'name': name})
+                if not cursor.nextset():
+                    break
+            except ProgrammingError:
+                if not cursor.nextset():
+                    break
+    return Response(zones_iucn)
+
+@action(detail=False)
+@api_view()
+def habitat_statistics(request):
+    network   = request.query_params.get('network')
+    park      = request.query_params.get('park')
+    zone      = request.query_params.get('zone')
+    zone_iucn = request.query_params.get('zone-iucn')
+
+    habitat_stats = []
+    total_area = 0
+
+    with connections['transects'].cursor() as cursor:
+        if parks:
+            cursor.execute(SQL_GET_PARK_AREA, [park])
+            total_area = cursor.fetchone()[0]
+
+            cursor.execute(SQL_GET_PARK_HABITAT_STATS, [total_area, park])
+
+            while True:
+                try:
+                    for row in cursor.fetchall():
+                        [habitat, area, percentage] = row
+                        habitat_stats.append({'habitat': habitat, 'area': area, 'percentage': percentage})
+                    if not cursor.nextset():
+                        break
+                except ProgrammingError:
+                    if not cursor.nextset():
+                        break
+        elif network:
+            cursor.execute(SQL_GET_NETWORK_AREA, [network])
+            total_area = cursor.fetchone()[0]
+
+            cursor.execute(SQL_GET_NETWORK_HABITAT_STATS, [total_area, network])
+
+            while True:
+                try:
+                    for row in cursor.fetchall():
+                        [habitat, area, percentage] = row
+                        habitat_stats.append({'habitat': habitat, 'area': area, 'percentage': percentage})
+                    if not cursor.nextset():
+                        break
+                except ProgrammingError:
+                    if not cursor.nextset():
+                        break
+
+    unmapped_area = (total_area / 1000000) - float(sum([v['area'] for v in habitat_stats]))
+    unmapped_percentage = 100 * unmapped_area / (total_area / 1000000)
+    habitat_stats.append({'habitat': None, 'area': unmapped_area, 'percentage': unmapped_percentage})
+
+    return Response(habitat_stats)

@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map map-on-key]]
             [imas-seamap.map.utils :as mutils :refer [applicable-layers habitat-layer? download-link]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -33,7 +33,12 @@
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-priorities
-                                  :map/update-descriptors]
+                                  :map/update-descriptors
+                                  :map/update-categories
+                                  :map/update-networks
+                                  :map/update-parks
+                                  :map/update-zones
+                                  :map/update-zones-iucn]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -53,7 +58,12 @@
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-priorities
-                                  :map/update-descriptors]
+                                  :map/update-descriptors
+                                  :map/update-categories
+                                  :map/update-networks
+                                  :map/update-parks
+                                  :map/update-zones
+                                  :map/update-zones-iucn]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -73,7 +83,12 @@
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-priorities
-                                  :map/update-descriptors]
+                                  :map/update-descriptors
+                                  :map/update-categories
+                                  :map/update-networks
+                                  :map/update-parks
+                                  :map/update-zones
+                                  :map/update-zones-iucn]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -144,7 +159,7 @@
      :dispatch [:load-hash-state hash-code]}))
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url base-layer-url base-layer-group-url group-url organisation-url classification-url priority-url descriptor-url category-url]} (:config db)]
+  (let [{:keys [layer-url base-layer-url base-layer-group-url group-url organisation-url classification-url priority-url descriptor-url category-url network-url park-url zone-url zone-iucn-url]} (:config db)]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -190,6 +205,26 @@
                    :uri             category-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-categories]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             network-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-networks]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             park-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-parks]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             zone-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-zones]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             zone-iucn-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-zones-iucn]
                    :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn help-layer-toggle [db _]
@@ -486,9 +521,7 @@
 (defn create-save-state [{:keys [db]} _]
   (copy-text js/location.href)
   (let [save-state-url (get-in db [:config :save-state-url])]
-    {:message    ["Creating save state..."
-                  {:intent b/INTENT-NONE}]
-     :http-xhrio [{:method          :post
+    {:http-xhrio [{:method          :post
                    :uri             save-state-url
                    :params          {:hashstate (encode-state db)}
                    :format          (ajax/json-request-format)
@@ -497,11 +530,10 @@
                    :on-failure      [:create-save-state-failure]}]}))
 
 (defn create-save-state-success
-  [{:keys [db]} [_ response]]
+  [_ [_ response]]
   (let [url (str js/location.origin js/location.pathname "#" (:id response))]
     (copy-text url)
-    {:db db
-     :message ["URL copied to clipboard!"
+    {:message ["URL copied to clipboard!"
                {:intent b/INTENT-SUCCESS :icon "clipboard"}]}))
 
 (defn create-save-state-failure
@@ -608,3 +640,10 @@
 
 (defn drawer-panel-stack-pop [db _]
   (update-in db [:display :drawer-panel-stack] pop))
+
+(defn open-catalogue-panel [{:keys [db]} [_ category]]
+  (let [categories (get-in db [:map :categories])
+        categories (map-on-key categories :name)
+        title      (get-in categories [category :display_name])]
+    {:db db
+     :dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title title}]}))
