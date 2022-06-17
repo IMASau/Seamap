@@ -639,3 +639,8 @@ input.leaflet-control-layers-selector[type="radio"] {
     width: 0;
     height: 0;
 }
+
+.form-group > :first-child {
+    font-weight: bold;
+    margin-left: 6px;
+}

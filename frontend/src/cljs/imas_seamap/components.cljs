@@ -83,3 +83,9 @@
        {:value    value
         :options  options
         :onChange (fn [id] (onChange (:option (first-where #(= (:id %) id) options))))}])))
+
+(defn form-group
+  [{:keys [label]} & children]
+  [:div.form-group
+   [:div label]
+   (into [:div] children)])
