@@ -95,27 +95,22 @@ SQL_GET_ZONES_IUCN = "select name from SeamapAus_ZonesIUCN_View;"
 
 SQL_GET_BOUNDARY_AREA= """
 select
-  sum(area) AS area
+  sum(area) / 1000000 AS area
 from SeamapAus_BoundaryAreas_View
 where {}
 group by {}
 """
 
-SQL_GET_NETWORK_HABITAT_STATS = """
-select habitat, area / 1000000 as area, 100 * area / %s as percentage
-from SeamapAus_Habitat_By_Region
+SQL_GET_HABITAT_STATS= """
+select
+  habitat,
+  sum(area) / 1000000 as area,
+  100 * (sum(area) / 1000000) / %s as percentage
+from SeamapAus_HabitatStatistics_View
 where
-  region = %s and
-  boundary_layer_id = 260 and
-  habitat_layer_id = 95;
-"""
-SQL_GET_PARK_HABITAT_STATS = """
-select habitat, area / 1000000 as area, 100 * area / %s as percentage
-from SeamapAus_Habitat_By_Region
-where
-  region = %s and
-  boundary_layer_id = 261 and
-  habitat_layer_id = 95;
+  {} and
+  habitat_layer_id=95
+group by habitat;
 """
 
 def parse_bounds(bounds_str):
@@ -537,39 +532,27 @@ def habitat_statistics(request):
             ', '.join(v['type'] for v in boundaries if v['value'])
         )
         cursor.execute(boundary_area_sql)
-        
         try:
             boundary_area = float(cursor.fetchone()[0])
 
-            if park:
-                cursor.execute(SQL_GET_PARK_HABITAT_STATS, [boundary_area, park])
+            habitat_stats_sql = SQL_GET_HABITAT_STATS.format(
+                ' and '.join(f"{v['type']}=\'{v['value']}\'" for v in boundaries if v['value'])
+            )
+            cursor.execute(habitat_stats_sql, [boundary_area])
 
-                while True:
-                    try:
-                        for row in cursor.fetchall():
-                            [habitat, area, percentage] = row
-                            habitat_stats.append({'habitat': habitat, 'area': area, 'percentage': percentage})
-                        if not cursor.nextset():
-                            break
-                    except ProgrammingError:
-                        if not cursor.nextset():
-                            break
-            elif network:
-                cursor.execute(SQL_GET_NETWORK_HABITAT_STATS, [boundary_area, network])
+            while True:
+                try:
+                    for row in cursor.fetchall():
+                        [habitat, area, percentage] = row
+                        habitat_stats.append({'habitat': habitat, 'area': area, 'percentage': percentage})
+                    if not cursor.nextset():
+                        break
+                except ProgrammingError:
+                    if not cursor.nextset():
+                        break
 
-                while True:
-                    try:
-                        for row in cursor.fetchall():
-                            [habitat, area, percentage] = row
-                            habitat_stats.append({'habitat': habitat, 'area': area, 'percentage': percentage})
-                        if not cursor.nextset():
-                            break
-                    except ProgrammingError:
-                        if not cursor.nextset():
-                            break
-
-            unmapped_area = (boundary_area / 1000000) - float(sum([v['area'] for v in habitat_stats]))
-            unmapped_percentage = 100 * unmapped_area / (boundary_area / 1000000)
+            unmapped_area = boundary_area - float(sum([v['area'] for v in habitat_stats]))
+            unmapped_percentage = 100 * unmapped_area / boundary_area
             habitat_stats.append({'habitat': None, 'area': unmapped_area, 'percentage': unmapped_percentage})
             
         finally:
