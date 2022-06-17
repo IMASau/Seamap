@@ -569,9 +569,10 @@ def habitat_statistics(request):
                     if not cursor.nextset():
                         break
 
-            unmapped_area = boundary_area - float(sum([v['area'] for v in habitat_stats]))
+            unmapped_area = boundary_area - float(sum(v['area'] for v in habitat_stats))
             unmapped_percentage = 100 * unmapped_area / boundary_area
             habitat_stats.append({'habitat': None, 'area': unmapped_area, 'percentage': unmapped_percentage})
-            
-        finally:
+        except:
+            return Response([])
+        else:
             return Response(habitat_stats)
