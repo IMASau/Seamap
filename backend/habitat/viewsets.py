@@ -88,17 +88,36 @@ select {}.STIntersection(@bbox).STAsBinary() geom, {} from {} where {}.STInterse
 PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",DATUM["D_GDA_1994",SPHEROID["GRS_1980",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Lambert_Conformal_Conic"],PARAMETER["standard_parallel_1",-18],PARAMETER["standard_parallel_2",-36],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",134],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Meter",1]]"""
 
 
-SQL_GET_NETWORKS = "select name from SeamapAus_Networks_View;"
-SQL_GET_PARKS = "select name, network from SeamapAus_Parks_View;"
-SQL_GET_ZONES = "select name from SeamapAus_Zones_View;"
-SQL_GET_ZONES_IUCN = "select name from SeamapAus_ZonesIUCN_View;"
+SQL_GET_NETWORKS = """
+select distinct
+  network as name
+from SeamapAus_HabitatStatistics_View;
+"""
+
+SQL_GET_PARKS = """
+select distinct
+  park as name,
+  network
+from SeamapAus_HabitatStatistics_View;
+"""
+
+SQL_GET_ZONES = """
+select distinct
+  zone as name
+from SeamapAus_HabitatStatistics_View;
+"""
+SQL_GET_ZONES_IUCN = """
+select distinct
+  zone_iucn as name
+from SeamapAus_HabitatStatistics_View;
+"""
 
 SQL_GET_BOUNDARY_AREA= """
 select
   sum(area) / 1000000 AS area
 from SeamapAus_BoundaryAreas_View
 where {}
-group by {}
+group by {};
 """
 
 SQL_GET_HABITAT_STATS= """
