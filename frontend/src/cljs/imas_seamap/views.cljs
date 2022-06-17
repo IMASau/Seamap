@@ -809,7 +809,7 @@
     (if (seq habitat-statistics)
      (for [{:keys [habitat area percentage]} habitat-statistics]
       [:tr
-       {:key habitat}
+       {:key (or habitat "Unmapped")}
        [:td (or habitat "Unmapped")]
        [:td (gstring/format "%.2f" area)]
        [:td (gstring/format "%.2f" percentage)]])
