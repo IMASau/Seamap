@@ -546,17 +546,17 @@ def habitat_statistics(request):
 
     with connections['transects'].cursor() as cursor:
         boundary_area_sql = SQL_GET_BOUNDARY_AREA.format(
-            ' and '.join(f"{v['type']}=\'{v['value']}\'" for v in boundaries if v['value']),
+            ' and '.join(f"{v['type']}=%s" for v in boundaries if v['value']),
             ', '.join(v['type'] for v in boundaries if v['value'])
         )
-        cursor.execute(boundary_area_sql)
+        cursor.execute(boundary_area_sql, [v['value'] for v in boundaries if v['value']])
         try:
             boundary_area = float(cursor.fetchone()[0])
 
             habitat_stats_sql = SQL_GET_HABITAT_STATS.format(
-                ' and '.join(f"{v['type']}=\'{v['value']}\'" for v in boundaries if v['value'])
+                ' and '.join(f"{v['type']}=%s" for v in boundaries if v['value']),
             )
-            cursor.execute(habitat_stats_sql, [boundary_area])
+            cursor.execute(habitat_stats_sql, [boundary_area] + [v['value'] for v in boundaries if v['value']])
 
             while True:
                 try:
