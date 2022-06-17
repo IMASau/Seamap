@@ -91,25 +91,25 @@ PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",
 SQL_GET_NETWORKS = """
 select distinct
   network as name
-from SeamapAus_HabitatStatistics_View;
+from SeamapAus_BoundaryAreas_View;
 """
 
 SQL_GET_PARKS = """
 select distinct
   park as name,
   network
-from SeamapAus_HabitatStatistics_View;
+from SeamapAus_BoundaryAreas_View;
 """
 
 SQL_GET_ZONES = """
 select distinct
   zone as name
-from SeamapAus_HabitatStatistics_View;
+from SeamapAus_BoundaryAreas_View;
 """
 SQL_GET_ZONES_IUCN = """
 select distinct
   zone_iucn as name
-from SeamapAus_HabitatStatistics_View;
+from SeamapAus_BoundaryAreas_View;
 """
 
 SQL_GET_BOUNDARY_AREA= """
@@ -127,8 +127,7 @@ select
   100 * (sum(area) / 1000000) / %s as percentage
 from SeamapAus_HabitatStatistics_View
 where
-  {} and
-  habitat_layer_id=95
+  {}
 group by habitat;
 """
 
