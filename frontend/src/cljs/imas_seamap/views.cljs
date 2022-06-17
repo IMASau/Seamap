@@ -818,6 +818,47 @@
         {:colSpan 3}
         "No habitat information"]])]])
 
+(defn boundary-select-fields
+  []
+  [:div
+   [components/form-group
+    {:label "Network"}
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-network])
+      :options  @(re-frame/subscribe [:map/networks])
+      :onChange #(re-frame/dispatch [:map/update-active-network %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]
+   [components/form-group
+    {:label "Park"}
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-park])
+      :options  @(re-frame/subscribe [:map/parks])
+      :onChange #(re-frame/dispatch [:map/update-active-park %])
+      :keyfns
+      {:id          :name
+       :text        :name
+       :breadcrumbs (comp vector :network)}}]]
+   [components/form-group
+    {:label "Zone Category"}
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-zone])
+      :options  @(re-frame/subscribe [:map/zones])
+      :onChange #(re-frame/dispatch [:map/update-active-zone %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]
+   [components/form-group
+    {:label "IUCN Category (Zone)"}
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-zone-iucn])
+      :options  @(re-frame/subscribe [:map/zones-iucn])
+      :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]])
+
 (defn right-drawer
   []
   [components/drawer
@@ -827,43 +868,7 @@
     :isOpen      @(re-frame/subscribe [:right-drawer/open?])
     :onClose     #(re-frame/dispatch [:right-drawer/close])
     :hasBackdrop false}
-   [:div
-    "Network"
-    [components/select
-     {:value    @(re-frame/subscribe [:map/active-network])
-      :options  @(re-frame/subscribe [:map/networks])
-      :onChange #(re-frame/dispatch [:map/update-active-network %])
-      :keyfns
-      {:id   :name
-       :text :name}}]]
-   [:div
-    "Park"
-    [components/select
-     {:value    @(re-frame/subscribe [:map/active-park])
-      :options  @(re-frame/subscribe [:map/parks])
-      :onChange #(re-frame/dispatch [:map/update-active-park %])
-      :keyfns
-      {:id          :name
-       :text        :name
-       :breadcrumbs (comp vector :network)}}]]
-   [:div
-    "Zone Category"
-    [components/select
-     {:value    @(re-frame/subscribe [:map/active-zone])
-      :options  @(re-frame/subscribe [:map/zones])
-      :onChange #(re-frame/dispatch [:map/update-active-zone %])
-      :keyfns
-      {:id   :name
-       :text :name}}]]
-   [:div
-    "IUCN Category (Zone)"
-    [components/select
-     {:value    @(re-frame/subscribe [:map/active-zone-iucn])
-      :options  @(re-frame/subscribe [:map/zones-iucn])
-      :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
-      :keyfns
-      {:id   :name
-       :text :name}}]]
+   [boundary-select-fields]
    [habitat-statistics-table
     {:habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])}]])
 
