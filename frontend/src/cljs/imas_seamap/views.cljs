@@ -862,10 +862,18 @@
 
 (defn habitat-statistics
   []
-  [:div.drawer-group
-   [:h1.bp3-heading.bp3-icon-home "Habitat Statistics"]
-   [habitat-statistics-table
-    {:habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])}]])
+  (let [habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
+        without-unmapped   (filter :habitat habitat-statistics)]
+    [:div.drawer-group
+     [:h1.bp3-heading.bp3-icon-home "Habitat Statistics"]
+     [habitat-statistics-table
+      {:habitat-statistics habitat-statistics}]
+     (when (seq without-unmapped)
+       [components/donut-chart
+        {:values       without-unmapped
+         :theta        :area
+         :color        :habitat
+         :legend-title "Habitat"}])]))
 
 (defn right-drawer
   []
