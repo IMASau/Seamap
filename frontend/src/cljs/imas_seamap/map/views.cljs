@@ -177,7 +177,7 @@
          :class                "sidebar-map"
         ;; :crs                  leaflet/crs-epsg4326
          :crs                  leaflet/crs-epsg3857
-         :use-fly-to           true
+         :use-fly-to           false ; Trial solution to ISA-171; doesn't actually appear to affect fly-to movement on the map, but does allow for minute movements between center points on the map
          :center               center
          :zoom                 zoom
          :zoomControl          false
