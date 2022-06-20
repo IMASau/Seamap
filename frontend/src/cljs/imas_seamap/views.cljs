@@ -869,7 +869,8 @@
         [:div.drawer-group
          [:h1.bp3-heading.bp3-icon-home "Habitat Statistics"]
          [b/tabs
-          {:selected-tab-id @selected-tab
+          {:id              "habitat-statistics-tabs"
+           :selected-tab-id @selected-tab
            :on-change       #(reset! selected-tab %)}
           [b/tab
            {:id    "breakdown"
