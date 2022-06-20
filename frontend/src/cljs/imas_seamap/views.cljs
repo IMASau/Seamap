@@ -883,7 +883,7 @@
            {:id    "chart"
             :title "Chart"
             :panel
-            (when (= "chart" @selected-tab) ; Hack to only render the donut chart when the tab is selected, so that vega updates chart correctly
+            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
               (reagent/as-element
                (if (seq without-unmapped)
                  [components/donut-chart
