@@ -799,6 +799,8 @@
 
 (defn habitat-statistics-table
   [{:keys [habitat-statistics]}]
+  (js/console.warn "habitat-statistics")
+  (js/console.warn habitat-statistics)
   [:table
    [:thead
     [:tr
@@ -882,14 +884,15 @@
            {:id    "chart"
             :title "Chart"
             :panel
-            (reagent/as-element
-             (if (seq without-unmapped)
-               [components/donut-chart
-                {:values       without-unmapped
-                 :theta        :area
-                 :color        :habitat
-                 :legend-title "Habitat"}]
-               [:div "No habitat information"]))}]]]))))
+            (when (= "chart" @selected-tab)
+              (reagent/as-element
+               (if (seq without-unmapped)
+                 [components/donut-chart
+                  {:values       without-unmapped
+                   :theta        :area
+                   :color        :habitat
+                   :legend-title "Habitat"}]
+                 [:div "No habitat information"])))}]]]))))
 
 (defn right-drawer
   []
