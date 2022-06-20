@@ -603,16 +603,14 @@ input.leaflet-control-layers-selector[type="radio"] {
     padding-bottom: 20px;
 }
 
-.drawer-group h1 {
+.drawer-group > h1 {
     font-size: 16px;
     margin: 0 0 0 12px;
 }
 
 .drawer-group .bp3-button {
-    width: calc(100% - 24px);
     justify-content: flex-start;
     padding: 12px 12px;
-    margin: 0px 12px 6px 12px;
 }
 
 .drawer-group .bp3-button i {
@@ -621,7 +619,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     height: 15px;
 }
 
-.drawer-group h1::before {
+.drawer-group > h1::before {
     margin-right: 6px;
 }
 
@@ -644,10 +642,15 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-left: 6px;
 }
 
-.drawer-group > .form-group {
-    margin: 0px 12px 8px 12px;
-}
-
 .donut-chart {
     width: 100%;
+}
+
+.drawer-group > :not(h1) {
+    margin: 0px 12px 8px 12px;
+    width: calc(100% - 24px);
+}
+
+.drawer-group .bp3-tab-panel {
+    margin-top: 0;
 }
