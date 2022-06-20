@@ -862,7 +862,7 @@
 
 (defn habitat-statistics
   []
-  (let [selected-tab       (reagent/atom "breakdown")]
+  (let [selected-tab (reagent/atom "breakdown")]
     (fn []
       (let [habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
             without-unmapped   (filter :habitat habitat-statistics)]

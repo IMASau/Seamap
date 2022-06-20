@@ -627,8 +627,16 @@ input.leaflet-control-layers-selector[type="radio"] {
     transition: left 200ms, top 200ms;
 }
 
+.leaflet-right {
+    transition: right 200ms;
+}
+
 .catalogue-open .leaflet-left {
     left: calc(460px + 10px);
+}
+
+.state-of-knowledge-open .leaflet-right {
+    right: 460px;
 }
 
 /* Allow interactivity with underneath elements while drawer is open */
