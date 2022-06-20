@@ -599,30 +599,27 @@ input.leaflet-control-layers-selector[type="radio"] {
     flex: 1;
 }
 
-.left-drawer-group {
+.drawer-group {
     padding-bottom: 20px;
 }
 
-.left-drawer-group h1 {
-    padding-left: 12px;
+.drawer-group > h1 {
     font-size: 16px;
-    margin: 0;
+    margin: 0 0 0 12px;
 }
 
-.left-drawer-group .bp3-button {
-    width: calc(100% - 24px);
+.drawer-group .bp3-button {
     justify-content: flex-start;
     padding: 12px 12px;
-    margin: 0px 12px 6px 12px;
 }
 
-.left-drawer-group .bp3-button i {
+.drawer-group .bp3-button i {
     margin-right: 7px;
     width: 15px;
     height: 15px;
 }
 
-.left-drawer-group h1::before {
+.drawer-group > h1::before {
     margin-right: 6px;
 }
 
@@ -630,12 +627,38 @@ input.leaflet-control-layers-selector[type="radio"] {
     transition: left 200ms, top 200ms;
 }
 
+.leaflet-right {
+    transition: right 200ms;
+}
+
 .catalogue-open .leaflet-left {
     left: calc(460px + 10px);
+}
+
+.state-of-knowledge-open .leaflet-right {
+    right: 460px;
 }
 
 /* Allow interactivity with underneath elements while drawer is open */
 .bp3-overlay.bp3-overlay-open.bp3-overlay-container {
     width: 0;
     height: 0;
+}
+
+.form-group > :first-child {
+    font-weight: bold;
+    margin-left: 6px;
+}
+
+.donut-chart {
+    width: 100%;
+}
+
+.drawer-group > :not(h1) {
+    margin: 0px 12px 8px 12px;
+    width: calc(100% - 24px);
+}
+
+.drawer-group .bp3-tab-panel {
+    margin-top: 0;
 }

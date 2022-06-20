@@ -6,7 +6,8 @@
             [imas-seamap.utils :refer [first-where]]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
-            [imas-seamap.blueprint :as b]))
+            [imas-seamap.blueprint :as b]
+            ["vega-embed" :refer [embed]]))
 
 (defn items-selection-list
   [{:keys [items disabled data-path is-reversed]}]
@@ -83,3 +84,23 @@
        {:value    value
         :options  options
         :onChange (fn [id] (onChange (:option (first-where #(= (:id %) id) options))))}])))
+
+(defn form-group
+  [{:keys [label]} & children]
+  [:div.form-group
+   [:div label]
+   (into [:div] children)])
+
+(defn donut-chart
+  [{:keys [id values theta color legend-title]}]
+  (let [spec {:description "A simple donut chart with embedded data."
+              :width       "container"
+              :data        {:values values}
+              :mark        {:type "arc" :innerRadius 60}
+              :encoding    {:theta {:field theta :type "quantitative"}
+                            :color {:field color
+                                    :type "nominal"
+                                    :legend {:title (or legend-title color)}}}}]
+    (embed (str "#" id) (clj->js spec) (clj->js {:actions false}))
+    [:div.donut-chart
+     {:id id}]))

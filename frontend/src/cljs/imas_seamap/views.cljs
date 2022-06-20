@@ -250,9 +250,8 @@
                                query    [:transect.draw/clear "Clear Transect"]
                                :else    [:transect.draw/enable  "Draw Transect"])]
     [:div#transect-btn-wrapper {:data-helper-text "Click to draw a transect"}
-     [b/button {:id "transect-button"
-                :icon "edit"
-                :class "bp3-fill draw-transect height-static"
+     [b/button {:icon "edit"
+                :class "bp3-fill"
                 :on-click (handler-dispatch [dispatch-key])
                 :text label}]]))
 
@@ -263,9 +262,8 @@
                                       region     [:map.layer.selection/clear   "Clear Selection"]
                                       :else      [:map.layer.selection/enable  "Select Region"])]
     [:div#select-btn-wrapper {:data-helper-text "Click to select a region"}
-     [b/button {:id         "transect-button"
-                :icon       "widget"
-                :class "bp3-fill select-region height-static"
+     [b/button {:icon       "widget"
+                :class "bp3-fill"
                 :on-click   (handler-dispatch [dispatch-key])
                 :text       label}]]))
 
@@ -291,12 +289,14 @@
       :data-text-width "380px"}
      (if (= type :map.layer-logic/automatic)
        [b/button
-        {:on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}
+        {:class "bp3-fill"
+         :on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}
         [:span
          [:i.fa.fa-magic]
          "Automatic Layer Selection"]]
        [b/button
         {:icon "hand"
+         :class "bp3-fill"
          :text "Choose Layers Manually"
          :on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}])]))
 
@@ -671,20 +671,20 @@
   (let [categories @(re-frame/subscribe [:map/display-categories])]
     {:content
      [:div
-      [:div.left-drawer-group
+      [:div.drawer-group
        [:h1.bp3-heading.bp3-icon-settings
         "Controls"]
        [transect-toggle]
        [selection-button]
        [layer-logic-toggle-button]]
-      [:div.left-drawer-group
+      [:div.drawer-group
        [:h1.bp3-heading.bp3-icon-list-detail-view
         "Catalogue Layers"]
        (for [category categories]
          [catalogue-layers-button
           {:key      (:name category)
            :category category}])]
-      [:div.left-drawer-group
+      [:div.drawer-group
        [:h1.bp3-heading.bp3-icon-cog
         "Settings"]
        [b/button
@@ -809,7 +809,7 @@
     (if (seq habitat-statistics)
      (for [{:keys [habitat area percentage]} habitat-statistics]
       [:tr
-       {:key habitat}
+       {:key (or habitat "Unmapped")}
        [:td (or habitat "Unmapped")]
        [:td (gstring/format "%.2f" area)]
        [:td (gstring/format "%.2f" percentage)]])
@@ -817,6 +817,82 @@
        [:td
         {:colSpan 3}
         "No habitat information"]])]])
+
+(defn boundary-selection
+  []
+  [:div.drawer-group
+   [:h1.bp3-heading.bp3-icon-heatmap "Boundaries"]
+   [components/form-group
+    {:label "Network"}
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-network])
+      :options  @(re-frame/subscribe [:map/networks])
+      :onChange #(re-frame/dispatch [:map/update-active-network %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]
+   [components/form-group
+    {:label "Park"}
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-park])
+      :options  @(re-frame/subscribe [:map/parks])
+      :onChange #(re-frame/dispatch [:map/update-active-park %])
+      :keyfns
+      {:id          :name
+       :text        :name
+       :breadcrumbs (comp vector :network)}}]]
+   [components/form-group
+    {:label "Zone Category"}
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-zone])
+      :options  @(re-frame/subscribe [:map/zones])
+      :onChange #(re-frame/dispatch [:map/update-active-zone %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]
+   [components/form-group
+    {:label "IUCN Category (Zone)"}
+    [components/select
+     {:value    @(re-frame/subscribe [:map/active-zone-iucn])
+      :options  @(re-frame/subscribe [:map/zones-iucn])
+      :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
+      :keyfns
+      {:id   :name
+       :text :name}}]]])
+
+(defn habitat-statistics
+  []
+  (let [selected-tab (reagent/atom "breakdown")]
+    (fn []
+      (let [habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
+            without-unmapped   (filter :habitat habitat-statistics)]
+        [:div.drawer-group
+         [:h1.bp3-heading.bp3-icon-home "Habitat Statistics"]
+         [b/tabs
+          {:id              "habitat-statistics-tabs"
+           :selected-tab-id @selected-tab
+           :on-change       #(reset! selected-tab %)}
+          [b/tab
+           {:id    "breakdown"
+            :title "Breakdown"
+            :panel
+            (reagent/as-element
+             [habitat-statistics-table
+              {:habitat-statistics habitat-statistics}])}]
+          [b/tab
+           {:id    "chart"
+            :title "Chart"
+            :panel
+            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+              (reagent/as-element
+               (if (seq without-unmapped)
+                 [components/donut-chart
+                  {:id           "habitat-statistics"
+                   :values       without-unmapped
+                   :theta        :area
+                   :color        :habitat
+                   :legend-title "Habitat"}]
+                 [:div "No habitat information"])))}]]]))))
 
 (defn right-drawer
   []
@@ -827,45 +903,8 @@
     :isOpen      @(re-frame/subscribe [:right-drawer/open?])
     :onClose     #(re-frame/dispatch [:right-drawer/close])
     :hasBackdrop false}
-   [:div
-    "Network"
-    [components/select
-     {:value    @(re-frame/subscribe [:map/active-network])
-      :options  @(re-frame/subscribe [:map/networks])
-      :onChange #(re-frame/dispatch [:map/update-active-network %])
-      :keyfns
-      {:id   :name
-       :text :name}}]]
-   [:div
-    "Park"
-    [components/select
-     {:value    @(re-frame/subscribe [:map/active-park])
-      :options  @(re-frame/subscribe [:map/parks])
-      :onChange #(re-frame/dispatch [:map/update-active-park %])
-      :keyfns
-      {:id          :name
-       :text        :name
-       :breadcrumbs (comp vector :network)}}]]
-   [:div
-    "Zone Category"
-    [components/select
-     {:value    @(re-frame/subscribe [:map/active-zone])
-      :options  @(re-frame/subscribe [:map/zones])
-      :onChange #(re-frame/dispatch [:map/update-active-zone %])
-      :keyfns
-      {:id   :name
-       :text :name}}]]
-   [:div
-    "IUCN Category (Zone)"
-    [components/select
-     {:value    @(re-frame/subscribe [:map/active-zone-iucn])
-      :options  @(re-frame/subscribe [:map/zones-iucn])
-      :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
-      :keyfns
-      {:id   :name
-       :text :name}}]]
-   [habitat-statistics-table
-    {:habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])}]])
+   [boundary-selection]
+   [habitat-statistics]])
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])

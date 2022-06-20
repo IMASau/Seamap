@@ -163,13 +163,14 @@
         {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         catalogue-open?                               @(re-frame/subscribe [:left-drawer/open?])
+        state-of-knowledge-open?                      @(re-frame/subscribe [:right-drawer/open?])
         layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
         ;layer-params                                  @(re-frame/subscribe [:map.layers/params])
         logic-type                                    @(re-frame/subscribe [:map.layers/logic])
         loading?                                      @(re-frame/subscribe [:app/loading?])]
     (into
      [:div
-      {:class (str "map-wrapper" (when catalogue-open? " catalogue-open") (when (seq active-layers) " active-layers"))}
+      {:class (str "map-wrapper" (when catalogue-open? " catalogue-open") (when (seq active-layers) " active-layers") (when state-of-knowledge-open? " state-of-knowledge-open"))}
       [download-component download-info]
       [leaflet/leaflet-map
        (merge
