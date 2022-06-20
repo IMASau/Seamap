@@ -799,8 +799,6 @@
 
 (defn habitat-statistics-table
   [{:keys [habitat-statistics]}]
-  (js/console.warn "habitat-statistics")
-  (js/console.warn habitat-statistics)
   [:table
    [:thead
     [:tr
@@ -888,7 +886,8 @@
               (reagent/as-element
                (if (seq without-unmapped)
                  [components/donut-chart
-                  {:values       without-unmapped
+                  {:id           "habitat-statistics"
+                   :values       without-unmapped
                    :theta        :area
                    :color        :habitat
                    :legend-title "Habitat"}]

@@ -92,7 +92,7 @@
    (into [:div] children)])
 
 (defn donut-chart
-  [{:keys [values theta color legend-title]}]
+  [{:keys [id values theta color legend-title]}]
   (let [spec {:description "A simple donut chart with embedded data."
               :width       "container"
               :data        {:values values}
@@ -101,6 +101,6 @@
                             :color {:field color
                                     :type "nominal"
                                     :legend {:title (or legend-title color)}}}}]
-    (embed "#habitat-statistics" (clj->js spec) (clj->js {:actions false}))
+    (embed (str "#" id) (clj->js spec) (clj->js {:actions false}))
     [:div.donut-chart
-     {:id "habitat-statistics"}]))
+     {:id id}]))
