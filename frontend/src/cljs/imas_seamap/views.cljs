@@ -249,7 +249,7 @@
                                drawing? [:transect.draw/disable "Cancel Transect"]
                                query    [:transect.draw/clear "Clear Transect"]
                                :else    [:transect.draw/enable  "Draw Transect"])]
-    [:div {:data-helper-text "Click to draw a transect"}
+    [:div#transect-btn-wrapper {:data-helper-text "Click to draw a transect"}
      [b/button {:icon "edit"
                 :class "bp3-fill"
                 :on-click (handler-dispatch [dispatch-key])
@@ -261,7 +261,7 @@
                                       selecting? [:map.layer.selection/disable "Cancel Selecting"]
                                       region     [:map.layer.selection/clear   "Clear Selection"]
                                       :else      [:map.layer.selection/enable  "Select Region"])]
-    [:div {:data-helper-text "Click to select a region"}
+    [:div#select-btn-wrapper {:data-helper-text "Click to select a region"}
      [b/button {:icon       "widget"
                 :class "bp3-fill"
                 :on-click   (handler-dispatch [dispatch-key])
@@ -284,7 +284,7 @@
 
 (defn layer-logic-toggle-button []
   (let [{:keys [type]} @(re-frame/subscribe [:map.layers/logic])]
-    [:div
+    [:div#logic-toggle
      {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
       :data-text-width "380px"}
      (if (= type :map.layer-logic/automatic)
