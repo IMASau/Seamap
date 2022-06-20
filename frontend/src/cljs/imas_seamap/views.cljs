@@ -862,34 +862,34 @@
 
 (defn habitat-statistics
   []
-  (let [selected-tab       (reagent/atom "breakdown")
-        habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
-        without-unmapped   (filter :habitat habitat-statistics)]
+  (let [selected-tab       (reagent/atom "breakdown")]
     (fn []
-      [:div.drawer-group
-       [:h1.bp3-heading.bp3-icon-home "Habitat Statistics"]
-       [b/tabs
-        {:selected-tab-id @selected-tab
-         :on-change       #(reset! selected-tab %)}
-        [b/tab
-         {:id    "breakdown"
-          :title "Breakdown"
-          :panel
-          (reagent/as-element
-           [habitat-statistics-table
-            {:habitat-statistics habitat-statistics}])}]
-        [b/tab
-         {:id    "chart"
-          :title "Chart"
-          :panel
-          (reagent/as-element
-           (if (seq without-unmapped)
-             [components/donut-chart
-              {:values       without-unmapped
-               :theta        :area
-               :color        :habitat
-               :legend-title "Habitat"}]
-             [:div "No habitat information"]))}]]])))
+      (let [habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
+            without-unmapped   (filter :habitat habitat-statistics)]
+        [:div.drawer-group
+         [:h1.bp3-heading.bp3-icon-home "Habitat Statistics"]
+         [b/tabs
+          {:selected-tab-id @selected-tab
+           :on-change       #(reset! selected-tab %)}
+          [b/tab
+           {:id    "breakdown"
+            :title "Breakdown"
+            :panel
+            (reagent/as-element
+             [habitat-statistics-table
+              {:habitat-statistics habitat-statistics}])}]
+          [b/tab
+           {:id    "chart"
+            :title "Chart"
+            :panel
+            (reagent/as-element
+             (if (seq without-unmapped)
+               [components/donut-chart
+                {:values       without-unmapped
+                 :theta        :area
+                 :color        :habitat
+                 :legend-title "Habitat"}]
+               [:div "No habitat information"]))}]]]))))
 
 (defn right-drawer
   []
