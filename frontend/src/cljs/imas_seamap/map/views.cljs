@@ -188,6 +188,7 @@
          :on-moveend           on-map-view-changed
          :when-ready           on-map-view-changed
          :on-baselayerchange   on-base-layer-changed
+         :double-click-zoom    false
          :ref                  (fn [map]
                                  (when map
                                    (add-raw-handler-once (. map -leafletElement) "easyPrint-start"

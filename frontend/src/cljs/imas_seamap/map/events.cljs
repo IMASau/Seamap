@@ -25,7 +25,8 @@
         {:db db
          :put-hash (encode-state db)}))))
 
-(defn bounds-for-zoom
+;; Unused
+#_(defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a
   geographic point, to translate a click into a feature. The
   convenient option of using the map viewport for both, as provided by
@@ -114,7 +115,7 @@
                           :feature
                           {:status   :feature-info/waiting
                            :location point}))
-        db             (assoc-in db [:map :bounds] (bounds-for-point point bounds))]
+        db             (assoc-in db [:map :center] point)]
     (merge
      {:db db}
      (if info-format
@@ -286,7 +287,9 @@
     (update-grouped-base-layers db)))
 
 (defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
-  (let [layers (process-layers layers)]
+  (let [layers (process-layers layers)
+        layers (map (fn [{:keys [server_url] :as layer}]
+                      (assoc layer :server_url (if (= server_url "https://geoserver-dev.imas.utas.edu.au/geoserver/wms") "https://geoserver.imas.utas.edu.au/geoserver/wms" server_url))) layers)]
     (-> db
         (assoc-in [:map :layers] layers)
         (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
