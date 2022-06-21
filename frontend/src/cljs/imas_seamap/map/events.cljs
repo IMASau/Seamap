@@ -25,8 +25,7 @@
         {:db db
          :put-hash (encode-state db)}))))
 
-;; Unused
-#_(defn bounds-for-zoom
+(defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a
   geographic point, to translate a click into a feature. The
   convenient option of using the map viewport for both, as provided by
@@ -46,7 +45,8 @@
      :east  (+ lng (/ img-x-bounds 2))
      :west  (- lng (/ img-x-bounds 2))}))
 
-(defn bounds-for-point
+;; Unused
+#_(defn bounds-for-point
   "Uses current bounds and a map point coordinate to get the map bounds centered
    on that point. Called from get-feature-info, where we have both the geographic
    bounds and xy map coordinates."
