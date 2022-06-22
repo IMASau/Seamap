@@ -287,9 +287,7 @@
     (update-grouped-base-layers db)))
 
 (defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
-  (let [layers (process-layers layers)
-        layers (map (fn [{:keys [server_url] :as layer}]
-                      (assoc layer :server_url (if (= server_url "https://geoserver-dev.imas.utas.edu.au/geoserver/wms") "https://geoserver.imas.utas.edu.au/geoserver/wms" server_url))) layers)]
+  (let [layers (process-layers layers)]
     (-> db
         (assoc-in [:map :layers] layers)
         (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
