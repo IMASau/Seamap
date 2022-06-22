@@ -112,13 +112,7 @@ select distinct
 from SeamapAus_BoundaryAreas_View;
 """
 
-SQL_GET_BOUNDARY_AREA= """
-select
-  sum(area) / 1000000 AS area
-from SeamapAus_BoundaryAreas_View
-where {}
-group by {};
-"""
+SQL_GET_BOUNDARY_AREA = "SELECT dbo.boundary_geom(%s, %s, %s, %s).STArea() / 1000000"
 
 SQL_GET_HABITAT_STATS= """
 select
@@ -545,11 +539,8 @@ def habitat_statistics(request):
     ]
 
     with connections['transects'].cursor() as cursor:
-        boundary_area_sql = SQL_GET_BOUNDARY_AREA.format(
-            ' and '.join(f"{v['type']}=%s" for v in boundaries if v['value']),
-            ', '.join(v['type'] for v in boundaries if v['value'])
-        )
-        cursor.execute(boundary_area_sql, [v['value'] for v in boundaries if v['value']])
+
+        cursor.execute(SQL_GET_BOUNDARY_AREA, [network, park, zone, zone_iucn])
         try:
             boundary_area = float(cursor.fetchone()[0])
 
