@@ -45,7 +45,8 @@
      :east  (+ lng (/ img-x-bounds 2))
      :west  (- lng (/ img-x-bounds 2))}))
 
-(defn bounds-for-point
+;; Unused
+#_(defn bounds-for-point
   "Uses current bounds and a map point coordinate to get the map bounds centered
    on that point. Called from get-feature-info, where we have both the geographic
    bounds and xy map coordinates."
@@ -114,7 +115,7 @@
                           :feature
                           {:status   :feature-info/waiting
                            :location point}))
-        db             (assoc-in db [:map :bounds] (bounds-for-point point bounds))]
+        db             (assoc-in db [:map :center] point)]
     (merge
      {:db db}
      (if info-format
