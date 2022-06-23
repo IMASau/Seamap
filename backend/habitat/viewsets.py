@@ -115,14 +115,21 @@ from SeamapAus_BoundaryAreas_View;
 SQL_GET_BOUNDARY_AREA = "SELECT dbo.boundary_geom(%s, %s, %s, %s).STArea() / 1000000"
 
 SQL_GET_HABITAT_STATS= """
-select
+DECLARE @netname  NVARCHAR(254) = %s;
+DECLARE @resname  NVARCHAR(254) = %s;
+DECLARE @zonename NVARCHAR(254) = %s;
+DECLARE @zoneiucn NVARCHAR(5)   = %s;
+SELECT
   habitat,
-  sum(area) / 1000000 as area,
-  100 * (sum(area) / 1000000) / %s as percentage
-from SeamapAus_HabitatStatistics_View
-where
-  {}
-group by habitat;
+  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
+  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage
+FROM BoundaryHabitats
+WHERE
+  (NETNAME = @netname OR @netname IS NULL) AND
+  (RESNAME = @resname OR @resname IS NULL) AND
+  (ZONENAME = @zonename OR @zonename IS NULL) AND
+  (ZONEIUCN = @zoneiucn OR @zoneiucn IS NULL)
+GROUP BY habitat;
 """
 
 def parse_bounds(bounds_str):
@@ -544,10 +551,7 @@ def habitat_statistics(request):
         try:
             boundary_area = float(cursor.fetchone()[0])
 
-            habitat_stats_sql = SQL_GET_HABITAT_STATS.format(
-                ' and '.join(f"{v['type']}=%s" for v in boundaries if v['value']),
-            )
-            cursor.execute(habitat_stats_sql, [boundary_area] + [v['value'] for v in boundaries if v['value']])
+            cursor.execute(SQL_GET_HABITAT_STATS, [network, park, zone, zone_iucn, boundary_area])
 
             while True:
                 try:
