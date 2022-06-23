@@ -132,6 +132,25 @@ WHERE
 GROUP BY habitat;
 """
 
+SQL_GET_BATHYMETRY_STATS= """
+DECLARE @netname  NVARCHAR(254) = %s;
+DECLARE @resname  NVARCHAR(254) = %s;
+DECLARE @zonename NVARCHAR(254) = %s;
+DECLARE @zoneiucn NVARCHAR(5)   = %s;
+SELECT
+  bathymetry_category,
+  bathymetry_rank,
+  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
+  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage
+FROM BoundaryBathymetries
+WHERE
+  (NETNAME = @netname OR @netname IS NULL) AND
+  (RESNAME = @resname OR @resname IS NULL) AND
+  (ZONENAME = @zonename OR @zonename IS NULL) AND
+  (ZONEIUCN = @zoneiucn OR @zoneiucn IS NULL)
+GROUP BY bathymetry_category;
+"""
+
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
