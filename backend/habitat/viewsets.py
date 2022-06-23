@@ -532,18 +532,15 @@ def zones_iucn(request):
 @api_view()
 def habitat_statistics(request):
     network   = request.query_params.get('network')
+    network   = network if network else None
     park      = request.query_params.get('park')
+    park      = park if park else None
     zone      = request.query_params.get('zone')
+    zone      = zone if zone else None
     zone_iucn = request.query_params.get('zone-iucn')
+    zone_iucn = zone_iucn if zone_iucn else None
 
     habitat_stats = []
-
-    boundaries = [
-        {'type': 'network', 'value': network},
-        {'type': 'park', 'value': park},
-        {'type': 'zone', 'value': zone},
-        {'type': 'zone_iucn', 'value': zone_iucn}
-    ]
 
     with connections['transects'].cursor() as cursor:
 

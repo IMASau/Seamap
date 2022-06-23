@@ -7,10 +7,10 @@ BEGIN
     SELECT geometry::UnionAggregate([geom])
     FROM [dbo].[BoundaryGeoms_View]
     WHERE
-      ([NETNAME] = @netname OR @netname IS NULL OR @netname = '') AND
-      ([RESNAME] = @resname OR @resname IS NULL OR @resname = '') AND
-      ([ZONENAME] = @zonename OR @zonename IS NULL OR @zonename = '') AND
-      ([ZONEIUCN] = @zoneiucn OR @zoneiucn IS NULL OR @zoneiucn = '')
+      ([NETNAME] = @netname OR @netname IS NULL) AND
+      ([RESNAME] = @resname OR @resname IS NULL) AND
+      ([ZONENAME] = @zonename OR @zonename IS NULL) AND
+      ([ZONEIUCN] = @zoneiucn OR @zoneiucn IS NULL)
   );
   RETURN(@geom);
 END;
