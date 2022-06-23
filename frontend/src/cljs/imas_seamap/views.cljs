@@ -120,15 +120,16 @@
               :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
    [legend-display layer]])
 
-(defn catalogue-header [{:keys [name] :as layer} {:keys [active? errors? loading? expanded? _opacity] :as _layer-state}]
+(defn catalogue-header [{:keys [name] :as layer} {:keys [active? visible? errors? loading? expanded? _opacity] :as _layer-state}]
   [b/tooltip {:content (if expanded? "Click to hide legend" "Click to show legend")
               :class "header-text"
               :disabled (not active?)}
    [:div.layer-wrapper (when active? {:class "layer-active"})
     [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
-     [:div (when (or loading? errors?) {:class "header-status-icons"})
-      (when (and active? loading?) [b/spinner {:className "bp3-small layer-spinner"}])
-      (when (and active? errors?) [:span.layer-warning.bp3-icon.bp3-icon-small.bp3-icon-warning-sign])]
+     (when (and active? visible? (or loading? errors?))
+       [:div.header-status-icons
+        (when loading? [b/spinner {:className "bp3-small layer-spinner"}])
+        (when errors? [:span.layer-warning.bp3-icon.bp3-icon-small.bp3-icon-warning-sign])])
      [b/clipped-text {:ellipsize true :class "header-text"
                       :on-click (handler-dispatch [:map.layer.legend/toggle layer])}
       name]]]])
@@ -171,7 +172,7 @@
 (defn layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   {:keys [active-layers loading-fn expanded-fn error-fn opacity-fn] :as layer-props}]
+   {:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn] :as layer-props}]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
@@ -185,6 +186,7 @@
                    (map-indexed
                     (fn [i layer]
                       (let [layer-state {:active?   (some #{layer} active-layers)
+                                         :visible?  (some #{layer} visible-layers)
                                          :loading?  (loading-fn layer)
                                          :expanded? (expanded-fn layer)
                                          :errors?   (error-fn layer)
@@ -312,7 +314,7 @@
                                                [:map.layers/filter (.. event -target -value)])}]]))
 
 
-(defn layer-card [layer-spec {:keys [active? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
+(defn layer-card [layer-spec {:keys [active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
   [:div.layer-wrapper.bp3-card.bp3-elevation-1
    {:class (when active? "layer-active bp3-interactive")}
    [:div.header-row.height-static
@@ -327,9 +329,9 @@
     [active-layer-catalogue-controls layer-spec other-props]]
    [catalogue-legend layer-spec other-props]])
 
-(defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
+(defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _visible-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
   (let [expanded (reagent/atom expanded)]
-    (fn [{:keys [id title classes] :as props} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+    (fn [{:keys [id title classes] :as props} layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
       [:div.layer-group.height-managed
        (merge {:class (str classes (if @expanded " expanded" " collapsed"))}
               (when id {:id id}))
@@ -345,6 +347,7 @@
          (for [layer layers]
            ^{:key (:layer_name layer)}
            [layer-card layer {:active?   (some #{layer} active-layers)
+                              :visible?  (some #{layer} visible-layers)
                               :loading?  (loading-fn layer)
                               :errors?   (error-fn layer)
                               :expanded? (expanded-fn layer)
@@ -589,17 +592,17 @@
                        [:span.bp3-icon-standard {:class (str "bp3-icon-" icon-name)}]]))
 
 ;; Unused
-#_(defn layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+#_(defn layer-tab [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
    [layer-logic-toggle]
    [layer-search-filter]
-   [layer-group {:expanded true :title "Layers"} layers active-layers loading-fn error-fn expanded-fn opacity-fn]
+   [layer-group {:expanded true :title "Layers"} layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
 ;; Unused
-#_(defn catalogue-layer-tab [layers active-layers loading-fn error-fn expanded-fn opacity-fn group]
+#_(defn catalogue-layer-tab [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn group]
   [:div.sidebar-tab.height-managed
    [transect-toggle]
    [selection-button]
@@ -607,6 +610,7 @@
    [layer-search-filter]
    [layer-catalogue layers
     {:active-layers active-layers
+     :visible-layers visible-layers
      :loading-fn    loading-fn
      :error-fn      error-fn
      :expanded-fn   expanded-fn
@@ -615,13 +619,14 @@
    [help-button]])
 
 ;; Unused
-#_(defn management-layer-tab [boundaries habitat-layer active-layers loading-fn error-fn expanded-fn opacity-fn]
+#_(defn management-layer-tab [boundaries habitat-layer active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
    [:div.boundary-layers.height-managed.group-scrollable
     [:h6 "Boundary Layers"]
     (for [layer boundaries]
       ^{:key (:layer_name layer)}
       [layer-card layer {:active?   (some #{layer} active-layers)
+                         :visible?  (some #{layer} visible-layers)
                          :loading?  (loading-fn layer)
                          :errors?   (error-fn layer)
                          :expanded? (expanded-fn layer)
@@ -694,16 +699,16 @@
 
 ;; Unused
 #_(defn layer-panel
-  [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities]}]
+  [{:keys [title layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
   {:title title
    :content
    [:div.sidebar-tab.height-managed
     [layer-search-filter]
-    [layer-group {:expanded true :title "Layers"} layers active-layers loading-layers error-layers expanded-layers layer-opacities]]})
+    [layer-group {:expanded true :title "Layers"} layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]})
 
 ;; Unused
 #_(defn management-layers-panel
-  [{:keys [layers habitat-layer active-layers loading-layers error-layers expanded-layers layer-opacities]}]
+  [{:keys [layers habitat-layer active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
   {:title "Management Region Layers"
    :content
    [:div.sidebar-tab.height-managed
@@ -712,6 +717,7 @@
      (for [layer layers]
        ^{:key (:layer_name layer)}
        [layer-card layer {:active?   (some #{layer} active-layers)
+                          :visible?  (some #{layer} visible-layers)
                           :loading?  (loading-layers layer)
                           :errors?   (error-layers layer)
                           :expanded? (expanded-layers layer)
@@ -743,23 +749,24 @@
     benthic habitat data."]]]]})
 
 (defn catalogue-layers-panel
-  [{:keys [title layers active-layers loading-layers error-layers expanded-layers layer-opacities group]}]
+  [{:keys [title layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities group]}]
   {:title   title
    :content
    [:div.sidebar-tab.height-managed
     [layer-search-filter]
     [layer-catalogue layers
-     {:active-layers active-layers
-      :loading-fn    loading-layers
-      :error-fn      error-layers
-      :expanded-fn   expanded-layers
-      :opacity-fn    layer-opacities}
+     {:active-layers  active-layers
+      :visible-layers visible-layers
+      :loading-fn     loading-layers
+      :error-fn       error-layers
+      :expanded-fn    expanded-layers
+      :opacity-fn     layer-opacities}
      group]]})
 
 (defn drawer-panel-selection
   [panel map-layers]
   (let [{:keys [panel props]} panel
-        {:keys [groups active-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers]
+        {:keys [groups active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers]
     (case panel
       :drawer-panel/catalogue-layers
       (catalogue-layers-panel
@@ -767,6 +774,7 @@
         props
         {:layers          ((:group props) groups)
          :active-layers   active-layers
+         :visible-layers  visible-layers
          :loading-layers  loading-layers
          :error-layers    error-layers
          :expanded-layers expanded-layers
