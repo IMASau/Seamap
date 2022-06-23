@@ -587,3 +587,44 @@ def habitat_statistics(request):
             return Response([])
         else:
             return Response(habitat_stats)
+
+@action(detail=False)
+@api_view()
+def bathymetry_statistics(request):
+    network   = request.query_params.get('network')
+    network   = network if network else None
+    park      = request.query_params.get('park')
+    park      = park if park else None
+    zone      = request.query_params.get('zone')
+    zone      = zone if zone else None
+    zone_iucn = request.query_params.get('zone-iucn')
+    zone_iucn = zone_iucn if zone_iucn else None
+
+    bathymetry_stats = []
+
+    with connections['transects'].cursor() as cursor:
+
+        cursor.execute(SQL_GET_BOUNDARY_AREA, [network, park, zone, zone_iucn])
+        try:
+            boundary_area = float(cursor.fetchone()[0])
+
+            cursor.execute(SQL_GET_BATHYMETRY_STATS, [network, park, zone, zone_iucn, boundary_area])
+
+            while True:
+                try:
+                    for row in cursor.fetchall():
+                        [bathymetry_category, bathymetry_rank, area, percentage] = row
+                        bathymetry_stats.append({'category': bathymetry_category, 'rank': bathymetry_rank, 'area': area, 'percentage': percentage})
+                    if not cursor.nextset():
+                        break
+                except ProgrammingError:
+                    if not cursor.nextset():
+                        break
+
+            unmapped_area = boundary_area - float(sum(v['area'] for v in bathymetry_stats))
+            unmapped_percentage = 100 * unmapped_area / boundary_area
+            bathymetry_stats.append({'category': None, 'rank': bathymetry_rank, 'area': unmapped_area, 'percentage': unmapped_percentage})
+        except:
+            return Response([])
+        else:
+            return Response(bathymetry_stats)
