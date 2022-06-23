@@ -1,17 +1,16 @@
-CREATE FUNCTION boundary_geom (@network nvarchar(254), @park nvarchar(254), @zone nvarchar(254), @zone_iucn nvarchar(5))
+CREATE FUNCTION boundary_geom (@netname nvarchar(254), @resname nvarchar(254), @zonename nvarchar(254), @zoneiucn nvarchar(5))
 RETURNS geometry
 AS
 BEGIN
   DECLARE @geom geometry;
   SET @geom =(
     SELECT geometry::UnionAggregate([geom])
-    FROM [IMASSeamap].[dbo].[SeamapAus_BoundaryAreas_View]
+    FROM [dbo].[BoundaryGeoms_View]
     WHERE
-      ([network] = @network OR @network IS NULL OR @network = '') AND
-      ([park] = @park OR @park IS NULL OR @park = '') AND
-      ([zone] = @zone OR @zone IS NULL OR @zone = '') AND
-      ([zone_iucn] = @zone_iucn OR @zone_iucn IS NULL OR @zone_iucn = '')
+      ([NETNAME] = @netname OR @netname IS NULL OR @netname = '') AND
+      ([RESNAME] = @resname OR @resname IS NULL OR @resname = '') AND
+      ([ZONENAME] = @zonename OR @zonename IS NULL OR @zonename = '') AND
+      ([ZONEIUCN] = @zoneiucn OR @zoneiucn IS NULL OR @zoneiucn = '')
   );
   RETURN(@geom);
 END;
-GO

@@ -1,11 +1,12 @@
-CREATE FUNCTION [dbo].[habitat_intersections] (@boundary geometry)
+CREATE FUNCTION unique_bathymetry_intersections (@boundary GEOMETRY)
 RETURNS TABLE
 AS
 RETURN
 (
   SELECT
     [CATEGORY],
+    [RANK],
     [geom].STIntersection(@boundary) AS [geom]
-  FROM [dbo].[VW_HABITAT]
+  FROM [dbo].[UniqueBathymetryGeoms]
   WHERE [geom].STIntersects(@boundary) = 1
 );
