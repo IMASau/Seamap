@@ -107,9 +107,12 @@
      {:id id}]))
 
 (defn drawer-group
-  [{:keys [heading icon]} & children]
-  [:div.drawer-group
+  [{:keys [heading icon collapsed? toggle-collapse]} & children]
+  [:div
+   {:class (str "drawer-group" (when collapsed? " collapsed") (when toggle-collapse " collapsible"))}
    [:h1
-    {:class (str "bp3-heading" (when icon (str " bp3-icon-" icon)))}
+    (merge
+     {:class (str "bp3-heading" (when icon (str " bp3-icon-" icon)))}
+     (when toggle-collapse {:on-click toggle-collapse}))
     heading]
    (into [:div.drawer-group-content] children)])

@@ -647,11 +647,20 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-right: 6px;
 }
 
+.drawer-group.collapsible > h1 {
+    cursor: pointer;
+}
+
 .drawer-group-content {
     margin: 0px 12px;
     flex: 1;
     display: flex;
     flex-direction: column;
+    transition: flex-grow 500ms;
+}
+
+.collapsed .drawer-group-content {
+    flex-grow: 0;
 }
 
 .drawer-group-content > * {
