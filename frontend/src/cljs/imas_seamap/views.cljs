@@ -971,7 +971,8 @@
     :size        "460px"
     :isOpen      @(re-frame/subscribe [:right-drawer/open?])
     :onClose     #(re-frame/dispatch [:right-drawer/close])
-    :hasBackdrop false}
+    :hasBackdrop false
+    :className   "state-of-knowledge-drawer"}
    [boundary-selection]
    [habitat-statistics]
    [bathymetry-statistics]])
