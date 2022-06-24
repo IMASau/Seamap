@@ -577,32 +577,32 @@
               (assoc-in [:map :active-park] nil)
               (assoc-in [:map :active-network] network)))]
     {:db db
-     :dispatch [:map/get-habitat-statistics
-                :map/get-bathymetry-statistics]}))
+     :dispatch-n [[:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-park [{:keys [db]} [_ {:keys [network] :as park}]]
   (let [db (-> db
                (assoc-in [:map :active-network] (first-where #(= (:name %) network) (get-in db [:map :networks])))
                (assoc-in [:map :active-park] park))]
     {:db db
-     :dispatch [:map/get-habitat-statistics
-                :map/get-bathymetry-statistics]}))
+     :dispatch-n [[:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-zone [{:keys [db]} [_ zone]]
   (let [db (-> db
                (assoc-in [:map :active-zone] zone)
                (assoc-in [:map :active-zone-iucn] nil))]
     {:db db
-     :dispatch [:map/get-habitat-statistics
-                :map/get-bathymetry-statistics]}))
+     :dispatch-n [[:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-zone-iucn [{:keys [db]} [_ zone-iucn]]
   (let [db (-> db
                (assoc-in [:map :active-zone-iucn] zone-iucn)
                (assoc-in [:map :active-zone] nil))]
     {:db db
-     :dispatch [:map/get-habitat-statistics
-                :map/get-bathymetry-statistics]}))
+     :dispatch-n [[:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
 
 (defn get-habitat-statistics [{:keys [db]}]
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
