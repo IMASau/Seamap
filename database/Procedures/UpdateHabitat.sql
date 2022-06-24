@@ -1,3 +1,7 @@
+-- When a habitat has been updated, use this stored procedure to update the
+-- hardcoded values in the BoundaryHabitats table (can also be used to add a new
+-- habitat to the table).
+
 CREATE PROCEDURE UpdateHabitat
   @habitat NVARCHAR(30)
 AS

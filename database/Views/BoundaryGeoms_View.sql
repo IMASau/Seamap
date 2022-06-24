@@ -1,3 +1,6 @@
+-- Contains the geometries for the smallest possible unit of boundaries. Geometries
+-- can be selected by any combination of network, park, or zone.
+
 CREATE VIEW [dbo].[BoundaryGeoms_View] AS
 SELECT
   [NETNAME],

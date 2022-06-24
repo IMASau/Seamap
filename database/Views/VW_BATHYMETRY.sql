@@ -1,3 +1,5 @@
+-- Contains the many bathymetry geometries.
+
 CREATE VIEW [dbo].[VW_BATHYMETRY] AS
 SELECT
   [objectid],

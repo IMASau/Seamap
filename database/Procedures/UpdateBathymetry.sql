@@ -1,3 +1,7 @@
+-- When a bathymetry category has been updated, use this stored procedure to update
+-- the hardcoded values in the BathymetryGeoms, UniqueBathymetryGeoms, and
+-- BoundaryBathymetries tables.
+
 CREATE PROCEDURE UpdateBathymetry
   @category VARCHAR(10)
 AS

@@ -1,3 +1,6 @@
+-- Takes the bathymetry geometries from BathymetryGeoms table and uses the
+-- difference from all bathymetry geometries of higher rank (lower RANK values).
+
 CREATE TABLE [dbo].[UniqueBathymetryGeoms] (
   [CATEGORY] VARCHAR(10) NOT NULL,
   [RANK]     INT         NOT NULL,

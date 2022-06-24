@@ -1,3 +1,7 @@
+-- When a boundary has been updated, use this stored procedure to update the
+-- hardcoded values in the BoundaryHabitats and BoundaryBathymetries tables (can
+-- also be used to add a new boundary to the tables).
+
 CREATE PROCEDURE UpdateBoundary
   @netname  NVARCHAR(254),
   @resname  NVARCHAR(254),
