@@ -545,14 +545,11 @@ def zones_iucn(request):
 @action(detail=False)
 @api_view()
 def habitat_statistics(request):
-    network   = request.query_params.get('network')
-    network   = network if network else None
-    park      = request.query_params.get('park')
-    park      = park if park else None
-    zone      = request.query_params.get('zone')
-    zone      = zone if zone else None
-    zone_iucn = request.query_params.get('zone-iucn')
-    zone_iucn = zone_iucn if zone_iucn else None
+    params = {k: v if v else None for k, v in request.query_params.items()}
+    network   = params.get('network')
+    park      = params.get('park')
+    zone      = params.get('zone')
+    zone_iucn = params.get('zone-iucn')
 
     habitat_stats = []
 
@@ -586,14 +583,11 @@ def habitat_statistics(request):
 @action(detail=False)
 @api_view()
 def bathymetry_statistics(request):
-    network   = request.query_params.get('network')
-    network   = network if network else None
-    park      = request.query_params.get('park')
-    park      = park if park else None
-    zone      = request.query_params.get('zone')
-    zone      = zone if zone else None
-    zone_iucn = request.query_params.get('zone-iucn')
-    zone_iucn = zone_iucn if zone_iucn else None
+    params = {k: v if v else None for k, v in request.query_params.items()}
+    network   = params.get('network')
+    park      = params.get('park')
+    zone      = params.get('zone')
+    zone_iucn = params.get('zone-iucn')
 
     bathymetry_stats = []
 
