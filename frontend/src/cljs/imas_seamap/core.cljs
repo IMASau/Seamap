@@ -111,6 +111,8 @@
     :map/got-featureinfo-err              mevents/got-feature-info-error
     :map/get-habitat-statistics           [mevents/get-habitat-statistics]
     :map/got-habitat-statistics           mevents/got-habitat-statistics
+    :map/get-bathymetry-statistics        [mevents/get-bathymetry-statistics]
+    :map/got-bathymetry-statistics        mevents/got-bathymetry-statistics
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]

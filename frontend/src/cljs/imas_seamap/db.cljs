@@ -37,7 +37,8 @@
                      :active-zone     nil
                      :zones-iucn      []
                      :active-zone-iucn nil
-                     :habitat-statistics []}
+                     :habitat-statistics []
+                     :bathymetry-statistics []}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}
@@ -77,5 +78,6 @@
                      :zone-url              (str api-url-base "habitat/zones")
                      :zone-iucn-url         (str api-url-base "habitat/zonesiucn")
                      :habitat-statistics-url (str api-url-base "habitat/habitatstatistics")
+                     :bathymetry-statistics-url (str api-url-base "habitat/bathymetrystatistics")
                      :init-catalogue-state  {:tab      "cat"
                                              :expanded #{}}}})
