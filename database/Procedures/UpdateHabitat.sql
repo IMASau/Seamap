@@ -13,5 +13,5 @@ BEGIN
     [habitat].[geom]
   FROM [dbo].[BoundaryGeoms_View] AS [boundary]
   CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat]
-  WHERE [habitat].[habitat] = @habitat;
+  WHERE [habitat].[CATEGORY] = @habitat;
 END;

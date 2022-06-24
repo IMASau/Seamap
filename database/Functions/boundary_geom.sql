@@ -1,4 +1,4 @@
-CREATE FUNCTION boundary_geom (@netname nvarchar(254), @resname nvarchar(254), @zonename nvarchar(254), @zoneiucn nvarchar(5))
+CREATE FUNCTION [dbo].[boundary_geom] (@netname nvarchar(254), @resname nvarchar(254), @zonename nvarchar(254), @zoneiucn nvarchar(5))
 RETURNS geometry
 AS
 BEGIN
