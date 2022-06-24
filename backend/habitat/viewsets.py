@@ -143,7 +143,7 @@ WHERE
   (RESNAME = @resname OR @resname IS NULL) AND
   (ZONENAME = @zonename OR @zonename IS NULL) AND
   (ZONEIUCN = @zoneiucn OR @zoneiucn IS NULL)
-GROUP BY bathymetry_category;
+GROUP BY bathymetry_category, bathymetry_rank;
 """
 
 def parse_bounds(bounds_str):
@@ -612,7 +612,7 @@ def bathymetry_statistics(request):
 
             unmapped_area = boundary_area - float(sum(v['area'] for v in bathymetry_stats))
             unmapped_percentage = 100 * unmapped_area / boundary_area
-            bathymetry_stats.append({'category': None, 'rank': bathymetry_rank, 'area': unmapped_area, 'percentage': unmapped_percentage})
+            bathymetry_stats.append({'category': None, 'rank': None, 'area': unmapped_area, 'percentage': unmapped_percentage})
         except:
             return Response([])
         else:
