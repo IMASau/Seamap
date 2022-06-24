@@ -913,7 +913,7 @@
   [:table
    [:thead
     [:tr
-     [:th "Bathymetry Category"]
+     [:th "Category"]
      [:th "Area (km^2)"]
      [:th "Percentage (%)"]]]
    [:tbody
@@ -934,14 +934,7 @@
   (let [selected-tab (reagent/atom "breakdown")
         collapsed?   (reagent/atom false)]
     (fn []
-      (let [bathymetry-statistics [{:category "2m or less" :rank 1 :area 11.8}
-                                   {:category "3-10m" :rank 2 :area 99.9}
-                                   {:category "11-20m" :rank 3 :area 88.1}
-                                   {:category "21-50m" :rank 4 :area 99.9}
-                                   {:category "> 50m" :rank 5 :area 11.9}
-                                   {:category "unknown" :rank 7 :area 72.5}
-                                   {:category nil :rank nil :area 3}]
-            bathymetry-statistics (map #(assoc % :percentage (/ (:area %) (reduce + (map :area bathymetry-statistics)))) bathymetry-statistics)
+      (let [bathymetry-statistics @(re-frame/subscribe [:map/bathymetry-statistics])
             without-unmapped      (filter :category bathymetry-statistics)]
         [components/drawer-group 
          {:heading         "Bathymetry Statistics"

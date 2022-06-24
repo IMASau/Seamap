@@ -188,3 +188,6 @@
 
 (defn habitat-statistics [{:keys [map]}]
   (:habitat-statistics map))
+
+(defn bathymetry-statistics [{:keys [map]}]
+  (:bathymetry-statistics map))

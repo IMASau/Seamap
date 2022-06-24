@@ -39,6 +39,7 @@
     :map/active-zone                      msubs/active-zone
     :map/active-zone-iucn                 msubs/active-zone-iucn
     :map/habitat-statistics               msubs/habitat-statistics
+    :map/bathymetry-statistics            msubs/bathymetry-statistics
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/priorities                msubs/map-layer-priorities
