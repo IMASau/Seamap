@@ -914,7 +914,7 @@
                                    {:category "unknown" :rank 7 :area 72.5}
                                    {:category nil :rank nil :area 3}]
             bathymetry-statistics (map #(assoc % :percentage (/ (:area %) (reduce + (map :area bathymetry-statistics)))) bathymetry-statistics)
-            without-unmapped      (filter :category habitat-statistics)]
+            without-unmapped      (filter :category bathymetry-statistics)]
         [:div.drawer-group
          [:h1.bp3-heading.bp3-icon-home "Bathymetry Statistics"]]))))
 
