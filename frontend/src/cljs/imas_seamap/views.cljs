@@ -895,7 +895,7 @@
               (reagent/as-element
                (if (seq without-unmapped)
                  [components/donut-chart
-                  {:id           "habitat-statistics"
+                  {:id           "habitat-statistics-chart"
                    :values       without-unmapped
                    :theta        :area
                    :color        :habitat
@@ -916,7 +916,29 @@
             bathymetry-statistics (map #(assoc % :percentage (/ (:area %) (reduce + (map :area bathymetry-statistics)))) bathymetry-statistics)
             without-unmapped      (filter :category bathymetry-statistics)]
         [:div.drawer-group
-         [:h1.bp3-heading.bp3-icon-home "Bathymetry Statistics"]]))))
+         [:h1.bp3-heading.bp3-icon-timeline-area-chart "Bathymetry Statistics"]
+         [b/tabs
+          {:id              "bathymetry-statistics-tabs"
+           :selected-tab-id @selected-tab
+           :on-change       #(reset! selected-tab %)}
+          [b/tab
+           {:id    "breakdown"
+            :title "Breakdown"
+            :panel nil}]
+          [b/tab
+           {:id    "chart"
+            :title "Chart"
+            :panel
+            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+              (reagent/as-element
+               (if (seq without-unmapped)
+                 [components/donut-chart
+                  {:id           "bathymetry-statistics-chart"
+                   :values       without-unmapped
+                   :theta        :area
+                   :color        :category
+                   :legend-title "Category"}]
+                 [:div "No bathymetry information"])))}]]]))))
 
 (defn right-drawer
   []
