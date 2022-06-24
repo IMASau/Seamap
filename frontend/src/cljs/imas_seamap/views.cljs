@@ -902,6 +902,22 @@
                    :legend-title "Habitat"}]
                  [:div "No habitat information"])))}]]]))))
 
+(defn bathymetry-statistics
+  []
+  (let [selected-tab (reagent/atom "breakdown")]
+    (fn []
+      (let [bathymetry-statistics [{:category "2m or less" :rank 1 :area 11.8}
+                                   {:category "3-10m" :rank 2 :area 99.9}
+                                   {:category "11-20m" :rank 3 :area 88.1}
+                                   {:category "21-50m" :rank 4 :area 99.9}
+                                   {:category "> 50m" :rank 5 :area 11.9}
+                                   {:category "unknown" :rank 7 :area 72.5}
+                                   {:category nil :rank nil :area 3}]
+            bathymetry-statistics (map #(assoc % :percentage (/ (:area %) (reduce + (map :area bathymetry-statistics)))) bathymetry-statistics)
+            without-unmapped      (filter :category habitat-statistics)]
+        [:div.drawer-group
+         [:h1.bp3-heading.bp3-icon-home "Bathymetry Statistics"]]))))
+
 (defn right-drawer
   []
   [components/drawer
@@ -912,7 +928,8 @@
     :onClose     #(re-frame/dispatch [:right-drawer/close])
     :hasBackdrop false}
    [boundary-selection]
-   [habitat-statistics]])
+   [habitat-statistics]
+   [bathymetry-statistics]])
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
