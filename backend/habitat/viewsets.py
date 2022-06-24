@@ -89,32 +89,27 @@ PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",
 
 
 SQL_GET_NETWORKS = """
-select distinct
-  network as name
-from SeamapAus_BoundaryAreas_View;
+SELECT DISTINCT NETNAME
+FROM BoundaryGeoms_View;
 """
 
 SQL_GET_PARKS = """
-select distinct
-  park as name,
-  network
-from SeamapAus_BoundaryAreas_View;
+SELECT DISTINCT NETNAME, RESNAME
+FROM BoundaryGeoms_View;
 """
 
 SQL_GET_ZONES = """
-select distinct
-  zone as name
-from SeamapAus_BoundaryAreas_View;
+SELECT DISTINCT ZONENAME
+FROM BoundaryGeoms_View;
 """
 SQL_GET_ZONES_IUCN = """
-select distinct
-  zone_iucn as name
-from SeamapAus_BoundaryAreas_View;
+SELECT DISTINCT ZONEIUCN
+FROM BoundaryGeoms_View;
 """
 
 SQL_GET_BOUNDARY_AREA = "SELECT dbo.boundary_geom(%s, %s, %s, %s).STArea() / 1000000"
 
-SQL_GET_HABITAT_STATS= """
+SQL_GET_HABITAT_STATS = """
 DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
@@ -132,7 +127,7 @@ WHERE
 GROUP BY habitat;
 """
 
-SQL_GET_BATHYMETRY_STATS= """
+SQL_GET_BATHYMETRY_STATS = """
 DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
@@ -495,7 +490,7 @@ def parks(request):
         while True:
             try:
                 for row in cursor.fetchall():
-                    [name, network] = row
+                    [network, name] = row
                     parks.append({'name': name,
                                   'network': network})
                 if not cursor.nextset():
