@@ -25,7 +25,7 @@
       :onClose on-close}]))
 
 (defn drawer
-  [{:keys [title position size isOpen onClose hasBackdrop]} & children]
+  [{:keys [title position size isOpen onClose hasBackdrop className]} & children]
   (let [title (reagent/as-element title)
         children (reagent/as-element (into [:div] children))]
    [ui-controls/Drawer
@@ -35,7 +35,8 @@
      :children    children
      :isOpen      isOpen
      :onClose     onClose
-     :hasBackdrop hasBackdrop}]))
+     :hasBackdrop hasBackdrop
+     :className   className}]))
 
 (defn floating-pill-button
   [{:keys [text icon on-click disabled]}]

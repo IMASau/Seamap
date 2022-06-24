@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from "prop-types";
 import * as BPCore from '@blueprintjs/core';
 
-export function Drawer({isOpen, title, onClose, children, position, size, hasBackdrop}) {
+export function Drawer({isOpen, title, onClose, children, position, size, hasBackdrop, className}) {
 	return (
 		<BPCore.Drawer
 			isOpen={isOpen}
@@ -13,6 +13,7 @@ export function Drawer({isOpen, title, onClose, children, position, size, hasBac
 			onClose={() => onClose ? onClose() : null}
 			isCloseButtonShown={true}
 			canOutsideClickClose={false}
+			className={className}
 		>
 			{children}
 		</BPCore.Drawer>
