@@ -649,6 +649,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .drawer-group.collapsible > h1 {
     cursor: pointer;
+    user-select: none;
 }
 
 .drawer-group-content {
@@ -691,6 +692,15 @@ input.leaflet-control-layers-selector[type="radio"] {
 .state-of-knowledge-drawer > .drawer-children > .drawer-group:not(:first-child) {
     flex: 1 1 0;
     min-height: 0;
+}
+
+.state-of-knowledge-drawer > .drawer-children > .drawer-group {
+    transition: flex 500ms;
+}
+
+.state-of-knowledge-drawer > .drawer-children > .drawer-group.collapsed {
+    flex: 0 1 0;
+    min-height: 20px;
 }
 
 .state-of-knowledge-drawer > .drawer-children > .drawer-group:not(:first-child) > .drawer-group-content {

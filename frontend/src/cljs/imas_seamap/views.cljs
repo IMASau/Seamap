@@ -872,13 +872,16 @@
 
 (defn habitat-statistics
   []
-  (let [selected-tab (reagent/atom "breakdown")]
+  (let [selected-tab (reagent/atom "breakdown")
+        collapsed?   (reagent/atom false)]
     (fn []
       (let [habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
             without-unmapped   (filter :habitat habitat-statistics)]
         [components/drawer-group
-         {:heading "Habitat Statistics"
-          :icon    "home"}
+         {:heading     "Habitat Statistics"
+          :icon        "home"
+          :collapsed?  @collapsed?
+          :toggle-collapse #(swap! collapsed? not)}
          [b/tabs
           {:id              "habitat-statistics-tabs"
            :selected-tab-id @selected-tab
@@ -928,7 +931,8 @@
 
 (defn bathymetry-statistics
   []
-  (let [selected-tab (reagent/atom "breakdown")]
+  (let [selected-tab (reagent/atom "breakdown")
+        collapsed?   (reagent/atom false)]
     (fn []
       (let [bathymetry-statistics [{:category "2m or less" :rank 1 :area 11.8}
                                    {:category "3-10m" :rank 2 :area 99.9}
@@ -939,9 +943,11 @@
                                    {:category nil :rank nil :area 3}]
             bathymetry-statistics (map #(assoc % :percentage (/ (:area %) (reduce + (map :area bathymetry-statistics)))) bathymetry-statistics)
             without-unmapped      (filter :category bathymetry-statistics)]
-        [components/drawer-group
-         {:heading "Bathymetry Statistics"
-          :icon    "timeline-area-chart"}
+        [components/drawer-group 
+         {:heading         "Bathymetry Statistics"
+          :icon            "timeline-area-chart"
+          :collapsed?      @collapsed?
+          :toggle-collapse #(swap! collapsed? not)}
          [b/tabs
           {:id              "bathymetry-statistics-tabs"
            :selected-tab-id @selected-tab
