@@ -902,6 +902,27 @@
                    :legend-title "Habitat"}]
                  [:div "No habitat information"])))}]]]))))
 
+(defn bathymetry-statistics-table
+  [{:keys [bathymetry-statistics]}]
+  [:table
+   [:thead
+    [:tr
+     [:th "Bathymetry Category"]
+     [:th "Area (km^2)"]
+     [:th "Percentage (%)"]]]
+   [:tbody
+    (if (seq bathymetry-statistics)
+      (for [{:keys [category area percentage]} bathymetry-statistics]
+        [:tr
+         {:key (or category "Unmapped")}
+         [:td (or category "Unmapped")]
+         [:td (gstring/format "%.2f" area)]
+         [:td (gstring/format "%.2f" percentage)]])
+      [:tr
+       [:td
+        {:colSpan 3}
+        "No bathymetry information"]])]])
+
 (defn bathymetry-statistics
   []
   (let [selected-tab (reagent/atom "breakdown")]
@@ -924,7 +945,9 @@
           [b/tab
            {:id    "breakdown"
             :title "Breakdown"
-            :panel nil}]
+            :panel (reagent/as-element
+                    [bathymetry-statistics-table
+                     {:bathymetry-statistics bathymetry-statistics}])}]
           [b/tab
            {:id    "chart"
             :title "Chart"
