@@ -599,30 +599,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     flex: 1;
 }
 
-.drawer-group {
-    padding-bottom: 20px;
-}
-
-.drawer-group > h1 {
-    font-size: 16px;
-    margin: 0 0 0 12px;
-}
-
-.drawer-group .bp3-button {
-    justify-content: flex-start;
-    padding: 12px 12px;
-}
-
-.drawer-group .bp3-button i {
-    margin-right: 7px;
-    width: 15px;
-    height: 15px;
-}
-
-.drawer-group > h1::before {
-    margin-right: 6px;
-}
-
 .leaflet-left {
     transition: left 200ms, top 200ms;
 }
@@ -654,11 +630,64 @@ input.leaflet-control-layers-selector[type="radio"] {
     width: 100%;
 }
 
-.drawer-group > :not(h1) {
-    margin: 0px 12px 8px 12px;
-    width: calc(100% - 24px);
+/* Drawer group component start */
+.drawer-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.drawer-group > h1 {
+    flex: 0 0;
+    font-size: 16px;
+    margin: 0 0 0 12px;
+}
+
+.drawer-group > h1::before {
+    margin-right: 6px;
+}
+
+.drawer-group-content {
+    margin: 0px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer-group-content > * {
+    margin-bottom: 8px;
+}
+/* Drawer group component end */
+
+.drawer-group-content .bp3-button {
+    justify-content: flex-start;
+    padding: 12px;
+}
+
+.drawer-group .bp3-button i {
+    margin-right: 7px;
+    width: 15px;
+    height: 15px;
 }
 
 .drawer-group .bp3-tab-panel {
     margin-top: 0;
+}
+
+.state-of-knowledge-drawer > .drawer-children {
+    display: flex;
+    flex-direction: column;
+}
+
+.state-of-knowledge-drawer > .drawer-children > .drawer-group:not(:first-child) {
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+.state-of-knowledge-drawer > .drawer-children > .drawer-group:not(:first-child) > .drawer-group-content {
+    overflow-y: auto;
+}
+
+.state-of-knowledge-drawer > .drawer-children > .drawer-group:first-child {
+    flex: 0 0;
 }

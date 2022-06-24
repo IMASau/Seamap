@@ -12,10 +12,10 @@
 (defn items-selection-list
   [{:keys [items disabled data-path is-reversed]}]
   (let [items (map (fn [{:keys [key content]}] {:key key :content (reagent/as-element content)}) items)]
-   [ui-controls/ItemsSelectionList
-    {:items (if is-reversed (reverse items) items)
-     :disabled disabled
-     :onReorder (fn [src-idx dst-idx] (re-frame/dispatch [::selection-list-reorder (if is-reversed (- (count items) src-idx 1) src-idx) (if is-reversed (- (count items) dst-idx 1) dst-idx) data-path]))}]))
+    [ui-controls/ItemsSelectionList
+     {:items (if is-reversed (reverse items) items)
+      :disabled disabled
+      :onReorder (fn [src-idx dst-idx] (re-frame/dispatch [::selection-list-reorder (if is-reversed (- (count items) src-idx 1) src-idx) (if is-reversed (- (count items) dst-idx 1) dst-idx) data-path]))}]))
 
 (defn panel-stack
   [{:keys [panels on-close]}]
@@ -27,16 +27,16 @@
 (defn drawer
   [{:keys [title position size isOpen onClose hasBackdrop className]} & children]
   (let [title (reagent/as-element title)
-        children (reagent/as-element (into [:div] children))]
-   [ui-controls/Drawer
-    {:title       title
-     :position    position
-     :size        size
-     :children    children
-     :isOpen      isOpen
-     :onClose     onClose
-     :hasBackdrop hasBackdrop
-     :className   className}]))
+        children (reagent/as-element (into [:div.drawer-children] children))]
+    [ui-controls/Drawer
+     {:title       title
+      :position    position
+      :size        size
+      :children    children
+      :isOpen      isOpen
+      :onClose     onClose
+      :hasBackdrop hasBackdrop
+      :className   className}]))
 
 (defn floating-pill-button
   [{:keys [text icon on-click disabled]}]
@@ -51,15 +51,15 @@
 (defn omnibar
   [{:keys [placeholder isOpen onClose items onItemSelect keyfns]}]
   (letfn [(item->omnibar-item
-           [item]
-           (if-let [{:keys [id text keywords breadcrumbs]} keyfns]
-             (merge
-              {:id       (id item)
-               :text     (text item)
-               :keywords (keywords item)
-               :item     item}
-              (when breadcrumbs {:breadcrumbs (breadcrumbs item)}))
-             item))]
+            [item]
+            (if-let [{:keys [id text keywords breadcrumbs]} keyfns]
+              (merge
+               {:id       (id item)
+                :text     (text item)
+                :keywords (keywords item)
+                :item     item}
+               (when breadcrumbs {:breadcrumbs (breadcrumbs item)}))
+              item))]
     (let [items (map item->omnibar-item items)]
       [ui-controls/Omnibar
        {:placeholder  placeholder
@@ -71,14 +71,14 @@
 (defn select
   [{:keys [value options onChange keyfns]}]
   (letfn [(option->select-option
-           [option]
-           (if-let [{:keys [id text breadcrumbs]} keyfns]
-             (merge
-              {:id     (id option)
-               :text   (text option)
-               :option option}
-              (when breadcrumbs {:breadcrumbs (breadcrumbs option)}))
-             option))]
+            [option]
+            (if-let [{:keys [id text breadcrumbs]} keyfns]
+              (merge
+               {:id     (id option)
+                :text   (text option)
+                :option option}
+               (when breadcrumbs {:breadcrumbs (breadcrumbs option)}))
+              option))]
     (let [options (map option->select-option options)
           value   (:id (option->select-option value))]
       [ui-controls/Select
@@ -105,3 +105,11 @@
     (embed (str "#" id) (clj->js spec) (clj->js {:actions false}))
     [:div.donut-chart
      {:id id}]))
+
+(defn drawer-group
+  [{:keys [heading icon]} & children]
+  [:div.drawer-group
+   [:h1
+    {:class (str "bp3-heading" (when icon (str " bp3-icon-" icon)))}
+    heading]
+   (into [:div.drawer-group-content] children)])

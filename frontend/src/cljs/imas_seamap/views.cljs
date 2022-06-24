@@ -676,22 +676,23 @@
   (let [categories @(re-frame/subscribe [:map/display-categories])]
     {:content
      [:div
-      [:div.drawer-group
-       [:h1.bp3-heading.bp3-icon-settings
-        "Controls"]
+      [components/drawer-group
+       {:heading "Controls"
+        :icon    "settings"}
        [transect-toggle]
        [selection-button]
        [layer-logic-toggle-button]]
-      [:div.drawer-group
-       [:h1.bp3-heading.bp3-icon-list-detail-view
-        "Catalogue Layers"]
+      
+      [components/drawer-group
+       {:heading "Catalogue Layers"
+        :icon    "list-detail-view"}
        (for [category categories]
          [catalogue-layers-button
           {:key      (:name category)
            :category category}])]
-      [:div.drawer-group
-       [:h1.bp3-heading.bp3-icon-cog
-        "Settings"]
+      [components/drawer-group
+       {:heading "Settings"
+        :icon    "cog"}
        [b/button
         {:icon     "undo"
          :text     "Reset Interface"
@@ -828,8 +829,9 @@
 
 (defn boundary-selection
   []
-  [:div.drawer-group
-   [:h1.bp3-heading.bp3-icon-heatmap "Boundaries"]
+  [components/drawer-group
+   {:heading "Boundaries"
+    :icon    "heatmap"}
    [components/form-group
     {:label "Network"}
     [components/select
@@ -874,8 +876,9 @@
     (fn []
       (let [habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
             without-unmapped   (filter :habitat habitat-statistics)]
-        [:div.drawer-group
-         [:h1.bp3-heading.bp3-icon-home "Habitat Statistics"]
+        [components/drawer-group
+         {:heading "Habitat Statistics"
+          :icon    "home"}
          [b/tabs
           {:id              "habitat-statistics-tabs"
            :selected-tab-id @selected-tab
@@ -936,8 +939,9 @@
                                    {:category nil :rank nil :area 3}]
             bathymetry-statistics (map #(assoc % :percentage (/ (:area %) (reduce + (map :area bathymetry-statistics)))) bathymetry-statistics)
             without-unmapped      (filter :category bathymetry-statistics)]
-        [:div.drawer-group
-         [:h1.bp3-heading.bp3-icon-timeline-area-chart "Bathymetry Statistics"]
+        [components/drawer-group
+         {:heading "Bathymetry Statistics"
+          :icon    "timeline-area-chart"}
          [b/tabs
           {:id              "bathymetry-statistics-tabs"
            :selected-tab-id @selected-tab
