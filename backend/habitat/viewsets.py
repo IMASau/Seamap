@@ -89,46 +89,61 @@ PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",
 
 
 SQL_GET_NETWORKS = """
-select distinct
-  network as name
-from SeamapAus_BoundaryAreas_View;
+SELECT DISTINCT NETNAME
+FROM BoundaryGeoms_View;
 """
 
 SQL_GET_PARKS = """
-select distinct
-  park as name,
-  network
-from SeamapAus_BoundaryAreas_View;
+SELECT DISTINCT NETNAME, RESNAME
+FROM BoundaryGeoms_View;
 """
 
 SQL_GET_ZONES = """
-select distinct
-  zone as name
-from SeamapAus_BoundaryAreas_View;
+SELECT DISTINCT ZONENAME
+FROM BoundaryGeoms_View;
 """
 SQL_GET_ZONES_IUCN = """
-select distinct
-  zone_iucn as name
-from SeamapAus_BoundaryAreas_View;
+SELECT DISTINCT ZONEIUCN
+FROM BoundaryGeoms_View;
 """
 
-SQL_GET_BOUNDARY_AREA= """
-select
-  sum(area) / 1000000 AS area
-from SeamapAus_BoundaryAreas_View
-where {}
-group by {};
-"""
+SQL_GET_BOUNDARY_AREA = "SELECT dbo.boundary_geom(%s, %s, %s, %s).STArea() / 1000000"
 
-SQL_GET_HABITAT_STATS= """
-select
+SQL_GET_HABITAT_STATS = """
+DECLARE @netname  NVARCHAR(254) = %s;
+DECLARE @resname  NVARCHAR(254) = %s;
+DECLARE @zonename NVARCHAR(254) = %s;
+DECLARE @zoneiucn NVARCHAR(5)   = %s;
+SELECT
   habitat,
-  sum(area) / 1000000 as area,
-  100 * (sum(area) / 1000000) / %s as percentage
-from SeamapAus_HabitatStatistics_View
-where
-  {}
-group by habitat;
+  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
+  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage
+FROM BoundaryHabitats
+WHERE
+  (NETNAME = @netname OR @netname IS NULL) AND
+  (RESNAME = @resname OR @resname IS NULL) AND
+  (ZONENAME = @zonename OR @zonename IS NULL) AND
+  (ZONEIUCN = @zoneiucn OR @zoneiucn IS NULL)
+GROUP BY habitat;
+"""
+
+SQL_GET_BATHYMETRY_STATS = """
+DECLARE @netname  NVARCHAR(254) = %s;
+DECLARE @resname  NVARCHAR(254) = %s;
+DECLARE @zonename NVARCHAR(254) = %s;
+DECLARE @zoneiucn NVARCHAR(5)   = %s;
+SELECT
+  bathymetry_category,
+  bathymetry_rank,
+  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
+  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage
+FROM BoundaryBathymetries
+WHERE
+  (NETNAME = @netname OR @netname IS NULL) AND
+  (RESNAME = @resname OR @resname IS NULL) AND
+  (ZONENAME = @zonename OR @zonename IS NULL) AND
+  (ZONEIUCN = @zoneiucn OR @zoneiucn IS NULL)
+GROUP BY bathymetry_category;
 """
 
 def parse_bounds(bounds_str):
@@ -475,7 +490,7 @@ def parks(request):
         while True:
             try:
                 for row in cursor.fetchall():
-                    [name, network] = row
+                    [network, name] = row
                     parks.append({'name': name,
                                   'network': network})
                 if not cursor.nextset():
@@ -530,33 +545,21 @@ def zones_iucn(request):
 @action(detail=False)
 @api_view()
 def habitat_statistics(request):
-    network   = request.query_params.get('network')
-    park      = request.query_params.get('park')
-    zone      = request.query_params.get('zone')
-    zone_iucn = request.query_params.get('zone-iucn')
+    params = {k: v if v else None for k, v in request.query_params.items()}
+    network   = params.get('network')
+    park      = params.get('park')
+    zone      = params.get('zone')
+    zone_iucn = params.get('zone-iucn')
 
     habitat_stats = []
 
-    boundaries = [
-        {'type': 'network', 'value': network},
-        {'type': 'park', 'value': park},
-        {'type': 'zone', 'value': zone},
-        {'type': 'zone_iucn', 'value': zone_iucn}
-    ]
-
     with connections['transects'].cursor() as cursor:
-        boundary_area_sql = SQL_GET_BOUNDARY_AREA.format(
-            ' and '.join(f"{v['type']}=%s" for v in boundaries if v['value']),
-            ', '.join(v['type'] for v in boundaries if v['value'])
-        )
-        cursor.execute(boundary_area_sql, [v['value'] for v in boundaries if v['value']])
+
+        cursor.execute(SQL_GET_BOUNDARY_AREA, [network, park, zone, zone_iucn])
         try:
             boundary_area = float(cursor.fetchone()[0])
 
-            habitat_stats_sql = SQL_GET_HABITAT_STATS.format(
-                ' and '.join(f"{v['type']}=%s" for v in boundaries if v['value']),
-            )
-            cursor.execute(habitat_stats_sql, [boundary_area] + [v['value'] for v in boundaries if v['value']])
+            cursor.execute(SQL_GET_HABITAT_STATS, [network, park, zone, zone_iucn, boundary_area])
 
             while True:
                 try:
@@ -576,3 +579,41 @@ def habitat_statistics(request):
             return Response([])
         else:
             return Response(habitat_stats)
+
+@action(detail=False)
+@api_view()
+def bathymetry_statistics(request):
+    params = {k: v if v else None for k, v in request.query_params.items()}
+    network   = params.get('network')
+    park      = params.get('park')
+    zone      = params.get('zone')
+    zone_iucn = params.get('zone-iucn')
+
+    bathymetry_stats = []
+
+    with connections['transects'].cursor() as cursor:
+
+        cursor.execute(SQL_GET_BOUNDARY_AREA, [network, park, zone, zone_iucn])
+        try:
+            boundary_area = float(cursor.fetchone()[0])
+
+            cursor.execute(SQL_GET_BATHYMETRY_STATS, [network, park, zone, zone_iucn, boundary_area])
+
+            while True:
+                try:
+                    for row in cursor.fetchall():
+                        [bathymetry_category, bathymetry_rank, area, percentage] = row
+                        bathymetry_stats.append({'category': bathymetry_category, 'rank': bathymetry_rank, 'area': area, 'percentage': percentage})
+                    if not cursor.nextset():
+                        break
+                except ProgrammingError:
+                    if not cursor.nextset():
+                        break
+
+            unmapped_area = boundary_area - float(sum(v['area'] for v in bathymetry_stats))
+            unmapped_percentage = 100 * unmapped_area / boundary_area
+            bathymetry_stats.append({'category': None, 'rank': bathymetry_rank, 'area': unmapped_area, 'percentage': unmapped_percentage})
+        except:
+            return Response([])
+        else:
+            return Response(bathymetry_stats)
