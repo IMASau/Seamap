@@ -618,7 +618,7 @@
                  :on-failure      [:ajax/default-err-handler]}}))
 
 (defn got-habitat-statistics [db [_ habitat-statistics]]
-  (assoc-in db [:map :habitat-statistics] habitat-statistics))
+  (assoc-in db [:map :boundary-statistics :habitat :results] habitat-statistics))
 
 (defn get-bathymetry-statistics [{:keys [db]}]
   (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])
@@ -634,4 +634,4 @@
                   :on-failure      [:ajax/default-err-handler]}}))
 
 (defn got-bathymetry-statistics [db [_ bathymetry-statistics]]
-  (assoc-in db [:map :bathymetry-statistics] bathymetry-statistics))
+  (assoc-in db [:map :boundary-statistics :bathymetry :results] bathymetry-statistics))

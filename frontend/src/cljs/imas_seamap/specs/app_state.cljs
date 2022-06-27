@@ -208,27 +208,35 @@
                    :map.boundaries/zones-iucn
                    :map.boundaries/active-zone-iucn]))
 
-(s/def :map.habitat-statistic/habitat (s/nilable string?))
-(s/def :map.habitat-statistic/area number?)
-(s/def :map.habitat-statistic/percentage number?)
-(s/def :map/habitat-statistic
-  (s/keys :req-un [:map.habitat-statistic/habitat
-                   :map.habitat-statistic/area
-                   :map.habitat-statistic/percentage]))
-(s/def :map/habitat-statistics (s/coll-of :map/habitat-statistic
-                                          :kind vector?))
+(s/def :map.boundary-statistics.habitat.result/habitat (s/nilable string?))
+(s/def :map.boundary-statistics.habitat.result/area number?)
+(s/def :map.boundary-statistics.habitat.result/percentage number?)
+(s/def :map.boundary-statistics.habitat/result
+  (s/keys :req-un [:map.boundary-statistics.habitat.result/habitat
+                   :map.boundary-statistics.habitat.result/area
+                   :map.boundary-statistics.habitat.result/percentage]))
+(s/def :map.boundary-statistics.habitat/results (s/coll-of :map.boundary-statistics.habitat/result
+                                                           :kind vector?))
+(s/def :map.boundary-statistics/habitat
+  (s/keys :req-un [:map.boundary-statistics.habitat/results]))
 
-(s/def :map.bathymetry-statistic/category (s/nilable string?))
-(s/def :map.bathymetry-statistic/rank (s/nilable integer?))
-(s/def :map.bathymetry-statistic/area number?)
-(s/def :map.bathymetry-statistic/percentage number?)
-(s/def :map/bathymetry-statistic
-  (s/keys :req-un [:map.bathymetry-statistic/category
-                   :map.bathymetry-statistic/rank
-                   :map.bathymetry-statistic/area
-                   :map.bathymetry-statistic/percentage]))
-(s/def :map/bathymetry-statistics (s/coll-of :map/bathymetry-statistic
-                                          :kind vector?))
+(s/def :map.boundary-statistics.bathymetry.result/category (s/nilable string?))
+(s/def :map.boundary-statistics.bathymetry.result/rank (s/nilable integer?))
+(s/def :map.boundary-statistics.bathymetry.result/area number?)
+(s/def :map.boundary-statistics.bathymetry.result/percentage number?)
+(s/def :map.boundary-statistics.bathymetry/result
+  (s/keys :req-un [:map.boundary-statistics.bathymetry.result/category
+                   :map.boundary-statistics.bathymetry.result/rank
+                   :map.boundary-statistics.bathymetry.result/area
+                   :map.boundary-statistics.bathymetry.result/percentage]))
+(s/def :map.boundary-statistics.bathymetry/results (s/coll-of :map.boundary-statistics.bathymetry/result
+                                                              :kind vector?))
+(s/def :map.boundary-statistics/bathymetry
+  (s/keys :req-un [:map.boundary-statistics.bathymetry/results]))
+
+(s/def :map/boundary-statistics
+  (s/keys :req-un [:map.boundary-statistics/habitat
+                   :map.boundary-statistics/bathymetry]))
 
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))
@@ -250,8 +258,7 @@
                    :map/priority-cutoff
                    :map/logic
                    :map/boundaries
-                   :map/habitat-statistics
-                   :map/bathymetry-statistics]))
+                   :map/boundary-statistics]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
 (s/def :map.state/error-count (s/map-of :map/layer integer?))

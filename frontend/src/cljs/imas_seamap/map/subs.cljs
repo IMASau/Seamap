@@ -186,8 +186,8 @@
 (defn active-zone-iucn [db _]
 (get-in db [:map :boundaries :active-zone-iucn]))
 
-(defn habitat-statistics [{:keys [map]}]
-  (:habitat-statistics map))
+(defn habitat-statistics [db _]
+  (get-in db [:map :boundary-statistics :habitat :results]))
 
 (defn habitat-statistics-download-url [{:keys [config map]}]
   (let [{:keys [active-network active-park active-zone active-zone-iucn]} (:boundaries map)]
@@ -199,8 +199,8 @@
      "&zone-iucn=" (:name active-zone-iucn)
      "&format=raw")))
 
-(defn bathymetry-statistics [{:keys [map]}]
-  (:bathymetry-statistics map))
+(defn bathymetry-statistics [db _]
+  (get-in db [:map :boundary-statistics :bathymetry :results]))
 
 (defn bathymetry-statistics-download-url [{:keys [config map]}]
   (let [{:keys [active-network active-park active-zone active-zone-iucn]} (:boundaries map)]
