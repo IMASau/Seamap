@@ -875,7 +875,8 @@
   (let [selected-tab (reagent/atom "breakdown")
         collapsed?   (reagent/atom false)]
     (fn []
-      (let [habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
+      (let [loading?           @(re-frame/subscribe [:map/habitat-statistics-loading?])
+            habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
             habitat-statistics-download-url @(re-frame/subscribe [:map/habitat-statistics-download-url])
             without-unmapped   (filter :habitat habitat-statistics)]
         [components/drawer-group
@@ -883,42 +884,46 @@
           :icon        "home"
           :collapsed?  @collapsed?
           :toggle-collapse #(swap! collapsed? not)}
-         [b/tabs
-          {:id              "habitat-statistics-tabs"
-           :selected-tab-id @selected-tab
-           :on-change       #(reset! selected-tab %)}
-          [b/tab
-           {:id    "breakdown"
-            :title "Breakdown"
-            :panel
-            (reagent/as-element
-             [habitat-statistics-table
-              {:habitat-statistics habitat-statistics}])}]
-          [b/tab
-           {:id    "chart"
-            :title "Chart"
-            :panel
-            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+         (if loading?
+           [:div "Loading..."]
+           [b/tabs
+            {:id              "habitat-statistics-tabs"
+             :selected-tab-id @selected-tab
+             :on-change       #(reset! selected-tab %)}
+
+            [b/tab
+             {:id    "breakdown"
+              :title "Breakdown"
+              :panel
+              (reagent/as-element
+               [habitat-statistics-table
+                {:habitat-statistics habitat-statistics}])}]
+
+            [b/tab
+             {:id    "chart"
+              :title "Chart"
+              :panel
+              (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+                (reagent/as-element
+                 (if (seq without-unmapped)
+                   [components/donut-chart
+                    {:id           "habitat-statistics-chart"
+                     :values       without-unmapped
+                     :theta        :area
+                     :color        :habitat
+                     :legend-title "Habitat"}]
+                   [:div "No habitat information"])))}]
+
+            [b/tab
+             {:id    "download"
+              :title "Download"
+              :panel
               (reagent/as-element
                (if (seq without-unmapped)
-                 [components/donut-chart
-                  {:id           "habitat-statistics-chart"
-                   :values       without-unmapped
-                   :theta        :area
-                   :color        :habitat
-                   :legend-title "Habitat"}]
-                 [:div "No habitat information"])))}]
-
-          [b/tab
-           {:id    "download"
-            :title "Download"
-            :panel
-            (reagent/as-element
-             (if (seq without-unmapped)
-               [:a.download
-                {:href habitat-statistics-download-url}
-                "Download as Shapefile"]
-               [:div "No habitat information"]))}]]]))))
+                 [:a.download
+                  {:href habitat-statistics-download-url}
+                  "Download as Shapefile"]
+                 [:div "No habitat information"]))}]])]))))
 
 (defn bathymetry-statistics-table
   [{:keys [bathymetry-statistics]}]
@@ -946,7 +951,8 @@
   (let [selected-tab (reagent/atom "breakdown")
         collapsed?   (reagent/atom false)]
     (fn []
-      (let [bathymetry-statistics @(re-frame/subscribe [:map/bathymetry-statistics])
+      (let [loading?              @(re-frame/subscribe [:map/bathymetry-statistics-loading?])
+            bathymetry-statistics @(re-frame/subscribe [:map/bathymetry-statistics])
             bathymetry-statistics-download-url @(re-frame/subscribe [:map/bathymetry-statistics-download-url])
             without-unmapped      (filter :category bathymetry-statistics)]
         [components/drawer-group 
@@ -954,41 +960,45 @@
           :icon            "timeline-area-chart"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)}
-         [b/tabs
-          {:id              "bathymetry-statistics-tabs"
-           :selected-tab-id @selected-tab
-           :on-change       #(reset! selected-tab %)}
-          [b/tab
-           {:id    "breakdown"
-            :title "Breakdown"
-            :panel (reagent/as-element
-                    [bathymetry-statistics-table
-                     {:bathymetry-statistics bathymetry-statistics}])}]
-          [b/tab
-           {:id    "chart"
-            :title "Chart"
-            :panel
-            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+         (if loading?
+           [:div "Loading..."]
+           [b/tabs
+            {:id              "bathymetry-statistics-tabs"
+             :selected-tab-id @selected-tab
+             :on-change       #(reset! selected-tab %)}
+
+            [b/tab
+             {:id    "breakdown"
+              :title "Breakdown"
+              :panel (reagent/as-element
+                      [bathymetry-statistics-table
+                       {:bathymetry-statistics bathymetry-statistics}])}]
+
+            [b/tab
+             {:id    "chart"
+              :title "Chart"
+              :panel
+              (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+                (reagent/as-element
+                 (if (seq without-unmapped)
+                   [components/donut-chart
+                    {:id           "bathymetry-statistics-chart"
+                     :values       without-unmapped
+                     :theta        :area
+                     :color        :category
+                     :legend-title "Category"}]
+                   [:div "No bathymetry information"])))}]
+
+            [b/tab
+             {:id    "download"
+              :title "Download"
+              :panel
               (reagent/as-element
                (if (seq without-unmapped)
-                 [components/donut-chart
-                  {:id           "bathymetry-statistics-chart"
-                   :values       without-unmapped
-                   :theta        :area
-                   :color        :category
-                   :legend-title "Category"}]
-                 [:div "No bathymetry information"])))}]
-
-          [b/tab
-           {:id    "download"
-            :title "Download"
-            :panel
-            (reagent/as-element
-             (if (seq without-unmapped)
-               [:a.download
-                {:href bathymetry-statistics-download-url}
-                "Download as Shapefile"]
-               [:div "No bathymetry information"]))}]]]))))
+                 [:a.download
+                  {:href bathymetry-statistics-download-url}
+                  "Download as Shapefile"]
+                 [:div "No bathymetry information"]))}]])]))))
 
 (defn right-drawer
   []

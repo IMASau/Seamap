@@ -189,6 +189,9 @@
 (defn habitat-statistics [db _]
   (get-in db [:map :boundary-statistics :habitat :results]))
 
+(defn habitat-statistics-loading? [db _]
+  (get-in db [:map :boundary-statistics :habitat :loading?]))
+
 (defn habitat-statistics-download-url [{:keys [config map]}]
   (let [{:keys [active-network active-park active-zone active-zone-iucn]} (:boundaries map)]
     (str
@@ -201,6 +204,9 @@
 
 (defn bathymetry-statistics [db _]
   (get-in db [:map :boundary-statistics :bathymetry :results]))
+
+(defn bathymetry-statistics-loading? [db _]
+  (get-in db [:map :boundary-statistics :bathymetry :loading?]))
 
 (defn bathymetry-statistics-download-url [{:keys [config map]}]
   (let [{:keys [active-network active-park active-zone active-zone-iucn]} (:boundaries map)]
