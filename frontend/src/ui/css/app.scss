@@ -637,19 +637,32 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-bottom: 20px;
 }
 
-.drawer-group > h1 {
+.drawer-group-heading {
+    display: flex;
     flex: 0 0;
+}
+
+.drawer-group.collapsible > .drawer-group-heading {
+    cursor: pointer;
+    user-select: none;
+}
+
+.drawer-group-heading > h1 {
+    flex: 1;
     font-size: 16px;
     margin: 0 0 0 12px;
 }
 
-.drawer-group > h1::before {
+.drawer-group-heading > h1::before {
     margin-right: 6px;
 }
 
-.drawer-group.collapsible > h1 {
-    cursor: pointer;
-    user-select: none;
+.drawer-group-heading > .bp3-icon {
+    aspect-ratio: 1;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .drawer-group-content {

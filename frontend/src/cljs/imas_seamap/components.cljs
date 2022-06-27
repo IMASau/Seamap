@@ -110,9 +110,13 @@
   [{:keys [heading icon collapsed? toggle-collapse]} & children]
   [:div
    {:class (str "drawer-group" (when collapsed? " collapsed") (when toggle-collapse " collapsible"))}
-   [:h1
-    (merge
+   [:div.drawer-group-heading
+    (when toggle-collapse {:on-click toggle-collapse})
+    [:h1
      {:class (str "bp3-heading" (when icon (str " bp3-icon-" icon)))}
-     (when toggle-collapse {:on-click toggle-collapse}))
-    heading]
+     heading]
+    (when toggle-collapse
+      [b/icon
+       {:icon (if collapsed? "plus" "minus")
+        :icon-size 20}])]
    (into [:div.drawer-group-content] children)])
