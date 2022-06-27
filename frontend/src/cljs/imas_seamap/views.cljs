@@ -876,6 +876,7 @@
         collapsed?   (reagent/atom false)]
     (fn []
       (let [habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
+            habitat-statistics-download-url @(re-frame/subscribe [:map/habitat-statistics-download-url])
             without-unmapped   (filter :habitat habitat-statistics)]
         [components/drawer-group
          {:heading     "Habitat Statistics"
@@ -906,7 +907,18 @@
                    :theta        :area
                    :color        :habitat
                    :legend-title "Habitat"}]
-                 [:div "No habitat information"])))}]]]))))
+                 [:div "No habitat information"])))}]
+
+          [b/tab
+           {:id    "download"
+            :title "Download"
+            :panel
+            (reagent/as-element
+             (if (seq without-unmapped)
+               [:a.download
+                {:href habitat-statistics-download-url}
+                "Download as Shapefile"]
+               [:div "No habitat information"]))}]]]))))
 
 (defn bathymetry-statistics-table
   [{:keys [bathymetry-statistics]}]
@@ -935,6 +947,7 @@
         collapsed?   (reagent/atom false)]
     (fn []
       (let [bathymetry-statistics @(re-frame/subscribe [:map/bathymetry-statistics])
+            bathymetry-statistics-download-url @(re-frame/subscribe [:map/bathymetry-statistics-download-url])
             without-unmapped      (filter :category bathymetry-statistics)]
         [components/drawer-group 
          {:heading         "Bathymetry Statistics"
@@ -964,7 +977,18 @@
                    :theta        :area
                    :color        :category
                    :legend-title "Category"}]
-                 [:div "No bathymetry information"])))}]]]))))
+                 [:div "No bathymetry information"])))}]
+
+          [b/tab
+           {:id    "download"
+            :title "Download"
+            :panel
+            (reagent/as-element
+             (if (seq without-unmapped)
+               [:a.download
+                {:href bathymetry-statistics-download-url}
+                "Download as Shapefile"]
+               [:div "No bathymetry information"]))}]]]))))
 
 (defn right-drawer
   []

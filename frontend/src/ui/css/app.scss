@@ -694,7 +694,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 .drawer-group .bp3-tab-panel {
-    margin-top: 0;
+    margin-top: 8px;
 }
 
 .state-of-knowledge-drawer > .drawer-children {
@@ -722,4 +722,15 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .state-of-knowledge-drawer > .drawer-children > .drawer-group:first-child {
     flex: 0 0;
+}
+
+.drawer-group .download {
+    font-weight: bold;
+    color: #0078A8;
+    text-decoration: none;
+}
+
+.drawer-group .download:hover {
+    color: #575757;
+    text-decoration: underline;
 }
