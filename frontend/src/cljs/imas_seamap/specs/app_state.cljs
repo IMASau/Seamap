@@ -217,8 +217,10 @@
                    :map.boundary-statistics.habitat.result/percentage]))
 (s/def :map.boundary-statistics.habitat/results (s/coll-of :map.boundary-statistics.habitat/result
                                                            :kind vector?))
+(s/def :map.boundary-statistics.habitat/loading? boolean?)
 (s/def :map.boundary-statistics/habitat
-  (s/keys :req-un [:map.boundary-statistics.habitat/results]))
+  (s/keys :req-un [:map.boundary-statistics.habitat/results
+                   :map.boundary-statistics.habitat/loading?]))
 
 (s/def :map.boundary-statistics.bathymetry.result/category (s/nilable string?))
 (s/def :map.boundary-statistics.bathymetry.result/rank (s/nilable integer?))
@@ -231,8 +233,10 @@
                    :map.boundary-statistics.bathymetry.result/percentage]))
 (s/def :map.boundary-statistics.bathymetry/results (s/coll-of :map.boundary-statistics.bathymetry/result
                                                               :kind vector?))
+(s/def :map.boundary-statistics.bathymetry/loading? :map.boundary-statistics.habitat/loading?)
 (s/def :map.boundary-statistics/bathymetry
-  (s/keys :req-un [:map.boundary-statistics.bathymetry/results]))
+  (s/keys :req-un [:map.boundary-statistics.bathymetry/results
+                   :map.boundary-statistics.bathymetry/loading?]))
 
 (s/def :map/boundary-statistics
   (s/keys :req-un [:map.boundary-statistics/habitat

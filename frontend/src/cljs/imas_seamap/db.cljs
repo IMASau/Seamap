@@ -37,8 +37,10 @@
                                        :active-zone      nil
                                        :zones-iucn       []
                                        :active-zone-iucn nil}
-                     :boundary-statistics {:habitat    {:results []}
-                                           :bathymetry {:results []}}}
+                     :boundary-statistics {:habitat    {:results  []
+                                                        :loading? false}
+                                           :bathymetry {:results  []
+                                                        :loading? false}}}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}
