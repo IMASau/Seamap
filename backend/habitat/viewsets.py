@@ -89,21 +89,23 @@ PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",
 
 
 SQL_GET_NETWORKS = """
-SELECT DISTINCT NETNAME
+SELECT DISTINCT NETNAME AS name
 FROM BoundaryGeoms_View;
 """
 
 SQL_GET_PARKS = """
-SELECT DISTINCT NETNAME, RESNAME
+SELECT DISTINCT
+  NETNAME AS network,
+  RESNAME AS name
 FROM BoundaryGeoms_View;
 """
 
 SQL_GET_ZONES = """
-SELECT DISTINCT ZONENAME
+SELECT DISTINCT ZONENAME AS name
 FROM BoundaryGeoms_View;
 """
 SQL_GET_ZONES_IUCN = """
-SELECT DISTINCT ZONEIUCN
+SELECT DISTINCT ZONEIUCN AS name
 FROM BoundaryGeoms_View;
 """
 
@@ -133,8 +135,8 @@ DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 SELECT
-  bathymetry_category,
-  bathymetry_rank,
+  bathymetry_category as category,
+  bathymetry_rank as rank,
   geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
   100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage
 FROM BoundaryBathymetries
@@ -467,16 +469,11 @@ def networks(request):
     with connections['transects'].cursor() as cursor:
         cursor.execute(SQL_GET_NETWORKS)
 
-        while True:
-            try:
-                for row in cursor.fetchall():
-                    [name] = row
-                    networks.append({'name': name})
-                if not cursor.nextset():
-                    break
-            except ProgrammingError:
-                if not cursor.nextset():
-                    break
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        networks = [row._asdict() for row in results]
     return Response(networks)
 
 @action(detail=False)
@@ -487,17 +484,11 @@ def parks(request):
     with connections['transects'].cursor() as cursor:
         cursor.execute(SQL_GET_PARKS)
 
-        while True:
-            try:
-                for row in cursor.fetchall():
-                    [network, name] = row
-                    parks.append({'name': name,
-                                  'network': network})
-                if not cursor.nextset():
-                    break
-            except ProgrammingError:
-                if not cursor.nextset():
-                    break
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        parks = [row._asdict() for row in results]
     return Response(parks)
 
 
@@ -509,16 +500,11 @@ def zones(request):
     with connections['transects'].cursor() as cursor:
         cursor.execute(SQL_GET_ZONES)
 
-        while True:
-            try:
-                for row in cursor.fetchall():
-                    [name] = row
-                    zones.append({'name': name})
-                if not cursor.nextset():
-                    break
-            except ProgrammingError:
-                if not cursor.nextset():
-                    break
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        zones = [row._asdict() for row in results]
     return Response(zones)
 
 
@@ -530,16 +516,11 @@ def zones_iucn(request):
     with connections['transects'].cursor() as cursor:
         cursor.execute(SQL_GET_ZONES_IUCN)
 
-        while True:
-            try:
-                for row in cursor.fetchall():
-                    [name] = row
-                    zones_iucn.append({'name': name})
-                if not cursor.nextset():
-                    break
-            except ProgrammingError:
-                if not cursor.nextset():
-                    break
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        zones_iucn = [row._asdict() for row in results]
     return Response(zones_iucn)
 
 @action(detail=False)
@@ -561,16 +542,11 @@ def habitat_statistics(request):
 
             cursor.execute(SQL_GET_HABITAT_STATS, [network, park, zone, zone_iucn, boundary_area])
 
-            while True:
-                try:
-                    for row in cursor.fetchall():
-                        [habitat, area, percentage] = row
-                        habitat_stats.append({'habitat': habitat, 'area': area, 'percentage': percentage})
-                    if not cursor.nextset():
-                        break
-                except ProgrammingError:
-                    if not cursor.nextset():
-                        break
+            columns = [col[0] for col in cursor.description]
+            namedrow = namedtuple('Result', columns)
+            results = [namedrow(*row) for row in cursor.fetchall()]
+
+            habitat_stats = [row._asdict() for row in results]
 
             unmapped_area = boundary_area - float(sum(v['area'] for v in habitat_stats))
             unmapped_percentage = 100 * unmapped_area / boundary_area
@@ -599,16 +575,11 @@ def bathymetry_statistics(request):
 
             cursor.execute(SQL_GET_BATHYMETRY_STATS, [network, park, zone, zone_iucn, boundary_area])
 
-            while True:
-                try:
-                    for row in cursor.fetchall():
-                        [bathymetry_category, bathymetry_rank, area, percentage] = row
-                        bathymetry_stats.append({'category': bathymetry_category, 'rank': bathymetry_rank, 'area': area, 'percentage': percentage})
-                    if not cursor.nextset():
-                        break
-                except ProgrammingError:
-                    if not cursor.nextset():
-                        break
+            columns = [col[0] for col in cursor.description]
+            namedrow = namedtuple('Result', columns)
+            results = [namedrow(*row) for row in cursor.fetchall()]
+
+            bathymetry_stats = [row._asdict() for row in results]
 
             unmapped_area = boundary_area - float(sum(v['area'] for v in bathymetry_stats))
             unmapped_percentage = 100 * unmapped_area / boundary_area
