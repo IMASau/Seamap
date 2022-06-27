@@ -201,3 +201,13 @@
 
 (defn bathymetry-statistics [{:keys [map]}]
   (:bathymetry-statistics map))
+
+(defn bathymetry-statistics-download-url [{:keys [config map]}]
+  (let [{:keys [active-network active-park active-zone active-zone-iucn]} map]
+    (str
+     (:bathymetry-statistics-url config)
+     "?network=" (:name active-network)
+     "&park=" (:name active-park)
+     "&zone=" (:name active-zone)
+     "&zone-iucn=" (:name active-zone-iucn)
+     "&format=raw")))

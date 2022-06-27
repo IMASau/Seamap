@@ -139,7 +139,8 @@ SELECT
   bathymetry_category as category,
   bathymetry_rank as rank,
   geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage
+  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage,
+  geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BoundaryBathymetries
 WHERE
   (NETNAME = @netname OR @netname IS NULL) AND
@@ -570,12 +571,14 @@ def habitat_statistics(request):
 
 @action(detail=False)
 @api_view()
+@renderer_classes((JSONRenderer, ShapefileRenderer))
 def bathymetry_statistics(request):
     params = {k: v if v else None for k, v in request.query_params.items()}
     network   = params.get('network')
     park      = params.get('park')
     zone      = params.get('zone')
     zone_iucn = params.get('zone-iucn')
+    is_download = request.accepted_renderer.format == 'raw'
 
     bathymetry_stats = []
 
@@ -591,7 +594,16 @@ def bathymetry_statistics(request):
             namedrow = namedtuple('Result', columns)
             results = [namedrow(*row) for row in cursor.fetchall()]
 
+            if is_download:
+                boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn] if v])
+                return Response({'data': results,
+                                 'fields': cursor.description,
+                                 'file_name': boundary_name},
+                                content_type='application/zip',
+                                headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
+
             bathymetry_stats = [row._asdict() for row in results]
+            for v in bathymetry_stats: del v['geom']
 
             unmapped_area = boundary_area - float(sum(v['area'] for v in bathymetry_stats))
             unmapped_percentage = 100 * unmapped_area / boundary_area
