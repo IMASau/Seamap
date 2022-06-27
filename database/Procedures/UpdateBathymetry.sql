@@ -23,11 +23,11 @@ BEGIN
   SELECT
     [CATEGORY],
     [RANK],
-    [geom].STDifference((
+    COALESCE([geom].STDifference((
       SELECT geometry::UnionAggregate([b2].[geom])
       FROM [dbo].[BathymetryGeoms] AS [b2]
       WHERE [b2].[RANK] < [b1].[RANK]
-    )) AS [geom]
+    )), [geom]) AS [geom]
   FROM [dbo].[BathymetryGeoms] AS [b1];
 
   -- Update BoundaryBathymetries
