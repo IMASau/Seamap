@@ -31,8 +31,8 @@ urlpatterns = [
     re_path(r'^api/habitat/parks/?$', parks),
     re_path(r'^api/habitat/zones/?$', zones),
     re_path(r'^api/habitat/zonesiucn/?$', zones_iucn),
-    re_path(r'^api/habitat/habitatstatistics/?$', habitat_statistics),
-    re_path(r'^api/habitat/bathymetrystatistics/?$', bathymetry_statistics),
+    re_path(r'^api/habitat/habitatstatistics', habitat_statistics),
+    re_path(r'^api/habitat/bathymetrystatistics', bathymetry_statistics),
     re_path(r'^api/savestates', SaveStateView.as_view()),
     re_path(r'^api/', include(router.urls)),
 ]

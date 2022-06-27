@@ -189,5 +189,15 @@
 (defn habitat-statistics [{:keys [map]}]
   (:habitat-statistics map))
 
+(defn habitat-statistics-download-url [{:keys [config map]}]
+  (let [{:keys [active-network active-park active-zone active-zone-iucn]} map]
+    (str
+     (:habitat-statistics-url config)
+     "?network=" (:name active-network)
+     "&park=" (:name active-park)
+     "&zone=" (:name active-zone)
+     "&zone-iucn=" (:name active-zone-iucn)
+     "&format=raw")))
+
 (defn bathymetry-statistics [{:keys [map]}]
   (:bathymetry-statistics map))

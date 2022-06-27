@@ -19,7 +19,7 @@ from django.db import connections, ProgrammingError
 from django.db.models.functions import Coalesce
 from django.http import FileResponse
 from rest_framework.decorators import action, api_view, renderer_classes
-from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer
+from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.serializers import ValidationError
@@ -119,7 +119,8 @@ DECLARE @zoneiucn NVARCHAR(5)   = %s;
 SELECT
   habitat,
   geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage
+  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage,
+  geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BoundaryHabitats
 WHERE
   (NETNAME = @netname OR @netname IS NULL) AND
@@ -525,12 +526,14 @@ def zones_iucn(request):
 
 @action(detail=False)
 @api_view()
+@renderer_classes((JSONRenderer, ShapefileRenderer))
 def habitat_statistics(request):
     params = {k: v if v else None for k, v in request.query_params.items()}
     network   = params.get('network')
     park      = params.get('park')
     zone      = params.get('zone')
     zone_iucn = params.get('zone-iucn')
+    is_download = request.accepted_renderer.format == 'raw'
 
     habitat_stats = []
 
@@ -546,7 +549,16 @@ def habitat_statistics(request):
             namedrow = namedtuple('Result', columns)
             results = [namedrow(*row) for row in cursor.fetchall()]
 
+            if is_download:
+                boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn] if v])
+                return Response({'data': results,
+                                 'fields': cursor.description,
+                                 'file_name': boundary_name},
+                                content_type='application/zip',
+                                headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
+            
             habitat_stats = [row._asdict() for row in results]
+            for v in habitat_stats: del v['geom']
 
             unmapped_area = boundary_area - float(sum(v['area'] for v in habitat_stats))
             unmapped_percentage = 100 * unmapped_area / boundary_area
