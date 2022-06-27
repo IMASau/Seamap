@@ -168,35 +168,45 @@
 (s/def :map.logic/trigger #{:map.logic.trigger/automatic :map.logic.trigger/user})
 (s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
 
-(s/def :map.network/name string?)
-(s/def :map/network
-  (s/keys :req-un [:map.network/name]))
-(s/def :map/networks (s/coll-of :map/network
-                                :kind vector?))
-(s/def :map/active-network :map/network)
+(s/def :map.boundaries.network/name string?)
+(s/def :map.boundaries/network
+  (s/keys :req-un [:map.boundaries.network/name]))
+(s/def :map.boundaries/networks (s/coll-of :map.boundaries/network
+                                           :kind vector?))
+(s/def :map.boundaries/active-network :map.boundaries/network)
 
-(s/def :map.park/name string?)
-(s/def :map.park/network :map.network/name)
-(s/def :map/park
-  (s/keys :req-un [:map.park/name
-                   :map.network/name]))
-(s/def :map/parks (s/coll-of :map/park
-                             :kind vector?))
-(s/def :map/active-park :map/park)
+(s/def :map.boundaries.park/name string?)
+(s/def :map.boundaries.park/network :map.boundaries.network/name)
+(s/def :map.boundaries/park
+  (s/keys :req-un [:map.boundaries.park/name
+                   :map.boundaries.network/name]))
+(s/def :map.boundaries/parks (s/coll-of :map.boundaries/park
+                                        :kind vector?))
+(s/def :map.boundaries/active-park :map.boundaries/park)
 
-(s/def :map.zone/name string?)
-(s/def :map/zone
-  (s/keys :req-un [:map.zone/name]))
-(s/def :map/zones (s/coll-of :map/zone
-                             :kind vector?))
-(s/def :map/active-zone :map/zone)
+(s/def :map.boundaries.zone/name string?)
+(s/def :map.boundaries/zone
+  (s/keys :req-un [:map.boundaries.zone/name]))
+(s/def :map.boundaries/zones (s/coll-of :map.boundaries/zone
+                                        :kind vector?))
+(s/def :map.boundaries/active-zone :map.boundaries/zone)
 
-(s/def :map.zone-iucn/name string?)
-(s/def :map/zone-iucn
-  (s/keys :req-un [:map.zone-iucn/name]))
-(s/def :map/zones-iucn (s/coll-of :map/zone-iucn
-                                  :kind vector?))
-(s/def :map/active-zone-iucn :map/zone-iucn)
+(s/def :map.boundaries.zone-iucn/name string?)
+(s/def :map.boundaries/zone-iucn
+  (s/keys :req-un [:map.boundaries.zone-iucn/name]))
+(s/def :map.boundaries/zones-iucn (s/coll-of :map.boundaries/zone-iucn
+                                             :kind vector?))
+(s/def :map.boundaries/active-zone-iucn :map.boundaries/zone-iucn)
+
+(s/def :map/boundaries
+  (s/keys :req-un [:map.boundaries/networks
+                   :map.boundaries/active-network
+                   :map.boundaries/parks
+                   :map.boundaries/active-park
+                   :map.boundaries/zones
+                   :map.boundaries/active-zone
+                   :map.boundaries/zones-iucn
+                   :map.boundaries/active-zone-iucn]))
 
 (s/def :map.habitat-statistic/habitat (s/nilable string?))
 (s/def :map.habitat-statistic/area number?)
@@ -239,14 +249,7 @@
                    :map/priorities
                    :map/priority-cutoff
                    :map/logic
-                   :map/networks
-                   :map/active-network
-                   :map/parks
-                   :map/active-park
-                   :map/zones
-                   :map/active-zone
-                   :map/zones-iucn
-                   :map/active-zone-iucn
+                   :map/boundaries
                    :map/habitat-statistics
                    :map/bathymetry-statistics]))
 

@@ -29,14 +29,14 @@
                                        :trigger :map.logic.trigger/automatic}
                      :controls        {:transect false
                                        :download nil}
-                     :networks        []
-                     :active-network  nil
-                     :parks           []
-                     :active-park     nil
-                     :zones           []
-                     :active-zone     nil
-                     :zones-iucn      []
-                     :active-zone-iucn nil
+                     :boundaries      {:networks         []
+                                       :active-network   nil
+                                       :parks            []
+                                       :active-park      nil
+                                       :zones            []
+                                       :active-zone      nil
+                                       :zones-iucn       []
+                                       :active-zone-iucn nil}
                      :habitat-statistics []
                      :bathymetry-statistics []}
    :layer-state     {:loading-state {}
