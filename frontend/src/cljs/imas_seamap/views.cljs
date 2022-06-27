@@ -885,7 +885,7 @@
           :collapsed?  @collapsed?
           :toggle-collapse #(swap! collapsed? not)}
          (if loading?
-           [:div "Loading..."]
+           [b/spinner]
            [b/tabs
             {:id              "habitat-statistics-tabs"
              :selected-tab-id @selected-tab
@@ -961,7 +961,7 @@
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)}
          (if loading?
-           [:div "Loading..."]
+           [b/spinner]
            [b/tabs
             {:id              "bathymetry-statistics-tabs"
              :selected-tab-id @selected-tab
