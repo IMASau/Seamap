@@ -208,6 +208,18 @@
 (s/def :map/habitat-statistics (s/coll-of :map/habitat-statistic
                                           :kind vector?))
 
+(s/def :map.bathymetry-statistic/category (s/nilable string?))
+(s/def :map.bathymetry-statistic/rank (s/nilable integer?))
+(s/def :map.bathymetry-statistic/area number?)
+(s/def :map.bathymetry-statistic/percentage number?)
+(s/def :map/bathymetry-statistic
+  (s/keys :req-un [:map.bathymetry-statistic/category
+                   :map.bathymetry-statistic/rank
+                   :map.bathymetry-statistic/area
+                   :map.bathymetry-statistic/percentage]))
+(s/def :map/bathymetry-statistics (s/coll-of :map/bathymetry-statistic
+                                          :kind vector?))
+
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))
 
@@ -230,7 +242,9 @@
                    :map/networks
                    :map/parks
                    :map/zones
-                   :map/zones-iucn]))
+                   :map/zones-iucn
+                   :map/habitat-statistics
+                   :map/bathymetry-statistics]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
 (s/def :map.state/error-count (s/map-of :map/layer integer?))
