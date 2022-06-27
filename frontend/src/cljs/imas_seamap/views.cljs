@@ -1077,7 +1077,10 @@
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
-        _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)]
+        _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        catalogue-open?          @(re-frame/subscribe [:left-drawer/open?])
+        state-of-knowledge-open? @(re-frame/subscribe [:right-drawer/open?])
+        {:keys [active-layers]}  @(re-frame/subscribe [:map/layers])]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      [:div#content-wrapper
       [map-component [floating-menu] [floating-pills]]
