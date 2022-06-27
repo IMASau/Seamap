@@ -240,9 +240,13 @@
                    :map/priority-cutoff
                    :map/logic
                    :map/networks
+                   :map/active-network
                    :map/parks
+                   :map/active-park
                    :map/zones
+                   :map/active-zone
                    :map/zones-iucn
+                   :map/active-zone-iucn
                    :map/habitat-statistics
                    :map/bathymetry-statistics]))
 
