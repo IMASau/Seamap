@@ -615,3 +615,6 @@
 
 (defn got-habitat-statistics [db [_ habitat-statistics]]
   (assoc-in db [:map :habitat-statistics] habitat-statistics))
+
+(defn update-preview-layer [db [_ preview-layer]]
+  (assoc-in db [:map :preview-layer] preview-layer))

@@ -147,13 +147,9 @@ footer {
     margin-bottom: 10px;
 }
 
-.layer-wrapper {
+.layer-wrapper.bp3-card {
     min-width: 0;
     margin-bottom: 5px;
-}
-
-.layer-wrapper .bp3-card {
-    padding: 10px;
 }
 
 .layer-wrapper .header-row,
@@ -238,16 +234,23 @@ footer {
 .bp3-tree-node-secondary-label {
     flex: 0 0 auto;
 }
-.bp3-tree-node-content-2 {
-    padding-left: 25px;
-}
-.layer-active .bp3-tree-node-content {
-    align-items: normal;
+
+.layer-wrapper .bp3-tree-node-content {
+    padding: 0;
     height: auto;
 }
+.layer-wrapper .bp3-tree-node-label > div {
+    padding-left: 62px;
+    padding-bottom: 5px;
+    min-height: 30px;
+}
 
-.bp3-tree-node-label > .layer-wrapper {
-    padding-left: 9px;
+.layer-wrapper .bp3-tree-node-caret-none {
+    display: none;
+}
+
+.layer-wrapper .bp3-tree-node-label {
+    padding: 0;
 }
 
 .bp3-tree-node-label .layer-legend {
@@ -661,4 +664,23 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .drawer-group .bp3-tab-panel {
     margin-top: 0;
+}
+
+.layer-preview {
+    position: absolute;
+    top: calc($floating-pill-height + 2 * $floating-menu-padding);
+    left: calc($catalogue-drawer-width + 2 * $floating-menu-padding + 34px);
+    width: 410px;
+    z-index: 2000;
+    background-color: white;
+    border-radius: 14px;
+    padding: 10px;
+    border: 2px solid rgba(0,0,0,0.2);
+    background-clip: padding-box;
+}
+
+.layer-preview img {
+    width: 100%;
+    display: block;
+    border-radius: 4px;
 }

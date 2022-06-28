@@ -156,21 +156,18 @@
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
-        {:keys [layer-opacities active-layers visible-layers]} @(re-frame/subscribe [:map/layers])
+        {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
-        catalogue-open?                               @(re-frame/subscribe [:left-drawer/open?])
-        state-of-knowledge-open?                      @(re-frame/subscribe [:right-drawer/open?])
         layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
         ;layer-params                                  @(re-frame/subscribe [:map.layers/params])
         logic-type                                    @(re-frame/subscribe [:map.layers/logic])
         loading?                                      @(re-frame/subscribe [:app/loading?])]
     (into
-     [:div
-      {:class (str "map-wrapper" (when catalogue-open? " catalogue-open") (when (seq active-layers) " active-layers") (when state-of-knowledge-open? " state-of-knowledge-open"))}
+     [:div.map-wrapper
       [download-component download-info]
       [leaflet/leaflet-map
        (merge
