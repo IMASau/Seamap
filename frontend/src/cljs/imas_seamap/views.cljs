@@ -1008,6 +1008,12 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
+(defn layer-preview
+  []
+  [:div.layer-preview
+   [:img
+    {:src "img/LayerPreviewPlaceholder.png"}]])
+
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [m keydown-v]
@@ -1109,5 +1115,6 @@
      [loading-display]
      [left-drawer]
      [right-drawer]
-     [layers-search-omnibar]]))
+     [layers-search-omnibar]
+     [layer-preview]]))
 

@@ -662,3 +662,22 @@ input.leaflet-control-layers-selector[type="radio"] {
 .drawer-group .bp3-tab-panel {
     margin-top: 0;
 }
+
+.layer-preview {
+    position: absolute;
+    top: calc($floating-pill-height + 2 * $floating-menu-padding);
+    left: calc($catalogue-drawer-width + 2 * $floating-menu-padding + 34px);
+    width: 410px;
+    z-index: 2000;
+    background-color: white;
+    border-radius: 14px;
+    padding: 10px;
+    border: 2px solid rgba(0,0,0,0.2);
+    background-clip: padding-box;
+}
+
+.layer-preview img {
+    width: 100%;
+    display: block;
+    border-radius: 4px;
+}
