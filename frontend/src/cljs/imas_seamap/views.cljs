@@ -1015,7 +1015,12 @@
   (when preview-layer
     [:div.layer-preview
      [:img
-      {:src "img/LayerPreviewPlaceholder.png"}]]))
+      {:src (case (mod (:id preview-layer) 5)
+              0 "img/LayerPreview1.png"
+              1 "img/LayerPreview2.png"
+              2 "img/LayerPreview3.png"
+              3 "img/LayerPreview4.png"
+              4 "img/LayerPreview5.png")}]]))
 
 (def hotkeys-combos
   (let [keydown-wrapper
