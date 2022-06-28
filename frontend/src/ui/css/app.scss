@@ -708,20 +708,20 @@ input.leaflet-control-layers-selector[type="radio"] {
     min-height: 0;
 }
 
-.state-of-knowledge-drawer .bp3-panel-stack-view  .drawer-group {
+.state-of-knowledge-drawer .bp3-panel-stack-view .drawer-group {
     transition: flex 500ms;
 }
 
-.state-of-knowledge-drawer .bp3-panel-stack-view  .drawer-group.collapsed {
+.state-of-knowledge-drawer .bp3-panel-stack-view .drawer-group.collapsed {
     flex: 0 1 0;
     min-height: 20px;
 }
 
-.state-of-knowledge-drawer .bp3-panel-stack-view  .drawer-group:not(:first-child) > .drawer-group-content {
+.state-of-knowledge-drawer .bp3-panel-stack-view .drawer-group:not(:first-child) > .drawer-group-content {
     overflow-y: auto;
 }
 
-.state-of-knowledge-drawer .bp3-panel-stack-view  .drawer-group:first-child {
+.state-of-knowledge-drawer .bp3-panel-stack-view .drawer-group:first-child {
     flex: 0 0;
 }
 
@@ -738,4 +738,28 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .drawer-group .bp3-spinner {
     height: 100%;
+}
+
+.data-coverage-report-header {
+    height: 40px;
+    display: flex;
+}
+
+.data-coverage-report-header > :nth-child(1) {
+    aspect-ratio: 1;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.data-coverage-report-header > :nth-child(2) {
+    flex: 1;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.data-coverage-report > iframe {
+    flex: 1;
 }

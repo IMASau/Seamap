@@ -1018,8 +1018,20 @@
           [{:content
             [:div
              [boundary-selection]
+             [:div {:on-click #(swap! data-coverage-report? not)} "data coverage report"]
              [habitat-statistics]
-             [bathymetry-statistics]]}])
+             [bathymetry-statistics]]}]
+          (when @data-coverage-report?
+            [{:content
+              [:div.data-coverage-report
+               [:div.data-coverage-report-header
+                [:div
+                 [b/button
+                  {:minimal  true
+                   :icon     "chevron-left"
+                   :on-click #(swap! data-coverage-report? not)}]]
+                [:div "Data Coverage Report"]]
+               [:iframe {:src "https://blueprintjs.com/"}]]}])) ; Placeholder URL
          :showPanelHeader false}]])))
 
 (defn active-layers-sidebar []
