@@ -18,11 +18,12 @@
       :onReorder (fn [src-idx dst-idx] (re-frame/dispatch [::selection-list-reorder (if is-reversed (- (count items) src-idx 1) src-idx) (if is-reversed (- (count items) dst-idx 1) dst-idx) data-path]))}]))
 
 (defn panel-stack
-  [{:keys [panels on-close]}]
+  [{:keys [panels on-close showPanelHeader]}]
   (let [panels (map #(update % :content reagent/as-element) panels)]
     [ui-controls/PanelStack
      {:panels panels
-      :onClose on-close}]))
+      :onClose on-close
+      :showPanelHeader showPanelHeader}]))
 
 (defn drawer
   [{:keys [title position size isOpen onClose hasBackdrop className]} & children]
