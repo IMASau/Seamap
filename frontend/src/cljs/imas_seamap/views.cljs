@@ -1015,7 +1015,7 @@
   (when preview-layer
     [:div.layer-preview
      [:img
-      {:src (case (mod (:id preview-layer) 5)
+      {:src (case (mod (:id preview-layer) 5) ; Selects one of five placeholder images based on layer id - TODO: Replace with actual layer preview image per layer and remove placeholder images from project
               0 "img/LayerPreview1.png"
               1 "img/LayerPreview2.png"
               2 "img/LayerPreview3.png"
