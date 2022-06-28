@@ -25,6 +25,7 @@
                      :groups          []
                      :active-layers   []
                      :hidden-layers   #{}
+                     :preview-layer   nil
                      :logic           {:type    :map.layer-logic/automatic
                                        :trigger :map.logic.trigger/automatic}
                      :controls        {:transect false

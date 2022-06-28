@@ -192,9 +192,11 @@
                                          :errors?   (error-fn layer)
                                          :opacity  (opacity-fn layer)}]
                         {:id (str id-str "-" i)
-                         :className (when (:active? layer-state) "layer-active")
+                         :className (str "layer-wrapper" (when (:active? layer-state) " layer-active"))
                          :label (reagent/as-element
-                                 [:div.layer-wrapper
+                                 [:div
+                                  {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer layer])
+                                   :on-mouse-out #(re-frame/dispatch [:map/update-preview-layer nil])}
                                   [:div.header-row.height-static
                                    [catalogue-header layer layer-state]
                                    [catalogue-controls layer layer-state]]
@@ -1137,6 +1139,18 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
+(defn layer-preview
+  [{:keys [preview-layer]}]
+  (when preview-layer
+    [:div.layer-preview
+     [:img
+      {:src (case (mod (:id preview-layer) 5) ; Selects one of five placeholder images based on layer id - TODO: Replace with actual layer preview image per layer and remove placeholder images from project
+              0 "img/LayerPreview1.png"
+              1 "img/LayerPreview2.png"
+              2 "img/LayerPreview3.png"
+              3 "img/LayerPreview4.png"
+              4 "img/LayerPreview5.png")}]]))
+
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [m keydown-v]
@@ -1206,8 +1220,12 @@
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
-        _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)]
+        _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        catalogue-open?          @(re-frame/subscribe [:left-drawer/open?])
+        state-of-knowledge-open? @(re-frame/subscribe [:right-drawer/open?])
+        {:keys [active-layers preview-layer]} @(re-frame/subscribe [:map/layers])]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
+     {:class (str (when catalogue-open? " catalogue-open") (when (seq active-layers) " active-layers") (when state-of-knowledge-open? " state-of-knowledge-open"))}
      [:div#content-wrapper
       [map-component [floating-menu] [floating-pills]]
       [plot-component]]
@@ -1234,5 +1252,6 @@
      [loading-display]
      [left-drawer]
      [right-drawer]
-     [layers-search-omnibar]]))
+     [layers-search-omnibar]
+     [layer-preview {:preview-layer preview-layer}]]))
 

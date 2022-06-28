@@ -158,6 +158,7 @@
     :map/update-parks                     mevents/update-parks
     :map/update-zones                     mevents/update-zones
     :map/update-zones-iucn                mevents/update-zones-iucn
+    :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          mevents/map-zoom-in

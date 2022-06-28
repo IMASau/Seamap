@@ -641,3 +641,6 @@
   (-> db
       (assoc-in [:map :boundary-statistics :bathymetry :results] bathymetry-statistics)
       (assoc-in [:map :boundary-statistics :bathymetry :loading?] false)))
+
+(defn update-preview-layer [db [_ preview-layer]]
+  (assoc-in db [:map :preview-layer] preview-layer))
