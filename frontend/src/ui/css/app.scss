@@ -147,13 +147,9 @@ footer {
     margin-bottom: 10px;
 }
 
-.layer-wrapper {
+.layer-wrapper.bp3-card {
     min-width: 0;
     margin-bottom: 5px;
-}
-
-.layer-wrapper .bp3-card {
-    padding: 10px;
 }
 
 .layer-wrapper .header-row,
@@ -238,16 +234,23 @@ footer {
 .bp3-tree-node-secondary-label {
     flex: 0 0 auto;
 }
-.bp3-tree-node-content-2 {
-    padding-left: 25px;
-}
-.layer-active .bp3-tree-node-content {
-    align-items: normal;
+
+.layer-wrapper .bp3-tree-node-content {
+    padding: 0;
     height: auto;
 }
+.layer-wrapper .bp3-tree-node-label > div {
+    padding-left: 62px;
+    padding-bottom: 5px;
+    min-height: 30px;
+}
 
-.bp3-tree-node-label > .layer-wrapper {
-    padding-left: 9px;
+.layer-wrapper .bp3-tree-node-caret-none {
+    display: none;
+}
+
+.layer-wrapper .bp3-tree-node-label {
+    padding: 0;
 }
 
 .bp3-tree-node-label .layer-legend {

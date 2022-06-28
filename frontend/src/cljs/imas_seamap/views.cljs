@@ -192,9 +192,9 @@
                                          :errors?   (error-fn layer)
                                          :opacity  (opacity-fn layer)}]
                         {:id (str id-str "-" i)
-                         :className (when (:active? layer-state) "layer-active")
+                         :className (str "layer-wrapper" (when (:active? layer-state) " layer-active"))
                          :label (reagent/as-element
-                                 [:div.layer-wrapper
+                                 [:div
                                   [:div.header-row.height-static
                                    [catalogue-header layer layer-state]
                                    [catalogue-controls layer layer-state]]
