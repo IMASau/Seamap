@@ -745,7 +745,8 @@ input.leaflet-control-layers-selector[type="radio"] {
     display: flex;
 }
 
-.data-coverage-report-header > :nth-child(1) {
+.data-coverage-report-header > :nth-child(1),
+.data-coverage-report-header > :nth-child(3) {
     aspect-ratio: 1;
     height: 100%;
     display: flex;
@@ -757,6 +758,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     flex: 1;
     font-weight: bold;
     display: flex;
+    justify-content: center;
     align-items: center;
 }
 

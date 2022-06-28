@@ -1030,7 +1030,12 @@
                   {:minimal  true
                    :icon     "chevron-left"
                    :on-click #(swap! data-coverage-report? not)}]]
-                [:div "Data Coverage Report"]]
+                [:div "Data Coverage Report"]
+                [:div
+                 [:a.bp3-button.bp3-minimal
+                  {:href   "https://blueprintjs.com/" ; Placeholder URL
+                   :target "_blank"}
+                  [b/icon {:icon "share"}]]]]
                [:iframe {:src "https://blueprintjs.com/"}]]}])) ; Placeholder URL
          :showPanelHeader false}]])))
 
