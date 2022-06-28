@@ -39,6 +39,11 @@
     :map/active-zone                      msubs/active-zone
     :map/active-zone-iucn                 msubs/active-zone-iucn
     :map/habitat-statistics               msubs/habitat-statistics
+    :map/habitat-statistics-loading?      msubs/habitat-statistics-loading?
+    :map/habitat-statistics-download-url  msubs/habitat-statistics-download-url 
+    :map/bathymetry-statistics            msubs/bathymetry-statistics
+    :map/bathymetry-statistics-loading?   msubs/bathymetry-statistics-loading?
+    :map/bathymetry-statistics-download-url msubs/bathymetry-statistics-download-url
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/priorities                msubs/map-layer-priorities
@@ -111,6 +116,8 @@
     :map/got-featureinfo-err              mevents/got-feature-info-error
     :map/get-habitat-statistics           [mevents/get-habitat-statistics]
     :map/got-habitat-statistics           mevents/got-habitat-statistics
+    :map/get-bathymetry-statistics        [mevents/get-bathymetry-statistics]
+    :map/got-bathymetry-statistics        mevents/got-bathymetry-statistics
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]

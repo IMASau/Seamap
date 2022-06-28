@@ -6,7 +6,7 @@ export function Panel({content}) {
 	return content
 }
 
-export function PanelStack({panels, onClose}) {
+export function PanelStack({panels, onClose, showPanelHeader}) {
 	const stack = panels.map(
 		({content, title}) => {
 			return {
@@ -24,6 +24,7 @@ export function PanelStack({panels, onClose}) {
 			stack={stack}
 			onClose={onClose}
 			renderActivePanelOnly={false}
+			showPanelHeader={showPanelHeader ?? true}
 		/>
 	);
 }

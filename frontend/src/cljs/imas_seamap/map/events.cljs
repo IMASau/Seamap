@@ -340,19 +340,19 @@
 
 (defn update-networks [db [_ networks]]
   (let [networks (sort-by :name networks)]
-    (assoc-in db [:map :networks] networks)))
+    (assoc-in db [:map :boundaries :networks] networks)))
 
 (defn update-parks [db [_ parks]]
   (let [parks (sort-by (juxt :network :name) parks)]
-    (assoc-in db [:map :parks] parks)))
+    (assoc-in db [:map :boundaries :parks] parks)))
 
 (defn update-zones [db [_ zones]]
   (let [zones (sort-by :name zones)]
-    (assoc-in db [:map :zones] zones)))
+    (assoc-in db [:map :boundaries :zones] zones)))
 
 (defn update-zones-iucn [db [_ zones-iucn]]
   (let [zones-iucn (sort-by (comp string/lower-case :name) zones-iucn)]
-    (assoc-in db [:map :zones-iucn] zones-iucn)))
+    (assoc-in db [:map :boundaries :zones-iucn] zones-iucn)))
 
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
@@ -574,36 +574,41 @@
   (let [db (cond-> db
              (not= network (get-in db [:map :active-network]))
              (->
-              (assoc-in [:map :active-park] nil)
-              (assoc-in [:map :active-network] network)))]
+              (assoc-in [:map :boundaries :active-park] nil)
+              (assoc-in [:map :boundaries :active-network] network)))]
     {:db db
-     :dispatch [:map/get-habitat-statistics]}))
+     :dispatch-n [[:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-park [{:keys [db]} [_ {:keys [network] :as park}]]
   (let [db (-> db
-               (assoc-in [:map :active-network] (first-where #(= (:name %) network) (get-in db [:map :networks])))
-               (assoc-in [:map :active-park] park))]
+               (assoc-in [:map :boundaries :active-network] (first-where #(= (:name %) network) (get-in db [:map :networks])))
+               (assoc-in [:map :boundaries :active-park] park))]
     {:db db
-     :dispatch [:map/get-habitat-statistics]}))
+     :dispatch-n [[:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-zone [{:keys [db]} [_ zone]]
   (let [db (-> db
-               (assoc-in [:map :active-zone] zone)
-               (assoc-in [:map :active-zone-iucn] nil))]
+               (assoc-in [:map :boundaries :active-zone] zone)
+               (assoc-in [:map :boundaries :active-zone-iucn] nil))]
     {:db db
-     :dispatch [:map/get-habitat-statistics]}))
+     :dispatch-n [[:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-zone-iucn [{:keys [db]} [_ zone-iucn]]
   (let [db (-> db
-               (assoc-in [:map :active-zone-iucn] zone-iucn)
-               (assoc-in [:map :active-zone] nil))]
+               (assoc-in [:map :boundaries :active-zone-iucn] zone-iucn)
+               (assoc-in [:map :boundaries :active-zone] nil))]
     {:db db
-     :dispatch [:map/get-habitat-statistics]}))
+     :dispatch-n [[:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
 
 (defn get-habitat-statistics [{:keys [db]}]
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
-        {:keys [active-network active-park active-zone active-zone-iucn]}                    (:map db)]
-   {:http-xhrio {:method          :get
+        {:keys [active-network active-park active-zone active-zone-iucn]} (get-in db [:map :boundaries])]
+   {:db (assoc-in db [:map :boundary-statistics :habitat :loading?] true)
+    :http-xhrio {:method          :get
                  :uri             habitat-statistics-url
                  :params          {:network   (:name active-network)
                                    :park      (:name active-park)
@@ -614,7 +619,28 @@
                  :on-failure      [:ajax/default-err-handler]}}))
 
 (defn got-habitat-statistics [db [_ habitat-statistics]]
-  (assoc-in db [:map :habitat-statistics] habitat-statistics))
+  (-> db
+      (assoc-in [:map :boundary-statistics :habitat :results] habitat-statistics)
+      (assoc-in [:map :boundary-statistics :habitat :loading?] false)))
+
+(defn get-bathymetry-statistics [{:keys [db]}]
+  (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])
+        {:keys [active-network active-park active-zone active-zone-iucn]} (get-in db [:map :boundaries])]
+    {:db (assoc-in db [:map :boundary-statistics :bathymetry :loading?] true)
+     :http-xhrio {:method          :get
+                  :uri             bathymetry-statistics-url
+                  :params          {:network   (:name active-network)
+                                    :park      (:name active-park)
+                                    :zone      (:name active-zone)
+                                    :zone-iucn (:name active-zone-iucn)}
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success      [:map/got-bathymetry-statistics]
+                  :on-failure      [:ajax/default-err-handler]}}))
+
+(defn got-bathymetry-statistics [db [_ bathymetry-statistics]]
+  (-> db
+      (assoc-in [:map :boundary-statistics :bathymetry :results] bathymetry-statistics)
+      (assoc-in [:map :boundary-statistics :bathymetry :loading?] false)))
 
 (defn update-preview-layer [db [_ preview-layer]]
   (assoc-in db [:map :preview-layer] preview-layer))

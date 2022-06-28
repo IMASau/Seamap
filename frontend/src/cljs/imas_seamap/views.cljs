@@ -678,22 +678,23 @@
   (let [categories @(re-frame/subscribe [:map/display-categories])]
     {:content
      [:div
-      [:div.drawer-group
-       [:h1.bp3-heading.bp3-icon-settings
-        "Controls"]
+      [components/drawer-group
+       {:heading "Controls"
+        :icon    "settings"}
        [transect-toggle]
        [selection-button]
        [layer-logic-toggle-button]]
-      [:div.drawer-group
-       [:h1.bp3-heading.bp3-icon-list-detail-view
-        "Catalogue Layers"]
+      
+      [components/drawer-group
+       {:heading "Catalogue Layers"
+        :icon    "list-detail-view"}
        (for [category categories]
          [catalogue-layers-button
           {:key      (:name category)
            :category category}])]
-      [:div.drawer-group
-       [:h1.bp3-heading.bp3-icon-cog
-        "Settings"]
+      [components/drawer-group
+       {:heading "Settings"
+        :icon    "cog"}
        [b/button
         {:icon     "undo"
          :text     "Reset Interface"
@@ -829,9 +830,10 @@
         "No habitat information"]])]])
 
 (defn boundary-selection
-  []
-  [:div.drawer-group
-   [:h1.bp3-heading.bp3-icon-heatmap "Boundaries"]
+  [{:keys [open-data-coverage-report]}]
+  [components/drawer-group
+   {:heading "Boundaries"
+    :icon    "heatmap"}
    [components/form-group
     {:label "Network"}
     [components/select
@@ -868,53 +870,180 @@
       :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
       :keyfns
       {:id   :name
-       :text :name}}]]])
+       :text :name}}]]
+   [:a.data-coverage-report-link {:on-click open-data-coverage-report} "View data coverage report"]])
 
 (defn habitat-statistics
   []
-  (let [selected-tab (reagent/atom "breakdown")]
+  (let [selected-tab (reagent/atom "breakdown")
+        collapsed?   (reagent/atom false)]
     (fn []
-      (let [habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
+      (let [loading?           @(re-frame/subscribe [:map/habitat-statistics-loading?])
+            habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
+            habitat-statistics-download-url @(re-frame/subscribe [:map/habitat-statistics-download-url])
             without-unmapped   (filter :habitat habitat-statistics)]
-        [:div.drawer-group
-         [:h1.bp3-heading.bp3-icon-home "Habitat Statistics"]
-         [b/tabs
-          {:id              "habitat-statistics-tabs"
-           :selected-tab-id @selected-tab
-           :on-change       #(reset! selected-tab %)}
-          [b/tab
-           {:id    "breakdown"
-            :title "Breakdown"
-            :panel
-            (reagent/as-element
-             [habitat-statistics-table
-              {:habitat-statistics habitat-statistics}])}]
-          [b/tab
-           {:id    "chart"
-            :title "Chart"
-            :panel
-            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+        [components/drawer-group
+         {:heading     "Habitat Statistics"
+          :icon        "home"
+          :collapsed?  @collapsed?
+          :toggle-collapse #(swap! collapsed? not)}
+         (if loading?
+           [b/spinner]
+           [b/tabs
+            {:id              "habitat-statistics-tabs"
+             :selected-tab-id @selected-tab
+             :on-change       #(reset! selected-tab %)}
+
+            [b/tab
+             {:id    "breakdown"
+              :title "Breakdown"
+              :panel
+              (reagent/as-element
+               [habitat-statistics-table
+                {:habitat-statistics habitat-statistics}])}]
+
+            [b/tab
+             {:id    "chart"
+              :title "Chart"
+              :panel
+              (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+                (reagent/as-element
+                 (if (seq without-unmapped)
+                   [components/donut-chart
+                    {:id           "habitat-statistics-chart"
+                     :values       without-unmapped
+                     :theta        :area
+                     :color        :habitat
+                     :legend-title "Habitat"}]
+                   [:div "No habitat information"])))}]
+
+            [b/tab
+             {:id    "download"
+              :title "Download"
+              :panel
               (reagent/as-element
                (if (seq without-unmapped)
-                 [components/donut-chart
-                  {:id           "habitat-statistics"
-                   :values       without-unmapped
-                   :theta        :area
-                   :color        :habitat
-                   :legend-title "Habitat"}]
-                 [:div "No habitat information"])))}]]]))))
+                 [:a.download
+                  {:href habitat-statistics-download-url}
+                  "Download as Shapefile"]
+                 [:div "No habitat information"]))}]])]))))
+
+(defn bathymetry-statistics-table
+  [{:keys [bathymetry-statistics]}]
+  [:table
+   [:thead
+    [:tr
+     [:th "Category"]
+     [:th "Area (km^2)"]
+     [:th "Percentage (%)"]]]
+   [:tbody
+    (if (seq bathymetry-statistics)
+      (for [{:keys [category area percentage]} bathymetry-statistics]
+        [:tr
+         {:key (or category "Unmapped")}
+         [:td (or category "Unmapped")]
+         [:td (gstring/format "%.2f" area)]
+         [:td (gstring/format "%.2f" percentage)]])
+      [:tr
+       [:td
+        {:colSpan 3}
+        "No bathymetry information"]])]])
+
+(defn bathymetry-statistics
+  []
+  (let [selected-tab (reagent/atom "breakdown")
+        collapsed?   (reagent/atom false)]
+    (fn []
+      (let [loading?              @(re-frame/subscribe [:map/bathymetry-statistics-loading?])
+            bathymetry-statistics @(re-frame/subscribe [:map/bathymetry-statistics])
+            bathymetry-statistics-download-url @(re-frame/subscribe [:map/bathymetry-statistics-download-url])
+            without-unmapped      (filter :category bathymetry-statistics)]
+        [components/drawer-group 
+         {:heading         "Bathymetry Statistics"
+          :icon            "timeline-area-chart"
+          :collapsed?      @collapsed?
+          :toggle-collapse #(swap! collapsed? not)}
+         (if loading?
+           [b/spinner]
+           [b/tabs
+            {:id              "bathymetry-statistics-tabs"
+             :selected-tab-id @selected-tab
+             :on-change       #(reset! selected-tab %)}
+
+            [b/tab
+             {:id    "breakdown"
+              :title "Breakdown"
+              :panel (reagent/as-element
+                      [bathymetry-statistics-table
+                       {:bathymetry-statistics bathymetry-statistics}])}]
+
+            [b/tab
+             {:id    "chart"
+              :title "Chart"
+              :panel
+              (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+                (reagent/as-element
+                 (if (seq without-unmapped)
+                   [components/donut-chart
+                    {:id           "bathymetry-statistics-chart"
+                     :values       without-unmapped
+                     :theta        :area
+                     :color        :category
+                     :legend-title "Category"}]
+                   [:div "No bathymetry information"])))}]
+
+            [b/tab
+             {:id    "download"
+              :title "Download"
+              :panel
+              (reagent/as-element
+               (if (seq without-unmapped)
+                 [:a.download
+                  {:href bathymetry-statistics-download-url}
+                  "Download as Shapefile"]
+                 [:div "No bathymetry information"]))}]])]))))
+
+(defn data-coverage-report
+  [{:keys [close]}]
+  [:div.data-coverage-report
+   [:div.data-coverage-report-header
+    [:div
+     [b/button
+      {:minimal  true
+       :icon     "chevron-left"
+       :on-click close}]]
+    [:div "Data Coverage Report"]
+    [:div
+     [:a.bp3-button.bp3-minimal
+      {:href   "https://blueprintjs.com/" ; Placeholder URL
+       :target "_blank"}
+      [b/icon {:icon "share"}]]]]
+   [:iframe {:src "https://blueprintjs.com/"}]]) ; Placeholder URL
 
 (defn right-drawer
   []
-  [components/drawer
-   {:title       "State of Knowledge"
-    :position    "right"
-    :size        "460px"
-    :isOpen      @(re-frame/subscribe [:right-drawer/open?])
-    :onClose     #(re-frame/dispatch [:right-drawer/close])
-    :hasBackdrop false}
-   [boundary-selection]
-   [habitat-statistics]])
+  (let [data-coverage-report? (reagent/atom false)]
+    (fn []
+      [components/drawer
+       {:title       "State of Knowledge"
+        :position    "right"
+        :size        "460px"
+        :isOpen      @(re-frame/subscribe [:right-drawer/open?])
+        :onClose     #(re-frame/dispatch [:right-drawer/close])
+        :hasBackdrop false
+        :className   "state-of-knowledge-drawer"}
+       [components/panel-stack
+        {:panels
+         (concat
+          [{:content
+            [:div
+             [boundary-selection {:open-data-coverage-report #(reset! data-coverage-report? true)}]
+             [habitat-statistics]
+             [bathymetry-statistics]]}]
+          (when @data-coverage-report?
+            [{:content
+              [data-coverage-report {:close #(reset! data-coverage-report? false)}]}]))
+         :showPanelHeader false}]])))
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])

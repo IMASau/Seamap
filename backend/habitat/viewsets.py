@@ -19,7 +19,7 @@ from django.db import connections, ProgrammingError
 from django.db.models.functions import Coalesce
 from django.http import FileResponse
 from rest_framework.decorators import action, api_view, renderer_classes
-from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer
+from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.serializers import ValidationError
@@ -89,21 +89,23 @@ PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",
 
 
 SQL_GET_NETWORKS = """
-SELECT DISTINCT NETNAME
+SELECT DISTINCT NETNAME AS name
 FROM BoundaryGeoms_View;
 """
 
 SQL_GET_PARKS = """
-SELECT DISTINCT NETNAME, RESNAME
+SELECT DISTINCT
+  NETNAME AS network,
+  RESNAME AS name
 FROM BoundaryGeoms_View;
 """
 
 SQL_GET_ZONES = """
-SELECT DISTINCT ZONENAME
+SELECT DISTINCT ZONENAME AS name
 FROM BoundaryGeoms_View;
 """
 SQL_GET_ZONES_IUCN = """
-SELECT DISTINCT ZONEIUCN
+SELECT DISTINCT ZONEIUCN AS name
 FROM BoundaryGeoms_View;
 """
 
@@ -117,7 +119,8 @@ DECLARE @zoneiucn NVARCHAR(5)   = %s;
 SELECT
   habitat,
   geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage
+  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage,
+  geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BoundaryHabitats
 WHERE
   (NETNAME = @netname OR @netname IS NULL) AND
@@ -133,17 +136,18 @@ DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 SELECT
-  bathymetry_category,
-  bathymetry_rank,
+  bathymetry_category as category,
+  bathymetry_rank as rank,
   geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage
+  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage,
+  geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BoundaryBathymetries
 WHERE
   (NETNAME = @netname OR @netname IS NULL) AND
   (RESNAME = @resname OR @resname IS NULL) AND
   (ZONENAME = @zonename OR @zonename IS NULL) AND
   (ZONEIUCN = @zoneiucn OR @zoneiucn IS NULL)
-GROUP BY bathymetry_category;
+GROUP BY bathymetry_category, bathymetry_rank;
 """
 
 def parse_bounds(bounds_str):
@@ -467,16 +471,11 @@ def networks(request):
     with connections['transects'].cursor() as cursor:
         cursor.execute(SQL_GET_NETWORKS)
 
-        while True:
-            try:
-                for row in cursor.fetchall():
-                    [name] = row
-                    networks.append({'name': name})
-                if not cursor.nextset():
-                    break
-            except ProgrammingError:
-                if not cursor.nextset():
-                    break
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        networks = [row._asdict() for row in results]
     return Response(networks)
 
 @action(detail=False)
@@ -487,17 +486,11 @@ def parks(request):
     with connections['transects'].cursor() as cursor:
         cursor.execute(SQL_GET_PARKS)
 
-        while True:
-            try:
-                for row in cursor.fetchall():
-                    [network, name] = row
-                    parks.append({'name': name,
-                                  'network': network})
-                if not cursor.nextset():
-                    break
-            except ProgrammingError:
-                if not cursor.nextset():
-                    break
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        parks = [row._asdict() for row in results]
     return Response(parks)
 
 
@@ -509,16 +502,11 @@ def zones(request):
     with connections['transects'].cursor() as cursor:
         cursor.execute(SQL_GET_ZONES)
 
-        while True:
-            try:
-                for row in cursor.fetchall():
-                    [name] = row
-                    zones.append({'name': name})
-                if not cursor.nextset():
-                    break
-            except ProgrammingError:
-                if not cursor.nextset():
-                    break
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        zones = [row._asdict() for row in results]
     return Response(zones)
 
 
@@ -530,26 +518,23 @@ def zones_iucn(request):
     with connections['transects'].cursor() as cursor:
         cursor.execute(SQL_GET_ZONES_IUCN)
 
-        while True:
-            try:
-                for row in cursor.fetchall():
-                    [name] = row
-                    zones_iucn.append({'name': name})
-                if not cursor.nextset():
-                    break
-            except ProgrammingError:
-                if not cursor.nextset():
-                    break
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        zones_iucn = [row._asdict() for row in results]
     return Response(zones_iucn)
 
 @action(detail=False)
 @api_view()
+@renderer_classes((JSONRenderer, ShapefileRenderer))
 def habitat_statistics(request):
     params = {k: v if v else None for k, v in request.query_params.items()}
     network   = params.get('network')
     park      = params.get('park')
     zone      = params.get('zone')
     zone_iucn = params.get('zone-iucn')
+    is_download = request.accepted_renderer.format == 'raw'
 
     habitat_stats = []
 
@@ -561,16 +546,20 @@ def habitat_statistics(request):
 
             cursor.execute(SQL_GET_HABITAT_STATS, [network, park, zone, zone_iucn, boundary_area])
 
-            while True:
-                try:
-                    for row in cursor.fetchall():
-                        [habitat, area, percentage] = row
-                        habitat_stats.append({'habitat': habitat, 'area': area, 'percentage': percentage})
-                    if not cursor.nextset():
-                        break
-                except ProgrammingError:
-                    if not cursor.nextset():
-                        break
+            columns = [col[0] for col in cursor.description]
+            namedrow = namedtuple('Result', columns)
+            results = [namedrow(*row) for row in cursor.fetchall()]
+
+            if is_download:
+                boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn] if v])
+                return Response({'data': results,
+                                 'fields': cursor.description,
+                                 'file_name': boundary_name},
+                                content_type='application/zip',
+                                headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
+            
+            habitat_stats = [row._asdict() for row in results]
+            for v in habitat_stats: del v['geom']
 
             unmapped_area = boundary_area - float(sum(v['area'] for v in habitat_stats))
             unmapped_percentage = 100 * unmapped_area / boundary_area
@@ -582,12 +571,14 @@ def habitat_statistics(request):
 
 @action(detail=False)
 @api_view()
+@renderer_classes((JSONRenderer, ShapefileRenderer))
 def bathymetry_statistics(request):
     params = {k: v if v else None for k, v in request.query_params.items()}
     network   = params.get('network')
     park      = params.get('park')
     zone      = params.get('zone')
     zone_iucn = params.get('zone-iucn')
+    is_download = request.accepted_renderer.format == 'raw'
 
     bathymetry_stats = []
 
@@ -599,20 +590,24 @@ def bathymetry_statistics(request):
 
             cursor.execute(SQL_GET_BATHYMETRY_STATS, [network, park, zone, zone_iucn, boundary_area])
 
-            while True:
-                try:
-                    for row in cursor.fetchall():
-                        [bathymetry_category, bathymetry_rank, area, percentage] = row
-                        bathymetry_stats.append({'category': bathymetry_category, 'rank': bathymetry_rank, 'area': area, 'percentage': percentage})
-                    if not cursor.nextset():
-                        break
-                except ProgrammingError:
-                    if not cursor.nextset():
-                        break
+            columns = [col[0] for col in cursor.description]
+            namedrow = namedtuple('Result', columns)
+            results = [namedrow(*row) for row in cursor.fetchall()]
+
+            if is_download:
+                boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn] if v])
+                return Response({'data': results,
+                                 'fields': cursor.description,
+                                 'file_name': boundary_name},
+                                content_type='application/zip',
+                                headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
+
+            bathymetry_stats = [row._asdict() for row in results]
+            for v in bathymetry_stats: del v['geom']
 
             unmapped_area = boundary_area - float(sum(v['area'] for v in bathymetry_stats))
             unmapped_percentage = 100 * unmapped_area / boundary_area
-            bathymetry_stats.append({'category': None, 'rank': bathymetry_rank, 'area': unmapped_area, 'percentage': unmapped_percentage})
+            bathymetry_stats.append({'category': None, 'rank': None, 'area': unmapped_area, 'percentage': unmapped_percentage})
         except:
             return Response([])
         else:

@@ -80,17 +80,17 @@
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))
 
-(defn networks [{:keys [map]} _]
-  (:networks map))
+(defn networks [db _]
+  (get-in db [:map :boundaries :networks]))
 
-(defn parks [{:keys [map]} _]
-  (:parks map))
+(defn parks [db _]
+  (get-in db [:map :boundaries :parks]))
 
-(defn zones [{:keys [map]} _]
-  (:zones map))
+(defn zones [db _]
+  (get-in db [:map :boundaries :zones]))
 
-(defn zones-iucn [{:keys [map]} _]
-  (:zones-iucn map))
+(defn zones-iucn [db _]
+  (get-in db [:map :boundaries :zones-iucn]))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
@@ -175,17 +175,46 @@
     (some #(and (= org-name (:name %)) %) organisations)
     organisations))
 
-(defn active-network [{:keys [map]}]
-  (:active-network map))
+(defn active-network [db _]
+  (get-in db [:map :boundaries :active-network]))
 
-(defn active-park [{:keys [map]}]
-  (:active-park map))
+(defn active-park [db _]
+(get-in db [:map :boundaries :active-park]))
 
-(defn active-zone [{:keys [map]}]
-  (:active-zone map))
+(defn active-zone [db _]
+(get-in db [:map :boundaries :active-zone]))
 
-(defn active-zone-iucn [{:keys [map]}]
-  (:active-zone-iucn map))
+(defn active-zone-iucn [db _]
+(get-in db [:map :boundaries :active-zone-iucn]))
 
-(defn habitat-statistics [{:keys [map]}]
-  (:habitat-statistics map))
+(defn habitat-statistics [db _]
+  (get-in db [:map :boundary-statistics :habitat :results]))
+
+(defn habitat-statistics-loading? [db _]
+  (get-in db [:map :boundary-statistics :habitat :loading?]))
+
+(defn habitat-statistics-download-url [{:keys [config map]}]
+  (let [{:keys [active-network active-park active-zone active-zone-iucn]} (:boundaries map)]
+    (str
+     (:habitat-statistics-url config)
+     "?network=" (:name active-network)
+     "&park=" (:name active-park)
+     "&zone=" (:name active-zone)
+     "&zone-iucn=" (:name active-zone-iucn)
+     "&format=raw")))
+
+(defn bathymetry-statistics [db _]
+  (get-in db [:map :boundary-statistics :bathymetry :results]))
+
+(defn bathymetry-statistics-loading? [db _]
+  (get-in db [:map :boundary-statistics :bathymetry :loading?]))
+
+(defn bathymetry-statistics-download-url [{:keys [config map]}]
+  (let [{:keys [active-network active-park active-zone active-zone-iucn]} (:boundaries map)]
+    (str
+     (:bathymetry-statistics-url config)
+     "?network=" (:name active-network)
+     "&park=" (:name active-park)
+     "&zone=" (:name active-zone)
+     "&zone-iucn=" (:name active-zone-iucn)
+     "&format=raw")))
