@@ -1011,10 +1011,11 @@
        :keywords    #(layer-search-keywords categories %)}}]))
 
 (defn layer-preview
-  []
-  [:div.layer-preview
-   [:img
-    {:src "img/LayerPreviewPlaceholder.png"}]])
+  [{:keys [preview-layer]}]
+  (when preview-layer
+    [:div.layer-preview
+     [:img
+      {:src "img/LayerPreviewPlaceholder.png"}]]))
 
 (def hotkeys-combos
   (let [keydown-wrapper
