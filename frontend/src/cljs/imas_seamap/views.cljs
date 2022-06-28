@@ -1002,17 +1002,25 @@
 
 (defn right-drawer
   []
-  [components/drawer
-   {:title       "State of Knowledge"
-    :position    "right"
-    :size        "460px"
-    :isOpen      @(re-frame/subscribe [:right-drawer/open?])
-    :onClose     #(re-frame/dispatch [:right-drawer/close])
-    :hasBackdrop false
-    :className   "state-of-knowledge-drawer"}
-   [boundary-selection]
-   [habitat-statistics]
-   [bathymetry-statistics]])
+  (let [data-coverage-report? (reagent/atom false)]
+    (fn []
+      [components/drawer
+       {:title       "State of Knowledge"
+        :position    "right"
+        :size        "460px"
+        :isOpen      @(re-frame/subscribe [:right-drawer/open?])
+        :onClose     #(re-frame/dispatch [:right-drawer/close])
+        :hasBackdrop false
+        :className   "state-of-knowledge-drawer"}
+       [components/panel-stack
+        {:panels
+         (concat
+          [{:content
+            [:div
+             [boundary-selection]
+             [habitat-statistics]
+             [bathymetry-statistics]]}])
+         :showPanelHeader false}]])))
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])

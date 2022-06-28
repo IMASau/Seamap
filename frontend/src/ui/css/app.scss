@@ -697,30 +697,31 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-top: 8px;
 }
 
-.state-of-knowledge-drawer > .drawer-children {
+.state-of-knowledge-drawer .bp3-panel-stack-view > div {
     display: flex;
     flex-direction: column;
+    height: 100%
 }
 
-.state-of-knowledge-drawer > .drawer-children > .drawer-group:not(:first-child) {
+.state-of-knowledge-drawer .bp3-panel-stack-view .drawer-group:not(:first-child) {
     flex: 1 1 0;
     min-height: 0;
 }
 
-.state-of-knowledge-drawer > .drawer-children > .drawer-group {
+.state-of-knowledge-drawer .bp3-panel-stack-view  .drawer-group {
     transition: flex 500ms;
 }
 
-.state-of-knowledge-drawer > .drawer-children > .drawer-group.collapsed {
+.state-of-knowledge-drawer .bp3-panel-stack-view  .drawer-group.collapsed {
     flex: 0 1 0;
     min-height: 20px;
 }
 
-.state-of-knowledge-drawer > .drawer-children > .drawer-group:not(:first-child) > .drawer-group-content {
+.state-of-knowledge-drawer .bp3-panel-stack-view  .drawer-group:not(:first-child) > .drawer-group-content {
     overflow-y: auto;
 }
 
-.state-of-knowledge-drawer > .drawer-children > .drawer-group:first-child {
+.state-of-knowledge-drawer .bp3-panel-stack-view  .drawer-group:first-child {
     flex: 0 0;
 }
 
