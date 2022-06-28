@@ -195,6 +195,8 @@
                          :className (str "layer-wrapper" (when (:active? layer-state) " layer-active"))
                          :label (reagent/as-element
                                  [:div
+                                  {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer layer])
+                                   :on-mouse-out #(re-frame/dispatch [:map/update-preview-layer nil])}
                                   [:div.header-row.height-static
                                    [catalogue-header layer layer-state]
                                    [catalogue-controls layer layer-state]]
