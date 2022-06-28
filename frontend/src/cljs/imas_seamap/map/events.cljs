@@ -582,7 +582,7 @@
 
 (defn update-active-park [{:keys [db]} [_ {:keys [network] :as park}]]
   (let [db (-> db
-               (assoc-in [:map :boundaries :active-network] (first-where #(= (:name %) network) (get-in db [:map :networks])))
+               (assoc-in [:map :boundaries :active-network] (first-where #(= (:name %) network) (get-in db [:map :boundaries :networks])))
                (assoc-in [:map :boundaries :active-park] park))]
     {:db db
      :dispatch-n [[:map/get-habitat-statistics]
