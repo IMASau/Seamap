@@ -1086,7 +1086,7 @@
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?          @(re-frame/subscribe [:left-drawer/open?])
         state-of-knowledge-open? @(re-frame/subscribe [:right-drawer/open?])
-        {:keys [active-layers]}  @(re-frame/subscribe [:map/layers])]
+        {:keys [active-layers preview-layer]} @(re-frame/subscribe [:map/layers])]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when (seq active-layers) " active-layers") (when state-of-knowledge-open? " state-of-knowledge-open"))}
      [:div#content-wrapper
@@ -1116,5 +1116,5 @@
      [left-drawer]
      [right-drawer]
      [layers-search-omnibar]
-     [layer-preview]]))
+     [layer-preview {:preview-layer preview-layer}]]))
 
