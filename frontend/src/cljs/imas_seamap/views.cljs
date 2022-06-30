@@ -1098,19 +1098,28 @@
       [floating-menu-bar]
       (when (seq active-layers) [floating-menu-active-layers map-layers])]]))
 
+(defn floating-transect-pill
+  [{:keys [drawing? query]}]
+  (let [[text icon dispatch] (cond
+                           drawing? ["Cancel Transect" "undo"   :transect.draw/disable]
+                           query    ["Clear Transect"  "eraser" :transect.draw/clear]
+                           :else    ["Draw Transect"   "edit"   :transect.draw/enable])]
+    [components/floating-pill-button
+     {:text     text
+      :icon     icon
+      :on-click #(re-frame/dispatch [dispatch])}]))
+
 (defn floating-pills
   []
-  (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))]
+  (let [collapsed     (:collapsed @(re-frame/subscribe [:ui/sidebar]))
+        transect-info @(re-frame/subscribe [:transect/info])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
      [components/floating-pill-button
       {:text     "State of Knowledge"
        :icon     "add-column-right"
        :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
-     [components/floating-pill-button
-      {:text     "Draw Transect"
-       :icon     "edit"
-       :on-click #(re-frame/dispatch [:transect.draw/toggle])}]
+     [floating-transect-pill transect-info]
      [components/floating-pill-button
       {:text     "Select Region"
        :icon     "widget"
