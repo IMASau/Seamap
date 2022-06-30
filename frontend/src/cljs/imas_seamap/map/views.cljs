@@ -216,27 +216,22 @@
       ;; React -> Leaflet translation just does add/removeLayer, which
       ;; then orders in the map by update not by list):
        (map-indexed
-        (fn [i {:keys [server_url layer_name] :as layer}]
-          (let [#_extra-params #_(layer-params layer)]
-           ;; This extra key aspect (hash of extra params) shouldn't
-           ;; be necessary anyway, and now it interferes with
-           ;; download-selection (if we fade out other layers when
-           ;; selecting, it triggers a reload of that layer, which
-           ;; triggers draw:stop it seems)
-            ^{:key (str server_url layer_name)}
-            [leaflet/wms-layer (merge
-                                {:url          server_url
-                                 :layers       layer_name
-                                 :z-index      (+ 2 i) ; base layers is zindex 1, start content at 2
-                                 :on-loading   on-load-start
-                                 :on-tileloadstart on-tile-load-start
-                                 :on-tileerror on-tile-error
-                                 :on-load      on-load-end
-                                 :transparent  true
-                                 :opacity      (/ (layer-opacities layer) 100)
-                                 :tiled        true
-                                 :format       "image/png"}
-                                #_extra-params)]))
+        (fn [i {:keys [server_url layer_name style] :as layer}]
+          ^{:key (str server_url layer_name)}
+          [leaflet/wms-layer
+           (merge
+            {:url              server_url
+             :layers           layer_name
+             :z-index          (+ 2 i) ; base layers is zindex 1, start content at 2
+             :on-loading       on-load-start
+             :on-tileloadstart on-tile-load-start
+             :on-tileerror     on-tile-error
+             :on-load          on-load-end
+             :transparent      true
+             :opacity          (/ (layer-opacities layer) 100)
+             :tiled            true
+             :format           "image/png"}
+            (when style {:styles style}))])
         (concat (:layers active-base-layer) visible-layers))
        (when query
          [leaflet/geojson-layer {:data (clj->js query)}])
