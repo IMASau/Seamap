@@ -10,8 +10,8 @@ $floating-pill-height: 36px;
 	transition: left 200ms;
 }
 
-.floating-pills > *:not(:last-child) {
-	margin-right: 6px; 
+.floating-pills>*:not(:last-child) {
+	margin-right: 6px;
 }
 
 .floating-pill {
@@ -19,7 +19,7 @@ $floating-pill-height: 36px;
 	padding: 0 14px;
 	height: $floating-pill-height;
 	border-radius: 14px;
-	border: 2px solid rgba(0,0,0,0.2);
+	border: 2px solid rgba(0, 0, 0, 0.2);
 	background-clip: padding-box;
 	color: black;
 	font-size: 14px;
@@ -28,8 +28,12 @@ $floating-pill-height: 36px;
 	align-items: center;
 }
 
+.floating-pill>.bp3-icon {
+	margin-right: 7px;
+}
+
 .catalogue-open .floating-pills {
-    left: calc($catalogue-drawer-width + $floating-menu-padding);
+	left: calc($catalogue-drawer-width + $floating-menu-padding);
 }
 
 .catalogue-open .leaflet-top.leaflet-left,
@@ -41,15 +45,28 @@ $floating-pill-height: 36px;
 	margin-left: 0;
 }
 
+.floating-pill-control-menu-button,
 .floating-pill-button {
 	cursor: pointer;
 	user-select: none;
 }
 
+.floating-pill-control-menu-button:hover,
 .floating-pill-button:hover {
 	background-color: #f4f4f4;
 }
 
-.floating-pill-button > .bp3-icon {
-	margin-right: 7px;
+.floating-pill-control-menu-content {
+	position: absolute;
+	margin-top: $floating-menu-padding;
+	background-color: white;
+	padding: 0 14px;
+	border-radius: 14px;
+	border: 2px solid rgba(0, 0, 0, 0.2);
+	background-clip: padding-box;
+	color: black;
+}
+
+.floating-pill-control-menu:not(.floating-pill-control-menu.expanded) .floating-pill-control-menu-content {
+	display: none;
 }
