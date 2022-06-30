@@ -51,16 +51,18 @@
 
 (defn floating-pill-control-menu
   [{:keys [text icon disabled]} & children]
-  (let [expanded? false]
-    [:div.floating-pill-control-menu
-     [:div
-      {:class    (str "floating-pill floating-pill-control-menu-button" (when expanded? " expanded") (when disabled " disabled"))
-       :on-click (when-not disabled #(js/console.log "Open seasame!"))}
-      [b/icon
-       {:icon icon
-        :icon-size 20}]
-      text]
-     (into [:div.floating-pill-control-menu-content {:class (when expanded? "expanded")}] children)]))
+  (let [expanded? (reagent/atom false)]
+    (fn []
+      [:div
+       {:class (str "floating-pill-control-menu" (when @expanded? " expanded"))}
+       [:div
+        {:class    (str "floating-pill floating-pill-control-menu-button" (when disabled " disabled"))
+         :on-click (when-not disabled #(swap! expanded? not))}
+        [b/icon
+         {:icon icon
+          :icon-size 20}]
+        text]
+       (into [:div.floating-pill-control-menu-content] children)])))
 
 (defn omnibar
   [{:keys [placeholder isOpen onClose items onItemSelect keyfns]}]

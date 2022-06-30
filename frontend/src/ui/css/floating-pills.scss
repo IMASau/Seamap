@@ -67,6 +67,6 @@ $floating-pill-height: 36px;
 	color: black;
 }
 
-.floating-pill-control-menu:not(.floating-pill-control-menu.expanded) .floating-pill-control-menu-content {
+.floating-pill-control-menu:not(.expanded) .floating-pill-control-menu-content {
 	display: none;
 }
