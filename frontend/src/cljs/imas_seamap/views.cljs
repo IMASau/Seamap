@@ -829,8 +829,7 @@
         {:colSpan 3}
         "No habitat information"]])]])
 
-(defn boundary-selection
-  [{:keys [open-data-coverage-report]}]
+(defn boundary-selection []
   [components/drawer-group
    {:heading "Boundaries"
     :icon    "heatmap"}
@@ -871,7 +870,10 @@
       :keyfns
       {:id   :name
        :text :name}}]]
-   [:a.data-coverage-report-link {:on-click open-data-coverage-report} "View data coverage report"]])
+   [:a.data-coverage-report-link
+    {:href   "https://blueprintjs.com/" ; Placeholder URL
+     :target "_blank"}
+    "View data coverage report"]])
 
 (defn habitat-statistics
   []
@@ -1004,47 +1006,18 @@
                   "Download as Shapefile"]
                  [:div "No bathymetry information"]))}]])]))))
 
-(defn data-coverage-report
-  [{:keys [close]}]
-  [:div.data-coverage-report
-   [:div.data-coverage-report-header
-    [:div
-     [b/button
-      {:minimal  true
-       :icon     "chevron-left"
-       :on-click close}]]
-    [:div "Data Coverage Report"]
-    [:div
-     [:a.bp3-button.bp3-minimal
-      {:href   "https://blueprintjs.com/" ; Placeholder URL
-       :target "_blank"}
-      [b/icon {:icon "document-open"}]]]]
-   [:iframe {:src "https://blueprintjs.com/"}]]) ; Placeholder URL
-
-(defn right-drawer
-  []
-  (let [data-coverage-report? (reagent/atom false)]
-    (fn []
-      [components/drawer
-       {:title       "State of Knowledge"
-        :position    "right"
-        :size        "460px"
-        :isOpen      @(re-frame/subscribe [:right-drawer/open?])
-        :onClose     #(re-frame/dispatch [:right-drawer/close])
-        :hasBackdrop false
-        :className   "state-of-knowledge-drawer"}
-       [components/panel-stack
-        {:panels
-         (concat
-          [{:content
-            [:div
-             [boundary-selection {:open-data-coverage-report #(reset! data-coverage-report? true)}]
-             [habitat-statistics]
-             [bathymetry-statistics]]}]
-          (when @data-coverage-report?
-            [{:content
-              [data-coverage-report {:close #(reset! data-coverage-report? false)}]}]))
-         :showPanelHeader false}]])))
+(defn right-drawer []
+  [components/drawer
+   {:title       "State of Knowledge"
+    :position    "right"
+    :size        "460px"
+    :isOpen      @(re-frame/subscribe [:right-drawer/open?])
+    :onClose     #(re-frame/dispatch [:right-drawer/close])
+    :hasBackdrop false
+    :className   "state-of-knowledge-drawer"}
+   [boundary-selection]
+   [habitat-statistics]
+   [bathymetry-statistics]])
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])

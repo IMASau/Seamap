@@ -744,32 +744,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     height: 100%;
 }
 
-.data-coverage-report-header {
-    height: 40px;
-    display: flex;
-}
-
-.data-coverage-report-header > :nth-child(1),
-.data-coverage-report-header > :nth-child(3) {
-    aspect-ratio: 1;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.data-coverage-report-header > :nth-child(2) {
-    flex: 1;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.data-coverage-report > iframe {
-    flex: 1;
-}
-
 .layer-preview {
     position: absolute;
     top: calc($floating-pill-height + 2 * $floating-menu-padding);
