@@ -42,7 +42,7 @@
 (defn floating-pill-button
   [{:keys [text icon on-click disabled]}]
   [:div
-   {:class    (str "floating-pill-button" (when disabled " disabled"))
+   {:class    (str "floating-pill floating-pill-button" (when disabled " disabled"))
     :on-click (when-not disabled on-click)}
    [b/icon
     {:icon icon
