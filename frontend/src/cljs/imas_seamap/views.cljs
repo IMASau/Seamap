@@ -910,11 +910,12 @@
                 (reagent/as-element
                  (if (seq without-unmapped)
                    [components/donut-chart
-                    {:id           "habitat-statistics-chart"
-                     :values       without-unmapped
-                     :theta        :area
-                     :color        :habitat
-                     :legend-title "Habitat"}]
+                    {:id              "habitat-statistics-chart"
+                     :values          without-unmapped
+                     :independent-var :habitat
+                     :dependent-var   :area
+                     :color           :color
+                     :legend-title    "Habitat"}]
                    [:div "No habitat information"])))}]
 
             [b/tab
@@ -985,11 +986,11 @@
                 (reagent/as-element
                  (if (seq without-unmapped)
                    [components/donut-chart
-                    {:id           "bathymetry-statistics-chart"
-                     :values       without-unmapped
-                     :theta        :area
-                     :color        :category
-                     :legend-title "Category"}]
+                    {:id              "bathymetry-statistics-chart"
+                     :values          without-unmapped
+                     :independent-var :category
+                     :dependent-var   :area
+                     :legend-title    "Category"}]
                    [:div "No bathymetry information"])))}]
 
             [b/tab

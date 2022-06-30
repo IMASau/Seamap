@@ -94,15 +94,19 @@
    (into [:div] children)])
 
 (defn donut-chart
-  [{:keys [id values theta color legend-title]}]
+  [{:keys [id values independent-var dependent-var color legend-title]}]
   (let [spec {:description "A simple donut chart with embedded data."
               :width       "container"
               :data        {:values values}
               :mark        {:type "arc" :innerRadius 60}
-              :encoding    {:theta {:field theta :type "quantitative"}
-                            :color {:field color
-                                    :type "nominal"
-                                    :legend {:title (or legend-title color)}}}}]
+              :encoding    {:theta {:field dependent-var :type "quantitative"}
+                            :color (merge
+                                    {:field independent-var
+                                     :type "nominal"
+                                     :legend {:title (or legend-title independent-var)}}
+                                    (when color
+                                      {:sort (map independent-var values)
+                                       :scale {:range (map color values)}}))}}]
     (embed (str "#" id) (clj->js spec) (clj->js {:actions false}))
     [:div.donut-chart
      {:id id}]))

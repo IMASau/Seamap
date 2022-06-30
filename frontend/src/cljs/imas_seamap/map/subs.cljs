@@ -179,16 +179,17 @@
   (get-in db [:map :boundaries :active-network]))
 
 (defn active-park [db _]
-(get-in db [:map :boundaries :active-park]))
+  (get-in db [:map :boundaries :active-park]))
 
 (defn active-zone [db _]
-(get-in db [:map :boundaries :active-zone]))
+  (get-in db [:map :boundaries :active-zone]))
 
 (defn active-zone-iucn [db _]
-(get-in db [:map :boundaries :active-zone-iucn]))
+  (get-in db [:map :boundaries :active-zone-iucn]))
 
 (defn habitat-statistics [db _]
-  (get-in db [:map :boundary-statistics :habitat :results]))
+  (let [results (get-in db [:map :boundary-statistics :habitat :results])]
+    (map #(assoc % :color (get-in db [:habitat-colours (:habitat %)])) results)))
 
 (defn habitat-statistics-loading? [db _]
   (get-in db [:map :boundary-statistics :habitat :loading?]))
