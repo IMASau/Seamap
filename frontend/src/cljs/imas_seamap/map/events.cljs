@@ -115,7 +115,8 @@
                           :feature
                           {:status   :feature-info/waiting
                            :location point}))
-        db             (assoc-in db [:map :center] point)]
+        db             (assoc-in db [:map :center] point)
+        db             (assoc-in db [:feature :status] :feature-info/waiting)]
     (merge
      {:db db}
      (if info-format
@@ -151,7 +152,8 @@
   we're in calculating-region-statistics mode we want to issue a
   different request, and it's cleaner to handle those separately."
   [{:keys [db] :as ctx} event-v]
-  (let [{:keys [hidden-layers active-layers]} (:map db)]
+  (let [{:keys [hidden-layers active-layers]} (:map db)
+        visible-layers (remove #((set hidden-layers) %) active-layers)]
     (cond
       (get-in db [:map :controls :ignore-click])
       {:dispatch [:map/toggle-ignore-click]}
@@ -159,16 +161,11 @@
       (:feature db) ; If we're clicking the map but there's a popup open, just close it
       {:dispatch [:map/popup-closed]}
 
-      (not (or                                                         ; Only invoke if:
-            (get-in db [:map :controls :transect])                     ; we aren't drawing a transect;
-            (get-in db [:map :controls :download :selecting])          ; we aren't selecting a region; and
-            (empty? (remove #((set hidden-layers) %) active-layers)))) ; there are visible layers
-      (let [ctx (assoc-in ctx [:db :feature :status] :feature-info/waiting)
-            drawer-open? (get-in db [:display :left-drawer])
-            open-catalogue (get-in (last (get-in db [:display :drawer-panel-stack])) [:props :group])]
-        (if (and drawer-open? (= open-catalogue :boundaries))
-          (get-habitat-region-statistics ctx event-v)
-          (get-feature-info ctx event-v))))))
+      (and                                                     ; Only invoke if:
+       (not (get-in db [:map :controls :transect]))            ; we aren't drawing a transect;
+       (not (get-in db [:map :controls :download :selecting])) ; we aren't selecting a region; and
+       (seq visible-layers))                                   ; there are visible layers
+      (get-feature-info ctx event-v))))
 
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))
