@@ -1109,10 +1109,22 @@
       :icon     icon
       :on-click #(re-frame/dispatch [dispatch])}]))
 
+(defn floating-region-pill
+  [{:keys [selecting? region]}]
+  (let [[text icon dispatch] (cond
+                               selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
+                               region     ["Clear Selection"  "eraser" :map.layer.selection/clear]
+                               :else      ["Select Region"    "widget" :map.layer.selection/enable])]
+    [components/floating-pill-button
+     {:text     text
+      :icon     icon
+      :on-click #(re-frame/dispatch [dispatch])}]))
+
 (defn floating-pills
   []
   (let [collapsed     (:collapsed @(re-frame/subscribe [:ui/sidebar]))
-        transect-info @(re-frame/subscribe [:transect/info])]
+        transect-info @(re-frame/subscribe [:transect/info])
+        region-info   @(re-frame/subscribe [:map.layer.selection/info])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
      [components/floating-pill-button
@@ -1120,10 +1132,7 @@
        :icon     "add-column-right"
        :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
      [floating-transect-pill transect-info]
-     [components/floating-pill-button
-      {:text     "Select Region"
-       :icon     "widget"
-       :on-click #(re-frame/dispatch [:map.layer.selection/toggle])}]]))
+     [floating-region-pill region-info]]))
 
 (defn layers-search-omnibar
   []
