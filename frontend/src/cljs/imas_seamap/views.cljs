@@ -1017,7 +1017,7 @@
      [:a.bp3-button.bp3-minimal
       {:href   "https://blueprintjs.com/" ; Placeholder URL
        :target "_blank"}
-      [b/icon {:icon "share"}]]]]
+      [b/icon {:icon "document-open"}]]]]
    [:iframe {:src "https://blueprintjs.com/"}]]) ; Placeholder URL
 
 (defn right-drawer
@@ -1211,7 +1211,7 @@
        {:label "Reset"                  :combo "shift + r"}
        [:re-boot])
       (keydown-wrapper
-       {:label "Copy Shareable URL"     :combo "c"}
+       {:label "Create Shareable URL"     :combo "c"}
        [:create-save-state])
       (keydown-wrapper
        {:label "Show Help Overlay"      :combo "h"}

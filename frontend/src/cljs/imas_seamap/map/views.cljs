@@ -127,8 +127,8 @@
    ;; event handler"
    [:a {:on-click #(do (copy-text js/location.href)
                        (re-frame/dispatch  [:create-save-state]))}
-    [b/tooltip {:content "Copy Shareable URL to clipboard" :position b/RIGHT}
-     [b/icon {:icon "clipboard"}]]]])
+    [b/tooltip {:content "Create Shareable URL" :position b/RIGHT}
+     [b/icon {:icon "share"}]]]])
 
 (defn popup-component [{:keys [status info-body had-insecure?] :as _feature-popup}]
   (case status
