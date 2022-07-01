@@ -1,6 +1,6 @@
 -- When a bathymetry category has been updated, use this stored procedure to update
 -- the hardcoded values in the BathymetryGeoms, UniqueBathymetryGeoms, and
--- BoundaryBathymetries tables.
+-- BOUNDARY_AMP_BATHYMETRY tables.
 
 CREATE PROCEDURE UpdateBathymetry
   @category VARCHAR(10)
@@ -30,9 +30,9 @@ BEGIN
     )), [geom]) AS [geom]
   FROM [dbo].[BathymetryGeoms] AS [b1];
 
-  -- Update BoundaryBathymetries
-  DELETE FROM [dbo].[BoundaryBathymetries] WHERE [bathymetry_category] = @category;
-  INSERT INTO [dbo].[BoundaryBathymetries] ([NETNAME], [RESNAME], [ZONENAME], [ZONEIUCN], [bathymetry_category], [bathymetry_rank], [geom])
+  -- Update BOUNDARY_AMP_BATHYMETRY
+  DELETE FROM [dbo].[BOUNDARY_AMP_BATHYMETRY] WHERE [bathymetry_category] = @category;
+  INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Zone], [bathymetry_category], [bathymetry_rank], [geom])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
