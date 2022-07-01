@@ -1105,6 +1105,14 @@
       {:text     "State of Knowledge"
        :icon     "add-column-right"
        :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
+     [components/floating-pill-control-menu
+      {:text "Magic Box"
+       :icon "box"}
+      [:div
+       {:style {:width "300px"}}
+       [:h4 "Description"]
+       [:p "Welcome to the magic box; it can be any width or height desired."]
+       [:p "(Magic box is only here as an example to what can be done with this space)"]]]
      [floating-transect-pill transect-info]
      [floating-region-pill region-info]]))
 
