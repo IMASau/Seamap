@@ -1,5 +1,5 @@
--- Contains the geometries for the smallest possible unit of AMP boundaries.
--- Geometries can be selected by any combination of network, park, or zone.
+-- Contains the geometries for AMP boundaries. Geometries can be selected by any
+-- combination of network, park, or zone.
 
 CREATE VIEW [dbo].[VW_BOUNDARY_AMP] AS
 SELECT
