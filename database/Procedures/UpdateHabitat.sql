@@ -9,13 +9,13 @@ BEGIN
   DELETE FROM [dbo].[BoundaryHabitats] WHERE [habitat] = @habitat;
   INSERT INTO [dbo].[BoundaryHabitats] ([NETNAME], [RESNAME], [ZONENAME], [ZONEIUCN], [habitat], [geom])
   SELECT
-    [boundary].[NETNAME],
-    [boundary].[RESNAME],
-    [boundary].[ZONENAME],
-    [boundary].[ZONEIUCN],
+    [boundary].[Network],
+    [boundary].[Park],
+    [boundary].[Zone_Category],
+    [boundary].[IUCN_Zone],
     [habitat].[CATEGORY] AS [habitat],
     [habitat].[geom]
-  FROM [dbo].[BoundaryGeoms_View] AS [boundary]
+  FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat]
   WHERE [habitat].[CATEGORY] = @habitat;
 END;
