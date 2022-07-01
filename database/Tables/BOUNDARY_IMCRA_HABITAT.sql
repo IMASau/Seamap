@@ -21,7 +21,7 @@ CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat];
 -- DECLARE @mesoscale_bioregion  NVARCHAR(255) = NULL;
 
 -- SELECT [habitat], geometry::UnionAggregate([geom])
--- FROM [dbo].[BOUNDARY_AMP_HABITAT]
+-- FROM [dbo].[BOUNDARY_IMCRA_HABITAT]
 -- WHERE
 --   ([Provincial_Bioregion] = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
 --   ([Mesoscale_Bioregion] = @mesoscale_bioregion OR @mesoscale_bioregion IS NULL)
