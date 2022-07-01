@@ -1,8 +1,8 @@
--- When a boundary has been updated, use this stored procedure to update the
+-- When an AMP boundary has been updated, use this stored procedure to update the
 -- hardcoded values in the BOUNDARY_AMP_HABITAT and BOUNDARY_AMP_BATHYMETRY tables
 -- (can also be used to add a new boundary to the tables).
 
-CREATE PROCEDURE UpdateBoundary
+CREATE PROCEDURE Update_AMP_BOUNDARY
   @netname  NVARCHAR(254),
   @resname  NVARCHAR(254),
   @zonename NVARCHAR(254),
