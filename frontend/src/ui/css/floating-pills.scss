@@ -5,7 +5,6 @@ $floating-pill-height: 36px;
 	z-index: 2000;
 	top: $floating-menu-padding;
 	left: calc($floating-menu-width + 2 * $floating-menu-padding);
-	white-space: nowrap;
 	display: flex;
 	transition: left 200ms;
 }
@@ -27,6 +26,7 @@ $floating-pill-height: 36px;
 	justify-content: center;
 	align-items: center;
 	gap: 7px;
+	white-space: nowrap;
 }
 
 .catalogue-open .floating-pills {
@@ -73,7 +73,7 @@ $floating-pill-height: 36px;
 	align-items: center;
 	height: 30px;
 	gap: 7px;
-	border-bottom: 1px solid rgba(0,0,0,0.2);
+	border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 	padding: 0 3px 3px 3px;
 	margin-bottom: 12px;
 }
