@@ -26,10 +26,7 @@ $floating-pill-height: 36px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-}
-
-.floating-pill>.bp3-icon {
-	margin-right: 7px;
+	gap: 7px;
 }
 
 .catalogue-open .floating-pills {
@@ -60,7 +57,7 @@ $floating-pill-height: 36px;
 	position: absolute;
 	margin-top: $floating-menu-padding;
 	background-color: white;
-	padding: 0 14px;
+	padding: 12px;
 	border-radius: 14px;
 	border: 2px solid rgba(0, 0, 0, 0.2);
 	background-clip: padding-box;
@@ -69,4 +66,28 @@ $floating-pill-height: 36px;
 
 .floating-pill-control-menu:not(.expanded) .floating-pill-control-menu-content {
 	display: none;
+}
+
+.floating-pill-control-menu-content-header {
+	display: flex;
+	align-items: center;
+	height: 30px;
+	gap: 7px;
+	border-bottom: 1px solid rgba(0,0,0,0.2);
+	padding: 0 3px 3px 3px;
+	margin-bottom: 12px;
+}
+
+.floating-pill-control-menu-content-header> :nth-child(1),
+.floating-pill-control-menu-content-header> :nth-child(3) {
+	aspect-ratio: 1;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.floating-pill-control-menu-content-header> :nth-child(2) {
+	flex: 1;
+	font-size: 15px;
 }

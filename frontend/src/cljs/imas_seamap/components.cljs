@@ -61,8 +61,22 @@
         [b/icon
          {:icon icon
           :icon-size 20}]
-        text]
-       (into [:div.floating-pill-control-menu-content] children)])))
+        text
+        [b/icon
+         {:icon (if @expanded? "caret-up" "caret-down")}]]
+       [:div.floating-pill-control-menu-content
+        [:div.floating-pill-control-menu-content-header
+         [:div
+          [b/icon
+           {:icon icon
+            :icon-size 20}]]
+         [:div text]
+         [:div
+          [b/button
+           {:icon "cross"
+            :minimal true
+            :on-click #(reset! expanded? false)}]]]
+        (into [:div] children)]])))
 
 (defn omnibar
   [{:keys [placeholder isOpen onClose items onItemSelect keyfns]}]
