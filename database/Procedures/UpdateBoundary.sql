@@ -19,19 +19,19 @@ BEGIN
 
   INSERT INTO [dbo].[BoundaryHabitats] ([NETNAME], [RESNAME], [ZONENAME], [ZONEIUCN], [habitat], [geom])
   SELECT
-    [boundary].[NETNAME],
-    [boundary].[RESNAME],
-    [boundary].[ZONENAME],
-    [boundary].[ZONEIUCN],
+    [boundary].[Network],
+    [boundary].[Park],
+    [boundary].[Zone_Category],
+    [boundary].[IUCN_Zone],
     [habitat].[CATEGORY] AS [habitat],
     [habitat].[geom]
-  FROM [dbo].[BoundaryGeoms_View] AS [boundary]
+  FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat]
   WHERE
-    ([NETNAME] = @netname OR @netname IS NULL) AND
-    ([RESNAME] = @resname OR @resname IS NULL) AND
-    ([ZONENAME] = @zonename OR @zonename IS NULL) AND
-    ([ZONEIUCN] = @zoneiucn OR @zoneiucn IS NULL);
+    ([boundary].[Network] = @netname OR @netname IS NULL) AND
+    ([boundary].[Park] = @resname OR @resname IS NULL) AND
+    ([boundary].[Zone_Category] = @zonename OR @zonename IS NULL) AND
+    ([boundary].[IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
 
   -- Update BoundaryBathymetries
   DELETE FROM [dbo].[BoundaryBathymetries]
@@ -43,18 +43,18 @@ BEGIN
   
   INSERT INTO [dbo].[BoundaryBathymetries] ([NETNAME], [RESNAME], [ZONENAME], [ZONEIUCN], [bathymetry_category], [bathymetry_rank], [geom])
   SELECT
-    [boundary].[NETNAME],
-    [boundary].[RESNAME],
-    [boundary].[ZONENAME],
-    [boundary].[ZONEIUCN],
+    [boundary].[Network],
+    [boundary].[Park],
+    [boundary].[Zone_Category],
+    [boundary].[IUCN_Zone],
     [bathymetry].[CATEGORY] AS [bathymetry_category],
     [bathymetry].[RANK] AS [bathymetry_rank],
     [bathymetry].[geom]
-  FROM [dbo].[BoundaryGeoms_View] AS [boundary]
+  FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].unique_bathymetry_intersections([boundary].[geom]) AS [bathymetry]
   WHERE
-    ([NETNAME] = @netname OR @netname IS NULL) AND
-    ([RESNAME] = @resname OR @resname IS NULL) AND
-    ([ZONENAME] = @zonename OR @zonename IS NULL) AND
-    ([ZONEIUCN] = @zoneiucn OR @zoneiucn IS NULL);
+    ([boundary].[Network] = @netname OR @netname IS NULL) AND
+    ([boundary].[Park] = @resname OR @resname IS NULL) AND
+    ([boundary].[Zone_Category] = @zonename OR @zonename IS NULL) AND
+    ([boundary].[IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
 END;
