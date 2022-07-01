@@ -3,6 +3,7 @@
 CREATE TABLE [dbo].[BOUNDARY_IMCRA_HABITAT] (
   [Provincial_Bioregion] NVARCHAR(255) NOT NULL,
   [Mesoscale_Bioregion]  NVARCHAR(255) NULL,
+  [habitat]              NVARCHAR(30)  NOT NULL,
   [geom]                 GEOMETRY      NOT NULL
 );
 
