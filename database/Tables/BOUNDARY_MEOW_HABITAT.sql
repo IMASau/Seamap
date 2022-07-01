@@ -24,7 +24,7 @@ CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat];
 -- DECLARE @ecoregion NVARCHAR(255) = NULL;
 
 -- SELECT [habitat], geometry::UnionAggregate([geom])
--- FROM [dbo].[BOUNDARY_AMP_HABITAT]
+-- FROM [dbo].[BOUNDARY_MEOW_HABITAT]
 -- WHERE
 --   ([Realm] = @realm OR @realm IS NULL) AND
 --   ([Province] = @province OR @province IS NULL) AND
