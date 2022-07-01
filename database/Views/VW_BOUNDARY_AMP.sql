@@ -8,4 +8,4 @@ CREATE VIEW [dbo].[VW_BOUNDARY_AMP] AS
     [ZONENAME] AS [Zone_Category],
     [ZONEIUCN] AS [IUCN_Zone],
     [geom]
-  FROM [dbo].[SeamapAus_BOUNDARIES_AMP2022]
+  FROM [dbo].[SeamapAus_BOUNDARIES_AMP2022];

@@ -8,12 +8,12 @@ BEGIN
   DECLARE @geom geometry;
   SET @geom =(
     SELECT geometry::UnionAggregate([geom])
-    FROM [dbo].[BoundaryGeoms_View]
+    FROM [dbo].[VW_BOUNDARY_AMP]
     WHERE
-      ([NETNAME] = @netname OR @netname IS NULL) AND
-      ([RESNAME] = @resname OR @resname IS NULL) AND
-      ([ZONENAME] = @zonename OR @zonename IS NULL) AND
-      ([ZONEIUCN] = @zoneiucn OR @zoneiucn IS NULL)
+      ([Network] = @netname OR @netname IS NULL) AND
+      ([Park] = @resname OR @resname IS NULL) AND
+      ([Zone_Category] = @zonename OR @zonename IS NULL) AND
+      ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL)
   );
   RETURN(@geom);
 END;
