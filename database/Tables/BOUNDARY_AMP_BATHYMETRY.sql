@@ -29,7 +29,7 @@ CROSS APPLY [dbo].unique_bathymetry_intersections([boundary].[geom]) AS [bathyme
 -- DECLARE @zone_iucn NVARCHAR(5)   = NULL;
 
 -- SELECT [bathymetry_category], geometry::UnionAggregate([geom])
--- FROM [dbo].[BoundaryBathymetries]
+-- FROM [dbo].[BOUNDARY_AMP_BATHYMETRY]
 -- WHERE
 --   ([Network] = @network OR @network IS NULL) AND
 --   ([Park] = @park OR @park IS NULL) AND
