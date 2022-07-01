@@ -89,24 +89,24 @@ PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",
 
 
 SQL_GET_NETWORKS = """
-SELECT DISTINCT NETNAME AS name
-FROM BoundaryGeoms_View;
+SELECT DISTINCT Network AS name
+FROM VW_BOUNDARY_AMP;
 """
 
 SQL_GET_PARKS = """
 SELECT DISTINCT
-  NETNAME AS network,
-  RESNAME AS name
-FROM BoundaryGeoms_View;
+  Network AS network,
+  Park AS name
+FROM VW_BOUNDARY_AMP;
 """
 
 SQL_GET_ZONES = """
-SELECT DISTINCT ZONENAME AS name
-FROM BoundaryGeoms_View;
+SELECT DISTINCT Zone_Category AS name
+FROM VW_BOUNDARY_AMP;
 """
 SQL_GET_ZONES_IUCN = """
-SELECT DISTINCT ZONEIUCN AS name
-FROM BoundaryGeoms_View;
+SELECT DISTINCT IUCN_Zone AS name
+FROM VW_BOUNDARY_AMP;
 """
 
 SQL_GET_BOUNDARY_AREA = "SELECT dbo.boundary_geom(%s, %s, %s, %s).STArea() / 1000000"
