@@ -1,6 +1,6 @@
 -- When a boundary has been updated, use this stored procedure to update the
--- hardcoded values in the BoundaryHabitats and BoundaryBathymetries tables (can
--- also be used to add a new boundary to the tables).
+-- hardcoded values in the BOUNDARY_AMP_HABITAT and BoundaryBathymetries tables
+-- (can also be used to add a new boundary to the tables).
 
 CREATE PROCEDURE UpdateBoundary
   @netname  NVARCHAR(254),
@@ -9,15 +9,15 @@ CREATE PROCEDURE UpdateBoundary
   @zoneiucn NVARCHAR(5)
 AS
 BEGIN
-  -- Update BoundaryHabitats
-  DELETE FROM [dbo].[BoundaryHabitats]
+  -- Update BOUNDARY_AMP_HABITAT
+  DELETE FROM [dbo].[BOUNDARY_AMP_HABITAT]
   WHERE
-    ([NETNAME] = @netname OR @netname IS NULL) AND
-    ([RESNAME] = @resname OR @resname IS NULL) AND
-    ([ZONENAME] = @zonename OR @zonename IS NULL) AND
-    ([ZONEIUCN] = @zoneiucn OR @zoneiucn IS NULL);
+    ([Network] = @netname OR @netname IS NULL) AND
+    ([Park] = @resname OR @resname IS NULL) AND
+    ([Zone_Category] = @zonename OR @zonename IS NULL) AND
+    ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
 
-  INSERT INTO [dbo].[BoundaryHabitats] ([NETNAME], [RESNAME], [ZONENAME], [ZONEIUCN], [habitat], [geom])
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Zone], [habitat], [geom])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
