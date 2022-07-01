@@ -136,18 +136,19 @@ DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
+
 SELECT
   bathymetry_category as category,
   bathymetry_rank as rank,
   geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
   100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
-FROM BoundaryBathymetries
+FROM BOUNDARY_AMP_BATHYMETRY
 WHERE
-  (NETNAME = @netname OR @netname IS NULL) AND
-  (RESNAME = @resname OR @resname IS NULL) AND
-  (ZONENAME = @zonename OR @zonename IS NULL) AND
-  (ZONEIUCN = @zoneiucn OR @zoneiucn IS NULL)
+  (Network = @netname OR @netname IS NULL) AND
+  (Park = @resname OR @resname IS NULL) AND
+  (Zone_Category = @zonename OR @zonename IS NULL) AND
+  (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
 GROUP BY bathymetry_category, bathymetry_rank;
 """
 
