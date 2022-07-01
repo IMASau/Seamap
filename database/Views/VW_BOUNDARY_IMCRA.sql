@@ -1,5 +1,5 @@
--- Contains the geometries for the smallest possible unit of IMCRA boundaries.
--- Geometries can be selected by any combination of network, park, or zone.
+-- Contains the geometries for IMCRA boundaries. Geometries can be selected by any
+-- combination of provincial and mesoscale bioregion.
 
 CREATE VIEW [dbo].[VW_BOUNDARY_IMCRA] AS
 SELECT
@@ -11,4 +11,4 @@ SELECT
     END
   ) AS [Mesoscale_Bioregion],
   [geom]
-FROM [SeamapAus_BOUNDARIES_IMCRA_FULL]
+FROM [SeamapAus_BOUNDARIES_IMCRA_FULL];
