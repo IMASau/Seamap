@@ -1,13 +1,13 @@
 -- When a habitat has been updated, use this stored procedure to update the
--- hardcoded values in the BoundaryHabitats table (can also be used to add a new
+-- hardcoded values in the BOUNDARY_AMP_HABITAT table (can also be used to add a new
 -- habitat to the table).
 
 CREATE PROCEDURE UpdateHabitat
   @habitat NVARCHAR(30)
 AS
 BEGIN
-  DELETE FROM [dbo].[BoundaryHabitats] WHERE [habitat] = @habitat;
-  INSERT INTO [dbo].[BoundaryHabitats] ([NETNAME], [RESNAME], [ZONENAME], [ZONEIUCN], [habitat], [geom])
+  DELETE FROM [dbo].[BOUNDARY_AMP_HABITAT] WHERE [habitat] = @habitat;
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Zone], [habitat], [geom])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
