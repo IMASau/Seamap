@@ -1,11 +1,12 @@
 -- When a habitat has been updated, use this stored procedure to update the
--- hardcoded values in the BOUNDARY_AMP_HABITAT table (can also be used to add a new
--- habitat to the table).
+-- hardcoded values in the BOUNDARY_AMP_HABITAT and BOUNDARY_IMCRA_HABITAT tables
+-- (can also be used to add a new habitat to the tables).
 
 CREATE PROCEDURE UpdateHabitat
   @habitat NVARCHAR(30)
 AS
 BEGIN
+  -- Update BOUNDARY_AMP_HABITAT
   DELETE FROM [dbo].[BOUNDARY_AMP_HABITAT] WHERE [habitat] = @habitat;
   INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Zone], [habitat], [geom])
   SELECT
@@ -16,6 +17,18 @@ BEGIN
     [habitat].[CATEGORY] AS [habitat],
     [habitat].[geom]
   FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
+  CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat]
+  WHERE [habitat].[CATEGORY] = @habitat;
+
+  -- Update BOUNDARY_IMCRA_HABITAT
+  DELETE FROM [dbo].[BOUNDARY_IMCRA_HABITAT] WHERE [habitat] = @habitat;
+  INSERT INTO [dbo].[BOUNDARY_IMCRA_HABITAT] ([Provincial_Bioregion], [Mesoscale_Bioregion], [habitat], [geom])
+  SELECT
+    [boundary].[Provincial_Bioregion],
+    [boundary].[Mesoscale_Bioregion],
+    [habitat].[CATEGORY] AS [habitat],
+    [habitat].[geom]
+  FROM [dbo].[VW_BOUNDARY_IMCRA] AS [boundary]
   CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat]
   WHERE [habitat].[CATEGORY] = @habitat;
 END;
