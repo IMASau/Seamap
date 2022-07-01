@@ -10,7 +10,7 @@ CREATE TABLE [dbo].[BOUNDARY_AMP_BATHYMETRY] (
   [geom]                GEOMETRY      NOT NULL
 );
 
-INSERT INTO [dbo].[BoundaryBathymetries] ([Network], [Park], [Zone_Category], [IUCN_Zone], [bathymetry_category], [bathymetry_rank], [geom])
+INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Zone], [bathymetry_category], [bathymetry_rank], [geom])
 SELECT
   [boundary].[Network],
   [boundary].[Park],
