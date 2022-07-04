@@ -109,7 +109,7 @@ SELECT DISTINCT IUCN_Zone AS name
 FROM VW_BOUNDARY_AMP;
 """
 
-SQL_GET_BOUNDARY_AREA = "SELECT dbo.boundary_geom(%s, %s, %s, %s).STArea() / 1000000"
+SQL_GET_BOUNDARY_AREA = "SELECT dbo.AMP_BOUNDARY_geom(%s, %s, %s, %s).STArea() / 1000000"
 
 SQL_GET_HABITAT_STATS = """
 DECLARE @netname  NVARCHAR(254) = %s;
