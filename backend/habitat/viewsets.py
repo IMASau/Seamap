@@ -581,9 +581,9 @@ def habitat_statistics(request):
             habitat_stats = [row._asdict() for row in results]
             for v in habitat_stats: del v['geom']
 
-            unmapped_area = boundary_area - float(sum(v['area'] for v in habitat_stats))
-            unmapped_percentage = 100 * unmapped_area / boundary_area
-            habitat_stats.append({'habitat': None, 'area': unmapped_area, 'mapped_percentage': None, 'total_percentage': unmapped_percentage})
+            mapped_area = float(sum(v['area'] for v in habitat_stats))
+            mapped_percentage = 100 * mapped_area / boundary_area
+            habitat_stats.append({'habitat': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
         except:
             return Response([])
         else:
@@ -625,9 +625,9 @@ def bathymetry_statistics(request):
             bathymetry_stats = [row._asdict() for row in results]
             for v in bathymetry_stats: del v['geom']
 
-            unmapped_area = boundary_area - float(sum(v['area'] for v in bathymetry_stats))
-            unmapped_percentage = 100 * unmapped_area / boundary_area
-            bathymetry_stats.append({'category': None, 'rank': None, 'area': unmapped_area, 'mapped_percentage': None, 'total_percentage': unmapped_percentage})
+            mapped_area = float(sum(v['area'] for v in bathymetry_stats))
+            mapped_percentage = 100 * mapped_area / boundary_area
+            bathymetry_stats.append({'category': None, 'rank': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
         except:
             return Response([])
         else:

@@ -821,8 +821,8 @@
     (if (seq habitat-statistics)
      (for [{:keys [habitat area mapped_percentage total_percentage]} habitat-statistics]
       [:tr
-       {:key (or habitat "Unmapped")}
-       [:td (or habitat "Unmapped")]
+       {:key (or habitat "Total Mapped")}
+       [:td (or habitat "Total Mapped")]
        [:td (gstring/format "%.1f" area)]
        [:td (if mapped_percentage (gstring/format "%.1f" mapped_percentage) "N/A")]
        [:td (gstring/format "%.1f" total_percentage)]])
@@ -946,8 +946,8 @@
     (if (seq bathymetry-statistics)
       (for [{:keys [category area mapped_percentage total_percentage]} bathymetry-statistics]
         [:tr
-         {:key (or category "Unmapped")}
-         [:td (or category "Unmapped")]
+         {:key (or category "Total Mapped")}
+         [:td (or category "Total Mapped")]
          [:td (gstring/format "%.1f" area)]
          [:td (if mapped_percentage (gstring/format "%.1f" mapped_percentage) "N/A")]
          [:td (gstring/format "%.1f" total_percentage)]])
