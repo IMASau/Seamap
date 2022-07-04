@@ -258,9 +258,10 @@
 
 (defn get-layers-info-format
   [layers]
-  (let [info-formats (map (fn [layer] (:info_format_type layer)) layers)
-        info-format (get info-format (apply max info-formats))]
-    info-format))
+  (let [valid-layers (filter #(get info-format (:info_format_type %)) layers)
+        info-format (get info-format (apply max (map :info_format_type valid-layers)))]
+    {:valid-layers valid-layers
+     :info-format  info-format}))
 
 (defn sort-by-sort-key
   "Sorts a collection by its sort-key first and its id second."
