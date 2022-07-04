@@ -938,7 +938,7 @@
   [:table
    [:thead
     [:tr
-     [:th "Category"]
+     [:th "Resolution"]
      [:th "Area (km²)"]
      [:th "Mapped (%)"]
      [:th "Total (%)"]]]
@@ -997,7 +997,7 @@
                      :independent-var :category
                      :dependent-var   :area
                      :color           :color
-                     :legend-title    "Category"
+                     :legend-title    "Resolution"
                      :sort-key        :rank}]
                    [:div "No bathymetry information"])))}]
 
