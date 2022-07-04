@@ -58,7 +58,7 @@
    Props configure the component:
     - text: Text displayed on the floating pill.
     - icon: Icon displayed on the floating pill.
-    - disabled (optional): If true then the button is disabled and the user will be
+    - disabled? (optional): If true then the button is disabled and the user will be
       unable to interact with it.
     - expanded? (optional): For if the state of the component needs to be managed
       outside. Determines if the pop-out menu is currently visible.
@@ -71,7 +71,7 @@
       clicked that would normally close the pop-out menu when using an unmanaged
       state.
     - & children: the children rendered inside of the pop-out menu."
-  [{:keys [text icon disabled expanded? on-toggle-click on-close-click] :as props} & children]
+  [{:keys [text icon disabled? expanded? on-toggle-click on-close-click] :as props} & children]
   (let [atom-expanded? (reagent/atom false)]
     (fn []
       (let [expanded?       (if (contains? props :expanded?) expanded? @atom-expanded?)
@@ -80,8 +80,8 @@
         [:div
          {:class (str "floating-pill-control-menu" (when expanded? " expanded"))}
          [:div
-          {:class    (str "floating-pill floating-pill-control-menu-button" (when disabled " disabled"))
-           :on-click on-toggle-click}
+          {:class    (str "floating-pill floating-pill-control-menu-button" (when disabled? " disabled"))
+           :on-click (when-not disabled? on-toggle-click)}
           [b/icon
            {:icon icon
             :icon-size 20}]
