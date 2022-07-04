@@ -1,6 +1,7 @@
 -- When a bathymetry category has been updated, use this stored procedure to update
 -- the hardcoded values in the BathymetryGeoms, UniqueBathymetryGeoms,
--- BOUNDARY_AMP_BATHYMETRY, and BOUNDARY_IMCRA_BATHYMETRY tables.
+-- BOUNDARY_AMP_BATHYMETRY, BOUNDARY_IMCRA_BATHYMETRY, and BOUNDARY_MEOW_BATHYMETRY
+-- tables.
 
 CREATE PROCEDURE UpdateBathymetry
   @category VARCHAR(10)
@@ -55,6 +56,20 @@ BEGIN
     [bathymetry].[RANK] AS [bathymetry_rank],
     [bathymetry].[geom]
   FROM [dbo].[VW_BOUNDARY_IMCRA] AS [boundary]
+  CROSS APPLY [dbo].unique_bathymetry_intersections([boundary].[geom]) AS [bathymetry]
+  WHERE [bathymetry].[CATEGORY] = @category;
+
+  -- Update BOUNDARY_MEOW_BATHYMETRY
+  DELETE FROM [dbo].[BOUNDARY_MEOW_BATHYMETRY] WHERE [bathymetry_category] = @category;
+  INSERT INTO [dbo].[BOUNDARY_MEOW_BATHYMETRY] ([Realm], [Province], [Ecoregion], [bathymetry_category], [bathymetry_rank], [geom])
+  SELECT
+    [boundary].[Realm],
+    [boundary].[Province],
+    [boundary].[Ecoregion],
+    [bathymetry].[CATEGORY] AS [bathymetry_category],
+    [bathymetry].[RANK] AS [bathymetry_rank],
+    [bathymetry].[geom]
+  FROM [dbo].[VW_BOUNDARY_MEOW] AS [boundary]
   CROSS APPLY [dbo].unique_bathymetry_intersections([boundary].[geom]) AS [bathymetry]
   WHERE [bathymetry].[CATEGORY] = @category;
 END;
