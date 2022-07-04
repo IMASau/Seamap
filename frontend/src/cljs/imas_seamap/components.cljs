@@ -50,6 +50,16 @@
    text])
 
 (defn floating-pill-control-menu
+  "This component renders a floating pill which the user can click on to display a
+   pop-out menu that may contain a wide variety of content. Clicking on the pill
+   again will collapse the menu. Menu contains a header with a button that can also
+   be used for closing it.
+   
+   Props configure the component:
+    - text: text displayed on the floating pill
+    - icon: icon displayed on the floating pill
+    - disabled (optional): if true then the button is disabled and the user will be unable to interact with it
+    - & children: the children rendered inside of the pop-out menu"
   [{:keys [text icon disabled]} & children]
   (let [expanded? (reagent/atom false)]
     (fn []
