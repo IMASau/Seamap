@@ -940,18 +940,20 @@
     [:tr
      [:th "Category"]
      [:th "Area (km^2)"]
-     [:th "Percentage (%)"]]]
+     [:th "Mapped (%)"]
+     [:th "Total (%)"]]]
    [:tbody
     (if (seq bathymetry-statistics)
-      (for [{:keys [category area percentage]} bathymetry-statistics]
+      (for [{:keys [category area mapped_percentage total_percentage]} bathymetry-statistics]
         [:tr
          {:key (or category "Unmapped")}
          [:td (or category "Unmapped")]
          [:td (gstring/format "%.2f" area)]
-         [:td (gstring/format "%.2f" percentage)]])
+         [:td (if mapped_percentage (gstring/format "%.2f" mapped_percentage) "N/A")]
+         [:td (gstring/format "%.2f" total_percentage)]])
       [:tr
        [:td
-        {:colSpan 3}
+        {:colSpan 4}
         "No bathymetry information"]])]])
 
 (defn bathymetry-statistics
