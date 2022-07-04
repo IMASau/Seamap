@@ -1,6 +1,7 @@
 -- When a habitat has been updated, use this stored procedure to update the
--- hardcoded values in the BOUNDARY_AMP_HABITAT and BOUNDARY_IMCRA_HABITAT tables
--- (can also be used to add a new habitat to the tables).
+-- hardcoded values in the BOUNDARY_AMP_HABITAT, BOUNDARY_IMCRA_HABITAT, and
+-- BOUNDARY_MEOW_HABITAT tables (can also be used to add a new habitat to the
+-- tables).
 
 CREATE PROCEDURE UpdateHabitat
   @habitat NVARCHAR(30)
@@ -29,6 +30,19 @@ BEGIN
     [habitat].[CATEGORY] AS [habitat],
     [habitat].[geom]
   FROM [dbo].[VW_BOUNDARY_IMCRA] AS [boundary]
+  CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat]
+  WHERE [habitat].[CATEGORY] = @habitat;
+
+  -- Update BOUNDARY_MEOW_HABITAT
+  DELETE FROM [dbo].[BOUNDARY_MEOW_HABITAT] WHERE [habitat] = @habitat;
+  INSERT INTO [dbo].[BOUNDARY_MEOW_HABITAT] ([Realm], [Province], [Ecoregion], [habitat], [geom])
+  SELECT
+    [boundary].[Realm],
+    [boundary].[Province],
+    [boundary].[Ecoregion],
+    [habitat].[CATEGORY] AS [habitat],
+    [habitat].[geom]
+  FROM [dbo].[VW_BOUNDARY_MEOW] AS [boundary]
   CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat]
   WHERE [habitat].[CATEGORY] = @habitat;
 END;
