@@ -201,7 +201,7 @@
                  (update-in [:feature-query :response-remain] dec)
                  (update-in [:feature-query :responses] conj {:response response :info-format info-format}))]
 
-      (if (>= 0 (get-in db [:feature-query :response-remain]))
+      (if-not (pos? (get-in db [:feature-query :response-remain]))
         (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
         db))))
 
@@ -212,7 +212,7 @@
                  (update-in [:feature-query :response-remain] dec)
                  (update-in [:feature-query :responses] conj nil))]
       
-      (if (>= 0 (get-in db [:feature-query :response-remain]))
+      (if-not (pos? (get-in db [:feature-query :response-remain]))
         (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
         db))))  
 
