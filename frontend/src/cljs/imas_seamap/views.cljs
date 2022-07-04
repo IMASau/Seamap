@@ -823,9 +823,9 @@
       [:tr
        {:key (or habitat "Unmapped")}
        [:td (or habitat "Unmapped")]
-       [:td (gstring/format "%.2f" area)]
-       [:td (if mapped_percentage (gstring/format "%.2f" mapped_percentage) "N/A")]
-       [:td (gstring/format "%.2f" total_percentage)]])
+       [:td (gstring/format "%.1f" area)]
+       [:td (if mapped_percentage (gstring/format "%.1f" mapped_percentage) "N/A")]
+       [:td (gstring/format "%.1f" total_percentage)]])
       [:tr
        [:td
         {:colSpan 4}
@@ -948,9 +948,9 @@
         [:tr
          {:key (or category "Unmapped")}
          [:td (or category "Unmapped")]
-         [:td (gstring/format "%.2f" area)]
-         [:td (if mapped_percentage (gstring/format "%.2f" mapped_percentage) "N/A")]
-         [:td (gstring/format "%.2f" total_percentage)]])
+         [:td (gstring/format "%.1f" area)]
+         [:td (if mapped_percentage (gstring/format "%.1f" mapped_percentage) "N/A")]
+         [:td (gstring/format "%.1f" total_percentage)]])
       [:tr
        [:td
         {:colSpan 4}
