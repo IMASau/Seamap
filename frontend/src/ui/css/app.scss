@@ -727,6 +727,12 @@ input.leaflet-control-layers-selector[type="radio"] {
     flex: 0 0;
 }
 
+.state-of-knowledge-drawer td,
+.state-of-knowledge-drawer th {
+    font-size: 12px;
+    padding: 6px 0;
+}
+
 .data-coverage-report-link,
 .drawer-group .download {
     font-weight: bold;
