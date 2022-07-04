@@ -89,44 +89,45 @@ PRJ_3112 = """PROJCS["GDA94_Geoscience_Australia_Lambert",GEOGCS["GCS_GDA_1994",
 
 
 SQL_GET_NETWORKS = """
-SELECT DISTINCT NETNAME AS name
-FROM BoundaryGeoms_View;
+SELECT DISTINCT Network AS name
+FROM VW_BOUNDARY_AMP;
 """
 
 SQL_GET_PARKS = """
 SELECT DISTINCT
-  NETNAME AS network,
-  RESNAME AS name
-FROM BoundaryGeoms_View;
+  Network AS network,
+  Park AS name
+FROM VW_BOUNDARY_AMP;
 """
 
 SQL_GET_ZONES = """
-SELECT DISTINCT ZONENAME AS name
-FROM BoundaryGeoms_View;
+SELECT DISTINCT Zone_Category AS name
+FROM VW_BOUNDARY_AMP;
 """
 SQL_GET_ZONES_IUCN = """
-SELECT DISTINCT ZONEIUCN AS name
-FROM BoundaryGeoms_View;
+SELECT DISTINCT IUCN_Zone AS name
+FROM VW_BOUNDARY_AMP;
 """
 
-SQL_GET_BOUNDARY_AREA = "SELECT dbo.boundary_geom(%s, %s, %s, %s).STArea() / 1000000"
+SQL_GET_BOUNDARY_AREA = "SELECT dbo.AMP_BOUNDARY_geom(%s, %s, %s, %s).STArea() / 1000000"
 
 SQL_GET_HABITAT_STATS = """
 DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
+
 SELECT
   habitat,
   geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
   100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
-FROM BoundaryHabitats
+FROM BOUNDARY_AMP_HABITAT
 WHERE
-  (NETNAME = @netname OR @netname IS NULL) AND
-  (RESNAME = @resname OR @resname IS NULL) AND
-  (ZONENAME = @zonename OR @zonename IS NULL) AND
-  (ZONEIUCN = @zoneiucn OR @zoneiucn IS NULL)
+  (Network = @netname OR @netname IS NULL) AND
+  (Park = @resname OR @resname IS NULL) AND
+  (Zone_Category = @zonename OR @zonename IS NULL) AND
+  (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
 GROUP BY habitat;
 """
 
@@ -135,18 +136,19 @@ DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
+
 SELECT
   bathymetry_category as category,
   bathymetry_rank as rank,
   geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
   100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
-FROM BoundaryBathymetries
+FROM BOUNDARY_AMP_BATHYMETRY
 WHERE
-  (NETNAME = @netname OR @netname IS NULL) AND
-  (RESNAME = @resname OR @resname IS NULL) AND
-  (ZONENAME = @zonename OR @zonename IS NULL) AND
-  (ZONEIUCN = @zoneiucn OR @zoneiucn IS NULL)
+  (Network = @netname OR @netname IS NULL) AND
+  (Park = @resname OR @resname IS NULL) AND
+  (Zone_Category = @zonename OR @zonename IS NULL) AND
+  (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
 GROUP BY bathymetry_category, bathymetry_rank;
 """
 
