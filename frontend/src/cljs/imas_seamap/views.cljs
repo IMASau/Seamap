@@ -1105,7 +1105,7 @@
       {:text     "State of Knowledge"
        :icon     "add-column-right"
        :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
-     [components/floating-pill-control-menu
+     [components/floating-pill-control-menu ; Demonstrates the floating pill control menu component - TODO: Remove after demonstration
       {:text "Magic Box"
        :icon "box"}
       [:div
