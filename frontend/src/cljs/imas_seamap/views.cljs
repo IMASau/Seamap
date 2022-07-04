@@ -815,18 +815,20 @@
     [:tr
      [:th "Habitat"]
      [:th "Area (km^2)"]
-     [:th "Percentage (%)"]]]
+     [:th "Mapped (%)"]
+     [:th "Total (%)"]]]
    [:tbody
     (if (seq habitat-statistics)
-     (for [{:keys [habitat area percentage]} habitat-statistics]
+     (for [{:keys [habitat area mapped_percentage total_percentage]} habitat-statistics]
       [:tr
        {:key (or habitat "Unmapped")}
        [:td (or habitat "Unmapped")]
        [:td (gstring/format "%.2f" area)]
-       [:td (gstring/format "%.2f" percentage)]])
+       [:td (if mapped_percentage (gstring/format "%.2f" mapped_percentage) "N/A")]
+       [:td (gstring/format "%.2f" total_percentage)]])
       [:tr
        [:td
-        {:colSpan 3}
+        {:colSpan 4}
         "No habitat information"]])]])
 
 (defn boundary-selection []

@@ -120,7 +120,16 @@ DECLARE @zoneiucn NVARCHAR(5)   = %s;
 SELECT
   habitat,
   geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS percentage,
+  100 * geometry::UnionAggregate(geom).STArea() / (
+    SELECT geometry::UnionAggregate(geom).STArea()
+    FROM BOUNDARY_AMP_HABITAT
+    WHERE
+      (Network = @netname OR @netname IS NULL) AND
+      (Park = @resname OR @resname IS NULL) AND
+      (Zone_Category = @zonename OR @zonename IS NULL) AND
+      (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
+  ) AS mapped_percentage,
+  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BOUNDARY_AMP_HABITAT
 WHERE
@@ -565,7 +574,7 @@ def habitat_statistics(request):
 
             unmapped_area = boundary_area - float(sum(v['area'] for v in habitat_stats))
             unmapped_percentage = 100 * unmapped_area / boundary_area
-            habitat_stats.append({'habitat': None, 'area': unmapped_area, 'percentage': unmapped_percentage})
+            habitat_stats.append({'habitat': None, 'area': unmapped_area, 'mapped_percentage': None, 'total_percentage': unmapped_percentage})
         except:
             return Response([])
         else:
