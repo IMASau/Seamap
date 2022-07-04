@@ -996,7 +996,8 @@
                      :values          without-unmapped
                      :independent-var :category
                      :dependent-var   :area
-                     :legend-title    "Category"}]
+                     :legend-title    "Category"
+                     :sort-key        :rank}]
                    [:div "No bathymetry information"])))}]
 
             [b/tab
