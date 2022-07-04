@@ -814,7 +814,7 @@
    [:thead
     [:tr
      [:th "Habitat"]
-     [:th "Area (km^2)"]
+     [:th "Area (km²)"]
      [:th "Mapped (%)"]
      [:th "Total (%)"]]]
    [:tbody
@@ -939,7 +939,7 @@
    [:thead
     [:tr
      [:th "Category"]
-     [:th "Area (km^2)"]
+     [:th "Area (km²)"]
      [:th "Mapped (%)"]
      [:th "Total (%)"]]]
    [:tbody
