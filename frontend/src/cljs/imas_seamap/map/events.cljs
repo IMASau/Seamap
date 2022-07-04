@@ -95,14 +95,14 @@
   (let [{:keys [hidden-layers active-layers]} (:map db)
         visible-layers (remove #((set hidden-layers) %) active-layers)
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
-        by-server      (group-by :server_url secure-layers)
+        {:keys [valid-layers info-format]} (get-layers-info-format secure-layers)
+        by-server      (group-by :server_url valid-layers)
         ;; Note, we don't use the entire viewport for the pixel bounds because of inaccuracies when zoomed out.
         img-size       {:width 101 :height 101}
         img-bounds     (bounds-for-zoom point size bounds img-size)
         ;; Note, top layer, last in the list, must be first in our search string:
         request-id     (gensym)
         had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
-        info-format    (get-layers-info-format secure-layers)
         db             (if had-insecure?
                          (assoc db :feature {:status :feature-info/none-queryable :location point}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
                          (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
@@ -119,7 +119,7 @@
         db             (assoc-in db [:feature :status] :feature-info/waiting)]
     (merge
      {:db db}
-     (if info-format
+     (if (seq valid-layers)
        {:http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point)}
        {:dispatch [:map/got-featureinfo request-id point nil nil]}))))
 
@@ -201,7 +201,7 @@
                  (update-in [:feature-query :response-remain] dec)
                  (update-in [:feature-query :responses] conj {:response response :info-format info-format}))]
 
-      (if (zero? (get-in db [:feature-query :response-remain]))
+      (if-not (pos? (get-in db [:feature-query :response-remain]))
         (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
         db))))
 
@@ -212,7 +212,7 @@
                  (update-in [:feature-query :response-remain] dec)
                  (update-in [:feature-query :responses] conj nil))]
       
-      (if (zero? (get-in db [:feature-query :response-remain]))
+      (if-not (pos? (get-in db [:feature-query :response-remain]))
         (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
         db))))  
 
