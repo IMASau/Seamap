@@ -203,16 +203,15 @@
 (s/def :map.boundaries/active-zone-iucn :map.boundaries/zone-iucn)
 
 (s/def :map.boundaries.imcra.provincial-bioregion/name string?)
-(s/def :map.boundaries.imcra/provincial-bioregion
-  (s/keys :req-un [:map.boundaries.imcra.provincial-bioregion/name]))
 
 (s/def :map.boundaries.imcra.mesoscale-bioregion/name string?)
 (s/def :map.boundaries.imcra.mesoscale-bioregion/provincial-bioregion :map.boundaries.imcra.provincial-bioregion/name)
+
 (s/def :map.boundaries.imcra/mesoscale-bioregion
   (s/keys :req-un [:map.boundaries.imcra.mesoscale-bioregion/name
                    :map.boundaries.imcra.mesoscale-bioregion/provincial-bioregion]))
-
-
+(s/def :map.boundaries.imcra/provincial-bioregion
+  (s/keys :req-un [:map.boundaries.imcra.provincial-bioregion/name]))
 (s/def :map.boundaries.imcra/provincial-bioregions (s/coll-of :map.boundaries.imcra/provincial-bioregion
                                                               :kind vector?))
 (s/def :map.boundaries.imcra/mesoscale-bioregions (s/coll-of :map.boundaries.imcra/mesoscale-bioregion
@@ -225,7 +224,6 @@
                    :map.boundaries.imcra/mesoscale-bioregions
                    :map.boundaries.imcra/active-provincial-bioregion
                    :map.boundaries.imcra/active-mesoscale-bioregion]))
-
 
 (s/def :map/boundaries
   (s/keys :req-un [:map.boundaries/networks
