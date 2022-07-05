@@ -41,7 +41,13 @@
                                        :imcra            {:provincial-bioregions       []
                                                           :mesoscale-bioregions        []
                                                           :active-provincial-bioregion nil
-                                                          :active-mesoscale-bioregion  nil}}
+                                                          :active-mesoscale-bioregion  nil}
+                                       :meow             {:realms           []
+                                                          :provinces        []
+                                                          :ecoregions       []
+                                                          :active-realm     nil
+                                                          :active-province  nil
+                                                          :active-ecoregion nil}}
                      :boundary-statistics {:habitat    {:results  []
                                                         :loading? false}
                                            :bathymetry {:results  []
@@ -84,6 +90,8 @@
                      :park-url              (str api-url-base "habitat/parks")
                      :zone-url              (str api-url-base "habitat/zones")
                      :zone-iucn-url         (str api-url-base "habitat/zonesiucn")
+                     :imcra-boundaries-url  (str api-url-base "habitat/imcraboundaries")
+                     :meow-boundaries-url   (str api-url-base "habitat/meowboundaries")
                      :habitat-statistics-url (str api-url-base "habitat/habitatstatistics")
                      :bathymetry-statistics-url (str api-url-base "habitat/bathymetrystatistics")
                      :init-catalogue-state  {:tab      "cat"

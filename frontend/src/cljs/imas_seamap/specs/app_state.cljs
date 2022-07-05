@@ -207,11 +207,11 @@
 (s/def :map.boundaries.imcra.mesoscale-bioregion/name string?)
 (s/def :map.boundaries.imcra.mesoscale-bioregion/provincial-bioregion :map.boundaries.imcra.provincial-bioregion/name)
 
+(s/def :map.boundaries.imcra/provincial-bioregion
+  (s/keys :req-un [:map.boundaries.imcra.provincial-bioregion/name]))
 (s/def :map.boundaries.imcra/mesoscale-bioregion
   (s/keys :req-un [:map.boundaries.imcra.mesoscale-bioregion/name
                    :map.boundaries.imcra.mesoscale-bioregion/provincial-bioregion]))
-(s/def :map.boundaries.imcra/provincial-bioregion
-  (s/keys :req-un [:map.boundaries.imcra.provincial-bioregion/name]))
 (s/def :map.boundaries.imcra/provincial-bioregions (s/coll-of :map.boundaries.imcra/provincial-bioregion
                                                               :kind vector?))
 (s/def :map.boundaries.imcra/mesoscale-bioregions (s/coll-of :map.boundaries.imcra/mesoscale-bioregion
@@ -225,6 +225,42 @@
                    :map.boundaries.imcra/active-provincial-bioregion
                    :map.boundaries.imcra/active-mesoscale-bioregion]))
 
+(s/def :map.boundaries.meow.realm/name string?)
+
+(s/def :map.boundaries.meow.province/realm :map.boundaries.meow.realm/name)
+(s/def :map.boundaries.meow.province/name string?)
+
+(s/def :map.boundaries.meow.ecoregion/realm :map.boundaries.meow.realm/name)
+(s/def :map.boundaries.meow.ecoregion/province :map.boundaries.meow.province/name)
+(s/def :map.boundaries.meow.ecoregion/name string?)
+
+(s/def :map.boundaries.meow/realm
+  (s/keys :req-un [:map.boundaries.meow.realm/name]))
+(s/def :map.boundaries.meow/province
+  (s/keys :req-un [:map.boundaries.meow.province/realm
+                   :map.boundaries.meow.province/name]))
+(s/def :map.boundaries.meow/ecoregion
+  (s/keys :req-un [:map.boundaries.meow.ecoregion/realm
+                   :map.boundaries.meow.ecoregion/province
+                   :map.boundaries.meow.ecoregion/name]))
+(s/def :map.boundaries.meow/realms (s/coll-of :map.boundaries.meow/realm
+                                              :kind vector?))
+(s/def :map.boundaries.meow/provinces (s/coll-of :map.boundaries.meow/province
+                                                 :kind vector?))
+(s/def :map.boundaries.meow/ecoregions (s/coll-of :map.boundaries.meow/ecoregion
+                                                  :kind vector?))
+(s/def :map.boundaries.meow/active-realm :map.boundaries.meow/realm)
+(s/def :map.boundaries.meow/active-province :map.boundaries.meow/province)
+(s/def :map.boundaries.meow/active-ecoregion :map.boundaries.meow/ecoregion)
+
+(s/def :map.boundaries/meow
+  (s/keys :req-un [:map.boundaries.meow/realms
+                   :map.boundaries.meow/provinces
+                   :map.boundaries.meow/ecoregions
+                   :map.boundaries.meow/active-realm
+                   :map.boundaries.meow/active-province
+                   :map.boundaries.meow/active-ecoregion]))
+
 (s/def :map/boundaries
   (s/keys :req-un [:map.boundaries/networks
                    :map.boundaries/active-network
@@ -234,7 +270,8 @@
                    :map.boundaries/active-zone
                    :map.boundaries/zones-iucn
                    :map.boundaries/active-zone-iucn
-                   :map.boundaries/imcra]))
+                   :map.boundaries/imcra
+                   :map.boundaries/meow]))
 
 (s/def :map.boundary-statistics.habitat.result/habitat (s/nilable string?))
 (s/def :map.boundary-statistics.habitat.result/area number?)
