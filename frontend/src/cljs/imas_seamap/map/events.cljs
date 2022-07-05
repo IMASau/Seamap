@@ -641,3 +641,28 @@
 
 (defn update-preview-layer [db [_ preview-layer]]
   (assoc-in db [:map :preview-layer] preview-layer))
+
+(defn reset-active-amp-boundaries [db _]
+  (-> db
+      (assoc-in [:map :boundaries :active-network] nil)
+      (assoc-in [:map :boundaries :active-park] nil)
+      (assoc-in [:map :boundaries :active-zone] nil)
+      (assoc-in [:map :boundaries :active-zone-iucn] nil)))
+
+(defn update-active-provincial-bioregion [{:keys [db]} [_ provincial-bioregion]]
+  (let [db (cond-> db
+             (not= provincial-bioregion (get-in db [:map :boundaries :imcra :active-provincial-bioregion]))
+             (->
+              (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] nil)
+              (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)))]
+    {:db db
+     :dispatch-n [[:map/reset-active-amp-boundaries]]}))
+
+(defn update-active-mesoscale-bioregion [{:keys [db]} [_ {:keys [provincial-bioregion] :as mesoscale-bioregion}]]
+  (let [provincial-bioregions (get-in db [:map :boundaries :imcra :provincial-bioregions])
+        provincial-bioregion (first-where #(= (:name %) provincial-bioregion) provincial-bioregions)
+        db (-> db
+               (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)
+               (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] mesoscale-bioregion))]
+    {:db db
+     :dispatch-n [[:map/reset-active-amp-boundaries]]}))

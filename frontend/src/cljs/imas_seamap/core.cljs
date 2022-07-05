@@ -38,6 +38,7 @@
     :map/active-park                      msubs/active-park
     :map/active-zone                      msubs/active-zone
     :map/active-zone-iucn                 msubs/active-zone-iucn
+    :map/imcra-boundaries                 msubs/imcra-boundaries
     :map/habitat-statistics               msubs/habitat-statistics
     :map/habitat-statistics-loading?      msubs/habitat-statistics-loading?
     :map/habitat-statistics-download-url  msubs/habitat-statistics-download-url 
@@ -169,6 +170,9 @@
     :map/update-active-park               [mevents/update-active-park]
     :map/update-active-zone               [mevents/update-active-zone]
     :map/update-active-zone-iucn          [mevents/update-active-zone-iucn]
+    :map/reset-active-amp-boundaries      [mevents/reset-active-amp-boundaries]
+    :map/update-active-provincial-bioregion [mevents/update-active-provincial-bioregion]
+    :map/update-active-mesoscale-bioregion [mevents/update-active-mesoscale-bioregion]
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :ui/show-loading                      events/loading-screen

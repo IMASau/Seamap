@@ -220,3 +220,6 @@
      "&zone=" (:name active-zone)
      "&zone-iucn=" (:name active-zone-iucn)
      "&format=raw")))
+
+(defn imcra-boundaries [db _]
+  (get-in db [:map :boundaries :imcra]))
