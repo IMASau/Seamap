@@ -164,8 +164,12 @@
     :map/update-active-zone-iucn          [mevents/update-active-zone-iucn]
     :map/reset-active-amp-boundaries      mevents/reset-active-amp-boundaries
     :map/reset-active-imcra-boundaries    mevents/reset-active-imcra-boundaries
+    :map/reset-active-meow-boundaries     mevents/reset-active-meow-boundaries
     :map/update-active-provincial-bioregion [mevents/update-active-provincial-bioregion]
     :map/update-active-mesoscale-bioregion [mevents/update-active-mesoscale-bioregion]
+    :map/update-active-realm              [mevents/update-active-realm]
+    :map/update-active-province           [mevents/update-active-province]
+    :map/update-active-ecoregion          [mevents/update-active-ecoregion]
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :ui/show-loading                      events/loading-screen

@@ -594,6 +594,7 @@
               (assoc-in [:map :boundaries :amp :active-network] network)))]
     {:db db
      :dispatch-n [[:map/reset-active-imcra-boundaries]
+                  [:map/reset-active-meow-boundaries]
                   [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
@@ -605,6 +606,7 @@
                (assoc-in [:map :boundaries :amp :active-park] park))]
     {:db db
      :dispatch-n [[:map/reset-active-imcra-boundaries]
+                  [:map/reset-active-meow-boundaries]
                   [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
@@ -614,6 +616,7 @@
                (assoc-in [:map :boundaries :amp :active-zone-iucn] nil))]
     {:db db
      :dispatch-n [[:map/reset-active-imcra-boundaries]
+                  [:map/reset-active-meow-boundaries]
                   [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
@@ -623,6 +626,7 @@
                (assoc-in [:map :boundaries :amp :active-zone] nil))]
     {:db db
      :dispatch-n [[:map/reset-active-imcra-boundaries]
+                  [:map/reset-active-meow-boundaries]
                   [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
@@ -679,6 +683,12 @@
       (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] nil)
       (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] nil)))
 
+(defn reset-active-meow-boundaries [db _]
+  (-> db
+      (assoc-in [:map :boundaries :meow :active-realm] nil)
+      (assoc-in [:map :boundaries :meow :active-province] nil)
+      (assoc-in [:map :boundaries :meow :active-ecoregion] nil)))
+
 (defn update-active-provincial-bioregion [{:keys [db]} [_ provincial-bioregion]]
   (let [db (cond-> db
              (not= provincial-bioregion (get-in db [:map :boundaries :imcra :active-provincial-bioregion]))
@@ -686,7 +696,8 @@
               (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] nil)
               (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)))]
     {:db db
-     :dispatch-n [[:map/reset-active-amp-boundaries]]}))
+     :dispatch-n [[:map/reset-active-amp-boundaries]
+                  [:map/reset-active-meow-boundaries]]}))
 
 (defn update-active-mesoscale-bioregion [{:keys [db]} [_ {:keys [provincial-bioregion] :as mesoscale-bioregion}]]
   (let [provincial-bioregions (get-in db [:map :boundaries :imcra :provincial-bioregions])
@@ -695,4 +706,41 @@
                (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)
                (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] mesoscale-bioregion))]
     {:db db
-     :dispatch-n [[:map/reset-active-amp-boundaries]]}))
+     :dispatch-n [[:map/reset-active-amp-boundaries]
+                  [:map/reset-active-meow-boundaries]]}))
+
+(defn update-active-realm [{:keys [db]} [_ realm]]
+  (let [db (cond-> db
+             (not= realm (get-in db [:map :boundaries :meow :active-realm]))
+             (->
+              (assoc-in [:map :boundaries :meow :active-realm] realm)
+              (assoc-in [:map :boundaries :meow :active-province] nil)
+              (assoc-in [:map :boundaries :meow :active-ecoregion] nil)))]
+    {:db db
+     :dispatch-n [[:map/reset-active-amp-boundaries]
+                  [:map/reset-active-imcra-boundaries]]}))
+
+(defn update-active-province [{:keys [db]} [_ {:keys [realm] :as province}]]
+  (let [realms (get-in db [:map :boundaries :meow :realms])
+        realm (first-where #(= (:name %) realm) realms)
+        db (cond-> db
+             (not= province (get-in db [:map :boundaries :meow :active-province]))
+             (->
+              (assoc-in [:map :boundaries :meow :active-realm] realm)
+              (assoc-in [:map :boundaries :meow :active-province] province)
+              (assoc-in [:map :boundaries :meow :active-ecoregion] nil)))]
+    {:db db
+     :dispatch-n [[:map/reset-active-amp-boundaries]
+                  [:map/reset-active-imcra-boundaries]]}))
+
+(defn update-active-ecoregion [{:keys [db]} [_ {:keys [realm province] :as ecoregion}]]
+  (let [{:keys [realms provinces]} (get-in db [:map :boundaries :meow])
+        realm (first-where #(= (:name %) realm) realms)
+        province (first-where #(= (:name %) province) provinces)
+        db (-> db
+            (assoc-in [:map :boundaries :meow :active-realm] realm)
+            (assoc-in [:map :boundaries :meow :active-province] province)
+            (assoc-in [:map :boundaries :meow :active-ecoregion] ecoregion))]
+    {:db db
+     :dispatch-n [[:map/reset-active-amp-boundaries]
+                  [:map/reset-active-imcra-boundaries]]}))
