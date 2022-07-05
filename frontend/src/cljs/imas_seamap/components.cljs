@@ -42,12 +42,65 @@
 (defn floating-pill-button
   [{:keys [text icon on-click disabled]}]
   [:div
-   {:class    (str "floating-pill-button" (when disabled " disabled"))
+   {:class    (str "floating-pill floating-pill-button" (when disabled " disabled"))
     :on-click (when-not disabled on-click)}
    [b/icon
     {:icon icon
      :icon-size 20}]
    text])
+
+(defn floating-pill-control-menu
+  "This component renders a floating pill which the user can click on to display a
+   pop-out menu that may contain a wide variety of content. Clicking on the pill
+   again will collapse the menu. Menu contains a header with a button that can also
+   be used for closing it.
+   
+   Props configure the component:
+    - text: Text displayed on the floating pill.
+    - icon: Icon displayed on the floating pill.
+    - disabled? (optional): If true then the button is disabled and the user will be
+      unable to interact with it.
+    - expanded? (optional): For if the state of the component needs to be managed
+      outside. Determines if the pop-out menu is currently visible.
+    - on-toggle-click (optional): For if the state of the component needs to be
+      managed outside. Event that fires when the pill is clicked that would
+      normally toggle the visibility of the pop-out menu when using an unmanaged
+      state.
+    - on-close-click (optional): For if the state of the component needs to be
+      managed outside. Event that fires when the cross in the pop-out menu is
+      clicked that would normally close the pop-out menu when using an unmanaged
+      state.
+    - & children: the children rendered inside of the pop-out menu."
+  [{:keys [text icon disabled? expanded? on-toggle-click on-close-click] :as props} & children]
+  (let [atom-expanded? (reagent/atom false)]
+    (fn []
+      (let [expanded?       (if (contains? props :expanded?) expanded? @atom-expanded?)
+            on-toggle-click (or on-toggle-click #(swap! atom-expanded? not))
+            on-close-click  (or on-close-click #(reset! atom-expanded? false))]
+        [:div
+         {:class (str "floating-pill-control-menu" (when expanded? " expanded"))}
+         [:div
+          {:class    (str "floating-pill floating-pill-control-menu-button" (when disabled? " disabled"))
+           :on-click (when-not disabled? on-toggle-click)}
+          [b/icon
+           {:icon icon
+            :icon-size 20}]
+          text
+          [b/icon
+           {:icon (if expanded? "caret-up" "caret-down")}]]
+         [:div.floating-pill-control-menu-content
+          [:div.floating-pill-control-menu-content-header
+           [:div
+            [b/icon
+             {:icon icon
+              :icon-size 20}]]
+           [:div text]
+           [:div
+            [b/button
+             {:icon "cross"
+              :minimal true
+              :on-click on-close-click}]]]
+          (into [:div] children)]]))))
 
 (defn omnibar
   [{:keys [placeholder isOpen onClose items onItemSelect keyfns]}]

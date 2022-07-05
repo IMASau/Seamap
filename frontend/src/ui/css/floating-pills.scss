@@ -5,41 +5,32 @@ $floating-pill-height: 36px;
 	z-index: 2000;
 	top: $floating-menu-padding;
 	left: calc($floating-menu-width + 2 * $floating-menu-padding);
-	white-space: nowrap;
 	display: flex;
 	transition: left 200ms;
 }
 
-.floating-pills > *:not(:last-child) {
-	margin-right: 6px; 
+.floating-pills>*:not(:last-child) {
+	margin-right: 6px;
 }
 
-.floating-pill-button {
+.floating-pill {
 	background-color: white;
 	padding: 0 14px;
 	height: $floating-pill-height;
 	border-radius: 14px;
-	border: 2px solid rgba(0,0,0,0.2);
+	border: 2px solid rgba(0, 0, 0, 0.2);
 	background-clip: padding-box;
-	cursor: pointer;
 	color: black;
 	font-size: 14px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	user-select: none;
-}
-
-.floating-pill-button:hover {
-	background-color: #f4f4f4;
-}
-
-.floating-pill-button > .bp3-icon {
-	margin-right: 7px;
+	gap: 7px;
+	white-space: nowrap;
 }
 
 .catalogue-open .floating-pills {
-    left: calc($catalogue-drawer-width + $floating-menu-padding);
+	left: calc($catalogue-drawer-width + $floating-menu-padding);
 }
 
 .catalogue-open .leaflet-top.leaflet-left,
@@ -49,4 +40,54 @@ $floating-pill-height: 36px;
 
 .leaflet-top.leaflet-left .leaflet-control {
 	margin-left: 0;
+}
+
+.floating-pill-control-menu-button,
+.floating-pill-button {
+	cursor: pointer;
+	user-select: none;
+}
+
+.floating-pill-control-menu-button:hover,
+.floating-pill-button:hover {
+	background-color: #f4f4f4;
+}
+
+.floating-pill-control-menu-content {
+	position: absolute;
+	margin-top: $floating-menu-padding;
+	background-color: white;
+	padding: 12px;
+	border-radius: 14px;
+	border: 2px solid rgba(0, 0, 0, 0.2);
+	background-clip: padding-box;
+	color: black;
+}
+
+.floating-pill-control-menu:not(.expanded) .floating-pill-control-menu-content {
+	display: none;
+}
+
+.floating-pill-control-menu-content-header {
+	display: flex;
+	align-items: center;
+	height: 30px;
+	gap: 7px;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+	padding: 0 3px 3px 3px;
+	margin-bottom: 12px;
+}
+
+.floating-pill-control-menu-content-header> :nth-child(1),
+.floating-pill-control-menu-content-header> :nth-child(3) {
+	aspect-ratio: 1;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.floating-pill-control-menu-content-header> :nth-child(2) {
+	flex: 1;
+	font-size: 15px;
 }
