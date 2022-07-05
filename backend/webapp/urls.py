@@ -9,7 +9,7 @@ from rest_framework.routers import DefaultRouter
 import catalogue.viewsets as viewsets
 
 from catalogue.views import SaveStateView
-from habitat.viewsets import regions, subset, transect, networks, parks, zones, zones_iucn, habitat_statistics, bathymetry_statistics
+from habitat.viewsets import regions, subset, transect, networks, parks, zones, zones_iucn, imcra_boundaries, meow_boundaries, habitat_statistics, bathymetry_statistics
 
 
 router = DefaultRouter()
@@ -31,6 +31,8 @@ urlpatterns = [
     re_path(r'^api/habitat/parks/?$', parks),
     re_path(r'^api/habitat/zones/?$', zones),
     re_path(r'^api/habitat/zonesiucn/?$', zones_iucn),
+    re_path(r'^api/habitat/imcraboundaries', imcra_boundaries),
+    re_path(r'^api/habitat/meowboundaries', meow_boundaries),
     re_path(r'^api/habitat/habitatstatistics', habitat_statistics),
     re_path(r'^api/habitat/bathymetrystatistics', bathymetry_statistics),
     re_path(r'^api/savestates', SaveStateView.as_view()),

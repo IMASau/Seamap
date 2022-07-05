@@ -109,6 +109,39 @@ SELECT DISTINCT IUCN_Zone AS name
 FROM VW_BOUNDARY_AMP;
 """
 
+SQL_GET_IMCRA_PROVINCIAL_BIOREGIONS = """
+SELECT DISTINCT Provincial_Bioregion AS name
+FROM VW_BOUNDARY_IMCRA;
+"""
+
+SQL_GET_IMCRA_MESOSCALE_BIOREGIONS = """
+SELECT DISTINCT
+  Provincial_Bioregion,
+  Mesoscale_Bioregion AS name
+FROM VW_BOUNDARY_IMCRA
+WHERE Mesoscale_Bioregion IS NOT NULL;
+"""
+
+SQL_GET_MEOW_REALMS = """
+SELECT DISTINCT Realm AS name
+FROM VW_BOUNDARY_MEOW;
+"""
+
+SQL_GET_MEOW_PROVINCES = """
+SELECT DISTINCT
+  Realm,
+  Province AS name
+FROM VW_BOUNDARY_MEOW;
+"""
+
+SQL_GET_MEOW_ECOREGIONS = """
+SELECT DISTINCT
+  Realm,
+  Province,
+  Ecoregion AS name
+FROM VW_BOUNDARY_MEOW;
+"""
+
 SQL_GET_BOUNDARY_AREA = "SELECT dbo.AMP_BOUNDARY_geom(%s, %s, %s, %s).STArea() / 1000000"
 
 SQL_GET_HABITAT_STATS = """
@@ -544,6 +577,68 @@ def zones_iucn(request):
 
         zones_iucn = [row._asdict() for row in results]
     return Response(zones_iucn)
+
+@action(detail=False)
+@api_view()
+def imcra_boundaries(request):
+    provincial_bioregions = []
+    mesoscale_bioregions = []
+
+    with connections['transects'].cursor() as cursor:
+        # Provincial Bioregions
+        cursor.execute(SQL_GET_IMCRA_PROVINCIAL_BIOREGIONS)
+
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        provincial_bioregions = [row._asdict() for row in results]
+
+        # Mesoscale Bioregions
+        cursor.execute(SQL_GET_IMCRA_MESOSCALE_BIOREGIONS)
+
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        mesoscale_bioregions = [row._asdict() for row in results]
+    return Response({'provincial_bioregions': provincial_bioregions, 'mesoscale_bioregions': mesoscale_bioregions})
+
+@action(detail=False)
+@api_view()
+def meow_boundaries(request):
+    realms = []
+    provinces = []
+    ecoregions = []
+
+    with connections['transects'].cursor() as cursor:
+        # Realms
+        cursor.execute(SQL_GET_MEOW_REALMS)
+
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        realms = [row._asdict() for row in results]
+
+        # Provinces
+        cursor.execute(SQL_GET_MEOW_PROVINCES)
+
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        provinces = [row._asdict() for row in results]
+
+        # Ecoregions
+        cursor.execute(SQL_GET_MEOW_ECOREGIONS)
+
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        ecoregions = [row._asdict() for row in results]
+    return Response({'realms': realms, 'provinces': provinces, 'ecoregions': ecoregions})
 
 @action(detail=False)
 @api_view()
