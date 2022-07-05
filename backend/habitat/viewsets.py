@@ -116,7 +116,7 @@ FROM VW_BOUNDARY_IMCRA;
 
 SQL_GET_IMCRA_MESOSCALE_BIOREGIONS = """
 SELECT DISTINCT
-  Provincial_Bioregion,
+  Provincial_Bioregion as provincial_bioregion,
   Mesoscale_Bioregion AS name
 FROM VW_BOUNDARY_IMCRA
 WHERE Mesoscale_Bioregion IS NOT NULL;
@@ -129,15 +129,15 @@ FROM VW_BOUNDARY_MEOW;
 
 SQL_GET_MEOW_PROVINCES = """
 SELECT DISTINCT
-  Realm,
+  Realm as realm,
   Province AS name
 FROM VW_BOUNDARY_MEOW;
 """
 
 SQL_GET_MEOW_ECOREGIONS = """
 SELECT DISTINCT
-  Realm,
-  Province,
+  Realm as realm,
+  Province as province,
   Ecoregion AS name
 FROM VW_BOUNDARY_MEOW;
 """

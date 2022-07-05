@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
+            [clojure.set :refer [rename-keys]]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers first-where]]
             [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key]]
@@ -350,6 +351,17 @@
 (defn update-zones-iucn [db [_ zones-iucn]]
   (let [zones-iucn (sort-by (comp string/lower-case :name) zones-iucn)]
     (assoc-in db [:map :boundaries :zones-iucn] zones-iucn)))
+
+(defn update-imcra-boundaries [db [_ {:keys [provincial_bioregions mesoscale_bioregions]}]]
+  (-> db
+      (assoc-in [:map :boundaries :imcra :provincial-bioregions] provincial_bioregions)
+      (assoc-in [:map :boundaries :imcra :mesoscale-bioregions] (mapv #(rename-keys % {:provincial_bioregion :provincial-bioregion}) mesoscale_bioregions))))
+
+(defn update-meow-boundaries [db [_ {:keys [realms provinces ecoregions]}]]
+  (-> db
+      (assoc-in [:map :boundaries :meow :realms] realms)
+      (assoc-in [:map :boundaries :meow :provinces] provinces)
+      (assoc-in [:map :boundaries :meow :ecoregions] ecoregions)))
 
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))

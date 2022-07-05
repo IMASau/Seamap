@@ -159,6 +159,8 @@
     :map/update-parks                     mevents/update-parks
     :map/update-zones                     mevents/update-zones
     :map/update-zones-iucn                mevents/update-zones-iucn
+    :map/update-imcra-boundaries          mevents/update-imcra-boundaries
+    :map/update-meow-boundaries           mevents/update-meow-boundaries
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
@@ -170,7 +172,7 @@
     :map/update-active-park               [mevents/update-active-park]
     :map/update-active-zone               [mevents/update-active-zone]
     :map/update-active-zone-iucn          [mevents/update-active-zone-iucn]
-    :map/reset-active-amp-boundaries      [mevents/reset-active-amp-boundaries]
+    :map/reset-active-amp-boundaries      mevents/reset-active-amp-boundaries
     :map/update-active-provincial-bioregion [mevents/update-active-provincial-bioregion]
     :map/update-active-mesoscale-bioregion [mevents/update-active-mesoscale-bioregion]
     :map/popup-closed                     mevents/destroy-popup
