@@ -80,18 +80,6 @@
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))
 
-(defn networks [db _]
-  (get-in db [:map :boundaries :networks]))
-
-(defn parks [db _]
-  (get-in db [:map :boundaries :parks]))
-
-(defn zones [db _]
-  (get-in db [:map :boundaries :zones]))
-
-(defn zones-iucn [db _]
-  (get-in db [:map :boundaries :zones-iucn]))
-
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
    :region     (get-in db [:map :controls :download :bbox])})
@@ -175,18 +163,6 @@
     (some #(and (= org-name (:name %)) %) organisations)
     organisations))
 
-(defn active-network [db _]
-  (get-in db [:map :boundaries :active-network]))
-
-(defn active-park [db _]
-  (get-in db [:map :boundaries :active-park]))
-
-(defn active-zone [db _]
-  (get-in db [:map :boundaries :active-zone]))
-
-(defn active-zone-iucn [db _]
-  (get-in db [:map :boundaries :active-zone-iucn]))
-
 (defn habitat-statistics [db _]
   (let [results (get-in db [:map :boundary-statistics :habitat :results])]
     (map #(assoc % :color (get-in db [:habitat-colours (:habitat %)])) results)))
@@ -220,6 +196,9 @@
      "&zone=" (:name active-zone)
      "&zone-iucn=" (:name active-zone-iucn)
      "&format=raw")))
+
+(defn amp-boundaries [db _]
+  (get-in db [:map :boundaries :amp]))
 
 (defn imcra-boundaries [db _]
   (get-in db [:map :boundaries :imcra]))

@@ -35,10 +35,7 @@
                                   :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-networks
-                                  :map/update-parks
-                                  :map/update-zones
-                                  :map/update-zones-iucn
+                                  :map/update-amp-boundaries
                                   :map/update-imcra-boundaries
                                   :map/update-meow-boundaries]
      :dispatch-n [[:map/initialise-display]
@@ -62,10 +59,7 @@
                                   :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-networks
-                                  :map/update-parks
-                                  :map/update-zones
-                                  :map/update-zones-iucn
+                                  :map/update-amp-boundaries
                                   :map/update-imcra-boundaries
                                   :map/update-meow-boundaries]
      :dispatch-n [[:map/initialise-display]
@@ -89,10 +83,7 @@
                                   :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-networks
-                                  :map/update-parks
-                                  :map/update-zones
-                                  :map/update-zones-iucn
+                                  :map/update-amp-boundaries
                                   :map/update-imcra-boundaries
                                   :map/update-meow-boundaries]
      :dispatch-n [[:map/initialise-display]
@@ -173,10 +164,7 @@
                 classification-url priority-url
                 descriptor-url
                 category-url
-                network-url
-                park-url
-                zone-url
-                zone-iucn-url
+                amp-boundaries-url
                 imcra-boundaries-url
                 meow-boundaries-url]} (:config db)]
     {:db         db
@@ -226,24 +214,9 @@
                    :on-success      [:map/update-categories]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
-                   :uri             network-url
+                   :uri             amp-boundaries-url
                    :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-networks]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             park-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-parks]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             zone-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-zones]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             zone-iucn-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-zones-iucn]
+                   :on-success      [:map/update-amp-boundaries]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             imcra-boundaries-url

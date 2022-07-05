@@ -352,6 +352,13 @@
   (let [zones-iucn (sort-by (comp string/lower-case :name) zones-iucn)]
     (assoc-in db [:map :boundaries :zones-iucn] zones-iucn)))
 
+(defn update-amp-boundaries [db [_ {:keys [networks parks zones zones_iucn]}]]
+  (-> db
+      (assoc-in [:map :boundaries :amp :networks] networks)
+      (assoc-in [:map :boundaries :amp :parks] parks)
+      (assoc-in [:map :boundaries :amp :zones] zones)
+      (assoc-in [:map :boundaries :amp :zones-iucn] zones_iucn)))
+
 (defn update-imcra-boundaries [db [_ {:keys [provincial_bioregions mesoscale_bioregions]}]]
   (-> db
       (assoc-in [:map :boundaries :imcra :provincial-bioregions] provincial_bioregions)
@@ -581,41 +588,43 @@
 
 (defn update-active-network [{:keys [db]} [_ network]]
   (let [db (cond-> db
-             (not= network (get-in db [:map :active-network]))
+             (not= network (get-in db [:map :boundaries :amp :active-network]))
              (->
-              (assoc-in [:map :boundaries :active-park] nil)
-              (assoc-in [:map :boundaries :active-network] network)))]
+              (assoc-in [:map :boundaries :amp :active-park] nil)
+              (assoc-in [:map :boundaries :amp :active-network] network)))]
     {:db db
      :dispatch-n [[:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-park [{:keys [db]} [_ {:keys [network] :as park}]]
-  (let [db (-> db
-               (assoc-in [:map :boundaries :active-network] (first-where #(= (:name %) network) (get-in db [:map :boundaries :networks])))
-               (assoc-in [:map :boundaries :active-park] park))]
+  (let [networks (get-in db [:map :boundaries :amp :networks])
+        network (first-where #(= (:name %) network) networks)
+        db (-> db
+               (assoc-in [:map :boundaries :amp :active-network] network)
+               (assoc-in [:map :boundaries :amp :active-park] park))]
     {:db db
      :dispatch-n [[:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-zone [{:keys [db]} [_ zone]]
   (let [db (-> db
-               (assoc-in [:map :boundaries :active-zone] zone)
-               (assoc-in [:map :boundaries :active-zone-iucn] nil))]
+               (assoc-in [:map :boundaries :amp :active-zone] zone)
+               (assoc-in [:map :boundaries :amp :active-zone-iucn] nil))]
     {:db db
      :dispatch-n [[:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-zone-iucn [{:keys [db]} [_ zone-iucn]]
   (let [db (-> db
-               (assoc-in [:map :boundaries :active-zone-iucn] zone-iucn)
-               (assoc-in [:map :boundaries :active-zone] nil))]
+               (assoc-in [:map :boundaries :amp :active-zone-iucn] zone-iucn)
+               (assoc-in [:map :boundaries :amp :active-zone] nil))]
     {:db db
      :dispatch-n [[:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn get-habitat-statistics [{:keys [db]}]
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
-        {:keys [active-network active-park active-zone active-zone-iucn]} (get-in db [:map :boundaries])]
+        {:keys [active-network active-park active-zone active-zone-iucn]} (get-in db [:map :boundaries :amp])]
    {:db (assoc-in db [:map :boundary-statistics :habitat :loading?] true)
     :http-xhrio {:method          :get
                  :uri             habitat-statistics-url
@@ -634,7 +643,7 @@
 
 (defn get-bathymetry-statistics [{:keys [db]}]
   (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])
-        {:keys [active-network active-park active-zone active-zone-iucn]} (get-in db [:map :boundaries])]
+        {:keys [active-network active-park active-zone active-zone-iucn]} (get-in db [:map :boundaries :amp])]
     {:db (assoc-in db [:map :boundary-statistics :bathymetry :loading?] true)
      :http-xhrio {:method          :get
                   :uri             bathymetry-statistics-url
