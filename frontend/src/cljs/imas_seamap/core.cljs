@@ -163,6 +163,7 @@
     :map/update-active-zone               [mevents/update-active-zone]
     :map/update-active-zone-iucn          [mevents/update-active-zone-iucn]
     :map/reset-active-amp-boundaries      mevents/reset-active-amp-boundaries
+    :map/reset-active-imcra-boundaries    mevents/reset-active-imcra-boundaries
     :map/update-active-provincial-bioregion [mevents/update-active-provincial-bioregion]
     :map/update-active-mesoscale-bioregion [mevents/update-active-mesoscale-bioregion]
     :map/popup-closed                     mevents/destroy-popup

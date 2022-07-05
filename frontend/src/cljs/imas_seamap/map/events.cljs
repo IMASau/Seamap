@@ -593,7 +593,8 @@
               (assoc-in [:map :boundaries :amp :active-park] nil)
               (assoc-in [:map :boundaries :amp :active-network] network)))]
     {:db db
-     :dispatch-n [[:map/get-habitat-statistics]
+     :dispatch-n [[:map/reset-active-imcra-boundaries]
+                  [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-park [{:keys [db]} [_ {:keys [network] :as park}]]
@@ -603,7 +604,8 @@
                (assoc-in [:map :boundaries :amp :active-network] network)
                (assoc-in [:map :boundaries :amp :active-park] park))]
     {:db db
-     :dispatch-n [[:map/get-habitat-statistics]
+     :dispatch-n [[:map/reset-active-imcra-boundaries]
+                  [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-zone [{:keys [db]} [_ zone]]
@@ -611,7 +613,8 @@
                (assoc-in [:map :boundaries :amp :active-zone] zone)
                (assoc-in [:map :boundaries :amp :active-zone-iucn] nil))]
     {:db db
-     :dispatch-n [[:map/get-habitat-statistics]
+     :dispatch-n [[:map/reset-active-imcra-boundaries]
+                  [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-zone-iucn [{:keys [db]} [_ zone-iucn]]
@@ -619,7 +622,8 @@
                (assoc-in [:map :boundaries :amp :active-zone-iucn] zone-iucn)
                (assoc-in [:map :boundaries :amp :active-zone] nil))]
     {:db db
-     :dispatch-n [[:map/get-habitat-statistics]
+     :dispatch-n [[:map/reset-active-imcra-boundaries]
+                  [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn get-habitat-statistics [{:keys [db]}]
@@ -665,10 +669,15 @@
 
 (defn reset-active-amp-boundaries [db _]
   (-> db
-      (assoc-in [:map :boundaries :active-network] nil)
-      (assoc-in [:map :boundaries :active-park] nil)
-      (assoc-in [:map :boundaries :active-zone] nil)
-      (assoc-in [:map :boundaries :active-zone-iucn] nil)))
+      (assoc-in [:map :boundaries :amp :active-network] nil)
+      (assoc-in [:map :boundaries :amp :active-park] nil)
+      (assoc-in [:map :boundaries :amp :active-zone] nil)
+      (assoc-in [:map :boundaries :amp :active-zone-iucn] nil)))
+
+(defn reset-active-imcra-boundaries [db _]
+  (-> db
+      (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] nil)
+      (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] nil)))
 
 (defn update-active-provincial-bioregion [{:keys [db]} [_ provincial-bioregion]]
   (let [db (cond-> db
