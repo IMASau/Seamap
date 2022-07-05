@@ -37,7 +37,11 @@
                                        :zones            []
                                        :active-zone      nil
                                        :zones-iucn       []
-                                       :active-zone-iucn nil}
+                                       :active-zone-iucn nil
+                                       :imcra {:provincial-bioregions       []
+                                               :mesoscale-bioregions        []
+                                               :active-provincial-bioregion nil
+                                               :active-mesoscale-bioregion  nil}}
                      :boundary-statistics {:habitat    {:results  []
                                                         :loading? false}
                                            :bathymetry {:results  []
