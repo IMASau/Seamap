@@ -834,61 +834,79 @@
 (defn boundary-selection []
   (let [selected-tab (reagent/atom "amp")]
     (fn []
-      [components/drawer-group
-       {:heading "Boundaries"
-        :icon    "heatmap"}
-       [b/tabs
-        {:id              "boundary-selection-tabs"
-         :selected-tab-id @selected-tab
-         :on-change       #(reset! selected-tab %)}
-        
-        [b/tab
-         {:id "amp"
-          :title "Australian Marine Parks"
-          :panel
-          (reagent/as-element
-           [:div.boundaries-selection
-            [components/form-group
-             {:label "Network"}
-             [components/select
-              {:value    @(re-frame/subscribe [:map/active-network])
-               :options  @(re-frame/subscribe [:map/networks])
-               :onChange #(re-frame/dispatch [:map/update-active-network %])
-               :keyfns
-               {:id   :name
-                :text :name}}]]
-            [components/form-group
-             {:label "Park"}
-             [components/select
-              {:value    @(re-frame/subscribe [:map/active-park])
-               :options  @(re-frame/subscribe [:map/parks])
-               :onChange #(re-frame/dispatch [:map/update-active-park %])
-               :keyfns
-               {:id          :name
-                :text        :name
-                :breadcrumbs (comp vector :network)}}]]
-            [components/form-group
-             {:label "Zone Category"}
-             [components/select
-              {:value    @(re-frame/subscribe [:map/active-zone])
-               :options  @(re-frame/subscribe [:map/zones])
-               :onChange #(re-frame/dispatch [:map/update-active-zone %])
-               :keyfns
-               {:id   :name
-                :text :name}}]]
-            [components/form-group
-             {:label "IUCN Category (Zone)"}
-             [components/select
-              {:value    @(re-frame/subscribe [:map/active-zone-iucn])
-               :options  @(re-frame/subscribe [:map/zones-iucn])
-               :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
-               :keyfns
-               {:id   :name
-                :text :name}}]]])}]]
-       [:a.data-coverage-report-link
-        {:href   "https://blueprintjs.com/" ; Placeholder URL
-         :target "_blank"}
-        "View data coverage report"]])))
+      [:div.boundaries-selection
+       [components/drawer-group
+        {:heading "Boundaries"
+         :icon    "heatmap"}
+        [b/tabs
+         {:id              "boundary-selection-tabs"
+          :selected-tab-id @selected-tab
+          :on-change       #(reset! selected-tab %)}
+         
+         [b/tab
+          {:id "amp"
+           :title "AMP Boundaries"
+           :panel
+           (reagent/as-element
+            [:div
+             [:h2.bp3-heading "Australian Marine Parks"]
+             [components/form-group
+              {:label "Network"}
+              [components/select
+               {:value    @(re-frame/subscribe [:map/active-network])
+                :options  @(re-frame/subscribe [:map/networks])
+                :onChange #(re-frame/dispatch [:map/update-active-network %])
+                :keyfns
+                {:id   :name
+                 :text :name}}]]
+             [components/form-group
+              {:label "Park"}
+              [components/select
+               {:value    @(re-frame/subscribe [:map/active-park])
+                :options  @(re-frame/subscribe [:map/parks])
+                :onChange #(re-frame/dispatch [:map/update-active-park %])
+                :keyfns
+                {:id          :name
+                 :text        :name
+                 :breadcrumbs (comp vector :network)}}]]
+             [components/form-group
+              {:label "Zone Category"}
+              [components/select
+               {:value    @(re-frame/subscribe [:map/active-zone])
+                :options  @(re-frame/subscribe [:map/zones])
+                :onChange #(re-frame/dispatch [:map/update-active-zone %])
+                :keyfns
+                {:id   :name
+                 :text :name}}]]
+             [components/form-group
+              {:label "IUCN Category (Zone)"}
+              [components/select
+               {:value    @(re-frame/subscribe [:map/active-zone-iucn])
+                :options  @(re-frame/subscribe [:map/zones-iucn])
+                :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
+                :keyfns
+                {:id   :name
+                 :text :name}}]]])}]
+
+         [b/tab
+          {:id "imcra"
+           :title "IMCRA Boundaries"
+           :panel
+           (reagent/as-element
+            [:div
+             [:h2.bp3-heading "Integrated Marine and Coastal Regionalisation of Australia"]])}]
+
+         [b/tab
+          {:id "meow"
+           :title "MEOW Boundaries"
+           :panel
+           (reagent/as-element
+            [:div
+             [:h2.bp3-heading "Marine Ecoregions of the World"]])}]]
+        [:a.data-coverage-report-link
+         {:href   "https://blueprintjs.com/" ; Placeholder URL
+          :target "_blank"}
+         "View data coverage report"]]])))
 
 (defn habitat-statistics
   []
