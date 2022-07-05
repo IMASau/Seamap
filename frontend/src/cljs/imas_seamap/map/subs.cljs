@@ -202,3 +202,6 @@
 
 (defn imcra-boundaries [db _]
   (get-in db [:map :boundaries :imcra]))
+
+(defn meow-boundaries [db _]
+  (get-in db [:map :boundaries :meow]))

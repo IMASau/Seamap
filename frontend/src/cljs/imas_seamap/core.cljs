@@ -32,6 +32,7 @@
     :map/categories-map                   msubs/categories-map
     :map/amp-boundaries                   msubs/amp-boundaries
     :map/imcra-boundaries                 msubs/imcra-boundaries
+    :map/meow-boundaries                  msubs/meow-boundaries
     :map/habitat-statistics               msubs/habitat-statistics
     :map/habitat-statistics-loading?      msubs/habitat-statistics-loading?
     :map/habitat-statistics-download-url  msubs/habitat-statistics-download-url 
