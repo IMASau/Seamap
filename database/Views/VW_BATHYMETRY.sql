@@ -13,7 +13,7 @@ SELECT
       WHEN objectid like '%dem%' THEN 'modelled'
       ELSE 'unknown'
     END
-  ) AS [CATEGORY],
+  ) AS [RESOLUTION],
   (
     SELECT RES_ACTUAL = CASE
       WHEN RES_ACTUAL <=2 THEN 1

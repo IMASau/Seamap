@@ -226,7 +226,7 @@
   (s/keys :req-un [:map.boundary-statistics.habitat/results
                    :map.boundary-statistics.habitat/loading?]))
 
-(s/def :map.boundary-statistics.bathymetry.result/category (s/nilable string?))
+(s/def :map.boundary-statistics.bathymetry.result/resolution (s/nilable string?))
 (s/def :map.boundary-statistics.bathymetry.result/rank (s/nilable integer?))
 (s/def :map.boundary-statistics.bathymetry.result/area number?)
 (s/def :map.boundary-statistics.bathymetry.result/percentage number?)

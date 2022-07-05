@@ -2,14 +2,14 @@
 -- difference from all bathymetry geometries of higher rank (lower RANK values).
 
 CREATE TABLE [dbo].[UniqueBathymetryGeoms] (
-  [CATEGORY] VARCHAR(10) NOT NULL,
-  [RANK]     INT         NOT NULL,
-  [geom]     GEOMETRY    NOT NULL
+  [RESOLUTION] VARCHAR(10) NOT NULL,
+  [RANK]       INT         NOT NULL,
+  [geom]       GEOMETRY    NOT NULL
 );
 
-INSERT INTO [dbo].[UniqueBathymetryGeoms] ([CATEGORY], [RANK], [geom])
+INSERT INTO [dbo].[UniqueBathymetryGeoms] ([RESOLUTION], [RANK], [geom])
 SELECT
-  [CATEGORY],
+  [RESOLUTION],
   [RANK],
   COALESCE([geom].STDifference((
     SELECT geometry::UnionAggregate([b2].[geom])

@@ -36,12 +36,12 @@ BEGIN
     ([Province] = @province OR @province IS NULL) AND
     ([Ecoregion] = @ecoregion OR @ecoregion IS NULL);
   
-  INSERT INTO [dbo].[BOUNDARY_MEOW_BATHYMETRY] ([Realm], [Province], [Ecoregion], [bathymetry_category], [bathymetry_rank], [geom])
+  INSERT INTO [dbo].[BOUNDARY_MEOW_BATHYMETRY] ([Realm], [Province], [Ecoregion], [bathymetry_resolution], [bathymetry_rank], [geom])
   SELECT
     [boundary].[Realm],
     [boundary].[Province],
     [boundary].[Ecoregion],
-    [bathymetry].[CATEGORY] AS [bathymetry_category],
+    [bathymetry].[RESOLUTION] AS [bathymetry_resolution],
     [bathymetry].[RANK] AS [bathymetry_rank],
     [bathymetry].[geom]
   FROM [dbo].[VW_BOUNDARY_MEOW] AS [boundary]

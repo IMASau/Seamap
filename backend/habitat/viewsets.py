@@ -147,7 +147,7 @@ DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
 SELECT
-  bathymetry_category as category,
+  bathymetry_resolution as resolution,
   bathymetry_rank as rank,
   geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
   100 * geometry::UnionAggregate(geom).STArea() / (
@@ -167,7 +167,7 @@ WHERE
   (Park = @resname OR @resname IS NULL) AND
   (Zone_Category = @zonename OR @zonename IS NULL) AND
   (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
-GROUP BY bathymetry_category, bathymetry_rank;
+GROUP BY bathymetry_resolution, bathymetry_rank;
 """
 
 def parse_bounds(bounds_str):
@@ -627,7 +627,7 @@ def bathymetry_statistics(request):
 
             mapped_area = float(sum(v['area'] for v in bathymetry_stats))
             mapped_percentage = 100 * mapped_area / boundary_area
-            bathymetry_stats.append({'category': None, 'rank': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
+            bathymetry_stats.append({'resolution': None, 'rank': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
         except:
             return Response([])
         else:

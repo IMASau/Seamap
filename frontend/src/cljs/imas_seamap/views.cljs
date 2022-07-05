@@ -944,10 +944,10 @@
      [:th "Total (%)"]]]
    [:tbody
     (if (seq bathymetry-statistics)
-      (for [{:keys [category area mapped_percentage total_percentage]} bathymetry-statistics]
+      (for [{:keys [resolution area mapped_percentage total_percentage]} bathymetry-statistics]
         [:tr
-         {:key (or category "Total Mapped")}
-         [:td (or category "Total Mapped")]
+         {:key (or resolution "Total Mapped")}
+         [:td (or resolution "Total Mapped")]
          [:td (gstring/format "%.1f" area)]
          [:td (if mapped_percentage (gstring/format "%.1f" mapped_percentage) "N/A")]
          [:td (gstring/format "%.1f" total_percentage)]])
@@ -964,7 +964,7 @@
       (let [loading?              @(re-frame/subscribe [:map/bathymetry-statistics-loading?])
             bathymetry-statistics @(re-frame/subscribe [:map/bathymetry-statistics])
             bathymetry-statistics-download-url @(re-frame/subscribe [:map/bathymetry-statistics-download-url])
-            without-unmapped      (filter :category bathymetry-statistics)]
+            without-unmapped      (filter :resolution bathymetry-statistics)]
         [components/drawer-group 
          {:heading         "Bathymetry Statistics"
           :icon            "timeline-area-chart"
@@ -994,7 +994,7 @@
                    [components/donut-chart
                     {:id              "bathymetry-statistics-chart"
                      :values          without-unmapped
-                     :independent-var :category
+                     :independent-var :resolution
                      :dependent-var   :area
                      :color           :color
                      :legend-title    "Resolution"

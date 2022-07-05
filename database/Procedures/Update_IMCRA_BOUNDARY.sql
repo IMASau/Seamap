@@ -31,11 +31,11 @@ BEGIN
     ([Provincial_Bioregion] = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
     ([Mesoscale_Bioregion] = @mesoscale_bioregion OR @mesoscale_bioregion IS NULL);
   
-  INSERT INTO [dbo].[BOUNDARY_IMCRA_BATHYMETRY] ([Provincial_Bioregion], [Mesoscale_Bioregion], [bathymetry_category], [bathymetry_rank], [geom])
+  INSERT INTO [dbo].[BOUNDARY_IMCRA_BATHYMETRY] ([Provincial_Bioregion], [Mesoscale_Bioregion], [bathymetry_resolution], [bathymetry_rank], [geom])
   SELECT
     [boundary].[Provincial_Bioregion],
     [boundary].[Mesoscale_Bioregion],
-    [bathymetry].[CATEGORY] AS [bathymetry_category],
+    [bathymetry].[RESOLUTION] AS [bathymetry_resolution],
     [bathymetry].[RANK] AS [bathymetry_rank],
     [bathymetry].[geom]
   FROM [dbo].[VW_BOUNDARY_IMCRA] AS [boundary]
