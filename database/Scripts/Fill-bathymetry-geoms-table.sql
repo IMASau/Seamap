@@ -4,15 +4,15 @@
 -- other queries.
 
 CREATE TABLE [dbo].[BathymetryGeoms] (
-  [CATEGORY] VARCHAR(10) NOT NULL,
+  [RESOLUTION] VARCHAR(10) NOT NULL,
   [RANK]     INT         NOT NULL,
   [geom]     GEOMETRY    NOT NULL
 );
 
-INSERT INTO [dbo].[BathymetryGeoms] ([CATEGORY], [RANK], [geom])
+INSERT INTO [dbo].[BathymetryGeoms] ([RESOLUTION], [RANK], [geom])
 SELECT
-  [CATEGORY],
+  [RESOLUTION],
   [RANK],
   geometry::UnionAggregate([geom]) AS [geom]
 FROM [dbo].[VW_BATHYMETRY]
-GROUP BY [CATEGORY], [RANK];
+GROUP BY [RESOLUTION], [RANK];

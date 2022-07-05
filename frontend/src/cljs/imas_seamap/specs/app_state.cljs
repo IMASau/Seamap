@@ -214,11 +214,13 @@
 
 (s/def :map.boundary-statistics.habitat.result/habitat (s/nilable string?))
 (s/def :map.boundary-statistics.habitat.result/area number?)
-(s/def :map.boundary-statistics.habitat.result/percentage number?)
+(s/def :map.boundary-statistics.habitat.result/mapped_percentage (s/nilable number?))
+(s/def :map.boundary-statistics.habitat.result/total_percentage number?)
 (s/def :map.boundary-statistics.habitat/result
   (s/keys :req-un [:map.boundary-statistics.habitat.result/habitat
                    :map.boundary-statistics.habitat.result/area
-                   :map.boundary-statistics.habitat.result/percentage]))
+                   :map.boundary-statistics.habitat.result/mapped_percentage
+                   :map.boundary-statistics.habitat.result/total_percentage]))
 (s/def :map.boundary-statistics.habitat/results (s/coll-of :map.boundary-statistics.habitat/result
                                                            :kind vector?))
 (s/def :map.boundary-statistics.habitat/loading? boolean?)
@@ -226,15 +228,17 @@
   (s/keys :req-un [:map.boundary-statistics.habitat/results
                    :map.boundary-statistics.habitat/loading?]))
 
-(s/def :map.boundary-statistics.bathymetry.result/category (s/nilable string?))
+(s/def :map.boundary-statistics.bathymetry.result/resolution (s/nilable string?))
 (s/def :map.boundary-statistics.bathymetry.result/rank (s/nilable integer?))
 (s/def :map.boundary-statistics.bathymetry.result/area number?)
-(s/def :map.boundary-statistics.bathymetry.result/percentage number?)
+(s/def :map.boundary-statistics.bathymetry.result/mapped_percentage (s/nilable number?))
+(s/def :map.boundary-statistics.bathymetry.result/total_percentage number?)
 (s/def :map.boundary-statistics.bathymetry/result
   (s/keys :req-un [:map.boundary-statistics.bathymetry.result/category
                    :map.boundary-statistics.bathymetry.result/rank
                    :map.boundary-statistics.bathymetry.result/area
-                   :map.boundary-statistics.bathymetry.result/percentage]))
+                   :map.boundary-statistics.bathymetry.result/mapped_percentage
+                   :map.boundary-statistics.bathymetry.result/total_percentage]))
 (s/def :map.boundary-statistics.bathymetry/results (s/coll-of :map.boundary-statistics.bathymetry/result
                                                               :kind vector?))
 (s/def :map.boundary-statistics.bathymetry/loading? :map.boundary-statistics.habitat/loading?)

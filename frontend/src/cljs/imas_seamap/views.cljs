@@ -814,19 +814,21 @@
    [:thead
     [:tr
      [:th "Habitat"]
-     [:th "Area (km^2)"]
-     [:th "Percentage (%)"]]]
+     [:th "Area (km²)"]
+     [:th "Mapped (%)"]
+     [:th "Total (%)"]]]
    [:tbody
     (if (seq habitat-statistics)
-     (for [{:keys [habitat area percentage]} habitat-statistics]
+     (for [{:keys [habitat area mapped_percentage total_percentage]} habitat-statistics]
       [:tr
-       {:key (or habitat "Unmapped")}
-       [:td (or habitat "Unmapped")]
-       [:td (gstring/format "%.2f" area)]
-       [:td (gstring/format "%.2f" percentage)]])
+       {:key (or habitat "Total Mapped")}
+       [:td (or habitat "Total Mapped")]
+       [:td (gstring/format "%.1f" area)]
+       [:td (if mapped_percentage (gstring/format "%.1f" mapped_percentage) "N/A")]
+       [:td (gstring/format "%.1f" total_percentage)]])
       [:tr
        [:td
-        {:colSpan 3}
+        {:colSpan 4}
         "No habitat information"]])]])
 
 (defn boundary-selection []
@@ -936,20 +938,22 @@
   [:table
    [:thead
     [:tr
-     [:th "Category"]
-     [:th "Area (km^2)"]
-     [:th "Percentage (%)"]]]
+     [:th "Resolution"]
+     [:th "Area (km²)"]
+     [:th "Mapped (%)"]
+     [:th "Total (%)"]]]
    [:tbody
     (if (seq bathymetry-statistics)
-      (for [{:keys [category area percentage]} bathymetry-statistics]
+      (for [{:keys [resolution area mapped_percentage total_percentage]} bathymetry-statistics]
         [:tr
-         {:key (or category "Unmapped")}
-         [:td (or category "Unmapped")]
-         [:td (gstring/format "%.2f" area)]
-         [:td (gstring/format "%.2f" percentage)]])
+         {:key (or resolution "Total Mapped")}
+         [:td (or resolution "Total Mapped")]
+         [:td (gstring/format "%.1f" area)]
+         [:td (if mapped_percentage (gstring/format "%.1f" mapped_percentage) "N/A")]
+         [:td (gstring/format "%.1f" total_percentage)]])
       [:tr
        [:td
-        {:colSpan 3}
+        {:colSpan 4}
         "No bathymetry information"]])]])
 
 (defn bathymetry-statistics
@@ -960,7 +964,7 @@
       (let [loading?              @(re-frame/subscribe [:map/bathymetry-statistics-loading?])
             bathymetry-statistics @(re-frame/subscribe [:map/bathymetry-statistics])
             bathymetry-statistics-download-url @(re-frame/subscribe [:map/bathymetry-statistics-download-url])
-            without-unmapped      (filter :category bathymetry-statistics)]
+            without-unmapped      (filter :resolution bathymetry-statistics)]
         [components/drawer-group 
          {:heading         "Bathymetry Statistics"
           :icon            "timeline-area-chart"
@@ -990,9 +994,11 @@
                    [components/donut-chart
                     {:id              "bathymetry-statistics-chart"
                      :values          without-unmapped
-                     :independent-var :category
+                     :independent-var :resolution
                      :dependent-var   :area
-                     :legend-title    "Category"}]
+                     :color           :color
+                     :legend-title    "Resolution"
+                     :sort-key        :rank}]
                    [:div "No bathymetry information"])))}]
 
             [b/tab

@@ -1,5 +1,5 @@
 -- Contains the geometries for IMCRA boundaries. Geometries can be selected by any
--- combination of provincial and mesoscale bioregion.
+-- combination of provincial and mesoscale bioregions.
 
 CREATE VIEW [dbo].[VW_BOUNDARY_IMCRA] AS
 SELECT
