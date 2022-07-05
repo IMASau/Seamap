@@ -30,24 +30,24 @@
                                        :trigger :map.logic.trigger/automatic}
                      :controls        {:transect false
                                        :download nil}
-                     :boundaries      {:networks         []
-                                       :active-network   nil
-                                       :parks            []
-                                       :active-park      nil
-                                       :zones            []
-                                       :active-zone      nil
-                                       :zones-iucn       []
-                                       :active-zone-iucn nil
-                                       :imcra            {:provincial-bioregions       []
-                                                          :mesoscale-bioregions        []
-                                                          :active-provincial-bioregion nil
-                                                          :active-mesoscale-bioregion  nil}
-                                       :meow             {:realms           []
-                                                          :provinces        []
-                                                          :ecoregions       []
-                                                          :active-realm     nil
-                                                          :active-province  nil
-                                                          :active-ecoregion nil}}
+                     :boundaries      {:amp   {:networks         []
+                                               :parks            []
+                                               :zones            []
+                                               :zones-iucn       []
+                                               :active-network   nil
+                                               :active-park      nil
+                                               :active-zone      nil
+                                               :active-zone-iucn nil}
+                                       :imcra {:provincial-bioregions       []
+                                               :mesoscale-bioregions        []
+                                               :active-provincial-bioregion nil
+                                               :active-mesoscale-bioregion  nil}
+                                       :meow  {:realms           []
+                                               :provinces        []
+                                               :ecoregions       []
+                                               :active-realm     nil
+                                               :active-province  nil
+                                               :active-ecoregion nil}}
                      :boundary-statistics {:habitat    {:results  []
                                                         :loading? false}
                                            :bathymetry {:results  []
@@ -86,10 +86,7 @@
                      :descriptor-url        (str api-url-base "descriptors/")
                      :save-state-url        (str api-url-base "savestates")
                      :category-url          (str api-url-base "categories/")
-                     :network-url           (str api-url-base "habitat/networks")
-                     :park-url              (str api-url-base "habitat/parks")
-                     :zone-url              (str api-url-base "habitat/zones")
-                     :zone-iucn-url         (str api-url-base "habitat/zonesiucn")
+                     :amp-boundaries-url    (str api-url-base "habitat/ampboundaries")
                      :imcra-boundaries-url  (str api-url-base "habitat/imcraboundaries")
                      :meow-boundaries-url   (str api-url-base "habitat/meowboundaries")
                      :habitat-statistics-url (str api-url-base "habitat/habitatstatistics")

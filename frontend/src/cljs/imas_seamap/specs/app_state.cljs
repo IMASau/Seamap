@@ -172,38 +172,45 @@
 (s/def :map.logic/trigger #{:map.logic.trigger/automatic :map.logic.trigger/user})
 (s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
 
-(s/def :map.boundaries.network/name string?)
-(s/def :map.boundaries/network
-  (s/keys :req-un [:map.boundaries.network/name]))
-(s/def :map.boundaries/networks (s/coll-of :map.boundaries/network
-                                           :kind vector?))
-(s/def :map.boundaries/active-network :map.boundaries/network)
+(s/def :map.boundaries.amp.network/name string?)
+(s/def :map.boundaries.amp.park/name string?)
+(s/def :map.boundaries.amp.park/network :map.boundaries.amp.network/name)
+(s/def :map.boundaries.amp.zone/name string?)
+(s/def :map.boundaries.amp.zone-iucn/name string?)
 
-(s/def :map.boundaries.park/name string?)
-(s/def :map.boundaries.park/network :map.boundaries.network/name)
-(s/def :map.boundaries/park
-  (s/keys :req-un [:map.boundaries.park/name
-                   :map.boundaries.network/name]))
-(s/def :map.boundaries/parks (s/coll-of :map.boundaries/park
-                                        :kind vector?))
-(s/def :map.boundaries/active-park :map.boundaries/park)
+(s/def :map.boundaries.amp/network
+  (s/keys :req-un [:map.boundaries.amp.network/name]))
+(s/def :map.boundaries.amp/park
+  (s/keys :req-un [:map.boundaries.amp.park/name
+                   :map.boundaries.amp.park/network]))
+(s/def :map.boundaries.amp/zone
+  (s/keys :req-un [:map.boundaries.amp.zone/name]))
+(s/def :map.boundaries.amp/zone-iucn
+  (s/keys :req-un [:map.boundaries.amp.zone-iucn/name]))
+(s/def :map.boundaries.amp/networks (s/coll-of :map.boundaries.amp/network
+                                               :kind vector?))
+(s/def :map.boundaries.amp/parks (s/coll-of :map.boundaries.amp/park
+                                            :kind vector?))
+(s/def :map.boundaries.amp/zones (s/coll-of :map.boundaries.amp/zone
+                                            :kind vector?))
+(s/def :map.boundaries.amp/zones-iucn (s/coll-of :map.boundaries.amp/zone-iucn
+                                                 :kind vector?))
+(s/def :map.boundaries.amp/active-network :map.boundaries.amp/network)
+(s/def :map.boundaries.amp/active-park :map.boundaries.amp/park)
+(s/def :map.boundaries.amp/active-zone :map.boundaries.amp/zone)
+(s/def :map.boundaries.amp/active-zone-iucn :map.boundaries.amp/zone-iucn)
 
-(s/def :map.boundaries.zone/name string?)
-(s/def :map.boundaries/zone
-  (s/keys :req-un [:map.boundaries.zone/name]))
-(s/def :map.boundaries/zones (s/coll-of :map.boundaries/zone
-                                        :kind vector?))
-(s/def :map.boundaries/active-zone :map.boundaries/zone)
-
-(s/def :map.boundaries.zone-iucn/name string?)
-(s/def :map.boundaries/zone-iucn
-  (s/keys :req-un [:map.boundaries.zone-iucn/name]))
-(s/def :map.boundaries/zones-iucn (s/coll-of :map.boundaries/zone-iucn
-                                             :kind vector?))
-(s/def :map.boundaries/active-zone-iucn :map.boundaries/zone-iucn)
+(s/def :map.boundaries/amp
+  (s/keys :req-un [:map.boundaries.amp/networks
+                   :map.boundaries.amp/parks
+                   :map.boundaries.amp/zones
+                   :map.boundaries.amp/zones-iucn
+                   :map.boundaries.amp/active-network
+                   :map.boundaries.amp/active-park
+                   :map.boundaries.amp/active-zone
+                   :map.boundaries.amp/active-zone-iucn]))
 
 (s/def :map.boundaries.imcra.provincial-bioregion/name string?)
-
 (s/def :map.boundaries.imcra.mesoscale-bioregion/name string?)
 (s/def :map.boundaries.imcra.mesoscale-bioregion/provincial-bioregion :map.boundaries.imcra.provincial-bioregion/name)
 
@@ -226,10 +233,8 @@
                    :map.boundaries.imcra/active-mesoscale-bioregion]))
 
 (s/def :map.boundaries.meow.realm/name string?)
-
 (s/def :map.boundaries.meow.province/realm :map.boundaries.meow.realm/name)
 (s/def :map.boundaries.meow.province/name string?)
-
 (s/def :map.boundaries.meow.ecoregion/realm :map.boundaries.meow.realm/name)
 (s/def :map.boundaries.meow.ecoregion/province :map.boundaries.meow.province/name)
 (s/def :map.boundaries.meow.ecoregion/name string?)
@@ -262,14 +267,7 @@
                    :map.boundaries.meow/active-ecoregion]))
 
 (s/def :map/boundaries
-  (s/keys :req-un [:map.boundaries/networks
-                   :map.boundaries/active-network
-                   :map.boundaries/parks
-                   :map.boundaries/active-park
-                   :map.boundaries/zones
-                   :map.boundaries/active-zone
-                   :map.boundaries/zones-iucn
-                   :map.boundaries/active-zone-iucn
+  (s/keys :req-un [:map.boundaries/amp
                    :map.boundaries/imcra
                    :map.boundaries/meow]))
 
