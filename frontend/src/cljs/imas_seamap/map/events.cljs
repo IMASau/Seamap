@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers first-where]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json get-layers-info-format feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key]]
+            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -60,10 +60,10 @@
      :west  (- lng (/ x-bounds 2))}))
 
 (defn get-feature-info-request
-  [info-format request-id by-server img-size img-bounds point]
+  [request-id per-request img-size img-bounds point]
   (let [layers->str   #(->> % (map layer-name) reverse (string/join ","))]
    ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
-    (for [[server-url active-layers] by-server
+    (for [[[server-url info-format] active-layers] per-request
           :let [layers   (layers->str active-layers)]]
       (let [params {:REQUEST       "GetFeatureInfo"
                     :LAYERS        layers
@@ -95,8 +95,7 @@
   (let [{:keys [hidden-layers active-layers]} (:map db)
         visible-layers (remove #((set hidden-layers) %) active-layers)
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
-        {:keys [valid-layers info-format]} (get-layers-info-format secure-layers)
-        by-server      (group-by :server_url valid-layers)
+        per-request    (group-by (juxt :server_url :info-format) (filter :info-format secure-layers))
         ;; Note, we don't use the entire viewport for the pixel bounds because of inaccuracies when zoomed out.
         img-size       {:width 101 :height 101}
         img-bounds     (bounds-for-zoom point size bounds img-size)
@@ -109,7 +108,7 @@
                           db
                           :feature-query
                           {:request-id        request-id
-                           :response-remain   (count by-server)
+                           :response-remain   (count per-request)
                            :had-insecure?     had-insecure?
                            :responses         []}
                           :feature
@@ -119,8 +118,8 @@
         db             (assoc-in db [:feature :status] :feature-info/waiting)]
     (merge
      {:db db}
-     (if (seq valid-layers)
-       {:http-xhrio (get-feature-info-request info-format request-id by-server img-size img-bounds point)}
+     (if (seq per-request)
+       {:http-xhrio (get-feature-info-request request-id per-request img-size img-bounds point)}
        {:dispatch [:map/got-featureinfo request-id point nil nil]}))))
 
 (defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
@@ -234,7 +233,11 @@
 (defn process-layer [layer]
   (-> layer
       (update :category    (comp keyword string/lower-case))
-      (update :server_type (comp keyword string/lower-case))))
+      (update :server_type (comp keyword string/lower-case))
+      (assoc :info-format (case (:info_format_type layer)
+                            1 "text/html"
+                            2 "application/json"
+                            nil))))
 
 (defn process-layers [layers]
   (mapv process-layer layers))
