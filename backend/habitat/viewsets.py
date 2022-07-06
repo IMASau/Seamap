@@ -224,7 +224,7 @@ WHERE
 GROUP BY habitat;
 """
 
-SQL_GET_BATHYMETRY_STATS = """
+SQL_GET_AMP_BATHYMETRY_STATS = """
 DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
@@ -251,6 +251,57 @@ WHERE
   (Park = @resname OR @resname IS NULL) AND
   (Zone_Category = @zonename OR @zonename IS NULL) AND
   (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
+GROUP BY bathymetry_resolution, bathymetry_rank;
+"""
+
+SQL_GET_IMCRA_BATHYMETRY_STATS = """
+DECLARE @provincial_bioregion NVARCHAR(255) = %s;
+DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
+
+SELECT
+  bathymetry_resolution as resolution,
+  bathymetry_rank as rank,
+  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
+  100 * geometry::UnionAggregate(geom).STArea() / (
+    SELECT geometry::UnionAggregate(geom).STArea()
+    FROM BOUNDARY_IMCRA_BATHYMETRY
+    WHERE
+      (Provincial_Bioregion = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
+      (Mesoscale_Bioregion = @mesoscale_bioregion OR @mesoscale_bioregion IS NULL)
+  ) AS mapped_percentage,
+  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
+  geometry::UnionAggregate(geom).STAsBinary() as geom
+FROM BOUNDARY_IMCRA_BATHYMETRY
+WHERE
+  (Provincial_Bioregion = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
+  (Mesoscale_Bioregion = @mesoscale_bioregion OR @mesoscale_bioregion IS NULL)
+GROUP BY bathymetry_resolution, bathymetry_rank;
+"""
+
+SQL_GET_MEOW_BATHYMETRY_STATS = """
+DECLARE @realm     NVARCHAR(255) = %s;
+DECLARE @province  NVARCHAR(255) = %s;
+DECLARE @ecoregion NVARCHAR(255) = %s;
+
+SELECT
+  bathymetry_resolution as resolution,
+  bathymetry_rank as rank,
+  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
+  100 * geometry::UnionAggregate(geom).STArea() / (
+    SELECT geometry::UnionAggregate(geom).STArea()
+    FROM BOUNDARY_MEOW_BATHYMETRY
+    WHERE
+      ([Realm] = @realm OR @realm IS NULL) AND
+      ([Province] = @province OR @province IS NULL) AND
+      ([Ecoregion] = @ecoregion OR @ecoregion IS NULL)
+  ) AS mapped_percentage,
+  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
+  geometry::UnionAggregate(geom).STAsBinary() as geom
+FROM BOUNDARY_MEOW_BATHYMETRY
+WHERE
+  ([Realm] = @realm OR @realm IS NULL) AND
+  ([Province] = @province OR @province IS NULL) AND
+  ([Ecoregion] = @ecoregion OR @ecoregion IS NULL)
 GROUP BY bathymetry_resolution, bathymetry_rank;
 """
 
@@ -746,22 +797,44 @@ def habitat_statistics(request):
 @api_view()
 @renderer_classes((JSONRenderer, ShapefileRenderer))
 def bathymetry_statistics(request):
-    params = {k: v if v else None for k, v in request.query_params.items()}
-    network   = params.get('network')
-    park      = params.get('park')
-    zone      = params.get('zone')
-    zone_iucn = params.get('zone-iucn')
+    params = {k: v or None for k, v in request.query_params.items()}
+    boundary_type        = params.get('boundary-type')
+    network              = params.get('network')
+    park                 = params.get('park')
+    zone                 = params.get('zone')
+    zone_iucn            = params.get('zone-iucn')
+    provincial_bioregion = params.get('provincial-bioregion')
+    mesoscale_bioregion  = params.get('mesoscale-bioregion ')
+    realm                = params.get('realm')
+    province             = params.get('province')
+    ecoregion            = params.get('ecoregion')
     is_download = request.accepted_renderer.format == 'raw'
 
     bathymetry_stats = []
 
     with connections['transects'].cursor() as cursor:
-
-        cursor.execute(SQL_GET_AMP_BOUNDARY_AREA, [network, park, zone, zone_iucn])
+        match boundary_type:
+            case "amp":
+                cursor.execute(SQL_GET_AMP_BOUNDARY_AREA, [network, park, zone, zone_iucn])
+            case "imcra":
+                cursor.execute(SQL_GET_IMCRA_BOUNDARY_AREA, [provincial_bioregion, mesoscale_bioregion])
+            case "meow":
+                cursor.execute(SQL_GET_MEOW_BOUNDARY_AREA, [realm, province, ecoregion])
+            case _:
+                raise Exception("Unhandled boundary type!")
+        
         try:
             boundary_area = float(cursor.fetchone()[0])
 
-            cursor.execute(SQL_GET_BATHYMETRY_STATS, [network, park, zone, zone_iucn, boundary_area])
+            match boundary_type:
+                case "amp":
+                    cursor.execute(SQL_GET_AMP_BATHYMETRY_STATS, [network, park, zone, zone_iucn, boundary_area])
+                case "imcra":
+                    cursor.execute(SQL_GET_IMCRA_BATHYMETRY_STATS, [provincial_bioregion, mesoscale_bioregion, boundary_area])
+                case "meow":
+                    cursor.execute(SQL_GET_MEOW_BATHYMETRY_STATS, [realm, province, ecoregion, boundary_area])
+                case _:
+                    raise Exception("Unhandled boundary type!")
 
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
