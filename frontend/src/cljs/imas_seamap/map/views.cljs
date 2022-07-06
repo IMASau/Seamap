@@ -287,7 +287,7 @@
        (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
          ^{:key (str location)}
-         [leaflet/popup {:position location :max-width 600 :auto-pan false}
+         [leaflet/popup {:position location :max-width "100%" :auto-pan false}
           ^{:key (or info-body (:status fi))}
           [popup-component fi]])]]
           children)))

@@ -251,18 +251,6 @@
               "</div>")}
       {:status :feature-info/empty})))
 
-(def info-format
-  {1 "text/html"
-   2 "application/json"
-   3 nil})
-
-(defn get-layers-info-format
-  [layers]
-  (let [valid-layers (filter #(get info-format (:info_format_type %)) layers)
-        info-format (get info-format (apply max (map :info_format_type valid-layers)))]
-    {:valid-layers valid-layers
-     :info-format  info-format}))
-
 (defn sort-by-sort-key
   "Sorts a collection by its sort-key first and its id second."
   [coll]

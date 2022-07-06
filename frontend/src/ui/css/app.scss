@@ -779,4 +779,11 @@ input.leaflet-control-layers-selector[type="radio"] {
 .boundaries-selection h2.bp3-heading {
     font-size: 14px;
     line-height: 16px;
+
+.leaflet-popup-content {
+    white-space: nowrap;
+}
+
+.leaflet-popup-content table {
+    white-space: normal;
 }
