@@ -593,7 +593,7 @@
               (assoc-in [:map :boundaries :amp :active-park] nil)
               (assoc-in [:map :boundaries :amp :active-network] network)))]
     {:db db
-     :dispatch-n [[:map/focus-boundary :map.boundaries.focused-boundary/amp]
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/amp]
                   [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
@@ -604,7 +604,7 @@
                (assoc-in [:map :boundaries :amp :active-network] network)
                (assoc-in [:map :boundaries :amp :active-park] park))]
     {:db db
-     :dispatch-n [[:map/focus-boundary :map.boundaries.focused-boundary/amp]
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/amp]
                   [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
@@ -613,7 +613,7 @@
                (assoc-in [:map :boundaries :amp :active-zone] zone)
                (assoc-in [:map :boundaries :amp :active-zone-iucn] nil))]
     {:db db
-     :dispatch-n [[:map/focus-boundary :map.boundaries.focused-boundary/amp]
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/amp]
                   [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
@@ -622,7 +622,7 @@
                (assoc-in [:map :boundaries :amp :active-zone-iucn] zone-iucn)
                (assoc-in [:map :boundaries :amp :active-zone] nil))]
     {:db db
-     :dispatch-n [[:map/focus-boundary :map.boundaries.focused-boundary/amp]
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/amp]
                   [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
@@ -667,23 +667,23 @@
 (defn update-preview-layer [db [_ preview-layer]]
   (assoc-in db [:map :preview-layer] preview-layer))
 
-(defn focus-boundary [db [_ focused-boundary]]
+(defn active-boundary [db [_ active-boundary]]
   (-> db
-      (assoc-in [:map :boundaries :focused-boundary] focused-boundary)
+      (assoc-in [:map :boundaries :active-boundary] active-boundary)
       (cond->
-       (not= focused-boundary :map.boundaries.focused-boundary/amp)
+       (not= active-boundary :map.boundaries.active-boundary/amp)
         (->
          (assoc-in [:map :boundaries :amp :active-network] nil)
          (assoc-in [:map :boundaries :amp :active-park] nil)
          (assoc-in [:map :boundaries :amp :active-zone] nil)
          (assoc-in [:map :boundaries :amp :active-zone-iucn] nil))
 
-        (not= focused-boundary :map.boundaries.focused-boundary/imcra)
+        (not= active-boundary :map.boundaries.active-boundary/imcra)
         (->
          (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] nil)
          (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] nil))
 
-        (not= focused-boundary :map.boundaries.focused-boundaries/meow)
+        (not= active-boundary :map.boundaries.active-boundary/meow)
         (->
          (assoc-in [:map :boundaries :meow :active-realm] nil)
          (assoc-in [:map :boundaries :meow :active-province] nil)
@@ -696,7 +696,7 @@
               (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] nil)
               (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)))]
     {:db db
-     :dispatch-n [[:map/focus-boundary :map.boundaries.focused-boundary/imcra]]}))
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/imcra]]}))
 
 (defn update-active-mesoscale-bioregion [{:keys [db]} [_ {:keys [provincial-bioregion] :as mesoscale-bioregion}]]
   (let [provincial-bioregions (get-in db [:map :boundaries :imcra :provincial-bioregions])
@@ -705,7 +705,7 @@
                (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)
                (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] mesoscale-bioregion))]
     {:db db
-     :dispatch-n [[:map/focus-boundary :map.boundaries.focused-boundary/imcra]]}))
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/imcra]]}))
 
 (defn update-active-realm [{:keys [db]} [_ realm]]
   (let [db (cond-> db
@@ -715,7 +715,7 @@
               (assoc-in [:map :boundaries :meow :active-province] nil)
               (assoc-in [:map :boundaries :meow :active-ecoregion] nil)))]
     {:db db
-     :dispatch-n [[:map/focus-boundary :map.boundaries.focused-boundaries/meow]]}))
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/meow]]}))
 
 (defn update-active-province [{:keys [db]} [_ {:keys [realm] :as province}]]
   (let [realms (get-in db [:map :boundaries :meow :realms])
@@ -727,7 +727,7 @@
               (assoc-in [:map :boundaries :meow :active-province] province)
               (assoc-in [:map :boundaries :meow :active-ecoregion] nil)))]
     {:db db
-     :dispatch-n [[:map/focus-boundary :map.boundaries.focused-boundaries/meow]]}))
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/meow]]}))
 
 (defn update-active-ecoregion [{:keys [db]} [_ {:keys [realm province] :as ecoregion}]]
   (let [{:keys [realms provinces]} (get-in db [:map :boundaries :meow])
@@ -738,4 +738,4 @@
             (assoc-in [:map :boundaries :meow :active-province] province)
             (assoc-in [:map :boundaries :meow :active-ecoregion] ecoregion))]
     {:db db
-     :dispatch-n [[:map/focus-boundary :map.boundaries.focused-boundaries/meow]]}))
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/meow]]}))

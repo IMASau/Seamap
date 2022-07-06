@@ -163,7 +163,7 @@
     :map/update-active-park               [mevents/update-active-park]
     :map/update-active-zone               [mevents/update-active-zone]
     :map/update-active-zone-iucn          [mevents/update-active-zone-iucn]
-    :map/focus-boundary                   mevents/focus-boundary
+    :map/active-boundary                  mevents/active-boundary
     :map/update-active-provincial-bioregion [mevents/update-active-provincial-bioregion]
     :map/update-active-mesoscale-bioregion [mevents/update-active-mesoscale-bioregion]
     :map/update-active-realm              [mevents/update-active-realm]

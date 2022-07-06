@@ -172,10 +172,10 @@
 (s/def :map.logic/trigger #{:map.logic.trigger/automatic :map.logic.trigger/user})
 (s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
 
-(s/def :map.boundaries/focused-boundary
-  (s/nilable #{:map.boundaries.focused-boundary/amp
-               :map.boundaries.focused-boundary/imcra
-               :map.boundaries.focused-boundary/meow}))
+(s/def :map.boundaries/active-boundary
+  (s/nilable #{:map.boundaries.active-boundary/amp
+               :map.boundaries.active-boundary/imcra
+               :map.boundaries.active-boundary/meow}))
 
 (s/def :map.boundaries.amp.network/name string?)
 (s/def :map.boundaries.amp.park/name string?)
@@ -272,7 +272,7 @@
                    :map.boundaries.meow/active-ecoregion]))
 
 (s/def :map/boundaries
-  (s/keys :req-un [:map.boundaries/focused-boundary
+  (s/keys :req-un [:map.boundaries/active-boundary
                    :map.boundaries/amp
                    :map.boundaries/imcra
                    :map.boundaries/meow]))
