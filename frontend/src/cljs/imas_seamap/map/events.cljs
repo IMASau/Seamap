@@ -628,14 +628,35 @@
 
 (defn get-habitat-statistics [{:keys [db]}]
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
-        {:keys [active-network active-park active-zone active-zone-iucn]} (get-in db [:map :boundaries :amp])]
+        {:keys [active-boundary amp imcra meow]} (get-in db [:map :boundaries])
+        {:keys [active-network active-park active-zone active-zone-iucn]} amp
+        {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
+        {:keys [active-realm active-province active-ecoregion]} meow
+        active-boundary (case active-boundary
+                          :map.boundaries.active-boundary/amp   "amp"
+                          :map.boundaries.active-boundary/imcra "imcra"
+                          :map.boundaries.active-boundary/meow  "meow") 
+        [active-network active-park active-zone active-zone-iucn
+         active-provincial-bioregion active-mesoscale-bioregion active-realm
+         active-province active-ecoregion]
+        (map
+         :name
+         [active-network active-park active-zone active-zone-iucn
+          active-provincial-bioregion active-mesoscale-bioregion active-realm
+          active-province active-ecoregion])]
    {:db (assoc-in db [:map :boundary-statistics :habitat :loading?] true)
     :http-xhrio {:method          :get
                  :uri             habitat-statistics-url
-                 :params          {:network   (:name active-network)
-                                   :park      (:name active-park)
-                                   :zone      (:name active-zone)
-                                   :zone-iucn (:name active-zone-iucn)}
+                 :params          {:boundary-type        active-boundary
+                                   :network              active-network
+                                   :park                 active-park
+                                   :zone                 active-zone
+                                   :zone-iucn            active-zone-iucn
+                                   :provincial-bioregion active-provincial-bioregion
+                                   :mesoscale-bioregion  active-mesoscale-bioregion
+                                   :realm                active-realm
+                                   :province             active-province
+                                   :ecoregion            active-ecoregion}
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success      [:map/got-habitat-statistics]
                  :on-failure      [:ajax/default-err-handler]}}))
@@ -647,14 +668,35 @@
 
 (defn get-bathymetry-statistics [{:keys [db]}]
   (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])
-        {:keys [active-network active-park active-zone active-zone-iucn]} (get-in db [:map :boundaries :amp])]
+        {:keys [active-boundary amp imcra meow]} (get-in db [:map :boundaries])
+        {:keys [active-network active-park active-zone active-zone-iucn]} amp
+        {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
+        {:keys [active-realm active-province active-ecoregion]} meow
+        active-boundary (case active-boundary
+                          :map.boundaries.active-boundary/amp   "amp"
+                          :map.boundaries.active-boundary/imcra "imcra"
+                          :map.boundaries.active-boundary/meow  "meow")
+        [active-network active-park active-zone active-zone-iucn
+         active-provincial-bioregion active-mesoscale-bioregion active-realm
+         active-province active-ecoregion]
+        (map
+         :name
+         [active-network active-park active-zone active-zone-iucn
+          active-provincial-bioregion active-mesoscale-bioregion active-realm
+          active-province active-ecoregion])]
     {:db (assoc-in db [:map :boundary-statistics :bathymetry :loading?] true)
      :http-xhrio {:method          :get
                   :uri             bathymetry-statistics-url
-                  :params          {:network   (:name active-network)
-                                    :park      (:name active-park)
-                                    :zone      (:name active-zone)
-                                    :zone-iucn (:name active-zone-iucn)}
+                  :params          {:boundary-type        active-boundary
+                                    :network              active-network
+                                    :park                 active-park
+                                    :zone                 active-zone
+                                    :zone-iucn            active-zone-iucn
+                                    :provincial-bioregion active-provincial-bioregion
+                                    :mesoscale-bioregion  active-mesoscale-bioregion
+                                    :realm                active-realm
+                                    :province             active-province
+                                    :ecoregion            active-ecoregion}
                   :response-format (ajax/json-response-format {:keywords? true})
                   :on-success      [:map/got-bathymetry-statistics]
                   :on-failure      [:ajax/default-err-handler]}}))
