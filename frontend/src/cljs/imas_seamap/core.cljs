@@ -30,14 +30,9 @@
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
-    :map/networks                         msubs/networks
-    :map/parks                            msubs/parks
-    :map/zones                            msubs/zones
-    :map/zones-iucn                       msubs/zones-iucn
-    :map/active-network                   msubs/active-network
-    :map/active-park                      msubs/active-park
-    :map/active-zone                      msubs/active-zone
-    :map/active-zone-iucn                 msubs/active-zone-iucn
+    :map/amp-boundaries                   msubs/amp-boundaries
+    :map/imcra-boundaries                 msubs/imcra-boundaries
+    :map/meow-boundaries                  msubs/meow-boundaries
     :map/habitat-statistics               msubs/habitat-statistics
     :map/habitat-statistics-loading?      msubs/habitat-statistics-loading?
     :map/habitat-statistics-download-url  msubs/habitat-statistics-download-url 
@@ -154,10 +149,9 @@
     :map/update-priorities                mevents/update-priorities
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
-    :map/update-networks                  mevents/update-networks
-    :map/update-parks                     mevents/update-parks
-    :map/update-zones                     mevents/update-zones
-    :map/update-zones-iucn                mevents/update-zones-iucn
+    :map/update-amp-boundaries            mevents/update-amp-boundaries
+    :map/update-imcra-boundaries          mevents/update-imcra-boundaries
+    :map/update-meow-boundaries           mevents/update-meow-boundaries
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
@@ -169,6 +163,12 @@
     :map/update-active-park               [mevents/update-active-park]
     :map/update-active-zone               [mevents/update-active-zone]
     :map/update-active-zone-iucn          [mevents/update-active-zone-iucn]
+    :map/active-boundary                  mevents/active-boundary
+    :map/update-active-provincial-bioregion [mevents/update-active-provincial-bioregion]
+    :map/update-active-mesoscale-bioregion [mevents/update-active-mesoscale-bioregion]
+    :map/update-active-realm              [mevents/update-active-realm]
+    :map/update-active-province           [mevents/update-active-province]
+    :map/update-active-ecoregion          [mevents/update-active-ecoregion]
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :ui/show-loading                      events/loading-screen

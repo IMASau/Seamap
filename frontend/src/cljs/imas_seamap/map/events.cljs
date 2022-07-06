@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
+            [clojure.set :refer [rename-keys]]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers first-where]]
             [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key]]
@@ -354,6 +355,24 @@
   (let [zones-iucn (sort-by (comp string/lower-case :name) zones-iucn)]
     (assoc-in db [:map :boundaries :zones-iucn] zones-iucn)))
 
+(defn update-amp-boundaries [db [_ {:keys [networks parks zones zones_iucn]}]]
+  (-> db
+      (assoc-in [:map :boundaries :amp :networks] networks)
+      (assoc-in [:map :boundaries :amp :parks] parks)
+      (assoc-in [:map :boundaries :amp :zones] zones)
+      (assoc-in [:map :boundaries :amp :zones-iucn] zones_iucn)))
+
+(defn update-imcra-boundaries [db [_ {:keys [provincial_bioregions mesoscale_bioregions]}]]
+  (-> db
+      (assoc-in [:map :boundaries :imcra :provincial-bioregions] provincial_bioregions)
+      (assoc-in [:map :boundaries :imcra :mesoscale-bioregions] (mapv #(rename-keys % {:provincial_bioregion :provincial-bioregion}) mesoscale_bioregions))))
+
+(defn update-meow-boundaries [db [_ {:keys [realms provinces ecoregions]}]]
+  (-> db
+      (assoc-in [:map :boundaries :meow :realms] realms)
+      (assoc-in [:map :boundaries :meow :provinces] provinces)
+      (assoc-in [:map :boundaries :meow :ecoregions] ecoregions)))
+
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
 
@@ -572,48 +591,75 @@
 
 (defn update-active-network [{:keys [db]} [_ network]]
   (let [db (cond-> db
-             (not= network (get-in db [:map :active-network]))
+             (not= network (get-in db [:map :boundaries :amp :active-network]))
              (->
-              (assoc-in [:map :boundaries :active-park] nil)
-              (assoc-in [:map :boundaries :active-network] network)))]
+              (assoc-in [:map :boundaries :amp :active-park] nil)
+              (assoc-in [:map :boundaries :amp :active-network] network)))]
     {:db db
-     :dispatch-n [[:map/get-habitat-statistics]
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/amp]
+                  [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-park [{:keys [db]} [_ {:keys [network] :as park}]]
-  (let [db (-> db
-               (assoc-in [:map :boundaries :active-network] (first-where #(= (:name %) network) (get-in db [:map :boundaries :networks])))
-               (assoc-in [:map :boundaries :active-park] park))]
+  (let [networks (get-in db [:map :boundaries :amp :networks])
+        network (first-where #(= (:name %) network) networks)
+        db (-> db
+               (assoc-in [:map :boundaries :amp :active-network] network)
+               (assoc-in [:map :boundaries :amp :active-park] park))]
     {:db db
-     :dispatch-n [[:map/get-habitat-statistics]
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/amp]
+                  [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-zone [{:keys [db]} [_ zone]]
   (let [db (-> db
-               (assoc-in [:map :boundaries :active-zone] zone)
-               (assoc-in [:map :boundaries :active-zone-iucn] nil))]
+               (assoc-in [:map :boundaries :amp :active-zone] zone)
+               (assoc-in [:map :boundaries :amp :active-zone-iucn] nil))]
     {:db db
-     :dispatch-n [[:map/get-habitat-statistics]
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/amp]
+                  [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn update-active-zone-iucn [{:keys [db]} [_ zone-iucn]]
   (let [db (-> db
-               (assoc-in [:map :boundaries :active-zone-iucn] zone-iucn)
-               (assoc-in [:map :boundaries :active-zone] nil))]
+               (assoc-in [:map :boundaries :amp :active-zone-iucn] zone-iucn)
+               (assoc-in [:map :boundaries :amp :active-zone] nil))]
     {:db db
-     :dispatch-n [[:map/get-habitat-statistics]
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/amp]
+                  [:map/get-habitat-statistics]
                   [:map/get-bathymetry-statistics]]}))
 
 (defn get-habitat-statistics [{:keys [db]}]
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
-        {:keys [active-network active-park active-zone active-zone-iucn]} (get-in db [:map :boundaries])]
+        {:keys [active-boundary amp imcra meow]} (get-in db [:map :boundaries])
+        {:keys [active-network active-park active-zone active-zone-iucn]} amp
+        {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
+        {:keys [active-realm active-province active-ecoregion]} meow
+        active-boundary (case active-boundary
+                          :map.boundaries.active-boundary/amp   "amp"
+                          :map.boundaries.active-boundary/imcra "imcra"
+                          :map.boundaries.active-boundary/meow  "meow") 
+        [active-network active-park active-zone active-zone-iucn
+         active-provincial-bioregion active-mesoscale-bioregion active-realm
+         active-province active-ecoregion]
+        (map
+         :name
+         [active-network active-park active-zone active-zone-iucn
+          active-provincial-bioregion active-mesoscale-bioregion active-realm
+          active-province active-ecoregion])]
    {:db (assoc-in db [:map :boundary-statistics :habitat :loading?] true)
     :http-xhrio {:method          :get
                  :uri             habitat-statistics-url
-                 :params          {:network   (:name active-network)
-                                   :park      (:name active-park)
-                                   :zone      (:name active-zone)
-                                   :zone-iucn (:name active-zone-iucn)}
+                 :params          {:boundary-type        active-boundary
+                                   :network              active-network
+                                   :park                 active-park
+                                   :zone                 active-zone
+                                   :zone-iucn            active-zone-iucn
+                                   :provincial-bioregion active-provincial-bioregion
+                                   :mesoscale-bioregion  active-mesoscale-bioregion
+                                   :realm                active-realm
+                                   :province             active-province
+                                   :ecoregion            active-ecoregion}
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success      [:map/got-habitat-statistics]
                  :on-failure      [:ajax/default-err-handler]}}))
@@ -625,14 +671,35 @@
 
 (defn get-bathymetry-statistics [{:keys [db]}]
   (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])
-        {:keys [active-network active-park active-zone active-zone-iucn]} (get-in db [:map :boundaries])]
+        {:keys [active-boundary amp imcra meow]} (get-in db [:map :boundaries])
+        {:keys [active-network active-park active-zone active-zone-iucn]} amp
+        {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
+        {:keys [active-realm active-province active-ecoregion]} meow
+        active-boundary (case active-boundary
+                          :map.boundaries.active-boundary/amp   "amp"
+                          :map.boundaries.active-boundary/imcra "imcra"
+                          :map.boundaries.active-boundary/meow  "meow")
+        [active-network active-park active-zone active-zone-iucn
+         active-provincial-bioregion active-mesoscale-bioregion active-realm
+         active-province active-ecoregion]
+        (map
+         :name
+         [active-network active-park active-zone active-zone-iucn
+          active-provincial-bioregion active-mesoscale-bioregion active-realm
+          active-province active-ecoregion])]
     {:db (assoc-in db [:map :boundary-statistics :bathymetry :loading?] true)
      :http-xhrio {:method          :get
                   :uri             bathymetry-statistics-url
-                  :params          {:network   (:name active-network)
-                                    :park      (:name active-park)
-                                    :zone      (:name active-zone)
-                                    :zone-iucn (:name active-zone-iucn)}
+                  :params          {:boundary-type        active-boundary
+                                    :network              active-network
+                                    :park                 active-park
+                                    :zone                 active-zone
+                                    :zone-iucn            active-zone-iucn
+                                    :provincial-bioregion active-provincial-bioregion
+                                    :mesoscale-bioregion  active-mesoscale-bioregion
+                                    :realm                active-realm
+                                    :province             active-province
+                                    :ecoregion            active-ecoregion}
                   :response-format (ajax/json-response-format {:keywords? true})
                   :on-success      [:map/got-bathymetry-statistics]
                   :on-failure      [:ajax/default-err-handler]}}))
@@ -644,3 +711,86 @@
 
 (defn update-preview-layer [db [_ preview-layer]]
   (assoc-in db [:map :preview-layer] preview-layer))
+
+(defn active-boundary [db [_ active-boundary]]
+  (-> db
+      (assoc-in [:map :boundaries :active-boundary] active-boundary)
+      (cond->
+       (not= active-boundary :map.boundaries.active-boundary/amp)
+        (->
+         (assoc-in [:map :boundaries :amp :active-network] nil)
+         (assoc-in [:map :boundaries :amp :active-park] nil)
+         (assoc-in [:map :boundaries :amp :active-zone] nil)
+         (assoc-in [:map :boundaries :amp :active-zone-iucn] nil))
+
+        (not= active-boundary :map.boundaries.active-boundary/imcra)
+        (->
+         (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] nil)
+         (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] nil))
+
+        (not= active-boundary :map.boundaries.active-boundary/meow)
+        (->
+         (assoc-in [:map :boundaries :meow :active-realm] nil)
+         (assoc-in [:map :boundaries :meow :active-province] nil)
+         (assoc-in [:map :boundaries :meow :active-ecoregion] nil)))))
+
+(defn update-active-provincial-bioregion [{:keys [db]} [_ provincial-bioregion]]
+  (let [db (cond-> db
+             (not= provincial-bioregion (get-in db [:map :boundaries :imcra :active-provincial-bioregion]))
+             (->
+              (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] nil)
+              (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)))]
+    {:db db
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/imcra]
+                  [:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
+
+(defn update-active-mesoscale-bioregion [{:keys [db]} [_ {:keys [provincial-bioregion] :as mesoscale-bioregion}]]
+  (let [provincial-bioregions (get-in db [:map :boundaries :imcra :provincial-bioregions])
+        provincial-bioregion (first-where #(= (:name %) provincial-bioregion) provincial-bioregions)
+        db (-> db
+               (assoc-in [:map :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)
+               (assoc-in [:map :boundaries :imcra :active-mesoscale-bioregion] mesoscale-bioregion))]
+    {:db db
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/imcra]
+                  [:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
+
+(defn update-active-realm [{:keys [db]} [_ realm]]
+  (let [db (cond-> db
+             (not= realm (get-in db [:map :boundaries :meow :active-realm]))
+             (->
+              (assoc-in [:map :boundaries :meow :active-realm] realm)
+              (assoc-in [:map :boundaries :meow :active-province] nil)
+              (assoc-in [:map :boundaries :meow :active-ecoregion] nil)))]
+    {:db db
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/meow]
+                  [:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
+
+(defn update-active-province [{:keys [db]} [_ {:keys [realm] :as province}]]
+  (let [realms (get-in db [:map :boundaries :meow :realms])
+        realm (first-where #(= (:name %) realm) realms)
+        db (cond-> db
+             (not= province (get-in db [:map :boundaries :meow :active-province]))
+             (->
+              (assoc-in [:map :boundaries :meow :active-realm] realm)
+              (assoc-in [:map :boundaries :meow :active-province] province)
+              (assoc-in [:map :boundaries :meow :active-ecoregion] nil)))]
+    {:db db
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/meow]
+                  [:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))
+
+(defn update-active-ecoregion [{:keys [db]} [_ {:keys [realm province] :as ecoregion}]]
+  (let [{:keys [realms provinces]} (get-in db [:map :boundaries :meow])
+        realm (first-where #(= (:name %) realm) realms)
+        province (first-where #(= (:name %) province) provinces)
+        db (-> db
+            (assoc-in [:map :boundaries :meow :active-realm] realm)
+            (assoc-in [:map :boundaries :meow :active-province] province)
+            (assoc-in [:map :boundaries :meow :active-ecoregion] ecoregion))]
+    {:db db
+     :dispatch-n [[:map/active-boundary :map.boundaries.active-boundary/meow]
+                  [:map/get-habitat-statistics]
+                  [:map/get-bathymetry-statistics]]}))

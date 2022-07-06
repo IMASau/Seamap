@@ -768,6 +768,18 @@ input.leaflet-control-layers-selector[type="radio"] {
     border-radius: 4px;
 }
 
+.boundaries-selection {
+    height: 406px;
+}
+
+.boundaries-selection .form-group:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+.boundaries-selection h2.bp3-heading {
+    font-size: 14px;
+    line-height: 16px;
+
 .leaflet-popup-content {
     white-space: nowrap;
 }
