@@ -259,7 +259,7 @@
 (defn get-layers-info-format
   [layers]
   (let [valid-layers (filter #(get info-format (:info_format_type %)) layers)
-        info-format (get info-format (apply max (map :info_format_type valid-layers)))]
+        info-format (get info-format (last (map :info_format_type valid-layers)))] ; Use info format of topmost layer
     {:valid-layers valid-layers
      :info-format  info-format}))
 
