@@ -767,3 +767,11 @@ input.leaflet-control-layers-selector[type="radio"] {
     display: block;
     border-radius: 4px;
 }
+
+.leaflet-popup-content {
+    white-space: nowrap;
+}
+
+.leaflet-popup-content table {
+    white-space: normal;
+}
