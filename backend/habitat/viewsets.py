@@ -748,34 +748,43 @@ def habitat_statistics(request):
 
     with connections['transects'].cursor() as cursor:
         match boundary_type:
-            case "amp":
+            case 'amp':
                 cursor.execute(SQL_GET_AMP_BOUNDARY_AREA, [network, park, zone, zone_iucn])
-            case "imcra":
+            case 'imcra':
                 cursor.execute(SQL_GET_IMCRA_BOUNDARY_AREA, [provincial_bioregion, mesoscale_bioregion])
-            case "meow":
+            case 'meow':
                 cursor.execute(SQL_GET_MEOW_BOUNDARY_AREA, [realm, province, ecoregion])
             case _:
-                raise Exception("Unhandled boundary type!")
+                raise Exception('Unhandled boundary type!')
 
         try:
             boundary_area = float(cursor.fetchone()[0])
 
             match boundary_type:
-                case "amp":
+                case 'amp':
                     cursor.execute(SQL_GET_AMP_HABITAT_STATS, [network, park, zone, zone_iucn, boundary_area])
-                case "imcra":
+                case 'imcra':
                     cursor.execute(SQL_GET_IMCRA_HABITAT_STATS, [provincial_bioregion, mesoscale_bioregion, boundary_area])
-                case "meow":
+                case 'meow':
                     cursor.execute(SQL_GET_MEOW_HABITAT_STATS, [realm, province, ecoregion, boundary_area])
                 case _:
-                    raise Exception("Unhandled boundary type!")
+                    raise Exception('Unhandled boundary type!')
 
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
             results = [namedrow(*row) for row in cursor.fetchall()]
 
             if is_download:
-                boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn] if v])
+                boundary_name = ''
+                match boundary_type:
+                    case 'amp':
+                        boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn] if v])
+                    case 'imcra':
+                        boundary_name = ' - '.join([v for v in [provincial_bioregion, mesoscale_bioregion] if v])
+                    case 'meow':
+                        boundary_name = ' - '.join([v for v in [realm, province, ecoregion] if v])
+                    case _:
+                        raise Exception('Unhandled boundary type!')
                 return Response({'data': results,
                                  'fields': cursor.description,
                                  'file_name': boundary_name},
@@ -814,34 +823,43 @@ def bathymetry_statistics(request):
 
     with connections['transects'].cursor() as cursor:
         match boundary_type:
-            case "amp":
+            case 'amp':
                 cursor.execute(SQL_GET_AMP_BOUNDARY_AREA, [network, park, zone, zone_iucn])
-            case "imcra":
+            case 'imcra':
                 cursor.execute(SQL_GET_IMCRA_BOUNDARY_AREA, [provincial_bioregion, mesoscale_bioregion])
-            case "meow":
+            case 'meow':
                 cursor.execute(SQL_GET_MEOW_BOUNDARY_AREA, [realm, province, ecoregion])
             case _:
-                raise Exception("Unhandled boundary type!")
+                raise Exception('Unhandled boundary type!')
         
         try:
             boundary_area = float(cursor.fetchone()[0])
 
             match boundary_type:
-                case "amp":
+                case 'amp':
                     cursor.execute(SQL_GET_AMP_BATHYMETRY_STATS, [network, park, zone, zone_iucn, boundary_area])
-                case "imcra":
+                case 'imcra':
                     cursor.execute(SQL_GET_IMCRA_BATHYMETRY_STATS, [provincial_bioregion, mesoscale_bioregion, boundary_area])
-                case "meow":
+                case 'meow':
                     cursor.execute(SQL_GET_MEOW_BATHYMETRY_STATS, [realm, province, ecoregion, boundary_area])
                 case _:
-                    raise Exception("Unhandled boundary type!")
+                    raise Exception('Unhandled boundary type!')
 
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
             results = [namedrow(*row) for row in cursor.fetchall()]
 
             if is_download:
-                boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn] if v])
+                boundary_name = ''
+                match boundary_type:
+                    case 'amp':
+                        boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn] if v])
+                    case 'imcra':
+                        boundary_name = ' - '.join([v for v in [provincial_bioregion, mesoscale_bioregion] if v])
+                    case 'meow':
+                        boundary_name = ' - '.join([v for v in [realm, province, ecoregion] if v])
+                    case _:
+                        raise Exception('Unhandled boundary type!')
                 return Response({'data': results,
                                  'fields': cursor.description,
                                  'file_name': boundary_name},
