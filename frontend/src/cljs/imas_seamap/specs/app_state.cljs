@@ -172,6 +172,11 @@
 (s/def :map.logic/trigger #{:map.logic.trigger/automatic :map.logic.trigger/user})
 (s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
 
+(s/def :map.boundaries/focused-boundary
+  (s/nilable #{:map.boundaries.focused-boundary/amp
+               :map.boundaries.focused-boundary/imcra
+               :map.boundaries.focused-boundary/meow}))
+
 (s/def :map.boundaries.amp.network/name string?)
 (s/def :map.boundaries.amp.park/name string?)
 (s/def :map.boundaries.amp.park/network :map.boundaries.amp.network/name)
