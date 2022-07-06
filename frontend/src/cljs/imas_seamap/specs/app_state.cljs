@@ -272,7 +272,8 @@
                    :map.boundaries.meow/active-ecoregion]))
 
 (s/def :map/boundaries
-  (s/keys :req-un [:map.boundaries/amp
+  (s/keys :req-un [:map.boundaries/focused-boundary
+                   :map.boundaries/amp
                    :map.boundaries/imcra
                    :map.boundaries/meow]))
 
