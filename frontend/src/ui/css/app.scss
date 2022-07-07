@@ -159,6 +159,10 @@ footer {
     overflow: hidden;
 }
 
+.header-row .layer-wrapper {
+    width: 100%;
+}
+
 .layer-wrapper .subheader-row {
     transition: height 200ms ease-out;
     height: 0;
