@@ -7,6 +7,7 @@ CREATE TABLE [dbo].[BOUNDARY_IMCRA_HABITAT_OBS_SEDIMENT] (
 );
 
 INSERT INTO [dbo].[BOUNDARY_IMCRA_HABITAT_OBS_SEDIMENT] ([Provincial_Bioregion], [Mesoscale_Bioregion], [observation])
+SELECT
   [boundary].[Provincial_Bioregion],
   [boundary].[Mesoscale_Bioregion],
   [observation].[SAMPLE_ID] AS [observation]

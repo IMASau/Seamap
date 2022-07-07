@@ -7,6 +7,7 @@ CREATE TABLE [dbo].[BOUNDARY_IMCRA_HABITAT_OBS_GLOBALARCHIVE] (
 );
 
 INSERT INTO [dbo].[BOUNDARY_IMCRA_HABITAT_OBS_GLOBALARCHIVE] ([Provincial_Bioregion], [Mesoscale_Bioregion], [observation])
+SELECT
   [boundary].[Provincial_Bioregion],
   [boundary].[Mesoscale_Bioregion],
   [observation].[DEPLOYMENT_ID] AS [observation]

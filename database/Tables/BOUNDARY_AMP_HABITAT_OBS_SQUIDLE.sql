@@ -9,6 +9,7 @@ CREATE TABLE [dbo].[BOUNDARY_AMP_HABITAT_OBS_SQUIDLE] (
 );
 
 INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_SQUIDLE] ([Network], [Park], [Zone_Category], [IUCN_Zone], [observation])
+SELECT
   [boundary].[Network],
   [boundary].[Park],
   [boundary].[Zone_Category],

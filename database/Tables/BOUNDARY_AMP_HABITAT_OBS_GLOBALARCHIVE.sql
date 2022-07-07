@@ -9,6 +9,7 @@ CREATE TABLE [dbo].[BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE] (
 );
 
 INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE] ([Network], [Park], [Zone_Category], [IUCN_Zone], [observation])
+SELECT
   [boundary].[Network],
   [boundary].[Park],
   [boundary].[Zone_Category],
