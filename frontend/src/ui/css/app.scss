@@ -788,3 +788,8 @@ input.leaflet-control-layers-selector[type="radio"] {
 .leaflet-popup-content table {
     white-space: normal;
 }
+
+/* Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line */
+.bp3-dialog {
+    overflow-wrap: break-word;
+}
