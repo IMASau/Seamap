@@ -7,7 +7,7 @@ CREATE TABLE [dbo].[BOUNDARY_MEOW_HABITAT_OBS_SQUIDLE] (
   [observation] NVARCHAR(480) NOT NULL
 );
 
-INSERT INTO [dbo].[BOUNDARY_MEOW_HABITAT_OBS_GLOBALARCHIVE] ([Realm], [Province], [Ecoregion], [observation])
+INSERT INTO [dbo].[BOUNDARY_MEOW_HABITAT_OBS_SQUIDLE] ([Realm], [Province], [Ecoregion], [observation])
 SELECT
   [boundary].[Realm],
   [boundary].[Province],

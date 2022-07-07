@@ -7,7 +7,7 @@ CREATE TABLE [dbo].[BOUNDARY_MEOW_HABITAT_OBS_SEDIMENT] (
   [observation] NVARCHAR(MAX) NOT NULL
 );
 
-INSERT INTO [dbo].[BOUNDARY_MEOW_HABITAT_OBS_GLOBALARCHIVE] ([Realm], [Province], [Ecoregion], [observation])
+INSERT INTO [dbo].[BOUNDARY_MEOW_HABITAT_OBS_SEDIMENT] ([Realm], [Province], [Ecoregion], [observation])
 SELECT
   [boundary].[Realm],
   [boundary].[Province],
