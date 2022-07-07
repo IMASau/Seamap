@@ -331,6 +331,52 @@ JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
 """
 
+SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE = """
+DECLARE @provincial_bioregion NVARCHAR(255) = %s;
+DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
+
+SELECT
+  observation.CAMPAIGN_NAME,
+  observation.DEPLOYMENT_ID,
+  observation.DATE,
+  observation.METHOD,
+  observation.video_time
+FROM (
+  SELECT observation
+  FROM BOUNDARY_IMCRA_HABITAT_OBS_GLOBALARCHIVE
+  WHERE
+    (Provincial_Bioregion = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
+    (Mesoscale_Bioregion = @mesoscale_bioregion OR @mesoscale_bioregion IS NULL)
+  GROUP BY observation
+) AS boundary_observation
+JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
+ON observation.DEPLOYMENT_ID = boundary_observation.observation;
+"""
+
+SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE = """
+DECLARE @realm     NVARCHAR(255) = %s;
+DECLARE @province  NVARCHAR(255) = %s;
+DECLARE @ecoregion NVARCHAR(255) = %s;
+
+SELECT
+  observation.CAMPAIGN_NAME,
+  observation.DEPLOYMENT_ID,
+  observation.DATE,
+  observation.METHOD,
+  observation.video_time
+FROM (
+  SELECT observation
+  FROM BOUNDARY_MEOW_HABITAT_OBS_GLOBALARCHIVE
+  WHERE
+    (Realm = @realm OR @realm IS NULL) AND
+    (Province = @province OR @province IS NULL) AND
+    (Ecoregion = @ecoregion OR @ecoregion IS NULL)
+  GROUP BY observation
+) AS boundary_observation
+JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
+ON observation.DEPLOYMENT_ID = boundary_observation.observation;
+"""
+
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
@@ -920,10 +966,10 @@ def habitat_observations(request):
 
         if boundary_type == 'amp':
             cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE, [network, park, zone, zone_iucn])
-        # elif boundary_type == 'imcra':
-        #     cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE, [provincial_bioregion, mesoscale_bioregion])
-        # elif boundary_type == 'meow':
-        #     cursor.execute(SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE, [realm, province, ecoregion])
+        elif boundary_type == 'imcra':
+            cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE, [provincial_bioregion, mesoscale_bioregion])
+        elif boundary_type == 'meow':
+            cursor.execute(SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE, [realm, province, ecoregion])
         else:
             raise Exception('Unhandled boundary type!')
 
