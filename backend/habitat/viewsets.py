@@ -305,6 +305,32 @@ WHERE
 GROUP BY bathymetry_resolution, bathymetry_rank;
 """
 
+SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE = """
+DECLARE @netname  NVARCHAR(254) = %s;
+DECLARE @resname  NVARCHAR(254) = %s;
+DECLARE @zonename NVARCHAR(254) = %s;
+DECLARE @zoneiucn NVARCHAR(5)   = %s;
+
+SELECT
+  observation.CAMPAIGN_NAME,
+  observation.DEPLOYMENT_ID,
+  observation.DATE,
+  observation.METHOD,
+  observation.video_time
+FROM (
+  SELECT observation
+  FROM BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE
+  WHERE
+    (Network = @netname OR @netname IS NULL) AND
+    (Park = @resname OR @resname IS NULL) AND
+    (Zone_Category = @zonename OR @zonename IS NULL) AND
+    (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
+  GROUP BY observation
+) AS boundary_observation
+JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
+ON observation.DEPLOYMENT_ID = boundary_observation.observation;
+"""
+
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
@@ -870,3 +896,44 @@ def bathymetry_statistics(request):
             return Response([])
         else:
             return Response(bathymetry_stats)
+
+@action(detail=False)
+@api_view()
+@renderer_classes((JSONRenderer, ShapefileRenderer))
+def habitat_observations(request):
+    params = {k: v or None for k, v in request.query_params.items()}
+    boundary_type        = params.get('boundary-type')
+    network              = params.get('network')
+    park                 = params.get('park')
+    zone                 = params.get('zone')
+    zone_iucn            = params.get('zone-iucn')
+    provincial_bioregion = params.get('provincial-bioregion')
+    mesoscale_bioregion  = params.get('mesoscale-bioregion ')
+    realm                = params.get('realm')
+    province             = params.get('province')
+    ecoregion            = params.get('ecoregion')
+
+    global_archive = []
+
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE, [network, park, zone, zone_iucn])
+
+        if boundary_type == 'amp':
+            cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE, [network, park, zone, zone_iucn])
+        # elif boundary_type == 'imcra':
+        #     cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE, [provincial_bioregion, mesoscale_bioregion])
+        # elif boundary_type == 'meow':
+        #     cursor.execute(SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE, [realm, province, ecoregion])
+        else:
+            raise Exception('Unhandled boundary type!')
+
+        try:
+            columns = [col[0] for col in cursor.description]
+            namedrow = namedtuple('Result', columns)
+            results = [namedrow(*row) for row in cursor.fetchall()]
+
+            global_archive = [row._asdict() for row in results]
+        except:
+            pass
+
+    return Response({'global_archive': global_archive})
