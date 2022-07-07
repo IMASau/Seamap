@@ -210,17 +210,17 @@ SELECT
     SELECT geometry::UnionAggregate(geom).STArea()
     FROM BOUNDARY_MEOW_HABITAT
     WHERE
-      ([Realm] = @realm OR @realm IS NULL) AND
-      ([Province] = @province OR @province IS NULL) AND
-      ([Ecoregion] = @ecoregion OR @ecoregion IS NULL)
+      (Realm = @realm OR @realm IS NULL) AND
+      (Province = @province OR @province IS NULL) AND
+      (Ecoregion = @ecoregion OR @ecoregion IS NULL)
   ) AS mapped_percentage,
   100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BOUNDARY_MEOW_HABITAT
 WHERE
-  ([Realm] = @realm OR @realm IS NULL) AND
-  ([Province] = @province OR @province IS NULL) AND
-  ([Ecoregion] = @ecoregion OR @ecoregion IS NULL)
+  (Realm = @realm OR @realm IS NULL) AND
+  (Province = @province OR @province IS NULL) AND
+  (Ecoregion = @ecoregion OR @ecoregion IS NULL)
 GROUP BY habitat;
 """
 
@@ -291,17 +291,17 @@ SELECT
     SELECT geometry::UnionAggregate(geom).STArea()
     FROM BOUNDARY_MEOW_BATHYMETRY
     WHERE
-      ([Realm] = @realm OR @realm IS NULL) AND
-      ([Province] = @province OR @province IS NULL) AND
-      ([Ecoregion] = @ecoregion OR @ecoregion IS NULL)
+      (Realm = @realm OR @realm IS NULL) AND
+      (Province = @province OR @province IS NULL) AND
+      (Ecoregion = @ecoregion OR @ecoregion IS NULL)
   ) AS mapped_percentage,
   100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BOUNDARY_MEOW_BATHYMETRY
 WHERE
-  ([Realm] = @realm OR @realm IS NULL) AND
-  ([Province] = @province OR @province IS NULL) AND
-  ([Ecoregion] = @ecoregion OR @ecoregion IS NULL)
+  (Realm = @realm OR @realm IS NULL) AND
+  (Province = @province OR @province IS NULL) AND
+  (Ecoregion = @ecoregion OR @ecoregion IS NULL)
 GROUP BY bathymetry_resolution, bathymetry_rank;
 """
 
