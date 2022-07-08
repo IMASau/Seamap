@@ -340,8 +340,6 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
-
-SELECT * FROM @observations;
 """
 
 SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE = """
@@ -375,8 +373,6 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
-
-SELECT * FROM @observations;
 """
 
 SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE = """
@@ -412,8 +408,6 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
-
-SELECT * FROM @observations;
 """
 
 SQL_GET_AMP_HABITAT_OBS_SEDIMENT = """
@@ -451,8 +445,6 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SEDIMENT AS observation
 ON observation.SAMPLE_ID = boundary_observation.observation;
-
-SELECT * FROM @observations;
 """
 
 SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT = """
@@ -486,8 +478,6 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SEDIMENT AS observation
 ON observation.SAMPLE_ID = boundary_observation.observation;
-
-SELECT * FROM @observations;
 """
 
 SQL_GET_MEOW_HABITAT_OBS_SEDIMENT = """
@@ -523,8 +513,6 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SEDIMENT AS observation
 ON observation.SAMPLE_ID = boundary_observation.observation;
-
-SELECT * FROM @observations;
 """
 
 SQL_GET_AMP_HABITAT_OBS_SQUIDLE = """
@@ -566,8 +554,6 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SQUIDLE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
-
-SELECT * FROM @observations;
 """
 
 SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE = """
@@ -605,8 +591,6 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SQUIDLE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
-
-SELECT * FROM @observations;
 """
 
 SQL_GET_MEOW_HABITAT_OBS_SQUIDLE = """
@@ -646,9 +630,9 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SQUIDLE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
-
-SELECT * FROM @observations;
 """
+
+SQL_GET_OBSERVATIONS = "SELECT * FROM @observations;"
 
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
@@ -1239,11 +1223,11 @@ def habitat_observations(request):
         try:
             # Global Archives observations
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE, [network, park, zone, zone_iucn])
+                cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_OBSERVATIONS, [network, park, zone, zone_iucn])
             elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE, [provincial_bioregion, mesoscale_bioregion])
+                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_OBSERVATIONS, [provincial_bioregion, mesoscale_bioregion])
             elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE, [realm, province, ecoregion])
+                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_OBSERVATIONS, [realm, province, ecoregion])
             else:
                 raise Exception('Unhandled boundary type!')
 
@@ -1254,11 +1238,11 @@ def habitat_observations(request):
 
             # Marine Sediments observations
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SEDIMENT, [network, park, zone, zone_iucn])
+                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SEDIMENT + SQL_GET_OBSERVATIONS, [network, park, zone, zone_iucn])
             elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT, [provincial_bioregion, mesoscale_bioregion])
+                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT + SQL_GET_OBSERVATIONS, [provincial_bioregion, mesoscale_bioregion])
             elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SEDIMENT, [realm, province, ecoregion])
+                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SEDIMENT + SQL_GET_OBSERVATIONS, [realm, province, ecoregion])
             else:
                 raise Exception('Unhandled boundary type!')
 
@@ -1269,11 +1253,11 @@ def habitat_observations(request):
 
             # SQUIDLE observations
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SQUIDLE, [network, park, zone, zone_iucn])
+                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SQUIDLE + SQL_GET_OBSERVATIONS, [network, park, zone, zone_iucn])
             elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE, [provincial_bioregion, mesoscale_bioregion])
+                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE + SQL_GET_OBSERVATIONS, [provincial_bioregion, mesoscale_bioregion])
             elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SQUIDLE, [realm, province, ecoregion])
+                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SQUIDLE + SQL_GET_OBSERVATIONS, [realm, province, ecoregion])
             else:
                 raise Exception('Unhandled boundary type!')
             
