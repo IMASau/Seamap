@@ -1110,6 +1110,41 @@
                   "Download as Shapefile"]
                  [:div "No bathymetry information"]))}]])]))))
 
+(defn habitat-observations []
+  (let [selected-tab (reagent/atom "global-archives")
+        collapsed?   (reagent/atom false)]
+    (fn []
+      (let [{:keys [global-archives sediments squidles loading?]} @(re-frame/subscribe [:map/habitat-observations])]
+        [components/drawer-group
+         {:heading         "Habitat Observations"
+          :icon            "media"
+          :collapsed?      @collapsed?
+          :toggle-collapse #(swap! collapsed? not)}
+         (if loading?
+           [b/spinner]
+           [b/tabs
+            {:id              "habitat-observations-tabs"
+             :selected-tab-id @selected-tab
+             :on-change       #(reset! selected-tab %)}
+            
+            [b/tab
+             {:id    "global-archives"
+              :title "Global Archives"
+              :panel (reagent/as-element
+                      [:div (str global-archives)])}]
+            
+            [b/tab
+             {:id    "sediments"
+              :title "Marine Sediments"
+              :panel (reagent/as-element
+                      [:div (str sediments)])}]
+            
+            [b/tab
+             {:id    "squidle"
+              :title "SQUIDLE"
+              :panel (reagent/as-element
+                      [:div (str squidles)])}]])]))))
+
 (defn right-drawer []
   [components/drawer
    {:title       "State of Knowledge"
@@ -1121,7 +1156,8 @@
     :className   "state-of-knowledge-drawer"}
    [boundary-selection]
    [habitat-statistics]
-   [bathymetry-statistics]])
+   [bathymetry-statistics]
+   [habitat-observations]])
 
 (defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
