@@ -311,9 +311,65 @@
   (s/keys :req-un [:map.boundary-statistics.bathymetry/results
                    :map.boundary-statistics.bathymetry/loading?]))
 
+(s/def :map.boundary-statistics.habitat-observations.global-archive/campaign_name string?)
+(s/def :map.boundary-statistics.habitat-observations.global-archive/deployment_id string?)
+(s/def :map.boundary-statistics.habitat-observations.global-archive/date string?)
+(s/def :map.boundary-statistics.habitat-observations.global-archive/method (s/nilable string?))
+(s/def :map.boundary-statistics.habitat-observations.global-archive/video_time (s/nilable integer?))
+(s/def :map.boundary-statistics.habitat-observations/global-archive
+  (s/keys :req-un [:map.boundary-statistics.habitat-observations.global-archive/campaign_name
+                   :map.boundary-statistics.habitat-observations.global-archive/deployment_id
+                   :map.boundary-statistics.habitat-observations.global-archive/date
+                   :map.boundary-statistics.habitat-observations.global-archive/method
+                   :map.boundary-statistics.habitat-observations.global-archive/video_time]))
+(s/def :map.boundary-statistics.habitat-observations/global-archives (s/coll-of :map.boundary-statistics.habitat-observations/global-archive
+                                                                                :kind vector?))
+
+(s/def :map.boundary-statistics.habitat-observations.sediment/survey string?)
+(s/def :map.boundary-statistics.habitat-observations.sediment/sample_id string?)
+(s/def :map.boundary-statistics.habitat-observations.sediment/date (s/nilable string?))
+(s/def :map.boundary-statistics.habitat-observations.sediment/method string?)
+(s/def :map.boundary-statistics.habitat-observations.sediment/analysed string?)
+(s/def :map.boundary-statistics.habitat-observations/sediment
+  (s/keys :req-un [:map.boundary-statistics.habitat-observations.sediment/survey
+                   :map.boundary-statistics.habitat-observations.sediment/sample_id
+                   :map.boundary-statistics.habitat-observations.sediment/date
+                   :map.boundary-statistics.habitat-observations.sediment/method
+                   :map.boundary-statistics.habitat-observations.sediment/method
+                   :map.boundary-statistics.habitat-observations.sediment/analysed]))
+(s/def :map.boundary-statistics.habitat-observations/sediments (s/coll-of :map.boundary-statistics.habitat-observations/sediment
+                                                                          :kind vector?))
+
+(s/def :map.boundary-statistics.habitat-observations.global-archive/campaign_name string?)
+(s/def :map.boundary-statistics.habitat-observations.global-archive/deployment_id string?)
+(s/def :map.boundary-statistics.habitat-observations.global-archive/date (s/nilable string?))
+(s/def :map.boundary-statistics.habitat-observations.squidle/method string?)
+(s/def :map.boundary-statistics.habitat-observations.squidle/images integer?)
+(s/def :map.boundary-statistics.habitat-observations.squidle/total_annotations integer?)
+(s/def :map.boundary-statistics.habitat-observations.squidle/public_annotations integer?)
+(s/def :map.boundary-statistics.habitat-observations/squidle
+  (s/keys :req-un [:map.boundary-statistics.habitat-observations.squidle/campaign_name
+                   :map.boundary-statistics.habitat-observations.squidle/deployment_id
+                   :map.boundary-statistics.habitat-observations.squidle/date
+                   :map.boundary-statistics.habitat-observations.squidle/method
+                   :map.boundary-statistics.habitat-observations.squidle/images
+                   :map.boundary-statistics.habitat-observations.squidle/total_annotations
+                   :map.boundary-statistics.habitat-observations.squidle/public_annotations]))
+(s/def :map.boundary-statistics.habitat-observations/squidles (s/coll-of :map.boundary-statistics.habitat-observations/squidle
+                                                                         :kind vector?))
+
+(s/def :map.boundary-statistics.habitat-observations/loading? boolean?)
+
+(s/def :map.boundary-statistics/habitat-observations
+  (s/keys :req-un [:map.boundary-statistics.habitat-observations/global-archives
+                   :map.boundary-statistics.habitat-observations/sediments
+                   :map.boundary-statistics.habitat-observations/squidles
+                   :map.boundary-statistics.habitat-observations/loading?]))
+
 (s/def :map/boundary-statistics
   (s/keys :req-un [:map.boundary-statistics/habitat
-                   :map.boundary-statistics/bathymetry]))
+                   :map.boundary-statistics/bathymetry
+                   :map.boundary-statistics/habitat-observations]))
 
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))

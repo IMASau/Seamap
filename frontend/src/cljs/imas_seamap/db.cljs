@@ -49,10 +49,14 @@
                                                          :active-realm     nil
                                                          :active-province  nil
                                                          :active-ecoregion nil}}
-                     :boundary-statistics {:habitat    {:results  []
-                                                        :loading? false}
-                                           :bathymetry {:results  []
-                                                        :loading? false}}}
+                     :boundary-statistics {:habitat              {:results  []
+                                                                  :loading? false}
+                                           :bathymetry           {:results  []
+                                                                  :loading? false}
+                                           :habitat-observations {:global-archives []
+                                                                  :sediments       []
+                                                                  :squidles        []
+                                                                  :loading?        false}}}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}
@@ -92,5 +96,6 @@
                      :meow-boundaries-url   (str api-url-base "habitat/meowboundaries")
                      :habitat-statistics-url (str api-url-base "habitat/habitatstatistics")
                      :bathymetry-statistics-url (str api-url-base "habitat/bathymetrystatistics")
+                     :habitat-observations-url (str api-url-base "habitat/habitatobservations")
                      :init-catalogue-state  {:tab      "cat"
                                              :expanded #{}}}})

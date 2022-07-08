@@ -2,11 +2,14 @@
 
 CREATE VIEW [dbo].[VW_HABITAT_OBS_SQUIDLE] AS
 SELECT
-  [CAMPAIGN.NAME] AS [CAMPAIGN_NAME],
+  [CAMPAIGN_NAME] AS [CAMPAIGN_NAME],
   [name]+[KEY] AS [DEPLOYMENT_ID],
-  CAST([created_at] AS DATE) AS [DATE],
-  [PLATFORM.NAME] AS [METHOD],
-  [no_media_items] AS [images],
-  [no_annotations] AS [annotations],
+  CAST([date] AS DATE) AS [DATE],
+  [PLATFORM_NAME] AS [METHOD],
+  [media_count] AS [images],
+  [total_annotation_count] AS [total_annotations],
+  [public_annotation_count] as [public_annotations],
   [geom]
-FROM [TRANSFORM_SQUIDLE_DEPLOYMENT_POINTS];
+FROM  [TRANSFORM_SQUIDLE_DEPLOYMENT_POINTS];
+
+

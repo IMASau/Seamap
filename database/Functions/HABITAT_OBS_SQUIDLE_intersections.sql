@@ -11,7 +11,8 @@ AS RETURN (
     [DATE],
     [METHOD],
     [images],
-    [annotations]
+    [total_annotations],
+    [public_annotations]
   FROM [dbo].[VW_HABITAT_OBS_SQUIDLE]
   WHERE [geom].STIntersects(@boundary) = 1
 );

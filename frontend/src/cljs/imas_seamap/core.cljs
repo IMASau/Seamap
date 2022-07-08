@@ -113,6 +113,8 @@
     :map/got-habitat-statistics           mevents/got-habitat-statistics
     :map/get-bathymetry-statistics        [mevents/get-bathymetry-statistics]
     :map/got-bathymetry-statistics        mevents/got-bathymetry-statistics
+    :map/get-habitat-observations         [mevents/get-habitat-observations]
+    :map/got-habitat-observations         mevents/got-habitat-observations
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]
