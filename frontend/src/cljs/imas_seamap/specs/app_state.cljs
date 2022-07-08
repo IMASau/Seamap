@@ -342,17 +342,19 @@
 
 (s/def :map.boundary-statistics.habitat-observations.global-archive/campaign_name string?)
 (s/def :map.boundary-statistics.habitat-observations.global-archive/deployment_id string?)
-(s/def :map.boundary-statistics.habitat-observations.global-archive/date string?)
-(s/def :map.boundary-statistics.habitat-observations.squidle/method (s/nilable string?))
-(s/def :map.boundary-statistics.habitat-observations.squidle/images (s/nilable integer?))
-(s/def :map.boundary-statistics.habitat-observations.squidle/annotations (s/nilable integer?))
+(s/def :map.boundary-statistics.habitat-observations.global-archive/date (s/nilable string?))
+(s/def :map.boundary-statistics.habitat-observations.squidle/method string?)
+(s/def :map.boundary-statistics.habitat-observations.squidle/images integer?)
+(s/def :map.boundary-statistics.habitat-observations.squidle/total_annotations integer?)
+(s/def :map.boundary-statistics.habitat-observations.squidle/public_annotations integer?)
 (s/def :map.boundary-statistics.habitat-observations/squidle
   (s/keys :req-un [:map.boundary-statistics.habitat-observations.squidle/campaign_name
                    :map.boundary-statistics.habitat-observations.squidle/deployment_id
                    :map.boundary-statistics.habitat-observations.squidle/date
                    :map.boundary-statistics.habitat-observations.squidle/method
                    :map.boundary-statistics.habitat-observations.squidle/images
-                   :map.boundary-statistics.habitat-observations.squidle/annotations]))
+                   :map.boundary-statistics.habitat-observations.squidle/total_annotations
+                   :map.boundary-statistics.habitat-observations.squidle/public_annotations]))
 (s/def :map.boundary-statistics.habitat-observations/squidles (s/coll-of :map.boundary-statistics.habitat-observations/squidle
                                                                          :kind vector?))
 

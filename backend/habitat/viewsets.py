@@ -455,7 +455,8 @@ SELECT
   observation.DATE AS date,
   observation.METHOD AS method,
   observation.images,
-  observation.annotations
+  observation.total_annotations,
+  observation.public_annotations,
 FROM (
   SELECT DISTINCT observation
   FROM BOUNDARY_AMP_HABITAT_OBS_SQUIDLE
