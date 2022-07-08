@@ -377,6 +377,78 @@ JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
 """
 
+SQL_GET_AMP_HABITAT_OBS_SEDIMENT = """
+DECLARE @netname  NVARCHAR(254) = %s;
+DECLARE @resname  NVARCHAR(254) = %s;
+DECLARE @zonename NVARCHAR(254) = %s;
+DECLARE @zoneiucn NVARCHAR(5)   = %s;
+
+SELECT
+  observation.SURVEY,
+  observation.SAMPLE_ID,
+  observation.DATE,
+  observation.METHOD,
+  observation.ANALYSED
+FROM (
+  SELECT observation
+  FROM BOUNDARY_AMP_HABITAT_OBS_SEDIMENT
+  WHERE
+    (Network = @netname OR @netname IS NULL) AND
+    (Park = @resname OR @resname IS NULL) AND
+    (Zone_Category = @zonename OR @zonename IS NULL) AND
+    (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
+  GROUP BY observation
+) AS boundary_observation
+JOIN VW_HABITAT_OBS_SEDIMENT AS observation
+ON observation.SAMPLE_ID = boundary_observation.observation;
+"""
+
+SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT = """
+DECLARE @provincial_bioregion NVARCHAR(255) = %s;
+DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
+
+SELECT
+  observation.SURVEY,
+  observation.SAMPLE_ID,
+  observation.DATE,
+  observation.METHOD,
+  observation.ANALYSED
+FROM (
+  SELECT observation
+  FROM BOUNDARY_IMCRA_HABITAT_OBS_SEDIMENT
+  WHERE
+    (Provincial_Bioregion = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
+    (Mesoscale_Bioregion = @mesoscale_bioregion OR @mesoscale_bioregion IS NULL)
+  GROUP BY observation
+) AS boundary_observation
+JOIN VW_HABITAT_OBS_SEDIMENT AS observation
+ON observation.SAMPLE_ID = boundary_observation.observation;
+"""
+
+SQL_GET_MEOW_HABITAT_OBS_SEDIMENT = """
+DECLARE @realm     NVARCHAR(255) = %s;
+DECLARE @province  NVARCHAR(255) = %s;
+DECLARE @ecoregion NVARCHAR(255) = %s;
+
+SELECT
+  observation.SURVEY,
+  observation.SAMPLE_ID,
+  observation.DATE,
+  observation.METHOD,
+  observation.ANALYSED
+FROM (
+  SELECT observation
+  FROM BOUNDARY_MEOW_HABITAT_OBS_SEDIMENT
+  WHERE
+    (Realm = @realm OR @realm IS NULL) AND
+    (Province = @province OR @province IS NULL) AND
+    (Ecoregion = @ecoregion OR @ecoregion IS NULL)
+  GROUP BY observation
+) AS boundary_observation
+JOIN VW_HABITAT_OBS_SEDIMENT AS observation
+ON observation.SAMPLE_ID = boundary_observation.observation;
+"""
+
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
@@ -960,10 +1032,9 @@ def habitat_observations(request):
     ecoregion            = params.get('ecoregion')
 
     global_archive = []
+    sediment = []
 
     with connections['transects'].cursor() as cursor:
-        cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE, [network, park, zone, zone_iucn])
-
         if boundary_type == 'amp':
             cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE, [network, park, zone, zone_iucn])
         elif boundary_type == 'imcra':
@@ -982,4 +1053,23 @@ def habitat_observations(request):
         except:
             pass
 
-    return Response({'global_archive': global_archive})
+    with connections['transects'].cursor() as cursor:
+        if boundary_type == 'amp':
+            cursor.execute(SQL_GET_AMP_HABITAT_OBS_SEDIMENT, [network, park, zone, zone_iucn])
+        elif boundary_type == 'imcra':
+            cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT, [provincial_bioregion, mesoscale_bioregion])
+        elif boundary_type == 'meow':
+            cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SEDIMENT, [realm, province, ecoregion])
+        else:
+            raise Exception('Unhandled boundary type!')
+
+        try:
+            columns = [col[0] for col in cursor.description]
+            namedrow = namedtuple('Result', columns)
+            results = [namedrow(*row) for row in cursor.fetchall()]
+
+            sediment = [row._asdict() for row in results]
+        except:
+            pass
+
+    return Response({'global_archive': global_archive, 'sediment': sediment})
