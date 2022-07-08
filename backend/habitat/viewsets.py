@@ -306,11 +306,23 @@ GROUP BY bathymetry_resolution, bathymetry_rank;
 """
 
 SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE = """
+SET NOCOUNT ON;
+
 DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name NVARCHAR(MAX) NOT NULL, 
+  deployment_id NVARCHAR(MAX) NOT NULL, 
+  date          DATE          NOT NULL,
+  method        NVARCHAR(100) NULL,
+  video_time    INT           NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -328,12 +340,26 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
+
+SELECT * FROM @observations;
 """
 
 SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE = """
+SET NOCOUNT ON;
+
 DECLARE @provincial_bioregion NVARCHAR(255) = %s;
 DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name NVARCHAR(MAX) NOT NULL, 
+  deployment_id NVARCHAR(MAX) NOT NULL, 
+  date          DATE          NOT NULL,
+  method        NVARCHAR(100) NULL,
+  video_time    INT           NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -349,13 +375,27 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
+
+SELECT * FROM @observations;
 """
 
 SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE = """
+SET NOCOUNT ON;
+
 DECLARE @realm     NVARCHAR(255) = %s;
 DECLARE @province  NVARCHAR(255) = %s;
 DECLARE @ecoregion NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name NVARCHAR(MAX) NOT NULL, 
+  deployment_id NVARCHAR(MAX) NOT NULL, 
+  date          DATE          NOT NULL,
+  method        NVARCHAR(100) NULL,
+  video_time    INT           NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -372,14 +412,28 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
+
+SELECT * FROM @observations;
 """
 
 SQL_GET_AMP_HABITAT_OBS_SEDIMENT = """
+SET NOCOUNT ON;
+
 DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
+DECLARE @observations TABLE
+(
+  survey    NVARCHAR(MAX) NOT NULL, 
+  sample_id NVARCHAR(MAX) NOT NULL, 
+  date      DATE          NULL,
+  method    NVARCHAR(MAX) NOT NULL,
+  analysed  VARCHAR(3)    NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.SURVEY AS survey,
   observation.SAMPLE_ID AS sample_id,
@@ -397,12 +451,26 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SEDIMENT AS observation
 ON observation.SAMPLE_ID = boundary_observation.observation;
+
+SELECT * FROM @observations;
 """
 
 SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT = """
+SET NOCOUNT ON;
+
 DECLARE @provincial_bioregion NVARCHAR(255) = %s;
 DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  survey    NVARCHAR(MAX) NOT NULL, 
+  sample_id NVARCHAR(MAX) NOT NULL, 
+  date      DATE          NULL,
+  method    NVARCHAR(MAX) NOT NULL,
+  analysed  VARCHAR(3)    NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.SURVEY AS survey,
   observation.SAMPLE_ID AS sample_id,
@@ -418,13 +486,27 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SEDIMENT AS observation
 ON observation.SAMPLE_ID = boundary_observation.observation;
+
+SELECT * FROM @observations;
 """
 
 SQL_GET_MEOW_HABITAT_OBS_SEDIMENT = """
+SET NOCOUNT ON;
+
 DECLARE @realm     NVARCHAR(255) = %s;
 DECLARE @province  NVARCHAR(255) = %s;
 DECLARE @ecoregion NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  survey    NVARCHAR(MAX) NOT NULL, 
+  sample_id NVARCHAR(MAX) NOT NULL, 
+  date      DATE          NULL,
+  method    NVARCHAR(MAX) NOT NULL,
+  analysed  VARCHAR(3)    NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.SURVEY AS survey,
   observation.SAMPLE_ID AS sample_id,
@@ -441,14 +523,30 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SEDIMENT AS observation
 ON observation.SAMPLE_ID = boundary_observation.observation;
+
+SELECT * FROM @observations;
 """
 
 SQL_GET_AMP_HABITAT_OBS_SQUIDLE = """
+SET NOCOUNT ON;
+
 DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name      NVARCHAR(254) NOT NULL,
+  deployment_id      NVARCHAR(508) NOT NULL,
+  date               DATE          NULL,
+  method             NVARCHAR(254) NOT NULL,
+  images             FLOAT         NOT NULL,
+  total_annotations  FLOAT         NOT NULL,
+  public_annotations FLOAT         NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -468,12 +566,28 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SQUIDLE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
+
+SELECT * FROM @observations;
 """
 
 SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE = """
+SET NOCOUNT ON;
+
 DECLARE @provincial_bioregion NVARCHAR(255) = %s;
 DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name      NVARCHAR(254) NOT NULL,
+  deployment_id      NVARCHAR(508) NOT NULL,
+  date               DATE          NULL,
+  method             NVARCHAR(254) NOT NULL,
+  images             FLOAT         NOT NULL,
+  total_annotations  FLOAT         NOT NULL,
+  public_annotations FLOAT         NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -491,13 +605,29 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SQUIDLE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
+
+SELECT * FROM @observations;
 """
 
 SQL_GET_MEOW_HABITAT_OBS_SQUIDLE = """
+SET NOCOUNT ON;
+
 DECLARE @realm     NVARCHAR(255) = %s;
 DECLARE @province  NVARCHAR(255) = %s;
 DECLARE @ecoregion NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name      NVARCHAR(254) NOT NULL,
+  deployment_id      NVARCHAR(508) NOT NULL,
+  date               DATE          NULL,
+  method             NVARCHAR(254) NOT NULL,
+  images             FLOAT         NOT NULL,
+  total_annotations  FLOAT         NOT NULL,
+  public_annotations FLOAT         NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -516,6 +646,8 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SQUIDLE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
+
+SELECT * FROM @observations;
 """
 
 def parse_bounds(bounds_str):
