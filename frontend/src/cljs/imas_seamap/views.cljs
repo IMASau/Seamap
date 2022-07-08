@@ -1158,7 +1158,34 @@
       [:tr
        [:td
         {:colSpan 5}
-        "No Marien Sediments observations"]])]])
+        "No Marine Sediments observations"]])]])
+
+(defn squidles-table
+  [{:keys [squidles]}]
+  [:table
+   [:thead
+    [:tr
+     [:th "Campaign"]
+     [:th "Deployment"]
+     [:th "Date"]
+     [:th "Method"]
+     [:th "Images"]
+     [:th "Public Annotations"]]]
+   [:tbody
+    (if (seq squidles)
+      (for [{:keys [campaign_name deployment_id date method images total_annotations public_annotations]} squidles]
+        [:tr
+         {:key deployment_id}
+         [:td campaign_name]
+         [:td deployment_id]
+         [:td (or date "-")]
+         [:td method]
+         [:td images]
+         [:td (str public_annotations "/" total_annotations)]])
+      [:tr
+       [:td
+        {:colSpan 5}
+        "No SQUIDLE observations"]])]])
 
 (defn habitat-observations []
   (let [selected-tab (reagent/atom "global-archives")
@@ -1193,7 +1220,7 @@
              {:id    "squidle"
               :title "SQUIDLE"
               :panel (reagent/as-element
-                      [:div (str squidles)])}]])]))))
+                      [squidles-table {:squidles squidles}])}]])]))))
 
 (defn right-drawer []
   [components/drawer
