@@ -210,6 +210,9 @@
 (defn bathymetry-statistics-loading? [db _]
   (get-in db [:map :boundary-statistics :bathymetry :loading?]))
 
+(defn habitat-observations [db _]
+  (get-in db [:map :boundary-statistics :habitat-observations]))
+
 (defn bathymetry-statistics-download-url [db _]
   (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])
         {:keys [active-boundary amp imcra meow]} (get-in db [:map :boundaries])
