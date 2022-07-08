@@ -1135,6 +1135,31 @@
         {:colSpan 5}
         "No Global Archives observations"]])]])
 
+(defn sediments-table
+  [{:keys [sediments]}]
+  [:table
+   [:thead
+    [:tr
+     [:th "Survey"]
+     [:th "Sample"]
+     [:th "Date"]
+     [:th "Method"]
+     [:th "Analysed?"]]]
+   [:tbody
+    (if (seq sediments)
+      (for [{:keys [survey sample_id date method analysed]} sediments]
+        [:tr
+         {:key sample_id}
+         [:td survey]
+         [:td sample_id]
+         [:td (or date "-")]
+         [:td method]
+         [:td analysed]])
+      [:tr
+       [:td
+        {:colSpan 5}
+        "No Marien Sediments observations"]])]])
+
 (defn habitat-observations []
   (let [selected-tab (reagent/atom "global-archives")
         collapsed?   (reagent/atom false)]
@@ -1162,7 +1187,7 @@
              {:id    "sediments"
               :title "Marine Sediments"
               :panel (reagent/as-element
-                      [:div (str sediments)])}]
+                      [sediments-table {:sediments sediments}])}]
             
             [b/tab
              {:id    "squidle"
