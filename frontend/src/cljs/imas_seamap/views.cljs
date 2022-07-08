@@ -1110,6 +1110,31 @@
                   "Download as Shapefile"]
                  [:div "No bathymetry information"]))}]])]))))
 
+(defn global-archives-table
+  [{:keys [global-archives]}]
+  [:table
+   [:thead
+    [:tr
+     [:th "Campaign"]
+     [:th "Deployment"]
+     [:th "Date"]
+     [:th "Method"]
+     [:th "Video"]]]
+   [:tbody
+    (if (seq global-archives)
+      (for [{:keys [campaign_name deployment_id date method video_time]} global-archives]
+        [:tr
+         {:key deployment_id}
+         [:td campaign_name]
+         [:td deployment_id]
+         [:td date]
+         [:td (or method "-")]
+         [:td (or video_time "-")]])
+      [:tr
+       [:td
+        {:colSpan 5}
+        "No Global Archives observations"]])]])
+
 (defn habitat-observations []
   (let [selected-tab (reagent/atom "global-archives")
         collapsed?   (reagent/atom false)]
@@ -1131,7 +1156,7 @@
              {:id    "global-archives"
               :title "Global Archives"
               :panel (reagent/as-element
-                      [:div (str global-archives)])}]
+                      [global-archives-table {:global-archives global-archives}])}]
             
             [b/tab
              {:id    "sediments"

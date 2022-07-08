@@ -734,7 +734,12 @@ input.leaflet-control-layers-selector[type="radio"] {
 .state-of-knowledge-drawer td,
 .state-of-knowledge-drawer th {
     font-size: 12px;
-    padding: 6px 0;
+    padding: 6px 6px 6px 0;
+    vertical-align: top;
+}
+
+.state-of-knowledge-drawer td {
+    overflow-wrap: anywhere;
 }
 
 .data-coverage-report-link,
