@@ -1188,7 +1188,7 @@
         "No SQUIDLE observations"]])]])
 
 (defn habitat-observations []
-  (let [selected-tab (reagent/atom "global-archives")
+  (let [selected-tab (reagent/atom "breakdown")
         collapsed?   (reagent/atom false)]
     (fn []
       (let [{:keys [global-archives sediments squidles loading?]} @(re-frame/subscribe [:map/habitat-observations])]
@@ -1203,19 +1203,40 @@
             {:id              "habitat-observations-tabs"
              :selected-tab-id @selected-tab
              :on-change       #(reset! selected-tab %)}
-            
+
+            [b/tab
+             {:id    "breakdown"
+              :title "Breakdown"
+              :panel (reagent/as-element
+                      [:div
+                       [:h2
+                        {:class (str "bp3-heading" (when (seq squidles) " bp3-icon-caret-right"))}
+                        (if (seq squidles)
+                          (str (count squidles) " AUV deployments (" (reduce + (map :images squidles)) " images)")
+                          "No AUV deployments")]
+                       [:h2
+                        {:class (str "bp3-heading" (when (seq global-archives) " bp3-icon-caret-right"))}
+                        (if (seq global-archives)
+                          (str (count global-archives) " BRUV deployments (" (/ (reduce + (map :video_time global-archives)) 60) " hours)") ; TODO: check assumption that video time is in minutes, and that no/missing video time should be treated as 0
+                          "No BRUV deployments")]
+                       [:h2
+                        {:class (str "bp3-heading" (when (seq sediments) " bp3-icon-caret-right"))}
+                        (if (seq sediments)
+                          (str "Sediment data (" (count sediments) " samples)")
+                          "No sediment data")]])}]
+
             [b/tab
              {:id    "global-archives"
               :title "Global Archives"
               :panel (reagent/as-element
                       [global-archives-table {:global-archives global-archives}])}]
-            
+
             [b/tab
              {:id    "sediments"
               :title "Marine Sediments"
               :panel (reagent/as-element
                       [sediments-table {:sediments sediments}])}]
-            
+
             [b/tab
              {:id    "squidle"
               :title "SQUIDLE"
