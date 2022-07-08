@@ -734,7 +734,16 @@ input.leaflet-control-layers-selector[type="radio"] {
 .state-of-knowledge-drawer td,
 .state-of-knowledge-drawer th {
     font-size: 12px;
-    padding: 6px 0;
+    padding: 6px 6px 6px 0;
+}
+
+.state-of-knowledge-drawer td {
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.state-of-knowledge-drawer th {
+    vertical-align: bottom;
 }
 
 .data-coverage-report-link,
@@ -780,9 +789,13 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-bottom: 8px;
 }
 
-.boundaries-selection h2.bp3-heading {
+.drawer-group h2.bp3-heading {
     font-size: 14px;
     line-height: 16px;
+}
+
+.drawer-group h2::before {
+    margin-right: 5px;
 }
 
 .leaflet-popup-content {

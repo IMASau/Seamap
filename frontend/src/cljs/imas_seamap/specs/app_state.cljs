@@ -340,9 +340,9 @@
 (s/def :map.boundary-statistics.habitat-observations/sediments (s/coll-of :map.boundary-statistics.habitat-observations/sediment
                                                                           :kind vector?))
 
-(s/def :map.boundary-statistics.habitat-observations.global-archive/campaign_name string?)
-(s/def :map.boundary-statistics.habitat-observations.global-archive/deployment_id string?)
-(s/def :map.boundary-statistics.habitat-observations.global-archive/date (s/nilable string?))
+(s/def :map.boundary-statistics.habitat-observations.squidle/campaign_name string?)
+(s/def :map.boundary-statistics.habitat-observations.squidle/deployment_id string?)
+(s/def :map.boundary-statistics.habitat-observations.squidle/date (s/nilable string?))
 (s/def :map.boundary-statistics.habitat-observations.squidle/method string?)
 (s/def :map.boundary-statistics.habitat-observations.squidle/images integer?)
 (s/def :map.boundary-statistics.habitat-observations.squidle/total_annotations integer?)

@@ -39,6 +39,7 @@
     :map/bathymetry-statistics            msubs/bathymetry-statistics
     :map/bathymetry-statistics-loading?   msubs/bathymetry-statistics-loading?
     :map/bathymetry-statistics-download-url msubs/bathymetry-statistics-download-url
+    :map/habitat-observations             msubs/habitat-observations
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/priorities                msubs/map-layer-priorities
