@@ -312,10 +312,10 @@ DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
 SELECT
-  observation.CAMPAIGN_NAME,
-  observation.DEPLOYMENT_ID,
-  observation.DATE,
-  observation.METHOD,
+  observation.CAMPAIGN_NAME AS campaign_name,
+  observation.DEPLOYMENT_ID AS deployment_id,
+  observation.DATE AS date,
+  observation.METHOD AS method,
   observation.video_time
 FROM (
   SELECT DISTINCT observation
@@ -335,10 +335,10 @@ DECLARE @provincial_bioregion NVARCHAR(255) = %s;
 DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
 SELECT
-  observation.CAMPAIGN_NAME,
-  observation.DEPLOYMENT_ID,
-  observation.DATE,
-  observation.METHOD,
+  observation.CAMPAIGN_NAME AS campaign_name,
+  observation.DEPLOYMENT_ID AS deployment_id,
+  observation.DATE AS date,
+  observation.METHOD AS method,
   observation.video_time
 FROM (
   SELECT DISTINCT observation
@@ -357,10 +357,10 @@ DECLARE @province  NVARCHAR(255) = %s;
 DECLARE @ecoregion NVARCHAR(255) = %s;
 
 SELECT
-  observation.CAMPAIGN_NAME,
-  observation.DEPLOYMENT_ID,
-  observation.DATE,
-  observation.METHOD,
+  observation.CAMPAIGN_NAME AS campaign_name,
+  observation.DEPLOYMENT_ID AS deployment_id,
+  observation.DATE AS date,
+  observation.METHOD AS method,
   observation.video_time
 FROM (
   SELECT DISTINCT observation
@@ -381,11 +381,11 @@ DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
 SELECT
-  observation.SURVEY,
-  observation.SAMPLE_ID,
-  observation.DATE,
-  observation.METHOD,
-  observation.ANALYSED
+  observation.SURVEY AS survey,
+  observation.SAMPLE_ID AS sample_id,
+  observation.DATE AS date,
+  observation.METHOD AS method,
+  observation.ANALYSED AS analysed
 FROM (
   SELECT DISTINCT observation
   FROM BOUNDARY_AMP_HABITAT_OBS_SEDIMENT
@@ -404,11 +404,11 @@ DECLARE @provincial_bioregion NVARCHAR(255) = %s;
 DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
 SELECT
-  observation.SURVEY,
-  observation.SAMPLE_ID,
-  observation.DATE,
-  observation.METHOD,
-  observation.ANALYSED
+  observation.SURVEY AS survey,
+  observation.SAMPLE_ID AS sample_id,
+  observation.DATE AS date,
+  observation.METHOD AS method,
+  observation.ANALYSED AS analysed
 FROM (
   SELECT DISTINCT observation
   FROM BOUNDARY_IMCRA_HABITAT_OBS_SEDIMENT
@@ -426,11 +426,11 @@ DECLARE @province  NVARCHAR(255) = %s;
 DECLARE @ecoregion NVARCHAR(255) = %s;
 
 SELECT
-  observation.SURVEY,
-  observation.SAMPLE_ID,
-  observation.DATE,
-  observation.METHOD,
-  observation.ANALYSED
+  observation.SURVEY AS survey,
+  observation.SAMPLE_ID AS sample_id,
+  observation.DATE AS date,
+  observation.METHOD AS method,
+  observation.ANALYSED AS analysed
 FROM (
   SELECT DISTINCT observation
   FROM BOUNDARY_MEOW_HABITAT_OBS_SEDIMENT
@@ -450,10 +450,10 @@ DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
 SELECT
-  observation.CAMPAIGN_NAME,
-  observation.DEPLOYMENT_ID,
-  observation.DATE,
-  observation.METHOD,
+  observation.CAMPAIGN_NAME AS campaign_name,
+  observation.DEPLOYMENT_ID AS deployment_id,
+  observation.DATE AS date,
+  observation.METHOD AS method,
   observation.images,
   observation.annotations
 FROM (
@@ -474,10 +474,10 @@ DECLARE @provincial_bioregion NVARCHAR(255) = %s;
 DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
 SELECT
-  observation.CAMPAIGN_NAME,
-  observation.DEPLOYMENT_ID,
-  observation.DATE,
-  observation.METHOD,
+  observation.CAMPAIGN_NAME AS campaign_name,
+  observation.DEPLOYMENT_ID AS deployment_id,
+  observation.DATE AS date,
+  observation.METHOD AS method,
   observation.images,
   observation.annotations
 FROM (
@@ -497,10 +497,10 @@ DECLARE @province  NVARCHAR(255) = %s;
 DECLARE @ecoregion NVARCHAR(255) = %s;
 
 SELECT
-  observation.CAMPAIGN_NAME,
-  observation.DEPLOYMENT_ID,
-  observation.DATE,
-  observation.METHOD,
+  observation.CAMPAIGN_NAME AS campaign_name,
+  observation.DEPLOYMENT_ID AS deployment_id,
+  observation.DATE AS date,
+  observation.METHOD AS method,
   observation.images,
   observation.annotations
 FROM (
