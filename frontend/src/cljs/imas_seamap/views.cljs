@@ -1110,7 +1110,7 @@
                   "Download as Shapefile"]
                  [:div "No bathymetry information"]))}]])]))))
 
-(defn global-archives-table
+#_(defn global-archives-table
   [{:keys [global-archives]}]
   [:table
    [:thead
@@ -1135,7 +1135,7 @@
         {:colSpan 5}
         "No Global Archives observations"]])]])
 
-(defn sediments-table
+#_(defn sediments-table
   [{:keys [sediments]}]
   [:table
    [:thead
@@ -1160,7 +1160,7 @@
         {:colSpan 5}
         "No Marine Sediments observations"]])]])
 
-(defn squidles-table
+#_(defn squidles-table
   [{:keys [squidles]}]
   [:table
    [:thead
@@ -1187,11 +1187,80 @@
         {:colSpan 5}
         "No SQUIDLE observations"]])]])
 
-(defn habitat-observations []
-  (let [selected-tab (reagent/atom "breakdown")
-        collapsed?   (reagent/atom false)]
+(defn squidle-stats
+  [{:keys [deployment_id campaign_name start_date end_date method images total_annotations public_annotations]}]
+  (let [collapsed? (reagent/atom true)]
     (fn []
-      (let [{:keys [global-archives sediments squidles loading?]} @(re-frame/subscribe [:map/habitat-observations])]
+      (let [deployment_id      (or deployment_id 0)
+            campaign_name      (or campaign_name 0)
+            start_date         (or start_date "unknown")
+            end_date           (or end_date "unknown")
+            method             (or method "N/A")
+            images             (or images 0)
+            total_annotations  (or total_annotations 0)
+            public_annotations (or public_annotations 0)]
+       [:div
+        {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? deployment_id) " disabled"))}
+        [:h2
+         {:class (str "bp3-heading" (if (or @collapsed? (not (pos? deployment_id))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
+          :on-click #(swap! collapsed? not)}
+         (str deployment_id " imagery deployments (" campaign_name " campaigns)")]
+        [:ul
+         [:li (str "Date range: " start_date " to " end_date)]
+         [:li (str "Methods of collection: " method)]
+         [:li (str images " images collected")]
+         [:li (str total_annotations " image annotations (" public_annotations " public)")]]]))))
+
+(defn global-archive-stats
+  [{:keys [deployment_id campaign_name start_date end_date method video_time]}]
+  (let [collapsed? (reagent/atom true)]
+    (fn []
+      (let [deployment_id (or deployment_id 0)
+            campaign_name (or campaign_name 0)
+            start_date    (or start_date "unknown")
+            end_date      (or end_date "unknown")
+            method        (or method "N/A")
+            video_time    (or video_time 0)]
+        [:div
+         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? deployment_id) " disabled"))}
+         [:h2
+          {:class (str "bp3-heading" (if (or @collapsed? (not (pos? deployment_id))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
+           :on-click #(swap! collapsed? not)}
+          (str deployment_id " video deployments (" campaign_name " campaigns)")]
+         [:ul
+          [:li (str "Date range: " start_date " to " end_date)]
+          [:li (str "Methods of collection: " method)]
+          [:li (str video_time " hours of video")]]]))))
+
+(defn sediment-stats
+  [{:keys [sample_id analysed survey start_date end_date method]}]
+  [:h2
+   {:class (str "bp3-heading" (when (pos? sample_id) " bp3-icon-caret-right"))}
+   (if (pos? sample_id)
+     (str sample_id " sediment samples (" analysed " analysed) from " survey " surveys")
+     "No sediment data")]
+  (let [collapsed? (reagent/atom true)]
+    (fn []
+      (let [sample_id  (or sample_id 0)
+            analysed   (or analysed 0)
+            survey     (or survey 0)
+            start_date (or start_date "unknown")
+            end_date   (or end_date "unknown")
+            method     (or method "N/A")]
+        [:div
+         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? sample_id) " disabled"))}
+         [:h2
+          {:class (str "bp3-heading" (if (or @collapsed? (not (pos? sample_id))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
+           :on-click #(swap! collapsed? not)}
+          (str sample_id " sediment samples (" analysed " analysed) from " survey " surveys")]
+         [:ul
+          [:li (str "Date range: " start_date " to " end_date)]
+          [:li (str "Methods of collection: " method)]]]))))
+
+(defn habitat-observations []
+  (let [collapsed?   (reagent/atom false)]
+    (fn []
+      (let [{:keys [squidle global-archive sediment loading?]} @(re-frame/subscribe [:map/habitat-observations])]
         [components/drawer-group
          {:heading         "Habitat Observations"
           :icon            "media"
@@ -1199,49 +1268,10 @@
           :toggle-collapse #(swap! collapsed? not)}
          (if loading?
            [b/spinner]
-           [b/tabs
-            {:id              "habitat-observations-tabs"
-             :selected-tab-id @selected-tab
-             :on-change       #(reset! selected-tab %)}
-
-            [b/tab
-             {:id    "breakdown"
-              :title "Breakdown"
-              :panel (reagent/as-element
-                      [:div
-                       [:h2
-                        {:class (str "bp3-heading" (when (seq squidles) " bp3-icon-caret-right"))}
-                        (if (seq squidles)
-                          (str (count squidles) " AUV deployments (" (reduce + (map :images squidles)) " images)")
-                          "No AUV deployments")]
-                       [:h2
-                        {:class (str "bp3-heading" (when (seq global-archives) " bp3-icon-caret-right"))}
-                        (if (seq global-archives)
-                          (str (count global-archives) " BRUV deployments (" (/ (reduce + (map :video_time global-archives)) 60) " hours)") ; TODO: check assumption that video time is in minutes, and that no/missing video time should be treated as 0
-                          "No BRUV deployments")]
-                       [:h2
-                        {:class (str "bp3-heading" (when (seq sediments) " bp3-icon-caret-right"))}
-                        (if (seq sediments)
-                          (str "Sediment data (" (count sediments) " samples)")
-                          "No sediment data")]])}]
-
-            [b/tab
-             {:id    "global-archives"
-              :title "Global Archives"
-              :panel (reagent/as-element
-                      [global-archives-table {:global-archives global-archives}])}]
-
-            [b/tab
-             {:id    "sediments"
-              :title "Marine Sediments"
-              :panel (reagent/as-element
-                      [sediments-table {:sediments sediments}])}]
-
-            [b/tab
-             {:id    "squidle"
-              :title "SQUIDLE"
-              :panel (reagent/as-element
-                      [squidles-table {:squidles squidles}])}]])]))))
+           [:div
+            [squidle-stats squidle]
+            [global-archive-stats global-archive]
+            [sediment-stats sediment]])]))))
 
 (defn right-drawer []
   [components/drawer

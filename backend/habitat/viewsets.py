@@ -306,11 +306,23 @@ GROUP BY bathymetry_resolution, bathymetry_rank;
 """
 
 SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE = """
+SET NOCOUNT ON;
+
 DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name NVARCHAR(MAX) NOT NULL, 
+  deployment_id NVARCHAR(MAX) NOT NULL, 
+  date          DATE          NOT NULL,
+  method        NVARCHAR(100) NULL,
+  video_time    INT           NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -331,9 +343,21 @@ ON observation.DEPLOYMENT_ID = boundary_observation.observation;
 """
 
 SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE = """
+SET NOCOUNT ON;
+
 DECLARE @provincial_bioregion NVARCHAR(255) = %s;
 DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name NVARCHAR(MAX) NOT NULL, 
+  deployment_id NVARCHAR(MAX) NOT NULL, 
+  date          DATE          NOT NULL,
+  method        NVARCHAR(100) NULL,
+  video_time    INT           NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -352,10 +376,22 @@ ON observation.DEPLOYMENT_ID = boundary_observation.observation;
 """
 
 SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE = """
+SET NOCOUNT ON;
+
 DECLARE @realm     NVARCHAR(255) = %s;
 DECLARE @province  NVARCHAR(255) = %s;
 DECLARE @ecoregion NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name NVARCHAR(MAX) NOT NULL, 
+  deployment_id NVARCHAR(MAX) NOT NULL, 
+  date          DATE          NOT NULL,
+  method        NVARCHAR(100) NULL,
+  video_time    INT           NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -375,11 +411,23 @@ ON observation.DEPLOYMENT_ID = boundary_observation.observation;
 """
 
 SQL_GET_AMP_HABITAT_OBS_SEDIMENT = """
+SET NOCOUNT ON;
+
 DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
+DECLARE @observations TABLE
+(
+  survey    NVARCHAR(MAX) NOT NULL, 
+  sample_id NVARCHAR(MAX) NOT NULL, 
+  date      DATE          NULL,
+  method    NVARCHAR(MAX) NOT NULL,
+  analysed  VARCHAR(3)    NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.SURVEY AS survey,
   observation.SAMPLE_ID AS sample_id,
@@ -400,9 +448,21 @@ ON observation.SAMPLE_ID = boundary_observation.observation;
 """
 
 SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT = """
+SET NOCOUNT ON;
+
 DECLARE @provincial_bioregion NVARCHAR(255) = %s;
 DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  survey    NVARCHAR(MAX) NOT NULL, 
+  sample_id NVARCHAR(MAX) NOT NULL, 
+  date      DATE          NULL,
+  method    NVARCHAR(MAX) NOT NULL,
+  analysed  VARCHAR(3)    NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.SURVEY AS survey,
   observation.SAMPLE_ID AS sample_id,
@@ -421,10 +481,22 @@ ON observation.SAMPLE_ID = boundary_observation.observation;
 """
 
 SQL_GET_MEOW_HABITAT_OBS_SEDIMENT = """
+SET NOCOUNT ON;
+
 DECLARE @realm     NVARCHAR(255) = %s;
 DECLARE @province  NVARCHAR(255) = %s;
 DECLARE @ecoregion NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  survey    NVARCHAR(MAX) NOT NULL, 
+  sample_id NVARCHAR(MAX) NOT NULL, 
+  date      DATE          NULL,
+  method    NVARCHAR(MAX) NOT NULL,
+  analysed  VARCHAR(3)    NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.SURVEY AS survey,
   observation.SAMPLE_ID AS sample_id,
@@ -444,11 +516,25 @@ ON observation.SAMPLE_ID = boundary_observation.observation;
 """
 
 SQL_GET_AMP_HABITAT_OBS_SQUIDLE = """
+SET NOCOUNT ON;
+
 DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name      NVARCHAR(254) NOT NULL,
+  deployment_id      NVARCHAR(508) NOT NULL,
+  date               DATE          NULL,
+  method             NVARCHAR(254) NOT NULL,
+  images             FLOAT         NOT NULL,
+  total_annotations  FLOAT         NOT NULL,
+  public_annotations FLOAT         NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -471,9 +557,23 @@ ON observation.DEPLOYMENT_ID = boundary_observation.observation;
 """
 
 SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE = """
+SET NOCOUNT ON;
+
 DECLARE @provincial_bioregion NVARCHAR(255) = %s;
 DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name      NVARCHAR(254) NOT NULL,
+  deployment_id      NVARCHAR(508) NOT NULL,
+  date               DATE          NULL,
+  method             NVARCHAR(254) NOT NULL,
+  images             FLOAT         NOT NULL,
+  total_annotations  FLOAT         NOT NULL,
+  public_annotations FLOAT         NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -494,10 +594,24 @@ ON observation.DEPLOYMENT_ID = boundary_observation.observation;
 """
 
 SQL_GET_MEOW_HABITAT_OBS_SQUIDLE = """
+SET NOCOUNT ON;
+
 DECLARE @realm     NVARCHAR(255) = %s;
 DECLARE @province  NVARCHAR(255) = %s;
 DECLARE @ecoregion NVARCHAR(255) = %s;
 
+DECLARE @observations TABLE
+(
+  campaign_name      NVARCHAR(254) NOT NULL,
+  deployment_id      NVARCHAR(508) NOT NULL,
+  date               DATE          NULL,
+  method             NVARCHAR(254) NOT NULL,
+  images             FLOAT         NOT NULL,
+  total_annotations  FLOAT         NOT NULL,
+  public_annotations FLOAT         NOT NULL
+);
+
+INSERT INTO @observations
 SELECT
   observation.CAMPAIGN_NAME AS campaign_name,
   observation.DEPLOYMENT_ID AS deployment_id,
@@ -516,6 +630,79 @@ FROM (
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SQUIDLE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
+"""
+
+SQL_GET_OBSERVATIONS = "SELECT * FROM @observations;"
+
+SQL_GET_GLOBALARCHIVE_STATS = """
+DECLARE @method NVARCHAR(MAX) = (SELECT
+  STRING_AGG(
+    CONVERT(NVARCHAR(MAX), method),
+    ', '
+  )
+FROM (
+  SELECT DISTINCT method
+  FROM @observations
+) AS methods);
+
+SELECT
+  COUNT(DISTINCT deployment_id) AS deployment_id,
+  COUNT(DISTINCT campaign_name) AS campaign_name,
+  MIN(date) AS start_date,
+  MAX(date) AS end_date,
+  @method AS method,
+  SUM(video_time) / 60 AS video_time
+FROM @observations;
+"""
+
+SQL_GET_SEDIMENT_STATS = """
+DECLARE @method NVARCHAR(MAX) = (SELECT
+  STRING_AGG(
+    CONVERT(NVARCHAR(MAX), method),
+    ', '
+  )
+FROM (
+  SELECT DISTINCT method
+  FROM @observations
+) AS methods);
+
+SELECT
+  COUNT(DISTINCT sample_id) AS sample_id,
+  SUM(CASE WHEN analysed='YES' THEN 1 END) AS analysed,
+  COUNT(DISTINCT survey) AS survey,
+  MIN(date) AS start_date,
+  MAX(date) AS end_date,
+  @method AS method
+FROM @observations;
+"""
+
+SQL_GET_SQUIDLE_STATS = """
+DECLARE @method NVARCHAR(MAX) = (SELECT
+  STRING_AGG(
+    CONVERT(NVARCHAR(MAX), method),
+    ', '
+  )
+FROM (
+  SELECT DISTINCT method
+  FROM @observations
+) AS methods);
+
+SELECT
+  COUNT(DISTINCT deployment_id) AS deployment_id,
+  COUNT(DISTINCT campaign_name) AS campaign_name,
+  MIN(date) AS start_date,
+  MAX(date) AS end_date,
+  @method AS method,
+  CAST(
+    SUM(images) AS INT
+  ) AS images,
+  CAST(
+    SUM(total_annotations) AS INT
+  ) AS total_annotations,
+  CAST(
+    SUM(public_annotations) AS INT
+  ) AS public_annotations
+FROM @observations;
 """
 
 def parse_bounds(bounds_str):
@@ -1099,57 +1286,57 @@ def habitat_observations(request):
     province             = params.get('province')
     ecoregion            = params.get('ecoregion')
 
-    global_archive = []
-    sediment = []
-    squidle = []
+    global_archive = None
+    sediment = None
+    squidle = None
 
     with connections['transects'].cursor() as cursor:
         try:
-            # Global Archives observations
+            # Global Archives stats
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE, [network, park, zone, zone_iucn])
+                cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [network, park, zone, zone_iucn])
             elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE, [provincial_bioregion, mesoscale_bioregion])
+                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [provincial_bioregion, mesoscale_bioregion])
             elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE, [realm, province, ecoregion])
+                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [realm, province, ecoregion])
             else:
                 raise Exception('Unhandled boundary type!')
 
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
-            results = [namedrow(*row) for row in cursor.fetchall()]
-            global_archive = [row._asdict() for row in results]
+            result = namedrow(*cursor.fetchone())
+            global_archive = result._asdict()
 
-            # Marine Sediments observations
+            # Marine Sediments stats
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SEDIMENT, [network, park, zone, zone_iucn])
+                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [network, park, zone, zone_iucn])
             elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT, [provincial_bioregion, mesoscale_bioregion])
+                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [provincial_bioregion, mesoscale_bioregion])
             elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SEDIMENT, [realm, province, ecoregion])
+                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [realm, province, ecoregion])
             else:
                 raise Exception('Unhandled boundary type!')
 
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
-            results = [namedrow(*row) for row in cursor.fetchall()]
-            sediment = [row._asdict() for row in results]
+            result = namedrow(*cursor.fetchone())
+            sediment = result._asdict()
 
             # SQUIDLE observations
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SQUIDLE, [network, park, zone, zone_iucn])
+                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [network, park, zone, zone_iucn])
             elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE, [provincial_bioregion, mesoscale_bioregion])
+                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [provincial_bioregion, mesoscale_bioregion])
             elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SQUIDLE, [realm, province, ecoregion])
+                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [realm, province, ecoregion])
             else:
                 raise Exception('Unhandled boundary type!')
             
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
-            results = [namedrow(*row) for row in cursor.fetchall()]
-            squidle = [row._asdict() for row in results]
+            result = namedrow(*cursor.fetchone())
+            squidle = result._asdict()
         except:
-            return Response({'global_archive': [], 'sediment': [], 'squidle': []})
+            return Response({'global_archive': None, 'sediment': None, 'squidle': None})
         else:
             return Response({'global_archive': global_archive, 'sediment': sediment, 'squidle': squidle})
