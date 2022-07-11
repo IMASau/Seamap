@@ -205,7 +205,7 @@
 
 (defn bathymetry-statistics [db _]
   (let [results (get-in db [:map :boundary-statistics :bathymetry :results])]
-    (map #(assoc % :color (get-in db [:habitat-colours (:category %)])) results)))
+    (map #(assoc % :color (get-in db [:habitat-colours (:resolution %)])) results)))
 
 (defn bathymetry-statistics-loading? [db _]
   (get-in db [:map :boundary-statistics :bathymetry :loading?]))
