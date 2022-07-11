@@ -750,9 +750,9 @@
 
 (defn got-habitat-observations [db [_ {:keys [global_archive sediment squidle]}]]
   (-> db
-      (assoc-in [:map :boundary-statistics :habitat-observations :global-archives] global_archive)
-      (assoc-in [:map :boundary-statistics :habitat-observations :sediments] sediment)
-      (assoc-in [:map :boundary-statistics :habitat-observations :squidles] squidle)
+      (assoc-in [:map :boundary-statistics :habitat-observations :global-archive] global_archive)
+      (assoc-in [:map :boundary-statistics :habitat-observations :sediment] sediment)
+      (assoc-in [:map :boundary-statistics :habitat-observations :squidle] squidle)
       (assoc-in [:map :boundary-statistics :habitat-observations :loading?] false)))
 
 (defn update-preview-layer [db [_ preview-layer]]

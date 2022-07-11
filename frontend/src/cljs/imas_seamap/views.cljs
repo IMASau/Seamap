@@ -1110,7 +1110,7 @@
                   "Download as Shapefile"]
                  [:div "No bathymetry information"]))}]])]))))
 
-(defn global-archives-table
+#_(defn global-archives-table
   [{:keys [global-archives]}]
   [:table
    [:thead
@@ -1135,7 +1135,7 @@
         {:colSpan 5}
         "No Global Archives observations"]])]])
 
-(defn sediments-table
+#_(defn sediments-table
   [{:keys [sediments]}]
   [:table
    [:thead
@@ -1160,7 +1160,7 @@
         {:colSpan 5}
         "No Marine Sediments observations"]])]])
 
-(defn squidles-table
+#_(defn squidles-table
   [{:keys [squidles]}]
   [:table
    [:thead
@@ -1191,7 +1191,7 @@
   (let [selected-tab (reagent/atom "breakdown")
         collapsed?   (reagent/atom false)]
     (fn []
-      (let [{:keys [global-archives sediments squidles loading?]} @(re-frame/subscribe [:map/habitat-observations])]
+      (let [{:keys [global-archive sediment squidle loading?]} @(re-frame/subscribe [:map/habitat-observations])]
         [components/drawer-group
          {:heading         "Habitat Observations"
           :icon            "media"
@@ -1210,38 +1210,20 @@
               :panel (reagent/as-element
                       [:div
                        [:h2
-                        {:class (str "bp3-heading" (when (seq squidles) " bp3-icon-caret-right"))}
-                        (if (seq squidles)
-                          (str (count squidles) " AUV deployments (" (reduce + (map :images squidles)) " images)")
+                        {:class (str "bp3-heading" (when squidle " bp3-icon-caret-right"))}
+                        (if squidle
+                          (str "(count squidles)" " AUV deployments (" "(reduce + (map :images squidles))" " images)")
                           "No AUV deployments")]
                        [:h2
-                        {:class (str "bp3-heading" (when (seq global-archives) " bp3-icon-caret-right"))}
-                        (if (seq global-archives)
-                          (str (count global-archives) " BRUV deployments (" (/ (reduce + (map :video_time global-archives)) 60) " hours)") ; TODO: check assumption that video time is in minutes, and that no/missing video time should be treated as 0
+                        {:class (str "bp3-heading" (when global-archive " bp3-icon-caret-right"))}
+                        (if global-archive
+                          (str "(count global-archives)" " BRUV deployments (" "(/ (reduce + (map :video_time global-archives)) 60)" " hours)") ; TODO: check assumption that video time is in minutes, and that no/missing video time should be treated as 0
                           "No BRUV deployments")]
                        [:h2
-                        {:class (str "bp3-heading" (when (seq sediments) " bp3-icon-caret-right"))}
-                        (if (seq sediments)
-                          (str "Sediment data (" (count sediments) " samples)")
-                          "No sediment data")]])}]
-
-            [b/tab
-             {:id    "global-archives"
-              :title "Global Archives"
-              :panel (reagent/as-element
-                      [global-archives-table {:global-archives global-archives}])}]
-
-            [b/tab
-             {:id    "sediments"
-              :title "Marine Sediments"
-              :panel (reagent/as-element
-                      [sediments-table {:sediments sediments}])}]
-
-            [b/tab
-             {:id    "squidle"
-              :title "SQUIDLE"
-              :panel (reagent/as-element
-                      [squidles-table {:squidles squidles}])}]])]))))
+                        {:class (str "bp3-heading" (when sediment " bp3-icon-caret-right"))}
+                        (if sediment
+                          (str "Sediment data (" "(count sediments)" " samples)")
+                          "No sediment data")]])}]])]))))
 
 (defn right-drawer []
   [components/drawer

@@ -53,10 +53,10 @@
                                                                   :loading? false}
                                            :bathymetry           {:results  []
                                                                   :loading? false}
-                                           :habitat-observations {:global-archives []
-                                                                  :sediments       []
-                                                                  :squidles        []
-                                                                  :loading?        false}}}
+                                           :habitat-observations {:global-archive nil
+                                                                  :sediment       nil
+                                                                  :squidle        nil
+                                                                  :loading?       false}}}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}
