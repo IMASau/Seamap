@@ -810,3 +810,25 @@ input.leaflet-control-layers-selector[type="radio"] {
 .bp3-dialog {
     overflow-wrap: break-word;
 }
+
+.habitat-observation-stats {
+    margin-bottom: 16px;
+}
+
+.habitat-observation-stats h2 {
+    cursor: pointer;
+    user-select: none;
+}
+
+.habitat-observation-stats.disabled h2 {
+    cursor: default;
+}
+
+.habitat-observation-stats ul {
+    margin: 0;
+}
+
+.habitat-observation-stats.collapsed ul,
+.habitat-observation-stats.disabled ul {
+    display: none;
+}
