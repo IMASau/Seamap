@@ -6,17 +6,19 @@ CREATE TABLE [dbo].[BOUNDARY_AMP_HABITAT] (
   [Zone_Category] NVARCHAR(254) NOT NULL,
   [IUCN_Zone]     NVARCHAR(5)   NOT NULL,
   [habitat]       NVARCHAR(30)  NOT NULL,
-  [geom]          GEOMETRY      NOT NULL
+  [geom]          GEOMETRY      NOT NULL,
+  [area]          FLOAT         NOT NULL
 );
 
-INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Zone], [habitat], [geom])
+INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Zone], [habitat], [geom], [area])
 SELECT
   [boundary].[Network],
   [boundary].[Park],
   [boundary].[Zone_Category],
   [boundary].[IUCN_Zone],
   [habitat].[CATEGORY] AS [habitat],
-  [habitat].[geom]
+  [habitat].[geom],
+  [habitat].[geom].STArea() AS [area]
 FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
 CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat];
 
@@ -26,7 +28,7 @@ CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat];
 -- DECLARE @zone      NVARCHAR(254) = NULL;
 -- DECLARE @zone_iucn NVARCHAR(5)   = NULL;
 
--- SELECT [habitat], geometry::UnionAggregate([geom])
+-- SELECT [habitat], [area]
 -- FROM [dbo].[BOUNDARY_AMP_HABITAT]
 -- WHERE
 --   ([Network] = @network OR @network IS NULL) AND

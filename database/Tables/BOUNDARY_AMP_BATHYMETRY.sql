@@ -7,10 +7,11 @@ CREATE TABLE [dbo].[BOUNDARY_AMP_BATHYMETRY] (
   [IUCN_Zone]             NVARCHAR(5)   NOT NULL,
   [bathymetry_resolution] VARCHAR(10)   NOT NULL,
   [bathymetry_rank]       INT           NOT NULL,
-  [geom]                  GEOMETRY      NOT NULL
+  [geom]                  GEOMETRY      NOT NULL,
+  [area]                  FLOAT         NOT NULL
 );
 
-INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Zone], [bathymetry_resolution], [bathymetry_rank], [geom])
+INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Zone], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
 SELECT
   [boundary].[Network],
   [boundary].[Park],
@@ -18,7 +19,8 @@ SELECT
   [boundary].[IUCN_Zone],
   [bathymetry].[RESOLUTION] AS [bathymetry_resolution],
   [bathymetry].[RANK] AS [bathymetry_rank],
-  [bathymetry].[geom]
+  [bathymetry].[geom],
+  [bathymetry].[geom].STArea() AS [area]
 FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
 CROSS APPLY [dbo].unique_bathymetry_intersections([boundary].[geom]) AS [bathymetry];
 
@@ -28,7 +30,7 @@ CROSS APPLY [dbo].unique_bathymetry_intersections([boundary].[geom]) AS [bathyme
 -- DECLARE @zone      NVARCHAR(254) = NULL;
 -- DECLARE @zone_iucn NVARCHAR(5)   = NULL;
 
--- SELECT [bathymetry_resolution], geometry::UnionAggregate([geom])
+-- SELECT [bathymetry_resolution], [area]
 -- FROM [dbo].[BOUNDARY_AMP_BATHYMETRY]
 -- WHERE
 --   ([Network] = @network OR @network IS NULL) AND
