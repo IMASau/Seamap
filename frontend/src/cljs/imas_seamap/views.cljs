@@ -1189,11 +1189,25 @@
 
 (defn squidle-stats
   [{:keys [deployment_id campaign_name start_date end_date images total_annotations public_annotations]}]
-  [:h2
-   {:class (str "bp3-heading" (when (pos? deployment_id) " bp3-icon-caret-right"))}
-   (if (pos? deployment_id)
-     (str deployment_id " imagery deployments (" campaign_name " campaigns)")
-     "No imagery deployments")])
+  (let [collapsed? (reagent/atom true)]
+    (fn []
+      (let [deployment_id      (or deployment_id 0)
+            campaign_name      (or campaign_name 0)
+            start_date         (or start_date "unknown")
+            end_date           (or end_date "unknown")
+            images             (or images 0)
+            total_annotations  (or total_annotations 0)
+            public_annotations (or public_annotations 0)]
+       [:div
+        {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? deployment_id) " disabled"))}
+        [:h2
+         {:class (str "bp3-heading" (if (or @collapsed? (not (pos? deployment_id))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
+          :on-click #(swap! collapsed? not)}
+         (str deployment_id " imagery deployments (" campaign_name " campaigns)")]
+        [:ul
+         [:li (str "Date range: " start_date " to " end_date)]
+         [:li (str images " images collected")]
+         [:li (str total_annotations " image annotations (" public_annotations " public)")]]]))))
 
 (defn global-archive-stats
   [{:keys [deployment_id campaign_name start_date end_date video_time]}]
