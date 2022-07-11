@@ -19,14 +19,15 @@ BEGIN
     ([Zone_Category] = @zonename OR @zonename IS NULL) AND
     ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
 
-  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Zone], [habitat], [geom])
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Zone], [habitat], [geom], [area])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
     [boundary].[IUCN_Zone],
     [habitat].[CATEGORY] AS [habitat],
-    [habitat].[geom]
+    [habitat].[geom],
+    [habitat].[geom].STArea() AS [area]
   FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat]
   WHERE
@@ -43,7 +44,7 @@ BEGIN
     ([Zone_Category] = @zonename OR @zonename IS NULL) AND
     ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
   
-  INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Zone], [bathymetry_resolution], [bathymetry_rank], [geom])
+  INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Zone], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
@@ -51,7 +52,8 @@ BEGIN
     [boundary].[IUCN_Zone],
     [bathymetry].[RESOLUTION] AS [bathymetry_resolution],
     [bathymetry].[RANK] AS [bathymetry_rank],
-    [bathymetry].[geom]
+    [bathymetry].[geom],
+    [bathymetry].[geom].STArea() AS [area]
   FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].unique_bathymetry_intersections([boundary].[geom]) AS [bathymetry]
   WHERE

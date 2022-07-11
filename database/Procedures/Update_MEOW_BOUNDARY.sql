@@ -17,13 +17,14 @@ BEGIN
     ([Province] = @province OR @province IS NULL) AND
     ([Ecoregion] = @ecoregion OR @ecoregion IS NULL);
 
-  INSERT INTO [dbo].[BOUNDARY_MEOW_HABITAT] ([Realm], [Province], [Ecoregion], [habitat], [geom])
+  INSERT INTO [dbo].[BOUNDARY_MEOW_HABITAT] ([Realm], [Province], [Ecoregion], [habitat], [geom], [area])
   SELECT
     [boundary].[Realm],
     [boundary].[Province],
     [boundary].[Ecoregion],
     [habitat].[CATEGORY] AS [habitat],
-    [habitat].[geom]
+    [habitat].[geom],
+    [habitat].[geom].STArea() AS [area]
   FROM [dbo].[VW_BOUNDARY_MEOW] AS [boundary]
   CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat]
   WHERE
@@ -38,14 +39,15 @@ BEGIN
     ([Province] = @province OR @province IS NULL) AND
     ([Ecoregion] = @ecoregion OR @ecoregion IS NULL);
   
-  INSERT INTO [dbo].[BOUNDARY_MEOW_BATHYMETRY] ([Realm], [Province], [Ecoregion], [bathymetry_resolution], [bathymetry_rank], [geom])
+  INSERT INTO [dbo].[BOUNDARY_MEOW_BATHYMETRY] ([Realm], [Province], [Ecoregion], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
   SELECT
     [boundary].[Realm],
     [boundary].[Province],
     [boundary].[Ecoregion],
     [bathymetry].[RESOLUTION] AS [bathymetry_resolution],
     [bathymetry].[RANK] AS [bathymetry_rank],
-    [bathymetry].[geom]
+    [bathymetry].[geom],
+    [bathymetry].[geom].STArea() AS [area]
   FROM [dbo].[VW_BOUNDARY_MEOW] AS [boundary]
   CROSS APPLY [dbo].unique_bathymetry_intersections([boundary].[geom]) AS [bathymetry]
   WHERE
