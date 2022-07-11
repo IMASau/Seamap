@@ -644,6 +644,16 @@ SELECT
 FROM @observations;
 """
 
+SQL_GET_SEDIMENT_STATS = """
+SELECT
+  COUNT(DISTINCT sample_id) AS sample_id,
+  SUM(CASE WHEN analysed='YES' THEN 1 END) AS analysed,
+  COUNT(DISTINCT survey) AS survey,
+  MIN(date) AS start_date,
+  MAX(date) AS end_date
+FROM @observations;
+"""
+
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
@@ -1225,9 +1235,9 @@ def habitat_observations(request):
     province             = params.get('province')
     ecoregion            = params.get('ecoregion')
 
-    global_archive = {}
-    sediment = []
-    squidle = []
+    global_archive = None
+    sediment = None
+    squidle = None
 
     with connections['transects'].cursor() as cursor:
         try:
@@ -1246,20 +1256,20 @@ def habitat_observations(request):
             result = namedrow(*cursor.fetchone())
             global_archive = result._asdict()
 
-            # Marine Sediments observations
+            # Marine Sediments stats
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SEDIMENT + SQL_GET_OBSERVATIONS, [network, park, zone, zone_iucn])
+                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [network, park, zone, zone_iucn])
             elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT + SQL_GET_OBSERVATIONS, [provincial_bioregion, mesoscale_bioregion])
+                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [provincial_bioregion, mesoscale_bioregion])
             elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SEDIMENT + SQL_GET_OBSERVATIONS, [realm, province, ecoregion])
+                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [realm, province, ecoregion])
             else:
                 raise Exception('Unhandled boundary type!')
 
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
-            results = [namedrow(*row) for row in cursor.fetchall()]
-            sediment = [row._asdict() for row in results]
+            result = namedrow(*cursor.fetchone())
+            sediment = result._asdict()
 
             # SQUIDLE observations
             if boundary_type == 'amp':
@@ -1276,6 +1286,6 @@ def habitat_observations(request):
             results = [namedrow(*row) for row in cursor.fetchall()]
             squidle = [row._asdict() for row in results]
         except:
-            return Response({'global_archive': [], 'sediment': [], 'squidle': []})
+            return Response({'global_archive': None, 'sediment': None, 'squidle': None})
         else:
             return Response({'global_archive': global_archive, 'sediment': sediment, 'squidle': squidle})
