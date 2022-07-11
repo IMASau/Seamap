@@ -154,9 +154,9 @@ DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
 SELECT
   habitat,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_AMP_HABITAT
     WHERE
       (Network = @netname OR @netname IS NULL) AND
@@ -164,7 +164,7 @@ SELECT
       (Zone_Category = @zonename OR @zonename IS NULL) AND
       (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
+  100 * (SUM(area) / 1000000) / %s AS total_percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BOUNDARY_AMP_HABITAT
 WHERE
@@ -181,15 +181,15 @@ DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
 SELECT
   habitat,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_IMCRA_HABITAT
     WHERE
       (Provincial_Bioregion = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
       (Mesoscale_Bioregion = @mesoscale_bioregion OR @mesoscale_bioregion IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
+  100 * (SUM(area) / 1000000) / %s AS total_percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BOUNDARY_IMCRA_HABITAT
 WHERE
@@ -205,16 +205,16 @@ DECLARE @ecoregion NVARCHAR(255) = %s;
 
 SELECT
   habitat,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_MEOW_HABITAT
     WHERE
       (Realm = @realm OR @realm IS NULL) AND
       (Province = @province OR @province IS NULL) AND
       (Ecoregion = @ecoregion OR @ecoregion IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
+  100 * (SUM(area) / 1000000) / %s AS total_percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BOUNDARY_MEOW_HABITAT
 WHERE
@@ -233,9 +233,9 @@ DECLARE @zoneiucn NVARCHAR(5)   = %s;
 SELECT
   bathymetry_resolution as resolution,
   bathymetry_rank as rank,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_AMP_BATHYMETRY
     WHERE
       (Network = @netname OR @netname IS NULL) AND
@@ -243,7 +243,7 @@ SELECT
       (Zone_Category = @zonename OR @zonename IS NULL) AND
       (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
+  100 * (SUM(area) / 1000000) / %s AS total_percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BOUNDARY_AMP_BATHYMETRY
 WHERE
@@ -261,15 +261,15 @@ DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 SELECT
   bathymetry_resolution as resolution,
   bathymetry_rank as rank,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_IMCRA_BATHYMETRY
     WHERE
       (Provincial_Bioregion = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
       (Mesoscale_Bioregion = @mesoscale_bioregion OR @mesoscale_bioregion IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
+  100 * (SUM(area) / 1000000) / %s AS total_percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BOUNDARY_IMCRA_BATHYMETRY
 WHERE
@@ -286,16 +286,16 @@ DECLARE @ecoregion NVARCHAR(255) = %s;
 SELECT
   bathymetry_resolution as resolution,
   bathymetry_rank as rank,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_MEOW_BATHYMETRY
     WHERE
       (Realm = @realm OR @realm IS NULL) AND
       (Province = @province OR @province IS NULL) AND
       (Ecoregion = @ecoregion OR @ecoregion IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
+  100 * (SUM(area) / 1000000) / %s AS total_percentage,
   geometry::UnionAggregate(geom).STAsBinary() as geom
 FROM BOUNDARY_MEOW_BATHYMETRY
 WHERE
