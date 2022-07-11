@@ -654,6 +654,24 @@ SELECT
 FROM @observations;
 """
 
+SQL_GET_SQUIDLE_STATS = """
+SELECT
+  COUNT(DISTINCT deployment_id) AS deployment_id,
+  COUNT(DISTINCT campaign_name) AS campaign_name,
+  MIN(date) AS start_date,
+  MAX(date) AS end_date,
+  CAST(
+    SUM(images) AS INT
+  ) AS images,
+  CAST(
+    SUM(total_annotations) AS INT
+  ) AS total_annotations,
+  CAST(
+    SUM(public_annotations) AS INT
+  ) AS public_annotations
+FROM @observations;
+"""
+
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
@@ -1273,18 +1291,18 @@ def habitat_observations(request):
 
             # SQUIDLE observations
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SQUIDLE + SQL_GET_OBSERVATIONS, [network, park, zone, zone_iucn])
+                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [network, park, zone, zone_iucn])
             elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE + SQL_GET_OBSERVATIONS, [provincial_bioregion, mesoscale_bioregion])
+                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [provincial_bioregion, mesoscale_bioregion])
             elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SQUIDLE + SQL_GET_OBSERVATIONS, [realm, province, ecoregion])
+                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [realm, province, ecoregion])
             else:
                 raise Exception('Unhandled boundary type!')
             
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
-            results = [namedrow(*row) for row in cursor.fetchall()]
-            squidle = [row._asdict() for row in results]
+            result = namedrow(*cursor.fetchone())
+            squidle = result._asdict()
         except:
             return Response({'global_archive': None, 'sediment': None, 'squidle': None})
         else:
