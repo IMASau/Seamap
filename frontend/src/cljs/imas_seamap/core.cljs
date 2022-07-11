@@ -194,6 +194,7 @@
     :state-of-knowledge/toggle            events/state-of-knowledge-toggle
     :state-of-knowledge/open              events/state-of-knowledge-open
     :state-of-knowledge/close             events/state-of-knowledge-close
+    :state-of-knowledge/close-pill        events/state-of-knowledge-close-pill
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close

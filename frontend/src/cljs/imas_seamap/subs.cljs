@@ -131,6 +131,9 @@
 (defn state-of-knowledge-open? [db _]
   (get-in db [:display :state-of-knowledge :open?]))
 
+(defn state-of-knowledge-pill-open? [db _]
+  (get-in db [:display :state-of-knowledge :pill-open?]))
+
 (defn layers-search-omnibar-open? [db _]
   (get-in db [:display :layers-search-omnibar]))
 

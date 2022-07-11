@@ -1374,9 +1374,9 @@
      [components/floating-pill-control-menu ; Demonstrates the floating pill control menu component - TODO: Remove after demonstration
       {:text           "State of Knowledge"
        :icon           "add-column-right"
-       :expanded?      @(re-frame/subscribe [:state-of-knowledge/open?])
+       :expanded?      @(re-frame/subscribe [:state-of-knowledge/pill-open?])
        :on-open-click  #(re-frame/dispatch [:state-of-knowledge/open])
-       :on-close-click #(re-frame/dispatch [:state-of-knowledge/close])}
+       :on-close-click #(re-frame/dispatch [:state-of-knowledge/close-pill])}
       [:div
        {:style {:width "300px"}}
        [:h4 "Description"]

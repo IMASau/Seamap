@@ -619,14 +619,23 @@
       (assoc-in [:display :left-drawer] false)
       (assoc-in [:display :drawer-panel-stack] [])))
 
-(defn state-of-knowledge-toggle [db _]
-  (update-in db [:display :state-of-knowledge :open?] not))
-
 (defn state-of-knowledge-open [db _]
-  (assoc-in db [:display :state-of-knowledge :open?] true))
+  (-> db
+      (assoc-in [:display :state-of-knowledge :open?] true)
+      (assoc-in [:display :state-of-knowledge :pill-open?] true)))
 
 (defn state-of-knowledge-close [db _]
-  (assoc-in db [:display :state-of-knowledge :open?] false))
+  (-> db
+      (assoc-in [:display :state-of-knowledge :open?] false)
+      (assoc-in [:display :state-of-knowledge :pill-open?] false)))
+
+(defn state-of-knowledge-toggle [db _]
+  (if (get-in db [:display :state-of-knowledge :open?])
+    (state-of-knowledge-close db _)
+    (state-of-knowledge-open db _)))
+
+(defn state-of-knowledge-close-pill [db _]
+  (assoc-in db [:display :state-of-knowledge :pill-open?] false))
 
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))
