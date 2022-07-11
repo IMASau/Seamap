@@ -74,7 +74,8 @@
    :display         {:help-overlay          false
                      :welcome-overlay       false
                      :left-drawer           false
-                     :right-drawer          false
+                     :state-of-knowledge    {:open?      false
+                                             :pill-open? false}
                      :layers-search-omnibar false
                      :drawer-panel-stack    []
                      :catalogue             {}

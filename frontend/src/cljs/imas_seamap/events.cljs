@@ -619,14 +619,14 @@
       (assoc-in [:display :left-drawer] false)
       (assoc-in [:display :drawer-panel-stack] [])))
 
-(defn right-drawer-toggle [db _]
-  (update-in db [:display :right-drawer] not))
+(defn state-of-knowledge-toggle [db _]
+  (update-in db [:display :state-of-knowledge :open?] not))
 
-(defn right-drawer-open [db _]
-  (assoc-in db [:display :right-drawer] true))
+(defn state-of-knowledge-open [db _]
+  (assoc-in db [:display :state-of-knowledge :open?] true))
 
-(defn right-drawer-close [db _]
-  (assoc-in db [:display :right-drawer] false))
+(defn state-of-knowledge-close [db _]
+  (assoc-in db [:display :state-of-knowledge :open?] false))
 
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))

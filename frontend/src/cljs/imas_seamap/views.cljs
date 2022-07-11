@@ -1273,13 +1273,13 @@
             [global-archive-stats global-archive]
             [sediment-stats sediment]])]))))
 
-(defn right-drawer []
+(defn state-of-knowledge []
   [components/drawer
    {:title       "State of Knowledge"
     :position    "right"
     :size        "460px"
-    :isOpen      @(re-frame/subscribe [:right-drawer/open?])
-    :onClose     #(re-frame/dispatch [:right-drawer/close])
+    :isOpen      @(re-frame/subscribe [:state-of-knowledge/open?])
+    :onClose     #(re-frame/dispatch [:state-of-knowledge/close])
     :hasBackdrop false
     :className   "state-of-knowledge-drawer"}
    [boundary-selection]
@@ -1372,7 +1372,7 @@
      [components/floating-pill-button
       {:text     "State of Knowledge"
        :icon     "add-column-right"
-       :on-click #(re-frame/dispatch [:right-drawer/toggle])}]
+       :on-click #(re-frame/dispatch [:state-of-knowledge/toggle])}]
      [components/floating-pill-control-menu ; Demonstrates the floating pill control menu component - TODO: Remove after demonstration
       {:text "Magic Box"
        :icon "box"}
@@ -1455,8 +1455,8 @@
        {:label "Toggle Left Drawer"     :combo "a"}
        [:left-drawer/toggle])
       (keydown-wrapper
-       {:label "Toggle Right Drawer"    :combo "d"}
-       [:right-drawer/toggle])
+       {:label "Toggle State of Knowledge"    :combo "d"}
+       [:state-of-knowledge/toggle])
       (keydown-wrapper
        {:label "Toggle Layers Search"   :combo "shift + s"}
        [:layers-search-omnibar/toggle])
@@ -1490,7 +1490,7 @@
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?          @(re-frame/subscribe [:left-drawer/open?])
-        state-of-knowledge-open? @(re-frame/subscribe [:right-drawer/open?])
+        state-of-knowledge-open? @(re-frame/subscribe [:state-of-knowledge/open?])
         {:keys [active-layers preview-layer]} @(re-frame/subscribe [:map/layers])]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when (seq active-layers) " active-layers") (when state-of-knowledge-open? " state-of-knowledge-open"))}
@@ -1519,7 +1519,7 @@
      [info-card]
      [loading-display]
      [left-drawer]
-     [right-drawer]
+     [state-of-knowledge]
      [layers-search-omnibar]
      [layer-preview {:preview-layer preview-layer}]]))
 

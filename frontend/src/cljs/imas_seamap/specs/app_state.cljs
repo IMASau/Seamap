@@ -443,7 +443,6 @@
 (s/def :display/sidebar (s/keys :req-un [:sidebar/collapsed :sidebar/selected]))
 ;;; drawer
 (s/def :display/left-drawer boolean?)
-(s/def :display/right-drawer  boolean?)
 (s/def :display.drawer-panel/panel #{:drawer-panel/catalogue-layers})
 (s/def :display.drawer-panel/props (s/nilable map?))
 (s/def :display/drawer-panel
@@ -451,12 +450,20 @@
                    :display.drawer-panel/props]))
 (s/def :display/drawer-panels (s/coll-of :display/drawer-panel
                                          :kind vector?))
+;; state of knowledge
+(s/def :display.state-of-knowledge/open? boolean?)
+(s/def :display.state-of-knowledge/pill-open? boolean?)
+(s/def :display/state-of-knowledge
+  (s/keys :req-un [:display.state-of-knowledge/open?
+                   :display.state-of-knowledge/pill-open?]))
+
 (s/def ::display
   (s/keys :req-un [:display/catalogue
                    :display/help-overlay
                    :display/welcome-overlay
                    :display/sidebar
                    :display/left-drawer
+                   :display/state-of-knowledge
                    :display/drawer-panels]))
 
 (s/def :filters/layers       string?)

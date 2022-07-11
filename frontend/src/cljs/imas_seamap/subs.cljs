@@ -128,8 +128,8 @@
 (defn left-drawer-open? [db _]
   (get-in db [:display :left-drawer]))
 
-(defn right-drawer-open? [db _]
-  (get-in db [:display :right-drawer]))
+(defn state-of-knowledge-open? [db _]
+  (get-in db [:display :state-of-knowledge :open?]))
 
 (defn layers-search-omnibar-open? [db _]
   (get-in db [:display :layers-search-omnibar]))
