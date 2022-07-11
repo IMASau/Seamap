@@ -635,31 +635,64 @@ ON observation.DEPLOYMENT_ID = boundary_observation.observation;
 SQL_GET_OBSERVATIONS = "SELECT * FROM @observations;"
 
 SQL_GET_GLOBALARCHIVE_STATS = """
+DECLARE @method NVARCHAR(MAX) = (SELECT
+  STRING_AGG(
+    CONVERT(NVARCHAR(MAX), method),
+    ', '
+  )
+FROM (
+  SELECT DISTINCT method
+  FROM @observations
+) AS methods);
+
 SELECT
   COUNT(DISTINCT deployment_id) AS deployment_id,
   COUNT(DISTINCT campaign_name) AS campaign_name,
   MIN(date) AS start_date,
   MAX(date) AS end_date,
+  @method AS method,
   SUM(video_time) / 60 AS video_time
 FROM @observations;
 """
 
 SQL_GET_SEDIMENT_STATS = """
+DECLARE @method NVARCHAR(MAX) = (SELECT
+  STRING_AGG(
+    CONVERT(NVARCHAR(MAX), method),
+    ', '
+  )
+FROM (
+  SELECT DISTINCT method
+  FROM @observations
+) AS methods);
+
 SELECT
   COUNT(DISTINCT sample_id) AS sample_id,
   SUM(CASE WHEN analysed='YES' THEN 1 END) AS analysed,
   COUNT(DISTINCT survey) AS survey,
   MIN(date) AS start_date,
-  MAX(date) AS end_date
+  MAX(date) AS end_date,
+  @method AS method
 FROM @observations;
 """
 
 SQL_GET_SQUIDLE_STATS = """
+DECLARE @method NVARCHAR(MAX) = (SELECT
+  STRING_AGG(
+    CONVERT(NVARCHAR(MAX), method),
+    ', '
+  )
+FROM (
+  SELECT DISTINCT method
+  FROM @observations
+) AS methods);
+
 SELECT
   COUNT(DISTINCT deployment_id) AS deployment_id,
   COUNT(DISTINCT campaign_name) AS campaign_name,
   MIN(date) AS start_date,
   MAX(date) AS end_date,
+  @method AS method,
   CAST(
     SUM(images) AS INT
   ) AS images,

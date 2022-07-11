@@ -316,6 +316,7 @@
 (s/def :map.boundary-statistics.habitat-observations.global-archive/campaign_name integer?)
 (s/def :map.boundary-statistics.habitat-observations.global-archive/start_date string?)
 (s/def :map.boundary-statistics.habitat-observations.global-archive/end_date string?)
+(s/def :map.boundary-statistics.habitat-observations.global-archive/method string?)
 (s/def :map.boundary-statistics.habitat-observations.global-archive/video_time integer?)
 
 (s/def :map.boundary-statistics.habitat-observations.sediment/sample_id integer?)
@@ -323,11 +324,13 @@
 (s/def :map.boundary-statistics.habitat-observations.sediment/survey integer?)
 (s/def :map.boundary-statistics.habitat-observations.sediment/start_date string?)
 (s/def :map.boundary-statistics.habitat-observations.sediment/end_date string?)
+(s/def :map.boundary-statistics.habitat-observations.sediment/method string?)
 
 (s/def :map.boundary-statistics.habitat-observations.squidle/deployment_id integer?)
 (s/def :map.boundary-statistics.habitat-observations.squidle/campaign_name integer?)
 (s/def :map.boundary-statistics.habitat-observations.squidle/start_date string?)
 (s/def :map.boundary-statistics.habitat-observations.squidle/end_date string?)
+(s/def :map.boundary-statistics.habitat-observations.squidle/method string?)
 (s/def :map.boundary-statistics.habitat-observations.squidle/images integer?)
 (s/def :map.boundary-statistics.habitat-observations.squidle/total_annotations integer?)
 (s/def :map.boundary-statistics.habitat-observations.squidle/public_annotations integer?)
@@ -338,6 +341,7 @@
                     :map.boundary-statistics.habitat-observations.global-archive/campaign_name
                     :map.boundary-statistics.habitat-observations.global-archive/start_date
                     :map.boundary-statistics.habitat-observations.global-archive/end_date
+                    :map.boundary-statistics.habitat-observations.global-archive/method
                     :map.boundary-statistics.habitat-observations.global-archive/video_time])))
 (s/def :map.boundary-statistics.habitat-observations/sediment
   (s/nilable
@@ -345,13 +349,15 @@
                     :map.boundary-statistics.habitat-observations.sediment/analysed
                     :map.boundary-statistics.habitat-observations.sediment/survey
                     :map.boundary-statistics.habitat-observations.sediment/start_date
-                    :map.boundary-statistics.habitat-observations.sediment/end_date])))
+                    :map.boundary-statistics.habitat-observations.sediment/end_date
+                    :map.boundary-statistics.habitat-observations.sediment/method])))
 (s/def :map.boundary-statistics.habitat-observations/squidle
   (s/nilable
    (s/keys :req-un [:map.boundary-statistics.habitat-observations.squidle/deployment_id
                     :map.boundary-statistics.habitat-observations.squidle/campaign_name
                     :map.boundary-statistics.habitat-observations.squidle/start_date
                     :map.boundary-statistics.habitat-observations.squidle/end_date
+                    :map.boundary-statistics.habitat-observations.squidle/method
                     :map.boundary-statistics.habitat-observations.squidle/images
                     :map.boundary-statistics.habitat-observations.squidle/total_annotations
                     :map.boundary-statistics.habitat-observations.squidle/public_annotations])))

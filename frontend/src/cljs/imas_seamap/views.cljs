@@ -1188,13 +1188,14 @@
         "No SQUIDLE observations"]])]])
 
 (defn squidle-stats
-  [{:keys [deployment_id campaign_name start_date end_date images total_annotations public_annotations]}]
+  [{:keys [deployment_id campaign_name start_date end_date method images total_annotations public_annotations]}]
   (let [collapsed? (reagent/atom true)]
     (fn []
       (let [deployment_id      (or deployment_id 0)
             campaign_name      (or campaign_name 0)
             start_date         (or start_date "unknown")
             end_date           (or end_date "unknown")
+            method             (or method "N/A")
             images             (or images 0)
             total_annotations  (or total_annotations 0)
             public_annotations (or public_annotations 0)]
@@ -1206,17 +1207,19 @@
          (str deployment_id " imagery deployments (" campaign_name " campaigns)")]
         [:ul
          [:li (str "Date range: " start_date " to " end_date)]
+         [:li (str "Methods of collection: " method)]
          [:li (str images " images collected")]
          [:li (str total_annotations " image annotations (" public_annotations " public)")]]]))))
 
 (defn global-archive-stats
-  [{:keys [deployment_id campaign_name start_date end_date video_time]}]
+  [{:keys [deployment_id campaign_name start_date end_date method video_time]}]
   (let [collapsed? (reagent/atom true)]
     (fn []
       (let [deployment_id (or deployment_id 0)
             campaign_name (or campaign_name 0)
             start_date    (or start_date "unknown")
             end_date      (or end_date "unknown")
+            method        (or method "N/A")
             video_time    (or video_time 0)]
         [:div
          {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? deployment_id) " disabled"))}
@@ -1226,10 +1229,11 @@
           (str deployment_id " video deployments (" campaign_name " campaigns)")]
          [:ul
           [:li (str "Date range: " start_date " to " end_date)]
+          [:li (str "Methods of collection: " method)]
           [:li (str video_time " hours of video")]]]))))
 
 (defn sediment-stats
-  [{:keys [sample_id analysed survey start_date end_date]}]
+  [{:keys [sample_id analysed survey start_date end_date method]}]
   [:h2
    {:class (str "bp3-heading" (when (pos? sample_id) " bp3-icon-caret-right"))}
    (if (pos? sample_id)
@@ -1241,7 +1245,8 @@
             analysed   (or analysed 0)
             survey     (or survey 0)
             start_date (or start_date "unknown")
-            end_date   (or end_date "unknown")]
+            end_date   (or end_date "unknown")
+            method     (or method "N/A")]
         [:div
          {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? sample_id) " disabled"))}
          [:h2
@@ -1249,7 +1254,8 @@
            :on-click #(swap! collapsed? not)}
           (str sample_id " sediment samples (" analysed " analysed) from " survey " surveys")]
          [:ul
-          [:li (str "Date range: " start_date " to " end_date)]]]))))
+          [:li (str "Date range: " start_date " to " end_date)]
+          [:li (str "Methods of collection: " method)]]]))))
 
 (defn habitat-observations []
   (let [collapsed?   (reagent/atom false)]
