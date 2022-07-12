@@ -16,6 +16,7 @@
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
+            [imas-seamap.state-of-knowledge.subs :as soksubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
             [imas-seamap.views :as views]
@@ -30,16 +31,6 @@
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
-    :map/amp-boundaries                   msubs/amp-boundaries
-    :map/imcra-boundaries                 msubs/imcra-boundaries
-    :map/meow-boundaries                  msubs/meow-boundaries
-    :map/habitat-statistics               msubs/habitat-statistics
-    :map/habitat-statistics-loading?      msubs/habitat-statistics-loading?
-    :map/habitat-statistics-download-url  msubs/habitat-statistics-download-url 
-    :map/bathymetry-statistics            msubs/bathymetry-statistics
-    :map/bathymetry-statistics-loading?   msubs/bathymetry-statistics-loading?
-    :map/bathymetry-statistics-download-url msubs/bathymetry-statistics-download-url
-    :map/habitat-observations             msubs/habitat-observations
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/priorities                msubs/map-layer-priorities
@@ -50,6 +41,16 @@
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
+    :sok/habitat-statistics               soksubs/habitat-statistics
+    :sok/habitat-statistics-download-url  soksubs/habitat-statistics-download-url
+    :sok/bathymetry-statistics            soksubs/bathymetry-statistics
+    :sok/bathymetry-statistics-download-url soksubs/bathymetry-statistics-download-url
+    :sok/habitat-observations             soksubs/habitat-observations
+    :sok/amp-boundaries                   soksubs/amp-boundaries
+    :sok/imcra-boundaries                 soksubs/imcra-boundaries
+    :sok/meow-boundaries                  soksubs/meow-boundaries
+    :sok/open?                            soksubs/open?
+    :sok/pill-open?                       soksubs/pill-open?
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
@@ -58,8 +59,6 @@
     :help-layer/open?                     subs/help-layer-open?
     :welcome-layer/open?                  subs/welcome-layer-open?
     :left-drawer/open?                    subs/left-drawer-open?
-    :state-of-knowledge/open?             subs/state-of-knowledge-open?
-    :state-of-knowledge/pill-open?        subs/state-of-knowledge-pill-open?
     :layers-search-omnibar/open?          subs/layers-search-omnibar-open?
     :drawer-panel-stack/panels            subs/drawer-panel-stack
     :ui.catalogue/tab                     subs/catalogue-tab

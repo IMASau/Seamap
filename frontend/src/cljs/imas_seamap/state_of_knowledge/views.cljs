@@ -18,17 +18,17 @@
                     active-network
                     active-park
                     active-zone
-                    active-zone-iucn]}           @(re-frame/subscribe [:map/amp-boundaries])
+                    active-zone-iucn]}           @(re-frame/subscribe [:sok/amp-boundaries])
             {:keys [provincial-bioregions
                     mesoscale-bioregions
                     active-provincial-bioregion
-                    active-mesoscale-bioregion]} @(re-frame/subscribe [:map/imcra-boundaries])
+                    active-mesoscale-bioregion]} @(re-frame/subscribe [:sok/imcra-boundaries])
             {:keys [realms
                     provinces
                     ecoregions
                     active-realm
                     active-province
-                    active-ecoregion]}           @(re-frame/subscribe [:map/meow-boundaries])]
+                    active-ecoregion]}           @(re-frame/subscribe [:sok/meow-boundaries])]
         [:div.boundaries-selection
          [components/drawer-group
           {:heading "Boundaries"
@@ -180,10 +180,9 @@
   (let [selected-tab (reagent/atom "breakdown")
         collapsed?   (reagent/atom false)]
     (fn []
-      (let [loading?           @(re-frame/subscribe [:map/habitat-statistics-loading?])
-            habitat-statistics @(re-frame/subscribe [:map/habitat-statistics])
-            habitat-statistics-download-url @(re-frame/subscribe [:map/habitat-statistics-download-url])
-            without-unmapped   (filter :habitat habitat-statistics)]
+      (let [{:keys [loading? results]} @(re-frame/subscribe [:sok/habitat-statistics])
+            download-url @(re-frame/subscribe [:sok/habitat-statistics-download-url])
+            without-unmapped   (filter :habitat results)]
         [components/drawer-group
          {:heading     "Habitat Statistics"
           :icon        "home"
@@ -202,7 +201,7 @@
               :panel
               (reagent/as-element
                [habitat-statistics-table
-                {:habitat-statistics habitat-statistics}])}]
+                {:habitat-statistics results}])}]
 
             [b/tab
              {:id    "chart"
@@ -227,7 +226,7 @@
               (reagent/as-element
                (if (seq without-unmapped)
                  [:a.download
-                  {:href habitat-statistics-download-url}
+                  {:href download-url}
                   "Download as Shapefile"]
                  [:div "No habitat information"]))}]])]))))
 
@@ -259,10 +258,9 @@
   (let [selected-tab (reagent/atom "breakdown")
         collapsed?   (reagent/atom false)]
     (fn []
-      (let [loading?              @(re-frame/subscribe [:map/bathymetry-statistics-loading?])
-            bathymetry-statistics @(re-frame/subscribe [:map/bathymetry-statistics])
-            bathymetry-statistics-download-url @(re-frame/subscribe [:map/bathymetry-statistics-download-url])
-            without-unmapped      (filter :resolution bathymetry-statistics)]
+      (let [{:keys [loading? results]} @(re-frame/subscribe [:sok/bathymetry-statistics])
+            download-url @(re-frame/subscribe [:sok/bathymetry-statistics-download-url])
+            without-unmapped      (filter :resolution results)]
         [components/drawer-group
          {:heading         "Bathymetry Statistics"
           :icon            "timeline-area-chart"
@@ -280,7 +278,7 @@
               :title "Breakdown"
               :panel (reagent/as-element
                       [bathymetry-statistics-table
-                       {:bathymetry-statistics bathymetry-statistics}])}]
+                       {:bathymetry-statistics results}])}]
 
             [b/tab
              {:id    "chart"
@@ -306,7 +304,7 @@
               (reagent/as-element
                (if (seq without-unmapped)
                  [:a.download
-                  {:href bathymetry-statistics-download-url}
+                  {:href download-url}
                   "Download as Shapefile"]
                  [:div "No bathymetry information"]))}]])]))))
 
@@ -383,7 +381,7 @@
 (defn habitat-observations []
   (let [collapsed?   (reagent/atom false)]
     (fn []
-      (let [{:keys [squidle global-archive sediment loading?]} @(re-frame/subscribe [:map/habitat-observations])]
+      (let [{:keys [squidle global-archive sediment loading?]} @(re-frame/subscribe [:sok/habitat-observations])]
         [components/drawer-group
          {:heading         "Habitat Observations"
           :icon            "media"
@@ -401,7 +399,7 @@
    {:title       "State of Knowledge"
     :position    "right"
     :size        "460px"
-    :isOpen      @(re-frame/subscribe [:state-of-knowledge/open?])
+    :isOpen      @(re-frame/subscribe [:sok/open?])
     :onClose     #(re-frame/dispatch [:state-of-knowledge/close])
     :hasBackdrop false
     :className   "state-of-knowledge-drawer"}
@@ -414,7 +412,7 @@
   [components/floating-pill-control-menu
    {:text           "State of Knowledge"
     :icon           "add-column-right"
-    :expanded?      @(re-frame/subscribe [:state-of-knowledge/pill-open?])
+    :expanded?      @(re-frame/subscribe [:sok/pill-open?])
     :on-open-click  #(re-frame/dispatch [:state-of-knowledge/open])
     :on-close-click #(re-frame/dispatch [:state-of-knowledge/close-pill])}
    [:div ; TODO: replace content
