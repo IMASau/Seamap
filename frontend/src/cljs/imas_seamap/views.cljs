@@ -11,10 +11,9 @@
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill]]
             [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer [handler-fn handler-dispatch first-where] :include-macros true]
+            [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
-            [goog.string :as gstring]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -594,72 +593,6 @@
                                   :position RIGHT}
                        [:span.bp3-icon-standard {:class (str "bp3-icon-" icon-name)}]]))
 
-;; Unused
-#_(defn layer-tab [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-  [:div.sidebar-tab.height-managed
-   [transect-toggle]
-   [selection-button]
-   [layer-logic-toggle]
-   [layer-search-filter]
-   [layer-group {:expanded true :title "Layers"} layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-   [help-button]])
-
-;; Unused
-#_(defn catalogue-layer-tab [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn group]
-  [:div.sidebar-tab.height-managed
-   [transect-toggle]
-   [selection-button]
-   [layer-logic-toggle]
-   [layer-search-filter]
-   [layer-catalogue layers
-    {:active-layers active-layers
-     :visible-layers visible-layers
-     :loading-fn    loading-fn
-     :error-fn      error-fn
-     :expanded-fn   expanded-fn
-     :opacity-fn    opacity-fn}
-    group]
-   [help-button]])
-
-;; Unused
-#_(defn management-layer-tab [boundaries habitat-layer active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-  [:div.sidebar-tab.height-managed
-   [:div.boundary-layers.height-managed.group-scrollable
-    [:h6 "Boundary Layers"]
-    (for [layer boundaries]
-      ^{:key (:layer_name layer)}
-      [layer-card layer {:active?   (some #{layer} active-layers)
-                         :visible?  (some #{layer} visible-layers)
-                         :loading?  (loading-fn layer)
-                         :errors?   (error-fn layer)
-                         :expanded? (expanded-fn layer)
-                         :opacity   (opacity-fn layer)}])]
-   [:label.bp3-label.height-managed
-    "Habitat layer for region statistics (only one active layer may be selected at a time):"
-    [b/popover {:position           b/BOTTOM
-                :class         "full-width"
-                :popover-class-name "bp3-minimal"
-                :content            (reagent/as-element
-                                     [b/menu
-                                      (for [layer (filter #(= :habitat (:category %)) active-layers)]
-                                        ^{:key (:layer_name layer)}
-                                        [b/menu-item {:text     (:name layer)
-                                                      :on-click #(re-frame/dispatch [:map.region-stats/select-habitat layer])}])])}
-     [b/button {:text       (get habitat-layer :name "Select Habitat Layer for statistics...")
-                :class "bp3-fill bp3-text-overflow-ellipsis"
-                :intent     (when-not habitat-layer b/INTENT-WARNING)
-                :right-icon "caret-down"}]]]
-   [:div.bp3-callout.bp3-icon-help.height-managed
-    [:h5 "Hints"]
-    [:p "Choose a management boundary and select a habitat layer for
-    spatial summaries. Note that only visible habitat layers will be
-    available for selection."]
-
-    [:p "Click on a management boundary (on the map) to generate
-    habitat statistics for that region, and to download the subsetted
-    benthic habitat data."]]
-   [help-button]])
-
 (defn active-layers-tab
   [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
@@ -700,57 +633,6 @@
         {:icon     "undo"
          :text     "Reset Interface"
          :on-click   #(re-frame/dispatch [:re-boot])}]]]}))
-
-;; Unused
-#_(defn layer-panel
-  [{:keys [title layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
-  {:title title
-   :content
-   [:div.sidebar-tab.height-managed
-    [layer-search-filter]
-    [layer-group {:expanded true :title "Layers"} layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]})
-
-;; Unused
-#_(defn management-layers-panel
-  [{:keys [layers habitat-layer active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
-  {:title "Management Region Layers"
-   :content
-   [:div.sidebar-tab.height-managed
-    [:div.boundary-layers.height-managed.group-scrollable.layer-group
-     [:h1.bp3-heading "Boundary Layers"]
-     (for [layer layers]
-       ^{:key (:layer_name layer)}
-       [layer-card layer {:active?   (some #{layer} active-layers)
-                          :visible?  (some #{layer} visible-layers)
-                          :loading?  (loading-layers layer)
-                          :errors?   (error-layers layer)
-                          :expanded? (expanded-layers layer)
-                          :opacity   (layer-opacities layer)}])]
-    [:div
-     [:label.bp3-label.height-managed
-      "Habitat layer for region statistics (only one active layer may be selected at a time):"
-      [b/popover {:position           b/BOTTOM
-                  :class         "full-width"
-                  :popover-class-name "bp3-minimal"
-                  :content            (reagent/as-element
-                                       [b/menu
-                                        (for [layer (filter #(= :habitat (:category %)) active-layers)]
-                                          ^{:key (:layer_name layer)}
-                                          [b/menu-item {:text     (:name layer)
-                                                        :on-click #(re-frame/dispatch [:map.region-stats/select-habitat layer])}])])}
-       [b/button {:text       (get habitat-layer :name "Select Habitat Layer for statistics...")
-                  :class "bp3-fill bp3-text-overflow-ellipsis"
-                  :intent     (when-not habitat-layer b/INTENT-WARNING)
-                  :right-icon "caret-down"}]]]
-     [:div.bp3-callout.bp3-icon-help.height-managed
-      [:h5 "Hints"]
-      [:p "Choose a management boundary and select a habitat layer for
-    spatial summaries. Note that only visible habitat layers will be
-    available for selection."]
-
-      [:p "Click on a management boundary (on the map) to generate
-    habitat statistics for that region, and to download the subsetted
-    benthic habitat data."]]]]})
 
 (defn catalogue-layers-panel
   [{:keys [title layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities group]}]
