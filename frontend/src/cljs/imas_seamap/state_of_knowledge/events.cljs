@@ -281,7 +281,10 @@
                (assoc-in [:state-of-knowledge :open?] false)
                (assoc-in [:state-of-knowledge :pill-open?] false))]
     {:db db
-     :dispatch [:sok/update-active-boundary nil]}))
+     :dispatch-n [[:sok/update-active-boundary nil]
+                  [:sok/got-habitat-statistics nil]
+                  [:sok/got-bathymetry-statistics nil]
+                  [:sok/got-habitat-observations nil]]}))
 
 (defn toggle [{:keys [db]} _]
   {:dispatch (if (get-in db [:state-of-knowledge :open?])
