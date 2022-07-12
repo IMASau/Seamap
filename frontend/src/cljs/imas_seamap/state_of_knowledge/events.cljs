@@ -104,10 +104,10 @@
                   [:sok/get-habitat-observations]]}))
 
 (defn update-active-mesoscale-bioregion [{:keys [db]} [_ {:keys [provincial-bioregion] :as mesoscale-bioregion}]]
-  (let [provincial-bioregions (get-in db [:map :boundaries :imcra :provincial-bioregions])
-        provincial-bioregion (first-where #(= (:name %) provincial-bioregion) provincial-bioregions)
+  (let [provincial-bioregions (get-in db [:state-of-knowledge :boundaries :imcra :provincial-bioregions])
+        provincial-bioregion2 (first-where #(= (:name %) provincial-bioregion) provincial-bioregions)
         db (-> db
-               (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)
+               (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] provincial-bioregion2)
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] mesoscale-bioregion))]
     {:db db
      :dispatch-n [[:sok/get-habitat-statistics]
@@ -116,7 +116,7 @@
 
 (defn update-active-realm [{:keys [db]} [_ realm]]
   (let [db (cond-> db
-             (not= realm (get-in db [:map :boundaries :meow :active-realm]))
+             (not= realm (get-in db [:state-of-knowledge :boundaries :meow :active-realm]))
              (->
               (assoc-in [:state-of-knowledge :boundaries :meow :active-realm] realm)
               (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
@@ -141,7 +141,7 @@
                   [:sok/get-habitat-observations]]}))
 
 (defn update-active-ecoregion [{:keys [db]} [_ {:keys [realm province] :as ecoregion}]]
-  (let [{:keys [realms provinces]} (get-in db [:map :boundaries :meow])
+  (let [{:keys [realms provinces]} (get-in db [:state-of-knowledge :boundaries :meow])
         realm (first-where #(= (:name %) realm) realms)
         province (first-where #(= (:name %) province) provinces)
         db (-> db
