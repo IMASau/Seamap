@@ -771,15 +771,29 @@
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         transect-info            @(re-frame/subscribe [:transect/info])
         region-info              @(re-frame/subscribe [:map.layer.selection/info])
+        state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
+        amp-boundaries           @(re-frame/subscribe [:sok/amp-boundaries])
+        imcra-boundaries         @(re-frame/subscribe [:sok/imcra-boundaries])
+        meow-boundaries          @(re-frame/subscribe [:sok/meow-boundaries])
         boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])]
     [:div
-     {:class (str "floating-pills" (when collapsed " collapsed"))} 
+     {:class (str "floating-pills" (when collapsed " collapsed"))}
+
      [floating-transect-pill transect-info]
      [floating-region-pill region-info]
+
      [floating-state-of-knowledge-pill
       {:boundaries boundaries
-       :active-boundary active-boundary}]]))
+       :active-boundary active-boundary}]
+     
+     (when (and state-of-knowledge-open? active-boundary)
+       [floating-boundaries-pill
+        (merge
+         amp-boundaries
+         imcra-boundaries
+         meow-boundaries
+         {:active-boundary active-boundary})])]))
 
 (defn layers-search-omnibar
   []

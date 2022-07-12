@@ -426,3 +426,98 @@
        :keyfns
        {:id   :id
         :text :name}}]]]])
+
+(defn floating-boundaries-pill
+  [{:keys
+    [networks parks provincial-bioregions mesoscale-bioregions realms provinces
+     ecoregions active-network active-park active-provincial-bioregion
+     active-mesoscale-bioregion active-realm active-province active-ecoregion
+     active-boundary]}]
+  (let [amp?   (= (:id active-boundary) "amp")
+        imcra? (= (:id active-boundary) "imcra")
+        meow?  (= (:id active-boundary) "meow")]
+    [components/floating-pill-control-menu
+     {:text           "Boundaries"
+      :icon           "heatmap"}
+     [:div.state-of-knowledge-pill-content
+
+      (when amp?
+        [components/form-group
+         {:label "Network"}
+         [components/select
+          {:value    active-network
+           :options  networks
+           :onChange #(re-frame/dispatch [:sok/update-active-network %])
+           :keyfns
+           {:id   :name
+            :text :name}}]])
+
+      (when amp?
+        [components/form-group
+         {:label "Park"}
+         [components/select
+          {:value    active-park
+           :options  parks
+           :onChange #(re-frame/dispatch [:sok/update-active-park %])
+           :keyfns
+           {:id          :name
+            :text        :name
+            :breadcrumbs (comp vector :network)}}]])
+
+      (when imcra?
+        [components/form-group
+         {:label "Provincial Bioregion"}
+         [components/select
+          {:value    active-provincial-bioregion
+           :options  provincial-bioregions
+           :onChange #(re-frame/dispatch [:sok/update-active-provincial-bioregion %])
+           :keyfns
+           {:id   :name
+            :text :name}}]])
+
+      (when imcra?
+        [components/form-group
+         {:label "Mesoscale Bioregion"}
+         [components/select
+          {:value    active-mesoscale-bioregion
+           :options  mesoscale-bioregions
+           :onChange #(re-frame/dispatch [:sok/update-active-mesoscale-bioregion %])
+           :keyfns
+           {:id          :name
+            :text        :name
+            :breadcrumbs (comp vector :provincial-bioregion)}}]])
+
+      (when meow?
+        [components/form-group
+         {:label "Realms"}
+         [components/select
+          {:value    active-realm
+           :options  realms
+           :onChange #(re-frame/dispatch [:sok/update-active-realm %])
+           :keyfns
+           {:id   :name
+            :text :name}}]])
+
+      (when meow?
+        [components/form-group
+         {:label "Provinces"}
+         [components/select
+          {:value    active-province
+           :options  provinces
+           :onChange #(re-frame/dispatch [:sok/update-active-province %])
+           :keyfns
+           {:id          :name
+            :text        :name
+            :breadcrumbs (comp vector :realm)}}]])
+
+      (when meow?
+        [components/form-group
+         {:label "Ecoregions"}
+         [components/select
+          {:value    active-ecoregion
+           :options  ecoregions
+           :onChange #(re-frame/dispatch [:sok/update-active-ecoregion %])
+           :keyfns
+           {:id          :name
+            :text        :name
+            :breadcrumbs (fn [{:keys [realm province]}] [realm province])}}]])]]))
