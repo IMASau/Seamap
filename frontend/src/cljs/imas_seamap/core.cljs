@@ -50,6 +50,8 @@
     :sok/amp-boundaries                   soksubs/amp-boundaries
     :sok/imcra-boundaries                 soksubs/imcra-boundaries
     :sok/meow-boundaries                  soksubs/meow-boundaries
+    :sok/boundaries                       soksubs/boundaries
+    :sok/active-boundary                  soksubs/active-boundary
     :sok/open?                            soksubs/open?
     :sok/pill-open?                       soksubs/pill-open?
     :sorting/info                         subs/sorting-info

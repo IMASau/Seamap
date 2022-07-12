@@ -249,10 +249,12 @@
 
 
 ;; state of knowledge
+(s/def :state-of-knowledge.boundaries.active-boundary/short string?)
+(s/def :state-of-knowledge.boundaries.active-boundary/name string?)
 (s/def :state-of-knowledge.boundaries/active-boundary
-  (s/nilable #{:state-of-knowledge.boundaries.active-boundary/amp
-               :state-of-knowledge.boundaries.active-boundary/imcra
-               :state-of-knowledge.boundaries.active-boundary/meow}))
+  (s/nilable
+   (s/keys :req-un [:state-of-knowledge.boundaries.active-boundary/id
+                    :state-of-knowledge.boundaries.active-boundary/name])))
 
 (s/def :state-of-knowledge.boundaries.amp.network/name string?)
 (s/def :state-of-knowledge.boundaries.amp.park/name string?)

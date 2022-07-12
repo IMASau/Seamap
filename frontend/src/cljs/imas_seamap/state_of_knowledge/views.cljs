@@ -408,7 +408,8 @@
    [bathymetry-statistics]
    [habitat-observations]])
 
-(defn floating-state-of-knowledge-pill []
+(defn floating-state-of-knowledge-pill
+  [{:keys [boundaries active-boundary]}]
   [components/floating-pill-control-menu
    {:text           "State of Knowledge"
     :icon           "add-column-right"
@@ -419,9 +420,9 @@
     [components/form-group
      {:label "Management Region"}
      [components/select
-      {:value    {:id "chocolate"}
-       :options  [{:id "chocolate"} {:id "strawberry"} {:id "vanilla"}]
-       :onChange #(js/console.warn %)
+      {:value    active-boundary
+       :options  boundaries
+       :onChange #(re-frame/dispatch [:sok/update-active-boundary %])
        :keyfns
-       {:id          :id
-        :text        :id}}]]]])
+       {:id   :id
+        :text :name}}]]]])

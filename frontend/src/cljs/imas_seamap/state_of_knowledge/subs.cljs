@@ -2,7 +2,8 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.state-of-knowledge.subs
-  (:require [imas-seamap.utils :refer [append-query-params-from-map]]))
+  (:require [imas-seamap.utils :refer [append-query-params-from-map]]
+            [imas-seamap.state-of-knowledge.utils :as utils]))
 
 (defn habitat-statistics [db _]
   (let [{:keys [results loading?]} (get-in db [:state-of-knowledge :statistics :habitat])
@@ -15,11 +16,7 @@
         {:keys [active-network active-park active-zone active-zone-iucn]} amp
         {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
         {:keys [active-realm active-province active-ecoregion]} meow
-        active-boundary (case active-boundary
-                          :state-of-knowledge.boundaries.active-boundary/amp   "amp"
-                          :state-of-knowledge.boundaries.active-boundary/imcra "imcra"
-                          :state-of-knowledge.boundaries.active-boundary/meow  "meow"
-                          nil)
+        active-boundary (:id active-boundary)
         [active-network active-park active-zone active-zone-iucn
          active-provincial-bioregion active-mesoscale-bioregion active-realm
          active-province active-ecoregion]
@@ -53,11 +50,7 @@
         {:keys [active-network active-park active-zone active-zone-iucn]} amp
         {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
         {:keys [active-realm active-province active-ecoregion]} meow
-        active-boundary (case active-boundary
-                          :state-of-knowledge.boundaries.active-boundary/amp   "amp"
-                          :state-of-knowledge.boundaries.active-boundary/imcra "imcra"
-                          :state-of-knowledge.boundaries.active-boundary/meow  "meow"
-                          nil)
+        active-boundary (:id active-boundary)
         [active-network active-park active-zone active-zone-iucn
          active-provincial-bioregion active-mesoscale-bioregion active-realm
          active-province active-ecoregion]
@@ -91,6 +84,12 @@
 
 (defn meow-boundaries [db _]
   (get-in db [:state-of-knowledge :boundaries :meow]))
+
+(defn boundaries [db _]
+  utils/boundaries)
+
+(defn active-boundary [db _]
+  (get-in db [:state-of-knowledge :boundaries :active-boundary]))
 
 (defn open? [db _]
   (get-in db [:state-of-knowledge :open?]))
