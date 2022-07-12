@@ -177,9 +177,9 @@
     :sok/got-bathymetry-statistics        sokevents/got-bathymetry-statistics
     :sok/get-habitat-observations         [sokevents/get-habitat-observations]
     :sok/got-habitat-observations         sokevents/got-habitat-observations
-    :sok/toggle                           sokevents/toggle
+    :sok/toggle                           [sokevents/toggle]
     :sok/open                             sokevents/open
-    :sok/close                            sokevents/close
+    :sok/close                            [sokevents/close]
     :sok/close-pill                       sokevents/close-pill
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded

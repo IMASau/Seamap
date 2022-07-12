@@ -276,15 +276,17 @@
       (assoc-in [:state-of-knowledge :open?] true)
       (assoc-in [:state-of-knowledge :pill-open?] true)))
 
-(defn close [db _]
-  (-> db
-      (assoc-in [:state-of-knowledge :open?] false)
-      (assoc-in [:state-of-knowledge :pill-open?] false)))
+(defn close [{:keys [db]} _]
+  (let [db (-> db
+               (assoc-in [:state-of-knowledge :open?] false)
+               (assoc-in [:state-of-knowledge :pill-open?] false))]
+    {:db db
+     :dispatch [:sok/update-active-boundary nil]}))
 
-(defn toggle [db _]
-  (if (get-in db [:state-of-knowledge :open?])
-    (close db _)
-    (open db _)))
+(defn toggle [{:keys [db]} _]
+  {:dispatch (if (get-in db [:state-of-knowledge :open?])
+               [:sok/close]
+               [:sok/open])})
 
 (defn close-pill [db _]
   (assoc-in db [:state-of-knowledge :pill-open?] false))
