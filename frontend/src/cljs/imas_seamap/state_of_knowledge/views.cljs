@@ -8,150 +8,6 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.components :as components]))
 
-(defn boundary-selection []
-  (let [selected-tab (reagent/atom "amp")]
-    (fn []
-      (let [{:keys [networks
-                    parks
-                    zones
-                    zones-iucn
-                    active-network
-                    active-park
-                    active-zone
-                    active-zone-iucn]}           @(re-frame/subscribe [:sok/amp-boundaries])
-            {:keys [provincial-bioregions
-                    mesoscale-bioregions
-                    active-provincial-bioregion
-                    active-mesoscale-bioregion]} @(re-frame/subscribe [:sok/imcra-boundaries])
-            {:keys [realms
-                    provinces
-                    ecoregions
-                    active-realm
-                    active-province
-                    active-ecoregion]}           @(re-frame/subscribe [:sok/meow-boundaries])]
-        [:div.boundaries-selection
-         [components/drawer-group
-          {:heading "Boundaries"
-           :icon    "heatmap"}
-          [b/tabs
-           {:id              "boundary-selection-tabs"
-            :selected-tab-id @selected-tab
-            :on-change       #(reset! selected-tab %)}
-
-           [b/tab
-            {:id "amp"
-             :title "AMP Boundaries"
-             :panel
-             (reagent/as-element
-              [:div
-               [:h2.bp3-heading "Australian Marine Parks"]
-               [components/form-group
-                {:label "Network"}
-                [components/select
-                 {:value    active-network
-                  :options  networks
-                  :onChange #(re-frame/dispatch [:sok/update-active-network %])
-                  :keyfns
-                  {:id   :name
-                   :text :name}}]]
-               [components/form-group
-                {:label "Park"}
-                [components/select
-                 {:value    active-park
-                  :options  parks
-                  :onChange #(re-frame/dispatch [:sok/update-active-park %])
-                  :keyfns
-                  {:id          :name
-                   :text        :name
-                   :breadcrumbs (comp vector :network)}}]]
-               [components/form-group
-                {:label "Zone Category"}
-                [components/select
-                 {:value    active-zone
-                  :options  zones
-                  :onChange #(re-frame/dispatch [:sok/update-active-zone %])
-                  :keyfns
-                  {:id   :name
-                   :text :name}}]]
-               [components/form-group
-                {:label "IUCN Category (Zone)"}
-                [components/select
-                 {:value    active-zone-iucn
-                  :options  zones-iucn
-                  :onChange #(re-frame/dispatch [:sok/update-active-zone-iucn %])
-                  :keyfns
-                  {:id   :name
-                   :text :name}}]]])}]
-
-           [b/tab
-            {:id "imcra"
-             :title "IMCRA Boundaries"
-             :panel
-             (reagent/as-element
-              [:div
-               [:h2.bp3-heading "Integrated Marine and Coastal Regionalisation of Australia"]
-               [components/form-group
-                {:label "Provincial Bioregion"}
-                [components/select
-                 {:value    active-provincial-bioregion
-                  :options  provincial-bioregions
-                  :onChange #(re-frame/dispatch [:sok/update-active-provincial-bioregion %])
-                  :keyfns
-                  {:id   :name
-                   :text :name}}]]
-               [components/form-group
-                {:label "Mesoscale Bioregion"}
-                [components/select
-                 {:value    active-mesoscale-bioregion
-                  :options  mesoscale-bioregions
-                  :onChange #(re-frame/dispatch [:sok/update-active-mesoscale-bioregion %])
-                  :keyfns
-                  {:id          :name
-                   :text        :name
-                   :breadcrumbs (comp vector :provincial-bioregion)}}]]])}]
-
-           [b/tab
-            {:id "meow"
-             :title "MEOW Boundaries"
-             :panel
-             (reagent/as-element
-              [:div
-               [:h2.bp3-heading "Marine Ecoregions of the World"]
-               [components/form-group
-                {:label "Realms"}
-                [components/select
-                 {:value    active-realm
-                  :options  realms
-                  :onChange #(re-frame/dispatch [:sok/update-active-realm %])
-                  :keyfns
-                  {:id   :name
-                   :text :name}}]]
-               [components/form-group
-                {:label "Provinces"}
-                [components/select
-                 {:value    active-province
-                  :options  provinces
-                  :onChange #(re-frame/dispatch [:sok/update-active-province %])
-                  :keyfns
-                  {:id          :name
-                   :text        :name
-                   :breadcrumbs (comp vector :realm)}}]]
-               [components/form-group
-                {:label "Ecoregions"}
-                [components/select
-                 {:value    active-ecoregion
-                  :options  ecoregions
-                  :onChange #(re-frame/dispatch [:sok/update-active-ecoregion %])
-                  :keyfns
-                  {:id          :name
-                   :text        :name
-                   :breadcrumbs (fn [{:keys [realm province]}] [realm province])}}]]])}]]
-
-          [:a.data-coverage-report-link
-           {:href   "https://blueprintjs.com/" ; Placeholder URL
-            :target "_blank"}
-           "View data coverage report"]]]))))
-
 (defn habitat-statistics-table
   [{:keys [habitat-statistics]}]
   [:table
@@ -403,7 +259,6 @@
     :onClose     #(re-frame/dispatch [:sok/close])
     :hasBackdrop false
     :className   "state-of-knowledge-drawer"}
-   [boundary-selection]
    [habitat-statistics]
    [bathymetry-statistics]
    [habitat-observations]])
@@ -417,6 +272,7 @@
     :on-open-click  #(re-frame/dispatch [:sok/open])
     :on-close-click #(re-frame/dispatch [:sok/close-pill])}
    [:div.state-of-knowledge-pill-content
+    
     [components/form-group
      {:label "Management Region"}
      [components/select
@@ -425,7 +281,12 @@
        :onChange #(re-frame/dispatch [:sok/update-active-boundary %])
        :keyfns
        {:id   :id
-        :text :name}}]]]])
+        :text :name}}]]
+    
+    [:a.data-coverage-report-link
+     {:href   "https://blueprintjs.com/" ; Placeholder URL
+      :target "_blank"}
+     "View data coverage report"]]])
 
 (defn floating-boundaries-pill
   [{:keys

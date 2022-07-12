@@ -7,7 +7,7 @@
     flex-direction: column;
 }
 
-.state-of-knowledge-drawer .drawer-group:not(:first-child) {
+.state-of-knowledge-drawer .drawer-group {
     flex: 1 1 0;
     min-height: 0;
 }
@@ -21,12 +21,8 @@
     min-height: 20px;
 }
 
-.state-of-knowledge-drawer .drawer-group:not(:first-child) > .drawer-group-content {
+.state-of-knowledge-drawer .drawer-group > .drawer-group-content {
     overflow-y: auto;
-}
-
-.state-of-knowledge-drawer .drawer-group:first-child {
-    flex: 0 0;
 }
 
 .state-of-knowledge-drawer td,
@@ -42,14 +38,6 @@
 
 .state-of-knowledge-drawer th {
     vertical-align: bottom;
-}
-
-.boundaries-selection {
-    height: 406px;
-}
-
-.boundaries-selection .form-group:not(:last-child) {
-    margin-bottom: 8px;
 }
 
 .habitat-observation-stats {
