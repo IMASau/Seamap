@@ -521,3 +521,30 @@
            {:id          :name
             :text        :name
             :breadcrumbs (fn [{:keys [realm province]}] [realm province])}}]])]]))
+
+(defn floating-zones-pill
+  [{:keys [zones zones-iucn active-zone active-zone-iucn]}]
+  [components/floating-pill-control-menu
+   {:text           "Zones"
+    :icon           "polygon-filter"}
+   [:div.state-of-knowledge-pill-content
+
+    [components/form-group
+     {:label "Zone Category"}
+     [components/select
+      {:value    active-zone
+       :options  zones
+       :onChange #(re-frame/dispatch [:sok/update-active-zone %])
+       :keyfns
+       {:id   :name
+        :text :name}}]]
+
+    [components/form-group
+     {:label "IUCN Category (Zone)"}
+     [components/select
+      {:value    active-zone-iucn
+       :options  zones-iucn
+       :onChange #(re-frame/dispatch [:sok/update-active-zone-iucn %])
+       :keyfns
+       {:id   :name
+        :text :name}}]]]])

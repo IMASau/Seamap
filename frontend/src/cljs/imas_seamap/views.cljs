@@ -9,7 +9,7 @@
             [imas-seamap.db :refer [img-url-base]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions sidebar sidebar-tab use-memo]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill]]
+            [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
@@ -793,7 +793,10 @@
          amp-boundaries
          imcra-boundaries
          meow-boundaries
-         {:active-boundary active-boundary})])]))
+         {:active-boundary active-boundary})])
+     
+     (when (and state-of-knowledge-open? (= (:id active-boundary) "amp"))
+       [floating-zones-pill amp-boundaries])]))
 
 (defn layers-search-omnibar
   []
