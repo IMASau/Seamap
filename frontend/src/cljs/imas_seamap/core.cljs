@@ -161,7 +161,7 @@
     :sok/update-amp-boundaries            sokevents/update-amp-boundaries
     :sok/update-imcra-boundaries          sokevents/update-imcra-boundaries
     :sok/update-meow-boundaries           sokevents/update-meow-boundaries
-    :sok/update-active-boundary           sokevents/update-active-boundary
+    :sok/update-active-boundary           [sokevents/update-active-boundary]
     :sok/update-active-network            [sokevents/update-active-network]
     :sok/update-active-park               [sokevents/update-active-park]
     :sok/update-active-zone               [sokevents/update-active-zone]

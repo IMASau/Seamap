@@ -4,8 +4,7 @@
 (ns imas-seamap.state-of-knowledge.events
   (:require [clojure.set :refer [rename-keys]]
             [ajax.core :as ajax]
-            [imas-seamap.utils :refer [first-where]]
-            [imas-seamap.state-of-knowledge.utils :refer [boundaries]]))
+            [imas-seamap.utils :refer [first-where]]))
 
 (defn update-amp-boundaries [db [_ {:keys [networks parks zones zones_iucn]}]]
   (-> db
@@ -26,27 +25,32 @@
       (assoc-in [:state-of-knowledge :boundaries :meow :provinces] provinces)
       (assoc-in [:state-of-knowledge :boundaries :meow :ecoregions] ecoregions)))
 
-(defn update-active-boundary [db [_ active-boundary]]
-  (-> db
-      (assoc-in [:state-of-knowledge :boundaries :active-boundary] active-boundary)
-      (cond->
-       (not= (:id active-boundary) "amp")
-        (->
-         (assoc-in [:state-of-knowledge :boundaries :amp :active-network] nil)
-         (assoc-in [:state-of-knowledge :boundaries :amp :active-park] nil)
-         (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil)
-         (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil))
+(defn update-active-boundary [{:keys [db]} [_ active-boundary]]
+  (let [db (-> db
+               (assoc-in [:state-of-knowledge :boundaries :active-boundary] active-boundary)
+               (cond->
+                (not= (:id active-boundary) "amp")
+                 (->
+                  (assoc-in [:state-of-knowledge :boundaries :amp :active-network] nil)
+                  (assoc-in [:state-of-knowledge :boundaries :amp :active-park] nil)
+                  (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil)
+                  (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil))
 
-        (not= (:id active-boundary) "imcra")
-        (->
-         (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] nil)
-         (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] nil))
+                 (not= (:id active-boundary) "imcra")
+                 (->
+                  (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] nil)
+                  (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] nil))
 
-        (not= (:id active-boundary) "meow")
-        (->
-         (assoc-in [:state-of-knowledge :boundaries :meow :active-realm] nil)
-         (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
-         (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))))
+                 (not= (:id active-boundary) "meow")
+                 (->
+                  (assoc-in [:state-of-knowledge :boundaries :meow :active-realm] nil)
+                  (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
+                  (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))))
+        layers (get-in db [:map :layers])
+        layer  (first-where #(= (:id %) (:layer active-boundary)) layers)]
+    (merge
+     {:db db}
+     (when layer {:dispatch [:map/pan-to-layer layer]}))))
 
 (defn update-active-network [{:keys [db]} [_ network]]
   (let [db (cond-> db
@@ -55,8 +59,7 @@
               (assoc-in [:state-of-knowledge :boundaries :amp :active-park] nil)
               (assoc-in [:state-of-knowledge :boundaries :amp :active-network] network)))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary (first-where #(= (:id %) "amp") boundaries)]
-                  [:sok/get-habitat-statistics]
+     :dispatch-n [[:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
 
@@ -67,8 +70,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-network] network)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-park] park))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary (first-where #(= (:id %) "amp") boundaries)]
-                  [:sok/get-habitat-statistics]
+     :dispatch-n [[:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
 
@@ -77,8 +79,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] zone)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary (first-where #(= (:id %) "amp") boundaries)]
-                  [:sok/get-habitat-statistics]
+     :dispatch-n [[:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
 
@@ -87,8 +88,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] zone-iucn)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary (first-where #(= (:id %) "amp") boundaries)]
-                  [:sok/get-habitat-statistics]
+     :dispatch-n [[:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
 
@@ -99,8 +99,7 @@
               (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] nil)
               (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary (first-where #(= (:id %) "imcra") boundaries)]
-                  [:sok/get-habitat-statistics]
+     :dispatch-n [[:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
 
@@ -111,8 +110,7 @@
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] mesoscale-bioregion))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary (first-where #(= (:id %) "imcra") boundaries)]
-                  [:sok/get-habitat-statistics]
+     :dispatch-n [[:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
 
@@ -124,8 +122,7 @@
               (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
               (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary (first-where #(= (:id %) "meow") boundaries)]
-                  [:sok/get-habitat-statistics]
+     :dispatch-n [[:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
 
@@ -139,8 +136,7 @@
               (assoc-in [:state-of-knowledge :boundaries :meow :active-province] province)
               (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary (first-where #(= (:id %) "meow") boundaries)]
-                  [:sok/get-habitat-statistics]
+     :dispatch-n [[:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
 
@@ -153,8 +149,7 @@
                (assoc-in [:state-of-knowledge :boundaries :meow :active-province] province)
                (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] ecoregion))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary (first-where #(= (:id %) "meow") boundaries)]
-                  [:sok/get-habitat-statistics]
+     :dispatch-n [[:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
 
