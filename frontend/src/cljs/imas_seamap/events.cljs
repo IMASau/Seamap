@@ -35,9 +35,9 @@
                                   :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-amp-boundaries
-                                  :map/update-imcra-boundaries
-                                  :map/update-meow-boundaries]
+                                  :sok/update-amp-boundaries
+                                  :sok/update-imcra-boundaries
+                                  :sok/update-meow-boundaries]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -59,9 +59,9 @@
                                   :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-amp-boundaries
-                                  :map/update-imcra-boundaries
-                                  :map/update-meow-boundaries]
+                                  :sok/update-amp-boundaries
+                                  :sok/update-imcra-boundaries
+                                  :sok/update-meow-boundaries]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -83,9 +83,9 @@
                                   :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-amp-boundaries
-                                  :map/update-imcra-boundaries
-                                  :map/update-meow-boundaries]
+                                  :sok/update-amp-boundaries
+                                  :sok/update-imcra-boundaries
+                                  :sok/update-meow-boundaries]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -216,17 +216,17 @@
                   {:method          :get
                    :uri             amp-boundaries-url
                    :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-amp-boundaries]
+                   :on-success      [:sok/update-amp-boundaries]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             imcra-boundaries-url
                    :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-imcra-boundaries]
+                   :on-success      [:sok/update-imcra-boundaries]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             meow-boundaries-url
                    :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-meow-boundaries]
+                   :on-success      [:sok/update-meow-boundaries]
                    :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn help-layer-toggle [db _]
@@ -618,24 +618,6 @@
   (-> db
       (assoc-in [:display :left-drawer] false)
       (assoc-in [:display :drawer-panel-stack] [])))
-
-(defn state-of-knowledge-open [db _]
-  (-> db
-      (assoc-in [:state-of-knowledge :open?] true)
-      (assoc-in [:state-of-knowledge :pill-open?] true)))
-
-(defn state-of-knowledge-close [db _]
-  (-> db
-      (assoc-in [:state-of-knowledge :open?] false)
-      (assoc-in [:state-of-knowledge :pill-open?] false)))
-
-(defn state-of-knowledge-toggle [db _]
-  (if (get-in db [:state-of-knowledge :open?])
-    (state-of-knowledge-close db _)
-    (state-of-knowledge-open db _)))
-
-(defn state-of-knowledge-close-pill [db _]
-  (assoc-in db [:state-of-knowledge :pill-open?] false))
 
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))

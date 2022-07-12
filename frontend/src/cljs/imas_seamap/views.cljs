@@ -849,7 +849,7 @@
        [:left-drawer/toggle])
       (keydown-wrapper
        {:label "Toggle State of Knowledge"    :combo "d"}
-       [:state-of-knowledge/toggle])
+       [:sok/toggle])
       (keydown-wrapper
        {:label "Toggle Layers Search"   :combo "shift + s"}
        [:layers-search-omnibar/toggle])

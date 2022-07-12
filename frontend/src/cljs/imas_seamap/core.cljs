@@ -16,6 +16,7 @@
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
+            [imas-seamap.state-of-knowledge.events :as sokevents]
             [imas-seamap.state-of-knowledge.subs :as soksubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
@@ -110,12 +111,6 @@
     :map/clicked                          [mevents/map-click-dispatcher]
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
-    :map/get-habitat-statistics           [mevents/get-habitat-statistics]
-    :map/got-habitat-statistics           mevents/got-habitat-statistics
-    :map/get-bathymetry-statistics        [mevents/get-bathymetry-statistics]
-    :map/got-bathymetry-statistics        mevents/got-bathymetry-statistics
-    :map/get-habitat-observations         [mevents/get-habitat-observations]
-    :map/got-habitat-observations         mevents/got-habitat-observations
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]
@@ -152,9 +147,6 @@
     :map/update-priorities                mevents/update-priorities
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
-    :map/update-amp-boundaries            mevents/update-amp-boundaries
-    :map/update-imcra-boundaries          mevents/update-imcra-boundaries
-    :map/update-meow-boundaries           mevents/update-meow-boundaries
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
@@ -162,18 +154,31 @@
     :map/zoom-out                         mevents/map-zoom-out
     :map/pan-direction                    mevents/map-pan-direction
     :map/view-updated                     [mevents/map-view-updated]
-    :map/update-active-network            [mevents/update-active-network]
-    :map/update-active-park               [mevents/update-active-park]
-    :map/update-active-zone               [mevents/update-active-zone]
-    :map/update-active-zone-iucn          [mevents/update-active-zone-iucn]
-    :map/active-boundary                  mevents/active-boundary
-    :map/update-active-provincial-bioregion [mevents/update-active-provincial-bioregion]
-    :map/update-active-mesoscale-bioregion [mevents/update-active-mesoscale-bioregion]
-    :map/update-active-realm              [mevents/update-active-realm]
-    :map/update-active-province           [mevents/update-active-province]
-    :map/update-active-ecoregion          [mevents/update-active-ecoregion]
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click
+    :sok/update-amp-boundaries            sokevents/update-amp-boundaries
+    :sok/update-imcra-boundaries          sokevents/update-imcra-boundaries
+    :sok/update-meow-boundaries           sokevents/update-meow-boundaries
+    :sok/update-active-boundary           sokevents/update-active-boundary
+    :sok/update-active-network            [sokevents/update-active-network]
+    :sok/update-active-park               [sokevents/update-active-park]
+    :sok/update-active-zone               [sokevents/update-active-zone]
+    :sok/update-active-zone-iucn          [sokevents/update-active-zone-iucn]
+    :sok/update-active-provincial-bioregion [sokevents/update-active-provincial-bioregion]
+    :sok/update-active-mesoscale-bioregion [sokevents/update-active-mesoscale-bioregion]
+    :sok/update-active-realm              [sokevents/update-active-realm]
+    :sok/update-active-province           [sokevents/update-active-province]
+    :sok/update-active-ecoregion          [sokevents/update-active-ecoregion]
+    :sok/get-habitat-statistics           [sokevents/get-habitat-statistics]
+    :sok/got-habitat-statistics           sokevents/got-habitat-statistics
+    :sok/get-bathymetry-statistics        [sokevents/get-bathymetry-statistics]
+    :sok/got-bathymetry-statistics        sokevents/got-bathymetry-statistics
+    :sok/get-habitat-observations         [sokevents/get-habitat-observations]
+    :sok/got-habitat-observations         sokevents/got-habitat-observations
+    :sok/toggle                           sokevents/toggle
+    :sok/open                             sokevents/open
+    :sok/close                            sokevents/close
+    :sok/close-pill                       sokevents/close-pill
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]
@@ -190,10 +195,6 @@
     :left-drawer/toggle                   events/left-drawer-toggle
     :left-drawer/open                     events/left-drawer-open
     :left-drawer/close                    events/left-drawer-close
-    :state-of-knowledge/toggle            events/state-of-knowledge-toggle
-    :state-of-knowledge/open              events/state-of-knowledge-open
-    :state-of-knowledge/close             events/state-of-knowledge-close
-    :state-of-knowledge/close-pill        events/state-of-knowledge-close-pill
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close

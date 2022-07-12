@@ -50,7 +50,7 @@
                 [components/select
                  {:value    active-network
                   :options  networks
-                  :onChange #(re-frame/dispatch [:map/update-active-network %])
+                  :onChange #(re-frame/dispatch [:sok/update-active-network %])
                   :keyfns
                   {:id   :name
                    :text :name}}]]
@@ -59,7 +59,7 @@
                 [components/select
                  {:value    active-park
                   :options  parks
-                  :onChange #(re-frame/dispatch [:map/update-active-park %])
+                  :onChange #(re-frame/dispatch [:sok/update-active-park %])
                   :keyfns
                   {:id          :name
                    :text        :name
@@ -69,7 +69,7 @@
                 [components/select
                  {:value    active-zone
                   :options  zones
-                  :onChange #(re-frame/dispatch [:map/update-active-zone %])
+                  :onChange #(re-frame/dispatch [:sok/update-active-zone %])
                   :keyfns
                   {:id   :name
                    :text :name}}]]
@@ -78,7 +78,7 @@
                 [components/select
                  {:value    active-zone-iucn
                   :options  zones-iucn
-                  :onChange #(re-frame/dispatch [:map/update-active-zone-iucn %])
+                  :onChange #(re-frame/dispatch [:sok/update-active-zone-iucn %])
                   :keyfns
                   {:id   :name
                    :text :name}}]]])}]
@@ -95,7 +95,7 @@
                 [components/select
                  {:value    active-provincial-bioregion
                   :options  provincial-bioregions
-                  :onChange #(re-frame/dispatch [:map/update-active-provincial-bioregion %])
+                  :onChange #(re-frame/dispatch [:sok/update-active-provincial-bioregion %])
                   :keyfns
                   {:id   :name
                    :text :name}}]]
@@ -104,7 +104,7 @@
                 [components/select
                  {:value    active-mesoscale-bioregion
                   :options  mesoscale-bioregions
-                  :onChange #(re-frame/dispatch [:map/update-active-mesoscale-bioregion %])
+                  :onChange #(re-frame/dispatch [:sok/update-active-mesoscale-bioregion %])
                   :keyfns
                   {:id          :name
                    :text        :name
@@ -122,7 +122,7 @@
                 [components/select
                  {:value    active-realm
                   :options  realms
-                  :onChange #(re-frame/dispatch [:map/update-active-realm %])
+                  :onChange #(re-frame/dispatch [:sok/update-active-realm %])
                   :keyfns
                   {:id   :name
                    :text :name}}]]
@@ -131,7 +131,7 @@
                 [components/select
                  {:value    active-province
                   :options  provinces
-                  :onChange #(re-frame/dispatch [:map/update-active-province %])
+                  :onChange #(re-frame/dispatch [:sok/update-active-province %])
                   :keyfns
                   {:id          :name
                    :text        :name
@@ -141,7 +141,7 @@
                 [components/select
                  {:value    active-ecoregion
                   :options  ecoregions
-                  :onChange #(re-frame/dispatch [:map/update-active-ecoregion %])
+                  :onChange #(re-frame/dispatch [:sok/update-active-ecoregion %])
                   :keyfns
                   {:id          :name
                    :text        :name
@@ -400,7 +400,7 @@
     :position    "right"
     :size        "460px"
     :isOpen      @(re-frame/subscribe [:sok/open?])
-    :onClose     #(re-frame/dispatch [:state-of-knowledge/close])
+    :onClose     #(re-frame/dispatch [:sok/close])
     :hasBackdrop false
     :className   "state-of-knowledge-drawer"}
    [boundary-selection]
@@ -413,8 +413,8 @@
    {:text           "State of Knowledge"
     :icon           "add-column-right"
     :expanded?      @(re-frame/subscribe [:sok/pill-open?])
-    :on-open-click  #(re-frame/dispatch [:state-of-knowledge/open])
-    :on-close-click #(re-frame/dispatch [:state-of-knowledge/close-pill])}
+    :on-open-click  #(re-frame/dispatch [:sok/open])
+    :on-close-click #(re-frame/dispatch [:sok/close-pill])}
    [:div ; TODO: replace content
     {:style {:width "300px"}}
     [:h4 "Description"]
