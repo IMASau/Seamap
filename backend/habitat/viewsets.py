@@ -146,6 +146,8 @@ SQL_GET_AMP_BOUNDARY_AREA = "SELECT dbo.AMP_BOUNDARY_geom(%s, %s, %s, %s).STArea
 SQL_GET_IMCRA_BOUNDARY_AREA = "SELECT dbo.IMCRA_BOUNDARY_geom(%s, %s).STArea() / 1000000"
 SQL_GET_MEOW_BOUNDARY_AREA = "SELECT dbo.MEOW_BOUNDARY_geom(%s, %s, %s).STArea() / 1000000"
 
+SQL_GEOM_BINARY_COL = ", geometry::UnionAggregate(geom).STAsBinary() as geom" # Only include if we need to because faster queries without geometry aggregation
+
 SQL_GET_AMP_HABITAT_STATS = """
 DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
@@ -154,9 +156,9 @@ DECLARE @zoneiucn NVARCHAR(5)   = %s;
 
 SELECT
   habitat,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_AMP_HABITAT
     WHERE
       (Network = @netname OR @netname IS NULL) AND
@@ -164,8 +166,8 @@ SELECT
       (Zone_Category = @zonename OR @zonename IS NULL) AND
       (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
-  geometry::UnionAggregate(geom).STAsBinary() as geom
+  100 * (SUM(area) / 1000000) / %s AS total_percentage
+  {}
 FROM BOUNDARY_AMP_HABITAT
 WHERE
   (Network = @netname OR @netname IS NULL) AND
@@ -181,16 +183,16 @@ DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
 SELECT
   habitat,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_IMCRA_HABITAT
     WHERE
       (Provincial_Bioregion = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
       (Mesoscale_Bioregion = @mesoscale_bioregion OR @mesoscale_bioregion IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
-  geometry::UnionAggregate(geom).STAsBinary() as geom
+  100 * (SUM(area) / 1000000) / %s AS total_percentage
+  {}
 FROM BOUNDARY_IMCRA_HABITAT
 WHERE
   (Provincial_Bioregion = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
@@ -205,17 +207,17 @@ DECLARE @ecoregion NVARCHAR(255) = %s;
 
 SELECT
   habitat,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_MEOW_HABITAT
     WHERE
       (Realm = @realm OR @realm IS NULL) AND
       (Province = @province OR @province IS NULL) AND
       (Ecoregion = @ecoregion OR @ecoregion IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
-  geometry::UnionAggregate(geom).STAsBinary() as geom
+  100 * (SUM(area) / 1000000) / %s AS total_percentage
+  {}
 FROM BOUNDARY_MEOW_HABITAT
 WHERE
   (Realm = @realm OR @realm IS NULL) AND
@@ -233,9 +235,9 @@ DECLARE @zoneiucn NVARCHAR(5)   = %s;
 SELECT
   bathymetry_resolution as resolution,
   bathymetry_rank as rank,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_AMP_BATHYMETRY
     WHERE
       (Network = @netname OR @netname IS NULL) AND
@@ -243,8 +245,8 @@ SELECT
       (Zone_Category = @zonename OR @zonename IS NULL) AND
       (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
-  geometry::UnionAggregate(geom).STAsBinary() as geom
+  100 * (SUM(area) / 1000000) / %s AS total_percentage
+  {}
 FROM BOUNDARY_AMP_BATHYMETRY
 WHERE
   (Network = @netname OR @netname IS NULL) AND
@@ -261,16 +263,16 @@ DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 SELECT
   bathymetry_resolution as resolution,
   bathymetry_rank as rank,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_IMCRA_BATHYMETRY
     WHERE
       (Provincial_Bioregion = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
       (Mesoscale_Bioregion = @mesoscale_bioregion OR @mesoscale_bioregion IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
-  geometry::UnionAggregate(geom).STAsBinary() as geom
+  100 * (SUM(area) / 1000000) / %s AS total_percentage
+  {}
 FROM BOUNDARY_IMCRA_BATHYMETRY
 WHERE
   (Provincial_Bioregion = @provincial_bioregion OR @provincial_bioregion IS NULL) AND
@@ -286,17 +288,17 @@ DECLARE @ecoregion NVARCHAR(255) = %s;
 SELECT
   bathymetry_resolution as resolution,
   bathymetry_rank as rank,
-  geometry::UnionAggregate(geom).STArea() / 1000000 AS area,
-  100 * geometry::UnionAggregate(geom).STArea() / (
-    SELECT geometry::UnionAggregate(geom).STArea()
+  SUM(area) / 1000000 AS area,
+  100 * SUM(area) / (
+    SELECT SUM(area)
     FROM BOUNDARY_MEOW_BATHYMETRY
     WHERE
       (Realm = @realm OR @realm IS NULL) AND
       (Province = @province OR @province IS NULL) AND
       (Ecoregion = @ecoregion OR @ecoregion IS NULL)
   ) AS mapped_percentage,
-  100 * (geometry::UnionAggregate(geom).STArea() / 1000000) / %s AS total_percentage,
-  geometry::UnionAggregate(geom).STAsBinary() as geom
+  100 * (SUM(area) / 1000000) / %s AS total_percentage
+  {}
 FROM BOUNDARY_MEOW_BATHYMETRY
 WHERE
   (Realm = @realm OR @realm IS NULL) AND
@@ -1160,11 +1162,11 @@ def habitat_statistics(request):
             boundary_area = float(cursor.fetchone()[0])
 
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_STATS, [network, park, zone, zone_iucn, boundary_area])
+                cursor.execute(SQL_GET_AMP_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [network, park, zone, zone_iucn, boundary_area])
             elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_STATS, [provincial_bioregion, mesoscale_bioregion, boundary_area])
+                cursor.execute(SQL_GET_IMCRA_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [provincial_bioregion, mesoscale_bioregion, boundary_area])
             elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_STATS, [realm, province, ecoregion, boundary_area])
+                cursor.execute(SQL_GET_MEOW_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [realm, province, ecoregion, boundary_area])
             else:
                 raise Exception('Unhandled boundary type!')
 
@@ -1189,7 +1191,6 @@ def habitat_statistics(request):
                                 headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
             
             habitat_stats = [row._asdict() for row in results]
-            for v in habitat_stats: del v['geom']
 
             mapped_area = float(sum(v['area'] for v in habitat_stats))
             mapped_percentage = 100 * mapped_area / boundary_area
@@ -1232,11 +1233,11 @@ def bathymetry_statistics(request):
             boundary_area = float(cursor.fetchone()[0])
 
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_BATHYMETRY_STATS, [network, park, zone, zone_iucn, boundary_area])
+                cursor.execute(SQL_GET_AMP_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [network, park, zone, zone_iucn, boundary_area])
             elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_BATHYMETRY_STATS, [provincial_bioregion, mesoscale_bioregion, boundary_area])
+                cursor.execute(SQL_GET_IMCRA_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [provincial_bioregion, mesoscale_bioregion, boundary_area])
             elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_BATHYMETRY_STATS, [realm, province, ecoregion, boundary_area])
+                cursor.execute(SQL_GET_MEOW_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [realm, province, ecoregion, boundary_area])
             else:
                 raise Exception('Unhandled boundary type!')
 
@@ -1261,7 +1262,6 @@ def bathymetry_statistics(request):
                                 headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
 
             bathymetry_stats = [row._asdict() for row in results]
-            for v in bathymetry_stats: del v['geom']
 
             mapped_area = float(sum(v['area'] for v in bathymetry_stats))
             mapped_percentage = 100 * mapped_area / boundary_area

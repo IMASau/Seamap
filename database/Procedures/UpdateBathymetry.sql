@@ -33,7 +33,7 @@ BEGIN
 
   -- Update BOUNDARY_AMP_BATHYMETRY
   DELETE FROM [dbo].[BOUNDARY_AMP_BATHYMETRY] WHERE [bathymetry_resolution] = @resolution;
-  INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Zone], [bathymetry_resolution], [bathymetry_rank], [geom])
+  INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Zone], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
@@ -41,34 +41,37 @@ BEGIN
     [boundary].[IUCN_Zone],
     [bathymetry].[RESOLUTION] AS [bathymetry_resolution],
     [bathymetry].[RANK] AS [bathymetry_rank],
-    [bathymetry].[geom]
+    [bathymetry].[geom],
+    [bathymetry].[geom].STArea() AS [area]
   FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].unique_bathymetry_intersections([boundary].[geom]) AS [bathymetry]
   WHERE [bathymetry].[RESOLUTION] = @resolution;
 
   -- Update BOUNDARY_IMCRA_BATHYMETRY
   DELETE FROM [dbo].[BOUNDARY_IMCRA_BATHYMETRY] WHERE [bathymetry_resolution] = @resolution;
-  INSERT INTO [dbo].[BOUNDARY_IMCRA_BATHYMETRY] ([Provincial_Bioregion], [Mesoscale_Bioregion], [bathymetry_resolution], [bathymetry_rank], [geom])
+  INSERT INTO [dbo].[BOUNDARY_IMCRA_BATHYMETRY] ([Provincial_Bioregion], [Mesoscale_Bioregion], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
   SELECT
     [boundary].[Provincial_Bioregion],
     [boundary].[Mesoscale_Bioregion],
     [bathymetry].[RESOLUTION] AS [bathymetry_resolution],
     [bathymetry].[RANK] AS [bathymetry_rank],
-    [bathymetry].[geom]
+    [bathymetry].[geom],
+    [bathymetry].[geom].STArea() AS [area]
   FROM [dbo].[VW_BOUNDARY_IMCRA] AS [boundary]
   CROSS APPLY [dbo].unique_bathymetry_intersections([boundary].[geom]) AS [bathymetry]
   WHERE [bathymetry].[RESOLUTION] = @resolution;
 
   -- Update BOUNDARY_MEOW_BATHYMETRY
   DELETE FROM [dbo].[BOUNDARY_MEOW_BATHYMETRY] WHERE [bathymetry_resolution] = @resolution;
-  INSERT INTO [dbo].[BOUNDARY_MEOW_BATHYMETRY] ([Realm], [Province], [Ecoregion], [bathymetry_resolution], [bathymetry_rank], [geom])
+  INSERT INTO [dbo].[BOUNDARY_MEOW_BATHYMETRY] ([Realm], [Province], [Ecoregion], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
   SELECT
     [boundary].[Realm],
     [boundary].[Province],
     [boundary].[Ecoregion],
     [bathymetry].[RESOLUTION] AS [bathymetry_resolution],
     [bathymetry].[RANK] AS [bathymetry_rank],
-    [bathymetry].[geom]
+    [bathymetry].[geom],
+    [bathymetry].[geom].STArea() AS [area]
   FROM [dbo].[VW_BOUNDARY_MEOW] AS [boundary]
   CROSS APPLY [dbo].unique_bathymetry_intersections([boundary].[geom]) AS [bathymetry]
   WHERE [bathymetry].[RESOLUTION] = @resolution;
