@@ -73,7 +73,7 @@
                     :BBOX          (->> img-bounds
                                         (bounds->projected wgs84->epsg3112)
                                         (bounds->str 3112))
-                    :FEATURE_COUNT 10
+                    :FEATURE_COUNT 1000
                     :STYLES        ""
                     :X             50
                     :Y             50
