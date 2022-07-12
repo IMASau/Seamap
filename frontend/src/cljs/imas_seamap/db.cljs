@@ -29,34 +29,36 @@
                      :logic           {:type    :map.layer-logic/automatic
                                        :trigger :map.logic.trigger/automatic}
                      :controls        {:transect false
-                                       :download nil}
-                     :boundaries      {:active-boundary nil
-                                       :amp             {:networks         []
-                                                         :parks            []
-                                                         :zones            []
-                                                         :zones-iucn       []
-                                                         :active-network   nil
-                                                         :active-park      nil
-                                                         :active-zone      nil
-                                                         :active-zone-iucn nil}
-                                       :imcra           {:provincial-bioregions       []
-                                                         :mesoscale-bioregions        []
-                                                         :active-provincial-bioregion nil
-                                                         :active-mesoscale-bioregion  nil}
-                                       :meow            {:realms           []
-                                                         :provinces        []
-                                                         :ecoregions       []
-                                                         :active-realm     nil
-                                                         :active-province  nil
-                                                         :active-ecoregion nil}}
-                     :boundary-statistics {:habitat              {:results  []
-                                                                  :loading? false}
-                                           :bathymetry           {:results  []
-                                                                  :loading? false}
-                                           :habitat-observations {:global-archive nil
-                                                                  :sediment       nil
-                                                                  :squidle        nil
-                                                                  :loading?       false}}}
+                                       :download nil}}
+   :state-of-knowledge {:boundaries {:active-boundary nil
+                                     :amp             {:networks         []
+                                                       :parks            []
+                                                       :zones            []
+                                                       :zones-iucn       []
+                                                       :active-network   nil
+                                                       :active-park      nil
+                                                       :active-zone      nil
+                                                       :active-zone-iucn nil}
+                                     :imcra           {:provincial-bioregions       []
+                                                       :mesoscale-bioregions        []
+                                                       :active-provincial-bioregion nil
+                                                       :active-mesoscale-bioregion  nil}
+                                     :meow            {:realms           []
+                                                       :provinces        []
+                                                       :ecoregions       []
+                                                       :active-realm     nil
+                                                       :active-province  nil
+                                                       :active-ecoregion nil}}
+                        :statistics {:habitat              {:results  []
+                                                            :loading? false}
+                                     :bathymetry           {:results  []
+                                                            :loading? false}
+                                     :habitat-observations {:global-archive nil
+                                                            :sediment       nil
+                                                            :squidle        nil
+                                                            :loading?       false}}
+                        :open?      false
+                        :pill-open? false}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}
@@ -74,7 +76,6 @@
    :display         {:help-overlay          false
                      :welcome-overlay       false
                      :left-drawer           false
-                     :right-drawer          false
                      :layers-search-omnibar false
                      :drawer-panel-stack    []
                      :catalogue             {}

@@ -618,10 +618,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     left: calc(460px + 10px);
 }
 
-.state-of-knowledge-open .leaflet-right {
-    right: 460px;
-}
-
 /* Allow interactivity with underneath elements while drawer is open */
 .bp3-overlay.bp3-overlay-open.bp3-overlay-container {
     width: 0;
@@ -704,48 +700,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-top: 8px;
 }
 
-.state-of-knowledge-drawer > .drawer-children {
-    display: flex;
-    flex-direction: column;
-}
-
-.state-of-knowledge-drawer .drawer-group:not(:first-child) {
-    flex: 1 1 0;
-    min-height: 0;
-}
-
-.state-of-knowledge-drawer .drawer-group {
-    transition: flex 500ms;
-}
-
-.state-of-knowledge-drawer .drawer-group.collapsed {
-    flex: 0 1 0;
-    min-height: 20px;
-}
-
-.state-of-knowledge-drawer .drawer-group:not(:first-child) > .drawer-group-content {
-    overflow-y: auto;
-}
-
-.state-of-knowledge-drawer .drawer-group:first-child {
-    flex: 0 0;
-}
-
-.state-of-knowledge-drawer td,
-.state-of-knowledge-drawer th {
-    font-size: 12px;
-    padding: 6px 6px 6px 0;
-}
-
-.state-of-knowledge-drawer td {
-    vertical-align: top;
-    overflow-wrap: anywhere;
-}
-
-.state-of-knowledge-drawer th {
-    vertical-align: bottom;
-}
-
 .data-coverage-report-link,
 .drawer-group .download {
     font-weight: bold;
@@ -781,14 +735,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     border-radius: 4px;
 }
 
-.boundaries-selection {
-    height: 406px;
-}
-
-.boundaries-selection .form-group:not(:last-child) {
-    margin-bottom: 8px;
-}
-
 .drawer-group h2.bp3-heading {
     font-size: 14px;
     line-height: 16px;
@@ -809,26 +755,4 @@ input.leaflet-control-layers-selector[type="radio"] {
 /* Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line */
 .bp3-dialog {
     overflow-wrap: break-word;
-}
-
-.habitat-observation-stats {
-    margin-bottom: 16px;
-}
-
-.habitat-observation-stats h2 {
-    cursor: pointer;
-    user-select: none;
-}
-
-.habitat-observation-stats.disabled h2 {
-    cursor: default;
-}
-
-.habitat-observation-stats ul {
-    margin: 0;
-}
-
-.habitat-observation-stats.collapsed ul,
-.habitat-observation-stats.disabled ul {
-    display: none;
 }

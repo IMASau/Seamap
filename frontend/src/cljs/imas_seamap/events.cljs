@@ -35,9 +35,9 @@
                                   :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-amp-boundaries
-                                  :map/update-imcra-boundaries
-                                  :map/update-meow-boundaries]
+                                  :sok/update-amp-boundaries
+                                  :sok/update-imcra-boundaries
+                                  :sok/update-meow-boundaries]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -59,9 +59,9 @@
                                   :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-amp-boundaries
-                                  :map/update-imcra-boundaries
-                                  :map/update-meow-boundaries]
+                                  :sok/update-amp-boundaries
+                                  :sok/update-imcra-boundaries
+                                  :sok/update-meow-boundaries]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -83,9 +83,9 @@
                                   :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-amp-boundaries
-                                  :map/update-imcra-boundaries
-                                  :map/update-meow-boundaries]
+                                  :sok/update-amp-boundaries
+                                  :sok/update-imcra-boundaries
+                                  :sok/update-meow-boundaries]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -216,17 +216,17 @@
                   {:method          :get
                    :uri             amp-boundaries-url
                    :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-amp-boundaries]
+                   :on-success      [:sok/update-amp-boundaries]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             imcra-boundaries-url
                    :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-imcra-boundaries]
+                   :on-success      [:sok/update-imcra-boundaries]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             meow-boundaries-url
                    :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-meow-boundaries]
+                   :on-success      [:sok/update-meow-boundaries]
                    :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn help-layer-toggle [db _]
@@ -618,15 +618,6 @@
   (-> db
       (assoc-in [:display :left-drawer] false)
       (assoc-in [:display :drawer-panel-stack] [])))
-
-(defn right-drawer-toggle [db _]
-  (update-in db [:display :right-drawer] not))
-
-(defn right-drawer-open [db _]
-  (assoc-in db [:display :right-drawer] true))
-
-(defn right-drawer-close [db _]
-  (assoc-in db [:display :right-drawer] false))
 
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))

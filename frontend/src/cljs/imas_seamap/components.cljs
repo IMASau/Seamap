@@ -62,7 +62,7 @@
       unable to interact with it.
     - expanded? (optional): For if the state of the component needs to be managed
       outside. Determines if the pop-out menu is currently visible.
-    - on-toggle-click (optional): For if the state of the component needs to be
+    - on-open-click (optional): For if the state of the component needs to be
       managed outside. Event that fires when the pill is clicked that would
       normally toggle the visibility of the pop-out menu when using an unmanaged
       state.
@@ -71,17 +71,17 @@
       clicked that would normally close the pop-out menu when using an unmanaged
       state.
     - & children: the children rendered inside of the pop-out menu."
-  [{:keys [text icon disabled? expanded? on-toggle-click on-close-click] :as props} & children]
+  [{:keys [text icon disabled? expanded? on-open-click on-close-click] :as props} & children]
   (let [atom-expanded? (reagent/atom false)]
-    (fn []
+    (fn [{:keys [text icon disabled? expanded? on-open-click on-close-click] :as props} & children]
       (let [expanded?       (if (contains? props :expanded?) expanded? @atom-expanded?)
-            on-toggle-click (or on-toggle-click #(swap! atom-expanded? not))
+            on-open-click   (or on-open-click #(reset! atom-expanded? true))
             on-close-click  (or on-close-click #(reset! atom-expanded? false))]
         [:div
          {:class (str "floating-pill-control-menu" (when expanded? " expanded"))}
          [:div
           {:class    (str "floating-pill floating-pill-control-menu-button" (when disabled? " disabled"))
-           :on-click (when-not disabled? on-toggle-click)}
+           :on-click (when-not disabled? (if expanded? on-close-click on-open-click))}
           [b/icon
            {:icon icon
             :icon-size 20}]

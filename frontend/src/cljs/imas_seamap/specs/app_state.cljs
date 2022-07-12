@@ -172,208 +172,6 @@
 (s/def :map.logic/trigger #{:map.logic.trigger/automatic :map.logic.trigger/user})
 (s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
 
-(s/def :map.boundaries/active-boundary
-  (s/nilable #{:map.boundaries.active-boundary/amp
-               :map.boundaries.active-boundary/imcra
-               :map.boundaries.active-boundary/meow}))
-
-(s/def :map.boundaries.amp.network/name string?)
-(s/def :map.boundaries.amp.park/name string?)
-(s/def :map.boundaries.amp.park/network :map.boundaries.amp.network/name)
-(s/def :map.boundaries.amp.zone/name string?)
-(s/def :map.boundaries.amp.zone-iucn/name string?)
-
-(s/def :map.boundaries.amp/network
-  (s/keys :req-un [:map.boundaries.amp.network/name]))
-(s/def :map.boundaries.amp/park
-  (s/keys :req-un [:map.boundaries.amp.park/name
-                   :map.boundaries.amp.park/network]))
-(s/def :map.boundaries.amp/zone
-  (s/keys :req-un [:map.boundaries.amp.zone/name]))
-(s/def :map.boundaries.amp/zone-iucn
-  (s/keys :req-un [:map.boundaries.amp.zone-iucn/name]))
-(s/def :map.boundaries.amp/networks (s/coll-of :map.boundaries.amp/network
-                                               :kind vector?))
-(s/def :map.boundaries.amp/parks (s/coll-of :map.boundaries.amp/park
-                                            :kind vector?))
-(s/def :map.boundaries.amp/zones (s/coll-of :map.boundaries.amp/zone
-                                            :kind vector?))
-(s/def :map.boundaries.amp/zones-iucn (s/coll-of :map.boundaries.amp/zone-iucn
-                                                 :kind vector?))
-(s/def :map.boundaries.amp/active-network :map.boundaries.amp/network)
-(s/def :map.boundaries.amp/active-park :map.boundaries.amp/park)
-(s/def :map.boundaries.amp/active-zone :map.boundaries.amp/zone)
-(s/def :map.boundaries.amp/active-zone-iucn :map.boundaries.amp/zone-iucn)
-
-(s/def :map.boundaries/amp
-  (s/keys :req-un [:map.boundaries.amp/networks
-                   :map.boundaries.amp/parks
-                   :map.boundaries.amp/zones
-                   :map.boundaries.amp/zones-iucn
-                   :map.boundaries.amp/active-network
-                   :map.boundaries.amp/active-park
-                   :map.boundaries.amp/active-zone
-                   :map.boundaries.amp/active-zone-iucn]))
-
-(s/def :map.boundaries.imcra.provincial-bioregion/name string?)
-(s/def :map.boundaries.imcra.mesoscale-bioregion/name string?)
-(s/def :map.boundaries.imcra.mesoscale-bioregion/provincial-bioregion :map.boundaries.imcra.provincial-bioregion/name)
-
-(s/def :map.boundaries.imcra/provincial-bioregion
-  (s/keys :req-un [:map.boundaries.imcra.provincial-bioregion/name]))
-(s/def :map.boundaries.imcra/mesoscale-bioregion
-  (s/keys :req-un [:map.boundaries.imcra.mesoscale-bioregion/name
-                   :map.boundaries.imcra.mesoscale-bioregion/provincial-bioregion]))
-(s/def :map.boundaries.imcra/provincial-bioregions (s/coll-of :map.boundaries.imcra/provincial-bioregion
-                                                              :kind vector?))
-(s/def :map.boundaries.imcra/mesoscale-bioregions (s/coll-of :map.boundaries.imcra/mesoscale-bioregion
-                                                             :kind vector?))
-(s/def :map.boundaries.imcra/active-provincial-bioregion :map.boundaries.imcra/provincial-bioregion)
-(s/def :map.boundaries.imcra/active-mesoscale-bioregion :map.boundaries.imcra/mesoscale-bioregion)
-
-(s/def :map.boundaries/imcra
-  (s/keys :req-un [:map.boundaries.imcra/provincial-bioregions
-                   :map.boundaries.imcra/mesoscale-bioregions
-                   :map.boundaries.imcra/active-provincial-bioregion
-                   :map.boundaries.imcra/active-mesoscale-bioregion]))
-
-(s/def :map.boundaries.meow.realm/name string?)
-(s/def :map.boundaries.meow.province/realm :map.boundaries.meow.realm/name)
-(s/def :map.boundaries.meow.province/name string?)
-(s/def :map.boundaries.meow.ecoregion/realm :map.boundaries.meow.realm/name)
-(s/def :map.boundaries.meow.ecoregion/province :map.boundaries.meow.province/name)
-(s/def :map.boundaries.meow.ecoregion/name string?)
-
-(s/def :map.boundaries.meow/realm
-  (s/keys :req-un [:map.boundaries.meow.realm/name]))
-(s/def :map.boundaries.meow/province
-  (s/keys :req-un [:map.boundaries.meow.province/realm
-                   :map.boundaries.meow.province/name]))
-(s/def :map.boundaries.meow/ecoregion
-  (s/keys :req-un [:map.boundaries.meow.ecoregion/realm
-                   :map.boundaries.meow.ecoregion/province
-                   :map.boundaries.meow.ecoregion/name]))
-(s/def :map.boundaries.meow/realms (s/coll-of :map.boundaries.meow/realm
-                                              :kind vector?))
-(s/def :map.boundaries.meow/provinces (s/coll-of :map.boundaries.meow/province
-                                                 :kind vector?))
-(s/def :map.boundaries.meow/ecoregions (s/coll-of :map.boundaries.meow/ecoregion
-                                                  :kind vector?))
-(s/def :map.boundaries.meow/active-realm :map.boundaries.meow/realm)
-(s/def :map.boundaries.meow/active-province :map.boundaries.meow/province)
-(s/def :map.boundaries.meow/active-ecoregion :map.boundaries.meow/ecoregion)
-
-(s/def :map.boundaries/meow
-  (s/keys :req-un [:map.boundaries.meow/realms
-                   :map.boundaries.meow/provinces
-                   :map.boundaries.meow/ecoregions
-                   :map.boundaries.meow/active-realm
-                   :map.boundaries.meow/active-province
-                   :map.boundaries.meow/active-ecoregion]))
-
-(s/def :map/boundaries
-  (s/keys :req-un [:map.boundaries/active-boundary
-                   :map.boundaries/amp
-                   :map.boundaries/imcra
-                   :map.boundaries/meow]))
-
-(s/def :map.boundary-statistics.habitat.result/habitat (s/nilable string?))
-(s/def :map.boundary-statistics.habitat.result/area number?)
-(s/def :map.boundary-statistics.habitat.result/mapped_percentage (s/nilable number?))
-(s/def :map.boundary-statistics.habitat.result/total_percentage number?)
-(s/def :map.boundary-statistics.habitat/result
-  (s/keys :req-un [:map.boundary-statistics.habitat.result/habitat
-                   :map.boundary-statistics.habitat.result/area
-                   :map.boundary-statistics.habitat.result/mapped_percentage
-                   :map.boundary-statistics.habitat.result/total_percentage]))
-(s/def :map.boundary-statistics.habitat/results (s/coll-of :map.boundary-statistics.habitat/result
-                                                           :kind vector?))
-(s/def :map.boundary-statistics.habitat/loading? boolean?)
-(s/def :map.boundary-statistics/habitat
-  (s/keys :req-un [:map.boundary-statistics.habitat/results
-                   :map.boundary-statistics.habitat/loading?]))
-
-(s/def :map.boundary-statistics.bathymetry.result/resolution (s/nilable string?))
-(s/def :map.boundary-statistics.bathymetry.result/rank (s/nilable integer?))
-(s/def :map.boundary-statistics.bathymetry.result/area number?)
-(s/def :map.boundary-statistics.bathymetry.result/mapped_percentage (s/nilable number?))
-(s/def :map.boundary-statistics.bathymetry.result/total_percentage number?)
-(s/def :map.boundary-statistics.bathymetry/result
-  (s/keys :req-un [:map.boundary-statistics.bathymetry.result/category
-                   :map.boundary-statistics.bathymetry.result/rank
-                   :map.boundary-statistics.bathymetry.result/area
-                   :map.boundary-statistics.bathymetry.result/mapped_percentage
-                   :map.boundary-statistics.bathymetry.result/total_percentage]))
-(s/def :map.boundary-statistics.bathymetry/results (s/coll-of :map.boundary-statistics.bathymetry/result
-                                                              :kind vector?))
-(s/def :map.boundary-statistics.bathymetry/loading? :map.boundary-statistics.habitat/loading?)
-(s/def :map.boundary-statistics/bathymetry
-  (s/keys :req-un [:map.boundary-statistics.bathymetry/results
-                   :map.boundary-statistics.bathymetry/loading?]))
-
-
-(s/def :map.boundary-statistics.habitat-observations.global-archive/deployment_id integer?)
-(s/def :map.boundary-statistics.habitat-observations.global-archive/campaign_name integer?)
-(s/def :map.boundary-statistics.habitat-observations.global-archive/start_date string?)
-(s/def :map.boundary-statistics.habitat-observations.global-archive/end_date string?)
-(s/def :map.boundary-statistics.habitat-observations.global-archive/method string?)
-(s/def :map.boundary-statistics.habitat-observations.global-archive/video_time integer?)
-
-(s/def :map.boundary-statistics.habitat-observations.sediment/sample_id integer?)
-(s/def :map.boundary-statistics.habitat-observations.sediment/analysed integer?)
-(s/def :map.boundary-statistics.habitat-observations.sediment/survey integer?)
-(s/def :map.boundary-statistics.habitat-observations.sediment/start_date string?)
-(s/def :map.boundary-statistics.habitat-observations.sediment/end_date string?)
-(s/def :map.boundary-statistics.habitat-observations.sediment/method string?)
-
-(s/def :map.boundary-statistics.habitat-observations.squidle/deployment_id integer?)
-(s/def :map.boundary-statistics.habitat-observations.squidle/campaign_name integer?)
-(s/def :map.boundary-statistics.habitat-observations.squidle/start_date string?)
-(s/def :map.boundary-statistics.habitat-observations.squidle/end_date string?)
-(s/def :map.boundary-statistics.habitat-observations.squidle/method string?)
-(s/def :map.boundary-statistics.habitat-observations.squidle/images integer?)
-(s/def :map.boundary-statistics.habitat-observations.squidle/total_annotations integer?)
-(s/def :map.boundary-statistics.habitat-observations.squidle/public_annotations integer?)
-
-(s/def :map.boundary-statistics.habitat-observations/global-archive
-  (s/nilable
-   (s/keys :req-un [:map.boundary-statistics.habitat-observations.global-archive/deployment_id
-                    :map.boundary-statistics.habitat-observations.global-archive/campaign_name
-                    :map.boundary-statistics.habitat-observations.global-archive/start_date
-                    :map.boundary-statistics.habitat-observations.global-archive/end_date
-                    :map.boundary-statistics.habitat-observations.global-archive/method
-                    :map.boundary-statistics.habitat-observations.global-archive/video_time])))
-(s/def :map.boundary-statistics.habitat-observations/sediment
-  (s/nilable
-   (s/keys :req-un [:map.boundary-statistics.habitat-observations.sediment/sample_id
-                    :map.boundary-statistics.habitat-observations.sediment/analysed
-                    :map.boundary-statistics.habitat-observations.sediment/survey
-                    :map.boundary-statistics.habitat-observations.sediment/start_date
-                    :map.boundary-statistics.habitat-observations.sediment/end_date
-                    :map.boundary-statistics.habitat-observations.sediment/method])))
-(s/def :map.boundary-statistics.habitat-observations/squidle
-  (s/nilable
-   (s/keys :req-un [:map.boundary-statistics.habitat-observations.squidle/deployment_id
-                    :map.boundary-statistics.habitat-observations.squidle/campaign_name
-                    :map.boundary-statistics.habitat-observations.squidle/start_date
-                    :map.boundary-statistics.habitat-observations.squidle/end_date
-                    :map.boundary-statistics.habitat-observations.squidle/method
-                    :map.boundary-statistics.habitat-observations.squidle/images
-                    :map.boundary-statistics.habitat-observations.squidle/total_annotations
-                    :map.boundary-statistics.habitat-observations.squidle/public_annotations])))
-(s/def :map.boundary-statistics.habitat-observations/loading? boolean?)
-
-(s/def :map.boundary-statistics/habitat-observations
-  (s/keys :req-un [:map.boundary-statistics.habitat-observations/global-archive
-                   :map.boundary-statistics.habitat-observations/sediment
-                   :map.boundary-statistics.habitat-observations/squidle
-                   :map.boundary-statistics.habitat-observations/loading?]))
-
-(s/def :map/boundary-statistics
-  (s/keys :req-un [:map.boundary-statistics/habitat
-                   :map.boundary-statistics/bathymetry
-                   :map.boundary-statistics/habitat-observations]))
-
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))
 
@@ -393,9 +191,7 @@
                    :map/organisations
                    :map/priorities
                    :map/priority-cutoff
-                   :map/logic
-                   :map/boundaries
-                   :map/boundary-statistics]))
+                   :map/logic]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
 (s/def :map.state/error-count (s/map-of :map/layer integer?))
@@ -443,7 +239,6 @@
 (s/def :display/sidebar (s/keys :req-un [:sidebar/collapsed :sidebar/selected]))
 ;;; drawer
 (s/def :display/left-drawer boolean?)
-(s/def :display/right-drawer  boolean?)
 (s/def :display.drawer-panel/panel #{:drawer-panel/catalogue-layers})
 (s/def :display.drawer-panel/props (s/nilable map?))
 (s/def :display/drawer-panel
@@ -451,14 +246,230 @@
                    :display.drawer-panel/props]))
 (s/def :display/drawer-panels (s/coll-of :display/drawer-panel
                                          :kind vector?))
+
+
+;; state of knowledge
+(s/def :state-of-knowledge.boundaries/active-boundary
+  (s/nilable #{:state-of-knowledge.boundaries.active-boundary/amp
+               :state-of-knowledge.boundaries.active-boundary/imcra
+               :state-of-knowledge.boundaries.active-boundary/meow}))
+
+(s/def :state-of-knowledge.boundaries.amp.network/name string?)
+(s/def :state-of-knowledge.boundaries.amp.park/name string?)
+(s/def :state-of-knowledge.boundaries.amp.park/network :state-of-knowledge.boundaries.amp.network/name)
+(s/def :state-of-knowledge.boundaries.amp.zone/name string?)
+(s/def :state-of-knowledge.boundaries.amp.zone-iucn/name string?)
+
+(s/def :state-of-knowledge.boundaries.amp/network
+  (s/keys :req-un [:state-of-knowledge.boundaries.amp.network/name]))
+(s/def :state-of-knowledge.boundaries.amp/park
+  (s/keys :req-un [:state-of-knowledge.boundaries.amp.park/name
+                   :state-of-knowledge.boundaries.amp.park/network]))
+(s/def :state-of-knowledge.boundaries.amp/zone
+  (s/keys :req-un [:state-of-knowledge.boundaries.amp.zone/name]))
+(s/def :state-of-knowledge.boundaries.amp/zone-iucn
+  (s/keys :req-un [:state-of-knowledge.boundaries.amp.zone-iucn/name]))
+(s/def :state-of-knowledge.boundaries.amp/networks (s/coll-of :state-of-knowledge.boundaries.amp/network
+                                               :kind vector?))
+(s/def :state-of-knowledge.boundaries.amp/parks (s/coll-of :state-of-knowledge.boundaries.amp/park
+                                            :kind vector?))
+(s/def :state-of-knowledge.boundaries.amp/zones (s/coll-of :state-of-knowledge.boundaries.amp/zone
+                                            :kind vector?))
+(s/def :state-of-knowledge.boundaries.amp/zones-iucn (s/coll-of :state-of-knowledge.boundaries.amp/zone-iucn
+                                                 :kind vector?))
+(s/def :state-of-knowledge.boundaries.amp/active-network :state-of-knowledge.boundaries.amp/network)
+(s/def :state-of-knowledge.boundaries.amp/active-park :state-of-knowledge.boundaries.amp/park)
+(s/def :state-of-knowledge.boundaries.amp/active-zone :state-of-knowledge.boundaries.amp/zone)
+(s/def :state-of-knowledge.boundaries.amp/active-zone-iucn :state-of-knowledge.boundaries.amp/zone-iucn)
+
+(s/def :state-of-knowledge.boundaries/amp
+  (s/keys :req-un [:state-of-knowledge.boundaries.amp/networks
+                   :state-of-knowledge.boundaries.amp/parks
+                   :state-of-knowledge.boundaries.amp/zones
+                   :state-of-knowledge.boundaries.amp/zones-iucn
+                   :state-of-knowledge.boundaries.amp/active-network
+                   :state-of-knowledge.boundaries.amp/active-park
+                   :state-of-knowledge.boundaries.amp/active-zone
+                   :state-of-knowledge.boundaries.amp/active-zone-iucn]))
+
+(s/def :state-of-knowledge.boundaries.imcra.provincial-bioregion/name string?)
+(s/def :state-of-knowledge.boundaries.imcra.mesoscale-bioregion/name string?)
+(s/def :state-of-knowledge.boundaries.imcra.mesoscale-bioregion/provincial-bioregion :state-of-knowledge.boundaries.imcra.provincial-bioregion/name)
+
+(s/def :state-of-knowledge.boundaries.imcra/provincial-bioregion
+  (s/keys :req-un [:state-of-knowledge.boundaries.imcra.provincial-bioregion/name]))
+(s/def :state-of-knowledge.boundaries.imcra/mesoscale-bioregion
+  (s/keys :req-un [:state-of-knowledge.boundaries.imcra.mesoscale-bioregion/name
+                   :state-of-knowledge.boundaries.imcra.mesoscale-bioregion/provincial-bioregion]))
+(s/def :state-of-knowledge.boundaries.imcra/provincial-bioregions (s/coll-of :state-of-knowledge.boundaries.imcra/provincial-bioregion
+                                                              :kind vector?))
+(s/def :state-of-knowledge.boundaries.imcra/mesoscale-bioregions (s/coll-of :state-of-knowledge.boundaries.imcra/mesoscale-bioregion
+                                                             :kind vector?))
+(s/def :state-of-knowledge.boundaries.imcra/active-provincial-bioregion :state-of-knowledge.boundaries.imcra/provincial-bioregion)
+(s/def :state-of-knowledge.boundaries.imcra/active-mesoscale-bioregion :state-of-knowledge.boundaries.imcra/mesoscale-bioregion)
+
+(s/def :state-of-knowledge.boundaries/imcra
+  (s/keys :req-un [:state-of-knowledge.boundaries.imcra/provincial-bioregions
+                   :state-of-knowledge.boundaries.imcra/mesoscale-bioregions
+                   :state-of-knowledge.boundaries.imcra/active-provincial-bioregion
+                   :state-of-knowledge.boundaries.imcra/active-mesoscale-bioregion]))
+
+(s/def :state-of-knowledge.boundaries.meow.realm/name string?)
+(s/def :state-of-knowledge.boundaries.meow.province/realm :state-of-knowledge.boundaries.meow.realm/name)
+(s/def :state-of-knowledge.boundaries.meow.province/name string?)
+(s/def :state-of-knowledge.boundaries.meow.ecoregion/realm :state-of-knowledge.boundaries.meow.realm/name)
+(s/def :state-of-knowledge.boundaries.meow.ecoregion/province :state-of-knowledge.boundaries.meow.province/name)
+(s/def :state-of-knowledge.boundaries.meow.ecoregion/name string?)
+
+(s/def :state-of-knowledge.boundaries.meow/realm
+  (s/keys :req-un [:state-of-knowledge.boundaries.meow.realm/name]))
+(s/def :state-of-knowledge.boundaries.meow/province
+  (s/keys :req-un [:state-of-knowledge.boundaries.meow.province/realm
+                   :state-of-knowledge.boundaries.meow.province/name]))
+(s/def :state-of-knowledge.boundaries.meow/ecoregion
+  (s/keys :req-un [:state-of-knowledge.boundaries.meow.ecoregion/realm
+                   :state-of-knowledge.boundaries.meow.ecoregion/province
+                   :state-of-knowledge.boundaries.meow.ecoregion/name]))
+(s/def :state-of-knowledge.boundaries.meow/realms (s/coll-of :state-of-knowledge.boundaries.meow/realm
+                                              :kind vector?))
+(s/def :state-of-knowledge.boundaries.meow/provinces (s/coll-of :state-of-knowledge.boundaries.meow/province
+                                                 :kind vector?))
+(s/def :state-of-knowledge.boundaries.meow/ecoregions (s/coll-of :state-of-knowledge.boundaries.meow/ecoregion
+                                                  :kind vector?))
+(s/def :state-of-knowledge.boundaries.meow/active-realm :state-of-knowledge.boundaries.meow/realm)
+(s/def :state-of-knowledge.boundaries.meow/active-province :state-of-knowledge.boundaries.meow/province)
+(s/def :state-of-knowledge.boundaries.meow/active-ecoregion :state-of-knowledge.boundaries.meow/ecoregion)
+
+(s/def :state-of-knowledge.boundaries/meow
+  (s/keys :req-un [:state-of-knowledge.boundaries.meow/realms
+                   :state-of-knowledge.boundaries.meow/provinces
+                   :state-of-knowledge.boundaries.meow/ecoregions
+                   :state-of-knowledge.boundaries.meow/active-realm
+                   :state-of-knowledge.boundaries.meow/active-province
+                   :state-of-knowledge.boundaries.meow/active-ecoregion]))
+
+(s/def :state-of-knowledge/boundaries
+  (s/keys :req-un [:state-of-knowledge.boundaries/active-boundary
+                   :state-of-knowledge.boundaries/amp
+                   :state-of-knowledge.boundaries/imcra
+                   :state-of-knowledge.boundaries/meow]))
+
+(s/def :state-of-knowledge.statistics.habitat.result/habitat (s/nilable string?))
+(s/def :state-of-knowledge.statistics.habitat.result/area number?)
+(s/def :state-of-knowledge.statistics.habitat.result/mapped_percentage (s/nilable number?))
+(s/def :state-of-knowledge.statistics.habitat.result/total_percentage number?)
+(s/def :state-of-knowledge.statistics.habitat/result
+  (s/keys :req-un [:state-of-knowledge.statistics.habitat.result/habitat
+                   :state-of-knowledge.statistics.habitat.result/area
+                   :state-of-knowledge.statistics.habitat.result/mapped_percentage
+                   :state-of-knowledge.statistics.habitat.result/total_percentage]))
+(s/def :state-of-knowledge.statistics.habitat/results (s/coll-of :state-of-knowledge.statistics.habitat/result
+                                                           :kind vector?))
+(s/def :state-of-knowledge.statistics.habitat/loading? boolean?)
+(s/def :state-of-knowledge.statistics/habitat
+  (s/keys :req-un [:state-of-knowledge.statistics.habitat/results
+                   :state-of-knowledge.statistics.habitat/loading?]))
+
+(s/def :state-of-knowledge.statistics.bathymetry.result/resolution (s/nilable string?))
+(s/def :state-of-knowledge.statistics.bathymetry.result/rank (s/nilable integer?))
+(s/def :state-of-knowledge.statistics.bathymetry.result/area number?)
+(s/def :state-of-knowledge.statistics.bathymetry.result/mapped_percentage (s/nilable number?))
+(s/def :state-of-knowledge.statistics.bathymetry.result/total_percentage number?)
+(s/def :state-of-knowledge.statistics.bathymetry/result
+  (s/keys :req-un [:state-of-knowledge.statistics.bathymetry.result/category
+                   :state-of-knowledge.statistics.bathymetry.result/rank
+                   :state-of-knowledge.statistics.bathymetry.result/area
+                   :state-of-knowledge.statistics.bathymetry.result/mapped_percentage
+                   :state-of-knowledge.statistics.bathymetry.result/total_percentage]))
+(s/def :state-of-knowledge.statistics.bathymetry/results (s/coll-of :state-of-knowledge.statistics.bathymetry/result
+                                                              :kind vector?))
+(s/def :state-of-knowledge.statistics.bathymetry/loading? :state-of-knowledge.statistics.habitat/loading?)
+(s/def :state-of-knowledge.statistics/bathymetry
+  (s/keys :req-un [:state-of-knowledge.statistics.bathymetry/results
+                   :state-of-knowledge.statistics.bathymetry/loading?]))
+
+
+(s/def :state-of-knowledge.statistics.habitat-observations.global-archive/deployment_id integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.global-archive/campaign_name integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.global-archive/start_date string?)
+(s/def :state-of-knowledge.statistics.habitat-observations.global-archive/end_date string?)
+(s/def :state-of-knowledge.statistics.habitat-observations.global-archive/method string?)
+(s/def :state-of-knowledge.statistics.habitat-observations.global-archive/video_time integer?)
+
+(s/def :state-of-knowledge.statistics.habitat-observations.sediment/sample_id integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.sediment/analysed integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.sediment/survey integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.sediment/start_date string?)
+(s/def :state-of-knowledge.statistics.habitat-observations.sediment/end_date string?)
+(s/def :state-of-knowledge.statistics.habitat-observations.sediment/method string?)
+
+(s/def :state-of-knowledge.statistics.habitat-observations.squidle/deployment_id integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.squidle/campaign_name integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.squidle/start_date string?)
+(s/def :state-of-knowledge.statistics.habitat-observations.squidle/end_date string?)
+(s/def :state-of-knowledge.statistics.habitat-observations.squidle/method string?)
+(s/def :state-of-knowledge.statistics.habitat-observations.squidle/images integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.squidle/total_annotations integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.squidle/public_annotations integer?)
+
+(s/def :state-of-knowledge.statistics.habitat-observations/global-archive
+  (s/nilable
+   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations.global-archive/deployment_id
+                    :state-of-knowledge.statistics.habitat-observations.global-archive/campaign_name
+                    :state-of-knowledge.statistics.habitat-observations.global-archive/start_date
+                    :state-of-knowledge.statistics.habitat-observations.global-archive/end_date
+                    :state-of-knowledge.statistics.habitat-observations.global-archive/method
+                    :state-of-knowledge.statistics.habitat-observations.global-archive/video_time])))
+(s/def :state-of-knowledge.statistics.habitat-observations/sediment
+  (s/nilable
+   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations.sediment/sample_id
+                    :state-of-knowledge.statistics.habitat-observations.sediment/analysed
+                    :state-of-knowledge.statistics.habitat-observations.sediment/survey
+                    :state-of-knowledge.statistics.habitat-observations.sediment/start_date
+                    :state-of-knowledge.statistics.habitat-observations.sediment/end_date
+                    :state-of-knowledge.statistics.habitat-observations.sediment/method])))
+(s/def :state-of-knowledge.statistics.habitat-observations/squidle
+  (s/nilable
+   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations.squidle/deployment_id
+                    :state-of-knowledge.statistics.habitat-observations.squidle/campaign_name
+                    :state-of-knowledge.statistics.habitat-observations.squidle/start_date
+                    :state-of-knowledge.statistics.habitat-observations.squidle/end_date
+                    :state-of-knowledge.statistics.habitat-observations.squidle/method
+                    :state-of-knowledge.statistics.habitat-observations.squidle/images
+                    :state-of-knowledge.statistics.habitat-observations.squidle/total_annotations
+                    :state-of-knowledge.statistics.habitat-observations.squidle/public_annotations])))
+(s/def :state-of-knowledge.statistics.habitat-observations/loading? boolean?)
+
+(s/def :state-of-knowledge.statistics/habitat-observations
+  (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations/global-archive
+                   :state-of-knowledge.statistics.habitat-observations/sediment
+                   :state-of-knowledge.statistics.habitat-observations/squidle
+                   :state-of-knowledge.statistics.habitat-observations/loading?]))
+
+(s/def :state-of-knowledge/statistics
+  (s/keys :req-un [:state-of-knowledge.statistics/habitat
+                   :state-of-knowledge.statistics/bathymetry
+                   :state-of-knowledge.statistics/habitat-observations]))
+
+(s/def :state-of-knowledge/open? boolean?)
+(s/def :state-of-knowledge/pill-open? boolean?)
+(s/def ::state-of-knowledge
+  (s/keys :req-un [:state-of-knowledge/boundaries
+                   :state-of-knowledge/statistics
+                   :state-of-knowledge/open?
+                   :state-of-knowledge/pill-open?]))
+
 (s/def ::display
   (s/keys :req-un [:display/catalogue
                    :display/help-overlay
                    :display/welcome-overlay
                    :display/sidebar
                    :display/left-drawer
+                   :display/state-of-knowledge
                    :display/drawer-panels]))
 
+
+;; filters
 (s/def :filters/layers       string?)
 (s/def :filters/other-layers string?)
 (s/def ::filters (s/keys :req-un [:filters/layers :filters/other-layers]))
@@ -471,6 +482,7 @@
 (s/def :seamap/app-state
   (s/keys :req-un [::config
                    ::display
+                   ::state-of-knowledge
                    ::filters
                    ::region-stats
                    ::habitat-colours
