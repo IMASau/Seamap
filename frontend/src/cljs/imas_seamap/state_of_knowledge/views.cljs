@@ -415,8 +415,13 @@
     :expanded?      @(re-frame/subscribe [:sok/pill-open?])
     :on-open-click  #(re-frame/dispatch [:sok/open])
     :on-close-click #(re-frame/dispatch [:sok/close-pill])}
-   [:div ; TODO: replace content
-    {:style {:width "300px"}}
-    [:h4 "Description"]
-    [:p "Welcome to the magic box; it can be any width or height desired."]
-    [:p "(Magic box is only here as an example to what can be done with this space)"]]])
+   [:div.state-of-knowledge-pill-content
+    [components/form-group
+     {:label "Management Region"}
+     [components/select
+      {:value    {:id "chocolate"}
+       :options  [{:id "chocolate"} {:id "strawberry"} {:id "vanilla"}]
+       :onChange #(js/console.warn %)
+       :keyfns
+       {:id          :id
+        :text        :id}}]]]])
