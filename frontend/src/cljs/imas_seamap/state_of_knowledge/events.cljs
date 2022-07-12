@@ -291,8 +291,8 @@
 
 (defn toggle [db _]
   (if (get-in db [:state-of-knowledge :open?])
-    (open db _)
-    (close db _)))
+    (close db _)
+    (open db _)))
 
 (defn close-pill [db _]
   (assoc-in db [:state-of-knowledge :pill-open?] false))
