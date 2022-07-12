@@ -164,22 +164,22 @@
     organisations))
 
 (defn habitat-statistics [db _]
-  (let [results (get-in db [:map :boundary-statistics :habitat :results])]
+  (let [results (get-in db [:state-of-knowledge :statistics :habitat :results])]
     (map #(assoc % :color (get-in db [:habitat-colours (:habitat %)])) results)))
 
 (defn habitat-statistics-loading? [db _]
-  (get-in db [:map :boundary-statistics :habitat :loading?]))
+  (get-in db [:state-of-knowledge :statistics :habitat :loading?]))
 
 (defn habitat-statistics-download-url [db _]
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
-        {:keys [active-boundary amp imcra meow]} (get-in db [:map :boundaries])
+        {:keys [active-boundary amp imcra meow]} (get-in db [:state-of-knowledge :boundaries])
         {:keys [active-network active-park active-zone active-zone-iucn]} amp
         {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
         {:keys [active-realm active-province active-ecoregion]} meow
         active-boundary (case active-boundary
-                          :map.boundaries.active-boundary/amp   "amp"
-                          :map.boundaries.active-boundary/imcra "imcra"
-                          :map.boundaries.active-boundary/meow  "meow"
+                          :state-of-knowledge.boundaries.active-boundary/amp   "amp"
+                          :state-of-knowledge.boundaries.active-boundary/imcra "imcra"
+                          :state-of-knowledge.boundaries.active-boundary/meow  "meow"
                           nil)
         [active-network active-park active-zone active-zone-iucn
          active-provincial-bioregion active-mesoscale-bioregion active-realm
@@ -204,25 +204,25 @@
       :format               "raw"})))
 
 (defn bathymetry-statistics [db _]
-  (let [results (get-in db [:map :boundary-statistics :bathymetry :results])]
+  (let [results (get-in db [:state-of-knowledge :statistics :bathymetry :results])]
     (map #(assoc % :color (get-in db [:habitat-colours (:resolution %)])) results)))
 
 (defn bathymetry-statistics-loading? [db _]
-  (get-in db [:map :boundary-statistics :bathymetry :loading?]))
+  (get-in db [:state-of-knowledge :statistics :bathymetry :loading?]))
 
 (defn habitat-observations [db _]
-  (get-in db [:map :boundary-statistics :habitat-observations]))
+  (get-in db [:state-of-knowledge :statistics :habitat-observations]))
 
 (defn bathymetry-statistics-download-url [db _]
   (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])
-        {:keys [active-boundary amp imcra meow]} (get-in db [:map :boundaries])
+        {:keys [active-boundary amp imcra meow]} (get-in db [:state-of-knowledge :boundaries])
         {:keys [active-network active-park active-zone active-zone-iucn]} amp
         {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
         {:keys [active-realm active-province active-ecoregion]} meow
         active-boundary (case active-boundary
-                          :map.boundaries.active-boundary/amp   "amp"
-                          :map.boundaries.active-boundary/imcra "imcra"
-                          :map.boundaries.active-boundary/meow  "meow"
+                          :state-of-knowledge.boundaries.active-boundary/amp   "amp"
+                          :state-of-knowledge.boundaries.active-boundary/imcra "imcra"
+                          :state-of-knowledge.boundaries.active-boundary/meow  "meow"
                           nil)
         [active-network active-park active-zone active-zone-iucn
          active-provincial-bioregion active-mesoscale-bioregion active-realm
@@ -247,10 +247,10 @@
       :format               "raw"})))
 
 (defn amp-boundaries [db _]
-  (get-in db [:map :boundaries :amp]))
+  (get-in db [:state-of-knowledge :boundaries :amp]))
 
 (defn imcra-boundaries [db _]
-  (get-in db [:map :boundaries :imcra]))
+  (get-in db [:state-of-knowledge :boundaries :imcra]))
 
 (defn meow-boundaries [db _]
-  (get-in db [:map :boundaries :meow]))
+  (get-in db [:state-of-knowledge :boundaries :meow]))
