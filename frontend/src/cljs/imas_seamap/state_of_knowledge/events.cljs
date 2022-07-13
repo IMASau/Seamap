@@ -26,7 +26,8 @@
       (assoc-in [:state-of-knowledge :boundaries :meow :ecoregions] ecoregions)))
 
 (defn update-active-boundary [{:keys [db]} [_ active-boundary]]
-  (let [db (-> db
+  (let [previous-boundary (get-in db [:state-of-knowledge :boundaries :active-boundary])
+        db (-> db
                (assoc-in [:state-of-knowledge :boundaries :active-boundary] active-boundary)
                (cond->
                 (not= (:id active-boundary) "amp")
@@ -47,10 +48,13 @@
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))))
         layers (get-in db [:map :layers])
-        layer  (first-where #(= (:id %) (:layer active-boundary)) layers)]
-    (merge
-     {:db db}
-     (when layer {:dispatch [:map/pan-to-layer layer]}))))
+        previous-layer    (first-where #(= (:id %) (:layer previous-boundary)) layers)
+        current-layer  (first-where #(= (:id %) (:layer active-boundary)) layers)]
+    {:db db
+     :dispatch-n (vec
+                  (concat
+                   (when previous-layer [[:map/remove-layer previous-layer]])
+                   (when current-layer [[:map/pan-to-layer current-layer]])))}))
 
 (defn update-active-network [{:keys [db]} [_ network]]
   (let [db (cond-> db
