@@ -53,6 +53,9 @@
     {:db db
      :dispatch-n (vec
                   (concat
+                   [[:sok/get-habitat-statistics]
+                    [:sok/get-bathymetry-statistics]
+                    [:sok/get-habitat-observations]]
                    (when previous-layer [[:map/remove-layer previous-layer]])
                    (when current-layer [[:map/pan-to-layer current-layer]])))}))
 
