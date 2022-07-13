@@ -176,6 +176,8 @@
     :sok/update-active-realm              [sokevents/update-active-realm]
     :sok/update-active-province           [sokevents/update-active-province]
     :sok/update-active-ecoregion          [sokevents/update-active-ecoregion]
+    :sok/reset-active-boundaries          sokevents/reset-active-boundaries
+    :sok/reset-active-zones               sokevents/reset-active-zones
     :sok/get-habitat-statistics           [sokevents/get-habitat-statistics]
     :sok/got-habitat-statistics           sokevents/got-habitat-statistics
     :sok/get-bathymetry-statistics        [sokevents/get-bathymetry-statistics]

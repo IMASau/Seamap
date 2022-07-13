@@ -153,6 +153,21 @@
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
 
+(defn reset-active-boundaries [db _]
+  (-> db
+      (assoc-in [:state-of-knowledge :boundaries :amp :active-network] nil)
+      (assoc-in [:state-of-knowledge :boundaries :amp :active-park] nil)
+      (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] nil)
+      (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] nil)
+      (assoc-in [:state-of-knowledge :boundaries :meow :active-realm] nil)
+      (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
+      (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))
+
+(defn reset-active-zones [db _]
+  (-> db
+      (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil)
+      (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil)))
+
 (defn get-habitat-statistics [{:keys [db]}]
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
         {:keys [active-boundary amp imcra meow]} (get-in db [:state-of-knowledge :boundaries])
