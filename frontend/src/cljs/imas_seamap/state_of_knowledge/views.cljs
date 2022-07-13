@@ -167,7 +167,7 @@
 (defn squidle-stats
   [{:keys [deployment_id campaign_name start_date end_date method images total_annotations public_annotations]}]
   (let [collapsed? (reagent/atom true)]
-    (fn []
+    (fn [{:keys [deployment_id campaign_name start_date end_date method images total_annotations public_annotations]}]
       (let [deployment_id      (or deployment_id 0)
             campaign_name      (or campaign_name 0)
             start_date         (or start_date "unknown")
@@ -191,7 +191,7 @@
 (defn global-archive-stats
   [{:keys [deployment_id campaign_name start_date end_date method video_time]}]
   (let [collapsed? (reagent/atom true)]
-    (fn []
+    (fn [{:keys [deployment_id campaign_name start_date end_date method video_time]}]
       (let [deployment_id (or deployment_id 0)
             campaign_name (or campaign_name 0)
             start_date    (or start_date "unknown")
@@ -211,13 +211,8 @@
 
 (defn sediment-stats
   [{:keys [sample_id analysed survey start_date end_date method]}]
-  [:h2
-   {:class (str "bp3-heading" (when (pos? sample_id) " bp3-icon-caret-right"))}
-   (if (pos? sample_id)
-     (str sample_id " sediment samples (" analysed " analysed) from " survey " surveys")
-     "No sediment data")]
   (let [collapsed? (reagent/atom true)]
-    (fn []
+    (fn [{:keys [sample_id analysed survey start_date end_date method]}]
       (let [sample_id  (or sample_id 0)
             analysed   (or analysed 0)
             survey     (or survey 0)
