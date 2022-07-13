@@ -50,6 +50,9 @@
     :sok/amp-boundaries                   soksubs/amp-boundaries
     :sok/imcra-boundaries                 soksubs/imcra-boundaries
     :sok/meow-boundaries                  soksubs/meow-boundaries
+    :sok/valid-amp-boundaries             soksubs/valid-amp-boundaries
+    :sok/valid-imcra-boundaries           soksubs/valid-imcra-boundaries
+    :sok/valid-meow-boundaries            soksubs/valid-meow-boundaries
     :sok/boundaries                       soksubs/boundaries
     :sok/active-boundary                  soksubs/active-boundary
     :sok/open?                            soksubs/open?

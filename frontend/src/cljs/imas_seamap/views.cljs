@@ -772,9 +772,9 @@
         transect-info            @(re-frame/subscribe [:transect/info])
         region-info              @(re-frame/subscribe [:map.layer.selection/info])
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
-        amp-boundaries           @(re-frame/subscribe [:sok/amp-boundaries])
-        imcra-boundaries         @(re-frame/subscribe [:sok/imcra-boundaries])
-        meow-boundaries          @(re-frame/subscribe [:sok/meow-boundaries])
+        amp-boundaries           @(re-frame/subscribe [:sok/valid-amp-boundaries])
+        imcra-boundaries         @(re-frame/subscribe [:sok/valid-imcra-boundaries])
+        meow-boundaries          @(re-frame/subscribe [:sok/valid-meow-boundaries])
         boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])
         open-pill                @(re-frame/subscribe [:sok/open-pill])]

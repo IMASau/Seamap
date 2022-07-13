@@ -85,6 +85,36 @@
 (defn meow-boundaries [db _]
   (get-in db [:state-of-knowledge :boundaries :meow]))
 
+(defn valid-amp-boundaries [db _]
+  (let [{:keys [active-network]
+         :as   boundaries}      (get-in db [:state-of-knowledge :boundaries :amp])
+        active-network          (:name active-network)]
+    (cond-> boundaries
+      (not (nil? active-network))
+      (update :parks #(filter (fn [{:keys [network]}] (= network active-network)) %))))) ; only show parks within the selected network (if the selected network is not nil)
+
+(defn valid-imcra-boundaries [db _]
+  (let [{:keys [active-provincial-bioregion]
+         :as   boundaries}                   (get-in db [:state-of-knowledge :boundaries :imcra])
+        active-provincial-bioregion          (:name active-provincial-bioregion)]
+    (cond-> boundaries
+      (not (nil? active-provincial-bioregion))
+      (update :mesoscale-bioregions #(filter (fn [{:keys [provincial-bioregion]}] (= provincial-bioregion active-provincial-bioregion)) %)))))  ; only show mesoscale bioregions within the selected provincial bioregions (if the selected provincial bioregion is not nil)
+
+(defn valid-meow-boundaries [db _]
+  (let [{:keys [active-realm active-province]
+         :as   boundaries}                    (get-in db [:state-of-knowledge :boundaries :meow])
+        active-realm                          (:name active-realm)
+        active-province                       (:name active-province)]
+    (cond-> boundaries
+      (not (nil? active-realm))
+      (->
+       (update :provinces #(filter (fn [{:keys [realm]}] (= realm active-realm)) %))   ; only show provinces within the selected realm (if the selected realm is not nil)
+       (update :ecoregions #(filter (fn [{:keys [realm]}] (= realm active-realm)) %))) ; only show ecoregions within the selected realm (if the selected realm is not nil)
+
+      (not (nil? active-province))
+      (update :ecoregions #(filter (fn [{:keys [province]}] (= province active-province)) %))))) ; only show ecoregions within the selected province (if the selected province is not nil)
+
 (defn boundaries [db _]
   utils/boundaries)
 
