@@ -481,7 +481,7 @@ rect#background {
 }
 .metadata-record .server-info {
     display: grid;
-    grid-template-columns: 60px 1fr;
+    grid-template-columns: 60px minmax(0, 1fr);
     margin-left: 10px;
     line-height: 1.5em;
 }
