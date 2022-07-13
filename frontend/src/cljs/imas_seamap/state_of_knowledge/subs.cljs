@@ -121,6 +121,21 @@
 (defn active-boundary [db _]
   (get-in db [:state-of-knowledge :boundaries :active-boundary]))
 
+(defn active-boundaries? [db _]
+  (let [{:keys [amp imcra meow]}                                         (get-in db [:state-of-knowledge :boundaries])
+        {:keys [active-network active-park]}                             amp
+        {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
+        {:keys [active-realm active-province active-ecoregion]}          meow]
+    (boolean ; coerce to boolean to hide implementation
+     (or
+      active-network active-park active-provincial-bioregion
+      active-mesoscale-bioregion active-realm active-province active-ecoregion))))
+
+(defn active-zones? [db _]
+  (let [amp                                    (get-in db [:state-of-knowledge :boundaries :amp])
+        {:keys [active-zone active-zone-iucn]} amp]
+    (boolean (or active-zone active-zone-iucn)))) ; coerce to boolean to hide implementation
+
 (defn open? [db _]
   (get-in db [:state-of-knowledge :open?]))
 

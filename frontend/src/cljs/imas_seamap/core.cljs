@@ -55,6 +55,8 @@
     :sok/valid-meow-boundaries            soksubs/valid-meow-boundaries
     :sok/boundaries                       soksubs/boundaries
     :sok/active-boundary                  soksubs/active-boundary
+    :sok/active-boundaries?               soksubs/active-boundaries?
+    :sok/active-zones?                    soksubs/active-zones?
     :sok/open?                            soksubs/open?
     :sok/open-pill                        soksubs/open-pill
     :sorting/info                         subs/sorting-info
