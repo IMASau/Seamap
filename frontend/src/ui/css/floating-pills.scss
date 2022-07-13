@@ -53,6 +53,19 @@ $floating-pill-height: 36px;
 	background-color: #f4f4f4;
 }
 
+.floating-pill-control-menu-button.reset-click {
+	color: #00419d;
+	background-color: #eff4ff;
+}
+
+.floating-pill-control-menu-button.reset-click > button:last-child {
+	margin-right: -5px;
+}
+
+.floating-pill-control-menu-button.reset-click > button:last-child .bp3-icon {
+	color: #00419d;
+}
+
 .floating-pill-control-menu-content {
 	position: absolute;
 	margin-top: $floating-menu-padding;

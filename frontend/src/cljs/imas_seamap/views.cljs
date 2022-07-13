@@ -9,7 +9,7 @@
             [imas-seamap.db :refer [img-url-base]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions sidebar sidebar-tab use-memo]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill]]
+            [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
@@ -768,14 +768,41 @@
 
 (defn floating-pills
   []
-  (let [collapsed     (:collapsed @(re-frame/subscribe [:ui/sidebar]))
-        transect-info @(re-frame/subscribe [:transect/info])
-        region-info   @(re-frame/subscribe [:map.layer.selection/info])]
+  (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
+        transect-info            @(re-frame/subscribe [:transect/info])
+        region-info              @(re-frame/subscribe [:map.layer.selection/info])
+        state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
+        amp-boundaries           @(re-frame/subscribe [:sok/valid-amp-boundaries])
+        imcra-boundaries         @(re-frame/subscribe [:sok/valid-imcra-boundaries])
+        meow-boundaries          @(re-frame/subscribe [:sok/valid-meow-boundaries])
+        boundaries               @(re-frame/subscribe [:sok/boundaries])
+        active-boundary          @(re-frame/subscribe [:sok/active-boundary])
+        open-pill                @(re-frame/subscribe [:sok/open-pill])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
+
      [floating-transect-pill transect-info]
      [floating-region-pill region-info]
-     [floating-state-of-knowledge-pill]]))
+
+     [floating-state-of-knowledge-pill
+      {:expanded?       (= open-pill "state-of-knowledge")
+       :boundaries      boundaries
+       :active-boundary active-boundary}]
+     
+     (when (and state-of-knowledge-open? active-boundary)
+       [floating-boundaries-pill
+        (merge
+         amp-boundaries
+         imcra-boundaries
+         meow-boundaries
+         {:expanded?       (= open-pill "boundaries")
+          :active-boundary active-boundary})])
+     
+     (when (and state-of-knowledge-open? (= (:id active-boundary) "amp"))
+       [floating-zones-pill
+        (merge
+         amp-boundaries
+         {:expanded? (= open-pill "zones")})])]))
 
 (defn layers-search-omnibar
   []

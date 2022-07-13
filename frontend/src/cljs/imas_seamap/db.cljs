@@ -58,7 +58,7 @@
                                                             :squidle        nil
                                                             :loading?       false}}
                         :open?      false
-                        :pill-open? false}
+                        :open-pill  nil}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}

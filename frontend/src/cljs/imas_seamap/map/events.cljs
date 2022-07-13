@@ -543,6 +543,16 @@
      :dispatch-n [[:map.layers.logic/manual]
                   [:map/popup-closed]]}))
 
+(defn remove-layer
+  [{:keys [db]} [_ layer]]
+  (let [layers (get-in db [:map :active-layers])
+        layers (vec (remove #(= % layer) layers))
+        db     (assoc-in db [:map :active-layers] layers)
+        db     (update-in db [:map :hidden-layers] #(disj % layer))]
+    {:db       db
+     :put-hash (encode-state db)
+     :dispatch [:map/popup-closed]}))
+
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ {:keys [category] :as layer}]]
   {:db       (assoc-in db [:display :layers-search-omnibar] false)

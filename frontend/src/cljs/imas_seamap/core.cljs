@@ -50,8 +50,15 @@
     :sok/amp-boundaries                   soksubs/amp-boundaries
     :sok/imcra-boundaries                 soksubs/imcra-boundaries
     :sok/meow-boundaries                  soksubs/meow-boundaries
+    :sok/valid-amp-boundaries             soksubs/valid-amp-boundaries
+    :sok/valid-imcra-boundaries           soksubs/valid-imcra-boundaries
+    :sok/valid-meow-boundaries            soksubs/valid-meow-boundaries
+    :sok/boundaries                       soksubs/boundaries
+    :sok/active-boundary                  soksubs/active-boundary
+    :sok/active-boundaries?               soksubs/active-boundaries?
+    :sok/active-zones?                    soksubs/active-zones?
     :sok/open?                            soksubs/open?
-    :sok/pill-open?                       soksubs/pill-open?
+    :sok/open-pill                        soksubs/open-pill
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
@@ -114,6 +121,7 @@
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]
+    :map/remove-layer                     [mevents/remove-layer]
     :map/add-layer-from-omnibar           [mevents/add-layer-from-omnibar]
     :map/base-layer-changed               [mevents/base-layer-changed]
     :map.layer/load-start                 mevents/layer-started-loading
@@ -159,7 +167,7 @@
     :sok/update-amp-boundaries            sokevents/update-amp-boundaries
     :sok/update-imcra-boundaries          sokevents/update-imcra-boundaries
     :sok/update-meow-boundaries           sokevents/update-meow-boundaries
-    :sok/update-active-boundary           sokevents/update-active-boundary
+    :sok/update-active-boundary           [sokevents/update-active-boundary]
     :sok/update-active-network            [sokevents/update-active-network]
     :sok/update-active-park               [sokevents/update-active-park]
     :sok/update-active-zone               [sokevents/update-active-zone]
@@ -169,16 +177,18 @@
     :sok/update-active-realm              [sokevents/update-active-realm]
     :sok/update-active-province           [sokevents/update-active-province]
     :sok/update-active-ecoregion          [sokevents/update-active-ecoregion]
+    :sok/reset-active-boundaries          [sokevents/reset-active-boundaries]
+    :sok/reset-active-zones               [sokevents/reset-active-zones]
     :sok/get-habitat-statistics           [sokevents/get-habitat-statistics]
     :sok/got-habitat-statistics           sokevents/got-habitat-statistics
     :sok/get-bathymetry-statistics        [sokevents/get-bathymetry-statistics]
     :sok/got-bathymetry-statistics        sokevents/got-bathymetry-statistics
     :sok/get-habitat-observations         [sokevents/get-habitat-observations]
     :sok/got-habitat-observations         sokevents/got-habitat-observations
-    :sok/toggle                           sokevents/toggle
+    :sok/toggle                           [sokevents/toggle]
     :sok/open                             sokevents/open
-    :sok/close                            sokevents/close
-    :sok/close-pill                       sokevents/close-pill
+    :sok/close                            [sokevents/close]
+    :sok/open-pill                        sokevents/open-pill
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]
