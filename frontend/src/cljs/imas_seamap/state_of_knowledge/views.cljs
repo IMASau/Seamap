@@ -266,11 +266,13 @@
 (defn floating-state-of-knowledge-pill
   [{:keys [expanded? boundaries active-boundary]}]
   [components/floating-pill-control-menu
-   {:text           "State of Knowledge"
-    :icon           "add-column-right"
-    :expanded?      expanded?
-    :on-open-click  #(re-frame/dispatch [:sok/open])
-    :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
+   (merge
+    {:text           "State of Knowledge"
+     :icon           "add-column-right"
+     :expanded?      expanded?
+     :on-open-click  #(re-frame/dispatch [:sok/open])
+     :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
+    (when active-boundary {:reset-click #(re-frame/dispatch [:sok/update-active-boundary nil])}))
    [:div.state-of-knowledge-pill-content
     
     [components/form-group
@@ -296,13 +298,16 @@
      active-boundary]}]
   (let [amp?   (= (:id active-boundary) "amp")
         imcra? (= (:id active-boundary) "imcra")
-        meow?  (= (:id active-boundary) "meow")]
+        meow?  (= (:id active-boundary) "meow")
+        active-boundaries? @(re-frame/subscribe [:sok/active-boundaries?])]
     [components/floating-pill-control-menu
-     {:text           "Boundaries"
-      :icon           "heatmap"
-      :expanded?      expanded?
-      :on-open-click  #(re-frame/dispatch [:sok/open-pill "boundaries"])
-      :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
+     (merge
+      {:text           "Boundaries"
+       :icon           "heatmap"
+       :expanded?      expanded?
+       :on-open-click  #(re-frame/dispatch [:sok/open-pill "boundaries"])
+       :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
+      (when active-boundaries? {:reset-click #(re-frame/dispatch [:sok/reset-active-boundaries])}))
      [:div.state-of-knowledge-pill-content
 
       (when amp?
@@ -388,30 +393,33 @@
 
 (defn floating-zones-pill
   [{:keys [expanded? zones zones-iucn active-zone active-zone-iucn]}]
-  [components/floating-pill-control-menu
-   {:text           "Zones"
-    :icon           "polygon-filter"
-    :expanded?      expanded?
-    :on-open-click  #(re-frame/dispatch [:sok/open-pill "zones"])
-    :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
-   [:div.state-of-knowledge-pill-content
+  (let [active-zones? @(re-frame/subscribe [:sok/active-zones?])]
+    [components/floating-pill-control-menu
+     (merge
+      {:text           "Zones"
+       :icon           "polygon-filter"
+       :expanded?      expanded?
+       :on-open-click  #(re-frame/dispatch [:sok/open-pill "zones"])
+       :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
+      (when active-zones? {:reset-click #(re-frame/dispatch [:sok/reset-active-zones])}))
+     [:div.state-of-knowledge-pill-content
 
-    [components/form-group
-     {:label "Zone Category"}
-     [components/select
-      {:value    active-zone
-       :options  zones
-       :onChange #(re-frame/dispatch [:sok/update-active-zone %])
-       :keyfns
-       {:id   :name
-        :text :name}}]]
+      [components/form-group
+       {:label "Zone Category"}
+       [components/select
+        {:value    active-zone
+         :options  zones
+         :onChange #(re-frame/dispatch [:sok/update-active-zone %])
+         :keyfns
+         {:id   :name
+          :text :name}}]]
 
-    [components/form-group
-     {:label "IUCN Category (Zone)"}
-     [components/select
-      {:value    active-zone-iucn
-       :options  zones-iucn
-       :onChange #(re-frame/dispatch [:sok/update-active-zone-iucn %])
-       :keyfns
-       {:id   :name
-        :text :name}}]]]])
+      [components/form-group
+       {:label "IUCN Category (Zone)"}
+       [components/select
+        {:value    active-zone-iucn
+         :options  zones-iucn
+         :onChange #(re-frame/dispatch [:sok/update-active-zone-iucn %])
+         :keyfns
+         {:id   :name
+          :text :name}}]]]]))
