@@ -269,12 +269,12 @@
 (defn open [db _]
   (-> db
       (assoc-in [:state-of-knowledge :open?] true)
-      (assoc-in [:state-of-knowledge :pill-open?] true)))
+      (assoc-in [:state-of-knowledge :open-pill] "state-of-knowledge")))
 
 (defn close [{:keys [db]} _]
   (let [db (-> db
                (assoc-in [:state-of-knowledge :open?] false)
-               (assoc-in [:state-of-knowledge :pill-open?] false))]
+               (assoc-in [:state-of-knowledge :open-pill] nil))]
     {:db db
      :dispatch-n [[:sok/update-active-boundary nil]
                   [:sok/got-habitat-statistics nil]
@@ -286,5 +286,5 @@
                [:sok/close]
                [:sok/open])})
 
-(defn close-pill [db _]
-  (assoc-in db [:state-of-knowledge :pill-open?] false))
+(defn open-pill [db [_ pill-id]]
+  (assoc-in db [:state-of-knowledge :open-pill] pill-id))

@@ -53,7 +53,7 @@
     :sok/boundaries                       soksubs/boundaries
     :sok/active-boundary                  soksubs/active-boundary
     :sok/open?                            soksubs/open?
-    :sok/pill-open?                       soksubs/pill-open?
+    :sok/open-pill                        soksubs/open-pill
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
@@ -180,7 +180,7 @@
     :sok/toggle                           [sokevents/toggle]
     :sok/open                             sokevents/open
     :sok/close                            [sokevents/close]
-    :sok/close-pill                       sokevents/close-pill
+    :sok/open-pill                        sokevents/open-pill
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]

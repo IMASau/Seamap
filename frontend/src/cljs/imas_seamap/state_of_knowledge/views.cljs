@@ -264,13 +264,13 @@
    [habitat-observations]])
 
 (defn floating-state-of-knowledge-pill
-  [{:keys [boundaries active-boundary]}]
+  [{:keys [expanded? boundaries active-boundary]}]
   [components/floating-pill-control-menu
    {:text           "State of Knowledge"
     :icon           "add-column-right"
-    :expanded?      @(re-frame/subscribe [:sok/pill-open?])
+    :expanded?      expanded?
     :on-open-click  #(re-frame/dispatch [:sok/open])
-    :on-close-click #(re-frame/dispatch [:sok/close-pill])}
+    :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
    [:div.state-of-knowledge-pill-content
     
     [components/form-group
@@ -290,8 +290,8 @@
 
 (defn floating-boundaries-pill
   [{:keys
-    [networks parks provincial-bioregions mesoscale-bioregions realms provinces
-     ecoregions active-network active-park active-provincial-bioregion
+    [expanded? networks parks provincial-bioregions mesoscale-bioregions realms
+     provinces ecoregions active-network active-park active-provincial-bioregion
      active-mesoscale-bioregion active-realm active-province active-ecoregion
      active-boundary]}]
   (let [amp?   (= (:id active-boundary) "amp")
@@ -299,7 +299,10 @@
         meow?  (= (:id active-boundary) "meow")]
     [components/floating-pill-control-menu
      {:text           "Boundaries"
-      :icon           "heatmap"}
+      :icon           "heatmap"
+      :expanded?      expanded?
+      :on-open-click  #(re-frame/dispatch [:sok/open-pill "boundaries"])
+      :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
      [:div.state-of-knowledge-pill-content
 
       (when amp?
@@ -384,10 +387,13 @@
             :breadcrumbs (fn [{:keys [realm province]}] [realm province])}}]])]]))
 
 (defn floating-zones-pill
-  [{:keys [zones zones-iucn active-zone active-zone-iucn]}]
+  [{:keys [expanded? zones zones-iucn active-zone active-zone-iucn]}]
   [components/floating-pill-control-menu
    {:text           "Zones"
-    :icon           "polygon-filter"}
+    :icon           "polygon-filter"
+    :expanded?      expanded?
+    :on-open-click  #(re-frame/dispatch [:sok/open-pill "zones"])
+    :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
    [:div.state-of-knowledge-pill-content
 
     [components/form-group

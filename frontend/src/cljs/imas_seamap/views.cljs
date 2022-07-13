@@ -776,7 +776,8 @@
         imcra-boundaries         @(re-frame/subscribe [:sok/imcra-boundaries])
         meow-boundaries          @(re-frame/subscribe [:sok/meow-boundaries])
         boundaries               @(re-frame/subscribe [:sok/boundaries])
-        active-boundary          @(re-frame/subscribe [:sok/active-boundary])]
+        active-boundary          @(re-frame/subscribe [:sok/active-boundary])
+        open-pill                @(re-frame/subscribe [:sok/open-pill])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
 
@@ -784,7 +785,8 @@
      [floating-region-pill region-info]
 
      [floating-state-of-knowledge-pill
-      {:boundaries boundaries
+      {:expanded?       (= open-pill "state-of-knowledge")
+       :boundaries      boundaries
        :active-boundary active-boundary}]
      
      (when (and state-of-knowledge-open? active-boundary)
@@ -793,10 +795,14 @@
          amp-boundaries
          imcra-boundaries
          meow-boundaries
-         {:active-boundary active-boundary})])
+         {:expanded?       (= open-pill "boundaries")
+          :active-boundary active-boundary})])
      
      (when (and state-of-knowledge-open? (= (:id active-boundary) "amp"))
-       [floating-zones-pill amp-boundaries])]))
+       [floating-zones-pill
+        (merge
+         amp-boundaries
+         {:expanded? (= open-pill "zones")})])]))
 
 (defn layers-search-omnibar
   []

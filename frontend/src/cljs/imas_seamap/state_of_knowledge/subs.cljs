@@ -94,5 +94,5 @@
 (defn open? [db _]
   (get-in db [:state-of-knowledge :open?]))
 
-(defn pill-open? [db _]
-  (get-in db [:state-of-knowledge :pill-open?]))
+(defn open-pill [db _]
+  (get-in db [:state-of-knowledge :open-pill]))
