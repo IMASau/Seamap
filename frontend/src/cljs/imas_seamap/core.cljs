@@ -121,6 +121,7 @@
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]
+    :map/remove-layer                     [mevents/remove-layer]
     :map/add-layer-from-omnibar           [mevents/add-layer-from-omnibar]
     :map/base-layer-changed               [mevents/base-layer-changed]
     :map.layer/load-start                 mevents/layer-started-loading
