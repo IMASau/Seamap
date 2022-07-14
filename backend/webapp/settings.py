@@ -138,3 +138,6 @@ OGR2OGR_PATH = None
 # Use to override the OPTIONS.driver value in the database settings
 # (eg, if django is using a different driver to ogr2ogr)
 OGR2OGR_DRIVER = None
+
+
+MEDIA_ROOT = 'media/'
