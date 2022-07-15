@@ -110,6 +110,11 @@
        (map #(vector % true))
        (into {})))
 
+(defn preview-layer-url [db _]
+  (let [url (get-in db [:config :layer-previews-url])
+        layer (get-in db [:map :preview-layer])]
+    (when layer (str url (:id layer) ".png"))))
+
 (defn sidebar-state [db _]
   (get-in db [:display :sidebar]))
 
