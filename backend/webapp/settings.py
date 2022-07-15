@@ -141,3 +141,4 @@ OGR2OGR_DRIVER = None
 
 
 MEDIA_ROOT = 'media/'
+MEDIA_URL = 'media/'

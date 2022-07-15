@@ -4,6 +4,7 @@
 (ns imas-seamap.db)
 
 (goog-define api-url-base "http://localhost:8000/api/")
+(goog-define media-url-base "http://localhost:8000/media/")
 (goog-define img-url-base "/img/")
 
 (def default-db
