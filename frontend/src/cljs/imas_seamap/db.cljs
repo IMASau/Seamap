@@ -4,6 +4,7 @@
 (ns imas-seamap.db)
 
 (goog-define api-url-base "http://localhost:8000/api/")
+(goog-define media-url-base "http://localhost:8000/media/")
 (goog-define img-url-base "/img/")
 
 (def default-db
@@ -98,5 +99,6 @@
                      :habitat-statistics-url (str api-url-base "habitat/habitatstatistics")
                      :bathymetry-statistics-url (str api-url-base "habitat/bathymetrystatistics")
                      :habitat-observations-url (str api-url-base "habitat/habitatobservations")
+                     :layer-previews-url    (str media-url-base "layer_previews/")
                      :init-catalogue-state  {:tab      "cat"
                                              :expanded #{}}}})

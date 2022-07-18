@@ -720,7 +720,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     position: absolute;
     top: calc($floating-pill-height + 2 * $floating-menu-padding);
     left: calc($catalogue-drawer-width + 2 * $floating-menu-padding + 34px);
-    width: 410px;
     z-index: 2000;
     background-color: white;
     border-radius: 14px;
@@ -729,8 +728,8 @@ input.leaflet-control-layers-selector[type="radio"] {
     background-clip: padding-box;
 }
 
-.layer-preview img {
-    width: 100%;
+.layer-preview > * {
+    width: 386px;
     display: block;
     border-radius: 4px;
 }

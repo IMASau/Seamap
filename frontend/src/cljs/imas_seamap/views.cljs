@@ -827,17 +827,11 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
-(defn layer-preview
-  [{:keys [preview-layer]}]
-  (when preview-layer
-    [:div.layer-preview
-     [:img
-      {:src (case (mod (:id preview-layer) 5) ; Selects one of five placeholder images based on layer id - TODO: Replace with actual layer preview image per layer and remove placeholder images from project
-              0 "img/LayerPreview1.png"
-              1 "img/LayerPreview2.png"
-              2 "img/LayerPreview3.png"
-              3 "img/LayerPreview4.png"
-              4 "img/LayerPreview5.png")}]]))
+(defn layer-preview []
+  (let [preview-layer-url @(re-frame/subscribe [:ui/preview-layer-url])]
+    (when preview-layer-url
+      [:div.layer-preview
+       [:img {:src preview-layer-url}]])))
 
 (def hotkeys-combos
   (let [keydown-wrapper
@@ -911,7 +905,7 @@
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?          @(re-frame/subscribe [:left-drawer/open?])
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
-        {:keys [active-layers preview-layer]} @(re-frame/subscribe [:map/layers])]
+        {:keys [active-layers]}  @(re-frame/subscribe [:map/layers])]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when (seq active-layers) " active-layers") (when state-of-knowledge-open? " state-of-knowledge-open"))}
      [:div#content-wrapper
@@ -941,5 +935,5 @@
      [left-drawer]
      [state-of-knowledge]
      [layers-search-omnibar]
-     [layer-preview {:preview-layer preview-layer}]]))
+     [layer-preview]]))
 

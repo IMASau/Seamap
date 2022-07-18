@@ -45,7 +45,7 @@
               0.4)))))       ; Might be nice to make this configurable eventually
 
 (defn map-layers [{:keys [layer-state filters map] :as db} _]
-  (let [{:keys [layers active-layers hidden-layers bounds logic preview-layer]} map
+  (let [{:keys [layers active-layers hidden-layers bounds logic]} map
         categories      (map-on-key (:categories map) :name)
         filter-text     (:layers filters)
         all-layers      layers
@@ -61,8 +61,7 @@
      :active-layers   active-layers
      :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
-     :all-layers      (sort-layers all-layers categories)
-     :preview-layer   preview-layer}))
+     :all-layers      (sort-layers all-layers categories)}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))

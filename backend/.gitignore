@@ -8,6 +8,6 @@
 __pycache__/
 local_settings.py
 db.sqlite3
-media
+media/layer_previews/
 
 # End of https://www.gitignore.io/api/django

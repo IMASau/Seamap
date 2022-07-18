@@ -71,6 +71,7 @@
     :drawer-panel-stack/panels            subs/drawer-panel-stack
     :ui.catalogue/tab                     subs/catalogue-tab
     :ui.catalogue/nodes                   subs/catalogue-nodes
+    :ui/preview-layer-url                 subs/preview-layer-url
     :ui/sidebar                           subs/sidebar-state
     :app/loading?                         subs/app-loading?
     :app/load-normal-msg                  subs/load-normal-msg

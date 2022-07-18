@@ -5,6 +5,8 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, re_path
 from rest_framework.routers import DefaultRouter
+from django.conf import settings
+from django.conf.urls.static import static
 
 import catalogue.viewsets as viewsets
 
@@ -35,7 +37,7 @@ urlpatterns = [
     re_path(r'^api/habitat/habitatobservations', habitat_observations),
     re_path(r'^api/savestates', SaveStateView.as_view()),
     re_path(r'^api/', include(router.urls)),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     urlpatterns += [
