@@ -6,4 +6,4 @@ djangorestframework==3.11.1
 pyodbc==4.0.32
 pyshp==2.1.0
 sqlparse==0.3.1
-Pillow==9.2.0
+Pillow==8.4.0
