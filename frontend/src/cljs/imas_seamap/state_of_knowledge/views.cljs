@@ -262,7 +262,7 @@
   [{:keys [expanded? boundaries active-boundary]}]
   [components/floating-pill-control-menu
    (merge
-    {:text           "State of Knowledge"
+    {:text           (or (:name active-boundary) "State of Knowledge")
      :icon           "add-column-right"
      :expanded?      expanded?
      :on-open-click  #(re-frame/dispatch [:sok/open-pill "state-of-knowledge"])
@@ -294,10 +294,25 @@
   (let [amp?   (= (:id active-boundary) "amp")
         imcra? (= (:id active-boundary) "imcra")
         meow?  (= (:id active-boundary) "meow")
-        active-boundaries? @(re-frame/subscribe [:sok/active-boundaries?])]
+        active-boundaries? @(re-frame/subscribe [:sok/active-boundaries?])
+        text (case (:id active-boundary)
+               "amp" (str
+                      (or (:name active-network) "All networks")
+                      " / "
+                      (or (:name active-park) "All parks"))
+               "imcra" (str
+                        (or (:name active-provincial-bioregion) "All provincial bioregions")
+                        " / "
+                        (or (:name active-mesoscale-bioregion) "All mesoscale bioregions"))
+               "meow" (str
+                       (or (:name active-realm) "All realms")
+                       " / "
+                       (or (:name active-province) "All provinces")
+                       " / "
+                       (or (:name active-ecoregion) "All ecoregions")))]
     [components/floating-pill-control-menu
      (merge
-      {:text           "Boundaries"
+      {:text           text
        :icon           "heatmap"
        :expanded?      expanded?
        :on-open-click  #(re-frame/dispatch [:sok/open-pill "boundaries"])
@@ -388,10 +403,11 @@
 
 (defn floating-zones-pill
   [{:keys [expanded? zones zones-iucn active-zone active-zone-iucn]}]
-  (let [active-zones? @(re-frame/subscribe [:sok/active-zones?])]
+  (let [active-zones? @(re-frame/subscribe [:sok/active-zones?])
+        text (or (:name active-zone) (:name active-zone-iucn) "All zones")]
     [components/floating-pill-control-menu
      (merge
-      {:text           "Zones"
+      {:text           text
        :icon           "polygon-filter"
        :expanded?      expanded?
        :on-open-click  #(re-frame/dispatch [:sok/open-pill "zones"])
