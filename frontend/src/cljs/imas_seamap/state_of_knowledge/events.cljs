@@ -55,7 +55,8 @@
                   (concat
                    [[:sok/get-habitat-statistics]
                     [:sok/get-bathymetry-statistics]
-                    [:sok/get-habitat-observations]]
+                    [:sok/get-habitat-observations]
+                    [:sok/open-pill nil]]
                    (when previous-layer [[:map/remove-layer previous-layer]])
                    (when current-layer [[:map/pan-to-layer current-layer]])))}))
 
@@ -88,7 +89,8 @@
     {:db db
      :dispatch-n [[:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
-                  [:sok/get-habitat-observations]]}))
+                  [:sok/get-habitat-observations]
+                  [:sok/open-pill nil]]}))
 
 (defn update-active-zone-iucn [{:keys [db]} [_ zone-iucn]]
   (let [db (-> db
@@ -97,7 +99,8 @@
     {:db db
      :dispatch-n [[:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
-                  [:sok/get-habitat-observations]]}))
+                  [:sok/get-habitat-observations]
+                  [:sok/open-pill nil]]}))
 
 (defn update-active-provincial-bioregion [{:keys [db]} [_ provincial-bioregion]]
   (let [db (cond-> db
