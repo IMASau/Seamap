@@ -199,10 +199,7 @@
           active-provincial-bioregion active-mesoscale-bioregion active-realm
           active-province active-ecoregion])]
     (if
-     (or
-      active-network active-park active-zone active-zone-iucn
-      active-provincial-bioregion active-mesoscale-bioregion active-realm
-      active-province active-ecoregion)
+     active-boundary
       {:db (assoc-in db [:state-of-knowledge :statistics :habitat :loading?] true)
        :http-xhrio {:method          :get
                     :uri             habitat-statistics-url
@@ -219,7 +216,7 @@
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success      [:sok/got-habitat-statistics]
                     :on-failure      [:ajax/default-err-handler]}}
-     {:db (assoc-in db [:state-of-knowledge :statistics :habitat :results] [])})))
+      {:db (assoc-in db [:state-of-knowledge :statistics :habitat :results] [])})))
 
 (defn got-habitat-statistics [db [_ habitat-statistics]]
   (-> db
@@ -242,10 +239,7 @@
           active-provincial-bioregion active-mesoscale-bioregion active-realm
           active-province active-ecoregion])]
     (if
-     (or
-      active-network active-park active-zone active-zone-iucn
-      active-provincial-bioregion active-mesoscale-bioregion active-realm
-      active-province active-ecoregion)
+     active-boundary
       {:db (assoc-in db [:state-of-knowledge :statistics :bathymetry :loading?] true)
        :http-xhrio {:method          :get
                     :uri             bathymetry-statistics-url
@@ -285,10 +279,7 @@
           active-provincial-bioregion active-mesoscale-bioregion active-realm
           active-province active-ecoregion])]
     (if
-     (or
-      active-network active-park active-zone active-zone-iucn
-      active-provincial-bioregion active-mesoscale-bioregion active-realm
-      active-province active-ecoregion)
+     active-boundary
       {:db (assoc-in db [:state-of-knowledge :statistics :habitat-observations :loading?] true)
        :http-xhrio {:method          :get
                     :uri             habitat-observations-url
