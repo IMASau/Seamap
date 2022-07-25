@@ -265,7 +265,7 @@
     {:text           "State of Knowledge"
      :icon           "add-column-right"
      :expanded?      expanded?
-     :on-open-click  #(re-frame/dispatch [:sok/open])
+     :on-open-click  #(re-frame/dispatch [:sok/open-pill "state-of-knowledge"])
      :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
     (when active-boundary {:reset-click #(re-frame/dispatch [:sok/update-active-boundary nil])}))
    [:div.state-of-knowledge-pill-content

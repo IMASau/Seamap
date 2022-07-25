@@ -137,7 +137,7 @@
     (boolean (or active-zone active-zone-iucn)))) ; coerce to boolean to hide implementation
 
 (defn open? [db _]
-  (get-in db [:state-of-knowledge :open?]))
+  (boolean (get-in db [:state-of-knowledge :boundaries :active-boundary])))
 
 (defn open-pill [db _]
   (get-in db [:state-of-knowledge :open-pill]))

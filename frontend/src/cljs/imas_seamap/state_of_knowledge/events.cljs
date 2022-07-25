@@ -317,25 +317,13 @@
       (assoc-in [:state-of-knowledge :statistics :habitat-observations :squidle] squidle)
       (assoc-in [:state-of-knowledge :statistics :habitat-observations :loading?] false)))
 
-(defn open [db _]
-  (-> db
-      (assoc-in [:state-of-knowledge :open?] true)
-      (assoc-in [:state-of-knowledge :open-pill] "state-of-knowledge")))
-
 (defn close [{:keys [db]} _]
-  (let [db (-> db
-               (assoc-in [:state-of-knowledge :open?] false)
-               (assoc-in [:state-of-knowledge :open-pill] nil))]
-    {:db db
-     :dispatch-n [[:sok/update-active-boundary nil]
-                  [:sok/got-habitat-statistics nil]
-                  [:sok/got-bathymetry-statistics nil]
-                  [:sok/got-habitat-observations nil]]}))
-
-(defn toggle [{:keys [db]} _]
-  {:dispatch (if (get-in db [:state-of-knowledge :open?])
-               [:sok/close]
-               [:sok/open])})
+  {:db db
+   :dispatch-n [[:sok/open-pill nil]
+                [:sok/update-active-boundary nil]
+                [:sok/got-habitat-statistics nil]
+                [:sok/got-bathymetry-statistics nil]
+                [:sok/got-habitat-observations nil]]})
 
 (defn open-pill [db [_ pill-id]]
   (assoc-in db [:state-of-knowledge :open-pill] pill-id))
