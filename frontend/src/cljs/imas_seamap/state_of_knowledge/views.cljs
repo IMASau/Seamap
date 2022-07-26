@@ -252,10 +252,26 @@
         {:keys [active-realm active-province active-ecoregion]}           @(re-frame/subscribe [:sok/valid-meow-boundaries])
         breadcrumbs (case (:id active-boundary)
                       "amp"   (concat
-                               (when active-network [(:name active-network)])
-                               (when active-park [(:name active-park)])
-                               (when active-zone [(:name active-zone)])
-                               (when active-zone-iucn [(:name active-zone-iucn)]))
+                               (when active-network
+                                 [[:a
+                                   {:href   "https://blueprintjs.com/" ; Placeholder URL
+                                    :target "_blank"}
+                                   (:name active-network)]])
+                               (when active-park
+                                 [[:a
+                                   {:href   "https://blueprintjs.com/" ; Placeholder URL
+                                    :target "_blank"}
+                                   (:name active-park)]])
+                               (when active-zone
+                                 [[:a
+                                   {:href   "https://blueprintjs.com/" ; Placeholder URL
+                                    :target "_blank"}
+                                   (:name active-zone)]])
+                               (when active-zone-iucn
+                                 [[:a
+                                   {:href   "https://blueprintjs.com/" ; Placeholder URL
+                                    :target "_blank"}
+                                   (:name active-zone-iucn)]]))
                       "imcra" (concat
                                (when active-provincial-bioregion [(:name active-provincial-bioregion)])
                                (when active-mesoscale-bioregion [(:name active-mesoscale-bioregion)]))
@@ -304,12 +320,7 @@
        :onChange #(re-frame/dispatch [:sok/update-active-boundary %])
        :keyfns
        {:id   :id
-        :text :name}}]]
-    
-    [:a.data-coverage-report-link
-     {:href   "https://blueprintjs.com/" ; Placeholder URL
-      :target "_blank"}
-     "View data coverage report"]]])
+        :text :name}}]]]])
 
 (defn floating-boundaries-pill
   [{:keys
