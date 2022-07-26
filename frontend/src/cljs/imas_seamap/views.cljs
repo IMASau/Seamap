@@ -869,9 +869,6 @@
        {:label "Toggle Left Drawer"     :combo "a"}
        [:left-drawer/toggle])
       (keydown-wrapper
-       {:label "Toggle State of Knowledge"    :combo "d"}
-       [:sok/toggle])
-      (keydown-wrapper
        {:label "Toggle Layers Search"   :combo "shift + s"}
        [:layers-search-omnibar/toggle])
       (keydown-wrapper
