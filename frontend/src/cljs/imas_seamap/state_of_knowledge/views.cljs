@@ -245,6 +245,31 @@
             [global-archive-stats global-archive]
             [sediment-stats sediment]])]))))
 
+(defn selected-boundaries []
+  (let [active-boundary @(re-frame/subscribe [:sok/active-boundary])
+        {:keys [active-network active-park active-zone active-zone-iucn]} @(re-frame/subscribe [:sok/valid-amp-boundaries])
+        {:keys [active-provincial-bioregion active-mesoscale-bioregion]}  @(re-frame/subscribe [:sok/valid-imcra-boundaries])
+        {:keys [active-realm active-province active-ecoregion]}           @(re-frame/subscribe [:sok/valid-meow-boundaries])
+        breadcrumbs (case (:id active-boundary)
+                      "amp"   (concat
+                               (when active-network [(:name active-network)])
+                               (when active-park [(:name active-park)])
+                               (when active-zone [(:name active-zone)])
+                               (when active-zone-iucn [(:name active-zone-iucn)]))
+                      "imcra" (concat
+                               (when active-provincial-bioregion [(:name active-provincial-bioregion)])
+                               (when active-mesoscale-bioregion [(:name active-mesoscale-bioregion)]))
+                      "meow"  (concat
+                               (when active-realm [(:name active-realm)])
+                               (when active-province [(:name active-province)])
+                               (when active-ecoregion [(:name active-ecoregion)]))
+                      nil)]
+    [:div.selected-boundaries
+     [:h1.bp3-heading (:name active-boundary)]
+     (when (seq breadcrumbs)
+       [components/breadcrumbs
+        {:content breadcrumbs}])]))
+
 (defn state-of-knowledge []
   [components/drawer
    {:title       "State of Knowledge"
@@ -254,6 +279,7 @@
     :onClose     #(re-frame/dispatch [:sok/close])
     :hasBackdrop false
     :className   "state-of-knowledge-drawer"}
+   [selected-boundaries]
    [habitat-statistics]
    [bathymetry-statistics]
    [habitat-observations]])
