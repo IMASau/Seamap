@@ -263,15 +263,9 @@
                                     :target "_blank"}
                                    (:name active-park)]])
                                (when active-zone
-                                 [[:a
-                                   {:href   "https://blueprintjs.com/" ; Placeholder URL
-                                    :target "_blank"}
-                                   (:name active-zone)]])
+                                 [(:name active-zone)])
                                (when active-zone-iucn
-                                 [[:a
-                                   {:href   "https://blueprintjs.com/" ; Placeholder URL
-                                    :target "_blank"}
-                                   (:name active-zone-iucn)]]))
+                                 [(:name active-zone-iucn)]))
                       "imcra" (concat
                                (when active-provincial-bioregion [(:name active-provincial-bioregion)])
                                (when active-mesoscale-bioregion [(:name active-mesoscale-bioregion)]))
@@ -281,7 +275,7 @@
                                (when active-ecoregion [(:name active-ecoregion)]))
                       nil)]
     [:div.selected-boundaries
-     [:h1.bp3-heading (:name active-boundary)]
+     [:h2.bp3-heading (:name active-boundary)]
      (when (seq breadcrumbs)
        [components/breadcrumbs
         {:content breadcrumbs}])]))
