@@ -426,7 +426,7 @@
           :text :name}}]]
 
       [components/form-group
-       {:label "IUCN Category (Zone)"}
+       {:label "IUCN Category"}
        [components/select
         {:value    active-zone-iucn
          :options  zones-iucn
