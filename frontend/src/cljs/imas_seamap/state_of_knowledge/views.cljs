@@ -309,9 +309,11 @@
     [components/form-group
      {:label "Management Region"}
      [components/select
-      {:value    active-boundary
-       :options  boundaries
-       :onChange #(re-frame/dispatch [:sok/update-active-boundary %])
+      {:value        active-boundary
+       :options      boundaries
+       :onChange     #(re-frame/dispatch [:sok/update-active-boundary %])
+       :isSearchable true
+       :isClearable  true
        :keyfns
        {:id   :id
         :text :name}}]]]])
@@ -355,9 +357,11 @@
         [components/form-group
          {:label "Network"}
          [components/select
-          {:value    active-network
-           :options  networks
-           :onChange #(re-frame/dispatch [:sok/update-active-network %])
+          {:value        active-network
+           :options      networks
+           :onChange     #(re-frame/dispatch [:sok/update-active-network %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id   :name
             :text :name}}]])
@@ -366,9 +370,11 @@
         [components/form-group
          {:label "Park"}
          [components/select
-          {:value    active-park
-           :options  parks
-           :onChange #(re-frame/dispatch [:sok/update-active-park %])
+          {:value        active-park
+           :options      parks
+           :onChange     #(re-frame/dispatch [:sok/update-active-park %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id          :name
             :text        :name
@@ -378,9 +384,11 @@
         [components/form-group
          {:label "Provincial Bioregion"}
          [components/select
-          {:value    active-provincial-bioregion
-           :options  provincial-bioregions
-           :onChange #(re-frame/dispatch [:sok/update-active-provincial-bioregion %])
+          {:value        active-provincial-bioregion
+           :options      provincial-bioregions
+           :onChange     #(re-frame/dispatch [:sok/update-active-provincial-bioregion %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id   :name
             :text :name}}]])
@@ -389,9 +397,11 @@
         [components/form-group
          {:label "Mesoscale Bioregion"}
          [components/select
-          {:value    active-mesoscale-bioregion
-           :options  mesoscale-bioregions
-           :onChange #(re-frame/dispatch [:sok/update-active-mesoscale-bioregion %])
+          {:value        active-mesoscale-bioregion
+           :options      mesoscale-bioregions
+           :onChange     #(re-frame/dispatch [:sok/update-active-mesoscale-bioregion %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id          :name
             :text        :name
@@ -401,9 +411,11 @@
         [components/form-group
          {:label "Realms"}
          [components/select
-          {:value    active-realm
-           :options  realms
-           :onChange #(re-frame/dispatch [:sok/update-active-realm %])
+          {:value        active-realm
+           :options      realms
+           :onChange     #(re-frame/dispatch [:sok/update-active-realm %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id   :name
             :text :name}}]])
@@ -412,9 +424,11 @@
         [components/form-group
          {:label "Provinces"}
          [components/select
-          {:value    active-province
-           :options  provinces
-           :onChange #(re-frame/dispatch [:sok/update-active-province %])
+          {:value        active-province
+           :options      provinces
+           :onChange     #(re-frame/dispatch [:sok/update-active-province %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id          :name
             :text        :name
@@ -424,9 +438,11 @@
         [components/form-group
          {:label "Ecoregions"}
          [components/select
-          {:value    active-ecoregion
-           :options  ecoregions
-           :onChange #(re-frame/dispatch [:sok/update-active-ecoregion %])
+          {:value        active-ecoregion
+           :options      ecoregions
+           :onChange     #(re-frame/dispatch [:sok/update-active-ecoregion %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id          :name
             :text        :name
@@ -449,9 +465,11 @@
       [components/form-group
        {:label "Zone Category"}
        [components/select
-        {:value    active-zone
-         :options  zones
-         :onChange #(re-frame/dispatch [:sok/update-active-zone %])
+        {:value        active-zone
+         :options      zones
+         :onChange     #(re-frame/dispatch [:sok/update-active-zone %])
+         :isSearchable true
+         :isClearable  true
          :keyfns
          {:id   :name
           :text :name}}]]
@@ -459,9 +477,11 @@
       [components/form-group
        {:label "IUCN Category"}
        [components/select
-        {:value    active-zone-iucn
-         :options  zones-iucn
-         :onChange #(re-frame/dispatch [:sok/update-active-zone-iucn %])
+        {:value        active-zone-iucn
+         :options      zones-iucn
+         :onChange     #(re-frame/dispatch [:sok/update-active-zone-iucn %])
+         :isSearchable true
+         :isClearable  true
          :keyfns
          {:id   :name
           :text :name}}]]]]))
