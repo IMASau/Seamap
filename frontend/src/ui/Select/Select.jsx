@@ -41,7 +41,7 @@ export function Select({value, options, onChange, isSearchable, isClearable}) {
 			filterOption={(option, inputValue) => {
 				inputValue = inputValue.toLowerCase();
 
-				if (breadcrumbs) {
+				if (option.data.breadcrumbs) {
 					const breadcrumbContains = option.data.breadcrumbs.map(e => e.toLowerCase().includes(inputValue)).reduce(
 						(e1, e2) => e1 || e2
 					);
