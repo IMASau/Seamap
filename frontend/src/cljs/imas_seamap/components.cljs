@@ -189,3 +189,9 @@
        {:icon (if collapsed? "plus" "minus")
         :icon-size 20}])]
    (into [:div.drawer-group-content] children)])
+
+(defn breadcrumbs
+  [{:keys [content]}]
+  (let [content (map #(vector :span %) content)
+        content (interpose [b/icon {:icon "caret-right"}] content)]
+    (into [:div.breadcrumbs] content)))
