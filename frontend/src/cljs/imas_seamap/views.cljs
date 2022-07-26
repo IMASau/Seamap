@@ -827,11 +827,20 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
-(defn layer-preview []
-  (let [preview-layer-url @(re-frame/subscribe [:ui/preview-layer-url])]
-    (when preview-layer-url
-      [:div.layer-preview
-       [:img {:src preview-layer-url}]])))
+(defn layer-preview [preview-layer-url]
+  (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
+        error? (reagent/atom false)]    ; keeps track of if previous url had an error in displaying
+    (fn [preview-layer-url]
+      (when (not= preview-layer-url @previous-url) ; if the preview layer has changed, then:
+        (reset! error? false)                      ; - reset errors we're keeping track of (we need to check if the new image has errors in displaying)
+        (reset! previous-url preview-layer-url))   ; - set the "previous url" we're keeping track of to the new url
+      (when preview-layer-url
+            [:div.layer-preview
+             (if @error?
+               [:div "No layer preview available"]
+               [:img
+                {:src preview-layer-url
+                 :onError #(reset! error? true)}])])))) ; if there's an error in displaying the image, then we keep track of it so we can instead display an error message
 
 (def hotkeys-combos
   (let [keydown-wrapper
@@ -935,5 +944,5 @@
      [left-drawer]
      [state-of-knowledge]
      [layers-search-omnibar]
-     [layer-preview]]))
+     [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 
