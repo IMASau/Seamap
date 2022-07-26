@@ -30,7 +30,7 @@ function ItemRenderer({id, text, breadcrumbs}, {selectValue}) {
 	);
 }
 
-export function Select({value, options, onChange, isSearchable, isClearable}) {
+export function Select({value, options, onChange, isSearchable, isClearable, isDisabled}) {
 	return (
 		<ReactSelect
 			value={options.filter(({id}) => id == value)}
@@ -38,6 +38,7 @@ export function Select({value, options, onChange, isSearchable, isClearable}) {
 			getOptionValue={({id})=> id}
 			isSearchable={isSearchable}
 			isClearable={isClearable}
+			isDisabled={isDisabled}
 			filterOption={(option, inputValue) => {
 				inputValue = inputValue.toLowerCase();
 
@@ -65,5 +66,6 @@ Select.propTypes = {
 	})).isRequired,
 	onChange: PropTypes.func.isRequired,
 	isSearchable: PropTypes.bool,
-	isClearable: PropTypes.bool
+	isClearable: PropTypes.bool,
+	isDisabled: PropTypes.bool
 }

@@ -39,6 +39,7 @@ const FieldTemplate = (args) => {
 			onChange={setValue}
 			isSearchable={true}
 			isClearable={true}
+			isDisabled={false}
 		/>
 	);
 }

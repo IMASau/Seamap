@@ -132,7 +132,7 @@
         :onItemSelect (fn [id] (onItemSelect (:item (first-where #(= (:id %) id) items))))}])))
 
 (defn select
-  [{:keys [value options onChange isSearchable isClearable keyfns]}]
+  [{:keys [value options onChange isSearchable isClearable isDisabled keyfns]}]
   (letfn [(option->select-option
             [option]
             (if-let [{:keys [id text breadcrumbs]} keyfns]
@@ -149,7 +149,8 @@
         :options      options
         :onChange     (fn [id] (onChange (:option (first-where #(= (:id %) id) options))))
         :isSearchable isSearchable
-        :isClearable  isClearable}])))
+        :isClearable  isClearable
+        :isDisabled   isDisabled}])))
 
 (defn form-group
   [{:keys [label]} & children]
