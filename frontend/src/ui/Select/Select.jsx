@@ -40,10 +40,15 @@ export function Select({value, options, onChange, isSearchable, isClearable}) {
 			isClearable={isClearable}
 			filterOption={(option, inputValue) => {
 				inputValue = inputValue.toLowerCase();
-				const breadcrumbContains = option.data.breadcrumbs.map(e => e.toLowerCase().includes(inputValue)).reduce(
-					(e1, e2) => e1 || e2
-				);
-				return option.data.text.toLowerCase().includes(inputValue) || breadcrumbContains;
+
+				if (breadcrumbs) {
+					const breadcrumbContains = option.data.breadcrumbs.map(e => e.toLowerCase().includes(inputValue)).reduce(
+						(e1, e2) => e1 || e2
+					);
+					return option.data.text.toLowerCase().includes(inputValue) || breadcrumbContains;
+				} else {
+					return option.data.text.toLowerCase().includes(inputValue);
+				}
 			}}
 			formatOptionLabel={ItemRenderer}
 			onChange={e => onChange(e ? e.id : e)}
