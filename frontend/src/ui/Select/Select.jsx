@@ -58,5 +58,7 @@ Select.propTypes = {
 		text: PropTypes.string.isRequired,
 		breadcrumbs: PropTypes.arrayOf(PropTypes.string)
 	})).isRequired,
-	onChange: PropTypes.func.isRequired
+	onChange: PropTypes.func.isRequired,
+	isSearchable: PropTypes.bool,
+	isClearable: PropTypes.bool
 }
