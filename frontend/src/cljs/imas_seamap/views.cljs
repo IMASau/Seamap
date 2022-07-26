@@ -360,7 +360,7 @@
   (let [layer-card-items
         (map
          (fn [layer]
-           {:key (:layer_name layer)
+           {:key (str (:id layer))
             :content [active-layer-card layer
                       {:active?   true
                        :visible?  (some #{layer} visible-layers)
