@@ -470,7 +470,7 @@
          :onChange     #(re-frame/dispatch [:sok/update-active-zone %])
          :isSearchable true
          :isClearable  true
-         :isDisabled   active-zone-iucn
+         :isDisabled   (boolean active-zone-iucn)
          :keyfns
          {:id   :name
           :text :name}}]]
@@ -483,7 +483,7 @@
          :onChange     #(re-frame/dispatch [:sok/update-active-zone-iucn %])
          :isSearchable true
          :isClearable  true
-         :isDisabled   active-zone
+         :isDisabled   (boolean active-zone)
          :keyfns
          {:id   :name
           :text :name}}]]]]))
