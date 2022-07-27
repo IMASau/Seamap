@@ -9,12 +9,12 @@ AS
 BEGIN
   -- Update BOUNDARY_AMP_HABITAT
   DELETE FROM [dbo].[BOUNDARY_AMP_HABITAT] WHERE [habitat] = @habitat;
-  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Zone], [habitat], [geom], [area])
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Category], [habitat], [geom], [area])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
-    [boundary].[IUCN_Zone],
+    [boundary].[IUCN_Category],
     [habitat].[CATEGORY] AS [habitat],
     [habitat].[geom],
     [habitat].[geom].STArea() AS [area]

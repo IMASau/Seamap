@@ -105,7 +105,7 @@ SELECT DISTINCT Zone_Category AS name
 FROM VW_BOUNDARY_AMP;
 """
 SQL_GET_AMP_ZONES_IUCN = """
-SELECT DISTINCT IUCN_Zone AS name
+SELECT DISTINCT IUCN_Category AS name
 FROM VW_BOUNDARY_AMP;
 """
 
@@ -164,7 +164,7 @@ SELECT
       (Network = @netname OR @netname IS NULL) AND
       (Park = @resname OR @resname IS NULL) AND
       (Zone_Category = @zonename OR @zonename IS NULL) AND
-      (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
+      (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
   ) AS mapped_percentage,
   100 * (SUM(area) / 1000000) / %s AS total_percentage
   {}
@@ -173,7 +173,7 @@ WHERE
   (Network = @netname OR @netname IS NULL) AND
   (Park = @resname OR @resname IS NULL) AND
   (Zone_Category = @zonename OR @zonename IS NULL) AND
-  (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
+  (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
 GROUP BY habitat;
 """
 
@@ -243,7 +243,7 @@ SELECT
       (Network = @netname OR @netname IS NULL) AND
       (Park = @resname OR @resname IS NULL) AND
       (Zone_Category = @zonename OR @zonename IS NULL) AND
-      (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
+      (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
   ) AS mapped_percentage,
   100 * (SUM(area) / 1000000) / %s AS total_percentage
   {}
@@ -252,7 +252,7 @@ WHERE
   (Network = @netname OR @netname IS NULL) AND
   (Park = @resname OR @resname IS NULL) AND
   (Zone_Category = @zonename OR @zonename IS NULL) AND
-  (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
+  (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
 GROUP BY bathymetry_resolution, bathymetry_rank;
 """
 
@@ -338,7 +338,7 @@ FROM (
     (Network = @netname OR @netname IS NULL) AND
     (Park = @resname OR @resname IS NULL) AND
     (Zone_Category = @zonename OR @zonename IS NULL) AND
-    (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
+    (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
@@ -443,7 +443,7 @@ FROM (
     (Network = @netname OR @netname IS NULL) AND
     (Park = @resname OR @resname IS NULL) AND
     (Zone_Category = @zonename OR @zonename IS NULL) AND
-    (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
+    (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SEDIMENT AS observation
 ON observation.SAMPLE_ID = boundary_observation.observation;
@@ -552,7 +552,7 @@ FROM (
     (Network = @netname OR @netname IS NULL) AND
     (Park = @resname OR @resname IS NULL) AND
     (Zone_Category = @zonename OR @zonename IS NULL) AND
-    (IUCN_Zone = @zoneiucn OR @zoneiucn IS NULL)
+    (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SQUIDLE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;

@@ -6,6 +6,6 @@ SELECT
   [NETNAME] AS [Network],
   [RESNAME] AS [Park],
   [ZONENAME] AS [Zone_Category],
-  [ZONEIUCN] AS [IUCN_Zone],
+  [ZONEIUCN] AS [IUCN_Category],
   [geom]
 FROM [dbo].[SeamapAus_BOUNDARIES_AMP2022];
