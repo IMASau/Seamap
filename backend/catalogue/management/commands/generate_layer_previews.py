@@ -6,6 +6,7 @@ from urllib.request import urlopen
 from urllib.parse import urlencode
 from PIL import Image
 from io import BytesIO
+import logging
 
 from catalogue.models import Layer
 
@@ -66,8 +67,7 @@ def retrieve_image(layer):
         'bbox': '{west},{south},{east},{north}'.format(**bbox)
     }
 
-    url = '{server_url}?{params}'.format(
-        server_url=layer.server_url, params=urlencode(params))
+    url = f'{layer.server_url}?{urlencode(params)}'
 
     layer_image = Image.open(urlopen(url)).convert('RGBA')
     cropped_basemap = basemap_bbox(**bbox).resize((width, height))
@@ -95,7 +95,7 @@ class Command(BaseCommand):
         if layer_id is not None:
             layer = Layer.objects.get(id=layer_id)
 
-            filepath = 'layer_previews/{}.png'.format(layer.id)
+            filepath = f'layer_previews/{layer.id}.png'
             if not only_generate_missing or not default_storage.exists(filepath):
                 bytes_io = BytesIO()
 
@@ -110,7 +110,7 @@ class Command(BaseCommand):
             failures = []
 
             for layer in Layer.objects.all():
-                filepath = 'layer_previews/{}.png'.format(layer.id)
+                filepath = f'layer_previews/{layer.id}.png'
                 if not only_generate_missing or not default_storage.exists(filepath):
                     bytes_io = BytesIO()
 
@@ -121,12 +121,16 @@ class Command(BaseCommand):
                         default_storage.delete(filepath)
                         default_storage.save(filepath, File(bytes_io, ''))
                     except Exception:
-                        self.stdout.write('Failed to retrieve layer {layer_name} ({id})'.format(
-                            layer_name=layer.layer_name, id=layer.id))
+                        logging.warn(f'Failed to retrieve layer {layer.layer_name} ({layer.id})')
                         failures.append(layer)
 
                     bytes_io.close()
 
             if len(failures):
-                self.stdout.write('Failed to retrieve the following layers: \n - {}'.format('\n - '.join(
-                    ['{layer_name} ({id})'.format(layer_name=layer.layer_name, id=layer.id) for layer in failures])))
+                logging.warn('Failed to retrieve the following layers: \n - {}'.format(
+                    '\n - '.join(
+                        ['{layer_name} ({id})'.format(
+                            layer_name=layer.layer_name, id=layer.id
+                        ) for layer in failures]
+                    )
+                ))
