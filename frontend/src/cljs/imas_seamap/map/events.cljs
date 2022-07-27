@@ -336,6 +336,7 @@
         catalogue            (merge catalogue (get-in db [:display :catalogue]))] ; Override initial state with states we have
     (-> db
         (assoc-in [:map :categories] categories)
+        (assoc-in [:sorting :category] (->sort-map categories))
         (assoc-in [:display :catalogue] catalogue))))
 
 (defn layer-started-loading [db [_ layer]]

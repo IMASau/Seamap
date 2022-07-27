@@ -176,7 +176,7 @@
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
-        :let [sorting-id (get-in sorting-info [ordering val 1] "nil")
+        :let [sorting-id (get-in sorting-info [ordering val 1] "")
               id-str (str id-base "|" sorting-id)]]
     {:id id-str
      :label (or val "Ungrouped") ; (Implicit assumption that the group-by value is a string)
@@ -240,12 +240,12 @@
        {:id    "cat"
         :title "By Category"
         :panel (reagent/as-element
-                [layer-catalogue-tree layers [:data_classification] "cat" layer-props group])}]
+                [layer-catalogue-tree layers [:category :data_classification] "cat" layer-props group])}]
       [b/tab
        {:id    "org"
         :title "By Organisation"
         :panel (reagent/as-element
-                [layer-catalogue-tree layers [:organisation :data_classification] "org" layer-props group])}]]]))
+                [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props group])}]]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
