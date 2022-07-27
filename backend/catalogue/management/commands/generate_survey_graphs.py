@@ -32,71 +32,57 @@ def summarise_by_year(data):
 
 
 def generate_graph(data, title, directory, exclude_old_data):
-    min_year = min(v.get('year') for v in data)
-    max_year = max(v.get('year') for v in data)
-    filename = title
+    filepath = '{directory}/{title}.png'.format(
+        directory=directory,
+        title=title
+    )
 
     if exclude_old_data:
-        min_year = max(min_year, 2000)
         title = title + ' (2000 onwards)'
+        data = [v for v in data if v.get('year') >= 2000]
 
-    years = [v for v in range(min_year, max_year + 1)]
+    fig = plt.figure()
 
-    imagery = [
-        next((v.get('imagery_count') for v in data if v.get('year') == year), 0)
-        for year in years
-    ]
-    video = [
-        next((v.get('video_count') for v in data if v.get('year') == year), 0)
-        for year in years
-    ]
-    sediment = [
-        next((v.get('sediment_count') for v in data if v.get('year') == year), 0)
-        for year in years
-    ]
-    bathymetry = [
-        next((v.get('bathymetry_count') for v in data if v.get('year') == year), 0)
-        for year in years
-    ]
+    bar_width = 0.25
+    plt.bar(
+        [v.get('year') for v in data],
+        [v.get('imagery_count') for v in data],
+        color='#3C67BC', width=bar_width, label='Imagery (campaigns)'
+    )
+    plt.bar(
+        [v.get('year') + bar_width for v in data],
+        [v.get('video_count') for v in data],
+        color='#EA722B', width=bar_width, label='Video (campaigns)'
+    )
+    plt.bar(
+        [v.get('year') + 2 * bar_width for v in data],
+        [v.get('sediment_count') for v in data],
+        color='#9B9B9B', width=bar_width, label='Sediment (surveys)'
+    )
+    plt.bar(
+        [v.get('year') + 3 * bar_width for v in data],
+        [v.get('bathymetry_count') for v in data],
+        color='#FFB800', width=bar_width, label='Bathymetry (surveys)'
+    )
 
-    if not (imagery or video or sediment or bathymetry):
-        print('Warning: empty graph for {}'.format(title))
-    else:
-        fig = plt.figure()
+    plt.legend()
+    plt.xlabel('Year')
+    plt.ylabel('Survey Effort')
+    plt.title(title)
 
-        bar_width = 0.25
-        plt.bar(years, imagery, color='#3C67BC',
-                width=bar_width, label='Imagery (campaigns)')
-        plt.bar([v + bar_width for v in years], video, color='#EA722B',
-                width=bar_width, label='Video (campaigns)')
-        plt.bar([v + 2*bar_width for v in years], sediment, color='#9B9B9B',
-                width=bar_width, label='Sediment (surveys)')
-        plt.bar([v + 3*bar_width for v in years], bathymetry, color='#FFB800',
-                width=bar_width, label='Bathymetry (surveys)')
+    # only allow integer ticks
+    ax = fig.gca()
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
-        plt.legend()
-        plt.xlabel('Year')
-        plt.ylabel('Survey Effort')
-        plt.title(title)
+    # saving
+    bytes_io = BytesIO()
 
-        # only allow integer ticks
-        ax = fig.gca()
-        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    fig.savefig(bytes_io, format='png')
+    default_storage.delete(filepath)
+    default_storage.save(filepath, File(bytes_io, ''))
 
-        # saving
-        bytes_io = BytesIO()
-
-        fig.savefig(bytes_io, format='png')
-        default_storage.save(
-            '{directory}/{filename}.png'.format(
-                directory=directory,
-                filename=filename
-            ),
-            File(bytes_io, '')
-        )
-
-        bytes_io.close()
+    bytes_io.close()
 
 
 SQL_GET_NETWORK_STATS = """
