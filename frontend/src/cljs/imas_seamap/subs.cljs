@@ -133,6 +133,9 @@
 (defn left-drawer-open? [db _]
   (get-in db [:display :left-drawer]))
 
+(defn left-drawer-tab [db _]
+  (get-in db [:display :left-drawer-tab]))
+
 (defn layers-search-omnibar-open? [db _]
   (get-in db [:display :layers-search-omnibar]))
 

@@ -619,6 +619,9 @@
       (assoc-in [:display :left-drawer] false)
       (assoc-in [:display :drawer-panel-stack] [])))
 
+(defn left-drawer-tab [db [_ tab]]
+  (assoc-in db [:display :left-drawer-tab] tab))
+
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))
 

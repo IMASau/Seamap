@@ -76,6 +76,7 @@
    :display         {:help-overlay          false
                      :welcome-overlay       false
                      :left-drawer           false
+                     :left-drawer-tab       "catalogue"
                      :layers-search-omnibar false
                      :drawer-panel-stack    []
                      :catalogue             {:tab      "cat"
