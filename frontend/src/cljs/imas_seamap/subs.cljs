@@ -102,11 +102,11 @@
 
 (defn sorting-info [db _] (get db :sorting))
 
-(defn catalogue-tab [db [_ group]]
-  (get-in db [:display :catalogue group :tab]))
+(defn catalogue-tab [db _]
+  (get-in db [:display :catalogue :tab]))
 
-(defn catalogue-nodes [db [_ group]]
-  (->> (get-in db [:display :catalogue group :expanded])
+(defn catalogue-nodes [db _]
+  (->> (get-in db [:display :catalogue :expanded])
        (map #(vector % true))
        (into {})))
 

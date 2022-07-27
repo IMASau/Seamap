@@ -543,13 +543,13 @@
   {:message ["Failed to generate URL!"
              {:intent b/INTENT-WARNING :icon "warning-sign"}]})
 
-(defn catalogue-select-tab [{:keys [db]} [_ group tabid]]
-  {:db       (assoc-in db [:display :catalogue group :tab] tabid)
+(defn catalogue-select-tab [{:keys [db]} [_ tabid]]
+  {:db       (assoc-in db [:display :catalogue :tab] tabid)
    :put-hash (encode-state db)})
 
-(defn catalogue-toggle-node [{:keys [db]} [_ group nodeid]]
-  (let [nodes         (get-in db [:display :catalogue group :expanded])]
-    {:db       (update-in db [:display :catalogue group :expanded] (if (nodes nodeid) disj conj) nodeid)
+(defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
+  (let [nodes (get-in db [:display :catalogue :expanded])]
+    {:db       (update-in db [:display :catalogue :expanded] (if (nodes nodeid) disj conj) nodeid)
      :put-hash (encode-state db)}))
 
 (defn catalogue-add-node [{:keys [db]} [_ group nodeid]]

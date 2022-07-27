@@ -78,7 +78,8 @@
                      :left-drawer           false
                      :layers-search-omnibar false
                      :drawer-panel-stack    []
-                     :catalogue             {}
+                     :catalogue             {:tab      "cat"
+                                             :expanded #{}}
                      :sidebar               {:collapsed false
                                              :selected  "tab-activelayers"}}
    :config          {:layer-url             (str api-url-base "layers/")
@@ -98,6 +99,4 @@
                      :habitat-statistics-url (str api-url-base "habitat/habitatstatistics")
                      :bathymetry-statistics-url (str api-url-base "habitat/bathymetrystatistics")
                      :habitat-observations-url (str api-url-base "habitat/habitatobservations")
-                     :layer-previews-url    (str media-url-base "layer_previews/")
-                     :init-catalogue-state  {:tab      "cat"
-                                             :expanded #{}}}})
+                     :layer-previews-url    (str media-url-base "layer_previews/")}})

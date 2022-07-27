@@ -208,20 +208,20 @@
                          #_:secondaryLabel #_(reagent/as-element [catalogue-controls layer layer-state])}))
                     layer-subset))}))
 
-(defn layer-catalogue-tree [_layers _ordering _id _layer-props group]
-  (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes group])
+(defn layer-catalogue-tree [_layers _ordering _id _layer-props]
+  (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
                   (let [node (js->clj node :keywordize-keys true)]
-                    (re-frame/dispatch [:ui.catalogue/toggle-node group (:id node)])))
+                    (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
         on-close (fn [node]
                    (let [node (js->clj node :keywordize-keys true)]
-                     (re-frame/dispatch [:ui.catalogue/toggle-node group (:id node)])))
+                     (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
         on-click (fn [node]
                    (let [{:keys [childNodes id]} (js->clj node :keywordize-keys true)]
                      (when (seq childNodes)
                        ;; If we have children, toggle expanded state, else add to map
-                       (re-frame/dispatch [:ui.catalogue/toggle-node group id]))))]
+                       (re-frame/dispatch [:ui.catalogue/toggle-node id]))))]
     (fn [layers ordering id layer-props]
      [:div.tab-body.layer-controls {:id id}
       [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props)
@@ -229,9 +229,9 @@
                :onNodeExpand on-open
                :onNodeClick on-click}]])))
 
-(defn layer-catalogue [layers layer-props group]
-  (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab group])
-        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab group %1])]
+(defn layer-catalogue [layers layer-props]
+  (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab])
+        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab %1])]
     [:div.height-managed
      [b/tabs {:selected-tab-id selected-tab
               :on-change       select-tab
@@ -240,12 +240,12 @@
        {:id    "cat"
         :title "By Category"
         :panel (reagent/as-element
-                [layer-catalogue-tree layers [:category :data_classification] "cat" layer-props group])}]
+                [layer-catalogue-tree layers [:category :data_classification] "cat" layer-props])}]
       [b/tab
        {:id    "org"
         :title "By Organisation"
         :panel (reagent/as-element
-                [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props group])}]]]))
+                [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props])}]]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -635,7 +635,7 @@
          :on-click   #(re-frame/dispatch [:re-boot])}]]]}))
 
 (defn catalogue-layers-panel
-  [{:keys [title layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities group]}]
+  [{:keys [title layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
   {:title   title
    :content
    [:div.sidebar-tab.height-managed
@@ -646,8 +646,7 @@
       :loading-fn     loading-layers
       :error-fn       error-layers
       :expanded-fn    expanded-layers
-      :opacity-fn     layer-opacities}
-     group]]})
+      :opacity-fn     layer-opacities}]]})
 
 (defn drawer-panel-selection
   [panel map-layers]
