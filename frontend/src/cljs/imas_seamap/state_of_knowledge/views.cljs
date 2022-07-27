@@ -245,6 +245,41 @@
             [global-archive-stats global-archive]
             [sediment-stats sediment]])]))))
 
+(defn selected-boundaries []
+  (let [active-boundary @(re-frame/subscribe [:sok/active-boundary])
+        {:keys [active-network active-park active-zone active-zone-iucn]} @(re-frame/subscribe [:sok/valid-amp-boundaries])
+        {:keys [active-provincial-bioregion active-mesoscale-bioregion]}  @(re-frame/subscribe [:sok/valid-imcra-boundaries])
+        {:keys [active-realm active-province active-ecoregion]}           @(re-frame/subscribe [:sok/valid-meow-boundaries])
+        breadcrumbs (case (:id active-boundary)
+                      "amp"   (concat
+                               (when active-network
+                                 [[:a
+                                   {:href   "https://blueprintjs.com/" ; Placeholder URL
+                                    :target "_blank"}
+                                   (:name active-network)]])
+                               (when active-park
+                                 [[:a
+                                   {:href   "https://blueprintjs.com/" ; Placeholder URL
+                                    :target "_blank"}
+                                   (:name active-park)]])
+                               (when active-zone
+                                 [(:name active-zone)])
+                               (when active-zone-iucn
+                                 [(:name active-zone-iucn)]))
+                      "imcra" (concat
+                               (when active-provincial-bioregion [(:name active-provincial-bioregion)])
+                               (when active-mesoscale-bioregion [(:name active-mesoscale-bioregion)]))
+                      "meow"  (concat
+                               (when active-realm [(:name active-realm)])
+                               (when active-province [(:name active-province)])
+                               (when active-ecoregion [(:name active-ecoregion)]))
+                      nil)]
+    [:div.selected-boundaries
+     [:h2.bp3-heading (:name active-boundary)]
+     (when (seq breadcrumbs)
+       [components/breadcrumbs
+        {:content breadcrumbs}])]))
+
 (defn state-of-knowledge []
   [components/drawer
    {:title       "State of Knowledge"
@@ -254,6 +289,7 @@
     :onClose     #(re-frame/dispatch [:sok/close])
     :hasBackdrop false
     :className   "state-of-knowledge-drawer"}
+   [selected-boundaries]
    [habitat-statistics]
    [bathymetry-statistics]
    [habitat-observations]])
@@ -262,10 +298,10 @@
   [{:keys [expanded? boundaries active-boundary]}]
   [components/floating-pill-control-menu
    (merge
-    {:text           "State of Knowledge"
+    {:text           (or (:name active-boundary) "State of Knowledge")
      :icon           "add-column-right"
      :expanded?      expanded?
-     :on-open-click  #(re-frame/dispatch [:sok/open])
+     :on-open-click  #(re-frame/dispatch [:sok/open-pill "state-of-knowledge"])
      :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
     (when active-boundary {:reset-click #(re-frame/dispatch [:sok/update-active-boundary nil])}))
    [:div.state-of-knowledge-pill-content
@@ -273,17 +309,14 @@
     [components/form-group
      {:label "Management Region"}
      [components/select
-      {:value    active-boundary
-       :options  boundaries
-       :onChange #(re-frame/dispatch [:sok/update-active-boundary %])
+      {:value        active-boundary
+       :options      boundaries
+       :onChange     #(re-frame/dispatch [:sok/update-active-boundary %])
+       :isSearchable true
+       :isClearable  true
        :keyfns
        {:id   :id
-        :text :name}}]]
-    
-    [:a.data-coverage-report-link
-     {:href   "https://blueprintjs.com/" ; Placeholder URL
-      :target "_blank"}
-     "View data coverage report"]]])
+        :text :name}}]]]])
 
 (defn floating-boundaries-pill
   [{:keys
@@ -294,10 +327,25 @@
   (let [amp?   (= (:id active-boundary) "amp")
         imcra? (= (:id active-boundary) "imcra")
         meow?  (= (:id active-boundary) "meow")
-        active-boundaries? @(re-frame/subscribe [:sok/active-boundaries?])]
+        active-boundaries? @(re-frame/subscribe [:sok/active-boundaries?])
+        text (case (:id active-boundary)
+               "amp" (str
+                      (or (:name active-network) "All networks")
+                      " / "
+                      (or (:name active-park) "All parks"))
+               "imcra" (str
+                        (or (:name active-provincial-bioregion) "All provincial bioregions")
+                        " / "
+                        (or (:name active-mesoscale-bioregion) "All mesoscale bioregions"))
+               "meow" (str
+                       (or (:name active-realm) "All realms")
+                       " / "
+                       (or (:name active-province) "All provinces")
+                       " / "
+                       (or (:name active-ecoregion) "All ecoregions")))]
     [components/floating-pill-control-menu
      (merge
-      {:text           "Boundaries"
+      {:text           text
        :icon           "heatmap"
        :expanded?      expanded?
        :on-open-click  #(re-frame/dispatch [:sok/open-pill "boundaries"])
@@ -309,9 +357,11 @@
         [components/form-group
          {:label "Network"}
          [components/select
-          {:value    active-network
-           :options  networks
-           :onChange #(re-frame/dispatch [:sok/update-active-network %])
+          {:value        active-network
+           :options      networks
+           :onChange     #(re-frame/dispatch [:sok/update-active-network %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id   :name
             :text :name}}]])
@@ -320,9 +370,11 @@
         [components/form-group
          {:label "Park"}
          [components/select
-          {:value    active-park
-           :options  parks
-           :onChange #(re-frame/dispatch [:sok/update-active-park %])
+          {:value        active-park
+           :options      parks
+           :onChange     #(re-frame/dispatch [:sok/update-active-park %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id          :name
             :text        :name
@@ -332,9 +384,11 @@
         [components/form-group
          {:label "Provincial Bioregion"}
          [components/select
-          {:value    active-provincial-bioregion
-           :options  provincial-bioregions
-           :onChange #(re-frame/dispatch [:sok/update-active-provincial-bioregion %])
+          {:value        active-provincial-bioregion
+           :options      provincial-bioregions
+           :onChange     #(re-frame/dispatch [:sok/update-active-provincial-bioregion %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id   :name
             :text :name}}]])
@@ -343,9 +397,11 @@
         [components/form-group
          {:label "Mesoscale Bioregion"}
          [components/select
-          {:value    active-mesoscale-bioregion
-           :options  mesoscale-bioregions
-           :onChange #(re-frame/dispatch [:sok/update-active-mesoscale-bioregion %])
+          {:value        active-mesoscale-bioregion
+           :options      mesoscale-bioregions
+           :onChange     #(re-frame/dispatch [:sok/update-active-mesoscale-bioregion %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id          :name
             :text        :name
@@ -355,9 +411,11 @@
         [components/form-group
          {:label "Realms"}
          [components/select
-          {:value    active-realm
-           :options  realms
-           :onChange #(re-frame/dispatch [:sok/update-active-realm %])
+          {:value        active-realm
+           :options      realms
+           :onChange     #(re-frame/dispatch [:sok/update-active-realm %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id   :name
             :text :name}}]])
@@ -366,9 +424,11 @@
         [components/form-group
          {:label "Provinces"}
          [components/select
-          {:value    active-province
-           :options  provinces
-           :onChange #(re-frame/dispatch [:sok/update-active-province %])
+          {:value        active-province
+           :options      provinces
+           :onChange     #(re-frame/dispatch [:sok/update-active-province %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id          :name
             :text        :name
@@ -378,9 +438,11 @@
         [components/form-group
          {:label "Ecoregions"}
          [components/select
-          {:value    active-ecoregion
-           :options  ecoregions
-           :onChange #(re-frame/dispatch [:sok/update-active-ecoregion %])
+          {:value        active-ecoregion
+           :options      ecoregions
+           :onChange     #(re-frame/dispatch [:sok/update-active-ecoregion %])
+           :isSearchable true
+           :isClearable  true
            :keyfns
            {:id          :name
             :text        :name
@@ -388,10 +450,11 @@
 
 (defn floating-zones-pill
   [{:keys [expanded? zones zones-iucn active-zone active-zone-iucn]}]
-  (let [active-zones? @(re-frame/subscribe [:sok/active-zones?])]
+  (let [active-zones? @(re-frame/subscribe [:sok/active-zones?])
+        text (or (:name active-zone) (:name active-zone-iucn) "All zones")]
     [components/floating-pill-control-menu
      (merge
-      {:text           "Zones"
+      {:text           text
        :icon           "polygon-filter"
        :expanded?      expanded?
        :on-open-click  #(re-frame/dispatch [:sok/open-pill "zones"])
@@ -402,19 +465,25 @@
       [components/form-group
        {:label "Zone Category"}
        [components/select
-        {:value    active-zone
-         :options  zones
-         :onChange #(re-frame/dispatch [:sok/update-active-zone %])
+        {:value        active-zone
+         :options      zones
+         :onChange     #(re-frame/dispatch [:sok/update-active-zone %])
+         :isSearchable true
+         :isClearable  true
+         :isDisabled   (boolean active-zone-iucn)
          :keyfns
          {:id   :name
           :text :name}}]]
 
       [components/form-group
-       {:label "IUCN Category (Zone)"}
+       {:label "IUCN Category"}
        [components/select
-        {:value    active-zone-iucn
-         :options  zones-iucn
-         :onChange #(re-frame/dispatch [:sok/update-active-zone-iucn %])
+        {:value        active-zone-iucn
+         :options      zones-iucn
+         :onChange     #(re-frame/dispatch [:sok/update-active-zone-iucn %])
+         :isSearchable true
+         :isClearable  true
+         :isDisabled   (boolean active-zone)
          :keyfns
          {:id   :name
           :text :name}}]]]]))

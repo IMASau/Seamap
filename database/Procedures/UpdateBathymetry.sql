@@ -33,12 +33,12 @@ BEGIN
 
   -- Update BOUNDARY_AMP_BATHYMETRY
   DELETE FROM [dbo].[BOUNDARY_AMP_BATHYMETRY] WHERE [bathymetry_resolution] = @resolution;
-  INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Zone], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
+  INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Category], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
-    [boundary].[IUCN_Zone],
+    [boundary].[IUCN_Category],
     [bathymetry].[RESOLUTION] AS [bathymetry_resolution],
     [bathymetry].[RANK] AS [bathymetry_rank],
     [bathymetry].[geom],

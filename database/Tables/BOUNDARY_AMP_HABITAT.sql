@@ -4,18 +4,18 @@ CREATE TABLE [dbo].[BOUNDARY_AMP_HABITAT] (
   [Network]       NVARCHAR(254) NOT NULL,
   [Park]          NVARCHAR(254) NOT NULL,
   [Zone_Category] NVARCHAR(254) NOT NULL,
-  [IUCN_Zone]     NVARCHAR(5)   NOT NULL,
+  [IUCN_Category]     NVARCHAR(5)   NOT NULL,
   [habitat]       NVARCHAR(30)  NOT NULL,
   [geom]          GEOMETRY      NOT NULL,
   [area]          FLOAT         NOT NULL
 );
 
-INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Zone], [habitat], [geom], [area])
+INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Category], [habitat], [geom], [area])
 SELECT
   [boundary].[Network],
   [boundary].[Park],
   [boundary].[Zone_Category],
-  [boundary].[IUCN_Zone],
+  [boundary].[IUCN_Category],
   [habitat].[CATEGORY] AS [habitat],
   [habitat].[geom],
   [habitat].[geom].STArea() AS [area]
@@ -34,5 +34,5 @@ CROSS APPLY [dbo].habitat_intersections([boundary].[geom]) AS [habitat];
 --   ([Network] = @network OR @network IS NULL) AND
 --   ([Park] = @park OR @park IS NULL) AND
 --   ([Zone_Category] = @zone OR @zone IS NULL) AND
---   ([IUCN_Zone] = @zone_iucn OR @zone_iucn IS NULL)
+--   ([IUCN_Category] = @zone_iucn OR @zone_iucn IS NULL)
 -- GROUP BY [habitat];

@@ -17,14 +17,14 @@ BEGIN
     ([Network] = @netname OR @netname IS NULL) AND
     ([Park] = @resname OR @resname IS NULL) AND
     ([Zone_Category] = @zonename OR @zonename IS NULL) AND
-    ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
+    ([IUCN_Category] = @zoneiucn OR @zoneiucn IS NULL);
 
-  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Zone], [habitat], [geom], [area])
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Category], [habitat], [geom], [area])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
-    [boundary].[IUCN_Zone],
+    [boundary].[IUCN_Category],
     [habitat].[CATEGORY] AS [habitat],
     [habitat].[geom],
     [habitat].[geom].STArea() AS [area]
@@ -34,7 +34,7 @@ BEGIN
     ([boundary].[Network] = @netname OR @netname IS NULL) AND
     ([boundary].[Park] = @resname OR @resname IS NULL) AND
     ([boundary].[Zone_Category] = @zonename OR @zonename IS NULL) AND
-    ([boundary].[IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
+    ([boundary].[IUCN_Category] = @zoneiucn OR @zoneiucn IS NULL);
 
   -- Update BOUNDARY_AMP_BATHYMETRY
   DELETE FROM [dbo].[BOUNDARY_AMP_BATHYMETRY]
@@ -42,14 +42,14 @@ BEGIN
     ([Network] = @netname OR @netname IS NULL) AND
     ([Park] = @resname OR @resname IS NULL) AND
     ([Zone_Category] = @zonename OR @zonename IS NULL) AND
-    ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
+    ([IUCN_Category] = @zoneiucn OR @zoneiucn IS NULL);
   
-  INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Zone], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
+  INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Category], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
-    [boundary].[IUCN_Zone],
+    [boundary].[IUCN_Category],
     [bathymetry].[RESOLUTION] AS [bathymetry_resolution],
     [bathymetry].[RANK] AS [bathymetry_rank],
     [bathymetry].[geom],
@@ -60,7 +60,7 @@ BEGIN
     ([boundary].[Network] = @netname OR @netname IS NULL) AND
     ([boundary].[Park] = @resname OR @resname IS NULL) AND
     ([boundary].[Zone_Category] = @zonename OR @zonename IS NULL) AND
-    ([boundary].[IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
+    ([boundary].[IUCN_Category] = @zoneiucn OR @zoneiucn IS NULL);
   
   -- Update BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE
   DELETE FROM [dbo].[BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE]
@@ -68,13 +68,13 @@ BEGIN
     ([Network] = @netname OR @netname IS NULL) AND
     ([Park] = @resname OR @resname IS NULL) AND
     ([Zone_Category] = @zonename OR @zonename IS NULL) AND
-    ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
-  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE] ([Network], [Park], [Zone_Category], [IUCN_Zone], [observation])
+    ([IUCN_Category] = @zoneiucn OR @zoneiucn IS NULL);
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE] ([Network], [Park], [Zone_Category], [IUCN_Category], [observation])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
-    [boundary].[IUCN_Zone],
+    [boundary].[IUCN_Category],
     [observation].[DEPLOYMENT_ID] AS [observation]
   FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].HABITAT_OBS_GLOBALARCHIVE_intersections([boundary].[geom]) AS [observation]
@@ -82,7 +82,7 @@ BEGIN
     ([Network] = @netname OR @netname IS NULL) AND
     ([Park] = @resname OR @resname IS NULL) AND
     ([Zone_Category] = @zonename OR @zonename IS NULL) AND
-    ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
+    ([IUCN_Category] = @zoneiucn OR @zoneiucn IS NULL);
   
   -- Update BOUNDARY_AMP_HABITAT_OBS_SEDIMENT
   DELETE FROM [dbo].[BOUNDARY_AMP_HABITAT_OBS_SEDIMENT]
@@ -90,13 +90,13 @@ BEGIN
     ([Network] = @netname OR @netname IS NULL) AND
     ([Park] = @resname OR @resname IS NULL) AND
     ([Zone_Category] = @zonename OR @zonename IS NULL) AND
-    ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
-  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_SEDIMENT] ([Network], [Park], [Zone_Category], [IUCN_Zone], [observation])
+    ([IUCN_Category] = @zoneiucn OR @zoneiucn IS NULL);
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_SEDIMENT] ([Network], [Park], [Zone_Category], [IUCN_Category], [observation])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
-    [boundary].[IUCN_Zone],
+    [boundary].[IUCN_Category],
     [observation].[SAMPLE_ID] AS [observation]
   FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].HABITAT_OBS_SEDIMENT_intersections([boundary].[geom]) AS [observation]
@@ -104,7 +104,7 @@ BEGIN
     ([Network] = @netname OR @netname IS NULL) AND
     ([Park] = @resname OR @resname IS NULL) AND
     ([Zone_Category] = @zonename OR @zonename IS NULL) AND
-    ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
+    ([IUCN_Category] = @zoneiucn OR @zoneiucn IS NULL);
 
   -- Update BOUNDARY_AMP_HABITAT_OBS_SQUIDLE
   DELETE FROM [dbo].[BOUNDARY_AMP_HABITAT_OBS_SQUIDLE]
@@ -112,13 +112,13 @@ BEGIN
     ([Network] = @netname OR @netname IS NULL) AND
     ([Park] = @resname OR @resname IS NULL) AND
     ([Zone_Category] = @zonename OR @zonename IS NULL) AND
-    ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
-  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_SQUIDLE] ([Network], [Park], [Zone_Category], [IUCN_Zone], [observation])
+    ([IUCN_Category] = @zoneiucn OR @zoneiucn IS NULL);
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_SQUIDLE] ([Network], [Park], [Zone_Category], [IUCN_Category], [observation])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
-    [boundary].[IUCN_Zone],
+    [boundary].[IUCN_Category],
     [observation].[DEPLOYMENT_ID] AS [observation]
   FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].HABITAT_OBS_SQUIDLE_intersections([boundary].[geom]) AS [observation]
@@ -126,5 +126,5 @@ BEGIN
     ([Network] = @netname OR @netname IS NULL) AND
     ([Park] = @resname OR @resname IS NULL) AND
     ([Zone_Category] = @zonename OR @zonename IS NULL) AND
-    ([IUCN_Zone] = @zoneiucn OR @zoneiucn IS NULL);
+    ([IUCN_Category] = @zoneiucn OR @zoneiucn IS NULL);
 END;

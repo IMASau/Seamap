@@ -30,15 +30,29 @@ function ItemRenderer({id, text, breadcrumbs}, {selectValue}) {
 	);
 }
 
-export function Select({value, options, onChange}) {
+export function Select({value, options, onChange, isSearchable, isClearable, isDisabled}) {
 	return (
 		<ReactSelect
 			value={options.filter(({id}) => id == value)}
 			options={options}
 			getOptionValue={({id})=> id}
-			isSearchable={false}
+			isSearchable={isSearchable}
+			isClearable={isClearable}
+			isDisabled={isDisabled}
+			filterOption={(option, inputValue) => {
+				inputValue = inputValue.toLowerCase();
+
+				if (option.data.breadcrumbs) {
+					const breadcrumbContains = option.data.breadcrumbs.map(e => e.toLowerCase().includes(inputValue)).reduce(
+						(e1, e2) => e1 || e2
+					);
+					return option.data.text.toLowerCase().includes(inputValue) || breadcrumbContains;
+				} else {
+					return option.data.text.toLowerCase().includes(inputValue);
+				}
+			}}
 			formatOptionLabel={ItemRenderer}
-			onChange={({id}) => onChange(id)}
+			onChange={e => onChange(e ? e.id : e)}
 		/>
 	);
 }
@@ -50,5 +64,8 @@ Select.propTypes = {
 		text: PropTypes.string.isRequired,
 		breadcrumbs: PropTypes.arrayOf(PropTypes.string)
 	})).isRequired,
-	onChange: PropTypes.func.isRequired
+	onChange: PropTypes.func.isRequired,
+	isSearchable: PropTypes.bool,
+	isClearable: PropTypes.bool,
+	isDisabled: PropTypes.bool
 }
