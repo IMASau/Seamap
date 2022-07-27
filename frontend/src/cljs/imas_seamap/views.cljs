@@ -360,7 +360,7 @@
   (let [layer-card-items
         (map
          (fn [layer]
-           {:key (:layer_name layer)
+           {:key (str (:id layer))
             :content [active-layer-card layer
                       {:active?   true
                        :visible?  (some #{layer} visible-layers)
@@ -868,9 +868,6 @@
       (keydown-wrapper
        {:label "Toggle Left Drawer"     :combo "a"}
        [:left-drawer/toggle])
-      (keydown-wrapper
-       {:label "Toggle State of Knowledge"    :combo "d"}
-       [:sok/toggle])
       (keydown-wrapper
        {:label "Toggle Layers Search"   :combo "shift + s"}
        [:layers-search-omnibar/toggle])

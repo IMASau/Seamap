@@ -58,7 +58,6 @@
                                                             :sediment       nil
                                                             :squidle        nil
                                                             :loading?       false}}
-                        :open?      false
                         :open-pill  nil}
    :layer-state     {:loading-state {}
                      :tile-count    {}

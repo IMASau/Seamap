@@ -58,6 +58,10 @@ $floating-pill-height: 36px;
 	background-color: #eff4ff;
 }
 
+.floating-pill-control-menu-button.reset-click:hover {
+	background-color: #e9eef8;
+}
+
 .floating-pill-control-menu-button.reset-click > button:last-child {
 	margin-right: -5px;
 }
