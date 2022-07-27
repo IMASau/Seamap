@@ -6,6 +6,7 @@ from collections import namedtuple
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from io import BytesIO
+import logging
 
 # groups the list of data by network
 def group_networks(data):
@@ -32,10 +33,7 @@ def summarise_by_year(data):
 
 
 def generate_graph(data, title, directory, exclude_old_data):
-    filepath = '{directory}/{title}.png'.format(
-        directory=directory,
-        title=title
-    )
+    filepath = f'{directory}/{title}.png'
 
     if exclude_old_data:
         title = title + ' (2000 onwards)'
@@ -128,7 +126,9 @@ class Command(BaseCommand):
 
             for network in networks_summary:
                 title = network.get('network')
+                logging.info(f'Generating network graph \"{title}\" (all years)')
                 generate_graph(network.get('value'), title, 'survey_graphs/networks/all_data', False)
+                logging.info(f'Generating network graph \"{title}\" (post-2000)')
                 generate_graph(network.get('value'), title, 'survey_graphs/networks/post_2000', True)
 
             # parks
@@ -153,6 +153,8 @@ class Command(BaseCommand):
                 network_name = network.get('network')
                 for park in network.get('value'):
                     park_name = park.get('park')
-                    title = '{network} - {park}'.format(network=network_name, park=park_name)
+                    title = f'{network_name} - {park_name}'
+                    logging.info(f'Generating park graph \"{title}\" (all years)')
                     generate_graph(park.get('value'), title, 'survey_graphs/parks/all_data', False)
+                    logging.info(f'Generating park graph \"{title}\" (post-2000)')
                     generate_graph(park.get('value'), title, 'survey_graphs/parks/all_data', True)
