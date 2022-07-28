@@ -615,7 +615,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 .catalogue-open .leaflet-left {
-    left: calc(460px + 10px);
+    left: $catalogue-drawer-width;
 }
 
 /* Allow interactivity with underneath elements while drawer is open */
