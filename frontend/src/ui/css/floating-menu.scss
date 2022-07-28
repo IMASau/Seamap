@@ -103,12 +103,3 @@ $floating-menu-bar-height: 48px;
 	padding: 8px;
 	overflow-y: scroll;
 }
-
-.leaflet-top.leaflet-left {
-	left: $floating-menu-padding;
-	top: $floating-menu-padding;
-}
-
-.catalogue-open .leaflet-top.leaflet-left {
-	left: calc($catalogue-drawer-width + $floating-menu-padding);
-}
