@@ -543,33 +543,33 @@
   {:message ["Failed to generate URL!"
              {:intent b/INTENT-WARNING :icon "warning-sign"}]})
 
-(defn catalogue-select-tab [{:keys [db]} [_ group tabid]]
-  {:db       (assoc-in db [:display :catalogue group :tab] tabid)
+(defn catalogue-select-tab [{:keys [db]} [_ tabid]]
+  {:db       (assoc-in db [:display :catalogue :tab] tabid)
    :put-hash (encode-state db)})
 
-(defn catalogue-toggle-node [{:keys [db]} [_ group nodeid]]
-  (let [nodes         (get-in db [:display :catalogue group :expanded])]
-    {:db       (update-in db [:display :catalogue group :expanded] (if (nodes nodeid) disj conj) nodeid)
+(defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
+  (let [nodes (get-in db [:display :catalogue :expanded])]
+    {:db       (update-in db [:display :catalogue :expanded] (if (nodes nodeid) disj conj) nodeid)
      :put-hash (encode-state db)}))
 
-(defn catalogue-add-node [{:keys [db]} [_ group nodeid]]
-  {:db       (update-in db [:display :catalogue group :expanded] conj nodeid)
+(defn catalogue-add-node [{:keys [db]} [_ nodeid]]
+  {:db       (update-in db [:display :catalogue :expanded] conj nodeid)
    :put-hash (encode-state db)})
 
 (defn catalogue-add-nodes-to-layer
   "Opens nodes in catalogue along path to specified layer"
-  [{:keys [db]} [_ group layer tab categories]]
+  [{:keys [db]} [_ layer tab categories]]
   (let [sorting-info (:sorting db)
         node-ids   (reduce
                     (fn [node-ids category]
-                      (let [sorting-id (get-in sorting-info [category (category layer) 1] "nil")
+                      (let [sorting-id (get-in sorting-info [category (category layer) 1])
                             node-id (-> (last node-ids)
                                         (or tab)
                                         (str "|" sorting-id))]
                         (conj node-ids node-id)))
                     [] categories)]
     {:db       db
-     :dispatch-n (map #(vec [:ui.catalogue/add-node group %]) node-ids)}))
+     :dispatch-n (map #(vec [:ui.catalogue/add-node %]) node-ids)}))
 
 (defn sidebar-open [{:keys [db]} [_ tabid]]
   (let [{:keys [selected collapsed]} (get-in db [:display :sidebar])
@@ -607,17 +607,16 @@
      :put-hash (encode-state db)}))
 
 (defn left-drawer-toggle [db _]
-  (-> db
-      (update-in [:display :left-drawer] not)
-      (assoc-in [:display :drawer-panel-stack] [])))
+  (update-in db [:display :left-drawer] not))
 
 (defn left-drawer-open [db _]
   (assoc-in db [:display :left-drawer] true))
 
 (defn left-drawer-close [db _]
-  (-> db
-      (assoc-in [:display :left-drawer] false)
-      (assoc-in [:display :drawer-panel-stack] [])))
+  (assoc-in db [:display :left-drawer] false))
+
+(defn left-drawer-tab [db [_ tab]]
+  (assoc-in db [:display :left-drawer-tab] tab))
 
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))
@@ -627,16 +626,3 @@
 
 (defn layers-search-omnibar-close [db _]
   (assoc-in db [:display :layers-search-omnibar] false))
-
-(defn drawer-panel-stack-push [db [_ panel props]]
-  (update-in db [:display :drawer-panel-stack] conj {:panel panel :props props}))
-
-(defn drawer-panel-stack-pop [db _]
-  (update-in db [:display :drawer-panel-stack] pop))
-
-(defn open-catalogue-panel [{:keys [db]} [_ category]]
-  (let [categories (get-in db [:map :categories])
-        categories (map-on-key categories :name)
-        title      (get-in categories [category :display_name])]
-    {:db db
-     :dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title title}]}))
