@@ -813,12 +813,12 @@
 (defn layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])
         open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
-        {:keys [all-layers]} @(re-frame/subscribe [:map/layers])]
+        {:keys [category-layers]} @(re-frame/subscribe [:map/layers])]
     [components/omnibar
      {:placeholder  "Search Layers..."
       :isOpen       open?
       :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
-      :items        all-layers
+      :items        category-layers
       :onItemSelect #(re-frame/dispatch [:map/add-layer-from-omnibar %])
       :keyfns
       {:id          :id
@@ -843,7 +843,7 @@
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [all-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
+        {:keys [category-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
      {:title
       [:div.left-drawer-header
@@ -867,7 +867,7 @@
          :panel (reagent/as-element
                  [:div
                   [catalogue-layer-search-button]
-                  [layer-catalogue all-layers
+                  [layer-catalogue category-layers
                    {:active-layers  active-layers
                     :visible-layers visible-layers
                     :loading-fn     loading-layers
