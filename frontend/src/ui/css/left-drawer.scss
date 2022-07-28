@@ -2,16 +2,19 @@
 	display: flex;
 	align-items: center;
 	cursor: pointer;
-	color: #5f6b7c;
-	padding: 0px 12px;
-	flex: 1;
+	color: #adb6be;
+	padding: 0px 10px;
 	user-select: none;
+	height: 30px;
+	box-shadow: 0 0 0 0 rgb(19 124 189 / 0%), 0 0 0 0 rgb(19 124 189 / 0%), inset 0 0 0 1px rgb(16 22 26 / 15%), inset 0 1px 1px rgb(16 22 26 / 20%);
+	border-radius: 15px;
 }
 
 .catalogue-layer-search-button:hover {
 	background-color: rgba(0,0,0,0.025);
 }
 
-.catalogue-layer-search-button > :first-child {
-	margin-right: 8px;
+.catalogue-layer-search-button > .bp3-icon {
+	margin-right: 5px;
+	color: #5c7080;
 }
