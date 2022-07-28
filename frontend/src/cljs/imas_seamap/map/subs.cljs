@@ -48,8 +48,7 @@
   (let [{:keys [layers active-layers hidden-layers bounds logic]} map
         categories      (map-on-key (:categories map) :name)
         filter-text     (:layers filters)
-        all-layers      layers
-        category-layers (filter #(get-in categories [(:category %) :display_name]) all-layers) ; only layers with a category that has a display name are allowed
+        layers (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
         layers          (if (= (:type logic) :map.layer-logic/automatic)
                           (all-priority-layers db)
                           layers)
@@ -62,8 +61,7 @@
      :active-layers   active-layers
      :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
-     :all-layers      (sort-layers all-layers categories)
-     :category-layers category-layers}))
+     :filtered-layers filtered-layers}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))

@@ -308,8 +308,7 @@
          :text "Choose Layers Manually"
          :on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}])]))
 
-;; TODO: Remove, unused
-#_(defn layer-search-filter []
+(defn layer-search-filter []
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
     [:div.bp3-input-group {:data-helper-text "Filter Layers"}
      [:span.bp3-icon.bp3-icon-search]
@@ -813,12 +812,12 @@
 (defn layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])
         open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
-        {:keys [category-layers]} @(re-frame/subscribe [:map/layers])]
+        {:keys [filtered-layers]} @(re-frame/subscribe [:map/layers])]
     [components/omnibar
      {:placeholder  "Search Layers..."
       :isOpen       open?
       :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
-      :items        category-layers
+      :items        filtered-layers
       :onItemSelect #(re-frame/dispatch [:map/add-layer-from-omnibar %])
       :keyfns
       {:id          :id
@@ -832,7 +831,8 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
-(defn catalogue-layer-search-button []
+;; TODO: Remove, unused
+#_(defn catalogue-layer-search-button []
   [:div.catalogue-layer-search-button
    {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
    [b/icon
@@ -843,7 +843,7 @@
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [category-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
+        {:keys [filtered-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
      {:title
       [:div.left-drawer-header
@@ -866,8 +866,8 @@
          :title "Catalogue"
          :panel (reagent/as-element
                  [:div
-                  [catalogue-layer-search-button]
-                  [layer-catalogue category-layers
+                  [layer-search-filter]
+                  [layer-catalogue filtered-layers
                    {:active-layers  active-layers
                     :visible-layers visible-layers
                     :loading-fn     loading-layers
