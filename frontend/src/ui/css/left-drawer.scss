@@ -1,0 +1,17 @@
+.catalogue-layer-search-button {
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	color: #5f6b7c;
+	padding: 0px 12px;
+	flex: 1;
+	user-select: none;
+}
+
+.catalogue-layer-search-button:hover {
+	background-color: rgba(0,0,0,0.025);
+}
+
+.catalogue-layer-search-button > :first-child {
+	margin-right: 8px;
+}

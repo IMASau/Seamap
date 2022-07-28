@@ -789,8 +789,7 @@
          amp-boundaries
          {:expanded? (= open-pill "zones")})])]))
 
-(defn layers-search-omnibar
-  []
+(defn layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])
         open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
         {:keys [all-layers]} @(re-frame/subscribe [:map/layers])]
@@ -811,6 +810,14 @@
                          (:name (category categories)))
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
+
+(defn catalogue-layer-search-button []
+  [:div.catalogue-layer-search-button
+   {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
+   [b/icon
+    {:icon "search"
+     :icon-size 16}]
+   "Search Layers..."])
 
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
@@ -837,7 +844,7 @@
          :title "Catalogue"
          :panel (reagent/as-element
                  [:div
-                  [layer-search-filter]
+                  [catalogue-layer-search-button]
                   [layer-catalogue all-layers
                    {:active-layers  active-layers
                     :visible-layers visible-layers
