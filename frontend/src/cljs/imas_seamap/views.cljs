@@ -304,7 +304,8 @@
          :text "Choose Layers Manually"
          :on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}])]))
 
-(defn layer-search-filter []
+;; TODO: Remove, unused
+#_(defn layer-search-filter []
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
     [:div.bp3-input-group {:data-helper-text "Filter Layers"}
      [:span.bp3-icon.bp3-icon-search]
@@ -634,7 +635,8 @@
          :text     "Reset Interface"
          :on-click   #(re-frame/dispatch [:re-boot])}]]]}))
 
-(defn catalogue-layers-panel
+;; TODO: Remove, unused
+#_(defn catalogue-layers-panel
   [{:keys [title layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
   {:title   title
    :content
@@ -648,7 +650,8 @@
       :expanded-fn    expanded-layers
       :opacity-fn     layer-opacities}]]})
 
-(defn drawer-panel-selection
+;; TODO: Remove, unused
+#_(defn drawer-panel-selection
   [panel map-layers]
   (let [{:keys [panel props]} panel
         {:keys [groups active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers]
@@ -664,8 +667,8 @@
          :error-layers    error-layers
          :expanded-layers expanded-layers
          :layer-opacities layer-opacities})))))
-
-(defn drawer-panel-stack
+;; TODO: Remove, unused
+#_(defn drawer-panel-stack
   []
   (let [map-layers @(re-frame/subscribe [:map/layers])
         panels @(re-frame/subscribe [:drawer-panel-stack/panels])
