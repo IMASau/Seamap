@@ -6,6 +6,7 @@ from urllib.request import urlopen
 from urllib.parse import urlencode
 from PIL import Image
 from io import BytesIO
+import logging
 
 from catalogue.models import Layer
 
@@ -38,7 +39,7 @@ def basemap_bbox(north, south, east, west):
         return basemap.crop((left, upper, right, lower))
 
 
-def retrieve_image(layer):
+def layer_url(layer):
     bbox = {
         'north': float(layer.maxy),
         'south': float(layer.miny),
@@ -66,10 +67,23 @@ def retrieve_image(layer):
         'bbox': '{west},{south},{east},{north}'.format(**bbox)
     }
 
-    url = '{server_url}?{params}'.format(
-        server_url=layer.server_url, params=urlencode(params))
+    return f'{layer.server_url}?{urlencode(params)}'
 
-    layer_image = Image.open(urlopen(url))
+def retrieve_image(layer):
+    bbox = {
+        'north': float(layer.maxy),
+        'south': float(layer.miny),
+        'east':  float(layer.maxx),
+        'west': float(layer.minx)
+    }
+
+    x_delta = bbox['east'] - bbox['west']
+    y_delta = bbox['north'] - bbox['south']
+    aspect_ratio = x_delta / y_delta
+    width = 386
+    height = round(width / aspect_ratio)
+
+    layer_image = Image.open(urlopen(layer_url(layer))).convert('RGBA')
     cropped_basemap = basemap_bbox(**bbox).resize((width, height))
     cropped_basemap.paste(layer_image, None, layer_image)
     return cropped_basemap
@@ -78,42 +92,50 @@ def retrieve_image(layer):
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
-            '--layer_id'
+            '--layer_id',
+            help='Specify a layer ID for the layer preview image you want to generate'
+        )
+        parser.add_argument(
+            '--only_generate_missing',
+            help='If true, skips generating images for layers where images already exist'
         )
 
     def handle(self, *args, **options):
-        layer_id = int(options['layer_id']
-                       ) if options['layer_id'] != None else None
+        layer_id = int(options['layer_id']) if options['layer_id'] != None else None
+        only_generate_missing = options['only_generate_missing'].lower() in ['t', 'true'] if options['only_generate_missing'] != None else False
 
         if layer_id is not None:
             layer = Layer.objects.get(id=layer_id)
 
-            bytes_io = BytesIO()
+            filepath = f'layer_previews/{layer.id}.png'
+            if not only_generate_missing or not default_storage.exists(filepath):
+                with BytesIO() as bytes_io:
+                    layer_image = retrieve_image(layer)
+                    layer_image.save(bytes_io, 'PNG')
 
-            layer_image = retrieve_image(layer)
-            layer_image.save(bytes_io, 'PNG')
-            default_storage.save(
-                'layer_previews/{}.png'.format(layer.id), File(bytes_io, ''))
-
-            bytes_io.close()
+                    default_storage.delete(filepath)
+                    default_storage.save(filepath, File(bytes_io, ''))
         else:
             failures = []
 
             for layer in Layer.objects.all():
-                bytes_io = BytesIO()
-
-                try:
-                    layer_image = retrieve_image(layer)
-                    layer_image.save(bytes_io, 'PNG')
-                    default_storage.save(
-                        'layer_previews/{}.png'.format(layer.id), File(bytes_io, ''))
-                except:
-                    self.stdout.write('Failed to retrieve layer {layer_name} ({id})'.format(
-                        layer_name=layer.layer_name, id=layer.id))
-                    failures.append(layer)
-
-                bytes_io.close()
+                filepath = f'layer_previews/{layer.id}.png'
+                if not only_generate_missing or not default_storage.exists(filepath):
+                    with BytesIO() as bytes_io:
+                        try:
+                            logging.info(f'Retrieving layer {layer.layer_name} ({layer.id})\n{layer_url(layer)}')
+                            layer_image = retrieve_image(layer)
+                            layer_image.save(bytes_io, 'PNG')
+                            
+                            default_storage.delete(filepath)
+                            default_storage.save(filepath, File(bytes_io, ''))
+                        except Exception:
+                            logging.warn(f'Failed to retrieve layer {layer.layer_name} ({layer.id})\n{layer_url(layer)}')
+                            failures.append(layer)
 
             if len(failures):
-                self.stdout.write('Failed to retrieve the following layers: \n - {}'.format('\n - '.join(
-                    ['{layer_name} ({id})'.format(layer_name=layer.layer_name, id=layer.id) for layer in failures])))
+                logging.warn('Failed to retrieve the following layers: \n - {}'.format(
+                    '\n - '.join(
+                        [f'{layer.layer_name} ({layer.id})\n{layer_url(layer)}' for layer in failures]
+                    )
+                ))
