@@ -940,10 +940,9 @@
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?          @(re-frame/subscribe [:left-drawer/open?])
-        state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
-        {:keys [active-layers]}  @(re-frame/subscribe [:map/layers])]
+        state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
-     {:class (str (when catalogue-open? " catalogue-open") (when (seq active-layers) " active-layers") (when state-of-knowledge-open? " state-of-knowledge-open"))}
+     {:class (str (when catalogue-open? " catalogue-open") (when state-of-knowledge-open? " state-of-knowledge-open"))}
      [:div#content-wrapper
       [map-component [floating-pills]]
       [plot-component]]
