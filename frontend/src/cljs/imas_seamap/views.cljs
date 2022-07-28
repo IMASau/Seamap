@@ -675,47 +675,8 @@
      {:panels (concat [(base-panel)] display-panels)
       :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
 
-(defn left-drawer []
-  (let [open? @(re-frame/subscribe [:left-drawer/open?])
-        tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [all-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
-    [components/drawer
-     {:title
-      [:div.left-drawer-header
-       [:img
-        {:src "img/Seamap2_V2_RGB.png"}]]
-      :position    "left"
-      :size        "460px"
-      :isOpen      open?
-      :onClose     #(re-frame/dispatch [:left-drawer/close])
-      :hasBackdrop false}
-     [:div.sidebar-tab.height-managed
-      [b/tabs
-       {:id              "left-drawer-tabs"
-        :selected-tab-id tab
-        :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
-
-       [b/tab
-        {:id    "catalogue"
-         :title "Catalogue"
-         :panel (reagent/as-element
-                 [:div
-                  [layer-search-filter]
-                  [layer-catalogue all-layers
-                   {:active-layers  active-layers
-                    :visible-layers visible-layers
-                    :loading-fn     loading-layers
-                    :error-fn       error-layers
-                    :expanded-fn    expanded-layers
-                    :opacity-fn     layer-opacities}]])}]
-
-       [b/tab
-        {:id    "other"
-         :title "Other"
-         :panel (reagent/as-element
-                 [:div "..."])}]]]]))
-
-(defn active-layers-sidebar []
+;; TODO: Remove, unused
+#_(defn active-layers-sidebar []
   (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
         {:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
     [sidebar {:id        "floating-sidebar"
@@ -850,6 +811,46 @@
                          (:name (category categories)))
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
+
+(defn left-drawer []
+  (let [open? @(re-frame/subscribe [:left-drawer/open?])
+        tab   @(re-frame/subscribe [:left-drawer/tab])
+        {:keys [all-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities] :as map-layers} @(re-frame/subscribe [:map/layers])]
+    [components/drawer
+     {:title
+      [:div.left-drawer-header
+       [:img
+        {:src "img/Seamap2_V2_RGB.png"}]]
+      :position    "left"
+      :size        "460px"
+      :isOpen      open?
+      :onClose     #(re-frame/dispatch [:left-drawer/close])
+      :hasBackdrop false}
+     [:div.sidebar-tab.height-managed
+      [b/tabs
+       {:id              "left-drawer-tabs"
+        :selected-tab-id tab
+        :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
+
+       [b/tab
+        {:id    "catalogue"
+         :title "Catalogue"
+         :panel (reagent/as-element
+                 [:div
+                  [layer-search-filter]
+                  [layer-catalogue all-layers
+                   {:active-layers  active-layers
+                    :visible-layers visible-layers
+                    :loading-fn     loading-layers
+                    :error-fn       error-layers
+                    :expanded-fn    expanded-layers
+                    :opacity-fn     layer-opacities}]])}]
+
+       [b/tab
+        {:id    "active-layers"
+         :title "Active Layers"
+         :panel (reagent/as-element
+                 [floating-menu-active-layers map-layers])}]]]]))
 
 (defn layer-preview []
   (let [preview-layer-url @(re-frame/subscribe [:ui/preview-layer-url])]

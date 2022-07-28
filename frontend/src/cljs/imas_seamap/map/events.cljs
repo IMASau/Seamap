@@ -45,7 +45,7 @@
      :east  (+ lng (/ img-x-bounds 2))
      :west  (- lng (/ img-x-bounds 2))}))
 
-;; Unused
+;; TODO: Remove, unused
 #_(defn bounds-for-point
   "Uses current bounds and a map point coordinate to get the map bounds centered
    on that point. Called from get-feature-info, where we have both the geographic
