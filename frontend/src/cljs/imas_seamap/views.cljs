@@ -842,7 +842,7 @@
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [all-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities] :as map-layers} @(re-frame/subscribe [:map/layers])]
+        {:keys [all-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
      {:title
       [:div.left-drawer-header
@@ -856,6 +856,7 @@
      [:div.sidebar-tab.height-managed
       [b/tabs
        {:id              "left-drawer-tabs"
+        :class           "left-drawer-tabs"
         :selected-tab-id tab
         :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
 
