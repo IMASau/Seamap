@@ -769,6 +769,10 @@
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
 
+     [components/floating-pill-button
+      {:icon     "menu"
+       :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
+
      [floating-transect-pill transect-info]
      [floating-region-pill region-info]
 
