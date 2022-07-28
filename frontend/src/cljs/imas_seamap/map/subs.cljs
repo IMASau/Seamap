@@ -52,8 +52,7 @@
         layers          (if (= (:type logic) :map.layer-logic/automatic)
                           (all-priority-layers db)
                           layers)
-        viewport-layers  (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
-        filtered-layers (filter (partial match-layer filter-text categories) viewport-layers)]
+        filtered-layers (filter (partial match-layer filter-text categories) layers)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
