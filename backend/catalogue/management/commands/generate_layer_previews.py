@@ -104,42 +104,34 @@ class Command(BaseCommand):
         layer_id = int(options['layer_id']) if options['layer_id'] != None else None
         only_generate_missing = options['only_generate_missing'].lower() in ['t', 'true'] if options['only_generate_missing'] != None else False
 
-
-
         if layer_id is not None:
             layer = Layer.objects.get(id=layer_id)
 
             filepath = f'layer_previews/{layer.id}.png'
             if not only_generate_missing or not default_storage.exists(filepath):
-                bytes_io = BytesIO()
+                with BytesIO() as bytes_io:
+                    layer_image = retrieve_image(layer)
+                    layer_image.save(bytes_io, 'PNG')
 
-                layer_image = retrieve_image(layer)
-                layer_image.save(bytes_io, 'PNG')
-
-                default_storage.delete(filepath)
-                default_storage.save(filepath, File(bytes_io, ''))
-
-                bytes_io.close()
+                    default_storage.delete(filepath)
+                    default_storage.save(filepath, File(bytes_io, ''))
         else:
             failures = []
 
             for layer in Layer.objects.all():
                 filepath = f'layer_previews/{layer.id}.png'
                 if not only_generate_missing or not default_storage.exists(filepath):
-                    bytes_io = BytesIO()
-
-                    try:
-                        logging.log(f'Retrieving layer {layer.layer_name} ({layer.id})\n{layer_url(layer)}')
-                        layer_image = retrieve_image(layer)
-                        layer_image.save(bytes_io, 'PNG')
-                        
-                        default_storage.delete(filepath)
-                        default_storage.save(filepath, File(bytes_io, ''))
-                    except Exception:
-                        logging.warn(f'Failed to retrieve layer {layer.layer_name} ({layer.id})\n{layer_url(layer)}')
-                        failures.append(layer)
-
-                    bytes_io.close()
+                    with BytesIO() as bytes_io:
+                        try:
+                            logging.info(f'Retrieving layer {layer.layer_name} ({layer.id})\n{layer_url(layer)}')
+                            layer_image = retrieve_image(layer)
+                            layer_image.save(bytes_io, 'PNG')
+                            
+                            default_storage.delete(filepath)
+                            default_storage.save(filepath, File(bytes_io, ''))
+                        except Exception:
+                            logging.warn(f'Failed to retrieve layer {layer.layer_name} ({layer.id})\n{layer_url(layer)}')
+                            failures.append(layer)
 
             if len(failures):
                 logging.warn('Failed to retrieve the following layers: \n - {}'.format(
