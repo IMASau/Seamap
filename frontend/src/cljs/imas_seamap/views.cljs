@@ -719,7 +719,8 @@
       :icon-size 16}]
     "Search Layers..."]])
 
-(defn floating-menu-active-layers
+;; TODO: Remove, unused
+#_(defn floating-menu-active-layers
   [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
   [:div.floating-menu-active-layers
    [:div.header
@@ -876,7 +877,17 @@
         {:id    "active-layers"
          :title "Active Layers"
          :panel (reagent/as-element
-                 [floating-menu-active-layers map-layers])}]
+                 [:div
+                  [components/drawer-group
+                   {:heading (str "Active Layers (" (count active-layers) ")")
+                    :icon    "eye-open"}
+                   [active-layer-selection-list
+                    {:layers         active-layers
+                     :visible-layers visible-layers
+                     :loading-fn     loading-layers
+                     :error-fn       error-layers
+                     :expanded-fn    expanded-layers
+                     :opacity-fn     layer-opacities}]]])}]
        
        [b/tab
         {:id    "controls"
