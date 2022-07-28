@@ -543,13 +543,12 @@
      :dispatch [:map/popup-closed]}))
 
 (defn add-layer-from-omnibar
-  [{:keys [db]} [_ {:keys [category] :as layer}]]
+  [{:keys [db]} [_ layer]]
   {:db       (assoc-in db [:display :layers-search-omnibar] false)
    :dispatch-n [[:map/add-layer layer]
                 [:left-drawer/open]
-                [:drawer-panel-stack/open-catalogue-panel category]
-                [:ui.catalogue/select-tab category "cat"]
-                [:ui.catalogue/catalogue-add-nodes-to-layer category layer "cat" [:data_classification]]
+                [:ui.catalogue/select-tab "cat"]
+                [:ui.catalogue/catalogue-add-nodes-to-layer layer "cat" [:category :data_classification]]
                 [:map/pan-to-layer layer]]})
 
 (defn update-preview-layer [db [_ preview-layer]]
