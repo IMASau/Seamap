@@ -216,8 +216,8 @@
       ;; React -> Leaflet translation just does add/removeLayer, which
       ;; then orders in the map by update not by list):
        (map-indexed
-        (fn [i {:keys [server_url layer_name style] :as layer}]
-          ^{:key (str server_url layer_name)}
+        (fn [i {:keys [server_url layer_name style id] :as layer}]
+          ^{:key (str id)}
           [leaflet/wms-layer
            (merge
             {:url              server_url
