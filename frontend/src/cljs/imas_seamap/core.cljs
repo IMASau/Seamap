@@ -69,7 +69,6 @@
     :left-drawer/open?                    subs/left-drawer-open?
     :left-drawer/tab                      subs/left-drawer-tab
     :layers-search-omnibar/open?          subs/layers-search-omnibar-open?
-    :drawer-panel-stack/panels            subs/drawer-panel-stack
     :ui.catalogue/tab                     subs/catalogue-tab
     :ui.catalogue/nodes                   subs/catalogue-nodes
     :ui/preview-layer-url                 subs/preview-layer-url
@@ -208,10 +207,7 @@
     :left-drawer/tab                      events/left-drawer-tab
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
-    :layers-search-omnibar/close          events/layers-search-omnibar-close
-    :drawer-panel-stack/push              events/drawer-panel-stack-push
-    :drawer-panel-stack/pop               events/drawer-panel-stack-pop
-    :drawer-panel-stack/open-catalogue-panel [events/open-catalogue-panel]}})
+    :layers-search-omnibar/close          events/layers-search-omnibar-close}})
 
 (def events-for-analytics
   [:help-layer/open

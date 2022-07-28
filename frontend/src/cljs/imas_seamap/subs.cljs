@@ -138,6 +138,3 @@
 
 (defn layers-search-omnibar-open? [db _]
   (get-in db [:display :layers-search-omnibar]))
-
-(defn drawer-panel-stack [db _]
-  (get-in db [:display :drawer-panel-stack]))

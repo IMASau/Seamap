@@ -607,17 +607,13 @@
      :put-hash (encode-state db)}))
 
 (defn left-drawer-toggle [db _]
-  (-> db
-      (update-in [:display :left-drawer] not)
-      (assoc-in [:display :drawer-panel-stack] [])))
+  (update-in db [:display :left-drawer] not))
 
 (defn left-drawer-open [db _]
   (assoc-in db [:display :left-drawer] true))
 
 (defn left-drawer-close [db _]
-  (-> db
-      (assoc-in [:display :left-drawer] false)
-      (assoc-in [:display :drawer-panel-stack] [])))
+  (assoc-in db [:display :left-drawer] false))
 
 (defn left-drawer-tab [db [_ tab]]
   (assoc-in db [:display :left-drawer-tab] tab))
@@ -630,16 +626,3 @@
 
 (defn layers-search-omnibar-close [db _]
   (assoc-in db [:display :layers-search-omnibar] false))
-
-(defn drawer-panel-stack-push [db [_ panel props]]
-  (update-in db [:display :drawer-panel-stack] conj {:panel panel :props props}))
-
-(defn drawer-panel-stack-pop [db _]
-  (update-in db [:display :drawer-panel-stack] pop))
-
-(defn open-catalogue-panel [{:keys [db]} [_ category]]
-  (let [categories (get-in db [:map :categories])
-        categories (map-on-key categories :name)
-        title      (get-in categories [category :display_name])]
-    {:db db
-     :dispatch [:drawer-panel-stack/push :drawer-panel/catalogue-layers {:group category :title title}]}))
