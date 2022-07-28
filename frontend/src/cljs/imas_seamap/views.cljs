@@ -931,7 +931,7 @@
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when (seq active-layers) " active-layers") (when state-of-knowledge-open? " state-of-knowledge-open"))}
      [:div#content-wrapper
-      [map-component [floating-menu] [floating-pills]]
+      [map-component [floating-pills]]
       [plot-component]]
      [helper-overlay
       :layer-search

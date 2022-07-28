@@ -4,7 +4,7 @@ $floating-pill-height: 36px;
 	position: absolute;
 	z-index: 2000;
 	top: $floating-menu-padding;
-	left: calc($floating-menu-width + 2 * $floating-menu-padding);
+	left: $floating-menu-padding;
 	display: flex;
 	transition: left 200ms;
 }

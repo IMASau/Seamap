@@ -106,17 +106,6 @@ $floating-menu-bar-height: 48px;
 
 .leaflet-top.leaflet-left {
 	left: $floating-menu-padding;
-}
-
-.active-layers .leaflet-top.leaflet-left {
-	left: calc($floating-menu-width + 2 * $floating-menu-padding);
-}
-
-.leaflet-top.leaflet-left {
-	top: calc($floating-menu-bar-height + $floating-menu-padding);
-}
-
-.active-layers .leaflet-top.leaflet-left {
 	top: $floating-menu-padding;
 }
 
