@@ -45,7 +45,7 @@
      :east  (+ lng (/ img-x-bounds 2))
      :west  (- lng (/ img-x-bounds 2))}))
 
-;; Unused
+;; TODO: Remove, unused
 #_(defn bounds-for-point
   "Uses current bounds and a map point coordinate to get the map bounds centered
    on that point. Called from get-feature-info, where we have both the geographic
@@ -300,7 +300,10 @@
   ;; Associate a category of objects (categories, organisations) with
   ;; a tuple of its sort-key (user-assigned, to allow user-specified
   ;; ordering) and its id (which is used as a stable id)
-  (reduce (fn [acc {:keys [id name sort_key]}] (assoc acc name [(or sort_key "zzzzzzzzzz") id])) {} ms))
+  (reduce
+   (fn [acc {:keys [id name sort_key display_name]}]
+     (assoc acc name [(or sort_key "zzzzzzzzzz") id (or display_name name)]))
+   {} ms))
 
 (defn update-organisations [db [_ organisations]]
   (-> db
@@ -320,23 +323,12 @@
            :habitat-titles  titles
            :habitat-colours colours)))
 
-(defn update-categories
-  "Adds the categories to the db, as well as setting the initial state of the
-   catalogue (in instances where the catalogue doesn't have a state)."
-  [db [_ categories]]
-  (let [categories           (map #(update % :name (comp keyword string/lower-case)) categories)
-        categories           (sort-by-sort-key categories)
-        init-catalogue-state (get-in db [:config :init-catalogue-state])
-        catalogue            (reduce
-                              (fn [catalogue {:keys [name]}]
-                                (assoc
-                                 catalogue name
-                                 init-catalogue-state))
-                              {} categories)
-        catalogue            (merge catalogue (get-in db [:display :catalogue]))] ; Override initial state with states we have
+(defn update-categories [db [_ categories]]
+  (let [categories           (mapv #(update % :name (comp keyword string/lower-case)) categories)
+        categories           (sort-by-sort-key categories)]
     (-> db
         (assoc-in [:map :categories] categories)
-        (assoc-in [:display :catalogue] catalogue))))
+        (assoc-in [:sorting :category] (->sort-map categories)))))
 
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
@@ -554,13 +546,12 @@
      :dispatch [:map/popup-closed]}))
 
 (defn add-layer-from-omnibar
-  [{:keys [db]} [_ {:keys [category] :as layer}]]
+  [{:keys [db]} [_ layer]]
   {:db       (assoc-in db [:display :layers-search-omnibar] false)
    :dispatch-n [[:map/add-layer layer]
                 [:left-drawer/open]
-                [:drawer-panel-stack/open-catalogue-panel category]
-                [:ui.catalogue/select-tab category "cat"]
-                [:ui.catalogue/catalogue-add-nodes-to-layer category layer "cat" [:data_classification]]
+                [:ui.catalogue/select-tab "cat"]
+                [:ui.catalogue/catalogue-add-nodes-to-layer layer "cat" [:category :data_classification]]
                 [:map/pan-to-layer layer]]})
 
 (defn update-preview-layer [db [_ preview-layer]]

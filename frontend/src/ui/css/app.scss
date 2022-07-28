@@ -451,7 +451,7 @@ rect#background {
     padding: 10px 5px 0 5px;
 }
 .sidebar-tab {
-    flex-grow: 1;
+    height: 100%;
     padding: 5px;
 }
 /* Chrome 62 regression fix; see https://bugs.chromium.org/p/chromium/issues/detail?id=775880 */
@@ -607,7 +607,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 .leaflet-left {
-    transition: left 200ms, top 200ms;
+    transition: left 200ms;
 }
 
 .leaflet-right {
@@ -615,7 +615,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 .catalogue-open .leaflet-left {
-    left: calc(460px + 10px);
+    left: $catalogue-drawer-width;
 }
 
 /* Allow interactivity with underneath elements while drawer is open */
@@ -753,4 +753,8 @@ input.leaflet-control-layers-selector[type="radio"] {
 /* Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line */
 .bp3-dialog {
     overflow-wrap: break-word;
+}
+
+.drawer-children {
+    overflow-y: hidden;
 }
