@@ -13,9 +13,24 @@ BEGIN
   SELECT
     [RESOLUTION],
     [RANK],
-    geometry::UnionAggregate([geom]) AS [geom]
-  FROM [dbo].[VW_BATHYMETRY]
-  WHERE [RESOLUTION] = @resolution
+    GEOMETRY::UnionAggregate([geom]) AS [geom]
+  FROM (
+    SELECT
+      [RESOLUTION],
+      [RANK],
+      GEOMETRY::UnionAggregate([geom]) AS [geom]
+    FROM (
+      SELECT
+        *,
+        ROW_NUMBER() OVER(
+          PARTITION BY 'dummy'
+          ORDER BY [RESOLUTION], [RANK], [ID]
+        ) / 250 AS [Group]
+      FROM [dbo].[VW_BATHYMETRY]
+      WHERE [RESOLUTION] = @resolution
+    ) AS [T1]
+    GROUP BY [Group], [RESOLUTION], [RANK]
+  ) AS [groups]
   GROUP BY [RESOLUTION], [RANK];
 
   -- Update UniqueBathymetryGeoms
