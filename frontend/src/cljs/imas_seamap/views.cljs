@@ -51,6 +51,7 @@
                (array-seq (.querySelectorAll js/document (->query-selector selector))))))
        (apply concat)))
 
+;; TODO: Update, replace?
 (defn helper-overlay [& element-selectors]
   (let [*line-height* 17.6 *padding* 10 *text-width* 200 ;; hard-code
         *vertical-bar* 50 *horiz-bar* 100
@@ -92,7 +93,8 @@
            [:div.helper-layer-tooltiptext {:style {:width (or textWidth *text-width*)}}
             helperText]]]))]))
 
-(defn help-button []
+;; TODO: Update, replace?
+#_(defn help-button []
   [:div.layer-controls.help-button
    [b/tooltip {:content "Show the quick-help guide"}
     [:span.control.bp3-icon-large.bp3-icon-help.bp3-text-muted
@@ -271,7 +273,8 @@
                 :on-click   (handler-dispatch [dispatch-key])
                 :text       label}]]))
 
-(defn layer-logic-toggle []
+;; TODO: Remove, unused
+#_(defn layer-logic-toggle []
   (let [{:keys [type trigger]} @(re-frame/subscribe [:map.layers/logic])
         user-triggered?        (= trigger :map.logic.trigger/user)
         [checked? label icon]  (if (= type :map.layer-logic/automatic)
@@ -317,7 +320,8 @@
                                                [:map.layers/filter (.. event -target -value)])}]]))
 
 
-(defn layer-card [layer-spec {:keys [active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
+;; TODO: Remove, unused
+#_(defn layer-card [layer-spec {:keys [active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
   [:div.layer-wrapper.bp3-card.bp3-elevation-1
    {:class (when active? "layer-active bp3-interactive")}
    [:div.header-row.height-static
@@ -332,7 +336,8 @@
     [active-layer-catalogue-controls layer-spec other-props]]
    [catalogue-legend layer-spec other-props]])
 
-(defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _visible-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
+;; TODO: Remove, unused
+#_(defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _visible-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
   (let [expanded (reagent/atom expanded)]
     (fn [{:keys [id title classes] :as props} layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
       [:div.layer-group.height-managed
@@ -376,7 +381,8 @@
       :data-path   [:map :active-layers]
       :is-reversed true}]))
 
-(defn active-layer-group
+;; TODO: Remove, unused
+#_(defn active-layer-group
   [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.active-layer-group.height-managed
    [:h1.bp3-heading
@@ -390,7 +396,8 @@
       :expanded-fn    expanded-fn
       :opacity-fn     opacity-fn}]]])
 
-(defn settings-controls []
+;; TODO: Remove, unused
+#_(defn settings-controls []
   [:div#settings
    [b/button {:id         "reset-button"
               :icon       "undo"
@@ -589,18 +596,21 @@
                   :intent     b/INTENT-PRIMARY
                   :on-click   (handler-dispatch [:map.layer/close-info])}]]]]))
 
-(defn- as-icon [icon-name description]
+;; TODO: Remove, unused
+#_(defn- as-icon [icon-name description]
   (reagent/as-element [b/tooltip {:content  description
                                   :position RIGHT}
                        [:span.bp3-icon-standard {:class (str "bp3-icon-" icon-name)}]]))
 
-(defn active-layers-tab
+;; TODO: Remove, unused
+#_(defn active-layers-tab
   [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
   [:div.sidebar-tab.height-managed
    [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
    [help-button]])
 
-(defn catalogue-layers-button
+;; TODO: Remove, unused
+#_(defn catalogue-layers-button
   [{:keys [category]}]
   (let [title (:display_name category)]
     [b/button
@@ -608,8 +618,8 @@
       :text     title
       :on-click #(re-frame/dispatch [:drawer-panel-stack/open-catalogue-panel (:name category)])}]))
 
-(defn base-panel
-  []
+;; TODO: Remove, unused
+#_(defn base-panel []
   (let [categories @(re-frame/subscribe [:map/display-categories])]
     {:content
      [:div
@@ -694,7 +704,8 @@
                    :id     "tab-activelayers"}
       [active-layers-tab active-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]]))
 
-(defn floating-menu-bar []
+;; TODO: Remove, unused
+#_(defn floating-menu-bar []
   [:div.floating-menu-bar
    [:div.floating-menu-bar-drawer-button
     {:on-click #(re-frame/dispatch [:left-drawer/toggle])}
@@ -725,7 +736,8 @@
       :expanded-fn    expanded-layers
       :opacity-fn     layer-opacities}]]])
 
-(defn floating-menu []
+;; TODO: Remove, unused
+#_(defn floating-menu []
   (let [{:keys [active-layers] :as map-layers} @(re-frame/subscribe [:map/layers])]
     [:div.floating-menu-positioning
      [:div.floating-menu
@@ -864,7 +876,27 @@
         {:id    "active-layers"
          :title "Active Layers"
          :panel (reagent/as-element
-                 [floating-menu-active-layers map-layers])}]]]]))
+                 [floating-menu-active-layers map-layers])}]
+       
+       [b/tab
+        {:id    "controls"
+         :title "Controls"
+         :panel (reagent/as-element
+                 [:div
+                  [components/drawer-group
+                   {:heading "Controls"
+                    :icon    "settings"}
+                   [transect-toggle]
+                   [selection-button]
+                   [layer-logic-toggle-button]]
+                  
+                  [components/drawer-group
+                   {:heading "Settings"
+                    :icon    "cog"}
+                   [b/button
+                    {:icon     "undo"
+                     :text     "Reset Interface"
+                     :on-click   #(re-frame/dispatch [:re-boot])}]]])}]]]]))
 
 (defn layer-preview []
   (let [preview-layer-url @(re-frame/subscribe [:ui/preview-layer-url])]
