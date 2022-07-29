@@ -141,3 +141,10 @@
 
 (defn open-pill [db _]
   (get-in db [:state-of-knowledge :open-pill]))
+
+(defn boundary-layer-filter-fn [db _]
+  (let [active-boundary (get-in db [:state-of-knowledge :boundaries :active-boundary])]
+    (fn [{:keys [id] :as _layer}]
+      (if (= id (:layer active-boundary))
+        {:cql_filter "NETNAME='North'"}
+        nil))))

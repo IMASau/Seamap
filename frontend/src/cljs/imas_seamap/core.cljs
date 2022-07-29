@@ -59,6 +59,7 @@
     :sok/active-zones?                    soksubs/active-zones?
     :sok/open?                            soksubs/open?
     :sok/open-pill                        soksubs/open-pill
+    :sok/boundary-layer-filter            soksubs/boundary-layer-filter-fn
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info

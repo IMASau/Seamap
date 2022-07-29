@@ -164,6 +164,7 @@
         download-info                                 @(re-frame/subscribe [:download/info])
         layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
         ;layer-params                                  @(re-frame/subscribe [:map.layers/params])
+        boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
         logic-type                                    @(re-frame/subscribe [:map.layers/logic])
         loading?                                      @(re-frame/subscribe [:app/loading?])]
     (into
@@ -231,7 +232,8 @@
              :opacity          (/ (layer-opacities layer) 100)
              :tiled            true
              :format           "image/png"}
-            (when style {:styles style}))])
+            (when style {:styles style})
+            (boundary-filter layer))])
         (concat (:layers active-base-layer) visible-layers))
        (when query
          [leaflet/geojson-layer {:data (clj->js query)}])
