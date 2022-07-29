@@ -218,7 +218,7 @@
       ;; then orders in the map by update not by list):
        (map-indexed
         (fn [i {:keys [server_url layer_name style id] :as layer}]
-          ^{:key (str id)}
+          ^{:key (str id (boundary-filter layer))}
           [leaflet/wms-layer
            (merge
             {:url              server_url
