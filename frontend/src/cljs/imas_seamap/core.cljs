@@ -59,6 +59,7 @@
     :sok/active-zones?                    soksubs/active-zones?
     :sok/open?                            soksubs/open?
     :sok/open-pill                        soksubs/open-pill
+    :sok/boundary-layer-filter            soksubs/boundary-layer-filter-fn
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
@@ -168,6 +169,7 @@
     :sok/update-amp-boundaries            sokevents/update-amp-boundaries
     :sok/update-imcra-boundaries          sokevents/update-imcra-boundaries
     :sok/update-meow-boundaries           sokevents/update-meow-boundaries
+    :sok/update-active-boundary-layer     [sokevents/update-active-boundary-layer]
     :sok/update-active-boundary           [sokevents/update-active-boundary]
     :sok/update-active-network            [sokevents/update-active-network]
     :sok/update-active-park               [sokevents/update-active-park]

@@ -32,6 +32,7 @@
                      :controls        {:transect false
                                        :download nil}}
    :state-of-knowledge {:boundaries {:active-boundary nil
+                                     :active-boundary-layer nil
                                      :amp             {:networks         []
                                                        :parks            []
                                                        :zones            []

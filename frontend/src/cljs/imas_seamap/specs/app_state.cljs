@@ -256,6 +256,8 @@
    (s/keys :req-un [:state-of-knowledge.boundaries.active-boundary/id
                     :state-of-knowledge.boundaries.active-boundary/name])))
 
+(s/def :state-of-knowledge.boundaries/active-boundary-layer (s/nilable :map/layer))
+
 (s/def :state-of-knowledge.boundaries.amp.network/name string?)
 (s/def :state-of-knowledge.boundaries.amp.park/name string?)
 (s/def :state-of-knowledge.boundaries.amp.park/network :state-of-knowledge.boundaries.amp.network/name)
@@ -352,6 +354,7 @@
 
 (s/def :state-of-knowledge/boundaries
   (s/keys :req-un [:state-of-knowledge.boundaries/active-boundary
+                   :state-of-knowledge.boundaries/active-boundary-layer
                    :state-of-knowledge.boundaries/amp
                    :state-of-knowledge.boundaries/imcra
                    :state-of-knowledge.boundaries/meow]))
