@@ -60,7 +60,6 @@
         current-boundary-layer  (select-boundary-layer layers active-boundary (get-in db [:state-of-knowledge :boundaries]))
 
         db                      (assoc-in db [:state-of-knowledge :boundaries :active-boundary-layer] current-boundary-layer)]
-    (js/console.warn pan?)
     {:db db
      :dispatch-n [(when previous-boundary-layer [:map/remove-layer previous-boundary-layer])
                   (when current-boundary-layer
