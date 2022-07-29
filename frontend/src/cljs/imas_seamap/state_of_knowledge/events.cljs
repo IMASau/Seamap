@@ -51,9 +51,20 @@
                    nil)]
     (first-where #(= (:id %) layer-id) layers)))
 
+(defn update-active-boundary-layer [{:keys [db]} _]
+  (let [layers (get-in db [:map :layers])
+        active-boundary (get-in db [:state-of-knowledge :boundaries :active-boundary])
+
+        previous-boundary-layer (get-in db [:state-of-knowledge :boundaries :active-boundary-layer])
+        current-boundary-layer  (select-boundary-layer layers active-boundary (get-in db [:state-of-knowledge :boundaries]))
+
+        db                      (assoc-in db [:state-of-knowledge :boundaries :active-boundary-layer] current-boundary-layer)]
+    {:db db
+     :dispatch-n [(when previous-boundary-layer [:map/remove-layer previous-boundary-layer])
+                  (when current-boundary-layer [:map/pan-to-layer current-boundary-layer])]}))
+
 (defn update-active-boundary [{:keys [db]} [_ active-boundary]]
-  (let [previous-boundary (get-in db [:state-of-knowledge :boundaries :active-boundary])
-        db (-> db
+  (let [db (-> db
                (assoc-in [:state-of-knowledge :boundaries :active-boundary] active-boundary)
                (cond->
                 (not= (:id active-boundary) "amp")
@@ -65,24 +76,20 @@
 
                  (not= (:id active-boundary) "imcra")
                  (->
-                  (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] nil)
-                  (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] nil))
+                  (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] nil)
+                  (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] nil))
 
                  (not= (:id active-boundary) "meow")
                  (->
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-realm] nil)
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
-                  (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))))
-        layers (get-in db [:map :layers])
-        previous-layer    (first-where #(= (:id %) (:layer previous-boundary)) layers)
-        current-layer  (first-where #(= (:id %) (:layer active-boundary)) layers)]
+                  (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))))]
     {:db db
-     :dispatch-n [[:sok/get-habitat-statistics]
+     :dispatch-n [[:sok/update-active-boundary-layer]
+                  [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when active-boundary [:sok/open-pill nil])
-                  (when previous-layer [:map/remove-layer previous-layer])
-                  (when current-layer [:map/pan-to-layer current-layer])]}))
+                  (when active-boundary [:sok/open-pill nil])]}))
 
 (defn update-active-network [{:keys [db]} [_ network]]
   (let [db (cond-> db

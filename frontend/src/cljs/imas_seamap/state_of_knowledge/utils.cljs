@@ -7,11 +7,8 @@
 ;; Hardcoding this seems bad, but I'm not sure what to do about it? - TODO: figure out how to NOT hardcode this
 (def boundaries
   [{:id    "amp"
-    :name  "Australian Marine Parks"
-    :layer 1520}
+    :name  "Australian Marine Parks"}
    {:id    "imcra"
-    :name  "Integrated Marine and Coastal Regionalisation of Australia"
-    :layer 1500}
+    :name  "Integrated Marine and Coastal Regionalisation of Australia"}
    {:id    "meow"
-    :name  "Marine Ecoregions of the World"
-    :layer 189}])
+    :name  "Marine Ecoregions of the World"}])
