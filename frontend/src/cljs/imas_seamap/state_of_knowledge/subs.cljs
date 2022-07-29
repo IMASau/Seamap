@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.state-of-knowledge.subs
   (:require [imas-seamap.utils :refer [append-query-params-from-map]]
-            [imas-seamap.state-of-knowledge.utils :as utils]))
+            [imas-seamap.state-of-knowledge.utils :as utils :refer [boundary-filter-names]]))
 
 (defn habitat-statistics [db _]
   (let [{:keys [results loading?]} (get-in db [:state-of-knowledge :statistics :habitat])
@@ -143,8 +143,23 @@
   (get-in db [:state-of-knowledge :open-pill]))
 
 (defn boundary-layer-filter-fn [db _]
-  (let [active-boundary-layer (get-in db [:state-of-knowledge :boundaries :active-boundary-layer])]
+  (let [{:keys [active-boundary-layer] :as boundaries} (get-in db [:state-of-knowledge :boundaries])
+        {:keys
+         [network park zone zone-iucn
+          provincial-bioregion mesoscale-bioregion
+          realm province ecoregion]} (boundary-filter-names boundaries)
+        filters (remove
+                 nil?
+                 [(when network (str "NETNAME='" network "'"))
+                  (when park (str "RESNAME='" park "'"))
+                  (when zone (str "ZONENAME='" zone "'"))
+                  (when zone-iucn (str "ZONEIUCN='" zone-iucn "'"))
+                  (when provincial-bioregion (str "PB_NAME='" provincial-bioregion "'"))
+                  (when mesoscale-bioregion (str "MESO_NAME='" mesoscale-bioregion "'"))
+                  (when realm (str "REALM='" realm "'"))
+                  (when province (str "PROVINCE='" province "'"))
+                  (when ecoregion (str "ECOREGION='" ecoregion "'"))])]
     (fn [layer]
-      (if (= layer active-boundary-layer)
-        {:cql_filter "NETNAME='North'"}
+      (if (and (= layer active-boundary-layer) (seq filters))
+        {:cql_filter (apply str (interpose " AND " filters))}
         nil))))
