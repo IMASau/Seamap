@@ -29,10 +29,9 @@
 (defn- select-boundary-layer
   "Based on the currently active boundary and boundary filters, select an
    appropriate boundary layer."
-  [layers {boundary-id :id} {:keys [amp imcra meow] :as _boundaries}]
+  [layers {boundary-id :id} {:keys [amp imcra _meow] :as _boundaries}]
   (let [{:keys [active-park active-zone active-zone-iucn]} amp
         {:keys [active-mesoscale-bioregion]} imcra
-        {:keys [active-province active-ecoregion]} meow
 
         layer-id (case boundary-id
                    
@@ -45,9 +44,7 @@
                              active-mesoscale-bioregion 1500
                              :else                      182)
 
-                   "meow"  (cond
-                             (or active-province active-ecoregion) 189
-                             :else                                 181)
+                   "meow"  181
 
                    nil)]
     (first-where #(= (:id %) layer-id) layers)))
