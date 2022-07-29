@@ -52,7 +52,7 @@
                    nil)]
     (first-where #(= (:id %) layer-id) layers)))
 
-(defn update-active-boundary-layer [{:keys [db]} _]
+(defn update-active-boundary-layer [{:keys [db]} [_ pan?]]
   (let [layers (get-in db [:map :layers])
         active-boundary (get-in db [:state-of-knowledge :boundaries :active-boundary])
 
@@ -60,9 +60,13 @@
         current-boundary-layer  (select-boundary-layer layers active-boundary (get-in db [:state-of-knowledge :boundaries]))
 
         db                      (assoc-in db [:state-of-knowledge :boundaries :active-boundary-layer] current-boundary-layer)]
+    (js/console.warn pan?)
     {:db db
      :dispatch-n [(when previous-boundary-layer [:map/remove-layer previous-boundary-layer])
-                  (when current-boundary-layer [:map/pan-to-layer current-boundary-layer])]}))
+                  (when current-boundary-layer
+                    (if pan?
+                      [:map/pan-to-layer current-boundary-layer]
+                      [:map/add-layer current-boundary-layer]))]}))
 
 (defn update-active-boundary [{:keys [db]} [_ active-boundary]]
   (let [db (-> db
@@ -86,7 +90,7 @@
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer true]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -100,7 +104,7 @@
               (assoc-in [:state-of-knowledge :boundaries :amp :active-network] network)))
         park (get-in db [:state-of-knowledge :boundaries :amp :active-park])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer false]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -116,7 +120,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-network] network)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-park] park))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer false]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -127,7 +131,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] zone)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer false]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -138,7 +142,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] zone-iucn)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer false]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -152,7 +156,7 @@
               (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)))
         mesoscale-bioregion (get-in db [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer false]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -168,7 +172,7 @@
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] mesoscale-bioregion))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer false]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -183,7 +187,7 @@
               (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))
         ecoregion (get-in db [:state-of-knowledge :boundaries :meow :active-ecoregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer false]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -203,7 +207,7 @@
               (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))
         ecoregion (get-in db [:state-of-knowledge :boundaries :meow :active-ecoregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer false]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -224,7 +228,7 @@
                (assoc-in [:state-of-knowledge :boundaries :meow :active-province] province)
                (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] ecoregion))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer false]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -240,7 +244,7 @@
                (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
                (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer false]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
@@ -250,7 +254,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:sok/update-active-boundary-layer false]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
