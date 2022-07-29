@@ -4,7 +4,8 @@
 (ns imas-seamap.state-of-knowledge.events
   (:require [clojure.set :refer [rename-keys]]
             [ajax.core :as ajax]
-            [imas-seamap.utils :refer [first-where]]))
+            [imas-seamap.utils :refer [first-where]]
+            [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names]]))
 
 (defn update-amp-boundaries [db [_ {:keys [networks parks zones zones_iucn]}]]
   (-> db
@@ -256,34 +257,16 @@
 
 (defn get-habitat-statistics [{:keys [db]}]
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
-        {:keys [active-boundary amp imcra meow]} (get-in db [:state-of-knowledge :boundaries])
-        {:keys [active-network active-park active-zone active-zone-iucn]} amp
-        {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
-        {:keys [active-realm active-province active-ecoregion]} meow
-        active-boundary (:id active-boundary)
-        [active-network active-park active-zone active-zone-iucn
-         active-provincial-bioregion active-mesoscale-bioregion active-realm
-         active-province active-ecoregion]
-        (map
-         :name
-         [active-network active-park active-zone active-zone-iucn
-          active-provincial-bioregion active-mesoscale-bioregion active-realm
-          active-province active-ecoregion])]
+        {:keys [active-boundary] :as boundaries} (get-in db [:state-of-knowledge :boundaries])
+        active-boundary (:id active-boundary)]
     (if
      active-boundary
       {:db (assoc-in db [:state-of-knowledge :statistics :habitat :loading?] true)
        :http-xhrio {:method          :get
                     :uri             habitat-statistics-url
-                    :params          {:boundary-type        active-boundary
-                                      :network              active-network
-                                      :park                 active-park
-                                      :zone                 active-zone
-                                      :zone-iucn            active-zone-iucn
-                                      :provincial-bioregion active-provincial-bioregion
-                                      :mesoscale-bioregion  active-mesoscale-bioregion
-                                      :realm                active-realm
-                                      :province             active-province
-                                      :ecoregion            active-ecoregion}
+                    :params          (merge
+                                      {:boundary-type        active-boundary}
+                                      (boundary-filter-names boundaries))
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success      [:sok/got-habitat-statistics]
                     :on-failure      [:ajax/default-err-handler]}}
@@ -296,34 +279,16 @@
 
 (defn get-bathymetry-statistics [{:keys [db]}]
   (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])
-        {:keys [active-boundary amp imcra meow]} (get-in db [:state-of-knowledge :boundaries])
-        {:keys [active-network active-park active-zone active-zone-iucn]} amp
-        {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
-        {:keys [active-realm active-province active-ecoregion]} meow
-        active-boundary (:id active-boundary)
-        [active-network active-park active-zone active-zone-iucn
-         active-provincial-bioregion active-mesoscale-bioregion active-realm
-         active-province active-ecoregion]
-        (map
-         :name
-         [active-network active-park active-zone active-zone-iucn
-          active-provincial-bioregion active-mesoscale-bioregion active-realm
-          active-province active-ecoregion])]
+        {:keys [active-boundary] :as boundaries} (get-in db [:state-of-knowledge :boundaries])
+        active-boundary (:id active-boundary)]
     (if
      active-boundary
       {:db (assoc-in db [:state-of-knowledge :statistics :bathymetry :loading?] true)
        :http-xhrio {:method          :get
                     :uri             bathymetry-statistics-url
-                    :params          {:boundary-type        active-boundary
-                                      :network              active-network
-                                      :park                 active-park
-                                      :zone                 active-zone
-                                      :zone-iucn            active-zone-iucn
-                                      :provincial-bioregion active-provincial-bioregion
-                                      :mesoscale-bioregion  active-mesoscale-bioregion
-                                      :realm                active-realm
-                                      :province             active-province
-                                      :ecoregion            active-ecoregion}
+                    :params          (merge
+                                      {:boundary-type        active-boundary}
+                                      (boundary-filter-names boundaries))
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success      [:sok/got-bathymetry-statistics]
                     :on-failure      [:ajax/default-err-handler]}}
@@ -336,34 +301,16 @@
 
 (defn get-habitat-observations [{:keys [db]}]
   (let [habitat-observations-url (get-in db [:config :habitat-observations-url])
-        {:keys [active-boundary amp imcra meow]} (get-in db [:state-of-knowledge :boundaries])
-        {:keys [active-network active-park active-zone active-zone-iucn]} amp
-        {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
-        {:keys [active-realm active-province active-ecoregion]} meow
-        active-boundary (:id active-boundary)
-        [active-network active-park active-zone active-zone-iucn
-         active-provincial-bioregion active-mesoscale-bioregion active-realm
-         active-province active-ecoregion]
-        (map
-         :name
-         [active-network active-park active-zone active-zone-iucn
-          active-provincial-bioregion active-mesoscale-bioregion active-realm
-          active-province active-ecoregion])]
+        {:keys [active-boundary] :as boundaries} (get-in db [:state-of-knowledge :boundaries])
+        active-boundary (:id active-boundary)]
     (if
      active-boundary
       {:db (assoc-in db [:state-of-knowledge :statistics :habitat-observations :loading?] true)
        :http-xhrio {:method          :get
                     :uri             habitat-observations-url
-                    :params          {:boundary-type        active-boundary
-                                      :network              active-network
-                                      :park                 active-park
-                                      :zone                 active-zone
-                                      :zone-iucn            active-zone-iucn
-                                      :provincial-bioregion active-provincial-bioregion
-                                      :mesoscale-bioregion  active-mesoscale-bioregion
-                                      :realm                active-realm
-                                      :province             active-province
-                                      :ecoregion            active-ecoregion}
+                    :params          (merge
+                                      {:boundary-type        active-boundary}
+                                      (boundary-filter-names boundaries))
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success      [:sok/got-habitat-observations]
                     :on-failure      [:ajax/default-err-handler]}}
