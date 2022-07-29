@@ -25,6 +25,32 @@
       (assoc-in [:state-of-knowledge :boundaries :meow :provinces] provinces)
       (assoc-in [:state-of-knowledge :boundaries :meow :ecoregions] ecoregions)))
 
+(defn- select-boundary-layer
+  "Based on the currently active boundary and boundary filters, select an
+   appropriate boundary layer."
+  [layers {boundary-id :id} {:keys [amp imcra meow] :as _boundaries}]
+  (let [{:keys [active-park active-zone active-zone-iucn]} amp
+        {:keys [active-mesoscale-bioregion]} imcra
+        {:keys [active-province active-ecoregion]} meow
+
+        layer-id (case boundary-id
+                   
+                   "amp"   (cond
+                             (or active-zone active-zone-iucn) 1520
+                             active-park                       1569
+                             :else                             1567)
+
+                   "imcra" (cond
+                             active-mesoscale-bioregion 1500
+                             :else                      182)
+
+                   "meow"  (cond
+                             (or active-province active-ecoregion) 189
+                             :else                                 181)
+
+                   nil)]
+    (first-where #(= (:id %) layer-id) layers)))
+
 (defn update-active-boundary [{:keys [db]} [_ active-boundary]]
   (let [previous-boundary (get-in db [:state-of-knowledge :boundaries :active-boundary])
         db (-> db
