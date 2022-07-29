@@ -143,8 +143,8 @@
   (get-in db [:state-of-knowledge :open-pill]))
 
 (defn boundary-layer-filter-fn [db _]
-  (let [active-boundary (get-in db [:state-of-knowledge :boundaries :active-boundary])]
-    (fn [{:keys [id] :as _layer}]
-      (if (= id (:layer active-boundary))
+  (let [active-boundary-layer (get-in db [:state-of-knowledge :boundaries :active-boundary-layer])]
+    (fn [layer]
+      (if (= layer active-boundary-layer)
         {:cql_filter "NETNAME='North'"}
         nil))))
