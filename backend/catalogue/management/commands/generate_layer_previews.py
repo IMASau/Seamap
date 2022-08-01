@@ -141,13 +141,20 @@ class Command(BaseCommand):
             '--only_generate_missing',
             help='If true, skips generating images for layers where images already exist'
         )
+        parser.add_argument(
+            '--horizontal_subdivisions',
+            help='Number of columns to break the GetMap query for each layer into'
+        )
+        parser.add_argument(
+            '--vertical_subdivisions',
+            help='Number of rows to break the GetMap query for each layer into'
+        )
 
     def handle(self, *args, **options):
         layer_id = int(options['layer_id']) if options['layer_id'] != None else None
         only_generate_missing = options['only_generate_missing'].lower() in ['t', 'true'] if options['only_generate_missing'] != None else False
-
-        horizontal_subdivisions = 16
-        vertical_subdivisions = 16
+        horizontal_subdivisions = int(options['horizontal_subdivisions']) if options['horizontal_subdivisions'] != None else 1
+        vertical_subdivisions = int(options['vertical_subdivisions']) if options['vertical_subdivisions'] != None else 1
 
         if layer_id is not None:
             layer = Layer.objects.get(id=layer_id)
