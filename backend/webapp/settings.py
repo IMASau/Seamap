@@ -143,3 +143,29 @@ OGR2OGR_DRIVER = None
 MEDIA_ROOT = 'media/'
 MEDIA_URL = 'media/'
 FILE_UPLOAD_PERMISSIONS = 0o644
+
+LOGGING = {
+    'version': 1,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+    'loggers': {
+        # Logs database queries made
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        }
+    }
+}
