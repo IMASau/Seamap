@@ -103,16 +103,40 @@
 ;;; Reset state.  Gets a bit messy because we can't just return
 ;;; default-db without throwing away ajax-loaded layer info, so we
 ;;; restore that manually first.
-(defn re-boot [{:keys [habitat-colours habitat-titles sorting]
-                {:keys [layers grouped-base-layers organisations priorities groups] :as _map-state} :map
+(defn re-boot [{:keys [habitat-colours habitat-titles sorting] 
+                {:keys
+                 [layers base-layers
+                  base-layer-groups
+                  grouped-base-layers groups
+                  priorities organisations
+                  categories]
+                 :as _map-state} :map
+                {{{:keys [networks parks zones zones-iucn]} :amp
+                  {:keys [provincial-bioregions mesoscale-bioregions]} :imcra
+                  {:keys [realms provinces ecoregions]} :meow} :boundaries} :state-of-knowledge
                 :as _db} _]
   (let [db (-> db/default-db
-               (update :map merge {:layers            layers
+               (update :map merge {:layers              layers
+                                   :base-layers         base-layers
+                                   :base-layer-groups   base-layer-groups
                                    :grouped-base-layers grouped-base-layers
-                                   :active-base-layer (first grouped-base-layers)
-                                   :organisations     organisations
-                                   :groups            groups
-                                   :priorities        priorities})
+                                   :active-base-layer   (first grouped-base-layers)
+                                   :groups              groups
+                                   :priorities          priorities
+                                   :organisations       organisations
+                                   :categories          categories})
+               (update-in
+                [:state-of-knowledge :boundaries]
+                #(-> %
+                     (update :amp merge   {:networks   networks
+                                           :parks      parks
+                                           :zones      zones
+                                           :zones-iucn zones-iucn})
+                     (update :imcra merge {:provincial-bioregions provincial-bioregions
+                                           :mesoscale-bioregions  mesoscale-bioregions})
+                     (update :meow merge  {:realms     realms
+                                           :provinces  provinces
+                                           :ecoregions ecoregions})))
                (merge {:habitat-colours habitat-colours
                        :habitat-titles  habitat-titles
                        :sorting         sorting}))]
