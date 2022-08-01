@@ -39,7 +39,7 @@ def basemap_bbox(north, south, east, west):
         return basemap.crop((left, upper, right, lower))
 
 
-def subdivide_requests(layer, subdivisions=1):
+def subdivide_requests(layer, horizontal_subdivisions=1, vertical_subdivisions=1):
     bbox = {
         'north': float(layer.maxy),
         'south': float(layer.miny),
@@ -53,42 +53,52 @@ def subdivide_requests(layer, subdivisions=1):
     width = 386
     height = round(width / aspect_ratio)
 
-    urls = []
-    general_sub_width = width // subdivisions
+    urls = [None] * horizontal_subdivisions
+
+    general_sub_width = width // horizontal_subdivisions
     general_x_delta = x_delta / width * general_sub_width
-    for i in range(0, subdivisions):
+    general_sub_height = height // vertical_subdivisions
+    general_y_delta = y_delta / height * general_sub_height
+
+    for i in range(0, horizontal_subdivisions):
+        urls[i] = [None] * vertical_subdivisions
+
         sub_width = general_sub_width
         sub_x_delta = general_x_delta
-        if i == subdivisions - 1:
-            sub_width += width % subdivisions
+        if i == horizontal_subdivisions - 1:
+            sub_width += width % horizontal_subdivisions
             sub_x_delta = x_delta / width * sub_width
+        west = bbox['west'] + i * general_x_delta
+        east = west + sub_x_delta
 
-        sub_bbox = {
-            'north': bbox['north'],
-            'south': bbox['south'],
-            'east':  bbox['west'] + i * general_x_delta + sub_x_delta,
-            'west':  bbox['west'] + i * general_x_delta
-        }
+        for j in range(0, vertical_subdivisions):
+            sub_height = general_sub_height
+            sub_y_delta = general_y_delta
+            if j == vertical_subdivisions - 1:
+                sub_height += height % vertical_subdivisions
+                sub_y_delta = y_delta / height * sub_height
+            south = bbox['south'] + j * general_y_delta
+            north = south + sub_y_delta
 
-        sub_params = {
-            'service': 'WMS',
-            'request': 'GetMap',
-            'layers': layer.layer_name,
-            'styles': '',
-            'format': 'image/png',
-            'transparent': 'true',
-            'version': '1.1.1',
-            'width': sub_width,
-            'height': height,
-            'srs': 'EPSG:4326',
-            'bbox': '{west},{south},{east},{north}'.format(**sub_bbox)
-        }
+            sub_params = {
+                'service': 'WMS',
+                'request': 'GetMap',
+                'layers': layer.layer_name,
+                'styles': '',
+                'format': 'image/png',
+                'transparent': 'true',
+                'version': '1.1.1',
+                'width': sub_width,
+                'height': sub_height,
+                'srs': 'EPSG:4326',
+                'bbox': f'{west},{south},{east},{north}'
+            }
 
-        urls.append(f'{layer.server_url}?{urlencode(sub_params)}')
+            urls[i][j] = f'{layer.server_url}?{urlencode(sub_params)}'
 
     return urls
 
-def retrieve_image(layer, subdivisions=1):
+def retrieve_image(layer, horizontal_subdivisions=1, vertical_subdivisions=1):
     bbox = {
         'north': float(layer.maxy),
         'south': float(layer.miny),
@@ -104,11 +114,19 @@ def retrieve_image(layer, subdivisions=1):
 
     cropped_basemap = basemap_bbox(**bbox).resize((width, height))
 
-    urls = subdivide_requests(layer, subdivisions)
-    for i, url in enumerate(urls):
-        logging.info(f'Retrieving part {i+1}/{subdivisions} from {url}')
-        layer_image = Image.open(urlopen(url)).convert('RGBA')
-        cropped_basemap.paste(layer_image, ((width // subdivisions) * i, 0), layer_image)
+    urls = subdivide_requests(layer, horizontal_subdivisions, vertical_subdivisions)
+    for i, h_url in enumerate(urls):
+        for j, url in enumerate(h_url):
+            logging.info(f'Retrieving part {i * vertical_subdivisions + j + 1}/{horizontal_subdivisions * vertical_subdivisions} from {url}')
+            layer_image = Image.open(urlopen(url)).convert('RGBA')
+            cropped_basemap.paste(
+                layer_image,
+                (
+                    (width // horizontal_subdivisions) * i,
+                    height - (height // vertical_subdivisions) * j - layer_image.height
+                ),
+                layer_image
+            )
 
     return cropped_basemap
 
@@ -128,7 +146,8 @@ class Command(BaseCommand):
         layer_id = int(options['layer_id']) if options['layer_id'] != None else None
         only_generate_missing = options['only_generate_missing'].lower() in ['t', 'true'] if options['only_generate_missing'] != None else False
 
-        subdivisions = 64
+        horizontal_subdivisions = 16
+        vertical_subdivisions = 16
 
         if layer_id is not None:
             layer = Layer.objects.get(id=layer_id)
@@ -136,7 +155,7 @@ class Command(BaseCommand):
             filepath = f'layer_previews/{layer.id}.png'
             if not only_generate_missing or not default_storage.exists(filepath):
                 with BytesIO() as bytes_io:
-                    layer_image = retrieve_image(layer, subdivisions)
+                    layer_image = retrieve_image(layer, horizontal_subdivisions, vertical_subdivisions)
                     layer_image.save(bytes_io, 'PNG')
 
                     default_storage.delete(filepath)
@@ -149,19 +168,19 @@ class Command(BaseCommand):
                 if not only_generate_missing or not default_storage.exists(filepath):
                     with BytesIO() as bytes_io:
                         try:
-                            logging.info(f'Retrieving layer {layer.layer_name} ({layer.id})\n{subdivide_requests(layer, subdivisions)}')
-                            layer_image = retrieve_image(layer, subdivisions)
+                            logging.info(f'Retrieving layer {layer.layer_name} ({layer.id})')
+                            layer_image = retrieve_image(layer, horizontal_subdivisions, vertical_subdivisions)
                             layer_image.save(bytes_io, 'PNG')
                             
                             default_storage.delete(filepath)
                             default_storage.save(filepath, File(bytes_io, ''))
                         except Exception:
-                            logging.warn(f'Failed to retrieve layer {layer.layer_name} ({layer.id})\n{subdivide_requests(layer, subdivisions)}')
+                            logging.warn(f'Failed to retrieve layer {layer.layer_name} ({layer.id})')
                             failures.append(layer)
 
             if len(failures):
                 logging.warn('Failed to retrieve the following layers: \n - {}'.format(
                     '\n - '.join(
-                        [f'{layer.layer_name} ({layer.id})\n{subdivide_requests(layer, subdivisions)}' for layer in failures]
+                        [f'{layer.layer_name} ({layer.id})' for layer in failures]
                     )
                 ))
