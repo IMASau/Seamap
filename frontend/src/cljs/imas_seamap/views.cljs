@@ -176,7 +176,7 @@
 (defn layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   {:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn] :as layer-props}]
+   {:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn] :as layer-props} open-all?]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
@@ -185,9 +185,9 @@
               display-name (get-in sorting-info [ordering val 2])]]
     {:id id-str
      :label (or display-name "Ungrouped")
-     :isExpanded (get expanded-states id-str false)
+     :isExpanded (or (get expanded-states id-str false) open-all?)
      :childNodes (if (seq ordering-remainder)
-                   (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props)
+                   (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
                    (map-indexed
                     (fn [i layer]
                       (let [layer-state {:active?   (some #{layer} active-layers)
@@ -213,7 +213,7 @@
                          #_:secondaryLabel #_(reagent/as-element [catalogue-controls layer layer-state])}))
                     layer-subset))}))
 
-(defn layer-catalogue-tree [_layers _ordering _id _layer-props]
+(defn layer-catalogue-tree [_layers _ordering _id _layer-props _open-all?]
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
@@ -227,16 +227,17 @@
                      (when (seq childNodes)
                        ;; If we have children, toggle expanded state, else add to map
                        (re-frame/dispatch [:ui.catalogue/toggle-node id]))))]
-    (fn [layers ordering id layer-props]
+    (fn [layers ordering id layer-props open-all?]
      [:div.tab-body.layer-controls {:id id}
-      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props)
+      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all?)
                :onNodeCollapse on-close
                :onNodeExpand on-open
                :onNodeClick on-click}]])))
 
 (defn layer-catalogue [layers layer-props]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab])
-        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab %1])]
+        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab %1])
+        open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
     [:div.height-managed
      [b/tabs {:selected-tab-id selected-tab
               :on-change       select-tab
@@ -245,12 +246,12 @@
        {:id    "cat"
         :title "By Category"
         :panel (reagent/as-element
-                [layer-catalogue-tree layers [:category :data_classification] "cat" layer-props])}]
+                [layer-catalogue-tree layers [:category :data_classification] "cat" layer-props open-all?])}]
       [b/tab
        {:id    "org"
         :title "By Organisation"
         :panel (reagent/as-element
-                [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props])}]]]))
+                [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]]))
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
