@@ -84,7 +84,7 @@ def subdivide_requests(layer, horizontal_subdivisions=1, vertical_subdivisions=1
                 'service': 'WMS',
                 'request': 'GetMap',
                 'layers': layer.layer_name,
-                'styles': '',
+                'styles': layer.style or '',
                 'format': 'image/png',
                 'transparent': 'true',
                 'version': '1.1.1',
