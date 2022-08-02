@@ -79,8 +79,8 @@ BEGIN
     FROM (
       SELECT TOP(1) *
       FROM [dbo].[VW_BATHYMETRY]
+      WHERE [RESOLUTION] = @resolution
     ) AS [T1]
-    WHERE [RESOLUTION] = @resolution
   );
 
   BEGIN TRANSACTION;
