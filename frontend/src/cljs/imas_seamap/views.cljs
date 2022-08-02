@@ -100,17 +100,19 @@
     [:span.control.bp3-icon-large.bp3-icon-help.bp3-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
 
-(defn legend-display [{:keys [legend_url server_url layer_name]}]
+(defn legend-display [{:keys [legend_url server_url layer_name style]}]
   ;; Allow a custom url via the legend_url field, else construct a GetLegendGraphic call:
   (let [legend-url (or legend_url
                        (with-params server_url
-                         {:REQUEST "GetLegendGraphic"
-                          :LAYER layer_name
-                          :FORMAT "image/png"
-                          :TRANSPARENT true
-                          :SERVICE "WMS"
-                          :VERSION "1.1.1"
-                          :LEGEND_OPTIONS "forceLabels:on"}))]
+                         (merge
+                          {:REQUEST "GetLegendGraphic"
+                           :LAYER layer_name
+                           :FORMAT "image/png"
+                           :TRANSPARENT true
+                           :SERVICE "WMS"
+                           :VERSION "1.1.1"
+                           :LEGEND_OPTIONS "forceLabels:on"}
+                          (when style {:STYLE style}))))]
     [:div.legend-wrapper
      [:img {:src legend-url}]]))
 
