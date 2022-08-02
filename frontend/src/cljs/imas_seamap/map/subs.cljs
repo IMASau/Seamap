@@ -50,7 +50,7 @@
         filter-text     (:layers filters)
         layers (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
         layers          (if (= (:type logic) :map.layer-logic/automatic)
-                          (all-priority-layers db)
+                          (all-priority-layers layers db)
                           layers)
         filtered-layers (filter (partial match-layer filter-text categories) layers)]
     {:groups          (group-by :category filtered-layers)

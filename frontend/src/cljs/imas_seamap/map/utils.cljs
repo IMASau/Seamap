@@ -144,7 +144,7 @@
   its priority in *some* group is higher than the priority-cutoff.
   This only applies to habitat and bathymetry layers; other categories
   aren't handled via priorities and are always included."
-  [{{:keys [layers priorities priority-cutoff]} :map :as _db}]
+  [layers {{:keys [priorities priority-cutoff]} :map :as _db}]
   (let [priority-layer-ids (->> priorities
                                 (filter #(< (:priority %) priority-cutoff))
                                 (map :layer)
