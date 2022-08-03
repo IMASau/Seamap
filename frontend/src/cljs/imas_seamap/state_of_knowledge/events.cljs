@@ -54,7 +54,7 @@
                    nil)]
     (first-where #(= (:id %) layer-id) layers)))
 
-(defn update-active-boundary-layer [{:keys [db]} [_ pan?]]
+(defn update-active-boundary-layer [{:keys [db]} _]
   (let [layers (get-in db [:map :layers])
         active-boundary (get-in db [:state-of-knowledge :boundaries :active-boundary])
 
@@ -89,7 +89,7 @@
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer true]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -103,7 +103,7 @@
               (assoc-in [:state-of-knowledge :boundaries :amp :active-network] network)))
         park (get-in db [:state-of-knowledge :boundaries :amp :active-park])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -119,7 +119,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-network] network)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-park] park))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -130,7 +130,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] zone)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -141,7 +141,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] zone-iucn)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -155,7 +155,7 @@
               (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)))
         mesoscale-bioregion (get-in db [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -171,7 +171,7 @@
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] mesoscale-bioregion))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -186,7 +186,7 @@
               (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))
         ecoregion (get-in db [:state-of-knowledge :boundaries :meow :active-ecoregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -206,7 +206,7 @@
               (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))
         ecoregion (get-in db [:state-of-knowledge :boundaries :meow :active-ecoregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -227,7 +227,7 @@
                (assoc-in [:state-of-knowledge :boundaries :meow :active-province] province)
                (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] ecoregion))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -243,7 +243,7 @@
                (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
                (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
@@ -253,7 +253,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
