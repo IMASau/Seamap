@@ -5,7 +5,7 @@
   (:require [clojure.set :refer [rename-keys]]
             [ajax.core :as ajax]
             [imas-seamap.utils :refer [first-where encode-state]]
-            [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names]]
+            [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names cql-filter]]
             [imas-seamap.interop.leaflet :as leaflet]))
 
 (defn update-amp-boundaries [db [_ {:keys [networks parks zones zones_iucn]}]]
@@ -340,18 +340,22 @@
 (defn open-pill [db [_ pill-id]]
   (assoc-in db [:state-of-knowledge :open-pill] pill-id))
 
-(defn get-filtered-bounds [_]
-  {:http-xhrio {:method          :get
-                :uri             "https://geoserver-dev.imas.utas.edu.au/geoserver/wms"
-                :params          {:request      "GetFeature"
-                                  :service      "WFS"
-                                  :version      "2.0.0"
-                                  :typeNames    "seamap:SeamapAus_BOUNDARIES_AMP2022"
-                                  :outputFormat "application/json"
-                                  :cql_filter   "NETNAME='Coral Sea'"}
-                :response-format (ajax/json-response-format)
-                :on-success      [:sok/got-filtered-bounds]
-                :on-failure      [:ajax/default-err-handler]}})
+(defn get-filtered-bounds [{:keys [db]} _]
+  (let [{{:keys [layer_name server_url]} :active-boundary-layer :as boundaries}
+        (get-in db [:state-of-knowledge :boundaries])
+        cql-filter (cql-filter boundaries)]
+    {:http-xhrio {:method          :get
+                  :uri             server_url
+                  :params          (merge
+                                    {:request      "GetFeature"
+                                     :service      "WFS"
+                                     :version      "2.0.0"
+                                     :typeNames    layer_name
+                                     :outputFormat "application/json"}
+                                    (when cql-filter {:cql_filter cql-filter}))
+                  :response-format (ajax/json-response-format)
+                  :on-success      [:sok/got-filtered-bounds]
+                  :on-failure      [:ajax/default-err-handler]}}))
 
 (defn got-filtered-bounds [{:keys [db]} [_ geojson]]
   (let [{{south :lat west :lng} :_southWest
