@@ -63,10 +63,8 @@
         db                      (assoc-in db [:state-of-knowledge :boundaries :active-boundary-layer] current-boundary-layer)]
     {:db db
      :dispatch-n [(when previous-boundary-layer [:map/remove-layer previous-boundary-layer])
-                  (when current-boundary-layer
-                    (if pan?
-                      [:map/pan-to-layer current-boundary-layer]
-                      [:map/add-layer current-boundary-layer]))]}))
+                  (when current-boundary-layer [:map/add-layer current-boundary-layer])
+                  (when current-boundary-layer [:sok/get-filtered-bounds])]}))
 
 (defn update-active-boundary [{:keys [db]} [_ active-boundary]]
   (let [db (-> db
@@ -340,3 +338,19 @@
 
 (defn open-pill [db [_ pill-id]]
   (assoc-in db [:state-of-knowledge :open-pill] pill-id))
+
+(defn get-filtered-bounds [_]
+  {:http-xhrio {:method          :get
+                :uri             "https://geoserver-dev.imas.utas.edu.au/geoserver/wms"
+                :params          {:request      "GetFeature"
+                                  :service      "WFS"
+                                  :version      "2.0.0"
+                                  :typeNames    "seamap:SeamapAus_BOUNDARIES_AMP2022"
+                                  :outputFormat "application/json"
+                                  :cql_filter   "NETNAME='Coral Sea'"}
+                :response-format (ajax/json-response-format)
+                :on-success      [:sok/got-filtered-bounds]
+                :on-failure      [:ajax/default-err-handler]}})
+
+(defn got-filtered-bounds [db [_ geojson]]
+  db)
