@@ -146,6 +146,7 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(message)s',
@@ -167,5 +168,5 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
         }
-    }
+    },
 }
