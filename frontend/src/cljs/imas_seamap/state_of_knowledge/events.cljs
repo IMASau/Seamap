@@ -5,7 +5,8 @@
   (:require [clojure.set :refer [rename-keys]]
             [ajax.core :as ajax]
             [imas-seamap.utils :refer [first-where]]
-            [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names]]))
+            [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names]]
+            [imas-seamap.interop.leaflet :as leaflet]))
 
 (defn update-amp-boundaries [db [_ {:keys [networks parks zones zones_iucn]}]]
   (-> db
@@ -353,4 +354,11 @@
                 :on-failure      [:ajax/default-err-handler]}})
 
 (defn got-filtered-bounds [db [_ geojson]]
-  db)
+  (let [{{south :lat west :lng} :_southWest
+         {north :lat east :lng} :_northEast}
+        (js->clj (.getBounds (leaflet/geojson-feature (clj->js geojson))) :keywordize-keys true)
+        bounds {:north north
+                :south south
+                :east  east
+                :west  west}]
+    db))
