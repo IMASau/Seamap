@@ -4,7 +4,7 @@
 (ns imas-seamap.state-of-knowledge.events
   (:require [clojure.set :refer [rename-keys]]
             [ajax.core :as ajax]
-            [imas-seamap.utils :refer [first-where]]
+            [imas-seamap.utils :refer [first-where encode-state]]
             [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names]]
             [imas-seamap.interop.leaflet :as leaflet]))
 
@@ -353,12 +353,14 @@
                 :on-success      [:sok/got-filtered-bounds]
                 :on-failure      [:ajax/default-err-handler]}})
 
-(defn got-filtered-bounds [db [_ geojson]]
+(defn got-filtered-bounds [{:keys [db]} [_ geojson]]
   (let [{{south :lat west :lng} :_southWest
          {north :lat east :lng} :_northEast}
         (js->clj (.getBounds (leaflet/geojson-feature (clj->js geojson))) :keywordize-keys true)
         bounds {:north north
                 :south south
                 :east  east
-                :west  west}]
-    db))
+                :west  west}
+        db     (assoc-in db [:map :bounds] bounds)]
+    {:db db
+     :put-hash (encode-state db)}))

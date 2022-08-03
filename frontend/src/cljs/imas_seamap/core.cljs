@@ -191,7 +191,7 @@
     :sok/close                            [sokevents/close]
     :sok/open-pill                        sokevents/open-pill
     :sok/get-filtered-bounds              [sokevents/get-filtered-bounds]
-    :sok/got-filtered-bounds              sokevents/got-filtered-bounds
+    :sok/got-filtered-bounds              [sokevents/got-filtered-bounds]
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]
