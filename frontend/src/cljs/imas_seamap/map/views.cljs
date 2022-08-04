@@ -130,6 +130,12 @@
     [b/tooltip {:content "Create Shareable URL" :position b/RIGHT}
      [b/icon {:icon "share"}]]]])
 
+(defn omnisearch-control [_props]
+  [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+   [:a {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
+    [b/tooltip {:content "Search all layers" :position b/RIGHT}
+     [b/icon {:icon "search"}]]]])
+
 (defn transect-control [{:keys [drawing? query] :as _transect-info}]
   (let [[text icon dispatch] (cond
                                drawing? ["Cancel Transect" "undo"   :transect.draw/disable]
@@ -307,6 +313,9 @@
        ;; rerender them all, preserving their order!
        ;; TL;DR: having controls show up in the correct order is a pain and this fixes
        ;; that.
+       ^{:key (str "omnisearch-control" transect-info region-info)}
+       [omnisearch-control]
+
        (if (:drawing? transect-info)
          ^{:key (str "transect-control" transect-info region-info)}
          [draw-transect-control]
