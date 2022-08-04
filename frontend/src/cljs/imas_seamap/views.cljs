@@ -914,7 +914,8 @@
                    {:heading "Controls"
                     :icon    "settings"}
                    [transect-toggle]
-                   [selection-button]]
+                   [selection-button]
+                   [viewport-only-toggle]]
                   
                   [components/drawer-group
                    {:heading "Settings"
