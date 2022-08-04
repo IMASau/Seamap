@@ -162,10 +162,7 @@
         {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
-        layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
-        ;layer-params                                  @(re-frame/subscribe [:map.layers/params])
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
-        logic-type                                    @(re-frame/subscribe [:map.layers/logic])
         loading?                                      @(re-frame/subscribe [:app/loading?])]
     (into
      [:div.map-wrapper

@@ -1002,7 +1002,6 @@
       [plot-component]]
      [helper-overlay
       :layer-search
-      :logic-toggle
       :plot-footer
       {:selector   ".group-scrollable"
        :helperText "Layers available in your current field of view (zoom out to see more)"}
