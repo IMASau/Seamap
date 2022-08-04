@@ -10,8 +10,9 @@ import logging
 
 from catalogue.models import Layer
 
+Image.MAX_IMAGE_PIXELS = None
 
-basemap = Image.open(default_storage.open('basemap.png'))
+basemap = Image.open(default_storage.open('land_shallow_topo_21600.tif'))
 
 
 def basemap_latitude_to_pixel(latitude):
