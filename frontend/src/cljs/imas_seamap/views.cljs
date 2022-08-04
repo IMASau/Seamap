@@ -857,7 +857,9 @@
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [filtered-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
+        {:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
+        viewport-only? @(re-frame/subscribe [:map/viewport-only?])
+        catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
     [components/drawer
      {:title
       [:div.left-drawer-header
@@ -881,7 +883,7 @@
          :panel (reagent/as-element
                  [:div
                   [layer-search-filter]
-                  [layer-catalogue filtered-layers
+                  [layer-catalogue catalogue-layers
                    {:active-layers  active-layers
                     :visible-layers visible-layers
                     :loading-fn     loading-layers
