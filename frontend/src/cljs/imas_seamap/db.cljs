@@ -27,8 +27,7 @@
                      :active-layers   []
                      :hidden-layers   #{}
                      :preview-layer   nil
-                     :logic           {:type    :map.layer-logic/automatic
-                                       :trigger :map.logic.trigger/automatic}
+                     :logic           {:type :map.layer-logic/automatic}
                      :controls        {:transect false
                                        :download nil}}
    :state-of-knowledge {:boundaries {:active-boundary nil

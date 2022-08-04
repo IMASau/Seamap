@@ -293,7 +293,8 @@
                 :label     (reagent/as-element [:span icon label])
                 :on-change (handler-dispatch [:map.layers.logic/toggle true])}]]))
 
-(defn layer-logic-toggle-button []
+;; TODO: Remove, unused
+#_(defn layer-logic-toggle-button []
   (let [{:keys [type]} @(re-frame/subscribe [:map.layers/logic])]
     [:div#logic-toggle
      {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
@@ -903,8 +904,7 @@
                    {:heading "Controls"
                     :icon    "settings"}
                    [transect-toggle]
-                   [selection-button]
-                   [layer-logic-toggle-button]]
+                   [selection-button]]
                   
                   [components/drawer-group
                    {:heading "Settings"

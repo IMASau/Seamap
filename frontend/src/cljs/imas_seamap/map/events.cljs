@@ -461,21 +461,18 @@
      :put-hash (encode-state db)
      :dispatch [:ui/hide-loading]}))
 
-(defn map-layer-logic-manual [db [_ user-triggered]]
-  (assoc-in db [:map :logic]
-            {:type :map.layer-logic/manual
-             :trigger (if user-triggered :map.logic.trigger/user :map.logic.trigger/automatic)}))
+(defn map-layer-logic-manual [db _]
+  (assoc-in db [:map :logic] {:type :map.layer-logic/manual}))
 
 (defn map-layer-logic-automatic [db _]
-  (assoc-in db [:map :logic] {:type :map.layer-logic/automatic :trigger :map.logic.trigger/automatic}))
+  (assoc-in db [:map :logic] {:type :map.layer-logic/automatic}))
 
-(defn map-layer-logic-toggle [{:keys [db]} [_ user-triggered]]
+(defn map-layer-logic-toggle [{:keys [db]} _]
   (let [type (if (= (get-in db [:map :logic :type])
                     :map.layer-logic/manual)
                :map.layer-logic/automatic
-               :map.layer-logic/manual)
-        trigger (if user-triggered :map.logic.trigger/user :map.logic.trigger/automatic)]
-    (merge {:db (assoc-in db [:map :logic] {:type type :trigger trigger})
+               :map.layer-logic/manual)]
+    (merge {:db (assoc-in db [:map :logic] {:type type })
             :put-hash (encode-state db)}
            ;; Also reset displayed layers, if we're turning auto-mode back on:
            (when (= type :map.layer-logic/automatic)

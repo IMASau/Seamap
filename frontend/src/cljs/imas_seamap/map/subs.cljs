@@ -89,9 +89,7 @@
   (get-in db [:map :priorities]))
 
 (defn map-layer-logic [db _]
-  (get-in db [:map :logic]
-          {:type    :map.layer-logic/automatic
-           :trigger :map.logic.trigger/automatic}))
+  (get-in db [:map :logic] {:type :map.layer-logic/automatic}))
 
 (defn map-layers-filter [db _]
   (get-in db [:filters :layers]))
