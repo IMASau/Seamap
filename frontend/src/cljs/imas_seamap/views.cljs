@@ -748,7 +748,8 @@
       [floating-menu-bar]
       (when (seq active-layers) [floating-menu-active-layers map-layers])]]))
 
-(defn floating-transect-pill
+;; TODO: Remove, unused
+#_(defn floating-transect-pill
   [{:keys [drawing? query]}]
   (let [[text icon dispatch] (cond
                            drawing? ["Cancel Transect" "undo"   :transect.draw/disable]
@@ -770,10 +771,8 @@
       :icon     icon
       :on-click #(re-frame/dispatch [dispatch])}]))
 
-(defn floating-pills
-  []
+(defn floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
-        transect-info            @(re-frame/subscribe [:transect/info])
         region-info              @(re-frame/subscribe [:map.layer.selection/info])
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
         amp-boundaries           @(re-frame/subscribe [:sok/valid-amp-boundaries])
@@ -788,8 +787,6 @@
      [components/floating-pill-button
       {:icon     "menu"
        :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
-
-     [floating-transect-pill transect-info]
      [floating-region-pill region-info]
 
      [floating-state-of-knowledge-pill

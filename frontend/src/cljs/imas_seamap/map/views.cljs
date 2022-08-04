@@ -130,6 +130,16 @@
     [b/tooltip {:content "Create Shareable URL" :position b/RIGHT}
      [b/icon {:icon "share"}]]]])
 
+(defn transect-control [{:keys [drawing? query] :as _transect-info}]
+  (let [[text icon dispatch] (cond
+                               drawing? ["Cancel Transect" "undo"   :transect.draw/disable]
+                               query    ["Clear Transect"  "eraser" :transect.draw/clear]
+                               :else    ["Draw Transect"   "edit"   :transect.draw/enable])]
+    [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+     [:a {:on-click #(re-frame/dispatch  [dispatch])}
+      [b/tooltip {:content text :position b/RIGHT}
+       [b/icon {:icon icon}]]]]))
+
 (defn popup-component [{:keys [status info-body had-insecure?] :as _feature-popup}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
@@ -159,7 +169,7 @@
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
-        {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
+        {:keys [drawing? query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
@@ -246,7 +256,7 @@
                                  :color       "#3f8ffa"
                                  :opacity     1
                                  :fillOpacity 1}])
-       (when drawing?
+       (if drawing?
          [leaflet/feature-group
           [leaflet/edit-control {:draw       {:rectangle    false
                                               :circle       false
@@ -258,7 +268,8 @@
                                  :on-mounted (fn [e]
                                                (.. e -_toolbars -draw -_modes -polyline -handler enable)
                                                (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
-                                 :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]])
+                                 :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]]
+         [transect-control transect-info])
        (when selecting?
          [leaflet/feature-group
           [leaflet/edit-control {:draw       {:rectangle    true
