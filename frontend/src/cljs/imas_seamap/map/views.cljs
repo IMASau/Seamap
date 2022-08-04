@@ -295,16 +295,34 @@
                                  :opacity     1
                                  :fillOpacity 1}])
 
+       ;; Top-left controls have a key that changes based on state for an important
+       ;; reason: when new controls are added to the list they are added to the bottom of
+       ;; the controls list.
+       ;; New controls being added to the bottom is an issue in our case because we want
+       ;; to be able to swap out the buttons that start drawing a transect/region with
+       ;; the leaflet draw controls; when the controls are swapped out, they are added to
+       ;; the bottom of the list rather than the location of the control we are replacing.
+       ;; To get around this issue we give every control in the list a key that changes
+       ;; with state, to force React Leaflet to recognise these as new controls and
+       ;; rerender them all, preserving their order!
+       ;; TL;DR: having controls show up in the correct order is a pain and this fixes
+       ;; that.
        (if (:drawing? transect-info)
+         ^{:key (str "transect-control" transect-info region-info)}
          [draw-transect-control]
+         ^{:key (str "transect-control" transect-info region-info)}
          [transect-control transect-info])
 
        (if (:selecting? region-info)
+         ^{:key (str "region-control" transect-info region-info)}
          [draw-region-control]
+         ^{:key (str "region-control" transect-info region-info)}
          [region-control region-info])
 
+       ^{:key (str "share-control" transect-info region-info)}
        [share-control]
 
+       ^{:key (str "print-control" transect-info region-info)}
        [leaflet/print-control {:position   "topleft" :title "Export as PNG"
                                :export-only true
                                :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
