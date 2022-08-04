@@ -41,6 +41,7 @@
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
+    :map/viewport-only?                   msubs/viewport-only?
     :sok/habitat-statistics               soksubs/habitat-statistics
     :sok/habitat-statistics-download-url  soksubs/habitat-statistics-download-url
     :sok/bathymetry-statistics            soksubs/bathymetry-statistics
@@ -162,6 +163,7 @@
     :map/view-updated                     [mevents/map-view-updated]
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click
+    :map/toggle-viewport-only             mevents/toggle-viewport-only
     :sok/update-amp-boundaries            sokevents/update-amp-boundaries
     :sok/update-imcra-boundaries          sokevents/update-imcra-boundaries
     :sok/update-meow-boundaries           sokevents/update-meow-boundaries

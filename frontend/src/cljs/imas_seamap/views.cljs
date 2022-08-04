@@ -277,6 +277,16 @@
                 :on-click   (handler-dispatch [dispatch-key])
                 :text       label}]]))
 
+(defn viewport-only-toggle []
+  (let [[icon text] (if @(re-frame/subscribe [:map/viewport-only?])
+                      ["map" "Viewport layers only"]
+                      ["globe" "All layers"])]
+    [b/button
+     {:icon     icon
+      :class    "bp3-fill"
+      :on-click #(re-frame/dispatch [:map/toggle-viewport-only])
+      :text     text}]))
+
 ;; TODO: Remove, unused
 #_(defn layer-logic-toggle []
   (let [{:keys [type trigger]} @(re-frame/subscribe [:map.layers/logic])
