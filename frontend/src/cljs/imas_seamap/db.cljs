@@ -27,6 +27,7 @@
                      :active-layers   []
                      :hidden-layers   #{}
                      :preview-layer   nil
+                     :viewport-only?  false
                      :controls        {:transect false
                                        :download nil}}
    :state-of-knowledge {:boundaries {:active-boundary nil

@@ -508,3 +508,6 @@
 (defn update-preview-layer [db [_ preview-layer]]
   (assoc-in db [:map :preview-layer] preview-layer))
 
+
+(defn toggle-viewport-only [db _]
+  (update-in db [:map :viewport-only?] not))

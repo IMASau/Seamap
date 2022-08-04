@@ -153,3 +153,6 @@
   (if org-name
     (some #(and (= org-name (:name %)) %) organisations)
     organisations))
+
+(defn viewport-only? [db _]
+  (get-in db [:map :viewport-only?]))
