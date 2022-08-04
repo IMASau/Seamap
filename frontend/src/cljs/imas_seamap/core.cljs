@@ -138,9 +138,6 @@
     :map.layer/opacity-changed            [mevents/layer-set-opacity]
     :map.layers/filter                    mevents/map-set-layer-filter
     :map.layers/others-filter             mevents/map-set-others-layer-filter
-    :map.layers.logic/toggle              [mevents/map-layer-logic-toggle]
-    :map.layers.logic/manual              mevents/map-layer-logic-manual
-    :map.layers.logic/automatic           mevents/map-layer-logic-automatic
     :map.layer.legend/toggle              [mevents/toggle-legend-display]
     :map.layer.selection/enable           mevents/map-start-selecting
     :map.layer.selection/disable          mevents/map-cancel-selecting
@@ -214,7 +211,6 @@
 (def events-for-analytics
   [:help-layer/open
    :map.layer/load-error
-   :map.layers.logic/toggle
    :map/clicked
    :map/pan-to-layer
    :map/toggle-layer

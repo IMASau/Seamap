@@ -977,9 +977,6 @@
        {:label "Cancel"                 :combo "esc"}
        [:ui.drawing/cancel])
       (keydown-wrapper
-       {:label "Toggle Layer Logic"     :combo "m"}
-       [:map.layers.logic/toggle])
-      (keydown-wrapper
        {:label "Start Searching Layers" :combo "/" :prevent-default true}
        [:ui.search/focus])
       (keydown-wrapper
