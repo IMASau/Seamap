@@ -230,3 +230,13 @@
   "Sorts a collection by its sort-key first and its id second."
   [coll]
   (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) coll))
+
+(defn layer-visible? [{:keys [west south east north] :as _bounds}
+                      {:keys [bounding_box]          :as _layer}]
+  (not (or (> (:south bounding_box) north)
+           (< (:north bounding_box) south)
+           (> (:west  bounding_box) east)
+           (< (:east  bounding_box) west))))
+
+(defn viewport-layers [{:keys [_west _south _east _north] :as bounds} layers]
+  (filter (partial layer-visible? bounds) layers))
