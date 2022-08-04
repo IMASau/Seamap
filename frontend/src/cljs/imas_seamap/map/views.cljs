@@ -140,6 +140,20 @@
       [b/tooltip {:content text :position b/RIGHT}
        [b/icon {:icon icon}]]]]))
 
+(defn draw-transect-control []
+  [leaflet/feature-group
+   [leaflet/edit-control {:draw       {:rectangle    false
+                                       :circle       false
+                                       :marker       false
+                                       :circlemarker false
+                                       :polygon      false
+                                       :polyline     {:allowIntersection false
+                                                      :metric            "metric"}}
+                          :on-mounted (fn [e]
+                                        (.. e -_toolbars -draw -_modes -polyline -handler enable)
+                                        (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
+                          :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]])
+
 (defn region-control [{:keys [selecting? region] :as _region-info}]
   (let [[text icon dispatch] (cond
                                selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
@@ -149,6 +163,20 @@
      [:a {:on-click #(re-frame/dispatch  [dispatch])}
       [b/tooltip {:content text :position b/RIGHT}
        [b/icon {:icon icon}]]]]))
+
+(defn draw-region-control []
+  [leaflet/feature-group
+   [leaflet/edit-control {:draw       {:rectangle    true
+                                       :circle       false
+                                       :marker       false
+                                       :circlemarker false
+                                       :polygon      false
+                                       :polyline     false}
+                          :on-mounted (fn [e]
+                                        (.. e -_toolbars -draw -_modes -rectangle -handler enable)
+                                        (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable]))))
+                          :on-created #(re-frame/dispatch [:map.layer.selection/finalise
+                                                           (-> % (.. -layer getBounds) bounds->map)])}]])
 
 (defn popup-component [{:keys [status info-body had-insecure?] :as _feature-popup}]
   (case status
@@ -266,48 +294,26 @@
                                  :color       "#3f8ffa"
                                  :opacity     1
                                  :fillOpacity 1}])
-       (if drawing?
-         [leaflet/feature-group
-          [leaflet/edit-control {:draw       {:rectangle    false
-                                              :circle       false
-                                              :marker       false
-                                              :circlemarker false
-                                              :polygon      false
-                                              :polyline     {:allowIntersection false
-                                                             :metric            "metric"}}
-                                 :on-mounted (fn [e]
-                                               (.. e -_toolbars -draw -_modes -polyline -handler enable)
-                                               (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
-                                 :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]]
+
+       (if (:drawing? transect-info)
+         [draw-transect-control]
          [transect-control transect-info])
-       
-       (if selecting?
-         [leaflet/feature-group
-          [leaflet/edit-control {:draw       {:rectangle    true
-                                              :circle       false
-                                              :marker       false
-                                              :circlemarker false
-                                              :polygon      false
-                                              :polyline     false}
-                                 :on-mounted (fn [e]
-                                               (.. e -_toolbars -draw -_modes -rectangle -handler enable)
-                                               (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable]))))
-                                 :on-created #(re-frame/dispatch [:map.layer.selection/finalise
-                                                                  (-> % (.. -layer getBounds) bounds->map)])}]]
+
+       (if (:selecting? region-info)
+         [draw-region-control]
          [region-control region-info])
-
-       [leaflet/feature-group
-        [leaflet/scale-control]]
-
-       [leaflet/coordinates-control
-        {:position "bottomright"
-         :style nil}]
 
        [share-control]
 
        [leaflet/print-control {:position   "topleft" :title "Export as PNG"
                                :export-only true
                                :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
+
+       [leaflet/scale-control]
+
+       [leaflet/coordinates-control
+        {:position "bottomright"
+         :style nil}]
 
        (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
