@@ -140,6 +140,16 @@
       [b/tooltip {:content text :position b/RIGHT}
        [b/icon {:icon icon}]]]]))
 
+(defn region-control [{:keys [selecting? region] :as _region-info}]
+  (let [[text icon dispatch] (cond
+                               selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
+                               region     ["Clear Selection"  "eraser" :map.layer.selection/clear]
+                               :else      ["Select Region"    "widget" :map.layer.selection/enable])]
+    [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+     [:a {:on-click #(re-frame/dispatch  [dispatch])}
+      [b/tooltip {:content text :position b/RIGHT}
+       [b/icon {:icon icon}]]]]))
+
 (defn popup-component [{:keys [status info-body had-insecure?] :as _feature-popup}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
@@ -170,7 +180,7 @@
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
-        {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
+        {:keys [selecting? region] :as region-info} @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
         ;layer-params                                  @(re-frame/subscribe [:map.layers/params])
@@ -270,7 +280,8 @@
                                                (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
                                  :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]]
          [transect-control transect-info])
-       (when selecting?
+       
+       (if selecting?
          [leaflet/feature-group
           [leaflet/edit-control {:draw       {:rectangle    true
                                               :circle       false
@@ -282,7 +293,8 @@
                                                (.. e -_toolbars -draw -_modes -rectangle -handler enable)
                                                (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable]))))
                                  :on-created #(re-frame/dispatch [:map.layer.selection/finalise
-                                                                  (-> % (.. -layer getBounds) bounds->map)])}]])
+                                                                  (-> % (.. -layer getBounds) bounds->map)])}]]
+         [region-control region-info])
 
        [leaflet/feature-group
         [leaflet/scale-control]]
