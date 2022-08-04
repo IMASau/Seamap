@@ -114,7 +114,8 @@
         viewport-layers (filter #(bbox-intersects? bounds (:bounding_box %)) selected-layers)]
     viewport-layers))
 
-(defn all-priority-layers
+;; TODO: Remove, unused
+#_(defn all-priority-layers
   "Return the list of priority layers: that is, every layer for which
   its priority in *some* group is higher than the priority-cutoff.
   This only applies to habitat and bathymetry layers; other categories

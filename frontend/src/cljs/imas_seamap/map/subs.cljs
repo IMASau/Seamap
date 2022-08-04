@@ -4,7 +4,7 @@
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
             [imas-seamap.utils :refer [map-on-key]]
-            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer layer-search-keywords sort-layers]]
+            [imas-seamap.map.utils :refer [bbox-intersects? region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
@@ -44,14 +44,12 @@
            (> (/ error-count total-count)
               0.4)))))       ; Might be nice to make this configurable eventually
 
-(defn map-layers [{:keys [layer-state filters map] :as db} _]
-  (let [{:keys [layers active-layers hidden-layers bounds logic]} map
+(defn map-layers [{:keys [layer-state filters map] :as _db} _]
+  (let [{:keys [layers active-layers hidden-layers bounds]} map
         categories      (map-on-key (:categories map) :name)
         filter-text     (:layers filters)
-        layers (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
-        layers          (if (= (:type logic) :map.layer-logic/automatic)
-                          (all-priority-layers layers db)
-                          layers)
+        layers          (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
+        viewport-layers (viewport-layers bounds layers)
         filtered-layers (filter (partial match-layer filter-text categories) layers)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
@@ -60,7 +58,8 @@
      :active-layers   active-layers
      :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
-     :filtered-layers filtered-layers}))
+     :filtered-layers filtered-layers
+     :viewport-layers viewport-layers}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
