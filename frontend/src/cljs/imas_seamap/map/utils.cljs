@@ -222,19 +222,22 @@
         str)))
 
 (def feature-info-none
-  {:body
+  {:style nil
+   :body
    (str
     "<div>"
-    "<h4>No info available</h4>"
-    "Layer summary not configured"
+    "    <h4>No info available</h4>"
+    "    Layer summary not configured"
     "</div>")})
 
 (defn feature-info-html
   [response]
   (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
-        body  (first (array-seq (.querySelectorAll parsed "body")))]
+        body  (first (array-seq (.querySelectorAll parsed "body")))
+        style  (first (array-seq (.querySelectorAll parsed "style")))] ; only grabs the first style element
     (when (.-firstElementChild body)
-      {:body (.-innerHTML body)})))
+      {:style (when style (.-innerHTML style))
+       :body (.-innerHTML body)})))
 
 (defn feature-info-json
   [response]
