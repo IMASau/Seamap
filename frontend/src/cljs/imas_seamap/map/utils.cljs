@@ -90,36 +90,14 @@
    #(< %1 %2) ; comparator so nil is always last (instead of first)
    layers))
 
-(defn sort-layers-presentation
-  "Return layers in an order suitable for presentation (essentially,
-  bathymetry at the bottom, third-party on top, and habitat layers by
-  priority when in auto mode)"
-  [layers group-priorities logic-type]
-  (let [layer-priority (fn [id]
-                         (if (= logic-type :map.layer-logic/automatic)
-                           ;; If automatic, pick the highest priority present
-                           (reduce (fn [p {:keys [layer priority]}]
-                                     (if (= layer id) (min p priority) p))
-                                   99
-                                   group-priorities)
-                           ;; If in manual mode, just use a default priority
-                           1))]
-    ;; Schwarztian transform (map-sort-map):
-    (->> layers
-         (map (fn [{:keys [id] :as layer}]
-                [(layer-priority id) layer]))
-         (sort-by (comp vec (partial take 1)))
-         (map last))))
-
 (defn applicable-layers
-  [{{:keys [layers groups priorities priority-cutoff zoom zoom-cutover bounds logic]} :map :as _db}
+  [{{:keys [layers groups priorities zoom zoom-cutover bounds]} :map :as _db}
    & {:keys [category server_type]}]
   ;; Generic utility to retrieve a list of relevant layers, filtered as necessary.
   ;; figures out cut-off point, and restricts to those on the right side of it;
   ;; filters to those groups intersecting the bbox;
   ;; sorts by priority and grouping.
-  (let [logic-type         (:type logic)
-        match-category?    #(if category (= category (:category %)) true)
+  (let [match-category?    #(if category (= category (:category %)) true)
         match-server?      #(if server_type (= server_type (:server_type %)) true)
         detail-resolution? (< zoom-cutover zoom)
         group-ids          (->> groups
@@ -130,16 +108,14 @@
                                                (bbox-intersects? bounds bounding_box))))
                                 (map :id)
                                 set)
-        group-priorities   (filter #(and (or (= logic-type :map.layer-logic/manual)
-                                             (< (:priority %) priority-cutoff))
-                                         (group-ids (:group %)))
-                                   priorities)
+        group-priorities   (filter #(group-ids (:group %)) priorities)
         layer-ids          (->> group-priorities (map :layer) (into #{}))
         selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %) (match-server? %)) layers)
         viewport-layers (filter #(bbox-intersects? bounds (:bounding_box %)) selected-layers)]
-    (sort-layers-presentation viewport-layers priorities logic-type)))
+    viewport-layers))
 
-(defn all-priority-layers
+;; TODO: Remove, unused
+#_(defn all-priority-layers
   "Return the list of priority layers: that is, every layer for which
   its priority in *some* group is higher than the priority-cutoff.
   This only applies to habitat and bathymetry layers; other categories
@@ -255,3 +231,30 @@
   "Sorts a collection by its sort-key first and its id second."
   [coll]
   (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) coll))
+
+(defn normal-latitude
+  "Latitude can get pretty wacky if one loops around the entire globe a few times.
+   This puts the latitude within the normal latitude range."
+  [lat]
+  (-> lat
+   (+ 180)
+   (mod 360)
+   (- 180)))
+
+(defn normal-bounds
+  "Latitude can get pretty wacky if one loops around the entire globe a few times.
+   This puts the bounds within the normal latitude range."
+  [{:keys [_west _south _east _north] :as bounds}]
+  (-> bounds
+      (update :west normal-latitude)
+      (update :east normal-latitude)))
+
+(defn layer-visible? [bounds {:keys [bounding_box] :as _layer}]
+  (let [{:keys [west south east north]} (normal-bounds bounds)]
+   (not (or (> (:south bounding_box) north)
+            (< (:north bounding_box) south)
+            (> (:west  bounding_box) east)
+            (< (:east  bounding_box) west)))))
+
+(defn viewport-layers [{:keys [_west _south _east _north] :as bounds} layers]
+  (filter (partial layer-visible? bounds) layers))

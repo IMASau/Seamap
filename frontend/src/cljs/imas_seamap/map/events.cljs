@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers first-where]]
-            [imas-seamap.map.utils :refer [applicable-layers layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -355,9 +355,7 @@
         db (update-in db [:map :hidden-layers] #(disj % layer))]
     {:db       db
      :put-hash (encode-state db)
-     ;; If someone triggers this, we also switch to manual mode:
-     :dispatch-n [[:map.layers.logic/manual]
-                  [:map/popup-closed]]}))
+     :dispatch [:map/popup-closed]}))
 
 (defn toggle-layer-visibility
   [{:keys [db]} [_ layer]]
@@ -366,9 +364,7 @@
         db (update-in db [:map :hidden-layers] #((if hidden? disj conj) % layer))]
     {:db       db
      :put-hash (encode-state db)
-     ;; If someone triggers this, we also switch to manual mode:
-     :dispatch-n [[:map.layers.logic/manual]
-                  [:map/popup-closed]]}))
+     :dispatch [:map/popup-closed]}))
 
 (defn toggle-legend-display [{:keys [db]} [_ layer]]
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))]
@@ -379,14 +375,10 @@
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ {:keys [bounding_box] :as layer}]]
   (let [already-active? (some #{layer} (-> db :map :active-layers))]
-    (merge
-     {:db       (cond-> db
-                  true                  (assoc-in [:map :bounds] bounding_box)
-                  (not already-active?) (update-in [:map :active-layers] (partial toggle-layer-logic layer)))
-      :put-hash (encode-state db)}
-     ;; If someone triggers this, we also switch to manual mode:
-     (when-not already-active?
-       {:dispatch [:map.layers.logic/manual]}))))
+    {:db       (cond-> db
+                 true                  (assoc-in [:map :bounds] bounding_box)
+                 (not already-active?) (update-in [:map :active-layers] (partial toggle-layer-logic layer)))
+     :put-hash (encode-state db)}))
 
 (defn region-stats-select-habitat [db [_ layer]]
   (assoc-in db [:region-stats :habitat-layer] layer))
@@ -411,32 +403,6 @@
                                            (+ x (* horiz (- east  west)))])]
     (update-in db [:map :center] shift-centre)))
 
-(defn layer-visible? [{:keys [west south east north] :as _bounds}
-                      {:keys [bounding_box]          :as _layer}]
-  (not (or (> (:south bounding_box) north)
-           (< (:north bounding_box) south)
-           (> (:west  bounding_box) east)
-           (< (:east  bounding_box) west))))
-
-(defn viewport-layers [{:keys [_west _south _east _north] :as bounds} layers]
-  (filter (partial layer-visible? bounds) layers))
-
-(defn update-active-layers
-  "Utility to recalculate layers that are displayed when automatic
-  layer-switching is in place.  When the viewport or zoom changes, we
-  may need to switch out a layer for a coarser/finer resolution one.
-  Only applies to habitat layers."
-  [{{:keys [logic]} :map :as db}]
-  ;; Basic idea:
-  ;; * check that any habitat layer is currently displayed (ie, don't start with no habitats, then zoom in and suddenly display one!)
-  ;; * filter out habitat layers from actives
-  ;; * add back in those that are visible, and past the zoom cutoff
-  ;; * assoc back onto the db
-  (if (= (:type logic) :map.layer-logic/automatic)
-    (assoc-in db [:map :active-layers]
-              (vec (applicable-layers db :category :habitat)))
-    db))
-
 (defn show-initial-layers
   "Figure out the highest priority layer, and display it"
   ;; Slight hack; note we use :active not :active-layers, because
@@ -446,10 +412,8 @@
   ;; re-set.  So we have this two step process.  Ditto :active-base /
   ;; :active-base-layer
   [{:keys [db]} _]
-  (let [{:keys [active active-base _legend-ids logic]} (:map db)
-        active-layers (if (= (:type logic) :map.layer-logic/manual)
-                        (vec (ids->layers active (get-in db [:map :layers])))
-                        (vec (applicable-layers db :category :habitat)))
+  (let [{:keys [active active-base _legend-ids]} (:map db)
+        active-layers (vec (ids->layers active (get-in db [:map :layers])))
         active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         active-base   (or active-base   ; If no base is set (eg no existing hash-state), use the first candidate
                           (first (get-in db [:map :grouped-base-layers])))
@@ -461,27 +425,6 @@
      :put-hash (encode-state db)
      :dispatch [:ui/hide-loading]}))
 
-(defn map-layer-logic-manual [db [_ user-triggered]]
-  (assoc-in db [:map :logic]
-            {:type :map.layer-logic/manual
-             :trigger (if user-triggered :map.logic.trigger/user :map.logic.trigger/automatic)}))
-
-(defn map-layer-logic-automatic [db _]
-  (assoc-in db [:map :logic] {:type :map.layer-logic/automatic :trigger :map.logic.trigger/automatic}))
-
-(defn map-layer-logic-toggle [{:keys [db]} [_ user-triggered]]
-  (let [type (if (= (get-in db [:map :logic :type])
-                    :map.layer-logic/manual)
-               :map.layer-logic/automatic
-               :map.layer-logic/manual)
-        trigger (if user-triggered :map.logic.trigger/user :map.logic.trigger/automatic)]
-    (merge {:db (assoc-in db [:map :logic] {:type type :trigger trigger})
-            :put-hash (encode-state db)}
-           ;; Also reset displayed layers, if we're turning auto-mode back on:
-           (when (= type :map.layer-logic/automatic)
-             {:dispatch-n [[:map/initialise-display]
-                           [:map/popup-closed]]}))))
-
 (defn map-view-updated [{:keys [db]} [_ {:keys [zoom center bounds]}]]
   ;; Race-condition warning: this is called when the map changes to
   ;; keep state synchronised, but the map can start generating events
@@ -492,8 +435,7 @@
                    (update-in [:map] assoc
                               :zoom zoom
                               :center center
-                              :bounds bounds)
-                   update-active-layers)
+                              :bounds bounds))
      :put-hash (encode-state db)}))
 
 (defn map-start-selecting [db _]
@@ -530,10 +472,9 @@
         db            (if-not ((set active-layers) layer)
                         (update-in db [:map :active-layers] conj layer)
                         db)]
-    {:db         db
-     :put-hash   (encode-state db)
-     :dispatch-n [[:map.layers.logic/manual]
-                  [:map/popup-closed]]}))
+    {:db       db
+     :put-hash (encode-state db)
+     :dispatch [:map/popup-closed]}))
 
 (defn remove-layer
   [{:keys [db]} [_ layer]]
@@ -557,3 +498,6 @@
 (defn update-preview-layer [db [_ preview-layer]]
   (assoc-in db [:map :preview-layer] preview-layer))
 
+
+(defn toggle-viewport-only [db _]
+  (update-in db [:map :viewport-only?] not))
