@@ -244,11 +244,31 @@
         property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
         property-rows (str/join "" (map (fn [property] (property-to-row property)) properties))]
     (when (or id (not-empty properties))
-      {:body (str
-              "<div class=\"feature-info-json\">"
-              "<h4>" id "</h4>"
-              "<table>" property-rows "</table>"
-              "</div>")})))
+      {:style
+       (str
+        ".feature-info-json {"
+        "    max-height: 257px;"
+        "    overflow-y: scroll;"
+        "}"
+
+        ".feature-info-json table {"
+        "    border-spacing: 0;"
+        "}"
+
+        ".feature-info-json tr:nth-child(odd) {"
+        "    background-color: rgb(235, 235, 235);"
+        "}"
+
+        ".feature-info-json td {"
+        "    padding: 3px 0px 3px 10px;"
+        "    vertical-align: top;"
+        "}")
+       :body
+       (str
+        "<div class=\"feature-info-json\">"
+        "    <h4>" id "</h4>"
+        "    <table>" property-rows "</table>"
+        "</div>")})))
 
 (defn sort-by-sort-key
   "Sorts a collection by its sort-key first and its id second."

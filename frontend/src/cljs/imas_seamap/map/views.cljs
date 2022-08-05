@@ -153,12 +153,8 @@
       (fn [element]
         (when element
           (set! (.-innerHTML element) nil)
-          (doseq [{body :body} responses]
-            (.appendChild
-             element
-             (create-shadow-dom-element
-              {:style ".floating-pill { background-color: red; }"
-               :body  body})))))}]))
+          (doseq [{:keys [_body _style] :as response} responses]
+            (.appendChild element (create-shadow-dom-element response)))))}]))
 
 (defn- add-raw-handler-once [js-obj event-name handler]
   (when-not (. js-obj listens event-name)
