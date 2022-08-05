@@ -159,9 +159,7 @@
 
 (defn load-hash-state
   [db [_ hash-code]]
-  (let [db (merge-in db (parse-state hash-code))
-        db (assoc-in db [:map :logic :type] :map.layer-logic/manual)]
-    db))
+  (merge-in db (parse-state hash-code)))
 
 (defn get-save-state
   [{:keys [db]} [_ save-code]]

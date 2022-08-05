@@ -130,6 +130,60 @@
     [b/tooltip {:content "Create Shareable URL" :position b/RIGHT}
      [b/icon {:icon "share"}]]]])
 
+(defn omnisearch-control [_props]
+  [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+   [:a {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
+    [b/tooltip {:content "Search all layers" :position b/RIGHT}
+     [b/icon {:icon "search"}]]]])
+
+(defn transect-control [{:keys [drawing? query] :as _transect-info}]
+  (let [[text icon dispatch] (cond
+                               drawing? ["Cancel Transect" "undo"   :transect.draw/disable]
+                               query    ["Clear Transect"  "eraser" :transect.draw/clear]
+                               :else    ["Draw Transect"   "edit"   :transect.draw/enable])]
+    [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+     [:a {:on-click #(re-frame/dispatch  [dispatch])}
+      [b/tooltip {:content text :position b/RIGHT}
+       [b/icon {:icon icon}]]]]))
+
+(defn draw-transect-control []
+  [leaflet/feature-group
+   [leaflet/edit-control {:draw       {:rectangle    false
+                                       :circle       false
+                                       :marker       false
+                                       :circlemarker false
+                                       :polygon      false
+                                       :polyline     {:allowIntersection false
+                                                      :metric            "metric"}}
+                          :on-mounted (fn [e]
+                                        (.. e -_toolbars -draw -_modes -polyline -handler enable)
+                                        (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
+                          :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]])
+
+(defn region-control [{:keys [selecting? region] :as _region-info}]
+  (let [[text icon dispatch] (cond
+                               selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
+                               region     ["Clear Selection"  "eraser" :map.layer.selection/clear]
+                               :else      ["Select Region"    "widget" :map.layer.selection/enable])]
+    [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+     [:a {:on-click #(re-frame/dispatch  [dispatch])}
+      [b/tooltip {:content text :position b/RIGHT}
+       [b/icon {:icon icon}]]]]))
+
+(defn draw-region-control []
+  [leaflet/feature-group
+   [leaflet/edit-control {:draw       {:rectangle    true
+                                       :circle       false
+                                       :marker       false
+                                       :circlemarker false
+                                       :polygon      false
+                                       :polyline     false}
+                          :on-mounted (fn [e]
+                                        (.. e -_toolbars -draw -_modes -rectangle -handler enable)
+                                        (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable]))))
+                          :on-created #(re-frame/dispatch [:map.layer.selection/finalise
+                                                           (-> % (.. -layer getBounds) bounds->map)])}]])
+
 (defn popup-component [{:keys [status had-insecure? responses] :as _feature-popup}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
@@ -165,13 +219,10 @@
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         {:keys [has-info? responses location] :as fi} @(re-frame/subscribe [:map.feature/info])
-        {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
-        {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
+        {:keys [drawing? query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
+        {:keys [selecting? region] :as region-info} @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
-        layer-priorities                              @(re-frame/subscribe [:map.layers/priorities])
-        ;layer-params                                  @(re-frame/subscribe [:map.layers/params])
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
-        logic-type                                    @(re-frame/subscribe [:map.layers/logic])
         loading?                                      @(re-frame/subscribe [:app/loading?])]
     (into
      [:div.map-wrapper
@@ -252,45 +303,47 @@
                                  :color       "#3f8ffa"
                                  :opacity     1
                                  :fillOpacity 1}])
-       (when drawing?
-         [leaflet/feature-group
-          [leaflet/edit-control {:draw       {:rectangle    false
-                                              :circle       false
-                                              :marker       false
-                                              :circlemarker false
-                                              :polygon      false
-                                              :polyline     {:allowIntersection false
-                                                             :metric            "metric"}}
-                                 :on-mounted (fn [e]
-                                               (.. e -_toolbars -draw -_modes -polyline -handler enable)
-                                               (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
-                                 :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]])
-       (when selecting?
-         [leaflet/feature-group
-          [leaflet/edit-control {:draw       {:rectangle    true
-                                              :circle       false
-                                              :marker       false
-                                              :circlemarker false
-                                              :polygon      false
-                                              :polyline     false}
-                                 :on-mounted (fn [e]
-                                               (.. e -_toolbars -draw -_modes -rectangle -handler enable)
-                                               (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable]))))
-                                 :on-created #(re-frame/dispatch [:map.layer.selection/finalise
-                                                                  (-> % (.. -layer getBounds) bounds->map)])}]])
 
-       [leaflet/feature-group
-        [leaflet/scale-control]]
+       ;; Top-left controls have a key that changes based on state for an important
+       ;; reason: when new controls are added to the list they are added to the bottom of
+       ;; the controls list.
+       ;; New controls being added to the bottom is an issue in our case because we want
+       ;; to be able to swap out the buttons that start drawing a transect/region with
+       ;; the leaflet draw controls; when the controls are swapped out, they are added to
+       ;; the bottom of the list rather than the location of the control we are replacing.
+       ;; To get around this issue we give every control in the list a key that changes
+       ;; with state, to force React Leaflet to recognise these as new controls and
+       ;; rerender them all, preserving their order!
+       ;; TL;DR: having controls show up in the correct order is a pain and this fixes
+       ;; that.
+       ^{:key (str "omnisearch-control" transect-info region-info)}
+       [omnisearch-control]
+
+       (if (:drawing? transect-info)
+         ^{:key (str "transect-control" transect-info region-info)}
+         [draw-transect-control]
+         ^{:key (str "transect-control" transect-info region-info)}
+         [transect-control transect-info])
+
+       (if (:selecting? region-info)
+         ^{:key (str "region-control" transect-info region-info)}
+         [draw-region-control]
+         ^{:key (str "region-control" transect-info region-info)}
+         [region-control region-info])
+
+       ^{:key (str "share-control" transect-info region-info)}
+       [share-control]
+
+       ^{:key (str "print-control" transect-info region-info)}
+       [leaflet/print-control {:position   "topleft" :title "Export as PNG"
+                               :export-only true
+                               :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
+
+       [leaflet/scale-control]
 
        [leaflet/coordinates-control
         {:position "bottomright"
          :style nil}]
-
-       [share-control]
-
-       [leaflet/print-control {:position   "topleft" :title "Export as PNG"
-                               :export-only true
-                               :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
 
        (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
