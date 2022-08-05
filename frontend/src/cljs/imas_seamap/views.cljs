@@ -277,6 +277,16 @@
                 :on-click   (handler-dispatch [dispatch-key])
                 :text       label}]]))
 
+(defn viewport-only-toggle []
+  (let [[icon text] (if @(re-frame/subscribe [:map/viewport-only?])
+                      ["map" "Viewport layers only"]
+                      ["globe" "All layers"])]
+    [b/button
+     {:icon     icon
+      :class    "bp3-fill"
+      :on-click #(re-frame/dispatch [:map/toggle-viewport-only])
+      :text     text}]))
+
 ;; TODO: Remove, unused
 #_(defn layer-logic-toggle []
   (let [{:keys [type trigger]} @(re-frame/subscribe [:map.layers/logic])
@@ -293,7 +303,8 @@
                 :label     (reagent/as-element [:span icon label])
                 :on-change (handler-dispatch [:map.layers.logic/toggle true])}]]))
 
-(defn layer-logic-toggle-button []
+;; TODO: Remove, unused
+#_(defn layer-logic-toggle-button []
   (let [{:keys [type]} @(re-frame/subscribe [:map.layers/logic])]
     [:div#logic-toggle
      {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
@@ -748,7 +759,8 @@
       [floating-menu-bar]
       (when (seq active-layers) [floating-menu-active-layers map-layers])]]))
 
-(defn floating-transect-pill
+;; TODO: Remove, unused
+#_(defn floating-transect-pill
   [{:keys [drawing? query]}]
   (let [[text icon dispatch] (cond
                            drawing? ["Cancel Transect" "undo"   :transect.draw/disable]
@@ -759,7 +771,8 @@
       :icon     icon
       :on-click #(re-frame/dispatch [dispatch])}]))
 
-(defn floating-region-pill
+;; TODO: Remove, unused
+#_(defn floating-region-pill
   [{:keys [selecting? region]}]
   (let [[text icon dispatch] (cond
                                selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
@@ -770,11 +783,8 @@
       :icon     icon
       :on-click #(re-frame/dispatch [dispatch])}]))
 
-(defn floating-pills
-  []
+(defn floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
-        transect-info            @(re-frame/subscribe [:transect/info])
-        region-info              @(re-frame/subscribe [:map.layer.selection/info])
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
         amp-boundaries           @(re-frame/subscribe [:sok/valid-amp-boundaries])
         imcra-boundaries         @(re-frame/subscribe [:sok/valid-imcra-boundaries])
@@ -788,9 +798,6 @@
      [components/floating-pill-button
       {:icon     "menu"
        :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
-
-     [floating-transect-pill transect-info]
-     [floating-region-pill region-info]
 
      [floating-state-of-knowledge-pill
       {:expanded?       (= open-pill "state-of-knowledge")
@@ -846,7 +853,9 @@
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [filtered-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
+        {:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
+        viewport-only? @(re-frame/subscribe [:map/viewport-only?])
+        catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
     [components/drawer
      {:title
       [:div.left-drawer-header
@@ -870,7 +879,7 @@
          :panel (reagent/as-element
                  [:div
                   [layer-search-filter]
-                  [layer-catalogue filtered-layers
+                  [layer-catalogue catalogue-layers
                    {:active-layers  active-layers
                     :visible-layers visible-layers
                     :loading-fn     loading-layers
@@ -904,7 +913,7 @@
                     :icon    "settings"}
                    [transect-toggle]
                    [selection-button]
-                   [layer-logic-toggle-button]]
+                   [viewport-only-toggle]]
                   
                   [components/drawer-group
                    {:heading "Settings"
@@ -977,9 +986,6 @@
        {:label "Cancel"                 :combo "esc"}
        [:ui.drawing/cancel])
       (keydown-wrapper
-       {:label "Toggle Layer Logic"     :combo "m"}
-       [:map.layers.logic/toggle])
-      (keydown-wrapper
        {:label "Start Searching Layers" :combo "/" :prevent-default true}
        [:ui.search/focus])
       (keydown-wrapper
@@ -1005,7 +1011,6 @@
       [plot-component]]
      [helper-overlay
       :layer-search
-      :logic-toggle
       :plot-footer
       {:selector   ".group-scrollable"
        :helperText "Layers available in your current field of view (zoom out to see more)"}

@@ -35,13 +35,13 @@
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/priorities                msubs/map-layer-priorities
-    :map.layers/logic                     msubs/map-layer-logic
     :map.layers/lookup                    msubs/map-layer-lookup
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
+    :map/viewport-only?                   msubs/viewport-only?
     :sok/habitat-statistics               soksubs/habitat-statistics
     :sok/habitat-statistics-download-url  soksubs/habitat-statistics-download-url
     :sok/bathymetry-statistics            soksubs/bathymetry-statistics
@@ -138,9 +138,6 @@
     :map.layer/opacity-changed            [mevents/layer-set-opacity]
     :map.layers/filter                    mevents/map-set-layer-filter
     :map.layers/others-filter             mevents/map-set-others-layer-filter
-    :map.layers.logic/toggle              [mevents/map-layer-logic-toggle]
-    :map.layers.logic/manual              mevents/map-layer-logic-manual
-    :map.layers.logic/automatic           mevents/map-layer-logic-automatic
     :map.layer.legend/toggle              [mevents/toggle-legend-display]
     :map.layer.selection/enable           mevents/map-start-selecting
     :map.layer.selection/disable          mevents/map-cancel-selecting
@@ -166,6 +163,7 @@
     :map/view-updated                     [mevents/map-view-updated]
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click
+    :map/toggle-viewport-only             mevents/toggle-viewport-only
     :sok/update-amp-boundaries            sokevents/update-amp-boundaries
     :sok/update-imcra-boundaries          sokevents/update-imcra-boundaries
     :sok/update-meow-boundaries           sokevents/update-meow-boundaries
@@ -190,6 +188,8 @@
     :sok/got-habitat-observations         sokevents/got-habitat-observations
     :sok/close                            [sokevents/close]
     :sok/open-pill                        sokevents/open-pill
+    :sok/get-filtered-bounds              [sokevents/get-filtered-bounds]
+    :sok/got-filtered-bounds              [sokevents/got-filtered-bounds]
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]
@@ -214,7 +214,6 @@
 (def events-for-analytics
   [:help-layer/open
    :map.layer/load-error
-   :map.layers.logic/toggle
    :map/clicked
    :map/pan-to-layer
    :map/toggle-layer

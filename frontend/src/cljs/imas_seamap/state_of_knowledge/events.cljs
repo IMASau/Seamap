@@ -4,8 +4,9 @@
 (ns imas-seamap.state-of-knowledge.events
   (:require [clojure.set :refer [rename-keys]]
             [ajax.core :as ajax]
-            [imas-seamap.utils :refer [first-where]]
-            [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names]]))
+            [imas-seamap.utils :refer [first-where encode-state]]
+            [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names cql-filter]]
+            [imas-seamap.interop.leaflet :as leaflet]))
 
 (defn update-amp-boundaries [db [_ {:keys [networks parks zones zones_iucn]}]]
   (-> db
@@ -53,7 +54,7 @@
                    nil)]
     (first-where #(= (:id %) layer-id) layers)))
 
-(defn update-active-boundary-layer [{:keys [db]} [_ pan?]]
+(defn update-active-boundary-layer [{:keys [db]} _]
   (let [layers (get-in db [:map :layers])
         active-boundary (get-in db [:state-of-knowledge :boundaries :active-boundary])
 
@@ -63,10 +64,8 @@
         db                      (assoc-in db [:state-of-knowledge :boundaries :active-boundary-layer] current-boundary-layer)]
     {:db db
      :dispatch-n [(when previous-boundary-layer [:map/remove-layer previous-boundary-layer])
-                  (when current-boundary-layer
-                    (if pan?
-                      [:map/pan-to-layer current-boundary-layer]
-                      [:map/add-layer current-boundary-layer]))]}))
+                  (when current-boundary-layer [:map/add-layer current-boundary-layer])
+                  (when current-boundary-layer [:sok/get-filtered-bounds])]}))
 
 (defn update-active-boundary [{:keys [db]} [_ active-boundary]]
   (let [db (-> db
@@ -90,7 +89,7 @@
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer true]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -104,7 +103,7 @@
               (assoc-in [:state-of-knowledge :boundaries :amp :active-network] network)))
         park (get-in db [:state-of-knowledge :boundaries :amp :active-park])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -120,7 +119,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-network] network)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-park] park))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -131,7 +130,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] zone)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -142,7 +141,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] zone-iucn)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -156,7 +155,7 @@
               (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)))
         mesoscale-bioregion (get-in db [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -172,7 +171,7 @@
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] mesoscale-bioregion))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -187,7 +186,7 @@
               (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))
         ecoregion (get-in db [:state-of-knowledge :boundaries :meow :active-ecoregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -207,7 +206,7 @@
               (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))
         ecoregion (get-in db [:state-of-knowledge :boundaries :meow :active-ecoregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -228,7 +227,7 @@
                (assoc-in [:state-of-knowledge :boundaries :meow :active-province] province)
                (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] ecoregion))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -244,7 +243,7 @@
                (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
                (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
@@ -254,7 +253,7 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer false]
+     :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
@@ -340,3 +339,32 @@
 
 (defn open-pill [db [_ pill-id]]
   (assoc-in db [:state-of-knowledge :open-pill] pill-id))
+
+(defn get-filtered-bounds [{:keys [db]} _]
+  (let [{{:keys [layer_name server_url]} :active-boundary-layer :as boundaries}
+        (get-in db [:state-of-knowledge :boundaries])
+        cql-filter (cql-filter boundaries)]
+    {:http-xhrio {:method          :get
+                  :uri             server_url
+                  :params          (merge
+                                    {:request      "GetFeature"
+                                     :service      "WFS"
+                                     :version      "2.0.0"
+                                     :typeNames    layer_name
+                                     :outputFormat "application/json"}
+                                    (when cql-filter {:cql_filter cql-filter}))
+                  :response-format (ajax/json-response-format)
+                  :on-success      [:sok/got-filtered-bounds]
+                  :on-failure      [:ajax/default-err-handler]}}))
+
+(defn got-filtered-bounds [{:keys [db]} [_ geojson]]
+  (let [{{south :lat west :lng} :_southWest
+         {north :lat east :lng} :_northEast}
+        (js->clj (.getBounds (leaflet/geojson-feature (clj->js geojson))) :keywordize-keys true)
+        bounds {:north north
+                :south south
+                :east  east
+                :west  west}
+        db     (assoc-in db [:map :bounds] bounds)]
+    {:db db
+     :put-hash (encode-state db)}))

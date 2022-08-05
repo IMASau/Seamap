@@ -168,9 +168,7 @@
 
 (s/def :map/priority-cutoff (s/and pos? integer?))
 
-(s/def :map.logic/type #{:map.layer-logic/automatic :map.layer-logic/manual})
-(s/def :map.logic/trigger #{:map.logic.trigger/automatic :map.logic.trigger/user})
-(s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
+(s/def :map/viewport-only? boolean?)
 
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))
@@ -191,7 +189,7 @@
                    :map/organisations
                    :map/priorities
                    :map/priority-cutoff
-                   :map/logic]))
+                   :map/viewport-only?]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
 (s/def :map.state/error-count (s/map-of :map/layer integer?))
