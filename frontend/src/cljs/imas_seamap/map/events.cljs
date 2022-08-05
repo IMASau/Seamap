@@ -190,7 +190,7 @@
           feature-info  (reduce combine-feature-info {} feature-infos)
           had-insecure? (get-in db [:feature-query :had-insecure?])]
       (merge
-       {:location point :had-insecure? had-insecure?}
+       {:location point :had-insecure? had-insecure? :responses feature-infos}
        feature-info))))
 
 (defn got-feature-info [db [_ request-id point info-format response]]

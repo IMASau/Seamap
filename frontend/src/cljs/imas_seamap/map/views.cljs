@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [re-frame.db :as db]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.utils :refer [copy-text select-values handler-dispatch] :include-macros true]
+            [imas-seamap.utils :refer [copy-text select-values handler-dispatch create-shadow-dom-element] :include-macros true]
             [imas-seamap.map.utils :refer [bounds->geojson download-type->str]]
             [imas-seamap.interop.leaflet :as leaflet]
             [imas-seamap.components :as components]
@@ -130,7 +130,7 @@
     [b/tooltip {:content "Create Shareable URL" :position b/RIGHT}
      [b/icon {:icon "share"}]]]])
 
-(defn popup-component [{:keys [status info-body had-insecure?] :as _feature-popup}]
+(defn popup-component [{:keys [status info-body had-insecure? responses] :as _feature-popup}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
                                   {:icon (r/as-element [b/spinner {:intent "success"}])}]
@@ -148,7 +148,17 @@
                                   {:title "Server Error"
                                    :icon  "error"}]
     ;; Default; we have actual content:
-    [:div {:dangerouslySetInnerHTML {:__html info-body}}]))
+    [:div
+     {:ref
+      (fn [element]
+        (when element
+          (set! (.-innerHTML element) nil)
+          (doseq [{body :info} responses]
+            (.appendChild
+             element
+             (create-shadow-dom-element
+              {:style ".floating-pill { background-color: red; }"
+               :body  body})))))}]))
 
 (defn- add-raw-handler-once [js-obj event-name handler]
   (when-not (. js-obj listens event-name)
