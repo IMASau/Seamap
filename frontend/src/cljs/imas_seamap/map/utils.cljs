@@ -222,19 +222,19 @@
         str)))
 
 (def feature-info-none
-  {:info (str
-          "<div>"
-          "<h4>No info available</h4>"
-          "Layer summary not configured"
-          "</div>")})
+  {:body
+   (str
+    "<div>"
+    "<h4>No info available</h4>"
+    "Layer summary not configured"
+    "</div>")})
 
 (defn feature-info-html
   [response]
   (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
         body  (first (array-seq (.querySelectorAll parsed "body")))]
-    (if (.-firstElementChild body)
-      {:info (.-innerHTML body)}
-      {:status :feature-info/empty})))
+    (when (.-firstElementChild body)
+      {:body (.-innerHTML body)})))
 
 (defn feature-info-json
   [response]
@@ -243,13 +243,12 @@
         properties (map (fn [[label value]] {:label label :value value}) (get-in parsed ["features" 0 "properties"]))
         property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
         property-rows (str/join "" (map (fn [property] (property-to-row property)) properties))]
-    (if (or id (not-empty properties))
-      {:info (str
+    (when (or id (not-empty properties))
+      {:body (str
               "<div class=\"feature-info-json\">"
               "<h4>" id "</h4>"
               "<table>" property-rows "</table>"
-              "</div>")}
-      {:status :feature-info/empty})))
+              "</div>")})))
 
 (defn sort-by-sort-key
   "Sorts a collection by its sort-key first and its id second."

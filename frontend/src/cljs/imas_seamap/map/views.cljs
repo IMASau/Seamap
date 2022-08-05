@@ -130,7 +130,7 @@
     [b/tooltip {:content "Create Shareable URL" :position b/RIGHT}
      [b/icon {:icon "share"}]]]])
 
-(defn popup-component [{:keys [status info-body had-insecure? responses] :as _feature-popup}]
+(defn popup-component [{:keys [status had-insecure? responses] :as _feature-popup}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
                                   {:icon (r/as-element [b/spinner {:intent "success"}])}]
@@ -153,7 +153,7 @@
       (fn [element]
         (when element
           (set! (.-innerHTML element) nil)
-          (doseq [{body :info} responses]
+          (doseq [{body :body} responses]
             (.appendChild
              element
              (create-shadow-dom-element
@@ -168,7 +168,7 @@
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
-        {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
+        {:keys [has-info? responses location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc]}            @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region]}                   @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
@@ -300,6 +300,6 @@
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
          ^{:key (str location)}
          [leaflet/popup {:position location :max-width "100%" :auto-pan false}
-          ^{:key (or info-body (:status fi))}
+          ^{:key (str (or responses (:status fi)))}
           [popup-component fi]])]]
           children)))
