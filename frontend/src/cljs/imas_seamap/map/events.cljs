@@ -170,28 +170,19 @@
   (update-in db [:map :controls :ignore-click] not))
 
 (defn responses-feature-info [db point]
-  (letfn [(response-to-info ; Converts a response and info format into readable information for the feature info popup
-            [response]
-            (if-let [{:keys [response info-format]} response] ; If we have a response; then
-              (case info-format                               ; process the response into readable information; else
+  (letfn [(response-to-info [response] ; Converts a response and info format into readable information for the feature info popup
+            (when-let [{:keys [response info-format]} response] ; If we have a response then process the response into readable information
+              (case info-format
                 "text/html"        (feature-info-html response)
                 "application/json" (feature-info-json response)
-                feature-info-none)
-              {:status :feature-info/empty}))                 ; use an empty info status
-
-          (combine-feature-info ; Combines two feature infos into one
-            [{info-1 :info status-1 :status} {info-2 :info status-2 :status}]
-            (if (seq (str info-1 info-2))         ; If we have any info from either response; then
-              {:info (str info-1 info-2)}         ; combine the info from the responses and use that; else
-              {:status (or status-1 status-2)}))] ; just use the status from either response
+                feature-info-none)))]
     
     (let [responses     (get-in db [:feature-query :responses])
-          feature-infos (map response-to-info responses)
-          feature-info  (reduce combine-feature-info {} feature-infos)
+          responses     (vec (remove nil? (map response-to-info responses)))
           had-insecure? (get-in db [:feature-query :had-insecure?])]
       (merge
-       {:location point :had-insecure? had-insecure?}
-       feature-info))))
+       {:location point :had-insecure? had-insecure? :responses responses}
+       (when (empty? responses) {:status :feature-info/empty})))))
 
 (defn got-feature-info [db [_ request-id point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))

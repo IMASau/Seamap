@@ -177,3 +177,17 @@
   "Returns the first item in a collection that fulfills the predicate."
   [pred coll]
   (first (filter pred coll)))
+
+(defn create-shadow-dom-element [{:keys [style body]}]
+  (let [element       (js/document.createElement "div")
+        style-element (js/document.createElement "style")
+        body-element  (js/document.createElement "body")
+        shadow        (.attachShadow element (clj->js {:mode "closed"}))]
+
+    (set! (.-textContent style-element) style)
+    (set! (.-innerHTML body-element) body)
+
+    (.appendChild shadow style-element)
+    (.appendChild shadow body-element)
+
+    element))

@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [re-frame.db :as db]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.utils :refer [copy-text select-values handler-dispatch] :include-macros true]
+            [imas-seamap.utils :refer [copy-text select-values handler-dispatch create-shadow-dom-element] :include-macros true]
             [imas-seamap.map.utils :refer [bounds->geojson download-type->str]]
             [imas-seamap.interop.leaflet :as leaflet]
             [imas-seamap.components :as components]
@@ -184,7 +184,7 @@
                           :on-created #(re-frame/dispatch [:map.layer.selection/finalise
                                                            (-> % (.. -layer getBounds) bounds->map)])}]])
 
-(defn popup-component [{:keys [status info-body had-insecure?] :as _feature-popup}]
+(defn popup-component [{:keys [status had-insecure? responses] :as _feature-popup}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
                                   {:icon (r/as-element [b/spinner {:intent "success"}])}]
@@ -202,7 +202,13 @@
                                   {:title "Server Error"
                                    :icon  "error"}]
     ;; Default; we have actual content:
-    [:div {:dangerouslySetInnerHTML {:__html info-body}}]))
+    [:div
+     {:ref
+      (fn [element]
+        (when element
+          (set! (.-innerHTML element) nil)
+          (doseq [{:keys [_body _style] :as response} responses]
+            (.appendChild element (create-shadow-dom-element response)))))}]))
 
 (defn- add-raw-handler-once [js-obj event-name handler]
   (when-not (. js-obj listens event-name)
@@ -212,7 +218,7 @@
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
-        {:keys [has-info? info-body location] :as fi} @(re-frame/subscribe [:map.feature/info])
+        {:keys [has-info? responses location] :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region] :as region-info} @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
@@ -343,6 +349,6 @@
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
          ^{:key (str location)}
          [leaflet/popup {:position location :max-width "100%" :auto-pan false}
-          ^{:key (or info-body (:status fi))}
+          ^{:key (str (or responses (:status fi)))}
           [popup-component fi]])]]
           children)))
