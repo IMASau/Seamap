@@ -141,7 +141,7 @@
                (merge {:habitat-colours habitat-colours
                        :habitat-titles  habitat-titles
                        :sorting         sorting}))]
-    (assoc-in db [:map :active-layers] (vec (applicable-layers db :category :habitat)))))
+    (assoc-in db [:map :active-layers] [(:habitat (get-in db [:map :keyed-layers]))])))
 
 (defn loading-screen [db [_ msg]]
   (assoc db
