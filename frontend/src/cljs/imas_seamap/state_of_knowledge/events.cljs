@@ -366,5 +366,5 @@
                 :east  east
                 :west  west}
         db     (assoc-in db [:map :bounds] bounds)]
-    {:db db
+    {:db       db
      :put-hash (encode-state db)}))
