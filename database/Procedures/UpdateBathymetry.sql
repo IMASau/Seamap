@@ -26,6 +26,12 @@ BEGIN
     [Group]      INT         NOT NULL
   );
 
+  DROP TABLE IF EXISTS ##T4;
+  CREATE TABLE ##T4 (
+    [geom]       GEOMETRY    NOT NULL,
+    [Group]      INT         NOT NULL
+  );
+
   DROP TABLE IF EXISTS ##Groups;
   CREATE TABLE ##Groups (
     [geom]       GEOMETRY    NOT NULL
@@ -38,7 +44,7 @@ BEGIN
       ROW_NUMBER() OVER(
         ORDER BY [RESOLUTION], [RANK], [ID]
       ) - 1
-    ) / 15
+    ) / 10
   FROM [dbo].[VW_BATHYMETRY]
   WHERE [RESOLUTION] = @resolution;
   
@@ -60,13 +66,24 @@ BEGIN
       ROW_NUMBER() OVER(
         ORDER BY [Group]
       ) - 1
-    ) / 5
+    ) / 3
   FROM ##T2
+  GROUP BY [Group];
+
+  INSERT INTO ##T4
+  SELECT
+    GEOMETRY::UnionAggregate([geom]),
+    (
+      ROW_NUMBER() OVER(
+        ORDER BY [Group]
+      ) - 1
+    ) / 3
+  FROM ##T3
   GROUP BY [Group];
 
   INSERT INTO ##Groups
   SELECT GEOMETRY::UnionAggregate([geom])
-  FROM ##T3
+  FROM ##T4
   GROUP BY [Group];
 
   DECLARE @geom GEOMETRY = (
