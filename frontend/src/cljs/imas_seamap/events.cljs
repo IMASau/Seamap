@@ -25,7 +25,11 @@
 (defn boot-flow []
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:initialise-layers]}
+   [{:when :seen? :events :ui/show-loading
+     :dispatch-n [[:initialise-layers]
+                  [:sok/get-habitat-statistics]
+                  [:sok/get-bathymetry-statistics]
+                  [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
@@ -49,7 +53,11 @@
   {:first-dispatch [:ui/show-loading]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:load-hash-state hash-code]}
-    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+    {:when :seen? :events :load-hash-state
+     :dispatch-n [[:initialise-layers]
+                  [:sok/get-habitat-statistics]
+                  [:sok/get-bathymetry-statistics]
+                  [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
@@ -73,7 +81,11 @@
   {:first-dispatch [:ui/show-loading]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state save-code]}
-    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+    {:when :seen? :events :load-hash-state
+     :dispatch-n [[:initialise-layers]
+                  [:sok/get-habitat-statistics]
+                  [:sok/get-bathymetry-statistics]
+                  [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
