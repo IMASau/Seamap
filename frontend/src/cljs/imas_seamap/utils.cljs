@@ -62,6 +62,7 @@
                        (select-keys* [[:display :sidebar :selected]
                                       [:display :catalogue]
                                       [:display :left-drawer-tab]
+                                      [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
                                       [:transect :query]])
@@ -84,6 +85,7 @@
                 [[:display :sidebar :selected]
                  [:display :catalogue]
                  [:display :left-drawer-tab]
+                 [:filters :layers]
                  [:state-of-knowledge :boundaries :active-boundary]
                  [:state-of-knowledge :boundaries :active-boundary-layer]
                  [:state-of-knowledge :boundaries :amp :active-network]

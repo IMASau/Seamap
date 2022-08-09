@@ -209,8 +209,10 @@
 (defn destroy-popup [db _]
   (assoc db :feature nil))
 
-(defn map-set-layer-filter [db [_ filter-text]]
-  (assoc-in db [:filters :layers] filter-text))
+(defn map-set-layer-filter [{:keys [db]} [_ filter-text]]
+  (let [db (assoc-in db [:filters :layers] filter-text)]
+    {:db       db
+     :put-hash (encode-state db)}))
 
 (defn map-set-others-layer-filter [db [_ filter-text]]
   (assoc-in db [:filters :other-layers] filter-text))
