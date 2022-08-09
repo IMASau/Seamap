@@ -25,7 +25,11 @@
 (defn boot-flow []
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:initialise-layers]}
+   [{:when :seen? :events :ui/show-loading
+     :dispatch-n [[:initialise-layers]
+                  [:sok/get-habitat-statistics]
+                  [:sok/get-bathymetry-statistics]
+                  [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
@@ -49,7 +53,11 @@
   {:first-dispatch [:ui/show-loading]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:load-hash-state hash-code]}
-    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+    {:when :seen? :events :load-hash-state
+     :dispatch-n [[:initialise-layers]
+                  [:sok/get-habitat-statistics]
+                  [:sok/get-bathymetry-statistics]
+                  [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
@@ -73,7 +81,11 @@
   {:first-dispatch [:ui/show-loading]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state save-code]}
-    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+    {:when :seen? :events :load-hash-state
+     :dispatch-n [[:initialise-layers]
+                  [:sok/get-habitat-statistics]
+                  [:sok/get-bathymetry-statistics]
+                  [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
@@ -566,17 +578,20 @@
              {:intent b/INTENT-WARNING :icon "warning-sign"}]})
 
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]
-  {:db       (assoc-in db [:display :catalogue :tab] tabid)
-   :put-hash (encode-state db)})
+  (let [db (assoc-in db [:display :catalogue :tab] tabid)]
+    {:db       db
+     :put-hash (encode-state db)}))
 
 (defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
-  (let [nodes (get-in db [:display :catalogue :expanded])]
-    {:db       (update-in db [:display :catalogue :expanded] (if (nodes nodeid) disj conj) nodeid)
+  (let [nodes (get-in db [:display :catalogue :expanded])
+        db    (update-in db [:display :catalogue :expanded] (if (nodes nodeid) disj conj) nodeid)]
+    {:db       db
      :put-hash (encode-state db)}))
 
 (defn catalogue-add-node [{:keys [db]} [_ nodeid]]
-  {:db       (update-in db [:display :catalogue :expanded] conj nodeid)
-   :put-hash (encode-state db)})
+  (let [db (update-in db [:display :catalogue :expanded] conj nodeid)]
+   {:db       db
+    :put-hash (encode-state db)}))
 
 (defn catalogue-add-nodes-to-layer
   "Opens nodes in catalogue along path to specified layer"
@@ -590,8 +605,7 @@
                                         (str "|" sorting-id))]
                         (conj node-ids node-id)))
                     [] categories)]
-    {:db       db
-     :dispatch-n (map #(vec [:ui.catalogue/add-node %]) node-ids)}))
+    {:dispatch-n (map #(vec [:ui.catalogue/add-node %]) node-ids)}))
 
 (defn sidebar-open [{:keys [db]} [_ tabid]]
   (let [{:keys [selected collapsed]} (get-in db [:display :sidebar])
@@ -625,7 +639,7 @@
         removed (into [] (concat (subvec data 0 src-idx) (subvec data (+ src-idx 1) (count data))))
         readded (into [] (concat (subvec removed 0 dst-idx) [element] (subvec removed dst-idx (count removed))))
         db (assoc-in db data-path readded)]
-    {:db db
+    {:db       db
      :put-hash (encode-state db)}))
 
 (defn left-drawer-toggle [db _]
@@ -637,8 +651,10 @@
 (defn left-drawer-close [db _]
   (assoc-in db [:display :left-drawer] false))
 
-(defn left-drawer-tab [db [_ tab]]
-  (assoc-in db [:display :left-drawer-tab] tab))
+(defn left-drawer-tab [{:keys [db]} [_ tab]]
+  (let [db (assoc-in db [:display :left-drawer-tab] tab)]
+    {:db       db
+     :put-hash (encode-state db)}))
 
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))

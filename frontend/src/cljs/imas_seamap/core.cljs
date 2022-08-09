@@ -136,7 +136,7 @@
     :map.layer/metadata-error             events/layer-receive-metadata-err
     :map.layer/download                   events/download-show-link
     :map.layer/opacity-changed            [mevents/layer-set-opacity]
-    :map.layers/filter                    mevents/map-set-layer-filter
+    :map.layers/filter                    [mevents/map-set-layer-filter]
     :map.layers/others-filter             mevents/map-set-others-layer-filter
     :map.layer.legend/toggle              [mevents/toggle-legend-display]
     :map.layer.selection/enable           mevents/map-start-selecting
@@ -206,7 +206,7 @@
     :left-drawer/toggle                   events/left-drawer-toggle
     :left-drawer/open                     events/left-drawer-open
     :left-drawer/close                    events/left-drawer-close
-    :left-drawer/tab                      events/left-drawer-tab
+    :left-drawer/tab                      [events/left-drawer-tab]
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close}})
