@@ -109,7 +109,7 @@
                   base-layer-groups
                   grouped-base-layers groups
                   priorities organisations
-                  categories]
+                  categories keyed-layers]
                  :as _map-state} :map
                 {{{:keys [networks parks zones zones-iucn]} :amp
                   {:keys [provincial-bioregions mesoscale-bioregions]} :imcra
@@ -124,7 +124,8 @@
                                    :groups              groups
                                    :priorities          priorities
                                    :organisations       organisations
-                                   :categories          categories})
+                                   :categories          categories
+                                   :keyed-layers        keyed-layers})
                (update-in
                 [:state-of-knowledge :boundaries]
                 #(-> %
