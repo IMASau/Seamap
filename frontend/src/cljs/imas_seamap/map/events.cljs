@@ -277,12 +277,22 @@
   (let [db (assoc-in db [:map :base-layers] layers)]
     (update-grouped-base-layers db)))
 
+(defn- keyed-layers-join
+  "Using layers and keyed-layers, replaces layer IDs in keyed-layers with layer
+   objects."
+  [{{:keys [layers keyed-layers]} :map :as db}]
+  (let [keyed-layers (reduce-kv
+                      (fn [m k v] (assoc m k (or (first-where #(= (:id %) v) layers) v)))
+                      {} keyed-layers)]
+    (assoc-in db [:map :keyed-layers] keyed-layers)))
+
 (defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
-  (let [layers (process-layers layers)]
-    (-> db
-        (assoc-in [:map :layers] layers)
-        (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
-        (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))))
+  (let [layers (process-layers layers)
+        db     (-> db
+                   (assoc-in [:map :layers] layers)
+                   (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
+                   (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
+    (keyed-layers-join db)))
 
 (defn update-groups [db [_ groups]]
   (assoc-in db [:map :groups] groups))
@@ -320,6 +330,12 @@
     (-> db
         (assoc-in [:map :categories] categories)
         (assoc-in [:sorting :category] (->sort-map categories)))))
+
+(defn update-keyed-layers [db [_ keyed-layers]]
+  (let [keyed-layers (map #(update % :keyword (comp keyword string/lower-case)) keyed-layers) ; keywordize
+        keyed-layers (reduce (fn [acc {:keys [keyword layer]}] (assoc acc keyword layer)) {} keyed-layers) ; to map
+        db           (assoc-in db [:map :keyed-layers] keyed-layers)]
+    (keyed-layers-join db)))
 
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))

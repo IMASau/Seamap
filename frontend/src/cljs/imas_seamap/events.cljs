@@ -186,6 +186,7 @@
                 classification-url priority-url
                 descriptor-url
                 category-url
+                keyed-layers-url
                 amp-boundaries-url
                 imcra-boundaries-url
                 meow-boundaries-url]} (:config db)]
@@ -234,6 +235,11 @@
                    :uri             category-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-categories]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             keyed-layers-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-keyed-layers]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             amp-boundaries-url
