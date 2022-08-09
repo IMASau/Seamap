@@ -40,18 +40,33 @@
 
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
-  [{map-state :map :as db}]
+  [{map-state :map {boundaries-state :boundaries} :state-of-knowledge :as db}]
   (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
                        (update :active-base :id))
+        pruned-boundaries (select-keys*
+                           boundaries-state
+                           [[:active-boundary]
+                            [:active-boundary-layer]
+                            [:amp :active-network]
+                            [:amp :active-park]
+                            [:amp :active-zone]
+                            [:amp :active-zone-iucn]
+                            [:imcra :active-provincial-bioregion]
+                            [:imcra :active-mesoscale-bioregion]
+                            [:meow :active-realm]
+                            [:meow :active-province]
+                            [:meow :active-ecoregion]])
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]
                                       [:display :catalogue]
+                                      [:display :left-drawer-tab]
                                       :layer-state
                                       [:transect :show?]
                                       [:transect :query]])
                        (assoc :map pruned-map)
+                       (assoc-in [:state-of-knowledge :boundaries] pruned-boundaries)
                        #_(update-in [:display :catalogue :expanded] #(into {} (filter second %))))
         legends    (->> db :layer-state :legend-shown (map :id))
         opacities  (->> db :layer-state :opacity (reduce (fn [acc [k v]] (if (= v 100) acc (conj acc [(:id k) v]))) {}))
@@ -68,6 +83,18 @@
   (select-keys* state
                 [[:display :sidebar :selected]
                  [:display :catalogue]
+                 [:display :left-drawer-tab]
+                 [:state-of-knowledge :boundaries :active-boundary]
+                 [:state-of-knowledge :boundaries :active-boundary-layer]
+                 [:state-of-knowledge :boundaries :amp :active-network]
+                 [:state-of-knowledge :boundaries :amp :active-park]
+                 [:state-of-knowledge :boundaries :amp :active-zone]
+                 [:state-of-knowledge :boundaries :amp :active-zone-iucn]
+                 [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion]
+                 [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion]
+                 [:state-of-knowledge :boundaries :meow :active-realm]
+                 [:state-of-knowledge :boundaries :meow :active-province]
+                 [:state-of-knowledge :boundaries :meow :active-ecoregion]
                  [:transect :show?]
                  [:transect :query]
                  [:map :active]

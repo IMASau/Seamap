@@ -639,8 +639,10 @@
 (defn left-drawer-close [db _]
   (assoc-in db [:display :left-drawer] false))
 
-(defn left-drawer-tab [db [_ tab]]
-  (assoc-in db [:display :left-drawer-tab] tab))
+(defn left-drawer-tab [{:keys [db]} [_ tab]]
+  (let [db (assoc-in db [:display :left-drawer-tab] tab)]
+    {:db       db
+     :put-hash (encode-state db)}))
 
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))
