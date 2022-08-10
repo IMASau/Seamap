@@ -40,7 +40,7 @@
 
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
-  [{map-state :map {boundaries-state :boundaries} :state-of-knowledge :as db}]
+  [{map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
   (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
@@ -58,6 +58,11 @@
                             [:meow :active-realm]
                             [:meow :active-province]
                             [:meow :active-ecoregion]])
+        pruned-statistics (select-keys*
+                           statistics-state
+                           [[:habitat :show-layers?]
+                            [:bathymetry :show-layers?]
+                            [:habitat-observations :show-layers?]])
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]
                                       [:display :catalogue]
@@ -68,6 +73,7 @@
                                       [:transect :query]])
                        (assoc :map pruned-map)
                        (assoc-in [:state-of-knowledge :boundaries] pruned-boundaries)
+                       (assoc-in [:state-of-knowledge :statistics] pruned-statistics)
                        #_(update-in [:display :catalogue :expanded] #(into {} (filter second %))))
         legends    (->> db :layer-state :legend-shown (map :id))
         opacities  (->> db :layer-state :opacity (reduce (fn [acc [k v]] (if (= v 100) acc (conj acc [(:id k) v]))) {}))
@@ -97,6 +103,9 @@
                  [:state-of-knowledge :boundaries :meow :active-realm]
                  [:state-of-knowledge :boundaries :meow :active-province]
                  [:state-of-knowledge :boundaries :meow :active-ecoregion]
+                 [:state-of-knowledge :statistics :habitat :show-layers?]
+                 [:state-of-knowledge :statistics :bathymetry :show-layers?]
+                 [:state-of-knowledge :statistics :habitat-observations :show-layers?]
                  [:transect :show?]
                  [:transect :query]
                  [:map :active]
