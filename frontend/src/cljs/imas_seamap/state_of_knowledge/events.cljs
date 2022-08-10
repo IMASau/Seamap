@@ -53,7 +53,7 @@
                               :else            :meow-realm)
 
                     nil)]
-    (when layer-key (layer-key keyed-layers))))
+    (when layer-key (first (layer-key keyed-layers)))))
 
 (defn update-active-boundary-layer [{:keys [db]} _]
   (let [keyed-layers (get-in db [:map :keyed-layers])
