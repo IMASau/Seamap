@@ -193,6 +193,24 @@
         :icon-size 20}])]
    (into [:div.drawer-group-content] children)])
 
+(defn state-of-knowledge-drawer-group
+  [{:keys [heading icon collapsed? toggle-collapse]} & children]
+  [:div
+   {:class (str "drawer-group" (when collapsed? " collapsed") (when toggle-collapse " collapsible"))}
+   [:div.drawer-group-heading
+    (when toggle-collapse {:on-click toggle-collapse})
+    [:h1
+     {:class (str "bp3-heading" (when icon (str " bp3-icon-" icon)))}
+     heading]
+    [:div.layer-toggle
+     [b/switch]
+     "Layers"]
+    (when toggle-collapse
+      [b/icon
+       {:icon (if collapsed? "plus" "minus")
+        :icon-size 20}])]
+   (into [:div.drawer-group-content] children)])
+
 (defn breadcrumbs
   [{:keys [content]}]
   (let [content (map #(vector :span %) content)

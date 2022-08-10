@@ -39,7 +39,7 @@
       (let [{:keys [loading? results]} @(re-frame/subscribe [:sok/habitat-statistics])
             download-url @(re-frame/subscribe [:sok/habitat-statistics-download-url])
             without-unmapped   (filter :habitat results)]
-        [components/drawer-group
+        [components/state-of-knowledge-drawer-group
          {:heading     "Habitat Statistics"
           :icon        "home"
           :collapsed?  @collapsed?
@@ -117,7 +117,7 @@
       (let [{:keys [loading? results]} @(re-frame/subscribe [:sok/bathymetry-statistics])
             download-url @(re-frame/subscribe [:sok/bathymetry-statistics-download-url])
             without-unmapped      (filter :resolution results)]
-        [components/drawer-group
+        [components/state-of-knowledge-drawer-group
          {:heading         "Bathymetry Statistics"
           :icon            "timeline-area-chart"
           :collapsed?      @collapsed?
@@ -233,7 +233,7 @@
   (let [collapsed?   (reagent/atom false)]
     (fn []
       (let [{:keys [squidle global-archive sediment loading?]} @(re-frame/subscribe [:sok/habitat-observations])]
-        [components/drawer-group
+        [components/state-of-knowledge-drawer-group
          {:heading         "Habitat Observations"
           :icon            "media"
           :collapsed?      @collapsed?
