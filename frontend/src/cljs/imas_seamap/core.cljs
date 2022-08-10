@@ -163,7 +163,7 @@
     :map/view-updated                     [mevents/map-view-updated]
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click
-    :map/toggle-viewport-only             mevents/toggle-viewport-only
+    :map/toggle-viewport-only             [mevents/toggle-viewport-only]
     :sok/update-amp-boundaries            sokevents/update-amp-boundaries
     :sok/update-imcra-boundaries          sokevents/update-imcra-boundaries
     :sok/update-meow-boundaries           sokevents/update-meow-boundaries

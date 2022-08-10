@@ -494,5 +494,7 @@
   (assoc-in db [:map :preview-layer] preview-layer))
 
 
-(defn toggle-viewport-only [db _]
-  (update-in db [:map :viewport-only?] not))
+(defn toggle-viewport-only [{:keys [db]} _]
+  (let [db (update-in db [:map :viewport-only?] not)]
+    {:db       db
+     :put-hash (encode-state db)}))
