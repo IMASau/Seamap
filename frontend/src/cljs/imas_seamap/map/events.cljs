@@ -22,7 +22,7 @@
         selected-base-layer (first-where (comp #(= layer-name %) :name) grouped-base-layers)]
     (when selected-base-layer
       (let [db (assoc-in db [:map :active-base-layer] selected-base-layer)]
-        {:db db
+        {:db       db
          :put-hash (encode-state db)}))))
 
 (defn bounds-for-zoom
@@ -209,8 +209,10 @@
 (defn destroy-popup [db _]
   (assoc db :feature nil))
 
-(defn map-set-layer-filter [db [_ filter-text]]
-  (assoc-in db [:filters :layers] filter-text))
+(defn map-set-layer-filter [{:keys [db]} [_ filter-text]]
+  (let [db (assoc-in db [:filters :layers] filter-text)]
+    {:db       db
+     :put-hash (encode-state db)}))
 
 (defn map-set-others-layer-filter [db [_ filter-text]]
   (assoc-in db [:filters :other-layers] filter-text))
@@ -365,10 +367,11 @@
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ {:keys [bounding_box] :as layer}]]
-  (let [already-active? (some #{layer} (-> db :map :active-layers))]
-    {:db       (cond-> db
-                 true                  (assoc-in [:map :bounds] bounding_box)
-                 (not already-active?) (update-in [:map :active-layers] (partial toggle-layer-logic layer)))
+  (let [already-active? (some #{layer} (-> db :map :active-layers))
+        db              (cond-> db
+                          true                  (assoc-in [:map :bounds] bounding_box)
+                          (not already-active?) (update-in [:map :active-layers] (partial toggle-layer-logic layer)))]
+    {:db       db
      :put-hash (encode-state db)}))
 
 (defn region-stats-select-habitat [db [_ layer]]
@@ -422,12 +425,13 @@
   ;; before the rest of the app is ready... avoid this by flagging
   ;; initialised state:
   (when (:initialised db)
-    {:db       (-> db
-                   (update-in [:map] assoc
-                              :zoom zoom
-                              :center center
-                              :bounds bounds))
-     :put-hash (encode-state db)}))
+    (let [db (-> db
+                 (update-in [:map] assoc
+                            :zoom zoom
+                            :center center
+                            :bounds bounds))]
+     {:db       db
+     :put-hash (encode-state db)})))
 
 (defn map-start-selecting [db _]
   (-> db
