@@ -279,12 +279,15 @@
 
 (defn- keyed-layers-join
   "Using layers and keyed-layers, replaces layer IDs in keyed-layers with layer
-   objects."
+   objects. We only update keyed-layers if the db contains layers."
   [{{:keys [layers keyed-layers]} :map :as db}]
-  (let [keyed-layers (reduce-kv
-                      (fn [m k v] (assoc m k (or (first-where #(= (:id %) v) layers) v)))
-                      {} keyed-layers)]
-    (assoc-in db [:map :keyed-layers] keyed-layers)))
+  (if (seq layers)
+    (assoc-in
+     db [:map :keyed-layers]
+     (reduce-kv
+      (fn [m k v] (assoc m k (vec (ids->layers v layers))))
+      {} keyed-layers))
+    db))
 
 (defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
   (let [layers (process-layers layers)
@@ -333,7 +336,10 @@
 
 (defn update-keyed-layers [db [_ keyed-layers]]
   (let [keyed-layers (map #(update % :keyword (comp keyword string/lower-case)) keyed-layers) ; keywordize
-        keyed-layers (reduce (fn [acc {:keys [keyword layer]}] (assoc acc keyword layer)) {} keyed-layers) ; to map
+        keyed-layers (group-by :keyword keyed-layers) ; to map
+        keyed-layers (reduce-kv
+                      (fn [m k v] (assoc m k (mapv :layer v)))
+                      {} keyed-layers) ; remove junk, isolate layer IDs
         db           (assoc-in db [:map :keyed-layers] keyed-layers)]
     (keyed-layers-join db)))
 
