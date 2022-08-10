@@ -153,7 +153,7 @@ class SaveState(models.Model):
 
 @python_2_unicode_compatible
 class KeyedLayer(models.Model):
-    keyword = models.CharField(max_length = 200, primary_key=True)
+    keyword = models.CharField(max_length = 200)
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
 
     def __str__(self):

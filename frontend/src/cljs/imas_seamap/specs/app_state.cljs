@@ -171,7 +171,7 @@
 (s/def :map/viewport-only? boolean?)
 
 (s/def :map/keyed-layers
-  (s/map-of keyword? #{integer? :map/layer}))
+  (s/map-of keyword? (s/coll-of #{integer? :map/layer})))
 
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))
