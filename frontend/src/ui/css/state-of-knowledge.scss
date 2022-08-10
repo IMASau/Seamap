@@ -97,15 +97,6 @@
     text-decoration: underline;
 }
 
-.layer-toggle {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 0 16px;
-    font-size: 12px;
-}
-
-.layer-toggle .bp3-switch {
-    margin: 0 -5px 0 0;
-    padding: 0;
+.drawer-group-heading .bp3-switch {
+    margin: 0;
 }

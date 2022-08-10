@@ -194,7 +194,7 @@
    (into [:div.drawer-group-content] children)])
 
 (defn state-of-knowledge-drawer-group
-  [{:keys [heading icon collapsed? toggle-collapse]} & children]
+  [{:keys [heading icon collapsed? toggle-collapse show-layers? toggle-layers]} & children]
   [:div
    {:class (str "drawer-group" (when collapsed? " collapsed") (when toggle-collapse " collapsible"))}
    [:div.drawer-group-heading
@@ -202,9 +202,10 @@
     [:h1
      {:class (str "bp3-heading" (when icon (str " bp3-icon-" icon)))}
      heading]
-    [:div.layer-toggle
-     [b/switch]
-     "Layers"]
+    [b/switch
+     {:checked   show-layers?
+      :on-change toggle-layers
+      :label     "Layers"}]
     (when toggle-collapse
       [b/icon
        {:icon (if collapsed? "plus" "minus")
