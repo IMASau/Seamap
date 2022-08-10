@@ -249,9 +249,9 @@
                    acc))
                {})))
 
-(defn update-grouped-base-layers [{db-map :map :as db}]
-  (let [{layers :base-layers groups :base-layer-groups} db-map
-        grouped-layers (group-by :layer_group layers)
+(defn update-grouped-base-layers [{{layers :base-layers groups :base-layer-groups} :map :as db}]
+  (if (and (seq layers) (seq groups))
+   (let [grouped-layers (group-by :layer_group layers)
         groups (map
                 (fn [{:keys [id] :as group}]
                   (let [layers (get grouped-layers id)
@@ -269,7 +269,8 @@
         groups (sort-by-sort-key groups)]
     (-> db
         (assoc-in [:map :grouped-base-layers] (vec groups))
-        (assoc-in [:map :active-base-layer] (first groups)))))
+        (assoc-in [:map :active-base-layer] (first groups))))
+    db))
 
 (defn update-base-layer-groups [db [_ groups]]
   (let [db (assoc-in db [:map :base-layer-groups] groups)]
