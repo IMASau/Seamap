@@ -154,6 +154,7 @@
     :map/update-priorities                mevents/update-priorities
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
+    :map/update-keyed-layers              mevents/update-keyed-layers
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]

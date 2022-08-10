@@ -121,7 +121,7 @@
                   base-layer-groups
                   grouped-base-layers groups
                   priorities organisations
-                  categories]
+                  categories keyed-layers]
                  :as _map-state} :map
                 {{{:keys [networks parks zones zones-iucn]} :amp
                   {:keys [provincial-bioregions mesoscale-bioregions]} :imcra
@@ -136,7 +136,8 @@
                                    :groups              groups
                                    :priorities          priorities
                                    :organisations       organisations
-                                   :categories          categories})
+                                   :categories          categories
+                                   :keyed-layers        keyed-layers})
                (update-in
                 [:state-of-knowledge :boundaries]
                 #(-> %
@@ -152,7 +153,7 @@
                (merge {:habitat-colours habitat-colours
                        :habitat-titles  habitat-titles
                        :sorting         sorting}))]
-    (assoc-in db [:map :active-layers] (vec (applicable-layers db :category :habitat)))))
+    (assoc-in db [:map :active-layers] [(:habitat (get-in db [:map :keyed-layers]))])))
 
 (defn loading-screen [db [_ msg]]
   (assoc db
@@ -198,6 +199,7 @@
                 classification-url priority-url
                 descriptor-url
                 category-url
+                keyed-layers-url
                 amp-boundaries-url
                 imcra-boundaries-url
                 meow-boundaries-url]} (:config db)]
@@ -246,6 +248,11 @@
                    :uri             category-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-categories]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             keyed-layers-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-keyed-layers]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             amp-boundaries-url
