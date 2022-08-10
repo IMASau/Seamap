@@ -51,14 +51,17 @@
                                                        :active-realm     nil
                                                        :active-province  nil
                                                        :active-ecoregion nil}}
-                        :statistics {:habitat              {:results  []
-                                                            :loading? false}
-                                     :bathymetry           {:results  []
-                                                            :loading? false}
+                        :statistics {:habitat              {:results      []
+                                                            :loading?     false
+                                                            :show-layers? false}
+                                     :bathymetry           {:results      []
+                                                            :loading?     false
+                                                            :show-layers? false}
                                      :habitat-observations {:global-archive nil
                                                             :sediment       nil
                                                             :squidle        nil
-                                                            :loading?       false}}
+                                                            :loading?       false
+                                                            :show-layers?   false}}
                         :open-pill  nil}
    :layer-state     {:loading-state {}
                      :tile-count    {}

@@ -369,3 +369,39 @@
         db     (assoc-in db [:map :bounds] bounds)]
     {:db       db
      :put-hash (encode-state db)}))
+
+(defn habitat-toggle-show-layers [{:keys [db]} _]
+  (let [db            (update-in db [:state-of-knowledge :statistics :habitat :show-layers?] not)
+        show-layers?  (get-in db [:state-of-knowledge :statistics :habitat :show-layers?])
+        habitat-layer (get-in db [:map :keyed-layers :habitat])]
+    {:db db
+     :dispatch
+     (if show-layers?
+       [:map/add-layer habitat-layer]
+       [:map/remove-layer habitat-layer])}))
+
+(defn bathymetry-toggle-show-layers [{:keys [db]} _]
+  (let [db               (update-in db [:state-of-knowledge :statistics :bathymetry :show-layers?] not)
+        show-layers?     (get-in db [:state-of-knowledge :statistics :bathymetry :show-layers?])
+        bathymetry-layer (get-in db [:map :keyed-layers :bathymetry])]
+    {:db db
+     :dispatch
+     (if show-layers?
+       [:map/add-layer bathymetry-layer]
+       [:map/remove-layer bathymetry-layer])}))
+
+(defn habitat-observations-toggle-show-layers [{:keys [db]} _]
+  (let [db           (update-in db [:state-of-knowledge :statistics :habitat-observations :show-layers?] not)
+        show-layers? (get-in db [:state-of-knowledge :statistics :habitat-observations :show-layers?])
+        habitat-obs-imagery-layer  (get-in db [:map :keyed-layers :habitat-obs-imagery])
+        habitat-obs-sediment-layer (get-in db [:map :keyed-layers :habitat-obs-sediment])
+        habitat-obs-video-layer    (get-in db [:map :keyed-layers :habitat-obs-video])]
+    {:db db
+     :dispatch-n
+     (if show-layers?
+       [[:map/add-layer habitat-obs-imagery-layer]
+        [:map/add-layer habitat-obs-sediment-layer]
+        [:map/add-layer habitat-obs-video-layer]]
+       [[:map/remove-layer habitat-obs-imagery-layer]
+        [:map/remove-layer habitat-obs-sediment-layer]
+        [:map/remove-layer habitat-obs-video-layer]])}))

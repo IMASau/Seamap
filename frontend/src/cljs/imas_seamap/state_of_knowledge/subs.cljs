@@ -6,9 +6,9 @@
             [imas-seamap.state-of-knowledge.utils :as utils :refer [boundary-filter-names cql-filter]]))
 
 (defn habitat-statistics [db _]
-  (let [{:keys [results loading?]} (get-in db [:state-of-knowledge :statistics :habitat])
+  (let [{:keys [results loading? show-layers?]} (get-in db [:state-of-knowledge :statistics :habitat])
         results (map #(assoc % :color (get-in db [:habitat-colours (:habitat %)])) results)]
-    {:results results :loading? loading?}))
+    {:results results :loading? loading? :show-layers? show-layers?}))
 
 (defn habitat-statistics-download-url [db _]
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
@@ -40,9 +40,9 @@
       :format               "raw"})))
 
 (defn bathymetry-statistics [db _]
-  (let [{:keys [results loading?]} (get-in db [:state-of-knowledge :statistics :bathymetry])
+  (let [{:keys [results loading? show-layers?]} (get-in db [:state-of-knowledge :statistics :bathymetry])
         results (map #(assoc % :color (get-in db [:habitat-colours (:resolution %)])) results)]
-    {:results results :loading? loading?}))
+    {:results results :loading? loading? :show-layers? show-layers?}))
 
 (defn bathymetry-statistics-download-url [db _]
   (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])

@@ -191,6 +191,9 @@
     :sok/open-pill                        sokevents/open-pill
     :sok/get-filtered-bounds              [sokevents/get-filtered-bounds]
     :sok/got-filtered-bounds              [sokevents/got-filtered-bounds]
+    :sok/habitat-toggle-show-layers       [sokevents/habitat-toggle-show-layers]
+    :sok/bathymetry-toggle-show-layers    [sokevents/bathymetry-toggle-show-layers]
+    :sok/habitat-observations-toggle-show-layers [sokevents/habitat-observations-toggle-show-layers]
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]
