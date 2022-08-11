@@ -403,11 +403,13 @@
                                 :distance (linestring->distance linestring)
                                 :habitat :loading
                                 :bathymetry :loading})]
-    {:db db
-     :put-hash (encode-state db)
-     :dispatch-n [[:transect.plot/show]
-                  [:transect.query/habitat    query-id linestring]
-                  [:transect.query/bathymetry query-id linestring]]}))
+    (merge
+     {:db db
+      :put-hash (encode-state db)}
+     (when (->> db :map :active-layers (filter habitat-layer?) seq) ; only display transect plot if there's an active habitat layer
+       {:dispatch-n [[:transect.plot/show]
+                     [:transect.query/habitat    query-id linestring]
+                     [:transect.query/bathymetry query-id linestring]]}))))
 
 (defn transect-maybe-query [{:keys [db]}]
   ;; When existing transect state is rehydrated it will have the
