@@ -740,3 +740,9 @@ input.leaflet-control-layers-selector[type="radio"] {
 .drawer-children {
     overflow-y: hidden;
 }
+
+.distance-tooltip {
+    z-index: 700;
+    font-weight: bold;
+    color: #44ff98;
+}

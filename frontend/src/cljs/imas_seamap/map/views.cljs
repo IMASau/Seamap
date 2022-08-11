@@ -10,6 +10,7 @@
             [imas-seamap.map.utils :refer [bounds->geojson download-type->str]]
             [imas-seamap.interop.leaflet :as leaflet]
             [imas-seamap.components :as components]
+            [goog.string :as gstring]
             ["/leaflet-zoominfo/L.Control.Zoominfo"]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -213,6 +214,15 @@
 (defn- add-raw-handler-once [js-obj event-name handler]
   (when-not (. js-obj listens event-name)
     (. js-obj on event-name handler)))
+
+(defn distance-tooltip [{:keys [distance] {:keys [x y]} :mouse-pos}]
+  [:div.leaflet-draw-tooltip.distance-tooltip
+   {:style {:visibility "inherit"
+            :transform  (str "translate3d(" x "px, " y "px, 0px)")
+            :z-index    700}}
+   (if (> distance 1000)
+     (gstring/format "%.2f km" (/ distance 1000))
+     (str distance " m"))])
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
