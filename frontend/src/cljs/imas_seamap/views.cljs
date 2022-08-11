@@ -279,8 +279,8 @@
 
 (defn viewport-only-toggle []
   (let [[icon text] (if @(re-frame/subscribe [:map/viewport-only?])
-                      ["map" "Viewport layers only"]
-                      ["globe" "All layers"])]
+                      ["globe" "All layers"]
+                      ["map" "Viewport layers only"])]
     [b/button
      {:icon     icon
       :class    "bp3-fill"
@@ -912,12 +912,12 @@
                    {:heading "Controls"
                     :icon    "settings"}
                    [transect-toggle]
-                   [selection-button]
-                   [viewport-only-toggle]]
+                   [selection-button]]
                   
                   [components/drawer-group
                    {:heading "Settings"
                     :icon    "cog"}
+                   [viewport-only-toggle]
                    [b/button
                     {:icon     "undo"
                      :text     "Reset Interface"
