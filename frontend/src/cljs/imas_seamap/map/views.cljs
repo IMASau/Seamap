@@ -355,7 +355,7 @@
        (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
          ^{:key (str location)}
-         [leaflet/popup {:position location :max-width "100%" :auto-pan false}
+         [leaflet/popup {:position location :max-width "100%" :auto-pan false :class (when (= (:status fi) :feature-info/waiting) "waiting")}
           ^{:key (str (or responses (:status fi)))}
           [popup-component fi]])]]
           children)))

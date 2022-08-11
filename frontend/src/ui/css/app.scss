@@ -740,3 +740,16 @@ input.leaflet-control-layers-selector[type="radio"] {
 .drawer-children {
     overflow-y: hidden;
 }
+
+.leaflet-popup.waiting .leaflet-popup-content-wrapper {
+    background: none;
+    box-shadow: none;
+}
+
+.leaflet-popup.waiting .leaflet-popup-tip-container {
+    display: none;
+}
+
+.leaflet-popup.waiting .leaflet-popup-close-button {
+    display: none;
+}
