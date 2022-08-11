@@ -419,19 +419,22 @@
      :put-hash (encode-state db)
      :dispatch [:ui/hide-loading]}))
 
-(defn map-view-updated [{:keys [db]} [_ {:keys [zoom center bounds]}]]
+(defn map-view-updated [{:keys [db]} [_ {:keys [zoom size center bounds]}]]
   ;; Race-condition warning: this is called when the map changes to
   ;; keep state synchronised, but the map can start generating events
   ;; before the rest of the app is ready... avoid this by flagging
   ;; initialised state:
-  (when (:initialised db)
+  ;; Exceptions apply for size because we're only reading that from the map
+  (if (:initialised db)
     (let [db (-> db
                  (update-in [:map] assoc
-                            :zoom zoom
+                            :zoom   zoom
+                            :size   size
                             :center center
                             :bounds bounds))]
-     {:db       db
-     :put-hash (encode-state db)})))
+      {:db       db
+       :put-hash (encode-state db)})
+    {:db (assoc-in db [:map :size] size)}))
 
 (defn map-start-selecting [db _]
   (-> db
