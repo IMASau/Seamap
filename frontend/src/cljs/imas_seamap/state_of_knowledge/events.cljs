@@ -369,3 +369,27 @@
         db     (assoc-in db [:map :bounds] bounds)]
     {:db       db
      :put-hash (encode-state db)}))
+
+(defn habitat-toggle-show-layers [{:keys [db]} _]
+  (let [db             (update-in db [:state-of-knowledge :statistics :habitat :show-layers?] not)
+        show-layers?   (get-in db [:state-of-knowledge :statistics :habitat :show-layers?])
+        habitat-layers (get-in db [:map :keyed-layers :habitat])]
+    {:db db
+     :dispatch-n
+     (mapv #(vector (if show-layers? :map/add-layer :map/remove-layer) %) habitat-layers)}))
+
+(defn bathymetry-toggle-show-layers [{:keys [db]} _]
+  (let [db               (update-in db [:state-of-knowledge :statistics :bathymetry :show-layers?] not)
+        show-layers?     (get-in db [:state-of-knowledge :statistics :bathymetry :show-layers?])
+        bathymetry-layers (get-in db [:map :keyed-layers :bathymetry])]
+    {:db db
+     :dispatch-n
+     (mapv #(vector (if show-layers? :map/add-layer :map/remove-layer) %) bathymetry-layers)}))
+
+(defn habitat-observations-toggle-show-layers [{:keys [db]} _]
+  (let [db                  (update-in db [:state-of-knowledge :statistics :habitat-observations :show-layers?] not)
+        show-layers?        (get-in db [:state-of-knowledge :statistics :habitat-observations :show-layers?])
+        habitat-obs-layers  (get-in db [:map :keyed-layers :habitat-obs])]
+    {:db db
+     :dispatch-n
+     (mapv #(vector (if show-layers? :map/add-layer :map/remove-layer) %) habitat-obs-layers)}))
