@@ -74,6 +74,7 @@
     :ui.catalogue/nodes                   subs/catalogue-nodes
     :ui/preview-layer-url                 subs/preview-layer-url
     :ui/sidebar                           subs/sidebar-state
+    :ui/mouse-pos                         subs/mouse-pos
     :app/loading?                         subs/app-loading?
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
@@ -203,6 +204,7 @@
     :ui.sidebar/open                      [events/sidebar-open]
     :ui.sidebar/close                     events/sidebar-close
     :ui.sidebar/toggle                    events/sidebar-toggle
+    :ui/mouse-pos                         events/mouse-pos
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
     :left-drawer/toggle                   events/left-drawer-toggle
     :left-drawer/open                     events/left-drawer-open
