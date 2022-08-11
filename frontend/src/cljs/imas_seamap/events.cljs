@@ -11,7 +11,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map map-on-key]]
-            [imas-seamap.map.utils :as mutils :refer [applicable-layers habitat-layer? download-link]]
+            [imas-seamap.map.utils :as mutils :refer [applicable-layers habitat-layer? download-link latlng-distance]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -382,6 +382,16 @@
      :south miny
      :east  maxx
      :north maxy}))
+
+(defn- linestring->distance [linestring]
+  (:distance
+   (reduce
+    (fn [{:keys [prev-latlng] :as acc} curr-latlng]
+      (-> acc
+          (update :distance + (latlng-distance prev-latlng curr-latlng))
+          (assoc :prev-latlng curr-latlng)))
+    {:distance 0 :prev-latlng (first linestring)}
+    (rest linestring))))
 
 (defn transect-query [{:keys [db]} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
