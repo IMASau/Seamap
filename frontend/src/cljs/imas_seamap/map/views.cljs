@@ -197,7 +197,7 @@
   (case status
     :feature-info/waiting        [b/non-ideal-state
                                   {:icon (r/as-element [b/spinner {:intent "success"}])}]
-    :feature-info/empty          [b/non-ideal-state
+    #_:feature-info/empty          #_[b/non-ideal-state ; should be unreachable, now that no popup is displayed if empty
                                   (merge
                                    {:title       "No Results"
                                     :description "Try clicking elsewhere or adding another layer"
@@ -231,7 +231,7 @@
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
-        {:keys [has-info? responses location] :as fi} @(re-frame/subscribe [:map.feature/info])
+        {:keys [has-info? responses location] fi-status :status :as fi} @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region] :as region-info} @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
@@ -352,10 +352,10 @@
         {:position "bottomright"
          :style nil}]
 
-       (when has-info?
+       (when (and has-info? (not= fi-status :feature-info/empty))
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
          ^{:key (str location)}
-         [leaflet/popup {:position location :max-width "100%" :auto-pan false :class (when (= (:status fi) :feature-info/waiting) "waiting")}
-          ^{:key (str (or responses (:status fi)))}
+         [leaflet/popup {:position location :max-width "100%" :auto-pan false :class (when (= fi-status :feature-info/waiting) "waiting")}
+          ^{:key (str (or responses fi-status))}
           [popup-component fi]])]]
           children)))
