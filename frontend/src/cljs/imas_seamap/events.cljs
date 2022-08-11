@@ -681,3 +681,6 @@
 
 (defn layers-search-omnibar-close [db _]
   (assoc-in db [:display :layers-search-omnibar] false))
+
+(defn mouse-pos [db [_ mouse-pos]]
+  (assoc-in db [:display :mouse-pos] mouse-pos))

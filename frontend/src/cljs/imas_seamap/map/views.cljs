@@ -247,6 +247,8 @@
          :double-click-zoom    false
          :ref                  (fn [map]
                                  (when map
+                                   (add-raw-handler-once (. map -leafletElement) "mousemove"
+                                                         #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
                                    (add-raw-handler-once (. map -leafletElement) "easyPrint-start"
                                                          #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
                                    (add-raw-handler-once (. map -leafletElement) "easyPrint-finished"

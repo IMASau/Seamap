@@ -138,3 +138,6 @@
 
 (defn layers-search-omnibar-open? [db _]
   (get-in db [:display :layers-search-omnibar]))
+
+(defn mouse-pos [db _]
+  (get-in db [:display :mouse-pos]))

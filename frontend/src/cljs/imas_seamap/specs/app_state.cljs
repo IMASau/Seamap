@@ -225,6 +225,12 @@
 (s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]
                           :opt-un [:transect/mouse-percentage]))
 
+(s/def :display.mouse-pos/x number?)
+(s/def :display.mouse-pos/y number?)
+(s/def :display/mouse-pos
+  (s/keys :req-un [:display.mouse-pos/x
+                   :display.mouse-pos/y]))
+
 ;;; catalogue
 (s/def :display.catalogue.group/tab string?)
 (s/def :display.catalogue.group/expanded (s/coll-of string? :kind set?))
@@ -467,7 +473,8 @@
                    :state-of-knowledge/pill-open?]))
 
 (s/def ::display
-  (s/keys :req-un [:display/catalogue
+  (s/keys :req-un [:display/mouse-pos
+                   :display/catalogue
                    :display/help-overlay
                    :display/welcome-overlay
                    :display/sidebar
