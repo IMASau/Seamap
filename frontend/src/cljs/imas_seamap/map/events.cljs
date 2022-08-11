@@ -428,7 +428,7 @@
   (let [{:keys [active active-base _legend-ids]} (:map db)
         active-layers (if active
                         (vec (ids->layers active (get-in db [:map :layers])))
-                        (or (get-in db [:map :keyed-layers :startup]) []))
+                        (get-in db [:map :keyed-layers :startup] []))
         active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         active-base   (or active-base   ; If no base is set (eg no existing hash-state), use the first candidate
                           (first (get-in db [:map :grouped-base-layers])))
