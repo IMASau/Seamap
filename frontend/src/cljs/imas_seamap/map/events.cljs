@@ -280,12 +280,25 @@
   (let [db (assoc-in db [:map :base-layers] layers)]
     (update-grouped-base-layers db)))
 
+(defn- keyed-layers-join
+  "Using layers and keyed-layers, replaces layer IDs in keyed-layers with layer
+   objects. We only update keyed-layers if the db contains layers."
+  [{{:keys [layers keyed-layers]} :map :as db}]
+  (if (seq layers)
+    (assoc-in
+     db [:map :keyed-layers]
+     (reduce-kv
+      (fn [m k v] (assoc m k (vec (ids->layers v layers))))
+      {} keyed-layers))
+    db))
+
 (defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
-  (let [layers (process-layers layers)]
-    (-> db
-        (assoc-in [:map :layers] layers)
-        (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
-        (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))))
+  (let [layers (process-layers layers)
+        db     (-> db
+                   (assoc-in [:map :layers] layers)
+                   (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
+                   (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
+    (keyed-layers-join db)))
 
 (defn update-groups [db [_ groups]]
   (assoc-in db [:map :groups] groups))
@@ -323,6 +336,15 @@
     (-> db
         (assoc-in [:map :categories] categories)
         (assoc-in [:sorting :category] (->sort-map categories)))))
+
+(defn update-keyed-layers [db [_ keyed-layers]]
+  (let [keyed-layers (map #(update % :keyword (comp keyword string/lower-case)) keyed-layers) ; keywordize
+        keyed-layers (group-by :keyword keyed-layers) ; to map
+        keyed-layers (reduce-kv
+                      (fn [m k v] (assoc m k (mapv :layer v)))
+                      {} keyed-layers) ; remove junk, isolate layer IDs
+        db           (assoc-in db [:map :keyed-layers] keyed-layers)]
+    (keyed-layers-join db)))
 
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
@@ -408,7 +430,9 @@
   ;; :active-base-layer
   [{:keys [db]} _]
   (let [{:keys [active active-base _legend-ids]} (:map db)
-        active-layers (vec (ids->layers active (get-in db [:map :layers])))
+        active-layers (if active
+                        (vec (ids->layers active (get-in db [:map :layers])))
+                        (get-in db [:map :keyed-layers :startup] []))
         active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         active-base   (or active-base   ; If no base is set (eg no existing hash-state), use the first candidate
                           (first (get-in db [:map :grouped-base-layers])))

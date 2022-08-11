@@ -30,36 +30,37 @@
 (defn- select-boundary-layer
   "Based on the currently active boundary and boundary filters, select an
    appropriate boundary layer."
-  [layers {boundary-id :id} {:keys [amp imcra meow] :as _boundaries}]
+  [keyed-layers {boundary-id :id} {:keys [amp imcra meow] :as _boundaries}]
   (let [{:keys [active-park active-zone active-zone-iucn]} amp
         {:keys [active-mesoscale-bioregion]} imcra
         {:keys [active-province active-ecoregion]} meow
 
-        layer-id (case boundary-id
-                   
-                   "amp"   (cond
-                             (or active-zone active-zone-iucn) 1520
-                             active-park                       1569
-                             :else                             1567)
+        layer-key (case boundary-id
 
-                   "imcra" (cond
-                             active-mesoscale-bioregion 1500
-                             :else                      182)
+                    "amp"   (cond
+                              active-zone-iucn :amp-zone-iucn
+                              active-zone      :amp-zone
+                              active-park      :amp-park
+                              :else            :amp-network)
 
-                   "meow"  (cond
-                             active-ecoregion 1570
-                             active-province  189
-                             :else            181)
+                    "imcra" (cond
+                              active-mesoscale-bioregion :imcra-mesoscale-bioregion
+                              :else                      :imcra-provincial-bioregion)
 
-                   nil)]
-    (first-where #(= (:id %) layer-id) layers)))
+                    "meow"  (cond
+                              active-ecoregion :meow-ecoregion
+                              active-province  :meow-province
+                              :else            :meow-realm)
+
+                    nil)]
+    (when layer-key (first (layer-key keyed-layers)))))
 
 (defn update-active-boundary-layer [{:keys [db]} _]
-  (let [layers (get-in db [:map :layers])
+  (let [keyed-layers (get-in db [:map :keyed-layers])
         active-boundary (get-in db [:state-of-knowledge :boundaries :active-boundary])
 
         previous-boundary-layer (get-in db [:state-of-knowledge :boundaries :active-boundary-layer])
-        current-boundary-layer  (select-boundary-layer layers active-boundary (get-in db [:state-of-knowledge :boundaries]))
+        current-boundary-layer  (select-boundary-layer keyed-layers active-boundary (get-in db [:state-of-knowledge :boundaries]))
 
         db                      (assoc-in db [:state-of-knowledge :boundaries :active-boundary-layer] current-boundary-layer)]
     {:db db
