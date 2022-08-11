@@ -222,18 +222,19 @@
             :z-index    700}}
    (if (> distance 1000)
      (gstring/format "%.2f km" (/ distance 1000))
-     (str distance " m"))])
+     (gstring/format "%.0f m" distance))])
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         {:keys [has-info? responses location] :as fi} @(re-frame/subscribe [:map.feature/info])
-        {:keys [drawing? query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
+        {:keys [drawing? query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region] :as region-info} @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
-        loading?                                      @(re-frame/subscribe [:app/loading?])]
+        loading?                                      @(re-frame/subscribe [:app/loading?])
+        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     (into
      [:div.map-wrapper
       [download-component download-info]
@@ -350,6 +351,8 @@
        [leaflet/coordinates-control
         {:position "bottomright"
          :style nil}]
+
+       (when distance [distance-tooltip {:mouse-pos mouse-pos :distance distance}])
 
        (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:

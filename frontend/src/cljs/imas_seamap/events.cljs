@@ -397,15 +397,15 @@
   ;; Reset the transect before querying (and paranoia to avoid
   ;; unlikely race conditions; do this before dispatching)
   (let [query-id (gensym)
+        linestring (geojson->linestring geojson)
         db (assoc db :transect {:query geojson
                                 :query-id query-id
-                                :show? true
+                                :distance (linestring->distance linestring)
                                 :habitat :loading
-                                :bathymetry :loading})
-        linestring (geojson->linestring geojson)]
+                                :bathymetry :loading})]
     {:db db
      :put-hash (encode-state db)
-     :dispatch-n [[:transect.plot/show] ; A bit redundant since we set the :show key above
+     :dispatch-n [[:transect.plot/show]
                   [:transect.query/habitat    query-id linestring]
                   [:transect.query/bathymetry query-id linestring]]}))
 
@@ -506,6 +506,7 @@
 (defn transect-drawing-clear [db _]
   (update-in db [:transect] merge {:show?      false
                                    :query      nil
+                                   :distance   nil
                                    :habitat    nil
                                    :bathymetry nil}))
 
