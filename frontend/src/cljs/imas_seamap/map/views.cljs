@@ -201,15 +201,18 @@
                                   (merge
                                    {:title       "No Results"
                                     :description "Try clicking elsewhere or adding another layer"
-                                    :icon        "warning-sign"}
+                                    :icon        "warning-sign"
+                                    :ref         #(when % (re-frame/dispatch [:map/pan-to-popup {:x 305 :y 210}]))}
                                    (when had-insecure? {:description "(Could not query all displayed external data layers)"}))]
     :feature-info/none-queryable [b/non-ideal-state
                                   {:title       "Invalid Info"
                                    :description "Could not query the external data provider"
-                                   :icon        "warning-sign"}]
+                                   :icon        "warning-sign"
+                                   :ref         #(when % (re-frame/dispatch [:map/pan-to-popup {:x 305 :y 210}]))}]
     :feature-info/error          [b/non-ideal-state
                                   {:title "Server Error"
-                                   :icon  "error"}]
+                                   :icon  "error"
+                                   :ref   #(when % (re-frame/dispatch [:map/pan-to-popup {:x 305 :y 210}]))}]
     ;; Default; we have actual content:
     [:div
      {:ref
@@ -217,7 +220,8 @@
         (when element
           (set! (.-innerHTML element) nil)
           (doseq [{:keys [_body _style] :as response} responses]
-            (.appendChild element (create-shadow-dom-element response)))))}]))
+            (.appendChild element (create-shadow-dom-element response)))
+          (re-frame/dispatch [:map/pan-to-popup (popup-dimensions element)])))}]))
 
 (defn- add-raw-handler-once [js-obj event-name handler]
   (when-not (. js-obj listens event-name)
