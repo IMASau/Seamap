@@ -249,9 +249,9 @@
                    acc))
                {})))
 
-(defn update-grouped-base-layers [{db-map :map :as db}]
-  (let [{layers :base-layers groups :base-layer-groups} db-map
-        grouped-layers (group-by :layer_group layers)
+(defn update-grouped-base-layers [{{layers :base-layers groups :base-layer-groups} :map :as db}]
+  (if (and (seq layers) (seq groups))
+   (let [grouped-layers (group-by :layer_group layers)
         groups (map
                 (fn [{:keys [id] :as group}]
                   (let [layers (get grouped-layers id)
@@ -269,7 +269,8 @@
         groups (sort-by-sort-key groups)]
     (-> db
         (assoc-in [:map :grouped-base-layers] (vec groups))
-        (assoc-in [:map :active-base-layer] (first groups)))))
+        (assoc-in [:map :active-base-layer] (first groups))))
+    db))
 
 (defn update-base-layer-groups [db [_ groups]]
   (let [db (assoc-in db [:map :base-layer-groups] groups)]
@@ -442,7 +443,7 @@
   (let [{:keys [active active-base _legend-ids]} (:map db)
         active-layers (if active
                         (vec (ids->layers active (get-in db [:map :layers])))
-                        (or (get-in db [:map :keyed-layers :startup]) []))
+                        (get-in db [:map :keyed-layers :startup] []))
         active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         active-base   (or active-base   ; If no base is set (eg no existing hash-state), use the first candidate
                           (first (get-in db [:map :grouped-base-layers])))
@@ -541,5 +542,7 @@
   (assoc-in db [:map :preview-layer] preview-layer))
 
 
-(defn toggle-viewport-only [db _]
-  (update-in db [:map :viewport-only?] not))
+(defn toggle-viewport-only [{:keys [db]} _]
+  (let [db (update-in db [:map :viewport-only?] not)]
+    {:db       db
+     :put-hash (encode-state db)}))

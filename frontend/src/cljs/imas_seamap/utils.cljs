@@ -41,7 +41,7 @@
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
   [{map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
-  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer])
+  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only?])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
                        (update :active-base :id))
@@ -112,6 +112,7 @@
                  [:map :active-base]
                  [:map :center]
                  [:map :zoom]
+                 [:map :viewport-only?]
                  :legend-ids
                  :opacity-ids]))
 
