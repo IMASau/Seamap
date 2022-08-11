@@ -114,7 +114,6 @@
                           :feature
                           {:status   :feature-info/waiting
                            :location point}))
-        db             (assoc-in db [:map :center] point)
         db             (assoc-in db [:feature :status] :feature-info/waiting)]
     (merge
      {:db db}
