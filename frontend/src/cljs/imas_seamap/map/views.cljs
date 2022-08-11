@@ -184,6 +184,15 @@
                           :on-created #(re-frame/dispatch [:map.layer.selection/finalise
                                                            (-> % (.. -layer getBounds) bounds->map)])}]])
 
+(defn- element-dimensions [element]
+  {:x (.-offsetWidth element) :y (.-offsetHeight element)})
+
+(defn- popup-dimensions [element]
+  (->
+   (element-dimensions element)
+   (update :x + (* 2 30))   ; add horizontal padding
+   (update :y + (* 2 27)))) ; add vertical padding
+
 (defn popup-component [{:keys [status had-insecure? responses] :as _feature-popup}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
