@@ -8,6 +8,7 @@
             [imas-seamap.utils :refer [merge-in first-where]]
             ["proj4" :as proj4]
             [clojure.string :as str]
+            [imas-seamap.interop.leaflet :as leaflet]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
@@ -280,3 +281,6 @@
 
 (defn viewport-layers [{:keys [_west _south _east _north] :as bounds} layers]
   (filter (partial layer-visible? bounds) layers))
+
+(defn latlng-distance [[lat1 lng1] [lat2 lng2]]
+  (.distanceTo (leaflet/latlng. lat1 lng1) (leaflet/latlng. lat2 lng2)))
