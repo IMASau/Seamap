@@ -139,9 +139,9 @@
 
 (defn transect-control [{:keys [drawing? query] :as _transect-info}]
   (let [[text icon dispatch] (cond
-                               drawing? ["Cancel Transect" "undo"   :transect.draw/disable]
-                               query    ["Clear Transect"  "eraser" :transect.draw/clear]
-                               :else    ["Draw Transect"   "edit"   :transect.draw/enable])]
+                               drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
+                               query    ["Clear Measurement"  "eraser" :transect.draw/clear]
+                               :else    ["Transect/Measure"   "edit"   :transect.draw/enable])]
     [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
      [:a {:on-click #(re-frame/dispatch  [dispatch])}
       [b/tooltip {:content text :position b/RIGHT}
