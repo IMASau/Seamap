@@ -36,7 +36,6 @@
                                   :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
-                                  :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
                                   :sok/update-amp-boundaries
@@ -64,7 +63,6 @@
                                   :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
-                                  :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
                                   :sok/update-amp-boundaries
@@ -92,7 +90,6 @@
                                   :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
-                                  :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
                                   :sok/update-amp-boundaries
@@ -196,7 +193,7 @@
                 base-layer-url
                 base-layer-group-url
                 group-url organisation-url
-                classification-url priority-url
+                classification-url
                 descriptor-url
                 category-url
                 keyed-layers-url
@@ -223,11 +220,6 @@
                    :uri             group-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-groups]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             priority-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-priorities]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             descriptor-url

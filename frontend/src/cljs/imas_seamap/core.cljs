@@ -150,7 +150,6 @@
     :map/update-groups                    mevents/update-groups
     :map/update-organisations             mevents/update-organisations
     :map/update-classifications           mevents/update-classifications
-    :map/update-priorities                mevents/update-priorities
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
     :map/update-keyed-layers              mevents/update-keyed-layers
@@ -233,7 +232,6 @@
       :ui/show-loading
       :load-hash-state
       :initialise-layers
-      :map/update-priorities
       :map/update-descriptors
       :map/update-classifications
       :map/update-layers
