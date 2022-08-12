@@ -33,7 +33,6 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
-                                  :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
@@ -60,7 +59,6 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
-                                  :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
@@ -87,7 +85,6 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
-                                  :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
@@ -191,7 +188,7 @@
   (let [{:keys [layer-url
                 base-layer-url
                 base-layer-group-url
-                group-url organisation-url
+                organisation-url
                 classification-url
                 descriptor-url
                 category-url
@@ -214,11 +211,6 @@
                    :uri             base-layer-group-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-base-layer-groups]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             group-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-groups]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             descriptor-url

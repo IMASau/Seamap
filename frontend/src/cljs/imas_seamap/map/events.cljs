@@ -299,9 +299,6 @@
                    (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
     (keyed-layers-join db)))
 
-(defn update-groups [db [_ groups]]
-  (assoc-in db [:map :groups] groups))
-
 (defn- ->sort-map [ms]
   ;; Associate a category of objects (categories, organisations) with
   ;; a tuple of its sort-key (user-assigned, to allow user-specified

@@ -88,7 +88,6 @@
    :config          {:layer-url             (str api-url-base "layers/")
                      :base-layer-url        (str api-url-base "baselayers/")
                      :base-layer-group-url  (str api-url-base "baselayergroups/")
-                     :group-url             (str api-url-base "groups/")
                      :organisation-url      (str api-url-base "organisations/")
                      :classification-url    (str api-url-base "classifications/")
                      :region-stats-url      (str api-url-base "habitat/regions/")
