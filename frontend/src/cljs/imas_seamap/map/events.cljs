@@ -114,7 +114,6 @@
                           :feature
                           {:status   :feature-info/waiting
                            :location point}))
-        db             (assoc-in db [:map :center] point)
         db             (assoc-in db [:feature :status] :feature-info/waiting)]
     (merge
      {:db db}
@@ -300,9 +299,6 @@
                    (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
     (keyed-layers-join db)))
 
-(defn update-groups [db [_ groups]]
-  (assoc-in db [:map :groups] groups))
-
 (defn- ->sort-map [ms]
   ;; Associate a category of objects (categories, organisations) with
   ;; a tuple of its sort-key (user-assigned, to allow user-specified
@@ -319,9 +315,6 @@
 
 (defn update-classifications [db [_ classifications]]
   (assoc-in db [:sorting :data_classification] (->sort-map classifications)))
-
-(defn update-priorities [db [_ priorities]]
-  (assoc-in db [:map :priorities] priorities))
 
 (defn update-descriptors [db [_ descriptors]]
   (let [titles  (reduce (fn [acc {:keys [name title]}]  (assoc acc name title))  {} descriptors)
@@ -367,8 +360,19 @@
     (conj active-layers layer)))
 
 (defn toggle-layer [{:keys [db]} [_ layer]]
-  (let [db (update-in db [:map :active-layers] (partial toggle-layer-logic layer))
-        db (update-in db [:map :hidden-layers] #(disj % layer))]
+  (let [{:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
+        db (-> db
+               (update-in [:map :active-layers] (partial toggle-layer-logic layer))
+               (update-in [:map :hidden-layers] #(disj % layer))
+               (cond->
+                ((set habitat) layer)
+                 (assoc-in [:state-of-knowledge :statistics :habitat :show-layers?] false)
+
+                 ((set bathymetry) layer)
+                 (assoc-in [:state-of-knowledge :statistics :bathymetry :show-layers?] false)
+
+                 ((set habitat-obs) layer)
+                 (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
     {:db       db
      :put-hash (encode-state db)
      :dispatch [:map/popup-closed]}))
@@ -444,19 +448,24 @@
      :put-hash (encode-state db)
      :dispatch [:ui/hide-loading]}))
 
-(defn map-view-updated [{:keys [db]} [_ {:keys [zoom center bounds]}]]
+(defn map-view-updated [{:keys [db]} [_ {:keys [zoom size center bounds]}]]
   ;; Race-condition warning: this is called when the map changes to
   ;; keep state synchronised, but the map can start generating events
   ;; before the rest of the app is ready... avoid this by flagging
   ;; initialised state:
-  (when (:initialised db)
+  ;; Exceptions apply for size because we're only reading that from the map. We need
+  ;; the map size immediately for panning to feature info popups (which can be made
+  ;; immediately on load before the user updates the map view again).
+  (if (:initialised db)
     (let [db (-> db
                  (update-in [:map] assoc
-                            :zoom zoom
+                            :zoom   zoom
+                            :size   size
                             :center center
                             :bounds bounds))]
-     {:db       db
-     :put-hash (encode-state db)})))
+      {:db       db
+       :put-hash (encode-state db)})
+    {:db (assoc-in db [:map :size] size)}))
 
 (defn map-start-selecting [db _]
   (-> db
@@ -500,8 +509,20 @@
   [{:keys [db]} [_ layer]]
   (let [layers (get-in db [:map :active-layers])
         layers (vec (remove #(= % layer) layers))
-        db     (assoc-in db [:map :active-layers] layers)
-        db     (update-in db [:map :hidden-layers] #(disj % layer))]
+        {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
+        db     (->
+                db
+                (assoc-in [:map :active-layers] layers)
+                (update-in [:map :hidden-layers] #(disj % layer))
+                (cond->
+                 ((set habitat) layer)
+                  (assoc-in [:state-of-knowledge :statistics :habitat :show-layers?] false)
+
+                  ((set bathymetry) layer)
+                  (assoc-in [:state-of-knowledge :statistics :bathymetry :show-layers?] false)
+
+                  ((set habitat-obs) layer)
+                  (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
     {:db       db
      :put-hash (encode-state db)
      :dispatch [:map/popup-closed]}))
@@ -523,3 +544,27 @@
   (let [db (update-in db [:map :viewport-only?] not)]
     {:db       db
      :put-hash (encode-state db)}))
+
+(defn pan-to-popup
+  "Based on a known location and size of the popup, we can find out if it will be
+   outside of the bounds of the map. Knowing this we can pan the map to fix this."
+  [{{{{popup-x :x popup-y :y popup-lat :lat popup-lng :lng} :location} :feature
+    {{map-width :x map-height :y} :size [map-lat map-lng] :center}
+    :map :as db} :db}
+   [_ {popup-width :x popup-height :y :as _popup-dimensions}]]
+  (let [map-x           (/ map-width 2)
+        map-y           (/ map-height 2)
+        overflow-top    (- popup-height popup-y) ; positive values mean we're over the bounds by that many pixels (which tells us how many pixels we'd need to move the map in the opposite direction to have everything in-bounds)
+        overflow-bottom (- popup-y map-height)
+        overflow-left   (- (/ popup-width 2) popup-x)
+        overflow-right  (- popup-x (- map-width (/ popup-width 2)))
+        x-to-lng        (/ (- popup-lng map-lng) (- popup-x map-x)) ; ratio of lng degrees per x pixel
+        y-to-lat        (/ (- popup-lat map-lat) (- popup-y map-y)) ; ratio of lat degrees per y pixel
+        map-lat         (cond-> map-lat
+                          (pos? overflow-top) (- (* overflow-top y-to-lat))
+                          (pos? overflow-bottom) (+ (* overflow-bottom y-to-lat)))
+        map-lng         (cond-> map-lng
+                          (pos? overflow-left) (- (* overflow-left x-to-lng))
+                          (pos? overflow-right) (+ (* overflow-right x-to-lng)))
+        db              (assoc-in db [:map :center] [map-lat map-lng])]
+    {:db db}))

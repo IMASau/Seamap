@@ -227,6 +227,10 @@ footer {
     overflow-x: hidden;
 }
 
+.layer-wrapper .legend-wrapper img {
+    width: 100%;
+}
+
 .catalogue-layer-controls {
     flex: 0 0 auto;
     display: flex;
@@ -625,6 +629,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 .drawer-group-heading {
     display: flex;
     flex: 0 0;
+    align-items: center;
 }
 
 .drawer-group.collapsible > .drawer-group-heading {
@@ -745,4 +750,17 @@ input.leaflet-control-layers-selector[type="radio"] {
     z-index: 700;
     font-weight: bold;
     color: #44ff98;
+}
+
+.leaflet-popup.waiting .leaflet-popup-content-wrapper {
+    background: none;
+    box-shadow: none;
+}
+
+.leaflet-popup.waiting .leaflet-popup-tip-container {
+    display: none;
+}
+
+.leaflet-popup.waiting .leaflet-popup-close-button {
+    display: none;
 }

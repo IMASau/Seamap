@@ -34,7 +34,6 @@
     :map/categories-map                   msubs/categories-map
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
-    :map.layers/priorities                msubs/map-layer-priorities
     :map.layers/lookup                    msubs/map-layer-lookup
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
@@ -149,10 +148,8 @@
     :map/update-base-layers               mevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups
     :map/update-layers                    mevents/update-layers
-    :map/update-groups                    mevents/update-groups
     :map/update-organisations             mevents/update-organisations
     :map/update-classifications           mevents/update-classifications
-    :map/update-priorities                mevents/update-priorities
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
     :map/update-keyed-layers              mevents/update-keyed-layers
@@ -166,6 +163,7 @@
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :map/toggle-viewport-only             [mevents/toggle-viewport-only]
+    :map/pan-to-popup                     [mevents/pan-to-popup]
     :sok/update-amp-boundaries            sokevents/update-amp-boundaries
     :sok/update-imcra-boundaries          sokevents/update-imcra-boundaries
     :sok/update-meow-boundaries           sokevents/update-meow-boundaries
@@ -192,6 +190,9 @@
     :sok/open-pill                        sokevents/open-pill
     :sok/get-filtered-bounds              [sokevents/get-filtered-bounds]
     :sok/got-filtered-bounds              [sokevents/got-filtered-bounds]
+    :sok/habitat-toggle-show-layers       [sokevents/habitat-toggle-show-layers]
+    :sok/bathymetry-toggle-show-layers    [sokevents/bathymetry-toggle-show-layers]
+    :sok/habitat-observations-toggle-show-layers [sokevents/habitat-observations-toggle-show-layers]
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]

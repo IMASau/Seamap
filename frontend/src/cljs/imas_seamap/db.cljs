@@ -10,6 +10,7 @@
 (def default-db
   {:initialised     false               ; Flag to prevent early updates
    :map             {:center          [-27.819644755 132.133333]
+                     :size            {}
                      :zoom            4
                      :zoom-cutover    10
                      :bounds          {}
@@ -21,9 +22,6 @@
                      :grouped-base-layers []
                      :active-base-layer nil
                      :organisations   []
-                     :priorities      []
-                     :priority-cutoff 2 ; priorities <= this value will be displayed in auto mode
-                     :groups          []
                      :active-layers   []
                      :hidden-layers   #{}
                      :preview-layer   nil
@@ -51,14 +49,17 @@
                                                        :active-realm     nil
                                                        :active-province  nil
                                                        :active-ecoregion nil}}
-                        :statistics {:habitat              {:results  []
-                                                            :loading? false}
-                                     :bathymetry           {:results  []
-                                                            :loading? false}
+                        :statistics {:habitat              {:results      []
+                                                            :loading?     false
+                                                            :show-layers? false}
+                                     :bathymetry           {:results      []
+                                                            :loading?     false
+                                                            :show-layers? false}
                                      :habitat-observations {:global-archive nil
                                                             :sediment       nil
                                                             :squidle        nil
-                                                            :loading?       false}}
+                                                            :loading?       false
+                                                            :show-layers?   false}}
                         :open-pill  nil}
    :layer-state     {:loading-state {}
                      :tile-count    {}
@@ -87,10 +88,8 @@
    :config          {:layer-url             (str api-url-base "layers/")
                      :base-layer-url        (str api-url-base "baselayers/")
                      :base-layer-group-url  (str api-url-base "baselayergroups/")
-                     :group-url             (str api-url-base "groups/")
                      :organisation-url      (str api-url-base "organisations/")
                      :classification-url    (str api-url-base "classifications/")
-                     :priority-url          (str api-url-base "priorities/")
                      :region-stats-url      (str api-url-base "habitat/regions/")
                      :descriptor-url        (str api-url-base "descriptors/")
                      :save-state-url        (str api-url-base "savestates")

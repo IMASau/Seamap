@@ -11,7 +11,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map map-on-key]]
-            [imas-seamap.map.utils :as mutils :refer [applicable-layers habitat-layer? download-link latlng-distance]]
+            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -33,10 +33,8 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
-                                  :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
-                                  :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
                                   :sok/update-amp-boundaries
@@ -61,10 +59,8 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
-                                  :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
-                                  :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
                                   :sok/update-amp-boundaries
@@ -89,10 +85,8 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
-                                  :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
-                                  :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
                                   :sok/update-amp-boundaries
@@ -119,8 +113,8 @@
                 {:keys
                  [layers base-layers
                   base-layer-groups
-                  grouped-base-layers groups
-                  priorities organisations
+                  grouped-base-layers
+                  organisations
                   categories keyed-layers]
                  :as _map-state} :map
                 {{{:keys [networks parks zones zones-iucn]} :amp
@@ -133,8 +127,6 @@
                                    :base-layer-groups   base-layer-groups
                                    :grouped-base-layers grouped-base-layers
                                    :active-base-layer   (first grouped-base-layers)
-                                   :groups              groups
-                                   :priorities          priorities
                                    :organisations       organisations
                                    :categories          categories
                                    :keyed-layers        keyed-layers})
@@ -195,8 +187,8 @@
   (let [{:keys [layer-url
                 base-layer-url
                 base-layer-group-url
-                group-url organisation-url
-                classification-url priority-url
+                organisation-url
+                classification-url
                 descriptor-url
                 category-url
                 keyed-layers-url
@@ -218,16 +210,6 @@
                    :uri             base-layer-group-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-base-layer-groups]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             group-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-groups]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             priority-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-priorities]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             descriptor-url
@@ -466,8 +448,7 @@
 
 (defn transect-query-bathymetry [{:keys [db]} [_ query-id linestring]]
   (if-let [{:keys [server_url layer_name] :as _bathy-layer}
-           (first (applicable-layers db :category :bathy-transect
-                                     :server_type :ncwms))]
+           (first (get-in db [:map :keyed-layers :transect-bathy]))]
     {:db         db
      :http-xhrio {:method          :get
                   :uri             server_url

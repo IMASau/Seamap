@@ -61,32 +61,6 @@ class LayerSerializer(serializers.ModelSerializer):
         exclude = ('minx', 'miny', 'maxx', 'maxy', 'sort_key',)
 
 
-class GroupSerializer(serializers.ModelSerializer):
-    bounding_box = serializers.SerializerMethodField()
-
-    def get_bounding_box(self, obj):
-        bounds = obj.layerpriorities.aggregate(minx=Min('layer__minx'),
-                                               miny=Min('layer__miny'),
-                                               maxx=Max('layer__maxx'),
-                                               maxy=Max('layer__maxy'))
-        return {'west': bounds['minx'],
-                'south': bounds['miny'],
-                'east': bounds['maxx'],
-                'north': bounds['maxy']}
-
-    class Meta:
-        model = models.LayerGroup
-        fields = '__all__'
-
-
-class GroupPrioritySerializer(serializers.ModelSerializer):
-    # We only want the ids here, so we don't need to follow the
-    # foreign key relations here
-    class Meta:
-        model = models.LayerGroupPriority
-        fields = ('layer', 'group', 'priority')
-
-
 class BaseLayerGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BaseLayerGroup

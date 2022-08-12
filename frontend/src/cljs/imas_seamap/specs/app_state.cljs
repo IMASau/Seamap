@@ -8,6 +8,12 @@
 (s/def :map/center
   (s/coll-of number? :count 2 :kind vector?))
 
+(s/def :map.size/x number?)
+(s/def :map.size/y number?)
+(s/def :map/size
+  (s/keys :req-un [:map.size/x
+                   :map.size/y]))
+
 (s/def :map/zoom integer?)
 (s/def :map/zoom-cutover integer?)
 
@@ -123,24 +129,6 @@
 
 (s/def :map/preview-layer :map/layer)
 
-
-(s/def :map.layer-group.priority/layer integer?)
-(s/def :map.layer-group.priority/group integer?)
-(s/def :map.layer-group.priority/priority integer?)
-(s/def :map.layer-group/priority (s/keys :req-un [:map.layer-group.priorty/layer
-                                                  :map.layer-group.priorty/group
-                                                  :map.layer-group.priorty/priority]))
-(s/def :map/priorities (s/coll-of :map.layer-group/priority))
-
-(s/def :map.layer.group/id integer?)
-(s/def :map.layer.group/name string?)
-(s/def :map.layer.group/detail_resolution (s/nilable boolean?))
-(s/def :map.layer/group (s/keys :req-un [:map.layer.group/id
-                                         :map.layer/bounding_box
-                                         :map.layer.group/name
-                                         :map.layer.group/detail_resolution]))
-(s/def :map/groups (s/coll-of :map.layer/group))
-
 (s/def :map.layer.organisation/name string?)
 (s/def :map.layer.organisation/logo (s/nilable string?))
 (s/def :map.layer/organisation (s/keys :req-un [:map.layer.organisation/name
@@ -166,7 +154,6 @@
 (s/def :map/controls (s/keys :req-un [:map.controls/transect
                                       :map.controls/download]))
 
-(s/def :map/priority-cutoff (s/and pos? integer?))
 
 (s/def :map/viewport-only? boolean?)
 
@@ -178,6 +165,7 @@
 
 (s/def ::map
   (s/keys :req-un [:map/center
+                   :map/size
                    :map/zoom
                    :map/zoom-cutover
                    :map/controls
@@ -188,10 +176,7 @@
                    :map/active-layers
                    :map/hidden-layers
                    :map/preview-layer
-                   :map/groups
                    :map/organisations
-                   :map/priorities
-                   :map/priority-cutoff
                    :map/viewport-only?
                    :map/keyed-layers]))
 
@@ -380,9 +365,11 @@
 (s/def :state-of-knowledge.statistics.habitat/results (s/coll-of :state-of-knowledge.statistics.habitat/result
                                                            :kind vector?))
 (s/def :state-of-knowledge.statistics.habitat/loading? boolean?)
+(s/def :state-of-knowledge.statistics.habitat/show-layers? boolean?)
 (s/def :state-of-knowledge.statistics/habitat
   (s/keys :req-un [:state-of-knowledge.statistics.habitat/results
-                   :state-of-knowledge.statistics.habitat/loading?]))
+                   :state-of-knowledge.statistics.habitat/loading?
+                   :state-of-knowledge.statistics.habitat/show-layers?]))
 
 (s/def :state-of-knowledge.statistics.bathymetry.result/resolution (s/nilable string?))
 (s/def :state-of-knowledge.statistics.bathymetry.result/rank (s/nilable integer?))
@@ -398,9 +385,11 @@
 (s/def :state-of-knowledge.statistics.bathymetry/results (s/coll-of :state-of-knowledge.statistics.bathymetry/result
                                                               :kind vector?))
 (s/def :state-of-knowledge.statistics.bathymetry/loading? :state-of-knowledge.statistics.habitat/loading?)
+(s/def :state-of-knowledge.statistics.bathymetry/show-layers? :state-of-knowledge.statistics.habitat/show-layers?)
 (s/def :state-of-knowledge.statistics/bathymetry
   (s/keys :req-un [:state-of-knowledge.statistics.bathymetry/results
-                   :state-of-knowledge.statistics.bathymetry/loading?]))
+                   :state-of-knowledge.statistics.bathymetry/loading?
+                   :state-of-knowledge.statistics.bathymetry/show-layers?]))
 
 
 (s/def :state-of-knowledge.statistics.habitat-observations.global-archive/deployment_id integer?)
@@ -453,12 +442,14 @@
                     :state-of-knowledge.statistics.habitat-observations.squidle/total_annotations
                     :state-of-knowledge.statistics.habitat-observations.squidle/public_annotations])))
 (s/def :state-of-knowledge.statistics.habitat-observations/loading? boolean?)
+(s/def :state-of-knowledge.statistics.habitat-observations/show-layers? boolean?)
 
 (s/def :state-of-knowledge.statistics/habitat-observations
   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations/global-archive
                    :state-of-knowledge.statistics.habitat-observations/sediment
                    :state-of-knowledge.statistics.habitat-observations/squidle
-                   :state-of-knowledge.statistics.habitat-observations/loading?]))
+                   :state-of-knowledge.statistics.habitat-observations/loading?
+                   :state-of-knowledge.statistics.habitat-observations/show-layers?]))
 
 (s/def :state-of-knowledge/statistics
   (s/keys :req-un [:state-of-knowledge.statistics/habitat
