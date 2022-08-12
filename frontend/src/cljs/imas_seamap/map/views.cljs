@@ -193,17 +193,10 @@
    (update :x + (* 2 30))   ; add horizontal padding
    (update :y + (* 2 27)))) ; add vertical padding
 
-(defn popup-component [{:keys [status had-insecure? responses] :as _feature-popup}]
+(defn popup-contents [{:keys [status responses]}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
                                   {:icon (r/as-element [b/spinner {:intent "success"}])}]
-    #_:feature-info/empty          #_[b/non-ideal-state ; should be unreachable, now that no popup is displayed if empty
-                                  (merge
-                                   {:title       "No Results"
-                                    :description "Try clicking elsewhere or adding another layer"
-                                    :icon        "warning-sign"
-                                    :ref         #(when % (re-frame/dispatch [:map/pan-to-popup {:x 305 :y 210}]))}
-                                   (when had-insecure? {:description "(Could not query all displayed external data layers)"}))]
     :feature-info/none-queryable [b/non-ideal-state
                                   {:title       "Invalid Info"
                                    :description "Could not query the external data provider"
@@ -223,6 +216,19 @@
             (.appendChild element (create-shadow-dom-element response)))
           (re-frame/dispatch [:map/pan-to-popup (popup-dimensions element)])))}]))
 
+(defn popup [{:keys [has-info? responses location status] :as _feature-info}]
+  (when (and has-info? (not= status :feature-info/empty))
+    
+    ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
+    ^{:key (str location)}
+    [leaflet/popup
+     {:position location
+      :max-width "100%"
+      :auto-pan false
+      :class (when (= status :feature-info/waiting) "waiting")}
+
+     ^{:key (str status responses)} [popup-contents {:status status :responses responses}]]))
+
 (defn- add-raw-handler-once [js-obj event-name handler]
   (when-not (. js-obj listens event-name)
     (. js-obj on event-name handler)))
@@ -231,9 +237,9 @@
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
-        {:keys [has-info? responses location] fi-status :status :as fi} @(re-frame/subscribe [:map.feature/info])
+        feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [drawing? query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
-        {:keys [selecting? region] :as region-info} @(re-frame/subscribe [:map.layer.selection/info])
+        {:keys [selecting? region] :as region-info}   @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
         loading?                                      @(re-frame/subscribe [:app/loading?])]
@@ -352,10 +358,6 @@
         {:position "bottomright"
          :style nil}]
 
-       (when (and has-info? (not= fi-status :feature-info/empty))
-        ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
-         ^{:key (str location)}
-         [leaflet/popup {:position location :max-width "100%" :auto-pan false :class (when (= fi-status :feature-info/waiting) "waiting")}
-          ^{:key (str (or responses fi-status))}
-          [popup-component fi]])]]
-          children)))
+       [popup feature-info]]]
+     
+     children)))
