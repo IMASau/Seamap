@@ -129,15 +129,6 @@
 
 (s/def :map/preview-layer :map/layer)
 
-(s/def :map.layer.group/id integer?)
-(s/def :map.layer.group/name string?)
-(s/def :map.layer.group/detail_resolution (s/nilable boolean?))
-(s/def :map.layer/group (s/keys :req-un [:map.layer.group/id
-                                         :map.layer/bounding_box
-                                         :map.layer.group/name
-                                         :map.layer.group/detail_resolution]))
-(s/def :map/groups (s/coll-of :map.layer/group))
-
 (s/def :map.layer.organisation/name string?)
 (s/def :map.layer.organisation/logo (s/nilable string?))
 (s/def :map.layer/organisation (s/keys :req-un [:map.layer.organisation/name
@@ -185,7 +176,6 @@
                    :map/active-layers
                    :map/hidden-layers
                    :map/preview-layer
-                   :map/groups
                    :map/organisations
                    :map/viewport-only?
                    :map/keyed-layers]))

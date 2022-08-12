@@ -113,7 +113,7 @@
                 {:keys
                  [layers base-layers
                   base-layer-groups
-                  grouped-base-layers groups
+                  grouped-base-layers
                   organisations
                   categories keyed-layers]
                  :as _map-state} :map
@@ -127,7 +127,6 @@
                                    :base-layer-groups   base-layer-groups
                                    :grouped-base-layers grouped-base-layers
                                    :active-base-layer   (first grouped-base-layers)
-                                   :groups              groups
                                    :organisations       organisations
                                    :categories          categories
                                    :keyed-layers        keyed-layers})
