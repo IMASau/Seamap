@@ -184,6 +184,15 @@
                           :on-created #(re-frame/dispatch [:map.layer.selection/finalise
                                                            (-> % (.. -layer getBounds) bounds->map)])}]])
 
+(defn- element-dimensions [element]
+  {:x (.-offsetWidth element) :y (.-offsetHeight element)})
+
+(defn- popup-dimensions [element]
+  (->
+   (element-dimensions element)
+   (update :x + (* 2 30))   ; add horizontal padding
+   (update :y + (* 2 27)))) ; add vertical padding
+
 (defn popup-component [{:keys [status had-insecure? responses] :as _feature-popup}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
@@ -192,15 +201,18 @@
                                   (merge
                                    {:title       "No Results"
                                     :description "Try clicking elsewhere or adding another layer"
-                                    :icon        "warning-sign"}
+                                    :icon        "warning-sign"
+                                    :ref         #(when % (re-frame/dispatch [:map/pan-to-popup {:x 305 :y 210}]))} ; hardcoded popup contents size because we can't get the size of react elements
                                    (when had-insecure? {:description "(Could not query all displayed external data layers)"}))]
     :feature-info/none-queryable [b/non-ideal-state
                                   {:title       "Invalid Info"
                                    :description "Could not query the external data provider"
-                                   :icon        "warning-sign"}]
+                                   :icon        "warning-sign"
+                                   :ref         #(when % (re-frame/dispatch [:map/pan-to-popup {:x 305 :y 210}]))}] ; hardcoded popup contents size because we can't get the size of react elements
     :feature-info/error          [b/non-ideal-state
                                   {:title "Server Error"
-                                   :icon  "error"}]
+                                   :icon  "error"
+                                   :ref   #(when % (re-frame/dispatch [:map/pan-to-popup {:x 305 :y 210}]))}] ; hardcoded popup contents size because we can't get the size of react elements
     ;; Default; we have actual content:
     [:div
      {:ref
@@ -208,7 +220,8 @@
         (when element
           (set! (.-innerHTML element) nil)
           (doseq [{:keys [_body _style] :as response} responses]
-            (.appendChild element (create-shadow-dom-element response)))))}]))
+            (.appendChild element (create-shadow-dom-element response)))
+          (re-frame/dispatch [:map/pan-to-popup (popup-dimensions element)])))}]))
 
 (defn- add-raw-handler-once [js-obj event-name handler]
   (when-not (. js-obj listens event-name)

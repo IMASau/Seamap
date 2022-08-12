@@ -8,6 +8,12 @@
 (s/def :map/center
   (s/coll-of number? :count 2 :kind vector?))
 
+(s/def :map.size/x number?)
+(s/def :map.size/y number?)
+(s/def :map/size
+  (s/keys :req-un [:map.size/x
+                   :map.size/y]))
+
 (s/def :map/zoom integer?)
 (s/def :map/zoom-cutover integer?)
 
@@ -178,6 +184,7 @@
 
 (s/def ::map
   (s/keys :req-un [:map/center
+                   :map/size
                    :map/zoom
                    :map/zoom-cutover
                    :map/controls
