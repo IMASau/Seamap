@@ -380,9 +380,11 @@
 (s/def :state-of-knowledge.statistics.habitat/results (s/coll-of :state-of-knowledge.statistics.habitat/result
                                                            :kind vector?))
 (s/def :state-of-knowledge.statistics.habitat/loading? boolean?)
+(s/def :state-of-knowledge.statistics.habitat/show-layers? boolean?)
 (s/def :state-of-knowledge.statistics/habitat
   (s/keys :req-un [:state-of-knowledge.statistics.habitat/results
-                   :state-of-knowledge.statistics.habitat/loading?]))
+                   :state-of-knowledge.statistics.habitat/loading?
+                   :state-of-knowledge.statistics.habitat/show-layers?]))
 
 (s/def :state-of-knowledge.statistics.bathymetry.result/resolution (s/nilable string?))
 (s/def :state-of-knowledge.statistics.bathymetry.result/rank (s/nilable integer?))
@@ -398,9 +400,11 @@
 (s/def :state-of-knowledge.statistics.bathymetry/results (s/coll-of :state-of-knowledge.statistics.bathymetry/result
                                                               :kind vector?))
 (s/def :state-of-knowledge.statistics.bathymetry/loading? :state-of-knowledge.statistics.habitat/loading?)
+(s/def :state-of-knowledge.statistics.bathymetry/show-layers? :state-of-knowledge.statistics.habitat/show-layers?)
 (s/def :state-of-knowledge.statistics/bathymetry
   (s/keys :req-un [:state-of-knowledge.statistics.bathymetry/results
-                   :state-of-knowledge.statistics.bathymetry/loading?]))
+                   :state-of-knowledge.statistics.bathymetry/loading?
+                   :state-of-knowledge.statistics.bathymetry/show-layers?]))
 
 
 (s/def :state-of-knowledge.statistics.habitat-observations.global-archive/deployment_id integer?)
@@ -453,12 +457,14 @@
                     :state-of-knowledge.statistics.habitat-observations.squidle/total_annotations
                     :state-of-knowledge.statistics.habitat-observations.squidle/public_annotations])))
 (s/def :state-of-knowledge.statistics.habitat-observations/loading? boolean?)
+(s/def :state-of-knowledge.statistics.habitat-observations/show-layers? boolean?)
 
 (s/def :state-of-knowledge.statistics/habitat-observations
   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations/global-archive
                    :state-of-knowledge.statistics.habitat-observations/sediment
                    :state-of-knowledge.statistics.habitat-observations/squidle
-                   :state-of-knowledge.statistics.habitat-observations/loading?]))
+                   :state-of-knowledge.statistics.habitat-observations/loading?
+                   :state-of-knowledge.statistics.habitat-observations/show-layers?]))
 
 (s/def :state-of-knowledge/statistics
   (s/keys :req-un [:state-of-knowledge.statistics/habitat

@@ -366,8 +366,19 @@
     (conj active-layers layer)))
 
 (defn toggle-layer [{:keys [db]} [_ layer]]
-  (let [db (update-in db [:map :active-layers] (partial toggle-layer-logic layer))
-        db (update-in db [:map :hidden-layers] #(disj % layer))]
+  (let [{:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
+        db (-> db
+               (update-in [:map :active-layers] (partial toggle-layer-logic layer))
+               (update-in [:map :hidden-layers] #(disj % layer))
+               (cond->
+                ((set habitat) layer)
+                 (assoc-in [:state-of-knowledge :statistics :habitat :show-layers?] false)
+
+                 ((set bathymetry) layer)
+                 (assoc-in [:state-of-knowledge :statistics :bathymetry :show-layers?] false)
+
+                 ((set habitat-obs) layer)
+                 (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
     {:db       db
      :put-hash (encode-state db)
      :dispatch [:map/popup-closed]}))
@@ -448,7 +459,9 @@
   ;; keep state synchronised, but the map can start generating events
   ;; before the rest of the app is ready... avoid this by flagging
   ;; initialised state:
-  ;; Exceptions apply for size because we're only reading that from the map
+  ;; Exceptions apply for size because we're only reading that from the map. We need
+  ;; the map size immediately for panning to feature info popups (which can be made
+  ;; immediately on load before the user updates the map view again).
   (if (:initialised db)
     (let [db (-> db
                  (update-in [:map] assoc
@@ -502,8 +515,20 @@
   [{:keys [db]} [_ layer]]
   (let [layers (get-in db [:map :active-layers])
         layers (vec (remove #(= % layer) layers))
-        db     (assoc-in db [:map :active-layers] layers)
-        db     (update-in db [:map :hidden-layers] #(disj % layer))]
+        {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
+        db     (->
+                db
+                (assoc-in [:map :active-layers] layers)
+                (update-in [:map :hidden-layers] #(disj % layer))
+                (cond->
+                 ((set habitat) layer)
+                  (assoc-in [:state-of-knowledge :statistics :habitat :show-layers?] false)
+
+                  ((set bathymetry) layer)
+                  (assoc-in [:state-of-knowledge :statistics :bathymetry :show-layers?] false)
+
+                  ((set habitat-obs) layer)
+                  (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
     {:db       db
      :put-hash (encode-state db)
      :dispatch [:map/popup-closed]}))
