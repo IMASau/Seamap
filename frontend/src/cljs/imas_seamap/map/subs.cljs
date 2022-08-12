@@ -84,9 +84,6 @@
   ;; active; default selection if there's a single habitat layer:
   {:habitat-layer (region-stats-habitat-layer db)})
 
-(defn map-layer-priorities [db _]
-  (get-in db [:map :priorities]))
-
 (defn map-layers-filter [db _]
   (get-in db [:filters :layers]))
 

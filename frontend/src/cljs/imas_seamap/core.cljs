@@ -34,7 +34,6 @@
     :map/categories-map                   msubs/categories-map
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
-    :map.layers/priorities                msubs/map-layer-priorities
     :map.layers/lookup                    msubs/map-layer-lookup
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
@@ -227,7 +226,33 @@
    :transect/query])
 
 (def standard-interceptors
-  [(when ^boolean goog.DEBUG (debug-excluding :transect.plot/mousemove))
+  [(when ^boolean goog.DEBUG
+     (debug-excluding
+      :boot
+      :map/view-updated
+      :ui/show-loading
+      :load-hash-state
+      :initialise-layers
+      :map/update-priorities
+      :map/update-descriptors
+      :map/update-classifications
+      :map/update-layers
+      :map/update-organisations
+      :map/update-categories
+      :sok/update-amp-boundaries
+      :sok/update-imcra-boundaries
+      :sok/update-meow-boundaries
+      :map/update-groups
+      :map/initialise-display
+      :ui/hide-loading
+      :map.layer/load-start
+      :map.layer/tile-load-start
+      :map.layer/load-finished
+      :welcome-layer/open
+      :map/view-updated
+      :map/update-preview-layer
+      :transect.plot/mousemove
+      :ui/mouse-pos))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
 (defn register-handlers! [{:keys [subs events]}]
