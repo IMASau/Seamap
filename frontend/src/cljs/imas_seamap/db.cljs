@@ -22,7 +22,6 @@
                      :grouped-base-layers []
                      :active-base-layer nil
                      :organisations   []
-                     :priorities      []
                      :groups          []
                      :active-layers   []
                      :hidden-layers   #{}
