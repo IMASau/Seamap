@@ -163,7 +163,6 @@
 (s/def :map/controls (s/keys :req-un [:map.controls/transect
                                       :map.controls/download]))
 
-(s/def :map/priority-cutoff (s/and pos? integer?))
 
 (s/def :map/viewport-only? boolean?)
 
@@ -188,7 +187,6 @@
                    :map/preview-layer
                    :map/groups
                    :map/organisations
-                   :map/priority-cutoff
                    :map/viewport-only?
                    :map/keyed-layers]))
 
