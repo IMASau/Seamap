@@ -424,7 +424,9 @@
   ;; keep state synchronised, but the map can start generating events
   ;; before the rest of the app is ready... avoid this by flagging
   ;; initialised state:
-  ;; Exceptions apply for size because we're only reading that from the map
+  ;; Exceptions apply for size because we're only reading that from the map. We need
+  ;; the map size immediately for panning to feature info popups (which can be made
+  ;; immediately on load before the user updates the map view again).
   (if (:initialised db)
     (let [db (-> db
                  (update-in [:map] assoc
