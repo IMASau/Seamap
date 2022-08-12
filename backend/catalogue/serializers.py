@@ -102,3 +102,8 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Category
         fields = '__all__'
+
+class KeyedLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.KeyedLayer
+        fields = ('keyword', 'layer')

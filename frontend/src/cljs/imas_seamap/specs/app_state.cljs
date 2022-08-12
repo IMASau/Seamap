@@ -176,6 +176,9 @@
 
 (s/def :map/viewport-only? boolean?)
 
+(s/def :map/keyed-layers
+  (s/map-of keyword? (s/coll-of #{integer? :map/layer})))
+
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))
 
@@ -196,7 +199,8 @@
                    :map/organisations
                    :map/priorities
                    :map/priority-cutoff
-                   :map/viewport-only?]))
+                   :map/viewport-only?
+                   :map/keyed-layers]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
 (s/def :map.state/error-count (s/map-of :map/layer integer?))

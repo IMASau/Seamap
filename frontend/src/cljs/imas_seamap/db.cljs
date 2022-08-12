@@ -29,6 +29,7 @@
                      :hidden-layers   #{}
                      :preview-layer   nil
                      :viewport-only?  false
+                     :keyed-layers    {}
                      :controls        {:transect false
                                        :download nil}}
    :state-of-knowledge {:boundaries {:active-boundary nil
@@ -94,6 +95,7 @@
                      :descriptor-url        (str api-url-base "descriptors/")
                      :save-state-url        (str api-url-base "savestates")
                      :category-url          (str api-url-base "categories/")
+                     :keyed-layers-url      (str api-url-base "keyedlayers/")
                      :amp-boundaries-url    (str api-url-base "habitat/ampboundaries")
                      :imcra-boundaries-url  (str api-url-base "habitat/imcraboundaries")
                      :meow-boundaries-url   (str api-url-base "habitat/meowboundaries")
