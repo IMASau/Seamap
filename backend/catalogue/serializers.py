@@ -62,18 +62,6 @@ class LayerSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
-    bounding_box = serializers.SerializerMethodField()
-
-    def get_bounding_box(self, obj):
-        bounds = obj.layerpriorities.aggregate(minx=Min('layer__minx'),
-                                               miny=Min('layer__miny'),
-                                               maxx=Max('layer__maxx'),
-                                               maxy=Max('layer__maxy'))
-        return {'west': bounds['minx'],
-                'south': bounds['miny'],
-                'east': bounds['maxx'],
-                'north': bounds['maxy']}
-
     class Meta:
         model = models.LayerGroup
         fields = '__all__'
