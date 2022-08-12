@@ -129,15 +129,6 @@
 
 (s/def :map/preview-layer :map/layer)
 
-
-(s/def :map.layer-group.priority/layer integer?)
-(s/def :map.layer-group.priority/group integer?)
-(s/def :map.layer-group.priority/priority integer?)
-(s/def :map.layer-group/priority (s/keys :req-un [:map.layer-group.priorty/layer
-                                                  :map.layer-group.priorty/group
-                                                  :map.layer-group.priorty/priority]))
-(s/def :map/priorities (s/coll-of :map.layer-group/priority))
-
 (s/def :map.layer.group/id integer?)
 (s/def :map.layer.group/name string?)
 (s/def :map.layer.group/detail_resolution (s/nilable boolean?))
@@ -197,7 +188,6 @@
                    :map/preview-layer
                    :map/groups
                    :map/organisations
-                   :map/priorities
                    :map/priority-cutoff
                    :map/viewport-only?
                    :map/keyed-layers]))
