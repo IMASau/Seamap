@@ -22,9 +22,6 @@
                      :grouped-base-layers []
                      :active-base-layer nil
                      :organisations   []
-                     :priorities      []
-                     :priority-cutoff 2 ; priorities <= this value will be displayed in auto mode
-                     :groups          []
                      :active-layers   []
                      :hidden-layers   #{}
                      :preview-layer   nil
@@ -90,10 +87,8 @@
    :config          {:layer-url             (str api-url-base "layers/")
                      :base-layer-url        (str api-url-base "baselayers/")
                      :base-layer-group-url  (str api-url-base "baselayergroups/")
-                     :group-url             (str api-url-base "groups/")
                      :organisation-url      (str api-url-base "organisations/")
                      :classification-url    (str api-url-base "classifications/")
-                     :priority-url          (str api-url-base "priorities/")
                      :region-stats-url      (str api-url-base "habitat/regions/")
                      :descriptor-url        (str api-url-base "descriptors/")
                      :save-state-url        (str api-url-base "savestates")

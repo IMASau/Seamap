@@ -299,9 +299,6 @@
                    (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
     (keyed-layers-join db)))
 
-(defn update-groups [db [_ groups]]
-  (assoc-in db [:map :groups] groups))
-
 (defn- ->sort-map [ms]
   ;; Associate a category of objects (categories, organisations) with
   ;; a tuple of its sort-key (user-assigned, to allow user-specified
@@ -318,9 +315,6 @@
 
 (defn update-classifications [db [_ classifications]]
   (assoc-in db [:sorting :data_classification] (->sort-map classifications)))
-
-(defn update-priorities [db [_ priorities]]
-  (assoc-in db [:map :priorities] priorities))
 
 (defn update-descriptors [db [_ descriptors]]
   (let [titles  (reduce (fn [acc {:keys [name title]}]  (assoc acc name title))  {} descriptors)
