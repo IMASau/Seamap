@@ -79,14 +79,6 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class GroupPrioritySerializer(serializers.ModelSerializer):
-    # We only want the ids here, so we don't need to follow the
-    # foreign key relations here
-    class Meta:
-        model = models.LayerGroupPriority
-        fields = ('layer', 'group', 'priority')
-
-
 class BaseLayerGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BaseLayerGroup

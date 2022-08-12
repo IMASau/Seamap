@@ -122,18 +122,6 @@ class BaseLayer(models.Model):
 
 
 @python_2_unicode_compatible
-class LayerGroupPriority(models.Model):
-    priority = models.IntegerField(default=1, validators=[MinValueValidator(1)])
-    group = models.ForeignKey(LayerGroup, related_name='layerpriorities', on_delete=models.PROTECT)
-    layer = models.ForeignKey(Layer, related_name='grouppriorities', on_delete=models.PROTECT)
-
-    def __str__(self):
-        return '{}:[{} / {}]'.format(self.priority,
-                                     str(self.layer),
-                                     str(self.group))
-
-
-@python_2_unicode_compatible
 class BaseLayerGroup(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length = 200)
