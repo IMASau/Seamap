@@ -11,7 +11,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map map-on-key]]
-            [imas-seamap.map.utils :as mutils :refer [applicable-layers habitat-layer? download-link]]
+            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -454,8 +454,7 @@
 
 (defn transect-query-bathymetry [{:keys [db]} [_ query-id linestring]]
   (if-let [{:keys [server_url layer_name] :as _bathy-layer}
-           (first (applicable-layers db :category :bathy-transect
-                                     :server_type :ncwms))]
+           (first (get-in db [:map :keyed-layers :transect-bathy]))]
     {:db         db
      :http-xhrio {:method          :get
                   :uri             server_url
