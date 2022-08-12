@@ -59,7 +59,8 @@
 (defn transect-info [{:keys [map transect] :as _db} _]
   (merge
    {:drawing? (boolean (get-in map [:controls :transect]))
-    :query (:query transect)}
+    :query (:query transect)
+    :distance (:distance transect)}
    (when-let [pctg (:mouse-percentage transect)]
      {:mouse-loc (point->latlng
                   (point-along-line (-> transect :query :geometry :coordinates)
@@ -138,3 +139,6 @@
 
 (defn layers-search-omnibar-open? [db _]
   (get-in db [:display :layers-search-omnibar]))
+
+(defn mouse-pos [db _]
+  (get-in db [:display :mouse-pos]))

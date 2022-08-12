@@ -28,6 +28,7 @@
 (def custom-control (r/adapt-react-class ReactLeafletControl/default)) ; Might be a misinterpretation of the module ("exports.default=..."
 (def coordinates-control (r/adapt-react-class ReactLeafletCoordinates/CoordinatesControl))
 (def geojson-feature L/geoJson)
+(def latlng          L/LatLng)
 
 ;;; Multiple basemaps:
 (def layers-control         (r/adapt-react-class ReactLeaflet/LayersControl))

@@ -11,7 +11,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map map-on-key]]
-            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link]]
+            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -365,21 +365,33 @@
      :east  maxx
      :north maxy}))
 
+(defn- linestring->distance [linestring]
+  (:distance
+   (reduce
+    (fn [{:keys [prev-latlng] :as acc} curr-latlng]
+      (-> acc
+          (update :distance + (latlng-distance prev-latlng curr-latlng))
+          (assoc :prev-latlng curr-latlng)))
+    {:distance 0 :prev-latlng (first linestring)}
+    (rest linestring))))
+
 (defn transect-query [{:keys [db]} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
   ;; unlikely race conditions; do this before dispatching)
   (let [query-id (gensym)
+        linestring (geojson->linestring geojson)
         db (assoc db :transect {:query geojson
                                 :query-id query-id
-                                :show? true
+                                :distance (linestring->distance linestring)
                                 :habitat :loading
-                                :bathymetry :loading})
-        linestring (geojson->linestring geojson)]
-    {:db db
-     :put-hash (encode-state db)
-     :dispatch-n [[:transect.plot/show] ; A bit redundant since we set the :show key above
-                  [:transect.query/habitat    query-id linestring]
-                  [:transect.query/bathymetry query-id linestring]]}))
+                                :bathymetry :loading})]
+    (merge
+     {:db db
+      :put-hash (encode-state db)}
+     (when (->> db :map :active-layers (filter habitat-layer?) seq) ; only display transect plot if there's an active habitat layer
+       {:dispatch-n [[:transect.plot/show]
+                     [:transect.query/habitat    query-id linestring]
+                     [:transect.query/bathymetry query-id linestring]]}))))
 
 (defn transect-maybe-query [{:keys [db]}]
   ;; When existing transect state is rehydrated it will have the
@@ -477,6 +489,7 @@
 (defn transect-drawing-clear [db _]
   (update-in db [:transect] merge {:show?      false
                                    :query      nil
+                                   :distance   nil
                                    :habitat    nil
                                    :bathymetry nil}))
 
@@ -652,3 +665,6 @@
 
 (defn layers-search-omnibar-close [db _]
   (assoc-in db [:display :layers-search-omnibar] false))
+
+(defn mouse-pos [db [_ mouse-pos]]
+  (assoc-in db [:display :mouse-pos] mouse-pos))

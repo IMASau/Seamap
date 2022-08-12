@@ -75,7 +75,8 @@
    :region-stats    {:habitat-layer nil}
    :habitat-colours {}
    :habitat-titles  {}
-   :display         {:help-overlay          false
+   :display         {:mouse-pos             {}
+                     :help-overlay          false
                      :welcome-overlay       false
                      :left-drawer           false
                      :left-drawer-tab       "catalogue"

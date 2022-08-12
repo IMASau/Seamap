@@ -203,12 +203,19 @@
 (s/def :geojson/properties map?)
 (s/def ::geojson (s/keys :req-un [:geojson/type :geojson/geometry :geojson/properties]))
 (s/def :transect/query (s/nilable ::geojson))
+(s/def :transect/distance (s/nilable float?))
 (s/def :transect/show? (s/nilable boolean?))
 (s/def :transect/habitat ::transect-results-format)
 (s/def :transect/bathymetry ::transect-results-format)
 (s/def :transect/mouse-percentage (s/nilable number?))
-(s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]
+(s/def ::transect (s/keys :req-un [:transect/query :transect/distance :transect/show? :transect/habitat :transect/bathymetry]
                           :opt-un [:transect/mouse-percentage]))
+
+(s/def :display.mouse-pos/x number?)
+(s/def :display.mouse-pos/y number?)
+(s/def :display/mouse-pos
+  (s/nilable (s/keys :req-un [:display.mouse-pos/x
+                              :display.mouse-pos/y])))
 
 ;;; catalogue
 (s/def :display.catalogue.group/tab string?)
@@ -458,7 +465,8 @@
                    :state-of-knowledge/pill-open?]))
 
 (s/def ::display
-  (s/keys :req-un [:display/catalogue
+  (s/keys :req-un [:display/mouse-pos
+                   :display/catalogue
                    :display/help-overlay
                    :display/welcome-overlay
                    :display/sidebar

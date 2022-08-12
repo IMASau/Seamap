@@ -10,6 +10,7 @@
             [imas-seamap.map.utils :refer [bounds->geojson download-type->str]]
             [imas-seamap.interop.leaflet :as leaflet]
             [imas-seamap.components :as components]
+            [goog.string :as gstring]
             ["/leaflet-zoominfo/L.Control.Zoominfo"]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -138,9 +139,9 @@
 
 (defn transect-control [{:keys [drawing? query] :as _transect-info}]
   (let [[text icon dispatch] (cond
-                               drawing? ["Cancel Transect" "undo"   :transect.draw/disable]
-                               query    ["Clear Transect"  "eraser" :transect.draw/clear]
-                               :else    ["Draw Transect"   "edit"   :transect.draw/enable])]
+                               drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
+                               query    ["Clear Measurement"  "eraser" :transect.draw/clear]
+                               :else    ["Transect/Measure"   "edit"   :transect.draw/enable])]
     [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
      [:a {:on-click #(re-frame/dispatch  [dispatch])}
       [b/tooltip {:content text :position b/RIGHT}
@@ -236,16 +237,25 @@
   (when-not (. js-obj listens event-name)
     (. js-obj on event-name handler)))
 
+(defn distance-tooltip [{:keys [distance] {:keys [x y]} :mouse-pos}]
+  [:div.leaflet-draw-tooltip.distance-tooltip
+   {:style {:visibility "inherit"
+            :transform  (str "translate3d(" x "px, " y "px, 0px)")
+            :z-index    700}}
+   (if (> distance 1000)
+     (gstring/format "%.2f km" (/ distance 1000))
+     (gstring/format "%.0f m" distance))])
+
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
-        {:keys [drawing? query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
+        {:keys [drawing? query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [selecting? region] :as region-info}   @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
-        loading?                                      @(re-frame/subscribe [:app/loading?])]
+        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     (into
      [:div.map-wrapper
       [download-component download-info]
@@ -269,9 +279,13 @@
          :double-click-zoom    false
          :ref                  (fn [map]
                                  (when map
-                                   (add-raw-handler-once (. map -leafletElement) "easyPrint-start"
+                                   (add-raw-handler-once (.-leafletElement map) "mousemove"
+                                                         #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
+                                   (add-raw-handler-once (.-leafletElement map) "mouseout"
+                                                         #(re-frame/dispatch [:ui/mouse-pos nil]))
+                                   (add-raw-handler-once (.-leafletElement map) "easyPrint-start"
                                                          #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
-                                   (add-raw-handler-once (. map -leafletElement) "easyPrint-finished"
+                                   (add-raw-handler-once (.-leafletElement map) "easyPrint-finished"
                                                          #(re-frame/dispatch [:ui/hide-loading]))))
          :on-click             on-map-clicked
          :close-popup-on-click false ; We'll handle that ourselves
@@ -360,6 +374,8 @@
        [leaflet/coordinates-control
         {:position "bottomright"
          :style nil}]
+
+       (when (and mouse-pos distance) [distance-tooltip {:mouse-pos mouse-pos :distance distance}])
 
        [popup feature-info]]]
      

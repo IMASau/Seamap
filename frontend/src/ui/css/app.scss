@@ -746,6 +746,12 @@ input.leaflet-control-layers-selector[type="radio"] {
     overflow-y: hidden;
 }
 
+.distance-tooltip {
+    z-index: 700;
+    font-weight: bold;
+    color: #44ff98;
+}
+
 .leaflet-popup.waiting .leaflet-popup-content-wrapper {
     background: none;
     box-shadow: none;
