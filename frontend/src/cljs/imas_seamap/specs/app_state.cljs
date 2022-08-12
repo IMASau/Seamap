@@ -229,8 +229,8 @@
 (s/def :display.mouse-pos/x number?)
 (s/def :display.mouse-pos/y number?)
 (s/def :display/mouse-pos
-  (s/keys :req-un [:display.mouse-pos/x
-                   :display.mouse-pos/y]))
+  (s/nilable (s/keys :req-un [:display.mouse-pos/x
+                              :display.mouse-pos/y])))
 
 ;;; catalogue
 (s/def :display.catalogue.group/tab string?)

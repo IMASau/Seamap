@@ -258,11 +258,13 @@
          :double-click-zoom    false
          :ref                  (fn [map]
                                  (when map
-                                   (add-raw-handler-once (. map -leafletElement) "mousemove"
+                                   (add-raw-handler-once (.-leafletElement map) "mousemove"
                                                          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
-                                   (add-raw-handler-once (. map -leafletElement) "easyPrint-start"
+                                   (add-raw-handler-once (.-leafletElement map) "mouseout"
+                                                         #(re-frame/dispatch [:ui/mouse-pos nil]))
+                                   (add-raw-handler-once (.-leafletElement map) "easyPrint-start"
                                                          #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
-                                   (add-raw-handler-once (. map -leafletElement) "easyPrint-finished"
+                                   (add-raw-handler-once (.-leafletElement map) "easyPrint-finished"
                                                          #(re-frame/dispatch [:ui/hide-loading]))))
          :on-click             on-map-clicked
          :close-popup-on-click false ; We'll handle that ourselves
@@ -352,7 +354,7 @@
         {:position "bottomright"
          :style nil}]
 
-       (when distance [distance-tooltip {:mouse-pos mouse-pos :distance distance}])
+       (when (and mouse-pos distance) [distance-tooltip {:mouse-pos mouse-pos :distance distance}])
 
        (when has-info?
         ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
