@@ -90,45 +90,6 @@
    #(< %1 %2) ; comparator so nil is always last (instead of first)
    layers))
 
-(defn applicable-layers
-  [{{:keys [layers groups priorities zoom zoom-cutover bounds]} :map :as _db}
-   & {:keys [category server_type]}]
-  ;; Generic utility to retrieve a list of relevant layers, filtered as necessary.
-  ;; figures out cut-off point, and restricts to those on the right side of it;
-  ;; filters to those groups intersecting the bbox;
-  ;; sorts by priority and grouping.
-  (let [match-category?    #(if category (= category (:category %)) true)
-        match-server?      #(if server_type (= server_type (:server_type %)) true)
-        detail-resolution? (< zoom-cutover zoom)
-        group-ids          (->> groups
-                                (filter (fn [{:keys [bounding_box detail_resolution]}]
-                                          ;; detail_resolution only applies to habitat layers:
-                                          (and (or (nil? detail_resolution)
-                                                   (= detail_resolution detail-resolution?))
-                                               (bbox-intersects? bounds bounding_box))))
-                                (map :id)
-                                set)
-        group-priorities   (filter #(group-ids (:group %)) priorities)
-        layer-ids          (->> group-priorities (map :layer) (into #{}))
-        selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %) (match-server? %)) layers)
-        viewport-layers (filter #(bbox-intersects? bounds (:bounding_box %)) selected-layers)]
-    viewport-layers))
-
-;; TODO: Remove, unused
-#_(defn all-priority-layers
-  "Return the list of priority layers: that is, every layer for which
-  its priority in *some* group is higher than the priority-cutoff.
-  This only applies to habitat and bathymetry layers; other categories
-  aren't handled via priorities and are always included."
-  [layers {{:keys [priorities priority-cutoff]} :map :as _db}]
-  (let [priority-layer-ids (->> priorities
-                                (filter #(< (:priority %) priority-cutoff))
-                                (map :layer)
-                                set)]
-    (filter #(or (not (#{:habitat :bathymetry} (:category %)))
-                 (priority-layer-ids (:id %)))
-            layers)))
-
 (def ^:private type->format-str {:map.layer.download/csv     "csv"
                                  :map.layer.download/shp     "shape-zip"
                                  :map.layer.download/geotiff "image/geotiff"})
