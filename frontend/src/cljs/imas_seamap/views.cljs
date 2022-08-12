@@ -255,15 +255,15 @@
 
 (defn transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
-        [dispatch-key label] (cond
-                               drawing? [:transect.draw/disable "Cancel Transect"]
-                               query    [:transect.draw/clear "Clear Transect"]
-                               :else    [:transect.draw/enable  "Draw Transect"])]
+        [text icon dispatch] (cond
+                               drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
+                               query    ["Clear Measurement"  "eraser" :transect.draw/clear]
+                               :else    ["Transect/Measure"   "edit"   :transect.draw/enable])]
     [:div#transect-btn-wrapper {:data-helper-text "Click to draw a transect"}
-     [b/button {:icon "edit"
-                :class "bp3-fill"
-                :on-click (handler-dispatch [dispatch-key])
-                :text label}]]))
+     [b/button {:icon     icon
+                :class    "bp3-fill"
+                :on-click (handler-dispatch [dispatch])
+                :text     text}]]))
 
 (defn selection-button []
   (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
