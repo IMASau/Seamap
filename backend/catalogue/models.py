@@ -64,24 +64,6 @@ class HabitatDescriptor(models.Model):
         return self.name
 
 
-# We have groups of layers, for the purposes of automatic layer
-# switching logic.  A group is a collection of overlapping layers, and
-# layers have a priority within that group that determines in what
-# order they're displayed, and (using a cutoff) which are displayed or
-# not in auto-mode.  A group is also either a detail resolution (most
-# of them; the local area layers), or not (probably only one; the
-# national group).
-
-
-@python_2_unicode_compatible
-class LayerGroup(models.Model):
-    name = models.CharField(max_length = 200)
-    detail_resolution = models.NullBooleanField(default=True)
-
-    def __str__(self):
-        return self.name
-
-
 @python_2_unicode_compatible
 class Layer(models.Model):
     name = models.CharField(max_length = 200)
