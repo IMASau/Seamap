@@ -228,10 +228,11 @@
 (defn normal-bounds
   "Latitude can get pretty wacky if one loops around the entire globe a few times.
    This puts the bounds within the normal latitude range."
-  [{:keys [_west _south _east _north] :as bounds}]
-  (-> bounds
-      (update :west normal-latitude)
-      (update :east normal-latitude)))
+  [{:keys [west _south east _north] :as bounds}]
+  (let [east (normal-latitude east)
+        west (normal-latitude west)
+        east (if (< east west) (+ east 360) east)]
+    (assoc bounds :east east :west west)))
 
 (defn layer-visible? [bounds {:keys [bounding_box] :as _layer}]
   (let [{:keys [west south east north]} (normal-bounds bounds)]
