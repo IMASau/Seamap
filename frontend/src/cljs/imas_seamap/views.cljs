@@ -597,7 +597,7 @@
         [metadata-record layer-info])]
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions
-       (when (and metadata_url (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-[0-9a-f]{4}\-4[0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}$" metadata_url))
+       (when (and metadata_url (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog\.search#/metadata/[-0-9a-zA-Z]+$" metadata_url))
          [:div
           [download-menu {:title     "Download Selection..."
                           :layer     layer
