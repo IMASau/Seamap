@@ -375,7 +375,7 @@
     {:distance 0 :prev-latlng (first linestring)}
     (rest linestring))))
 
-(defn transect-query [{:keys [db]} [_ geojson]]
+(defn transect-query [{{{:keys [active-layers hidden-layers]} :map :as db} :db} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
   ;; unlikely race conditions; do this before dispatching)
   (let [query-id (gensym)
@@ -384,11 +384,13 @@
                                 :query-id query-id
                                 :distance (linestring->distance linestring)
                                 :habitat :loading
-                                :bathymetry :loading})]
+                                :bathymetry :loading})
+        visible-layers (filter #(not (hidden-layers %)) active-layers)
+        habitat-layers (filter habitat-layer? visible-layers)]
     (merge
      {:db db
       :put-hash (encode-state db)}
-     (when (->> db :map :active-layers (filter habitat-layer?) seq) ; only display transect plot if there's an active habitat layer
+     (when (seq habitat-layers) ; only display transect plot if there's an active habitat layer
        {:dispatch-n [[:transect.plot/show]
                      [:transect.query/habitat    query-id linestring]
                      [:transect.query/bathymetry query-id linestring]]}))))
@@ -421,8 +423,9 @@
       {:db      (assoc-in db [:transect type] status-text)
        :message [status-text b/INTENT-DANGER]})))
 
-(defn transect-query-habitat [{:keys [db]} [_ query-id linestring]]
-  (let [habitat-layers (->> db :map :active-layers (filter habitat-layer?))
+(defn transect-query-habitat [{{{:keys [active-layers hidden-layers]} :map :as db} :db} [_ query-id linestring]]
+  (let [visible-layers (filter #(not (hidden-layers %)) active-layers)
+        habitat-layers (filter habitat-layer? visible-layers)
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it
         ;; must be at the front of the list:
