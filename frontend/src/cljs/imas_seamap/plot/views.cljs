@@ -287,12 +287,12 @@
                  width height margin
                  font-size-tooltip font-size-axes]
           :as   props
-          :or   {font-size-tooltip 16
+          :or   {font-size-tooltip 12
                  font-size-axes    16
                  margin            [5 15 15 5]}}]
-      (let [line-height-tooltip             (* 1.6 font-size-tooltip)
+      (let [line-height-tooltip             (* 1.5 font-size-tooltip)
             line-height-axes                (* 1.6 font-size-axes)
-            tooltip-width                   350
+            tooltip-width                   420
             origin                          [(* 3 line-height-axes) (* 3 line-height-axes)]
             [ox oy]                         origin
             [m-left m-right m-top m-bottom] margin
