@@ -236,10 +236,12 @@
 
 (defn layer-visible? [bounds {:keys [bounding_box] :as _layer}]
   (let [{:keys [west south east north]} (normal-bounds bounds)]
-   (not (or (> (:south bounding_box) north)
-            (< (:north bounding_box) south)
-            (> (:west  bounding_box) east)
-            (< (:east  bounding_box) west)))))
+    (or
+     (empty? bounds) ; if no bounds assume we can see the whole map
+     (not (or (> (:south bounding_box) north)
+              (< (:north bounding_box) south)
+              (> (:west  bounding_box) east)
+              (< (:east  bounding_box) west))))))
 
 (defn viewport-layers [{:keys [_west _south _east _north] :as bounds} layers]
   (filter (partial layer-visible? bounds) layers))
