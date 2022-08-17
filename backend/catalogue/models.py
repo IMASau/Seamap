@@ -4,7 +4,7 @@
 
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 from uuid import uuid4
 
 
