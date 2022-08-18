@@ -220,8 +220,8 @@
             (.appendChild element (create-shadow-dom-element response)))
           (re-frame/dispatch [:map/pan-to-popup (popup-dimensions element)])))}]))
 
-(defn popup [{:keys [has-info? responses location status] :as _feature-info}]
-  (when (and has-info? (not= status :feature-info/empty))
+(defn popup [{:keys [has-info? responses location status show?] :as _feature-info}]
+  (when (and show? has-info? (not= status :feature-info/empty))
     
     ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
     ^{:key (str location)}

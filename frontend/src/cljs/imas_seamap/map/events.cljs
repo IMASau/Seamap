@@ -103,7 +103,7 @@
         request-id     (gensym)
         had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
         db             (if had-insecure?
-                         (assoc db :feature {:status :feature-info/none-queryable :location point}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
+                         (assoc db :feature {:status :feature-info/none-queryable :location point :show? true}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
                          (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
                           db
                           :feature-query
@@ -113,8 +113,8 @@
                            :responses         []}
                           :feature
                           {:status   :feature-info/waiting
-                           :location point}))
-        db             (assoc-in db [:feature :status] :feature-info/waiting)]
+                           :location point
+                           :show?    false}))]
     (merge
      {:db db}
      (if (seq per-request)
@@ -142,7 +142,8 @@
                                              :response-remain   1
                                              :responses         []}
                           :feature       {:status   :feature-info/waiting
-                                          :location point})})))
+                                          :location point
+                                          :show?    false})})))
 
 (defn map-click-dispatcher
   "Jumping-off point for when we get a map-click event.  Normally we
@@ -180,7 +181,7 @@
           responses     (vec (remove nil? (map response-to-info responses)))
           had-insecure? (get-in db [:feature-query :had-insecure?])]
       (merge
-       {:location point :had-insecure? had-insecure? :responses responses}
+       {:location point :had-insecure? had-insecure? :responses responses :show? true}
        (when (empty? responses) {:status :feature-info/empty})))))
 
 (defn got-feature-info [db [_ request-id point info-format response]]
