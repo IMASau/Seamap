@@ -116,7 +116,8 @@
                            :location point
                            :show?    false}))]
     (merge
-     {:db db}
+     {:db db
+      :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
      (if (seq per-request)
        {:http-xhrio (get-feature-info-request request-id per-request img-size img-bounds point)}
        {:dispatch [:map/got-featureinfo request-id point nil nil]}))))
@@ -144,6 +145,11 @@
                           :feature       {:status   :feature-info/waiting
                                           :location point
                                           :show?    false})})))
+
+(defn show-popup [db [_ request-id]]
+  (cond-> db
+    (= (get-in db [:feature-query :request-id]) request-id)
+    (assoc-in [:feature :show?] true)))
 
 (defn map-click-dispatcher
   "Jumping-off point for when we get a map-click event.  Normally we
