@@ -41,12 +41,13 @@
     (scale-distance s1 s2 remainder-pct)))
 
 (defn feature-info [{:keys [feature] :as _db} _]
-  (if-let [{:keys [status location had-insecure? responses]} feature]
-    {:has-info? true
+  (if-let [{:keys [status location had-insecure? responses show?]} feature]
+    {:has-info?     true
      :had-insecure? had-insecure?
-     :status status
-     :responses responses
-     :location ((juxt :lat :lng) location)}
+     :status        status
+     :responses     responses
+     :location      ((juxt :lat :lng) location)
+     :show?         show?}
     {:has-info? false}))
 
 (defn download-info [db _]

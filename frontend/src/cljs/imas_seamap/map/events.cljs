@@ -103,7 +103,7 @@
         request-id     (gensym)
         had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
         db             (if had-insecure?
-                         (assoc db :feature {:status :feature-info/none-queryable :location point}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
+                         (assoc db :feature {:status :feature-info/none-queryable :location point :show? true}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
                          (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
                           db
                           :feature-query
@@ -113,10 +113,11 @@
                            :responses         []}
                           :feature
                           {:status   :feature-info/waiting
-                           :location point}))
-        db             (assoc-in db [:feature :status] :feature-info/waiting)]
+                           :location point
+                           :show?    false}))]
     (merge
-     {:db db}
+     {:db db
+      :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
      (if (seq per-request)
        {:http-xhrio (get-feature-info-request request-id per-request img-size img-bounds point)}
        {:dispatch [:map/got-featureinfo request-id point nil nil]}))))
@@ -142,7 +143,13 @@
                                              :response-remain   1
                                              :responses         []}
                           :feature       {:status   :feature-info/waiting
-                                          :location point})})))
+                                          :location point
+                                          :show?    false})})))
+
+(defn show-popup [db [_ request-id]]
+  (cond-> db
+    (and (:feature db) (= (get-in db [:feature-query :request-id]) request-id))
+    (assoc-in [:feature :show?] true)))
 
 (defn map-click-dispatcher
   "Jumping-off point for when we get a map-click event.  Normally we
@@ -179,9 +186,8 @@
     (let [responses     (get-in db [:feature-query :responses])
           responses     (vec (remove nil? (map response-to-info responses)))
           had-insecure? (get-in db [:feature-query :had-insecure?])]
-      (merge
-       {:location point :had-insecure? had-insecure? :responses responses}
-       (when (empty? responses) {:status :feature-info/empty})))))
+      (when (seq responses)
+       {:location point :had-insecure? had-insecure? :responses responses :show? true}))))
 
 (defn got-feature-info [db [_ request-id point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
