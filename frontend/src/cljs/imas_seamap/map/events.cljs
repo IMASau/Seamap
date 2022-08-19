@@ -148,7 +148,7 @@
 
 (defn show-popup [db [_ request-id]]
   (cond-> db
-    (= (get-in db [:feature-query :request-id]) request-id)
+    (and (:feature db) (= (get-in db [:feature-query :request-id]) request-id))
     (assoc-in [:feature :show?] true)))
 
 (defn map-click-dispatcher
@@ -186,9 +186,8 @@
     (let [responses     (get-in db [:feature-query :responses])
           responses     (vec (remove nil? (map response-to-info responses)))
           had-insecure? (get-in db [:feature-query :had-insecure?])]
-      (merge
-       {:location point :had-insecure? had-insecure? :responses responses :show? true}
-       (when (empty? responses) {:status :feature-info/empty})))))
+      (when (seq responses)
+       {:location point :had-insecure? had-insecure? :responses responses :show? true}))))
 
 (defn got-feature-info [db [_ request-id point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
