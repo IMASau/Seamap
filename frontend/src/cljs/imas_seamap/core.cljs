@@ -227,7 +227,13 @@
    :transect/query])
 
 (def standard-interceptors
-  [(when ^boolean goog.DEBUG (debug-excluding :transect.plot/mousemove :ui/mouse-pos))
+  [(when ^boolean goog.DEBUG (debug-excluding
+                              :transect.plot/mousemove
+                              :ui/mouse-pos
+                              :map.layer/load-start
+                              :map.layer/tile-load-start
+                              :map.layer/load-error
+                              :map.layer/load-finished))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
 (defn register-handlers! [{:keys [subs events]}]
