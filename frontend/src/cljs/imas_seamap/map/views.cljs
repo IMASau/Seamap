@@ -271,24 +271,21 @@
          :zoominfoControl      true
          :scaleFactor          true
          :keyboard             false ; handled externally
-         :on-zoomend           on-map-view-changed
-         :on-moveend           on-map-view-changed
          :when-ready           on-map-view-changed
-         :on-baselayerchange   on-base-layer-changed
          :double-click-zoom    false
-         :ref                  (fn [map]
-                                 (when map
-                                   (add-raw-handler-once (.-leafletElement map) "mousemove"
-                                                         #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
-                                   (add-raw-handler-once (.-leafletElement map) "mouseout"
-                                                         #(re-frame/dispatch [:ui/mouse-pos nil]))
-                                   (add-raw-handler-once (.-leafletElement map) "easyPrint-start"
-                                                         #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
-                                   (add-raw-handler-once (.-leafletElement map) "easyPrint-finished"
-                                                         #(re-frame/dispatch [:ui/hide-loading]))))
-         :on-click             on-map-clicked
          :close-popup-on-click false ; We'll handle that ourselves
-         :on-popupclose        on-popup-closed}
+         :when-created
+         (fn [map]
+           (.on map "zoomend"            on-map-view-changed)
+           (.on map "moveend"            on-map-view-changed)
+           (.on map "baselayerchange"    on-base-layer-changed)
+           (.on map "click"              on-map-clicked)
+           (.on map "popupclose"         on-popup-closed)
+
+           (.on map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
+           (.on map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
+           (.on map "easyPrint-start"    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
+           (.on map "easyPrint-finished" #(re-frame/dispatch [:ui/hide-loading])))}
         (when (seq bounds) {:bounds (map->bounds bounds)}))
 
       ;; Basemap selection:
@@ -310,10 +307,11 @@
             {:url              server_url
              :layers           layer_name
              :z-index          (+ 2 i) ; base layers is zindex 1, start content at 2
-             :on-loading       on-load-start
-             :on-tileloadstart on-tile-load-start
-             :on-tileerror     on-tile-error
-             :on-load          on-load-end
+             :eventHandlers
+             {:loading       on-load-start
+              :tileloadstart on-tile-load-start
+              :tileerror     on-tile-error
+              :load          on-load-end} ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
              :transparent      true
              :opacity          (/ (layer-opacities layer) 100)
              :tiled            true
