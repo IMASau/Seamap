@@ -458,14 +458,15 @@
   (assoc-in db [:map :leaflet-map] leaflet-map))
 
 (defn update-map-view [{{:keys [leaflet-map] old-zoom :zoom old-center :center} :map} [_ {:keys [zoom center bounds instant?]}]] 
-  (if instant?
-    (do
-      (when (or zoom center) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom)))
-      (when (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js))))
-    (do
-      (when zoom (.setZoom leaflet-map zoom))
-      (when (seq center) (.flyTo leaflet-map (clj->js center)))
-      (when (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js)))))
+  (when leaflet-map
+    (if instant?
+      (do
+        (when (or zoom center) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom)))
+        (when (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js))))
+      (do
+        (when zoom (.setZoom leaflet-map zoom))
+        (when (seq center) (.flyTo leaflet-map (clj->js center)))
+        (when (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js))))))
   nil)
 
 (defn map-view-updated [{:keys [db]} [_ {:keys [zoom size center bounds]}]]

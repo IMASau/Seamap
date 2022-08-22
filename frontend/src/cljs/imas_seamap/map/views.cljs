@@ -118,7 +118,7 @@
                   :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]]))
 
 (defn share-control [_props]
-  [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+  [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
    ;; The copy-text has to be here rather than in a handler, because
    ;; Firefox won't do execCommand('copy') outside of a "short-lived
    ;; event handler"
@@ -128,7 +128,7 @@
      [b/icon {:icon "share"}]]]])
 
 (defn omnisearch-control [_props]
-  [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+  [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
    [:a {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
     [b/tooltip {:content "Search all layers" :position b/RIGHT}
      [b/icon {:icon "search"}]]]])
@@ -138,7 +138,7 @@
                                drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
                                query    ["Clear Measurement"  "eraser" :transect.draw/clear]
                                :else    ["Transect/Measure"   "edit"   :transect.draw/enable])]
-    [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+    [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
      [:a {:on-click #(re-frame/dispatch  [dispatch])}
       [b/tooltip {:content text :position b/RIGHT}
        [b/icon {:icon icon}]]]]))
@@ -162,7 +162,7 @@
                                selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
                                region     ["Clear Selection"  "eraser" :map.layer.selection/clear]
                                :else      ["Select Region"    "widget" :map.layer.selection/enable])]
-    [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+    [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
      [:a {:on-click #(re-frame/dispatch  [dispatch])}
       [b/tooltip {:content text :position b/RIGHT}
        [b/icon {:icon icon}]]]]))

@@ -5,7 +5,7 @@
   (:require [reagent.core :as r]
             ["leaflet" :as L]
             ["react-leaflet" :as ReactLeaflet]
-            ;; ["react-leaflet-control" :as ReactLeafletControl]
+            ["react-leaflet-custom-control" :as ReactLeafletControl]
             ;; ["react-leaflet-draw" :as ReactLeafletDraw]
             ;; ["react-leaflet-easyprint" :as ReactLeafletEasyprint]
             ;; ["/leaflet-coordinates/leaflet-coordinates" :as ReactLeafletCoordinates]
@@ -28,8 +28,7 @@
 ;; (def print-control (r/adapt-react-class (ReactLeaflet/withLeaflet ReactLeafletEasyprint)))
 (def print-control (fn [_props] [:div]))
 (def scale-control (r/adapt-react-class ReactLeaflet/ScaleControl))
-;; (def custom-control (r/adapt-react-class ReactLeafletControl/default)) ; Might be a misinterpretation of the module ("exports.default=..."
-(def custom-control (fn [_props] [:div]))
+(def custom-control (r/adapt-react-class ReactLeafletControl/default)) ; Might be a misinterpretation of the module ("exports.default=..."
 ;; (def coordinates-control (r/adapt-react-class ReactLeafletCoordinates/CoordinatesControl))
 (def coordinates-control (fn [_props] [:div]))
 (def geojson-feature L/geoJson)
