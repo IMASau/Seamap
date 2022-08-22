@@ -276,6 +276,8 @@
          :close-popup-on-click false ; We'll handle that ourselves
          :when-created
          (fn [map]
+           (re-frame/dispatch [:map/update-leaflet-map map])
+
            (.on map "zoomend"            on-map-view-changed)
            (.on map "moveend"            on-map-view-changed)
            (.on map "baselayerchange"    on-base-layer-changed)

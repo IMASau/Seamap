@@ -160,6 +160,7 @@
     :map/zoom-in                          mevents/map-zoom-in
     :map/zoom-out                         mevents/map-zoom-out
     :map/pan-direction                    mevents/map-pan-direction
+    :map/update-leaflet-map               mevents/update-leaflet-map
     :map/view-updated                     [mevents/map-view-updated]
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click

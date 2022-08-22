@@ -454,6 +454,9 @@
      :put-hash (encode-state db)
      :dispatch [:ui/hide-loading]}))
 
+(defn update-leaflet-map [db [_ leaflet-map]]
+  (assoc-in db [:map :leaflet-map] leaflet-map))
+
 (defn map-view-updated [{:keys [db]} [_ {:keys [zoom size center bounds]}]]
   ;; Race-condition warning: this is called when the map changes to
   ;; keep state synchronised, but the map can start generating events
