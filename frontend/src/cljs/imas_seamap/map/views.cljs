@@ -7,7 +7,7 @@
             [re-frame.db :as db]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [copy-text select-values handler-dispatch create-shadow-dom-element] :include-macros true]
-            [imas-seamap.map.utils :refer [bounds->geojson download-type->str]]
+            [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds]]
             [imas-seamap.interop.leaflet :as leaflet]
             [imas-seamap.components :as components]
             [goog.string :as gstring]
@@ -20,10 +20,6 @@
    :south (. bounds getSouth)
    :east  (. bounds getEast)
    :west  (. bounds getWest)})
-
-(defn map->bounds [{:keys [west south east north] :as _bounds}]
-  [[south west]
-   [north east]])
 
 (defn point->latlng [[x y]] {:lat y :lng x})
 

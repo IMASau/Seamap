@@ -84,7 +84,7 @@
     :re-boot                              events/re-boot
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
-    :load-hash-state                      events/load-hash-state
+    :load-hash-state                      [events/load-hash-state]
     :get-save-state                       [events/get-save-state]
     :load-save-state                      [events/load-save-state]
     :initialise-db                        [events/initialise-db]
@@ -157,10 +157,11 @@
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
-    :map/zoom-in                          mevents/map-zoom-in
-    :map/zoom-out                         mevents/map-zoom-out
-    :map/pan-direction                    mevents/map-pan-direction
+    :map/zoom-in                          [mevents/map-zoom-in]
+    :map/zoom-out                         [mevents/map-zoom-out]
+    :map/pan-direction                    [mevents/map-pan-direction]
     :map/update-leaflet-map               mevents/update-leaflet-map
+    :map/update-map-view                  mevents/update-map-view
     :map/view-updated                     [mevents/map-view-updated]
     :map/popup-closed                     mevents/destroy-popup
     :map/toggle-ignore-click              mevents/toggle-ignore-click
@@ -234,7 +235,8 @@
                               :map.layer/load-start
                               :map.layer/tile-load-start
                               :map.layer/load-error
-                              :map.layer/load-finished))
+                              :map.layer/load-finished
+                              :map/update-preview-layer))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
 (defn register-handlers! [{:keys [subs events]}]

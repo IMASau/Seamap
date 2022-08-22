@@ -358,17 +358,15 @@
                   :on-success      [:sok/got-filtered-bounds]
                   :on-failure      [:ajax/default-err-handler]}}))
 
-(defn got-filtered-bounds [{:keys [db]} [_ geojson]]
+(defn got-filtered-bounds [_ [_ geojson]]
   (let [{{south :lat west :lng} :_southWest
          {north :lat east :lng} :_northEast}
         (js->clj (.getBounds (leaflet/geojson-feature (clj->js geojson))) :keywordize-keys true)
         bounds {:north north
                 :south south
                 :east  east
-                :west  west}
-        db     (assoc-in db [:map :bounds] bounds)]
-    {:db       db
-     :put-hash (encode-state db)}))
+                :west  west}]
+    {:dispatch [:map/update-map-view {:bounds bounds}]}))
 
 (defn habitat-toggle-show-layers [{:keys [db]} _]
   (let [db             (update-in db [:state-of-knowledge :statistics :habitat :show-layers?] not)

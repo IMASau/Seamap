@@ -248,3 +248,7 @@
 
 (defn latlng-distance [[lat1 lng1] [lat2 lng2]]
   (.distanceTo (leaflet/latlng. lat1 lng1) (leaflet/latlng. lat2 lng2)))
+
+(defn map->bounds [{:keys [west south east north] :as _bounds}]
+  [[south west]
+   [north east]])

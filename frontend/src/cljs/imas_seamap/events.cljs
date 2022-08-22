@@ -163,8 +163,10 @@
    :dispatch [:db-initialised]})
 
 (defn load-hash-state
-  [db [_ hash-code]]
-  (merge-in db (parse-state hash-code)))
+  [{:keys [db]} [_ hash-code]]
+  (let [db (merge-in db (parse-state hash-code))]
+    {:db db
+     :dispatch [:map/update-map-view (assoc (:map db) :instant? true)]}))
 
 (defn get-save-state
   [{:keys [db]} [_ save-code]]

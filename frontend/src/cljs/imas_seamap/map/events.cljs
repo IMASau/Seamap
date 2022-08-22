@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers first-where]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -402,21 +402,21 @@
   [{:keys [db]} [_ {:keys [bounding_box] :as layer}]]
   (let [already-active? (some #{layer} (-> db :map :active-layers))
         db              (cond-> db
-                          true                  (assoc-in [:map :bounds] bounding_box)
                           (not already-active?) (update-in [:map :active-layers] (partial toggle-layer-logic layer)))]
     {:db       db
-     :put-hash (encode-state db)}))
+     :put-hash (encode-state db)
+     :dispatch [:map/update-map-view {:bounds bounding_box}]}))
 
 (defn region-stats-select-habitat [db [_ layer]]
   (assoc-in db [:region-stats :habitat-layer] layer))
 
-(defn map-zoom-in [db _]
-  (update-in db [:map :zoom] inc))
+(defn map-zoom-in [{:keys [db]} _]
+  {:dispatch [:map/update-map-view {:zoom (inc (get-in db [:map :zoom]))}]})
 
-(defn map-zoom-out [db _]
-  (update-in db [:map :zoom] dec))
+(defn map-zoom-out [{:keys [db]} _]
+  {:dispatch [:map/update-map-view {:zoom (dec (get-in db [:map :zoom]))}]})
 
-(defn map-pan-direction [db [_ direction]]
+(defn map-pan-direction [{:keys [db]} [_ direction]]
   (assert [(#{:left :right :up :down} direction)])
   (let [[x' y']                         [0.05 0.05]
         [horiz vert]                    (case direction
@@ -428,7 +428,7 @@
         shift-centre                    (fn [[y x]]
                                           [(+ y (* vert  (- north south)))
                                            (+ x (* horiz (- east  west)))])]
-    (update-in db [:map :center] shift-centre)))
+    {:dispatch [:map/update-map-view {:center (shift-centre (get-in db [:map :center]))}]}))
 
 (defn show-initial-layers
   "Figure out the highest priority layer, and display it"
@@ -457,24 +457,25 @@
 (defn update-leaflet-map [db [_ leaflet-map]]
   (assoc-in db [:map :leaflet-map] leaflet-map))
 
+(defn update-map-view [{{:keys [leaflet-map] old-zoom :zoom old-center :center} :map} [_ {:keys [zoom center bounds instant?]}]] 
+  (if instant?
+    (do
+      (when (or zoom center) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom)))
+      (when (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js))))
+    (do
+      (when zoom (.setZoom leaflet-map zoom))
+      (when (seq center) (.flyTo leaflet-map (clj->js center)))
+      (when (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js)))))
+  nil)
+
 (defn map-view-updated [{:keys [db]} [_ {:keys [zoom size center bounds]}]]
-  ;; Race-condition warning: this is called when the map changes to
-  ;; keep state synchronised, but the map can start generating events
-  ;; before the rest of the app is ready... avoid this by flagging
-  ;; initialised state:
-  ;; Exceptions apply for size because we're only reading that from the map. We need
-  ;; the map size immediately for panning to feature info popups (which can be made
-  ;; immediately on load before the user updates the map view again).
-  (if (:initialised db)
-    (let [db (-> db
-                 (update-in [:map] assoc
-                            :zoom   zoom
-                            :size   size
-                            :center center
-                            :bounds bounds))]
-      {:db       db
-       :put-hash (encode-state db)})
-    {:db (assoc-in db [:map :size] size)}))
+  (let [db (update db :map assoc
+                   :zoom   zoom
+                   :size   size
+                   :center center
+                   :bounds bounds)]
+    {:db       db
+     :put-hash (encode-state db)}))
 
 (defn map-start-selecting [db _]
   (-> db
@@ -559,7 +560,7 @@
    outside of the bounds of the map. Knowing this we can pan the map to fix this."
   [{{{{popup-x :x popup-y :y popup-lat :lat popup-lng :lng} :location} :feature
     {{map-width :x map-height :y} :size [map-lat map-lng] :center}
-    :map :as db} :db}
+    :map} :db}
    [_ {popup-width :x popup-height :y :as _popup-dimensions}]]
   (let [map-x           (/ map-width 2)
         map-y           (/ map-height 2)
@@ -574,6 +575,5 @@
                           (pos? overflow-bottom) (+ (* overflow-bottom y-to-lat)))
         map-lng         (cond-> map-lng
                           (pos? overflow-left) (- (* overflow-left x-to-lng))
-                          (pos? overflow-right) (+ (* overflow-right x-to-lng)))
-        db              (assoc-in db [:map :center] [map-lat map-lng])]
-    {:db db}))
+                          (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
+    {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
