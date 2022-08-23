@@ -274,14 +274,6 @@
          (fn [map]
            (re-frame/dispatch [:map/update-leaflet-map map])
 
-           (leaflet/coordinates-control
-            map
-            {:decimals 2
-             :labelTemplateLat "{y}"
-             :labelTemplateLng "{x}"
-             :useLatLngOrder   true
-             :enableUserInput  false})
-
            (.on map "zoomend"            on-map-view-changed)
            (.on map "moveend"            on-map-view-changed)
            (.on map "baselayerchange"    on-base-layer-changed)
