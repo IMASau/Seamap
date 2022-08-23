@@ -375,9 +375,12 @@
 
        [leaflet/scale-control]
 
-       #_[leaflet/coordinates-control
-        {:position "bottomright"
-         :style nil}]
+       [leaflet/coordinates-control
+        {:decimals 2
+         :labelTemplateLat "{y}"
+         :labelTemplateLng "{x}"
+         :useLatLngOrder   true
+         :enableUserInput  false}]
 
        (when (and mouse-pos distance) [distance-tooltip {:mouse-pos mouse-pos :distance distance}])
 
