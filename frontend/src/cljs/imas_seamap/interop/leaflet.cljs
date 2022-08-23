@@ -5,11 +5,12 @@
   (:require [reagent.core :as r]
             ["leaflet" :as L]
             ["react-leaflet" :as ReactLeaflet]
+            ["@react-leaflet/core" :as ReactLeafletCore]
             ["react-leaflet-custom-control" :as ReactLeafletControl]
             ;; ["react-leaflet-draw" :as ReactLeafletDraw]
-            ;; ["react-leaflet-easyprint" :as ReactLeafletEasyprint]
+            ["leaflet-easyprint"]
             ;; ["react-esri-leaflet/v2" :as ReactEsriLeaflet]
-            ["/leaflet-coordinates/leaflet-coordinates"]
+            ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (def crs-epsg4326  L/CRS.EPSG4326)
@@ -24,16 +25,10 @@
 ;; (def edit-control  (r/adapt-react-class ReactLeafletDraw/EditControl))
 (def edit-control (fn [_props] [:div]))
 (def circle-marker (r/adapt-react-class ReactLeaflet/CircleMarker))
-;; (def print-control (r/adapt-react-class (ReactLeaflet/withLeaflet ReactLeafletEasyprint)))
-(def print-control (fn [_props] [:div]))
-(def scale-control (r/adapt-react-class ReactLeaflet/ScaleControl))
-(def custom-control (r/adapt-react-class ReactLeafletControl/default)) ; Might be a misinterpretation of the module ("exports.default=..."
-;; (def coordinates-control (r/adapt-react-class ReactLeafletCoordinates/CoordinatesControl))
-(defn coordinates-control
-  ([map]
-   (.addTo (.. L -control coordinates) map))
-  ([map props]
-   (.addTo (.coordinates (.-control L) (clj->js props)) map)))
+(def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L %))))
+(def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
+(def custom-control      (r/adapt-react-class ReactLeafletControl/default))
+(def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.coordinates (.-control L) %))))
 (def geojson-feature L/geoJson)
 (def latlng          L/LatLng)
 ;; (def esri-base-layer (r/adapt-react-class ReactEsriLeaflet/BasemapLayer))
