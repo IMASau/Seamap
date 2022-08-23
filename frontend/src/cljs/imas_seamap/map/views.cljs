@@ -274,6 +274,14 @@
          (fn [map]
            (re-frame/dispatch [:map/update-leaflet-map map])
 
+           (leaflet/coordinates-control
+            map
+            {:decimals 2
+             :labelTemplateLat "{y}"
+             :labelTemplateLng "{x}"
+             :useLatLngOrder   true
+             :enableUserInput  false})
+
            (.on map "zoomend"            on-map-view-changed)
            (.on map "moveend"            on-map-view-changed)
            (.on map "baselayerchange"    on-base-layer-changed)
@@ -286,6 +294,7 @@
            (.on map "easyPrint-finished" #(re-frame/dispatch [:ui/hide-loading])))}
         (when (seq bounds) {:bounds (map->bounds bounds)}))
 
+       #_[leaflet/esri-base-layer {:name "Gray"}]
       ;; Basemap selection:
        [leaflet/layers-control {:position "topright" :auto-z-index false}
         (for [{:keys [id name server_url attribution] :as base-layer} grouped-base-layers]
@@ -366,7 +375,7 @@
 
        [leaflet/scale-control]
 
-       [leaflet/coordinates-control
+       #_[leaflet/coordinates-control
         {:position "bottomright"
          :style nil}]
 

@@ -8,10 +8,9 @@
             ["react-leaflet-custom-control" :as ReactLeafletControl]
             ;; ["react-leaflet-draw" :as ReactLeafletDraw]
             ;; ["react-leaflet-easyprint" :as ReactLeafletEasyprint]
-            ;; ["/leaflet-coordinates/leaflet-coordinates" :as ReactLeafletCoordinates]
             ;; ["react-esri-leaflet/v2" :as ReactEsriLeaflet]
+            ["/leaflet-coordinates/leaflet-coordinates"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
-
 
 (def crs-epsg4326  L/CRS.EPSG4326)
 (def crs-epsg3857  L/CRS.EPSG3857)
@@ -30,7 +29,11 @@
 (def scale-control (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def custom-control (r/adapt-react-class ReactLeafletControl/default)) ; Might be a misinterpretation of the module ("exports.default=..."
 ;; (def coordinates-control (r/adapt-react-class ReactLeafletCoordinates/CoordinatesControl))
-(def coordinates-control (fn [_props] [:div]))
+(defn coordinates-control
+  ([map]
+   (.addTo (.. L -control coordinates) map))
+  ([map props]
+   (.addTo (.coordinates (.-control L) (clj->js props)) map)))
 (def geojson-feature L/geoJson)
 (def latlng          L/LatLng)
 ;; (def esri-base-layer (r/adapt-react-class ReactEsriLeaflet/BasemapLayer))

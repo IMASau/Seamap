@@ -6712,7 +6712,7 @@ locate-path@^6.0.0:
   dependencies:
     p-locate "^5.0.0"
 
-lodash-es@^4.17.15:
+lodash-es@^4.17.10:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.21.tgz#43e626c46e6591b7750beb2b50117390c609e3ee"
   integrity sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==
@@ -8197,13 +8197,12 @@ react-leaflet-custom-control@^1.3.1:
   resolved "https://registry.yarnpkg.com/react-leaflet-custom-control/-/react-leaflet-custom-control-1.3.1.tgz#41ebf71928ce1489984f7bce8f17693f93c6606f"
   integrity sha512-7nmSIglW4NHXmAvEC7VUCi1wopc6n7HZaipKYRWPenFh2e8bW0wPqL3BlnEcAsHD5i5BLmbCWjP6Pj6aweT+/g==
 
-react-leaflet-draw@0.20.3:
-  version "0.20.3"
-  resolved "https://registry.yarnpkg.com/react-leaflet-draw/-/react-leaflet-draw-0.20.3.tgz#f146bdf08c3846f1bb7b94c35231449c3dd8dba4"
-  integrity sha512-rBD9VLWyvT52v+D/USpdbebJP+pYhKmakGsFdI+Sea+oU7mADdX62CydfnsFvmmwT2IYNX/ou5/kAmgvTlO8ng==
+react-leaflet-draw@0.19.0:
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/react-leaflet-draw/-/react-leaflet-draw-0.19.0.tgz#95de33054016db27e171f8f8f646f6bad17106f3"
+  integrity sha512-aOB7Nqgl79l62L7vHxhdyKJD6ep+1Q+qTfnrYfmcgF+yK0A1lQA2fUv9N4C0HCbejcyiqx1XYchSCw9Q+Vtc3A==
   dependencies:
-    fast-deep-equal "^3.1.3"
-    lodash-es "^4.17.15"
+    lodash-es "^4.17.10"
 
 react-leaflet-easyprint@^2.0.0:
   version "2.0.0"
