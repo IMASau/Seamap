@@ -145,17 +145,27 @@
 
 (defn draw-transect-control []
   [leaflet/feature-group
-   [leaflet/edit-control {:draw       {:rectangle    false
-                                       :circle       false
-                                       :marker       false
-                                       :circlemarker false
-                                       :polygon      false
-                                       :polyline     {:allowIntersection false
-                                                      :metric            "metric"}}
-                          :on-mounted (fn [e]
-                                        (.. e -_toolbars -draw -_modes -polyline -handler enable)
-                                        (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
-                          :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]])
+   [leaflet/edit-control
+    {:draw {:rectangle    false
+            :circle       false
+            :marker       false
+            :circlemarker false
+            :polygon      false
+            :polyline     {:allowIntersection false
+                           :metric            "metric"}}
+     :ref  (fn [e]
+             (js/setTimeout
+              (fn []
+                (try
+                  (.. e -_toolbars -draw -_modes -polyline -handler enable)
+                  (catch :default _ nil))
+                (try
+                  (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
+                  (catch :default _ nil))
+                (try
+                  (.. e -_map (once "draw:created" #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])))
+                  (catch :default _ nil)))
+              100))}]])
 
 (defn region-control [{:keys [selecting? region] :as _region-info}]
   (let [[text icon dispatch] (cond
@@ -169,17 +179,26 @@
 
 (defn draw-region-control []
   [leaflet/feature-group
-   [leaflet/edit-control {:draw       {:rectangle    true
-                                       :circle       false
-                                       :marker       false
-                                       :circlemarker false
-                                       :polygon      false
-                                       :polyline     false}
-                          :on-mounted (fn [e]
-                                        (.. e -_toolbars -draw -_modes -rectangle -handler enable)
-                                        (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable]))))
-                          :on-created #(re-frame/dispatch [:map.layer.selection/finalise
-                                                           (-> % (.. -layer getBounds) bounds->map)])}]])
+   [leaflet/edit-control
+    {:draw {:rectangle    true
+            :circle       false
+            :marker       false
+            :circlemarker false
+            :polygon      false
+            :polyline     false}
+     :ref  (fn [e]
+             (js/setTimeout
+              (fn []
+                (try
+                  (.. e -_toolbars -draw -_modes -rectangle -handler enable)
+                  (catch :default _ nil))
+                (try
+                  (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable])))
+                  (catch :default _ nil))
+                (try
+                  (.. e -_map (once "draw:created" #(re-frame/dispatch [:map.layer.selection/finalise (-> % (.. -layer getBounds) bounds->map)])))
+                  (catch :default _ nil)))
+              100))}]])
 
 (defn- element-dimensions [element]
   {:x (.-offsetWidth element) :y (.-offsetHeight element)})
@@ -286,7 +305,6 @@
            (.on map "easyPrint-finished" #(re-frame/dispatch [:ui/hide-loading])))}
         (when (seq bounds) {:bounds (map->bounds bounds)}))
 
-       #_[leaflet/esri-base-layer {:name "Gray"}]
       ;; Basemap selection:
        [leaflet/layers-control {:position "topright" :auto-z-index false}
         (for [{:keys [id name server_url attribution] :as base-layer} grouped-base-layers]
