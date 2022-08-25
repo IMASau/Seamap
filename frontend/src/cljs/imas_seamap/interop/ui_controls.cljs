@@ -7,7 +7,8 @@
             ["/Drawer/Drawer" :as Drawer]
             ["/PanelStack/PanelStack" :as PanelStack]
             ["/Omnibar/Omnibar" :as Omnibar]
-            ["/Select/Select" :as Select]))
+            ["/Select/Select" :as Select]
+            ["/MyMapContainer/MyMapContainer" :as MyMapContainer]))
 
 (assert SelectionList/ItemsSelectionList)
 (assert Drawer/Drawer)
@@ -18,3 +19,5 @@
 (def PanelStack         (reagent/adapt-react-class PanelStack/PanelStack))
 (def Omnibar            (reagent/adapt-react-class Omnibar/Omnibar))
 (def Select             (reagent/adapt-react-class Select/Select))
+
+(def my-map-container   (reagent/adapt-react-class MyMapContainer/MyMapContainer))

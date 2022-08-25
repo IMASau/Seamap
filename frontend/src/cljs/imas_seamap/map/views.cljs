@@ -10,6 +10,9 @@
             [imas-seamap.interop.leaflet :as leaflet]
             [goog.string :as gstring]
             ["react-leaflet" :as ReactLeaflet]
+            ["@react-leaflet/core" :as ReactLeafletCore]
+            ["react-leaflet-draw" :as ReactLeafletDraw]
+            [imas-seamap.interop.ui-controls :as ui-controls]
             ["/leaflet-zoominfo/L.Control.Zoominfo"]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -258,6 +261,53 @@
    (if (> distance 1000)
      (gstring/format "%.2f km" (/ distance 1000))
      (gstring/format "%.0f m" distance))])
+
+;; --------------------------------------------------------------------------------
+;; Testing different ways of getting react-leaflet-draw EditControl to recognise
+;; MapContainer for useLeafletContext. All of these code examples result in the
+;; same console error describing that useLeafletContext must only be used inside a
+;; MapContainer.
+
+#_(defn map-test []
+  [leaflet/map-container
+   {:style  {:height 500 :z-index 10}
+    :center [-28 134]
+    :zoom   4}
+   [leaflet/tile-layer {:url "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}]
+   [leaflet/feature-group
+    [leaflet/edit-control]]])
+
+
+#_(defn map-test []
+  [:> ReactLeaflet/MapContainer
+   {:style  {:height 500 :z-index 10}
+    :center [-28 134]
+    :zoom   4}
+   [:> ReactLeaflet/TileLayer {:url "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}]
+   [:> ReactLeaflet/FeatureGroup
+    [:f> ReactLeafletDraw/EditControl]]]) ;; :f> and :> yield the same result
+
+
+(defn map-test []
+  (r/create-element
+   ReactLeaflet/MapContainer
+   (clj->js
+    {:style  {:height 500 :zIndex 10}
+     :center [-28 134]
+     :zoom   4})
+   (r/create-element ReactLeaflet/TileLayer #js {:url "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"})
+   (r/create-element
+    ReactLeaflet/FeatureGroup #js {}
+    (r/create-element
+     #(do
+        (js/console.log (ReactLeafletCore/useLeafletContext)) ; successfully logs the LeafletContext of MapContainer
+        (ReactLeafletDraw/EditControl %))                     ; has an error saying useLeafletContext was used outside of MapContainer - maybe pass in LeafletContext as a prop?
+     #js {}))))
+
+#_(defn map-test []
+  [ui-controls/my-map-container])
+
+;; --------------------------------------------------------------------------------
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
