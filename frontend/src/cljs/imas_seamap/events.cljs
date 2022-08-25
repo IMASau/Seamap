@@ -557,7 +557,7 @@
    {:message [message opts]}))
 
 (defn clear-message [db _]
-  (. b/toaster clear)
+  ;; (. b/toaster clear)
   db)
 
 (defn create-save-state [{:keys [db]} _]

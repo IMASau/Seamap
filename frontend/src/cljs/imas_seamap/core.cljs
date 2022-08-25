@@ -2,7 +2,9 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.core
-  (:require [reagent.dom :as rdom]
+  (:require ["react-dom/client" :refer [createRoot]]
+            [goog.dom :as gdom]
+            [reagent.core :as r]
             [re-frame.core :as re-frame]
             [re-frame.db]
             [com.smxemail.re-frame-cookie-fx]
@@ -236,7 +238,30 @@
                               :map.layer/tile-load-start
                               :map.layer/load-error
                               :map.layer/load-finished
-                              :map/update-preview-layer))
+                              :map/update-preview-layer
+                              :boot
+                              :ui/show-loading
+                              :ui/hide-loading
+                              :initialise-layers
+                              :map/update-layers
+                              :map/update-base-layers
+                              :map/update-base-layer-groups
+                              :map/update-descriptors
+                              :map/update-classifications
+                              :map/update-organisations
+                              :map/update-categories
+                              :map/update-keyed-layers
+                              :sok/update-amp-boundaries
+                              :sok/update-imcra-boundaries
+                              :sok/update-meow-boundaries
+                              :load-hash-state
+                              :map/update-map-view
+                              :map/initialise-display
+                              :sok/get-habitat-statistics
+                              :sok/get-bathymetry-statistics
+                              :sok/get-habitat-observations
+                              :transect/maybe-query
+                              :welcome-layer/open))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
 (defn register-handlers! [{:keys [subs events]}]
@@ -258,13 +283,15 @@
     (enable-console-print!)
     (println "dev mode")))
 
+(defonce root (createRoot (gdom/getElement "app")))
+
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
-  (rdom/render
-   [hotkeys-provider
-    [:f> views/layout-app]]
-   (.getElementById js/document "app")))
+  (.render
+   root
+   (r/as-element [hotkeys-provider
+                  [:f> views/layout-app]])))
 
 (defn ^:export show-db []
   @re-frame.db/app-db)
@@ -273,5 +300,12 @@
   (register-handlers! config)
   (re-frame/dispatch-sync [:boot])
   (dev-setup)
+  (mount-root))
+
+(defn ^:dev/after-load re-render
+  []
+  ;; The `:dev/after-load` metadata causes this function to be called
+  ;; after shadow-cljs hot-reloads code.
+  ;; This function is called implicitly by its annotation.
   (mount-root))
 

@@ -4,13 +4,12 @@
 (ns imas-seamap.map.views
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
-            [re-frame.db :as db]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [copy-text select-values handler-dispatch create-shadow-dom-element] :include-macros true]
             [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds]]
             [imas-seamap.interop.leaflet :as leaflet]
-            [imas-seamap.components :as components]
             [goog.string :as gstring]
+            ["react-leaflet" :as ReactLeaflet]
             ["/leaflet-zoominfo/L.Control.Zoominfo"]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -273,49 +272,50 @@
     (into
      [:div.map-wrapper
       [download-component download-info]
-      [leaflet/leaflet-map
+      [leaflet/map-container
        (merge
         {:id                   "map"
-         :class                "sidebar-map"
-        ;; :crs                  leaflet/crs-epsg4326
          :crs                  leaflet/crs-epsg3857
-         :use-fly-to           false ; Trial solution to ISA-171; doesn't actually appear to affect fly-to movement on the map, but does allow for minute movements between center points on the map
+         :use-fly-to           false
          :center               center
          :zoom                 zoom
          :zoomControl          false
          :zoominfoControl      true
          :scaleFactor          true
          :keyboard             false ; handled externally
-         :when-ready           on-map-view-changed
          :double-click-zoom    false
-         :close-popup-on-click false ; We'll handle that ourselves
-         :when-created
-         (fn [map]
-           (re-frame/dispatch [:map/update-leaflet-map map])
-
-           (.on map "zoomend"            on-map-view-changed)
-           (.on map "moveend"            on-map-view-changed)
-           (.on map "baselayerchange"    on-base-layer-changed)
-           (.on map "click"              on-map-clicked)
-           (.on map "popupclose"         on-popup-closed)
-
-           (.on map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
-           (.on map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
-           (.on map "easyPrint-start"    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
-           (.on map "easyPrint-finished" #(re-frame/dispatch [:ui/hide-loading])))}
+         :close-popup-on-click false} ; We'll handle that ourselves
         (when (seq bounds) {:bounds (map->bounds bounds)}))
+       
+       (r/create-element
+        (fn []
+          (when-let [leaflet-map (ReactLeaflet/useMap)]
+            (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
 
-      ;; Basemap selection:
+            (.on leaflet-map "zoomend"            on-map-view-changed)
+            (.on leaflet-map "moveend"            on-map-view-changed)
+            (.on leaflet-map "baselayerchange"    on-base-layer-changed)
+            (.on leaflet-map "click"              on-map-clicked)
+            (.on leaflet-map "popupclose"         on-popup-closed)
+
+            (.on leaflet-map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
+            (.on leaflet-map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
+            (.on leaflet-map "easyPrint-start"    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
+            (.on leaflet-map "easyPrint-finished" #(re-frame/dispatch [:ui/hide-loading]))
+
+            nil)))
+
+       ;; Basemap selection:
        [leaflet/layers-control {:position "topright" :auto-z-index false}
         (for [{:keys [id name server_url attribution] :as base-layer} grouped-base-layers]
           ^{:key id}
           [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
            [leaflet/tile-layer {:url server_url :attribution attribution}]])]
 
-      ;; We enforce the layer ordering by an incrementing z-index (the
-      ;; order of this list is otherwise ignored, as the underlying
-      ;; React -> Leaflet translation just does add/removeLayer, which
-      ;; then orders in the map by update not by list):
+       ;; We enforce the layer ordering by an incrementing z-index (the
+       ;; order of this list is otherwise ignored, as the underlying
+       ;; React -> Leaflet translation just does add/removeLayer, which
+       ;; then orders in the map by update not by list):
        (map-indexed
         (fn [i {:keys [server_url layer_name style id] :as layer}]
           ^{:key (str id (boundary-filter layer))}

@@ -2,7 +2,7 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.fx
-  (:require [imas-seamap.blueprint :as b :refer [toaster]]
+  (:require [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [uuid4?]]
             [re-frame.core :as re-frame]))
 
@@ -17,7 +17,7 @@
                     :onDismiss #(re-frame/dispatch [:info/clear-message])
                     :message   message}
                    (if (map? intent-or-opts) intent-or-opts {:intent intent-or-opts}))]
-    (. toaster show (clj->js msg))))
+    #_(. b/toaster show (clj->js msg))))
 
 (re-frame/reg-fx :message show-message)
 
