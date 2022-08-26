@@ -23,7 +23,7 @@
     "react-sizeme": "^3.0.1",
     "react-select": "^5.1.0",
     "react-transition-group": "4.4.2",
-		"react-beautiful-dnd": "^13.1.0",
+    "react-beautiful-dnd": "^13.1.0",
     "shadow-cljs": "2.19.9",
     "vega": "^5.22.1",
     "vega-lite": "^5.2.0",
