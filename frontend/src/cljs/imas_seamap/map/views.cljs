@@ -105,6 +105,9 @@
             :polyline     {:allowIntersection false
                            :metric            "metric"}}
      :ref  (fn [e]
+             ;; Unfortunately, until we get react-leaflet-draw working with the latest version
+             ;; of react-leaflet, we have to deal with missing our onMount event, and instead
+             ;; have to make-do with waiting and then dispatching after 100ms.
              (js/setTimeout
               (fn []
                 (try
@@ -138,6 +141,9 @@
             :polygon      false
             :polyline     false}
      :ref  (fn [e]
+             ;; Unfortunately, until we get react-leaflet-draw working with the latest version
+             ;; of react-leaflet, we have to deal with missing our onMount event, and instead
+             ;; have to make-do with waiting and then dispatching after 100ms.
              (js/setTimeout
               (fn []
                 (try
@@ -198,10 +204,6 @@
 
      ^{:key (str status responses)} [popup-contents {:status status :responses responses}]]))
 
-(defn- add-raw-handler-once [js-obj event-name handler]
-  (when-not (. js-obj listens event-name)
-    (. js-obj on event-name handler)))
-
 (defn distance-tooltip [{:keys [distance] {:keys [x y]} :mouse-pos}]
   [:div.leaflet-draw-tooltip.distance-tooltip
    {:style {:visibility "inherit"
@@ -216,8 +218,8 @@
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
-        {:keys [drawing? query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
-        {:keys [selecting? region] :as region-info}   @(re-frame/subscribe [:map.layer.selection/info])
+        {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
+        {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
@@ -239,6 +241,9 @@
          :close-popup-on-click false} ; We'll handle that ourselves
         (when (seq bounds) {:bounds (map->bounds bounds)}))
        
+       ;; Unfortunately, only map container children in react-leaflet v4 are able to
+       ;; obtain a reference to the leaflet map through useMap. We make a dummy child here
+       ;; to get around the issue and obtain the map.
        (r/create-element
         #(when-let [leaflet-map (ReactLeaflet/useMap)]
            (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
