@@ -261,7 +261,8 @@
                               :sok/get-bathymetry-statistics
                               :sok/get-habitat-observations
                               :transect/maybe-query
-                              :welcome-layer/open))
+                              :welcome-layer/open
+                              :map/update-leaflet-map))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
 (defn register-handlers! [{:keys [subs events]}]

@@ -17,7 +17,7 @@
                     :onDismiss #(re-frame/dispatch [:info/clear-message])
                     :message   message}
                    (if (map? intent-or-opts) intent-or-opts {:intent intent-or-opts}))]
-    #_(. b/toaster show (clj->js msg))))
+    (. b/toaster show (clj->js msg))))
 
 (re-frame/reg-fx :message show-message)
 
