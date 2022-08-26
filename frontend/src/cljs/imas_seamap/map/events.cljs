@@ -3,9 +3,10 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
+            [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers first-where]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -455,7 +456,18 @@
      :dispatch [:ui/hide-loading]}))
 
 (defn update-leaflet-map [db [_ leaflet-map]]
-  (assoc-in db [:map :leaflet-map] leaflet-map))
+  (when (not= leaflet-map (get-in db [:map :leaflet-map]))
+    (.on leaflet-map "zoomend"            #(re-frame/dispatch [:map/view-updated (leaflet-props %)]))
+    (.on leaflet-map "moveend"            #(re-frame/dispatch [:map/view-updated (leaflet-props %)]))
+    (.on leaflet-map "baselayerchange"    #(re-frame/dispatch [:map/base-layer-changed (.-name %)]))
+    (.on leaflet-map "click"              #(re-frame/dispatch [:map/clicked (leaflet-props %) (mouseevent->coords %)]))
+    (.on leaflet-map "popupclose"         #(re-frame/dispatch [:map/popup-closed]))
+    (.on leaflet-map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
+    (.on leaflet-map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
+    (.on leaflet-map "easyPrint-start"    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
+    (.on leaflet-map "easyPrint-finished" #(re-frame/dispatch [:ui/hide-loading]))
+
+    (assoc-in db [:map :leaflet-map] leaflet-map)))
 
 (defn update-map-view [{{:keys [leaflet-map] old-zoom :zoom old-center :center} :map} [_ {:keys [zoom center bounds instant?]}]] 
   (when leaflet-map

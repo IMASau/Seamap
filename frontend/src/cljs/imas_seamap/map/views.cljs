@@ -5,8 +5,8 @@
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.utils :refer [copy-text select-values handler-dispatch create-shadow-dom-element] :include-macros true]
-            [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds]]
+            [imas-seamap.utils :refer [copy-text handler-dispatch create-shadow-dom-element] :include-macros true]
+            [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds bounds->map]]
             [imas-seamap.interop.leaflet :as leaflet]
             [goog.string :as gstring]
             ["react-leaflet" :as ReactLeaflet]
@@ -14,59 +14,11 @@
             ["/leaflet-scalefactor/leaflet.scalefactor"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
-(defn bounds->map [bounds]
-  {:north (. bounds getNorth)
-   :south (. bounds getSouth)
-   :east  (. bounds getEast)
-   :west  (. bounds getWest)})
-
 (defn point->latlng [[x y]] {:lat y :lng x})
 
 (defn point-distance [[x1 y1 :as _p1] [x2 y2 :as _p2]]
   (let [xd (- x2 x1) yd (- y2 y1)]
     (js/Math.sqrt (+ (* xd xd) (* yd yd)))))
-
-(defn latlng->vec [ll]
-  (-> ll
-      js->clj
-      (select-values ["lat" "lng"])))
-
-(defn mouseevent->coords [e]
-  (merge
-   (-> e
-       ;; Note need to round; fractional offsets (eg as in wordpress
-       ;; navbar) cause fractional x/y which causes geoserver to
-       ;; return errors in GetFeatureInfo
-       (.. -containerPoint round)
-       (js->clj :keywordize-keys true)
-       (select-keys [:x :y]))
-   (-> e
-       (. -latlng)
-       (js->clj :keywordize-keys true)
-       (select-keys [:lat :lng]))))
-
-(defn leaflet-props [e]
-  (let [m (. e -target)]
-    {:zoom   (. m getZoom)
-     :size   (-> m (. getSize) (js->clj :keywordize-keys true) (select-keys [:x :y]))
-     :center (-> m (. getCenter) latlng->vec)
-     :bounds (-> m (. getBounds) bounds->map)}))
-
-(defn on-map-clicked
-  "Initial handler for map click events; intent is these only apply to image layers"
-  [e]
-  (re-frame/dispatch [:map/clicked (leaflet-props e) (mouseevent->coords e)]))
-
-(defn on-popup-closed [_e]
-  (re-frame/dispatch [:map/popup-closed]))
-
-(defn on-map-view-changed [e]
-  (re-frame/dispatch [:map/view-updated (leaflet-props e)]))
-
-(defn on-base-layer-changed [e]
-  ;; We only have easy access to the name, but we require that to be unique:
-  (re-frame/dispatch [:map/base-layer-changed
-                      (-> e (js->clj :keywordize-keys true) :name)]))
 
 ;;; Rather round-about logic: we want to attach a callback based on a
 ;;; specific layer, but because closure are created fresh they fail
@@ -288,22 +240,9 @@
         (when (seq bounds) {:bounds (map->bounds bounds)}))
        
        (r/create-element
-        (fn []
-          (when-let [leaflet-map (ReactLeaflet/useMap)]
-            (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
-
-            (.on leaflet-map "zoomend"            on-map-view-changed)
-            (.on leaflet-map "moveend"            on-map-view-changed)
-            (.on leaflet-map "baselayerchange"    on-base-layer-changed)
-            (.on leaflet-map "click"              on-map-clicked)
-            (.on leaflet-map "popupclose"         on-popup-closed)
-
-            (.on leaflet-map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
-            (.on leaflet-map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
-            (.on leaflet-map "easyPrint-start"    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
-            (.on leaflet-map "easyPrint-finished" #(re-frame/dispatch [:ui/hide-loading]))
-
-            nil)))
+        #(when-let [leaflet-map (ReactLeaflet/useMap)]
+           (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
+           nil))
 
        ;; Basemap selection:
        [leaflet/layers-control {:position "topright" :auto-z-index false}
