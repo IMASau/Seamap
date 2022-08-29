@@ -216,7 +216,8 @@
 (defmulti layer-component
   #(get-in % [:layer :layer_type]))
 
-(defmethod layer-component :wms [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style] :as layer} :layer}]
+(defmethod layer-component :wms
+  [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style] :as layer} :layer}]
   [leaflet/wms-layer
    (merge
     {:url              server_url
@@ -233,7 +234,8 @@
     (when style {:styles style})
     (boundary-filter layer))])
 
-(defmethod layer-component :tile [{:keys [layer-opacities] {:keys [server_url] :as layer} :layer}]
+(defmethod layer-component :tile
+  [{:keys [layer-opacities] {:keys [server_url] :as layer} :layer}]
   [leaflet/tile-layer
    {:url              server_url
     :eventHandlers
@@ -246,7 +248,8 @@
     :tiled            true
     :format           "image/png"}])
 
-(defmethod layer-component :feature [{{:keys [server_url]} :layer}]
+(defmethod layer-component :feature
+  [{{:keys [server_url]} :layer}]
   [leaflet/feature-layer
    {:url              server_url
     :eventHandlers
@@ -254,6 +257,16 @@
      :tileloadstart on-tile-load-start
      :tileerror     on-tile-error
      :load          on-load-end}}]) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
+
+(defmulti basemap-layer-component :layer_type)
+
+(defmethod basemap-layer-component :tile
+ [{:keys [server_url attribution]}]
+ [leaflet/tile-layer {:url server_url :attribution attribution}])
+
+(defmethod basemap-layer-component :vector
+  [{:keys [server_url attribution]}]
+  [leaflet/vector-tile-layer {:url server_url :attribution attribution}])
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
@@ -293,11 +306,11 @@
 
        ;; Basemap selection:
        [leaflet/layers-control {:position "topright" :auto-z-index false}
-        (for [{:keys [id name server_url attribution] :as base-layer} grouped-base-layers]
+        (for [{:keys [id name] :as base-layer} grouped-base-layers]
           ^{:key id}
           [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
-           [leaflet/pane {:name (str "basemap" id) :style {:z-index 0}}
-            [leaflet/tile-layer {:url server_url :attribution attribution}]]])]
+           [leaflet/pane {:name (str "basemap-" id) :style {:z-index 0}}
+            [basemap-layer-component base-layer]]])]
        
        (map-indexed
         (fn [i {:keys [id] :as layer}]
