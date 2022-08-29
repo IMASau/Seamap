@@ -86,6 +86,7 @@ class Layer(models.Model):
     info_format_type = models.IntegerField()
     keywords = models.CharField(max_length = 400, null=True, blank=True)
     style = models.CharField(max_length=200, null=True, blank=True)
+    layer_type = models.CharField(max_length=10)
 
     def __str__(self):
         return self.name

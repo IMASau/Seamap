@@ -233,10 +233,11 @@
   (-> layer
       (update :category    (comp keyword string/lower-case))
       (update :server_type (comp keyword string/lower-case))
-      (assoc :info-format (case (:info_format_type layer)
-                            1 "text/html"
-                            2 "application/json"
-                            nil))))
+      (update :layer_type  (comp keyword string/lower-case))
+      (assoc  :info-format (case (:info_format_type layer)
+                             1 "text/html"
+                             2 "application/json"
+                             nil))))
 
 (defn process-layers [layers]
   (mapv process-layer layers))
