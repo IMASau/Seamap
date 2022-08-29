@@ -284,7 +284,8 @@
     (update-grouped-base-layers db)))
 
 (defn update-base-layers [db [_ layers]]
-  (let [db (assoc-in db [:map :base-layers] layers)]
+  (let [layers (mapv #(update % :layer_type (comp keyword string/lower-case)) layers)
+        db     (assoc-in db [:map :base-layers] layers)]
     (update-grouped-base-layers db)))
 
 (defn- keyed-layers-join
