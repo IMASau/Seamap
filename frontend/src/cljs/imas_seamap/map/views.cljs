@@ -246,6 +246,15 @@
     :tiled            true
     :format           "image/png"}])
 
+(defmethod layer-component :feature [{{:keys [server_url]} :layer}]
+  [leaflet/feature-layer
+   {:url              server_url
+    :eventHandlers
+    {:loading       on-load-start
+     :tileloadstart on-tile-load-start
+     :tileerror     on-tile-error
+     :load          on-load-end}}]) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
+
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
