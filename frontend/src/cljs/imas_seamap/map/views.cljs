@@ -195,7 +195,7 @@
 (defn popup [{:keys [has-info? responses location status show?] :as _feature-info}]
   (when (and show? has-info?)
     ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
-    ^{:key (str location)}
+    ^{:key (str location status)}
     [leaflet/popup
      {:position location
       :max-width "100%"
