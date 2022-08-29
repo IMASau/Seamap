@@ -213,29 +213,22 @@
      (gstring/format "%.2f km" (/ distance 1000))
      (gstring/format "%.0f m" distance))])
 
-(defn layer-component [{:keys [boundary-filter layer-opacities z-index] {:keys [server_url layer_name style id] :as layer} :layer}]
-  ;; While it's not efficient, we give every layer it's own pane to simplify the
-  ;; code.
-  ;; Panes are given a name based on a uuid and time because if a pane is given the
-  ;; same name as a previously existing pane leaflet complains about a new pane being
-  ;; made with the same name as an existing pane (causing leaflet to no longer work).
-  ^{:key (str id "-" (boundary-filter layer) "-" z-index)}
-  [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
-   [leaflet/wms-layer
-    (merge
-     {:url              server_url
-      :layers           layer_name
-      :eventHandlers
-      {:loading       on-load-start
-       :tileloadstart on-tile-load-start
-       :tileerror     on-tile-error
-       :load          on-load-end} ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
-      :transparent      true
-      :opacity          (/ (layer-opacities layer) 100)
-      :tiled            true
-      :format           "image/png"}
-     (when style {:styles style})
-     (boundary-filter layer))]])
+(defn layer-component [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style id] :as layer} :layer}]
+  [leaflet/wms-layer
+   (merge
+    {:url              server_url
+     :layers           layer_name
+     :eventHandlers
+     {:loading       on-load-start
+      :tileloadstart on-tile-load-start
+      :tileerror     on-tile-error
+      :load          on-load-end} ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
+     :transparent      true
+     :opacity          (/ (layer-opacities layer) 100)
+     :tiled            true
+     :format           "image/png"}
+    (when style {:styles style})
+    (boundary-filter layer))])
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
@@ -282,13 +275,18 @@
             [leaflet/tile-layer {:url server_url :attribution attribution}]]])]
        
        (map-indexed
-        (fn [i layer]
-          ^{:key i}
-          [layer-component
-           {:layer           layer
-            :boundary-filter boundary-filter
-            :layer-opacities layer-opacities
-            :z-index         (+ i 2)}])
+        (fn [i {:keys [id] :as layer}]
+          ;; While it's not efficient, we give every layer it's own pane to simplify the
+          ;; code.
+          ;; Panes are given a name based on a uuid and time because if a pane is given the
+          ;; same name as a previously existing pane leaflet complains about a new pane being
+          ;; made with the same name as an existing pane (causing leaflet to no longer work).
+          ^{:key (str id (boundary-filter layer) (+ i 2))}
+          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 2)}}
+           [layer-component
+            {:layer           layer
+             :boundary-filter boundary-filter
+             :layer-opacities layer-opacities}]])
         (concat (:layers active-base-layer) visible-layers))
        (when query
          [leaflet/geojson-layer {:data (clj->js query)}])
