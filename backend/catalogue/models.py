@@ -86,6 +86,7 @@ class Layer(models.Model):
     info_format_type = models.IntegerField()
     keywords = models.CharField(max_length = 400, null=True, blank=True)
     style = models.CharField(max_length=200, null=True, blank=True)
+    layer_type = models.CharField(max_length=10)
 
     def __str__(self):
         return self.name
@@ -98,6 +99,7 @@ class BaseLayer(models.Model):
     attribution = models.CharField(max_length = 200)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
     layer_group = models.IntegerField(null=True)
+    layer_type = models.CharField(max_length=10)
 
     def __str__(self):
         return self.name
