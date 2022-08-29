@@ -4,74 +4,21 @@
 (ns imas-seamap.map.views
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
-            [re-frame.db :as db]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.utils :refer [copy-text select-values handler-dispatch create-shadow-dom-element] :include-macros true]
-            [imas-seamap.map.utils :refer [bounds->geojson download-type->str]]
+            [imas-seamap.utils :refer [copy-text handler-dispatch create-shadow-dom-element] :include-macros true]
+            [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds bounds->map]]
             [imas-seamap.interop.leaflet :as leaflet]
-            [imas-seamap.components :as components]
             [goog.string :as gstring]
+            ["react-leaflet" :as ReactLeaflet]
             ["/leaflet-zoominfo/L.Control.Zoominfo"]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
-
-(defn bounds->map [bounds]
-  {:north (. bounds getNorth)
-   :south (. bounds getSouth)
-   :east  (. bounds getEast)
-   :west  (. bounds getWest)})
-
-(defn map->bounds [{:keys [west south east north] :as _bounds}]
-  [[south west]
-   [north east]])
 
 (defn point->latlng [[x y]] {:lat y :lng x})
 
 (defn point-distance [[x1 y1 :as _p1] [x2 y2 :as _p2]]
   (let [xd (- x2 x1) yd (- y2 y1)]
     (js/Math.sqrt (+ (* xd xd) (* yd yd)))))
-
-(defn latlng->vec [ll]
-  (-> ll
-      js->clj
-      (select-values ["lat" "lng"])))
-
-(defn mouseevent->coords [e]
-  (merge
-   (-> e
-       ;; Note need to round; fractional offsets (eg as in wordpress
-       ;; navbar) cause fractional x/y which causes geoserver to
-       ;; return errors in GetFeatureInfo
-       (.. -containerPoint round)
-       (js->clj :keywordize-keys true)
-       (select-keys [:x :y]))
-   (-> e
-       (. -latlng)
-       (js->clj :keywordize-keys true)
-       (select-keys [:lat :lng]))))
-
-(defn leaflet-props [e]
-  (let [m (. e -target)]
-    {:zoom   (. m getZoom)
-     :size   (-> m (. getSize) (js->clj :keywordize-keys true) (select-keys [:x :y]))
-     :center (-> m (. getCenter) latlng->vec)
-     :bounds (-> m (. getBounds) bounds->map)}))
-
-(defn on-map-clicked
-  "Initial handler for map click events; intent is these only apply to image layers"
-  [e]
-  (re-frame/dispatch [:map/clicked (leaflet-props e) (mouseevent->coords e)]))
-
-(defn on-popup-closed [_e]
-  (re-frame/dispatch [:map/popup-closed]))
-
-(defn on-map-view-changed [e]
-  (re-frame/dispatch [:map/view-updated (leaflet-props e)]))
-
-(defn on-base-layer-changed [e]
-  ;; We only have easy access to the name, but we require that to be unique:
-  (re-frame/dispatch [:map/base-layer-changed
-                      (-> e (js->clj :keywordize-keys true) :name)]))
 
 ;;; Rather round-about logic: we want to attach a callback based on a
 ;;; specific layer, but because closure are created fresh they fail
@@ -122,7 +69,7 @@
                   :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]]))
 
 (defn share-control [_props]
-  [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+  [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
    ;; The copy-text has to be here rather than in a handler, because
    ;; Firefox won't do execCommand('copy') outside of a "short-lived
    ;; event handler"
@@ -132,7 +79,7 @@
      [b/icon {:icon "share"}]]]])
 
 (defn omnisearch-control [_props]
-  [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+  [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
    [:a {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
     [b/tooltip {:content "Search all layers" :position b/RIGHT}
      [b/icon {:icon "search"}]]]])
@@ -142,48 +89,73 @@
                                drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
                                query    ["Clear Measurement"  "eraser" :transect.draw/clear]
                                :else    ["Transect/Measure"   "edit"   :transect.draw/enable])]
-    [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+    [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
      [:a {:on-click #(re-frame/dispatch  [dispatch])}
       [b/tooltip {:content text :position b/RIGHT}
        [b/icon {:icon icon}]]]]))
 
 (defn draw-transect-control []
   [leaflet/feature-group
-   [leaflet/edit-control {:draw       {:rectangle    false
-                                       :circle       false
-                                       :marker       false
-                                       :circlemarker false
-                                       :polygon      false
-                                       :polyline     {:allowIntersection false
-                                                      :metric            "metric"}}
-                          :on-mounted (fn [e]
-                                        (.. e -_toolbars -draw -_modes -polyline -handler enable)
-                                        (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable]))))
-                          :on-created #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])}]])
+   [leaflet/edit-control
+    {:draw {:rectangle    false
+            :circle       false
+            :marker       false
+            :circlemarker false
+            :polygon      false
+            :polyline     {:allowIntersection false
+                           :metric            "metric"}}
+     :ref  (fn [e]
+             ;; Unfortunately, until we get react-leaflet-draw working with the latest version
+             ;; of react-leaflet, we have to deal with missing our onMount event, and instead
+             ;; have to make-do with waiting and then dispatching after 100ms.
+             (js/setTimeout
+              (fn []
+                (try
+                  (.. e -_toolbars -draw -_modes -polyline -handler enable)
+                  (catch :default _ nil))
+                (try
+                  (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:transect.draw/disable])))
+                  (catch :default _ nil))
+                (try
+                  (.. e -_map (once "draw:created" #(re-frame/dispatch [:transect/query (-> % (.. -layer toGeoJSON) (js->clj :keywordize-keys true))])))
+                  (catch :default _ nil)))
+              100))}]])
 
 (defn region-control [{:keys [selecting? region] :as _region-info}]
   (let [[text icon dispatch] (cond
                                selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
                                region     ["Clear Selection"  "eraser" :map.layer.selection/clear]
                                :else      ["Select Region"    "widget" :map.layer.selection/enable])]
-    [leaflet/custom-control {:position "topleft" :class "leaflet-bar"}
+    [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
      [:a {:on-click #(re-frame/dispatch  [dispatch])}
       [b/tooltip {:content text :position b/RIGHT}
        [b/icon {:icon icon}]]]]))
 
 (defn draw-region-control []
   [leaflet/feature-group
-   [leaflet/edit-control {:draw       {:rectangle    true
-                                       :circle       false
-                                       :marker       false
-                                       :circlemarker false
-                                       :polygon      false
-                                       :polyline     false}
-                          :on-mounted (fn [e]
-                                        (.. e -_toolbars -draw -_modes -rectangle -handler enable)
-                                        (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable]))))
-                          :on-created #(re-frame/dispatch [:map.layer.selection/finalise
-                                                           (-> % (.. -layer getBounds) bounds->map)])}]])
+   [leaflet/edit-control
+    {:draw {:rectangle    true
+            :circle       false
+            :marker       false
+            :circlemarker false
+            :polygon      false
+            :polyline     false}
+     :ref  (fn [e]
+             ;; Unfortunately, until we get react-leaflet-draw working with the latest version
+             ;; of react-leaflet, we have to deal with missing our onMount event, and instead
+             ;; have to make-do with waiting and then dispatching after 100ms.
+             (js/setTimeout
+              (fn []
+                (try
+                  (.. e -_toolbars -draw -_modes -rectangle -handler enable)
+                  (catch :default _ nil))
+                (try
+                  (.. e -_map (once "draw:drawstop" #(re-frame/dispatch [:map.layer.selection/disable])))
+                  (catch :default _ nil))
+                (try
+                  (.. e -_map (once "draw:created" #(re-frame/dispatch [:map.layer.selection/finalise (-> % (.. -layer getBounds) bounds->map)])))
+                  (catch :default _ nil)))
+              100))}]])
 
 (defn- element-dimensions [element]
   {:x (.-offsetWidth element) :y (.-offsetHeight element)})
@@ -232,10 +204,6 @@
 
      ^{:key (str status responses)} [popup-contents {:status status :responses responses}]]))
 
-(defn- add-raw-handler-once [js-obj event-name handler]
-  (when-not (. js-obj listens event-name)
-    (. js-obj on event-name handler)))
-
 (defn distance-tooltip [{:keys [distance] {:keys [x y]} :mouse-pos}]
   [:div.leaflet-draw-tooltip.distance-tooltip
    {:style {:visibility "inherit"
@@ -250,58 +218,48 @@
         {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
-        {:keys [drawing? query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
-        {:keys [selecting? region] :as region-info}   @(re-frame/subscribe [:map.layer.selection/info])
+        {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
+        {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     (into
      [:div.map-wrapper
       [download-component download-info]
-      [leaflet/leaflet-map
+      [leaflet/map-container
        (merge
         {:id                   "map"
-         :class                "sidebar-map"
-        ;; :crs                  leaflet/crs-epsg4326
          :crs                  leaflet/crs-epsg3857
-         :use-fly-to           false ; Trial solution to ISA-171; doesn't actually appear to affect fly-to movement on the map, but does allow for minute movements between center points on the map
+         :use-fly-to           false
          :center               center
          :zoom                 zoom
          :zoomControl          false
          :zoominfoControl      true
          :scaleFactor          true
          :keyboard             false ; handled externally
-         :on-zoomend           on-map-view-changed
-         :on-moveend           on-map-view-changed
-         :when-ready           on-map-view-changed
-         :on-baselayerchange   on-base-layer-changed
          :double-click-zoom    false
-         :ref                  (fn [map]
-                                 (when map
-                                   (add-raw-handler-once (.-leafletElement map) "mousemove"
-                                                         #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
-                                   (add-raw-handler-once (.-leafletElement map) "mouseout"
-                                                         #(re-frame/dispatch [:ui/mouse-pos nil]))
-                                   (add-raw-handler-once (.-leafletElement map) "easyPrint-start"
-                                                         #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
-                                   (add-raw-handler-once (.-leafletElement map) "easyPrint-finished"
-                                                         #(re-frame/dispatch [:ui/hide-loading]))))
-         :on-click             on-map-clicked
-         :close-popup-on-click false ; We'll handle that ourselves
-         :on-popupclose        on-popup-closed}
+         :close-popup-on-click false} ; We'll handle that ourselves
         (when (seq bounds) {:bounds (map->bounds bounds)}))
+       
+       ;; Unfortunately, only map container children in react-leaflet v4 are able to
+       ;; obtain a reference to the leaflet map through useMap. We make a dummy child here
+       ;; to get around the issue and obtain the map.
+       (r/create-element
+        #(when-let [leaflet-map (ReactLeaflet/useMap)]
+           (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
+           nil))
 
-      ;; Basemap selection:
+       ;; Basemap selection:
        [leaflet/layers-control {:position "topright" :auto-z-index false}
         (for [{:keys [id name server_url attribution] :as base-layer} grouped-base-layers]
           ^{:key id}
           [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
            [leaflet/tile-layer {:url server_url :attribution attribution}]])]
 
-      ;; We enforce the layer ordering by an incrementing z-index (the
-      ;; order of this list is otherwise ignored, as the underlying
-      ;; React -> Leaflet translation just does add/removeLayer, which
-      ;; then orders in the map by update not by list):
+       ;; We enforce the layer ordering by an incrementing z-index (the
+       ;; order of this list is otherwise ignored, as the underlying
+       ;; React -> Leaflet translation just does add/removeLayer, which
+       ;; then orders in the map by update not by list):
        (map-indexed
         (fn [i {:keys [server_url layer_name style id] :as layer}]
           ^{:key (str id (boundary-filter layer))}
@@ -310,10 +268,11 @@
             {:url              server_url
              :layers           layer_name
              :z-index          (+ 2 i) ; base layers is zindex 1, start content at 2
-             :on-loading       on-load-start
-             :on-tileloadstart on-tile-load-start
-             :on-tileerror     on-tile-error
-             :on-load          on-load-end
+             :eventHandlers
+             {:loading       on-load-start
+              :tileloadstart on-tile-load-start
+              :tileerror     on-tile-error
+              :load          on-load-end} ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
              :transparent      true
              :opacity          (/ (layer-opacities layer) 100)
              :tiled            true
@@ -371,8 +330,11 @@
        [leaflet/scale-control]
 
        [leaflet/coordinates-control
-        {:position "bottomright"
-         :style nil}]
+        {:decimals 2
+         :labelTemplateLat "{y}"
+         :labelTemplateLng "{x}"
+         :useLatLngOrder   true
+         :enableUserInput  false}]
 
        (when (and mouse-pos distance) [distance-tooltip {:mouse-pos mouse-pos :distance distance}])
 

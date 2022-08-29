@@ -6,7 +6,7 @@
             ["react" :as react]
             ["react-transition-group" :refer [TransitionGroup CSSTransition]]
             ["react-sizeme" :refer [SizeMe]]
-            ["react-leaflet-sidebarv2" :refer [Sidebar Tab]]))
+            #_["react-leaflet-sidebarv2" :refer [Sidebar Tab]]))
 
 (def css-transition-group
   ;; "The most straightforward way to migrate is to use <TransitionGroup> instead of <CSSTransitionGroup>:"
@@ -18,7 +18,7 @@
 (def container-dimensions
   (reagent/adapt-react-class SizeMe))
 
-(def sidebar     (reagent/adapt-react-class Sidebar))
-(def sidebar-tab (reagent/adapt-react-class Tab))
+;; (def sidebar     (reagent/adapt-react-class Sidebar))
+;; (def sidebar-tab (reagent/adapt-react-class Tab))
 
 (def use-memo react/useMemo)

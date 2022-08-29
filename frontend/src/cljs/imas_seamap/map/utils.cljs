@@ -5,9 +5,8 @@
   (:require [cemerick.url :as url]
             [clojure.string :as string]
             [imas-seamap.db :refer [api-url-base]]
-            [imas-seamap.utils :refer [merge-in first-where]]
+            [imas-seamap.utils :refer [merge-in select-values]]
             ["proj4" :as proj4]
-            [clojure.string :as str]
             [imas-seamap.interop.leaflet :as leaflet]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -183,7 +182,7 @@
         id (get-in parsed ["features" 0 "id"])
         properties (map (fn [[label value]] {:label label :value value}) (get-in parsed ["features" 0 "properties"]))
         property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
-        property-rows (str/join "" (map (fn [property] (property-to-row property)) properties))]
+        property-rows (string/join "" (map (fn [property] (property-to-row property)) properties))]
     (when (or id (not-empty properties))
       {:style
        (str
@@ -248,3 +247,39 @@
 
 (defn latlng-distance [[lat1 lng1] [lat2 lng2]]
   (.distanceTo (leaflet/latlng. lat1 lng1) (leaflet/latlng. lat2 lng2)))
+
+(defn map->bounds [{:keys [west south east north] :as _bounds}]
+  [[south west]
+   [north east]])
+
+(defn latlng->vec [ll]
+  (-> ll
+      js->clj
+      (select-values ["lat" "lng"])))
+
+(defn bounds->map [bounds]
+  {:north (. bounds getNorth)
+   :south (. bounds getSouth)
+   :east  (. bounds getEast)
+   :west  (. bounds getWest)})
+
+(defn leaflet-props [e]
+  (let [m (. e -target)]
+    {:zoom   (. m getZoom)
+     :size   (-> m (. getSize) (js->clj :keywordize-keys true) (select-keys [:x :y]))
+     :center (-> m (. getCenter) latlng->vec)
+     :bounds (-> m (. getBounds) bounds->map)}))
+
+(defn mouseevent->coords [e]
+  (merge
+   (-> e
+       ;; Note need to round; fractional offsets (eg as in wordpress
+       ;; navbar) cause fractional x/y which causes geoserver to
+       ;; return errors in GetFeatureInfo
+       (.. -containerPoint round)
+       (js->clj :keywordize-keys true)
+       (select-keys [:x :y]))
+   (-> e
+       (. -latlng)
+       (js->clj :keywordize-keys true)
+       (select-keys [:lat :lng]))))

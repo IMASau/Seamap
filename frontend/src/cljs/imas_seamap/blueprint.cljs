@@ -5,7 +5,9 @@
   "A collection of components adapted from blueprintjs"
   (:require [reagent.core :as reagent]
             ["@blueprintjs/core" :as Blueprint :refer [Intent Position Elevation]]
-            ["create-react-class" :as create-react-class]))
+            ["create-react-class" :as create-react-class]
+            ["react-dom/client" :refer [createRoot]]
+            [goog.dom :as gdom]))
 
 
 (def button          (reagent/adapt-react-class Blueprint/Button))
@@ -56,7 +58,13 @@
   clj-js is called *once*:"
   Blueprint/useHotkeys)
 
-(defonce toaster (Blueprint/Toaster.create))
+;; https://github.com/palantir/blueprint/issues/5212#issuecomment-1124544078
+(defonce toaster-root (createRoot (gdom/getElement "toaster")))
+(.render
+ toaster-root
+ (reagent/create-element
+  Blueprint/Toaster
+  #js{:ref #(defonce toaster %)}))
 
 ;;; Intents:
 

@@ -1,16 +1,58 @@
+.leaflet-control-coordinates {
+	background-color: #D8D8D8;
+	background-color: rgba(255, 255, 255, .8);
+	cursor: pointer
+}
+
+.leaflet-control-coordinates,
+.leaflet-control-coordinates .uiElement input {
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px
+}
+
+.leaflet-control-coordinates .uiElement {
+	margin: 4px
+}
+
+.leaflet-control-coordinates .uiElement .labelFirst {
+	margin-right: 4px
+}
+
+.leaflet-control-coordinates .uiHidden {
+	display: none
+}
+
+.leaflet-control-coordinates .uiElement.label {
+	color: inherit;
+	font-weight: inherit;
+	font-size: inherit;
+	padding: 0;
+	display: inherit
+}
+
 /* Style by https://github.com/JoshGx2000 */
-.coordinate-control {
+.leaflet-control-coordinates {
     background-color: #FFFFFF80;
     color: #333333;
     font-size: 11px;
     font-family: "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
     border: 2px solid #777;
     width: 90px;
-    display: flex;
-    text-align: right;
     padding: 1px 3px;
+	border-radius: 0;
 }
 
+.leaflet-control-coordinates .uiElement {
+	margin: 0;
+	text-align: right;
+}
+
+.leaflet-control-coordinates .uiElement .labelFirst {
+	margin: 0;
+}
+
+/* 
 .coordinate-control > * {
     flex: 1;
-}
+} */

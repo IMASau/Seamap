@@ -7,7 +7,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [RIGHT use-hotkeys]]
             [imas-seamap.db :refer [img-url-base]]
-            [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions sidebar sidebar-tab use-memo]]
+            [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.plot.views :refer [transect-display-component]]
