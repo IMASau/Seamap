@@ -309,9 +309,18 @@
         (for [{:keys [id name] :as base-layer} grouped-base-layers]
           ^{:key id}
           [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
-           [leaflet/pane {:name (str "basemap-" id) :style {:z-index 0}}
+           [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
             [basemap-layer-component base-layer]]])]
        
+       ;; Additional basemap layers
+       (map-indexed
+        (fn [i {:keys [id] :as base-layer}]
+          ^{:key (str id (+ i 1))}
+          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1)}}
+           [basemap-layer-component base-layer]])
+        (:layers active-base-layer))
+       
+       ;; Catalogue layers
        (map-indexed
         (fn [i {:keys [id] :as layer}]
           ;; While it's not efficient, we give every layer it's own pane to simplify the
@@ -319,13 +328,14 @@
           ;; Panes are given a name based on a uuid and time because if a pane is given the
           ;; same name as a previously existing pane leaflet complains about a new pane being
           ;; made with the same name as an existing pane (causing leaflet to no longer work).
-          ^{:key (str id (boundary-filter layer) (+ i 2))}
-          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 2)}}
+          ^{:key (str id (boundary-filter layer) (+ i 1 (count (:layers active-base-layer))))}
+          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
            [layer-component
             {:layer           layer
              :boundary-filter boundary-filter
              :layer-opacities layer-opacities}]])
-        (concat (:layers active-base-layer) visible-layers))
+        visible-layers)
+       
        (when query
          [leaflet/geojson-layer {:data (clj->js query)}])
        (when region
