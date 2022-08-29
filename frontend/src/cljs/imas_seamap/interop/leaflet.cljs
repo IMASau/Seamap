@@ -10,6 +10,8 @@
             ["leaflet-draw"]
             ["leaflet-easyprint"]
             ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
+            ["react-esri-leaflet" :as ReactEsriLeaflet]
+            ["react-esri-leaflet/plugins/VectorTileLayer" :as VectorTileLayer]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (def crs-epsg4326        L/CRS.EPSG4326)
@@ -17,7 +19,10 @@
 (def tile-layer          (r/adapt-react-class ReactLeaflet/TileLayer))
 (def wms-layer           (r/adapt-react-class ReactLeaflet/WMSTileLayer))
 (def geojson-layer       (r/adapt-react-class ReactLeaflet/GeoJSON))
+(def feature-layer       (r/adapt-react-class ReactEsriLeaflet/FeatureLayer))
+(def vector-tile-layer   (r/adapt-react-class VectorTileLayer/default))
 (def map-container       (r/adapt-react-class ReactLeaflet/MapContainer))
+(def pane                (r/adapt-react-class ReactLeaflet/Pane))
 (def marker              (r/adapt-react-class ReactLeaflet/Marker))
 (def popup               (r/adapt-react-class ReactLeaflet/Popup))
 (def feature-group       (r/adapt-react-class ReactLeaflet/FeatureGroup))
