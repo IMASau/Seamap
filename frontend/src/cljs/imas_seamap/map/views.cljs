@@ -213,7 +213,10 @@
      (gstring/format "%.2f km" (/ distance 1000))
      (gstring/format "%.0f m" distance))])
 
-(defn layer-component [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style id] :as layer} :layer}]
+(defmulti layer-component
+  #(get-in % [:layer :layer_type]))
+
+(defmethod layer-component :wms [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style] :as layer} :layer}]
   [leaflet/wms-layer
    (merge
     {:url              server_url
