@@ -100,21 +100,30 @@
     [:span.control.bp3-icon-large.bp3-icon-help.bp3-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
 
-(defn legend-display [{:keys [legend_url server_url layer_name style]}]
-  ;; Allow a custom url via the legend_url field, else construct a GetLegendGraphic call:
-  (let [legend-url (or legend_url
-                       (with-params server_url
-                         (merge
-                          {:REQUEST "GetLegendGraphic"
-                           :LAYER layer_name
-                           :FORMAT "image/png"
-                           :TRANSPARENT true
-                           :SERVICE "WMS"
-                           :VERSION "1.1.1"
-                           :LEGEND_OPTIONS "forceLabels:on"}
-                          (when style {:STYLE style}))))]
+(defn- vector-legend-rule [{:keys [title symbolizers] :as _rule}]
+  (let [color (-> symbolizers first :Polygon :fill)]
+    [:div.vector-legend-rule
+     [:div {:style {:background-color color}}]
+     [:div title]]))
+
+(defn- vector-legend [legend-info]
+  [:div
+   (map
+    (fn [{:keys [title] :as rule}]
+      ^{:key title}
+      [vector-legend-rule rule])
+    legend-info)])
+
+(defn legend-display [{:keys [legend_url] :as layer}]
+  (let [{:keys [has-info? loading? info]} @(re-frame/subscribe [:map.layer/legend layer])]
     [:div.legend-wrapper
-     [:img {:src legend-url}]]))
+     (cond
+       legend_url [:img {:src legend_url}] ; if we have a custom legend url, use that to display an image
+       has-info?  [vector-legend info]     ; else if we have the info for the layer then display it
+       loading?   [b/spinner]              ; else if we're loading show that
+       :else      (do                      ; else dispatch a request for the legend info
+                    (re-frame/dispatch [:map.layer/get-legend layer])
+                    [b/spinner]))]))
 
 (defn catalogue-legend
   [layer {:keys [active? _errors? _loading? expanded? opacity]}]

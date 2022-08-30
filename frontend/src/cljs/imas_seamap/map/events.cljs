@@ -607,6 +607,6 @@
                 :on-success      [:map.layer/got-legend layer]
                 :on-failure      [:ajax/default-err-handler]}})
 
-(defn got-layer-legend [db [_ {:keys [id] :as _layer} legend]]
-  (let [rules (-> legend :Legend first :rules)]
-    (assoc-in db [:map :legends id] rules)))
+(defn got-layer-legend [db [_ {:keys [id] :as _layer} response]]
+  (let [legend (-> response :Legend first :rules)]
+    (assoc-in db [:map :legends id] legend)))
