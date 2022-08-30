@@ -39,6 +39,7 @@
     :map.layers/lookup                    msubs/map-layer-lookup
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
+    :map.layer/legend                     msubs/layer-legend
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
