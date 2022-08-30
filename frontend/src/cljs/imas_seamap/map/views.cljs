@@ -12,6 +12,7 @@
             ["react-leaflet" :as ReactLeaflet]
             ["/leaflet-zoominfo/L.Control.Zoominfo"]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
+            ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn point->latlng [[x y]] {:lat y :lng x})
