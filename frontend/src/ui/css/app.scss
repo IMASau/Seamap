@@ -764,3 +764,21 @@ input.leaflet-control-layers-selector[type="radio"] {
 .leaflet-popup.waiting .leaflet-popup-close-button {
     display: none;
 }
+
+.vector-legend-rule {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 20px;
+}
+
+.vector-legend-rule > :first-child {
+    width: 13px;
+    height: 13px;
+    margin-left: 3px;
+}
+
+.vector-legend-rule > :nth-child(2) {
+    white-space: pre;
+    font-size: 13px;
+}
