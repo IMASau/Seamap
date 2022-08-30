@@ -213,8 +213,7 @@
      (gstring/format "%.2f km" (/ distance 1000))
      (gstring/format "%.0f m" distance))])
 
-(defmulti layer-component
-  #(get-in % [:layer :layer_type]))
+(defmulti layer-component (comp :layer_type :layer))
 
 (defmethod layer-component :wms
   [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style] :as layer} :layer}]
