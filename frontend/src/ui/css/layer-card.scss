@@ -55,3 +55,11 @@
     gap: 6px;
     height: 20px;
 }
+
+.legend-wrapper {
+    overflow-x: hidden;
+}
+
+.legend-wrapper img {
+    max-width: 100%;
+}
