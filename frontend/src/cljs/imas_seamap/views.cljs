@@ -12,7 +12,7 @@
             [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-content]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer [handler-fn handler-dispatch with-params] :include-macros true]
+            [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
             [goog.string.format]
@@ -89,79 +89,11 @@
             helperText]]]))]))
 
 ;; TODO: Update, replace?
-#_(defn- help-button []
+(defn- help-button []
   [:div.layer-controls.help-button
    [b/tooltip {:content "Show the quick-help guide"}
     [:span.control.bp3-icon-large.bp3-icon-help.bp3-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
-
-(defn- legend-display [{:keys [legend_url server_url layer_name style]}]
-  ;; Allow a custom url via the legend_url field, else construct a GetLegendGraphic call:
-  (let [legend-url (or legend_url
-                       (with-params server_url
-                         (merge
-                          {:REQUEST "GetLegendGraphic"
-                           :LAYER layer_name
-                           :FORMAT "image/png"
-                           :TRANSPARENT true
-                           :SERVICE "WMS"
-                           :VERSION "1.1.1"
-                           :LEGEND_OPTIONS "forceLabels:on"}
-                          (when style {:STYLE style}))))]
-    [:div.legend-wrapper
-     [:img {:src legend-url}]]))
-
-(defn- catalogue-legend
-  [layer {:keys [active? _errors? _loading? expanded? opacity]}]
-  [b/collapse {:is-open (and active? expanded?)
-               :className "layer-legend"}
-   [b/slider {:label-renderer false :initial-value 0 :max 100 :value opacity
-              :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
-   [legend-display layer]])
-
-(defn- catalogue-header [{:keys [name] :as layer} {:keys [active? visible? errors? loading? expanded? _opacity] :as _layer-state}]
-  [b/tooltip {:content (if expanded? "Click to hide legend" "Click to show legend")
-              :class "header-text"
-              :disabled (not active?)}
-   [:div.layer-wrapper (when active? {:class "layer-active"})
-    [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
-     (when (and active? visible? (or loading? errors?))
-       [:div.header-status-icons
-        (when loading? [b/spinner {:className "bp3-small layer-spinner"}])
-        (when errors? [:span.layer-warning.bp3-icon.bp3-icon-small.bp3-icon-warning-sign])])
-     [b/clipped-text {:ellipsize true :class "header-text"
-                      :on-click (handler-dispatch [:map.layer.legend/toggle layer])}
-      name]]]])
-
-(defn- catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
-  [:div.catalogue-layer-controls (when active? {:class "layer-active"})
-   [b/tooltip {:content "Layer info / Download data"}
-    [:span.control.bp3-icon-standard.bp3-icon-info-sign.bp3-text-muted
-     {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
-   [b/tooltip {:content "Zoom to layer"}
-    [:span.control.bp3-icon-standard.bp3-icon-zoom-to-fit.bp3-text-muted
-     {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
-   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
-    [b/checkbox
-     {:checked (boolean active?)
-      :on-change (handler-dispatch [:map/toggle-layer layer])}]]])
-
-(defn- active-layer-catalogue-controls [layer {:keys [active? visible? _errors? _loading?] :as _layer-state}]
-  [:div.catalogue-layer-controls (when active? {:class "layer-active"})
-   [b/tooltip {:content "Layer info / Download data"}
-    [:span.control.bp3-icon-standard.bp3-icon-info-sign.bp3-text-muted
-     {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
-   [b/tooltip {:content "Zoom to layer"}
-    [:span.control.bp3-icon-standard.bp3-icon-zoom-to-fit.bp3-text-muted
-     {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
-   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
-    [:span.control.bp3-icon-large.bp3-text-muted
-     {:class (if visible? "bp3-icon-eye-on" "bp3-icon-eye-off")
-      :on-click (handler-dispatch [:map/toggle-layer-visibility layer])}]]
-   [b/tooltip {:content "Deactivate layer"}
-    [:span.control.bp3-icon-standard.bp3-text-muted
-     {:class "bp3-icon-remove"
-      :on-click (handler-dispatch [:map/toggle-layer layer])}]]])
 
 (defn- ->sort-by [sorting-info ordering-key]
   (let [name-key-mapping (get sorting-info ordering-key)]
@@ -192,13 +124,8 @@
                                          :errors?   (error-fn layer)
                                          :opacity  (opacity-fn layer)}]
                         {:id (str id-str "-" i)
-                         :className "layer-wrapper"
-                         :label (reagent/as-element [layer-catalogue-content {:layer layer :layer-state layer-state}])
-                        ;; A hack, but if we just add the layer it gets
-                        ;; warped in the js->clj conversion
-                        ;; (specifically, values that were keywords become strings)
-                         ;; :do-layer-toggle #(re-frame/dispatch [:map/toggle-layer layer])
-                         #_:secondaryLabel #_(reagent/as-element [catalogue-controls layer layer-state])}))
+                         :className "catalogue-layer-node"
+                         :label (reagent/as-element [layer-catalogue-content {:layer layer :layer-state layer-state}])}))
                     layer-subset))}))
 
 (defn- layer-catalogue-tree [_layers _ordering _id _layer-props _open-all?]
@@ -285,13 +212,6 @@
                                 :value       @filter-text
                                 :on-change   (handler-dispatch
                                                [:map.layers/filter (.. event -target -value)])}]]))
-
-(defn- active-layer-card [layer-spec {:keys [_active? _visible? _loading? _errors? _expanded? _opacity-fn] :as layer-state}]
-  [:div.layer-wrapper.bp3-card.bp3-elevation-1.layer-active.bp3-interactive
-   [:div.header-row.height-static
-    [catalogue-header layer-spec layer-state]
-    [active-layer-catalogue-controls layer-spec layer-state]]
-   [catalogue-legend layer-spec layer-state]])
 
 (defn- active-layer-selection-list
   [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn]}]
@@ -721,6 +641,8 @@
      [:div#content-wrapper
       [map-component [floating-pills]]
       [plot-component]]
+     
+     ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [helper-overlay
       :layer-search
       :plot-footer
