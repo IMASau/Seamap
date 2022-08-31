@@ -287,41 +287,6 @@
       :on-click #(re-frame/dispatch [:map/toggle-viewport-only])
       :text     text}]))
 
-;; TODO: Remove, unused
-#_(defn layer-logic-toggle []
-  (let [{:keys [type trigger]} @(re-frame/subscribe [:map.layers/logic])
-        user-triggered?        (= trigger :map.logic.trigger/user)
-        [checked? label icon]  (if (= type :map.layer-logic/automatic)
-                                 [true  " Automatic Layer Selection" [:i.fa.fa-magic]]
-                                 [false " Choose Layers Manually"    [:span.bp3-icon-standard.bp3-icon-hand]])]
-    [:div#logic-toggle.logic-toggle
-     (merge {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
-             :data-text-width "380px"}
-            (when-not (or checked? user-triggered?)
-              {:class "external-trigger"}))
-     [b/switch {:checked   checked?
-                :label     (reagent/as-element [:span icon label])
-                :on-change (handler-dispatch [:map.layers.logic/toggle true])}]]))
-
-;; TODO: Remove, unused
-#_(defn layer-logic-toggle-button []
-  (let [{:keys [type]} @(re-frame/subscribe [:map.layers/logic])]
-    [:div#logic-toggle
-     {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
-      :data-text-width "380px"}
-     (if (= type :map.layer-logic/automatic)
-       [b/button
-        {:class "bp3-fill"
-         :on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}
-        [:span
-         [:i.fa.fa-magic]
-         "Automatic Layer Selection"]]
-       [b/button
-        {:icon "hand"
-         :class "bp3-fill"
-         :text "Choose Layers Manually"
-         :on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}])]))
-
 (defn layer-search-filter []
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
     [:div.bp3-input-group {:data-helper-text "Filter Layers"}
@@ -333,47 +298,12 @@
                                 :on-change   (handler-dispatch
                                                [:map.layers/filter (.. event -target -value)])}]]))
 
-
-;; TODO: Remove, unused
-#_(defn layer-card [layer-spec {:keys [active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
-  [:div.layer-wrapper.bp3-card.bp3-elevation-1
-   {:class (when active? "layer-active bp3-interactive")}
-   [:div.header-row.height-static
-    [catalogue-header layer-spec other-props]
-    [catalogue-controls layer-spec other-props]]
-   [catalogue-legend layer-spec other-props]])
-
 (defn active-layer-card [layer-spec {:keys [_active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
   [:div.layer-wrapper.bp3-card.bp3-elevation-1.layer-active.bp3-interactive
    [:div.header-row.height-static
     [catalogue-header layer-spec other-props]
     [active-layer-catalogue-controls layer-spec other-props]]
    [catalogue-legend layer-spec other-props]])
-
-;; TODO: Remove, unused
-#_(defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _visible-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
-  (let [expanded (reagent/atom expanded)]
-    (fn [{:keys [id title classes] :as props} layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-      [:div.layer-group.height-managed
-       (merge {:class (str classes (if @expanded " expanded" " collapsed"))}
-              (when id {:id id}))
-       [:h1.bp3-heading {:on-click (handler-fn (swap! expanded not))}
-        [:span.bp3-icon-standard {:class (if @expanded "bp3-icon-chevron-down" "bp3-icon-chevron-right")}]
-        (str title " (" (count layers) ")")]
-       [b/collapse {:is-open               @expanded
-                    :keep-children-mounted true
-                    :className             "height-managed"}
-        (when-let [extra-component (:extra-component props)]
-          extra-component)
-        [:div.height-managed.group-scrollable
-         (for [layer layers]
-           ^{:key (:layer_name layer)}
-           [layer-card layer {:active?   (some #{layer} active-layers)
-                              :visible?  (some #{layer} visible-layers)
-                              :loading?  (loading-fn layer)
-                              :errors?   (error-fn layer)
-                              :expanded? (expanded-fn layer)
-                              :opacity   (opacity-fn layer)}])]]])))
 
 (defn active-layer-selection-list
   [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn]}]
@@ -394,30 +324,6 @@
       :disabled    false
       :data-path   [:map :active-layers]
       :is-reversed true}]))
-
-;; TODO: Remove, unused
-#_(defn active-layer-group
-  [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-  [:div.active-layer-group.height-managed
-   [:h1.bp3-heading
-    (str "Layers (" (count layers) ")")]
-   [:div.height-managed.group-scrollable
-    [active-layer-selection-list
-     {:layers         layers
-      :visible-layers visible-layers
-      :loading-fn     loading-fn
-      :error-fn       error-fn
-      :expanded-fn    expanded-fn
-      :opacity-fn     opacity-fn}]]])
-
-;; TODO: Remove, unused
-#_(defn settings-controls []
-  [:div#settings
-   [b/button {:id         "reset-button"
-              :icon       "undo"
-              :class "bp3-fill"
-              :on-click   (handler-dispatch [:re-boot])
-              :text       "Reset Interface"}]])
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
@@ -610,179 +516,6 @@
                   :intent     b/INTENT-PRIMARY
                   :on-click   (handler-dispatch [:map.layer/close-info])}]]]]))
 
-;; TODO: Remove, unused
-#_(defn- as-icon [icon-name description]
-  (reagent/as-element [b/tooltip {:content  description
-                                  :position RIGHT}
-                       [:span.bp3-icon-standard {:class (str "bp3-icon-" icon-name)}]]))
-
-;; TODO: Remove, unused
-#_(defn active-layers-tab
-  [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-  [:div.sidebar-tab.height-managed
-   [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-   [help-button]])
-
-;; TODO: Remove, unused
-#_(defn catalogue-layers-button
-  [{:keys [category]}]
-  (let [title (:display_name category)]
-    [b/button
-     {:icon     "more"
-      :text     title
-      :on-click #(re-frame/dispatch [:drawer-panel-stack/open-catalogue-panel (:name category)])}]))
-
-;; TODO: Remove, unused
-#_(defn base-panel []
-  (let [categories @(re-frame/subscribe [:map/display-categories])]
-    {:content
-     [:div
-      [components/drawer-group
-       {:heading "Controls"
-        :icon    "settings"}
-       [transect-toggle]
-       [selection-button]
-       [layer-logic-toggle-button]]
-      
-      [components/drawer-group
-       {:heading "Catalogue Layers"
-        :icon    "list-detail-view"}
-       (for [category categories]
-         [catalogue-layers-button
-          {:key      (:name category)
-           :category category}])]
-      [components/drawer-group
-       {:heading "Settings"
-        :icon    "cog"}
-       [b/button
-        {:icon     "undo"
-         :text     "Reset Interface"
-         :on-click   #(re-frame/dispatch [:re-boot])}]]]}))
-
-;; TODO: Remove, unused
-#_(defn catalogue-layers-panel
-  [{:keys [title layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
-  {:title   title
-   :content
-   [:div.sidebar-tab.height-managed
-    [layer-search-filter]
-    [layer-catalogue layers
-     {:active-layers  active-layers
-      :visible-layers visible-layers
-      :loading-fn     loading-layers
-      :error-fn       error-layers
-      :expanded-fn    expanded-layers
-      :opacity-fn     layer-opacities}]]})
-
-;; TODO: Remove, unused
-#_(defn drawer-panel-selection
-  [panel map-layers]
-  (let [{:keys [panel props]} panel
-        {:keys [groups active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers]
-    (case panel
-      :drawer-panel/catalogue-layers
-      (catalogue-layers-panel
-       (merge
-        props
-        {:layers          ((:group props) groups)
-         :active-layers   active-layers
-         :visible-layers  visible-layers
-         :loading-layers  loading-layers
-         :error-layers    error-layers
-         :expanded-layers expanded-layers
-         :layer-opacities layer-opacities})))))
-;; TODO: Remove, unused
-#_(defn drawer-panel-stack
-  []
-  (let [map-layers @(re-frame/subscribe [:map/layers])
-        panels @(re-frame/subscribe [:drawer-panel-stack/panels])
-        display-panels
-        (map #(drawer-panel-selection % map-layers) panels)]
-    [components/panel-stack
-     {:panels (concat [(base-panel)] display-panels)
-      :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
-
-;; TODO: Remove, unused
-#_(defn active-layers-sidebar []
-  (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
-        {:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
-    [sidebar {:id        "floating-sidebar"
-              :selected  selected
-              :collapsed collapsed
-              :closeIcon (reagent/as-element [:span.bp3-icon-standard.bp3-icon-caret-left])
-              :on-close  #(re-frame/dispatch [:ui.sidebar/close])
-              :on-open   #(re-frame/dispatch [:ui.sidebar/open %])}
-     [sidebar-tab {:header "Active Layers"
-                   :icon   (as-icon "eye-open"
-                                    (str "Active Layers (" (count active-layers) ")"))
-                   :id     "tab-activelayers"}
-      [active-layers-tab active-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]]))
-
-;; TODO: Remove, unused
-#_(defn floating-menu-bar []
-  [:div.floating-menu-bar
-   [:div.floating-menu-bar-drawer-button
-    {:on-click #(re-frame/dispatch [:left-drawer/toggle])}
-    [b/icon
-     {:icon "menu"
-      :icon-size 20}]]
-   [:div.floating-menu-bar-search-button
-    {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
-    [b/icon
-     {:icon "search"
-      :icon-size 16}]
-    "Search Layers..."]])
-
-;; TODO: Remove, unused
-#_(defn floating-menu-active-layers
-  [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
-  [:div.floating-menu-active-layers
-   [:div.header
-    [b/icon
-     {:icon "eye-open"
-      :icon-size 18}]
-    [:h1 (str "Active Layers (" (count active-layers) ")")]]
-   [:div.content
-    [active-layer-selection-list
-     {:layers         active-layers
-      :visible-layers visible-layers
-      :loading-fn     loading-layers
-      :error-fn       error-layers
-      :expanded-fn    expanded-layers
-      :opacity-fn     layer-opacities}]]])
-
-;; TODO: Remove, unused
-#_(defn floating-menu []
-  (let [{:keys [active-layers] :as map-layers} @(re-frame/subscribe [:map/layers])]
-    [:div.floating-menu-positioning
-     [:div.floating-menu
-      [floating-menu-bar]
-      (when (seq active-layers) [floating-menu-active-layers map-layers])]]))
-
-;; TODO: Remove, unused
-#_(defn floating-transect-pill
-  [{:keys [drawing? query]}]
-  (let [[text icon dispatch] (cond
-                           drawing? ["Cancel Transect" "undo"   :transect.draw/disable]
-                           query    ["Clear Transect"  "eraser" :transect.draw/clear]
-                           :else    ["Draw Transect"   "edit"   :transect.draw/enable])]
-    [components/floating-pill-button
-     {:text     text
-      :icon     icon
-      :on-click #(re-frame/dispatch [dispatch])}]))
-
-;; TODO: Remove, unused
-#_(defn floating-region-pill
-  [{:keys [selecting? region]}]
-  (let [[text icon dispatch] (cond
-                               selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
-                               region     ["Clear Selection"  "eraser" :map.layer.selection/clear]
-                               :else      ["Select Region"    "widget" :map.layer.selection/enable])]
-    [components/floating-pill-button
-     {:text     text
-      :icon     icon
-      :on-click #(re-frame/dispatch [dispatch])}]))
-
 (defn floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
@@ -840,15 +573,6 @@
                          (:name (category categories)))
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
-
-;; TODO: Remove, unused
-#_(defn catalogue-layer-search-button []
-  [:div.catalogue-layer-search-button
-   {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
-   [b/icon
-    {:icon "search"
-     :icon-size 16}]
-   "Search Layers..."])
 
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
