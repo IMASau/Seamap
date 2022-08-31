@@ -94,3 +94,35 @@
    {:elevation 1
     :class     "layer-card"}
    [layer-card-content props]])
+
+(defn- layer-catalogue-controls [{:keys [layer] {:keys [active?]} :layer-state}]
+  [:div.layer-controls
+
+   [layer-control
+    {:tooltip  "Layer info / Download data"
+     :icon     "info-sign"
+     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
+
+   [layer-control
+    {:tooltip  "Zoom to layer"
+     :icon     "zoom-to-fit"
+     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
+
+   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
+    [b/checkbox
+     {:checked (boolean active?)
+      :on-change #(re-frame/dispatch [:map/toggle-layer layer])}]]])
+
+(defn- layer-catalogue-header [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [:div.layer-header
+   (when (and active? visible?)
+     [layer-status-icons layer-state])
+   [layer-header-text props]
+   [layer-catalogue-controls props]])
+
+(defn layer-catalogue-content [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
+  [:div.layer-content
+   {:class (when active? "active-layer")}
+   [layer-catalogue-header props]
+   [b/collapse {:is-open (and active? expanded?)}
+    [layer-details props]]])
