@@ -1,5 +1,6 @@
 (ns imas-seamap.map.layer-views
   (:require [re-frame.core :as re-frame]
+            [reagent.core :as reagent]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [with-params]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -127,12 +128,30 @@
    [b/collapse {:is-open (and active? expanded?)}
     [layer-details props]]])
 
-(defn- main-national-layer-details [{:keys [layer] {:keys [opacity]} :layer-state}]
-  [:div.layer-details
-   [b/slider
-    {:label-renderer false :initial-value 0 :max 100 :value opacity
-     :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
-   [legend-display layer]])
+
+;; Main national layer
+
+(defn- main-national-layer-details [{:keys [_layer] {:keys [_opacity]} :layer-state}]
+  (let [selected-tab (reagent/atom "legend")]
+    (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
+      [:div.layer-details
+       [b/slider
+        {:label-renderer false :initial-value 0 :max 100 :value opacity
+         :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
+       
+       [b/tabs
+        {:selected-tab-id @selected-tab
+         :on-change       #(reset! selected-tab %)}
+        
+        [b/tab
+         {:id    "legend"
+          :title "Legend"
+          :panel (reagent/as-element [legend-display layer])}]
+        
+        [b/tab
+         {:id    "filters"
+          :title "Filters"
+          :panel (reagent/as-element [:div "placeholder"])}]]])))
 
 (defn- main-national-layer-card-content [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
