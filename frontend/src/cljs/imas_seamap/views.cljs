@@ -5,10 +5,11 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]
-            [imas-seamap.blueprint :as b :refer [RIGHT use-hotkeys]]
+            [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.db :refer [img-url-base]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-content]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch with-params] :include-macros true]
@@ -191,15 +192,8 @@
                                          :errors?   (error-fn layer)
                                          :opacity  (opacity-fn layer)}]
                         {:id (str id-str "-" i)
-                         :className (str "layer-wrapper" (when (:active? layer-state) " layer-active"))
-                         :label (reagent/as-element
-                                 [:div
-                                  {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer layer])
-                                   :on-mouse-out #(re-frame/dispatch [:map/update-preview-layer nil])}
-                                  [:div.header-row.height-static
-                                   [catalogue-header layer layer-state]
-                                   [catalogue-controls layer layer-state]]
-                                  [catalogue-legend layer layer-state]])
+                         :className "layer-wrapper"
+                         :label (reagent/as-element [layer-catalogue-content {:layer layer :layer-state layer-state}])
                         ;; A hack, but if we just add the layer it gets
                         ;; warped in the js->clj conversion
                         ;; (specifically, values that were keywords become strings)
@@ -301,23 +295,23 @@
 
 (defn active-layer-selection-list
   [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn]}]
-  (let [layer-card-items
-        (map
-         (fn [layer]
-           {:key (str (:id layer))
-            :content [active-layer-card layer
-                      {:active?   true
-                       :visible?  (some #{layer} visible-layers)
-                       :loading?  (loading-fn layer)
-                       :errors?   (error-fn layer)
-                       :expanded? (expanded-fn layer)
-                       :opacity   (opacity-fn layer)}]})
-         layers)]
-    [components/items-selection-list
-     {:items       layer-card-items
-      :disabled    false
-      :data-path   [:map :active-layers]
-      :is-reversed true}]))
+  [components/items-selection-list
+   {:items
+    (for [{:keys [id] :as layer} layers]
+      {:key (str id)
+       :content
+       [layer-card
+        {:layer layer
+         :layer-state
+         {:active?   true
+          :visible?  (some #{layer} visible-layers)
+          :loading?  (loading-fn layer)
+          :errors?   (error-fn layer)
+          :expanded? (expanded-fn layer)
+          :opacity   (opacity-fn layer)}}]})
+    :disabled    false
+    :data-path   [:map :active-layers]
+    :is-reversed true}])
 
 (defn plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
