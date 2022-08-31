@@ -19,11 +19,50 @@
      :on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
     name]])
 
+(defn- layer-control [{:keys [tooltip icon on-click]}]
+  [b/tooltip {:content tooltip}
+   [b/icon
+    {:icon    icon
+     :class   "bp3-text-muted layer-control"
+     :on-click on-click}]])
+
+(defn- layer-controls [{:keys [layer] {:keys [visible? active?]} :other-props}]
+  [:div.layer-controls
+
+   [layer-control
+    {:tooltip  "Layer info / Download data"
+     :icon     "info-sign"
+     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
+
+   [layer-control
+    {:tooltip  "Zoom to layer"
+     :icon     "zoom-to-fit"
+     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
+
+   (when active?
+     [layer-control
+      {:tooltip  (if visible? "Hide layer" "Show layer")
+       :icon     (if visible? "eye-on" "eye-off")
+       :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}])
+
+   (when active?
+     [layer-control
+      {:tooltip  "Deactivate layer"
+       :icon     "remove"
+       :on-click #(re-frame/dispatch [:map/toggle-layer layer])}])
+   
+   (when-not active?
+     [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
+      [b/checkbox
+       {:checked (boolean active?)
+        :on-change #(re-frame/dispatch [:map/toggle-layer layer])}]])])
+
 (defn- layer-header [{:keys [_layer] {:keys [active? visible?] :as other-props} :other-props :as layer-props}]
   [:div.layer-header
    (when (and active? visible?)
      [layer-status-icons other-props])
-   [layer-header-text layer-props]])
+   [layer-header-text layer-props]
+   [layer-controls layer-props]])
 
 (defn- layer-content [{:keys [_layer _other-props] :as layer-props}]
   [:div.layer-content
