@@ -11,17 +11,11 @@
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
+            [imas-seamap.utils :refer [handler-fn handler-dispatch with-params] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
-
-(defn with-params [url params]
-  (let [u (goog/Uri. url)]
-    (doseq [[k v] params]
-      (.setParameterValue u (name k) v))
-    (str u)))
 
 (defn- ->query-selector
   "Normalises selectors for helper-overlay into a form for use with
