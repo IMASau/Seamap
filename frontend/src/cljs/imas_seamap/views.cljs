@@ -228,7 +228,7 @@
                        ;; If we have children, toggle expanded state, else add to map
                        (re-frame/dispatch [:ui.catalogue/toggle-node id]))))]
     (fn [layers ordering id layer-props open-all?]
-     [:div.tab-body.layer-controls {:id id}
+     [:div.tab-body {:id id}
       [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all?)
                :onNodeCollapse on-close
                :onNodeExpand on-open
