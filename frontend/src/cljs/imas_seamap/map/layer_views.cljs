@@ -40,10 +40,12 @@
      :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
 
    (when active?
-     [layer-control
-      {:tooltip  (if visible? "Hide layer" "Show layer")
-       :icon     (if visible? "eye-on" "eye-off")
-       :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}])
+     [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
+      [b/icon
+       {:icon     (if visible? "eye-on" "eye-off")
+        :size     20
+        :class    "bp3-text-muted layer-control"
+        :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]])
 
    (when active?
      [layer-control
