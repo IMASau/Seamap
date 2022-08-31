@@ -90,14 +90,15 @@
      :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
    [legend-display layer]])
 
-(defn- layer-content [{:keys [_layer] {:keys [active? expanded?]} :other-props :as layer-props}]
+(defn layer-content [{:keys [_layer] {:keys [active? expanded?]} :other-props :as layer-props}]
   [:div.layer-content
+   {:class (when active? "active-layer")}
    [layer-header layer-props]
    [b/collapse {:is-open (and active? expanded?)}
     [layer-details layer-props]]])
 
-(defn layer-card [{:keys [_layer] {:keys [active?]} :other-props :as layer-props}]
+(defn layer-card [{:keys [_layer _other-props] :as layer-props}]
   [b/card
    {:elevation 1
-    :class (str "layer-card" (when active? " active-layer"))}
+    :class     "layer-card"}
    [layer-content layer-props]])
