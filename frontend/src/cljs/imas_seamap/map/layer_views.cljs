@@ -1,6 +1,7 @@
 (ns imas-seamap.map.layer-views
   (:require [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
+            [imas-seamap.utils :refer [with-params]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn- layer-status-icons [{:keys [loading? errors?]}]
@@ -66,9 +67,34 @@
    [layer-header-text layer-props]
    [layer-controls layer-props]])
 
-(defn- layer-content [{:keys [_layer _other-props] :as layer-props}]
+(defn- legend-display [{:keys [legend_url server_url layer_name style]}]
+  ;; Allow a custom url via the legend_url field, else construct a GetLegendGraphic call:
+  (let [legend-url (or legend_url
+                       (with-params server_url
+                         (merge
+                          {:REQUEST "GetLegendGraphic"
+                           :LAYER layer_name
+                           :FORMAT "image/png"
+                           :TRANSPARENT true
+                           :SERVICE "WMS"
+                           :VERSION "1.1.1"
+                           :LEGEND_OPTIONS "forceLabels:on"}
+                          (when style {:STYLE style}))))]
+    [:div.legend-wrapper
+     [:img {:src legend-url}]]))
+
+(defn- layer-details [{:keys [layer] {:keys [opacity]} :other-props}]
+  [:div.layer-details
+   [b/slider
+    {:label-renderer false :initial-value 0 :max 100 :value opacity
+     :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
+   [legend-display layer]])
+
+(defn- layer-content [{:keys [_layer] {:keys [active? expanded?]} :other-props :as layer-props}]
   [:div.layer-content
-   [layer-header layer-props]])
+   [layer-header layer-props]
+   [b/collapse {:is-open (and active? expanded?)}
+    [layer-details layer-props]]])
 
 (defn layer-card [{:keys [_layer] {:keys [active?]} :other-props :as layer-props}]
   [b/card
