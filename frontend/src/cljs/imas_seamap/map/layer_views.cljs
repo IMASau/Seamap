@@ -126,3 +126,23 @@
    [layer-catalogue-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [layer-details props]]])
+
+(defn- main-national-layer-details [{:keys [layer] {:keys [opacity]} :layer-state}]
+  [:div.layer-details
+   [b/slider
+    {:label-renderer false :initial-value 0 :max 100 :value opacity
+     :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
+   [legend-display layer]])
+
+(defn- main-national-layer-card-content [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
+  [:div.layer-content
+   {:class (when active? "active-layer")}
+   [layer-card-header props]
+   [b/collapse {:is-open (and active? expanded?)}
+    [main-national-layer-details props]]])
+
+(defn main-national-layer-card [{:keys [_layer _layer-state] :as props}]
+  [b/card
+   {:elevation 1
+    :class     "layer-card"}
+   [main-national-layer-card-content props]])
