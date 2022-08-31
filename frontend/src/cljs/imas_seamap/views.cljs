@@ -292,12 +292,12 @@
                                 :on-change   (handler-dispatch
                                                [:map.layers/filter (.. event -target -value)])}]]))
 
-(defn active-layer-card [layer-spec {:keys [_active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
+(defn active-layer-card [layer-spec {:keys [_active? _visible? _loading? _errors? _expanded? _opacity-fn] :as layer-state}]
   [:div.layer-wrapper.bp3-card.bp3-elevation-1.layer-active.bp3-interactive
    [:div.header-row.height-static
-    [catalogue-header layer-spec other-props]
-    [active-layer-catalogue-controls layer-spec other-props]]
-   [catalogue-legend layer-spec other-props]])
+    [catalogue-header layer-spec layer-state]
+    [active-layer-catalogue-controls layer-spec layer-state]]
+   [catalogue-legend layer-spec layer-state]])
 
 (defn active-layer-selection-list
   [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn]}]

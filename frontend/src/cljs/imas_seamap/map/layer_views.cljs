@@ -10,7 +10,7 @@
     (when loading? [b/spinner {:class "bp3-text-muted bp3-small"}])
     (when errors? [b/icon {:icon "warning-sign" :class "bp3-text-muted bp3-small"}])]))
 
-(defn- layer-header-text [{{:keys [name] :as layer} :layer {:keys [expanded? active?]} :other-props}]
+(defn- layer-header-text [{{:keys [name] :as layer} :layer {:keys [expanded? active?]} :layer-state}]
   [b/tooltip
    {:content (if expanded? "Hide details" "Show details")
     :disabled (not active?)
@@ -27,7 +27,7 @@
      :class   "bp3-text-muted layer-control"
      :on-click on-click}]])
 
-(defn- layer-controls [{:keys [layer] {:keys [visible? active?]} :other-props}]
+(defn- layer-card-controls [{:keys [layer] {:keys [visible?]} :layer-state}]
   [:div.layer-controls
 
    [layer-control
@@ -40,32 +40,24 @@
      :icon     "zoom-to-fit"
      :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
 
-   (when active?
-     [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
-      [b/icon
-       {:icon     (if visible? "eye-on" "eye-off")
-        :size     20
-        :class    "bp3-text-muted layer-control"
-        :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]])
+   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
+    [b/icon
+     {:icon     (if visible? "eye-on" "eye-off")
+      :size     20
+      :class    "bp3-text-muted layer-control"
+      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]]
 
-   (when active?
-     [layer-control
-      {:tooltip  "Deactivate layer"
-       :icon     "remove"
-       :on-click #(re-frame/dispatch [:map/toggle-layer layer])}])
-   
-   (when-not active?
-     [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
-      [b/checkbox
-       {:checked (boolean active?)
-        :on-change #(re-frame/dispatch [:map/toggle-layer layer])}]])])
+   [layer-control
+    {:tooltip  "Deactivate layer"
+     :icon     "remove"
+     :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
 
-(defn- layer-header [{:keys [_layer] {:keys [active? visible?] :as other-props} :other-props :as layer-props}]
+(defn- layer-card-header [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
    (when (and active? visible?)
-     [layer-status-icons other-props])
-   [layer-header-text layer-props]
-   [layer-controls layer-props]])
+     [layer-status-icons layer-state])
+   [layer-header-text props]
+   [layer-card-controls props]])
 
 (defn- legend-display [{:keys [legend_url server_url layer_name style]}]
   ;; Allow a custom url via the legend_url field, else construct a GetLegendGraphic call:
@@ -83,22 +75,22 @@
     [:div.legend-wrapper
      [:img {:src legend-url}]]))
 
-(defn- layer-details [{:keys [layer] {:keys [opacity]} :other-props}]
+(defn- layer-details [{:keys [layer] {:keys [opacity]} :layer-state}]
   [:div.layer-details
    [b/slider
     {:label-renderer false :initial-value 0 :max 100 :value opacity
      :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
    [legend-display layer]])
 
-(defn layer-content [{:keys [_layer] {:keys [active? expanded?]} :other-props :as layer-props}]
+(defn- layer-card-content [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
    {:class (when active? "active-layer")}
-   [layer-header layer-props]
+   [layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
-    [layer-details layer-props]]])
+    [layer-details props]]])
 
-(defn layer-card [{:keys [_layer _other-props] :as layer-props}]
+(defn layer-card [{:keys [_layer _layer-state] :as props}]
   [b/card
    {:elevation 1
     :class     "layer-card"}
-   [layer-content layer-props]])
+   [layer-card-content props]])
