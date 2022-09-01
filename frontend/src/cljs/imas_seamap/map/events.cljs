@@ -395,10 +395,13 @@
      :put-hash (encode-state db)
      :dispatch [:map/popup-closed]}))
 
-(defn toggle-legend-display [{:keys [db]} [_ layer]]
+(defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))]
-    {:db       db
-     :put-hash (encode-state db)}))
+    (merge
+     {:db       db
+      :put-hash (encode-state db)}
+     (when (not (get-in db [:map :legends id]))  ; Retrieve layer legend data for display if we don't already have it or aren't already retrieving it
+       {:dispatch [:map.layer/get-legend layer]}))))
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."

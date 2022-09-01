@@ -3,7 +3,6 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b]
             [imas-seamap.components :as components]
-            [imas-seamap.utils :refer [with-params]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn- layer-status-icons
@@ -90,15 +89,12 @@
     legend-info)])
 
 (defn- legend-display [{:keys [legend_url] :as layer}]
-  (let [{:keys [has-info? loading? info]} @(re-frame/subscribe [:map.layer/legend layer])]
+  (let [{:keys [has-info? info]} @(re-frame/subscribe [:map.layer/legend layer])]
     [:div.legend-wrapper
      (cond
        legend_url [:img {:src legend_url}] ; if we have a custom legend url, use that to display an image
        has-info?  [vector-legend info]     ; else if we have the info for the layer then display it
-       loading?   [b/spinner]              ; else if we're loading show that
-       :else      (do                      ; else dispatch a request for the legend info
-                    (re-frame/dispatch [:map.layer/get-legend layer])
-                    [b/spinner]))]))
+       :else      [b/spinner])]))          ; else if we're loading show that
 
 (defn- layer-details
   "Layer details, including advanced opacity slider control and the layer's legend."
