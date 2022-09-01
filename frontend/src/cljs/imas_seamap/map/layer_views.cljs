@@ -6,13 +6,18 @@
             [imas-seamap.utils :refer [with-params]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
-(defn- layer-status-icons [{:keys [loading? errors?]}]
+(defn- layer-status-icons
+  "Icons that appear to the left of the layer name to indicate the current state."
+  [{:keys [loading? errors?]}]
   (when (or loading? errors?)
    [:div.layer-status-icons
     (when loading? [b/spinner {:class "bp3-text-muted bp3-small"}])
     (when errors? [b/icon {:icon "warning-sign" :class "bp3-text-muted bp3-small"}])]))
 
-(defn- layer-header-text [{{:keys [name] :as layer} :layer {:keys [expanded? active?]} :layer-state}]
+(defn- layer-header-text
+  "Layer name, with some other fancy stuff on top. Clicking it will expand the
+   layer's details."
+  [{{:keys [name] :as layer} :layer {:keys [expanded? active?]} :layer-state}]
   [b/tooltip
    {:content (if expanded? "Hide details" "Show details")
     :disabled (not active?)
@@ -22,14 +27,20 @@
      :on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
     name]])
 
-(defn- layer-control [{:keys [tooltip icon on-click]}]
+(defn- layer-control
+  "Basic layer control. It's an icon with a tooltip that does something when
+   clicked."
+  [{:keys [tooltip icon on-click]}]
   [b/tooltip {:content tooltip}
    [b/icon
     {:icon    icon
      :class   "bp3-text-muted layer-control"
      :on-click on-click}]])
 
-(defn- layer-card-controls [{:keys [layer] {:keys [visible?]} :layer-state}]
+(defn- layer-card-controls
+  "To the right of the layer name. Basic controls for the layer, like getting info
+   and disabling the layer."
+  [{:keys [layer] {:keys [visible?]} :layer-state}]
   [:div.layer-controls
 
    [layer-control
@@ -54,14 +65,19 @@
      :icon     "remove"
      :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
 
-(defn- layer-card-header [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+(defn- layer-card-header
+  "Top part of layer card. Always visible. Contains the layer status, name, and
+   basic controls for the layer."
+  [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
    (when (and active? visible?)
      [layer-status-icons layer-state])
    [layer-header-text props]
    [layer-card-controls props]])
 
-(defn- legend-display [{:keys [legend_url server_url layer_name style]}]
+(defn- legend-display
+  "Layer legend displayed in the layer details."
+  [{:keys [legend_url server_url layer_name style] :as _layer}]
   ;; Allow a custom url via the legend_url field, else construct a GetLegendGraphic call:
   (let [legend-url (or legend_url
                        (with-params server_url
@@ -77,27 +93,38 @@
     [:div.legend-wrapper
      [:img {:src legend-url}]]))
 
-(defn- layer-details [{:keys [layer] {:keys [opacity]} :layer-state}]
+(defn- layer-details
+  "Layer details, including advanced opacity slider control and the layer's legend."
+  [{:keys [layer] {:keys [opacity]} :layer-state}]
   [:div.layer-details
    [b/slider
     {:label-renderer false :initial-value 0 :max 100 :value opacity
      :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
    [legend-display layer]])
 
-(defn- layer-card-content [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
+(defn- layer-card-content
+  "Content of a layer card; includes both the header and the details that can be
+   expanded and collapsed."
+  [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
    {:class (when active? "active-layer")}
    [layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [layer-details props]]])
 
-(defn layer-card [{:keys [_layer _layer-state] :as props}]
+(defn layer-card
+  "Wrapper of layer-card-content in a card for displaying in lists."
+  [{:keys [_layer _layer-state] :as props}]
   [b/card
    {:elevation 1
     :class     "layer-card"}
    [layer-card-content props]])
 
-(defn- layer-catalogue-controls [{:keys [layer] {:keys [active?]} :layer-state}]
+(defn- layer-catalogue-controls
+  "To the right of the layer name. Basic controls for the layer, like getting info
+   and enabling/disabling the layer. Differs from layer-card-controls in what
+   controls are displayed."
+  [{:keys [layer] {:keys [active?]} :layer-state}]
   [:div.layer-controls
 
    [layer-control
@@ -115,14 +142,21 @@
      {:checked (boolean active?)
       :on-change #(re-frame/dispatch [:map/toggle-layer layer])}]]])
 
-(defn- layer-catalogue-header [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+(defn- layer-catalogue-header
+  "Top part of layer catalogue element. Always visible. Contains the layer status,
+   name, and basic controls for the layer. Differs from layer-card-header in what
+   controls are displayed."
+  [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
    (when (and active? visible?)
      [layer-status-icons layer-state])
    [layer-header-text props]
    [layer-catalogue-controls props]])
 
-(defn layer-catalogue-content [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
+(defn layer-catalogue-content
+  "Content of a layer catalogue element; includes both the header and the details
+   that can be expanded and collapsed."
+  [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
    {:class (when active? "active-layer")}
    [layer-catalogue-header props]
@@ -132,7 +166,10 @@
 
 ;; Main national layer
 
-(defn- main-national-layer-time-filter []
+(defn- main-national-layer-time-filter
+  "Time filter for main national layer, which filters what layers are displayed on
+   the map."
+  []
   (let [value     (reagent/atom 2000)   ; Graduate to event probably at some point to be able to filter displayed layer
         all-time? (reagent/atom false)] ; Graduate to event probably at some point to be able to filter displayed layer
     (fn []
@@ -150,7 +187,11 @@
          :on-change       #(reset! value %)
          :disabled        @all-time?}]])))
 
-(defn- main-national-layer-details [{:keys [_layer] {:keys [_opacity]} :layer-state}]
+(defn- main-national-layer-details
+  "Expanded details for main national layer. Differs from regular details by having
+   a tabbed view, with a tab for the legend and a tab for filters. The filters
+   alter how the main national layer is displayed on the map."
+  [{:keys [_layer] {:keys [_opacity]} :layer-state}]
   (let [selected-tab (reagent/atom "legend") 
         alternate-view (reagent/atom nil)]   ; Graduate to event probably at some point to be able to filter displayed layer
     (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
@@ -192,14 +233,19 @@
                 :text identity}}]]
             [main-national-layer-time-filter]])}]]])))
 
-(defn- main-national-layer-card-content [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
+(defn- main-national-layer-card-content
+  "Content of the main national layer card; includes both the header and the main
+   national layer details that can be expanded and collapsed."
+  [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
    {:class (when active? "active-layer")}
    [layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [main-national-layer-details props]]])
 
-(defn main-national-layer-card [{:keys [_layer _layer-state] :as props}]
+(defn main-national-layer-card
+  "Wrapper of main-national-layer-card-content in a card for displaying in lists."
+  [{:keys [_layer _layer-state] :as props}]
   [b/card
    {:elevation 1
     :class     "layer-card"}
