@@ -63,3 +63,21 @@
 .legend-wrapper img {
     max-width: 100%;
 }
+
+.vector-legend-rule {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 20px;
+}
+
+.vector-legend-rule > :first-child {
+    width: 13px;
+    height: 13px;
+    margin-left: 3px;
+}
+
+.vector-legend-rule > :nth-child(2) {
+    white-space: pre;
+    font-size: 13px;
+}

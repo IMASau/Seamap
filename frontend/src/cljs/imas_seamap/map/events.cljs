@@ -300,13 +300,16 @@
       {} keyed-layers))
     db))
 
-(defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
-  (let [layers (process-layers layers)
+(defn update-layers [{:keys [db]} [_ layers]]
+  (let [{:keys [legend-ids opacity-ids]} db
+        layers (process-layers layers)
         db     (-> db
                    (assoc-in [:map :layers] layers)
                    (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
-                   (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
-    (keyed-layers-join db)))
+                   (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids))
+                   keyed-layers-join)]
+    {:db         db
+     :dispatch-n (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))}))
 
 (defn- ->sort-map [ms]
   ;; Associate a category of objects (categories, organisations) with
@@ -395,10 +398,13 @@
      :put-hash (encode-state db)
      :dispatch [:map/popup-closed]}))
 
-(defn toggle-legend-display [{:keys [db]} [_ layer]]
+(defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))]
-    {:db       db
-     :put-hash (encode-state db)}))
+    (merge
+     {:db       db
+      :put-hash (encode-state db)}
+     (when (not (get-in db [:map :legends id]))  ; Retrieve layer legend data for display if we don't already have it or aren't already retrieving it
+       {:dispatch [:map.layer/get-legend layer]}))))
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
@@ -592,3 +598,21 @@
                           (pos? overflow-left) (- (* overflow-left x-to-lng))
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
     {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
+
+(defn get-layer-legend [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
+  {:db         (assoc-in db [:map :legends id] :map.legend/loading)
+   :http-xhrio {:method          :get
+                :uri             server_url
+                :params          {:REQUEST     "GetLegendGraphic"
+                                  :LAYER       layer_name
+                                  :TRANSPARENT true
+                                  :SERVICE     "WMS"
+                                  :VERSION     "1.1.1"
+                                  :FORMAT      "application/json"}
+                :response-format (ajax/json-response-format {:keywords? true})
+                :on-success      [:map.layer/got-legend layer]
+                :on-failure      [:ajax/default-err-handler]}})
+
+(defn got-layer-legend [db [_ {:keys [id] :as _layer} response]]
+  (let [legend (-> response :Legend first :rules)]
+    (assoc-in db [:map :legends id] legend)))

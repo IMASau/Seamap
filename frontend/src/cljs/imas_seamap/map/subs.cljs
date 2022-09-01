@@ -153,3 +153,10 @@
 
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))
+
+(defn layer-legend [db [_ {:keys [id] :as _layer}]]
+  (let [legend-info (get-in db [:map :legends id])
+        loading?    (= legend-info :map.legend/loading)]
+    {:has-info? (and (not loading?) legend-info)
+     :loading?  loading?
+     :info      legend-info}))

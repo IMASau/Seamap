@@ -39,6 +39,7 @@
     :map.layers/lookup                    msubs/map-layer-lookup
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
+    :map.layer/legend                     msubs/layer-legend
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
@@ -141,6 +142,8 @@
     :map.layer/opacity-changed            [mevents/layer-set-opacity]
     :map.layers/filter                    [mevents/map-set-layer-filter]
     :map.layers/others-filter             mevents/map-set-others-layer-filter
+    :map.layer/get-legend                 [mevents/get-layer-legend]
+    :map.layer/got-legend                 mevents/got-layer-legend
     :map.layer.legend/toggle              [mevents/toggle-legend-display]
     :map.layer.selection/enable           mevents/map-start-selecting
     :map.layer.selection/disable          mevents/map-cancel-selecting
@@ -150,7 +153,7 @@
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups
-    :map/update-layers                    mevents/update-layers
+    :map/update-layers                    [mevents/update-layers]
     :map/update-organisations             mevents/update-organisations
     :map/update-classifications           mevents/update-classifications
     :map/update-descriptors               mevents/update-descriptors

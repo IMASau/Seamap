@@ -27,6 +27,7 @@
                      :preview-layer   nil
                      :viewport-only?  false
                      :keyed-layers    {}
+                     :legends         {}
                      :controls        {:transect false
                                        :download nil}}
    :state-of-knowledge {:boundaries {:active-boundary nil
