@@ -5,10 +5,11 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]
-            [imas-seamap.blueprint :as b :refer [RIGHT use-hotkeys]]
+            [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.db :refer [img-url-base]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-content main-national-layer-card]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
@@ -16,12 +17,6 @@
             [imas-seamap.map.utils :refer [layer-search-keywords]]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
-
-(defn with-params [url params]
-  (let [u (goog/Uri. url)]
-    (doseq [[k v] params]
-      (.setParameterValue u (name k) v))
-    (str u)))
 
 (defn- ->query-selector
   "Normalises selectors for helper-overlay into a form for use with
@@ -52,7 +47,7 @@
        (apply concat)))
 
 ;; TODO: Update, replace?
-(defn helper-overlay [& element-selectors]
+(defn- helper-overlay [& element-selectors]
   (let [*line-height* 17.6 *padding* 10 *text-width* 200 ;; hard-code
         *vertical-bar* 50 *horiz-bar* 100
         posn->offsets (fn [posn width height]
@@ -94,86 +89,18 @@
             helperText]]]))]))
 
 ;; TODO: Update, replace?
-#_(defn help-button []
+(defn- help-button []
   [:div.layer-controls.help-button
    [b/tooltip {:content "Show the quick-help guide"}
     [:span.control.bp3-icon-large.bp3-icon-help.bp3-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
-
-(defn legend-display [{:keys [legend_url server_url layer_name style]}]
-  ;; Allow a custom url via the legend_url field, else construct a GetLegendGraphic call:
-  (let [legend-url (or legend_url
-                       (with-params server_url
-                         (merge
-                          {:REQUEST "GetLegendGraphic"
-                           :LAYER layer_name
-                           :FORMAT "image/png"
-                           :TRANSPARENT true
-                           :SERVICE "WMS"
-                           :VERSION "1.1.1"
-                           :LEGEND_OPTIONS "forceLabels:on"}
-                          (when style {:STYLE style}))))]
-    [:div.legend-wrapper
-     [:img {:src legend-url}]]))
-
-(defn catalogue-legend
-  [layer {:keys [active? _errors? _loading? expanded? opacity]}]
-  [b/collapse {:is-open (and active? expanded?)
-               :className "layer-legend"}
-   [b/slider {:label-renderer false :initial-value 0 :max 100 :value opacity
-              :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
-   [legend-display layer]])
-
-(defn catalogue-header [{:keys [name] :as layer} {:keys [active? visible? errors? loading? expanded? _opacity] :as _layer-state}]
-  [b/tooltip {:content (if expanded? "Click to hide legend" "Click to show legend")
-              :class "header-text"
-              :disabled (not active?)}
-   [:div.layer-wrapper (when active? {:class "layer-active"})
-    [:div.header-text-wrapper (when (or loading? errors?) {:class "has-icons"})
-     (when (and active? visible? (or loading? errors?))
-       [:div.header-status-icons
-        (when loading? [b/spinner {:className "bp3-small layer-spinner"}])
-        (when errors? [:span.layer-warning.bp3-icon.bp3-icon-small.bp3-icon-warning-sign])])
-     [b/clipped-text {:ellipsize true :class "header-text"
-                      :on-click (handler-dispatch [:map.layer.legend/toggle layer])}
-      name]]]])
-
-(defn catalogue-controls [layer {:keys [active? _errors? _loading?] :as _layer-state}]
-  [:div.catalogue-layer-controls (when active? {:class "layer-active"})
-   [b/tooltip {:content "Layer info / Download data"}
-    [:span.control.bp3-icon-standard.bp3-icon-info-sign.bp3-text-muted
-     {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
-   [b/tooltip {:content "Zoom to layer"}
-    [:span.control.bp3-icon-standard.bp3-icon-zoom-to-fit.bp3-text-muted
-     {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
-   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
-    [b/checkbox
-     {:checked (boolean active?)
-      :on-change (handler-dispatch [:map/toggle-layer layer])}]]])
-
-(defn active-layer-catalogue-controls [layer {:keys [active? visible? _errors? _loading?] :as _layer-state}]
-  [:div.catalogue-layer-controls (when active? {:class "layer-active"})
-   [b/tooltip {:content "Layer info / Download data"}
-    [:span.control.bp3-icon-standard.bp3-icon-info-sign.bp3-text-muted
-     {:on-click (handler-dispatch [:map.layer/show-info layer])}]]
-   [b/tooltip {:content "Zoom to layer"}
-    [:span.control.bp3-icon-standard.bp3-icon-zoom-to-fit.bp3-text-muted
-     {:on-click (handler-dispatch [:map/pan-to-layer layer])}]]
-   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
-    [:span.control.bp3-icon-large.bp3-text-muted
-     {:class (if visible? "bp3-icon-eye-on" "bp3-icon-eye-off")
-      :on-click (handler-dispatch [:map/toggle-layer-visibility layer])}]]
-   [b/tooltip {:content "Deactivate layer"}
-    [:span.control.bp3-icon-standard.bp3-text-muted
-     {:class "bp3-icon-remove"
-      :on-click (handler-dispatch [:map/toggle-layer layer])}]]])
 
 (defn- ->sort-by [sorting-info ordering-key]
   (let [name-key-mapping (get sorting-info ordering-key)]
     ;; Sort by key first, then name (ie, return vector of [key name])
     (comp #(vector (get name-key-mapping %) %) first)))
 
-(defn layers->nodes
+(defn- layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
    {:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn] :as layer-props} open-all?]
@@ -197,23 +124,11 @@
                                          :errors?   (error-fn layer)
                                          :opacity  (opacity-fn layer)}]
                         {:id (str id-str "-" i)
-                         :className (str "layer-wrapper" (when (:active? layer-state) " layer-active"))
-                         :label (reagent/as-element
-                                 [:div
-                                  {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer layer])
-                                   :on-mouse-out #(re-frame/dispatch [:map/update-preview-layer nil])}
-                                  [:div.header-row.height-static
-                                   [catalogue-header layer layer-state]
-                                   [catalogue-controls layer layer-state]]
-                                  [catalogue-legend layer layer-state]])
-                        ;; A hack, but if we just add the layer it gets
-                        ;; warped in the js->clj conversion
-                        ;; (specifically, values that were keywords become strings)
-                         ;; :do-layer-toggle #(re-frame/dispatch [:map/toggle-layer layer])
-                         #_:secondaryLabel #_(reagent/as-element [catalogue-controls layer layer-state])}))
+                         :className "catalogue-layer-node"
+                         :label (reagent/as-element [layer-catalogue-content {:layer layer :layer-state layer-state}])}))
                     layer-subset))}))
 
-(defn layer-catalogue-tree [_layers _ordering _id _layer-props _open-all?]
+(defn- layer-catalogue-tree [_layers _ordering _id _layer-props _open-all?]
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
@@ -228,13 +143,13 @@
                        ;; If we have children, toggle expanded state, else add to map
                        (re-frame/dispatch [:ui.catalogue/toggle-node id]))))]
     (fn [layers ordering id layer-props open-all?]
-     [:div.tab-body.layer-controls {:id id}
+     [:div.tab-body {:id id}
       [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all?)
                :onNodeCollapse on-close
                :onNodeExpand on-open
                :onNodeClick on-click}]])))
 
-(defn layer-catalogue [layers layer-props]
+(defn- layer-catalogue [layers layer-props]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab])
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab %1])
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
@@ -253,7 +168,7 @@
         :panel (reagent/as-element
                 [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]]))
 
-(defn transect-toggle []
+(defn- transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
         [text icon dispatch] (cond
                                drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
@@ -265,7 +180,7 @@
                 :on-click (handler-dispatch [dispatch])
                 :text     text}]]))
 
-(defn selection-button []
+(defn- selection-button []
   (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
         [dispatch-key label]        (cond
                                       selecting? [:map.layer.selection/disable "Cancel Selecting"]
@@ -277,7 +192,7 @@
                 :on-click   (handler-dispatch [dispatch-key])
                 :text       label}]]))
 
-(defn viewport-only-toggle []
+(defn- viewport-only-toggle []
   (let [[icon text] (if @(re-frame/subscribe [:map/viewport-only?])
                       ["globe" "All layers"]
                       ["map" "Viewport layers only"])]
@@ -287,42 +202,7 @@
       :on-click #(re-frame/dispatch [:map/toggle-viewport-only])
       :text     text}]))
 
-;; TODO: Remove, unused
-#_(defn layer-logic-toggle []
-  (let [{:keys [type trigger]} @(re-frame/subscribe [:map.layers/logic])
-        user-triggered?        (= trigger :map.logic.trigger/user)
-        [checked? label icon]  (if (= type :map.layer-logic/automatic)
-                                 [true  " Automatic Layer Selection" [:i.fa.fa-magic]]
-                                 [false " Choose Layers Manually"    [:span.bp3-icon-standard.bp3-icon-hand]])]
-    [:div#logic-toggle.logic-toggle
-     (merge {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
-             :data-text-width "380px"}
-            (when-not (or checked? user-triggered?)
-              {:class "external-trigger"}))
-     [b/switch {:checked   checked?
-                :label     (reagent/as-element [:span icon label])
-                :on-change (handler-dispatch [:map.layers.logic/toggle true])}]]))
-
-;; TODO: Remove, unused
-#_(defn layer-logic-toggle-button []
-  (let [{:keys [type]} @(re-frame/subscribe [:map.layers/logic])]
-    [:div#logic-toggle
-     {:data-helper-text "Automatic layer selection picks the best layers to display, or turn off to list all available layers and choose your own"
-      :data-text-width "380px"}
-     (if (= type :map.layer-logic/automatic)
-       [b/button
-        {:class "bp3-fill"
-         :on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}
-        [:span
-         [:i.fa.fa-magic]
-         "Automatic Layer Selection"]]
-       [b/button
-        {:icon "hand"
-         :class "bp3-fill"
-         :text "Choose Layers Manually"
-         :on-click  #(re-frame/dispatch [:map.layers.logic/toggle true])}])]))
-
-(defn layer-search-filter []
+(defn- layer-search-filter []
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
     [:div.bp3-input-group {:data-helper-text "Filter Layers"}
      [:span.bp3-icon.bp3-icon-search]
@@ -333,93 +213,37 @@
                                 :on-change   (handler-dispatch
                                                [:map.layers/filter (.. event -target -value)])}]]))
 
+(defn- active-layer-selection-list
+  [{:keys [layers visible-layers main-national-layer loading-fn error-fn expanded-fn opacity-fn]}]
+  [components/items-selection-list
+   {:items
+    (for [{:keys [id] :as layer} layers]
+      {:key (str id)
+       :content
+       (if (= layer main-national-layer)
+         [main-national-layer-card
+          {:layer layer
+           :layer-state
+           {:active?   true
+            :visible?  (some #{layer} visible-layers)
+            :loading?  (loading-fn layer)
+            :errors?   (error-fn layer)
+            :expanded? (expanded-fn layer)
+            :opacity   (opacity-fn layer)}}]
+         [layer-card
+          {:layer layer
+           :layer-state
+           {:active?   true
+            :visible?  (some #{layer} visible-layers)
+            :loading?  (loading-fn layer)
+            :errors?   (error-fn layer)
+            :expanded? (expanded-fn layer)
+            :opacity   (opacity-fn layer)}}])})
+    :disabled    false
+    :data-path   [:map :active-layers]
+    :is-reversed true}])
 
-;; TODO: Remove, unused
-#_(defn layer-card [layer-spec {:keys [active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
-  [:div.layer-wrapper.bp3-card.bp3-elevation-1
-   {:class (when active? "layer-active bp3-interactive")}
-   [:div.header-row.height-static
-    [catalogue-header layer-spec other-props]
-    [catalogue-controls layer-spec other-props]]
-   [catalogue-legend layer-spec other-props]])
-
-(defn active-layer-card [layer-spec {:keys [_active? _visible? _loading? _errors? _expanded? _opacity-fn] :as other-props}]
-  [:div.layer-wrapper.bp3-card.bp3-elevation-1.layer-active.bp3-interactive
-   [:div.header-row.height-static
-    [catalogue-header layer-spec other-props]
-    [active-layer-catalogue-controls layer-spec other-props]]
-   [catalogue-legend layer-spec other-props]])
-
-;; TODO: Remove, unused
-#_(defn layer-group [{:keys [expanded] :or {expanded false} :as _props} _layers _active-layers _visible-layers _loading-fn _error-fn _expanded-fn _opacity-fn]
-  (let [expanded (reagent/atom expanded)]
-    (fn [{:keys [id title classes] :as props} layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-      [:div.layer-group.height-managed
-       (merge {:class (str classes (if @expanded " expanded" " collapsed"))}
-              (when id {:id id}))
-       [:h1.bp3-heading {:on-click (handler-fn (swap! expanded not))}
-        [:span.bp3-icon-standard {:class (if @expanded "bp3-icon-chevron-down" "bp3-icon-chevron-right")}]
-        (str title " (" (count layers) ")")]
-       [b/collapse {:is-open               @expanded
-                    :keep-children-mounted true
-                    :className             "height-managed"}
-        (when-let [extra-component (:extra-component props)]
-          extra-component)
-        [:div.height-managed.group-scrollable
-         (for [layer layers]
-           ^{:key (:layer_name layer)}
-           [layer-card layer {:active?   (some #{layer} active-layers)
-                              :visible?  (some #{layer} visible-layers)
-                              :loading?  (loading-fn layer)
-                              :errors?   (error-fn layer)
-                              :expanded? (expanded-fn layer)
-                              :opacity   (opacity-fn layer)}])]]])))
-
-(defn active-layer-selection-list
-  [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn]}]
-  (let [layer-card-items
-        (map
-         (fn [layer]
-           {:key (str (:id layer))
-            :content [active-layer-card layer
-                      {:active?   true
-                       :visible?  (some #{layer} visible-layers)
-                       :loading?  (loading-fn layer)
-                       :errors?   (error-fn layer)
-                       :expanded? (expanded-fn layer)
-                       :opacity   (opacity-fn layer)}]})
-         layers)]
-    [components/items-selection-list
-     {:items       layer-card-items
-      :disabled    false
-      :data-path   [:map :active-layers]
-      :is-reversed true}]))
-
-;; TODO: Remove, unused
-#_(defn active-layer-group
-  [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-  [:div.active-layer-group.height-managed
-   [:h1.bp3-heading
-    (str "Layers (" (count layers) ")")]
-   [:div.height-managed.group-scrollable
-    [active-layer-selection-list
-     {:layers         layers
-      :visible-layers visible-layers
-      :loading-fn     loading-fn
-      :error-fn       error-fn
-      :expanded-fn    expanded-fn
-      :opacity-fn     opacity-fn}]]])
-
-;; TODO: Remove, unused
-#_(defn settings-controls []
-  [:div#settings
-   [b/button {:id         "reset-button"
-              :icon       "undo"
-              :class "bp3-fill"
-              :on-click   (handler-dispatch [:re-boot])
-              :text       "Reset Interface"}]])
-
-(defn plot-component-animatable [{:keys [on-add on-remove]
+(defn- plot-component-animatable [{:keys [on-add on-remove]
                                   :or   {on-add identity on-remove identity}
                                   :as   _props}
                                  _child-component
@@ -437,7 +261,7 @@
                               (merge child-props
                                      (js->clj % :keywordize-keys true))])]])}))
 
-(defn plot-component []
+(defn- plot-component []
   (let [show-plot (re-frame/subscribe [:transect.plot/show?])
         force-resize #(js/window.dispatchEvent (js/Event. "resize"))
         transect-results (re-frame/subscribe [:transect/results])]
@@ -458,7 +282,7 @@
                                               :on-mouseout
                                               #(re-frame/dispatch [:transect.plot/mouseout]))]])]])))
 
-(defn loading-display []
+(defn- loading-display []
   (let [loading?  @(re-frame/subscribe [:app/loading?])
         main-msg  @(re-frame/subscribe [:app/load-normal-msg])
         error-msg @(re-frame/subscribe [:app/load-error-msg])]
@@ -473,7 +297,7 @@
           {:title  main-msg
            :icon (reagent/as-element [b/spinner {:intent "success"}])}])])))
 
-(defn welcome-dialogue []
+(defn- welcome-dialogue []
   (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
     [b/dialogue {:title      "Welcome to Seamap Australia!"
                  :class "welcome-splash"
@@ -506,7 +330,7 @@
                   :auto-focus true
                   :on-click   (handler-dispatch [:welcome-layer/close])}]]]]))
 
-(defn metadata-record [_props]
+(defn- metadata-record [_props]
   (let [expanded (reagent/atom false)]
     (fn  [{:keys [license-name license-link license-img constraints other]
            {:keys [category organisation name metadata_url server_url layer_name]} :layer
@@ -573,7 +397,7 @@
               :disabled   disabled?
               :right-icon "caret-down"}]])
 
-(defn info-card []
+(defn- info-card []
   (let [layer-info                       @(re-frame/subscribe [:map.layer/info])
         {:keys [metadata_url] :as layer} (:layer layer-info)
         title                            (or (get-in layer-info [:layer :name]) "Layer Information")
@@ -610,180 +434,7 @@
                   :intent     b/INTENT-PRIMARY
                   :on-click   (handler-dispatch [:map.layer/close-info])}]]]]))
 
-;; TODO: Remove, unused
-#_(defn- as-icon [icon-name description]
-  (reagent/as-element [b/tooltip {:content  description
-                                  :position RIGHT}
-                       [:span.bp3-icon-standard {:class (str "bp3-icon-" icon-name)}]]))
-
-;; TODO: Remove, unused
-#_(defn active-layers-tab
-  [layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-  [:div.sidebar-tab.height-managed
-   [active-layer-group layers active-layers visible-layers loading-fn error-fn expanded-fn opacity-fn]
-   [help-button]])
-
-;; TODO: Remove, unused
-#_(defn catalogue-layers-button
-  [{:keys [category]}]
-  (let [title (:display_name category)]
-    [b/button
-     {:icon     "more"
-      :text     title
-      :on-click #(re-frame/dispatch [:drawer-panel-stack/open-catalogue-panel (:name category)])}]))
-
-;; TODO: Remove, unused
-#_(defn base-panel []
-  (let [categories @(re-frame/subscribe [:map/display-categories])]
-    {:content
-     [:div
-      [components/drawer-group
-       {:heading "Controls"
-        :icon    "settings"}
-       [transect-toggle]
-       [selection-button]
-       [layer-logic-toggle-button]]
-      
-      [components/drawer-group
-       {:heading "Catalogue Layers"
-        :icon    "list-detail-view"}
-       (for [category categories]
-         [catalogue-layers-button
-          {:key      (:name category)
-           :category category}])]
-      [components/drawer-group
-       {:heading "Settings"
-        :icon    "cog"}
-       [b/button
-        {:icon     "undo"
-         :text     "Reset Interface"
-         :on-click   #(re-frame/dispatch [:re-boot])}]]]}))
-
-;; TODO: Remove, unused
-#_(defn catalogue-layers-panel
-  [{:keys [title layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
-  {:title   title
-   :content
-   [:div.sidebar-tab.height-managed
-    [layer-search-filter]
-    [layer-catalogue layers
-     {:active-layers  active-layers
-      :visible-layers visible-layers
-      :loading-fn     loading-layers
-      :error-fn       error-layers
-      :expanded-fn    expanded-layers
-      :opacity-fn     layer-opacities}]]})
-
-;; TODO: Remove, unused
-#_(defn drawer-panel-selection
-  [panel map-layers]
-  (let [{:keys [panel props]} panel
-        {:keys [groups active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} map-layers]
-    (case panel
-      :drawer-panel/catalogue-layers
-      (catalogue-layers-panel
-       (merge
-        props
-        {:layers          ((:group props) groups)
-         :active-layers   active-layers
-         :visible-layers  visible-layers
-         :loading-layers  loading-layers
-         :error-layers    error-layers
-         :expanded-layers expanded-layers
-         :layer-opacities layer-opacities})))))
-;; TODO: Remove, unused
-#_(defn drawer-panel-stack
-  []
-  (let [map-layers @(re-frame/subscribe [:map/layers])
-        panels @(re-frame/subscribe [:drawer-panel-stack/panels])
-        display-panels
-        (map #(drawer-panel-selection % map-layers) panels)]
-    [components/panel-stack
-     {:panels (concat [(base-panel)] display-panels)
-      :on-close #(re-frame/dispatch [:drawer-panel-stack/pop])}]))
-
-;; TODO: Remove, unused
-#_(defn active-layers-sidebar []
-  (let [{:keys [collapsed selected] :as _sidebar-state}                            @(re-frame/subscribe [:ui/sidebar])
-        {:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])]
-    [sidebar {:id        "floating-sidebar"
-              :selected  selected
-              :collapsed collapsed
-              :closeIcon (reagent/as-element [:span.bp3-icon-standard.bp3-icon-caret-left])
-              :on-close  #(re-frame/dispatch [:ui.sidebar/close])
-              :on-open   #(re-frame/dispatch [:ui.sidebar/open %])}
-     [sidebar-tab {:header "Active Layers"
-                   :icon   (as-icon "eye-open"
-                                    (str "Active Layers (" (count active-layers) ")"))
-                   :id     "tab-activelayers"}
-      [active-layers-tab active-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]]]))
-
-;; TODO: Remove, unused
-#_(defn floating-menu-bar []
-  [:div.floating-menu-bar
-   [:div.floating-menu-bar-drawer-button
-    {:on-click #(re-frame/dispatch [:left-drawer/toggle])}
-    [b/icon
-     {:icon "menu"
-      :icon-size 20}]]
-   [:div.floating-menu-bar-search-button
-    {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
-    [b/icon
-     {:icon "search"
-      :icon-size 16}]
-    "Search Layers..."]])
-
-;; TODO: Remove, unused
-#_(defn floating-menu-active-layers
-  [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]}]
-  [:div.floating-menu-active-layers
-   [:div.header
-    [b/icon
-     {:icon "eye-open"
-      :icon-size 18}]
-    [:h1 (str "Active Layers (" (count active-layers) ")")]]
-   [:div.content
-    [active-layer-selection-list
-     {:layers         active-layers
-      :visible-layers visible-layers
-      :loading-fn     loading-layers
-      :error-fn       error-layers
-      :expanded-fn    expanded-layers
-      :opacity-fn     layer-opacities}]]])
-
-;; TODO: Remove, unused
-#_(defn floating-menu []
-  (let [{:keys [active-layers] :as map-layers} @(re-frame/subscribe [:map/layers])]
-    [:div.floating-menu-positioning
-     [:div.floating-menu
-      [floating-menu-bar]
-      (when (seq active-layers) [floating-menu-active-layers map-layers])]]))
-
-;; TODO: Remove, unused
-#_(defn floating-transect-pill
-  [{:keys [drawing? query]}]
-  (let [[text icon dispatch] (cond
-                           drawing? ["Cancel Transect" "undo"   :transect.draw/disable]
-                           query    ["Clear Transect"  "eraser" :transect.draw/clear]
-                           :else    ["Draw Transect"   "edit"   :transect.draw/enable])]
-    [components/floating-pill-button
-     {:text     text
-      :icon     icon
-      :on-click #(re-frame/dispatch [dispatch])}]))
-
-;; TODO: Remove, unused
-#_(defn floating-region-pill
-  [{:keys [selecting? region]}]
-  (let [[text icon dispatch] (cond
-                               selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
-                               region     ["Clear Selection"  "eraser" :map.layer.selection/clear]
-                               :else      ["Select Region"    "widget" :map.layer.selection/enable])]
-    [components/floating-pill-button
-     {:text     text
-      :icon     icon
-      :on-click #(re-frame/dispatch [dispatch])}]))
-
-(defn floating-pills []
+(defn- floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
         amp-boundaries           @(re-frame/subscribe [:sok/valid-amp-boundaries])
@@ -819,7 +470,7 @@
          amp-boundaries
          {:expanded? (= open-pill "zones")})])]))
 
-(defn layers-search-omnibar []
+(defn- layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])
         open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
         {:keys [filtered-layers]} @(re-frame/subscribe [:map/layers])]
@@ -841,19 +492,10 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
-;; TODO: Remove, unused
-#_(defn catalogue-layer-search-button []
-  [:div.catalogue-layer-search-button
-   {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
-   [b/icon
-    {:icon "search"
-     :icon-size 16}]
-   "Search Layers..."])
-
-(defn left-drawer []
+(defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
+        {:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
     [components/drawer
@@ -898,6 +540,7 @@
                    [active-layer-selection-list
                     {:layers         active-layers
                      :visible-layers visible-layers
+                     :main-national-layer main-national-layer
                      :loading-fn     loading-layers
                      :error-fn       error-layers
                      :expanded-fn    expanded-layers
@@ -923,7 +566,7 @@
                      :text     "Reset Interface"
                      :on-click   #(re-frame/dispatch [:re-boot])}]]])}]]]]))
 
-(defn layer-preview [_preview-layer-url]
+(defn- layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
         error? (reagent/atom false)]    ; keeps track of if previous url had an error in displaying
     (fn [preview-layer-url]
@@ -1009,6 +652,8 @@
      [:div#content-wrapper
       [map-component [floating-pills]]
       [plot-component]]
+     
+     ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [helper-overlay
       :layer-search
       :plot-footer
