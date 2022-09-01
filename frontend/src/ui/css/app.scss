@@ -77,10 +77,6 @@ footer {
     opacity: 1;
 }
 
-.height-static {
-    flex-grow: 0;
-    flex-shrink: 0;
-}
 .bp3-collapse>.bp3-collapse-body,
 .height-managed {
     display: flex;
@@ -122,118 +118,10 @@ footer {
     margin-top: 10px;
 }
 
-/* Layer cards */
-.layer-group {
-    padding-top: 10px;
-    overflow-y: hidden;
-}
-.layer-group.collapsed {
-    min-height: 30px;
-}
-.layer-group.expanded {
-    min-height: 115px;
-}
-.layer-group.expanded.needs-extra {
-    min-height: 150px;
-}
-.active-layer-group {
-    padding-top: 10px;
-    overflow-y: hidden;
-}
-
 .group-scrollable{
     overflow-y: auto;
     padding: 2px;
     margin-bottom: 10px;
-}
-
-.layer-wrapper.bp3-card {
-    min-width: 0;
-    margin-bottom: 5px;
-}
-
-.layer-wrapper .header-row,
-.layer-wrapper .subheader-row {
-    display: flex;
-    flex-direction: row;
-    overflow: hidden;
-}
-
-.header-row .layer-wrapper {
-    width: 100%;
-}
-
-.layer-wrapper .subheader-row {
-    transition: height 200ms ease-out;
-    height: 0;
-}
-.layer-wrapper:hover .subheader-row {
-    height: 20px;
-}
-
-.header-text .bp3-popover-target {
-    display: flex;
-}
-
-.layer-wrapper .header-text {
-    flex: 1 1 auto;
-    overflow: hidden;
-}
-
-.layer-wrapper .header-row .view-controls {
-    flex: 0;
-    margin-left: 10px;
-}
-
-.layer-wrapper .control-row {
-    flex: 1 1 auto;
-}
-
-.catalogue-layer-controls .control {
-    margin-left: 2px;
-    opacity: 0.8;
-}
-.catalogue-layer-controls .control:hover {
-    opacity: 1;
-}
-
-.layer-active .header-text,
-.layer-active .bp3-icon-eye-on {
-    color: #0F9960;
-}
-
-.layer-active .bp3-icon-eye-on:hover {
-    color: #C23030;
-}
-
-.layer-active .bp3-icon-remove:hover {
-    color: #C23030;
-}
-
-.layer-active .header-text {
-    font-style: italic;
-}
-
-.layer-active .header-text-wrapper.has-icons {
-    display: flex;
-    flex-direction: row;
-}
-
-.header-status-icons {
-    padding-right: 10px
-}
-
-.layer-wrapper .legend-wrapper {
-    overflow-x: hidden;
-}
-
-.layer-wrapper .legend-wrapper img {
-    max-width: 100%;
-}
-
-.catalogue-layer-controls {
-    flex: 0 0 auto;
-    display: flex;
 }
 
 .catalogue-add {
@@ -243,29 +131,23 @@ footer {
     flex: 0 0 auto;
 }
 
-.layer-wrapper .bp3-tree-node-content {
+.catalogue-layer-node .bp3-tree-node-content {
     padding: 0;
     height: auto;
 }
-.layer-wrapper .bp3-tree-node-label > div {
+
+.catalogue-layer-node .bp3-tree-node-label > div {
     padding-left: 62px;
     padding-bottom: 5px;
     min-height: 30px;
 }
 
-.layer-wrapper .bp3-tree-node-caret-none {
+.catalogue-layer-node .bp3-tree-node-caret-none {
     display: none;
 }
 
-.layer-wrapper .bp3-tree-node-label {
+.catalogue-layer-node .bp3-tree-node-label {
     padding: 0;
-}
-
-.bp3-tree-node-label .layer-legend {
-    padding-right: 9px;
-}
-.catalogue-layer-controls > span {
-    padding-left: 2px;
 }
 
 .transect-overlay {
@@ -421,16 +303,6 @@ rect#background {
 /* Map customisation */
 /* Don't display the edit toolbar: */
 .leaflet-draw.leaflet-control > .leaflet-draw-section:nth-child(2) { display: none !important; }
-.layer-group > h1 {
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.active-layer-group > h1 {
-    font-size: 16px;
-    font-weight: bold;
-}
 
 .leaflet-grab {
     cursor: default;
@@ -565,12 +437,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     padding: 0;
 }
 
-/* Fixes checkbox alignment inside of layer card controls */
-.catalogue-layer-controls .bp3-checkbox {
-    margin-bottom: 0;
-    margin-left: 3px;
-}
-
 .left-drawer-header {
     padding: 12px;
 }
@@ -613,6 +479,10 @@ input.leaflet-control-layers-selector[type="radio"] {
 .form-group > :first-child {
     font-weight: bold;
     margin-left: 6px;
+}
+
+.form-group:not(:last-child) {
+    margin-bottom: 8px;
 }
 
 .donut-chart {
@@ -765,20 +635,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     display: none;
 }
 
-.vector-legend-rule {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    height: 20px;
-}
-
-.vector-legend-rule > :first-child {
-    width: 13px;
-    height: 13px;
-    margin-left: 3px;
-}
-
-.vector-legend-rule > :nth-child(2) {
-    white-space: pre;
-    font-size: 13px;
+.bp3-checkbox {
+    margin: 0;
 }

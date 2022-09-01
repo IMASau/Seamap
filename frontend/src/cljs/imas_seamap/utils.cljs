@@ -231,3 +231,9 @@
     (.appendChild shadow body-element)
 
     element))
+
+(defn with-params [url params]
+  (let [u (goog/Uri. url)]
+    (doseq [[k v] params]
+      (.setParameterValue u (name k) v))
+    (str u)))

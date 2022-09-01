@@ -59,7 +59,8 @@
      :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
      :filtered-layers filtered-layers
-     :viewport-layers viewport-layers}))
+     :viewport-layers viewport-layers
+     :main-national-layer (first (get-in map [:keyed-layers :main-national-layer]))}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))

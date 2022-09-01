@@ -1,0 +1,83 @@
+.layer-card {
+    margin: 4px 2px;
+}
+
+.layer-header-text {
+    flex: 1 1;
+    overflow: hidden;
+}
+
+.active-layer .layer-header-text {
+    color: #0F9960;
+    font-style: italic;
+}
+
+.layer-header-text .bp3-popover-target {
+    display: flex;
+}
+
+.layer-status-icons {
+    flex: 0 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.layer-status-icons .bp3-icon,
+.layer-control {
+    opacity: 0.8;
+}
+
+.layer-control:hover {
+    opacity: 1;
+}
+
+/* Special controls */
+.layer-control.bp3-icon-eye-on {
+    color: #0F9960;
+}
+
+.layer-control.bp3-icon-eye-on:hover,
+.layer-control.bp3-icon-remove:hover {
+    color: #C23030;
+}
+
+.layer-controls {
+    flex: 0 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.layer-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 20px;
+}
+
+.legend-wrapper {
+    overflow-x: hidden;
+}
+
+.legend-wrapper img {
+    max-width: 100%;
+}
+
+.vector-legend-rule {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 20px;
+}
+
+.vector-legend-rule > :first-child {
+    width: 13px;
+    height: 13px;
+    margin-left: 3px;
+}
+
+.vector-legend-rule > :nth-child(2) {
+    white-space: pre;
+    font-size: 13px;
+}
