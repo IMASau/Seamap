@@ -68,7 +68,7 @@ if (!document.body) {
     document.body.appendChild(portal);
 }
 
-function PortalAwareItem({ provided, snapshot, itemLabel, removeButton, className, isDragDisabled }) {
+function PortalAwareItem({ provided, snapshot, itemLabel, removeButton, className, isDragDisabled, zIndex }) {
 
     const usePortal = snapshot.isDragging;
 
@@ -86,7 +86,7 @@ function PortalAwareItem({ provided, snapshot, itemLabel, removeButton, classNam
                 {...provided.dragHandleProps}>
                 { isDragDisabled ? <span/> : <DragHandle /> }
             </div>
-            <div className="DragHandleWrapperLabel">
+            <div className="DragHandleWrapperLabel" style={{"zIndex": zIndex}}>
                 {itemLabel}
             </div>
             {
@@ -331,6 +331,7 @@ export function ItemsSelectionList({ items, onReorder, disabled }) {
                                     isDragDisabled={isDragDisabled}>
                                     {(provided, snapshot) => (
                                         <PortalAwareItem
+                                            zIndex={items.length - index}
                                             provided={provided}
                                             snapshot={snapshot}
                                             className="SelectionListItem"
