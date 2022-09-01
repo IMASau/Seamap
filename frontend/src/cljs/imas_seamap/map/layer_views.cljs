@@ -2,6 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b]
+            [imas-seamap.components :as components]
             [imas-seamap.utils :refer [with-params]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -132,7 +133,8 @@
 ;; Main national layer
 
 (defn- main-national-layer-details [{:keys [_layer] {:keys [_opacity]} :layer-state}]
-  (let [selected-tab (reagent/atom "legend")]
+  (let [selected-tab (reagent/atom "legend") 
+        alternate-view (reagent/atom nil)]   ; Graduate to event probably at some point to be able to filter displayed layer
     (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
       [:div.layer-details
        [b/slider
@@ -146,12 +148,30 @@
         [b/tab
          {:id    "legend"
           :title "Legend"
-          :panel (reagent/as-element [legend-display layer])}]
+          :panel
+          (reagent/as-element
+           [:<>
+            (when @alternate-view [:h2.bp3-heading @alternate-view])
+            [legend-display layer]])}]
         
         [b/tab
          {:id    "filters"
           :title "Filters"
-          :panel (reagent/as-element [:div "placeholder"])}]]])))
+          :panel
+          (reagent/as-element
+           [:div
+            [components/form-group
+             {:label "Alternate View"}
+             [components/select
+              {:value        @alternate-view        
+               :options
+               ["CBICS Classified" "Seagrass" "..." ".." "."]
+               :onChange     #(reset! alternate-view %)
+               :isSearchable true
+               :isClearable  true
+               :keyfns
+               {:id   identity
+                :text identity}}]]])}]]])))
 
 (defn- main-national-layer-card-content [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
