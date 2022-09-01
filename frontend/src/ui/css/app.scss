@@ -481,6 +481,10 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-left: 6px;
 }
 
+.form-group:not(:last-child) {
+    margin-bottom: 8px;
+}
+
 .donut-chart {
     width: 100%;
 }

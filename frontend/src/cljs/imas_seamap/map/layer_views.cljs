@@ -132,6 +132,24 @@
 
 ;; Main national layer
 
+(defn- main-national-layer-time-filter []
+  (let [value     (reagent/atom 2000)   ; Graduate to event probably at some point to be able to filter displayed layer
+        all-time? (reagent/atom false)] ; Graduate to event probably at some point to be able to filter displayed layer
+    (fn []
+      [components/form-group {:label "Time"}
+       [b/checkbox
+        {:label    "At all points in time"
+         :checked  @all-time?
+         :on-click #(swap! all-time? not)}]
+       [b/slider
+        {:min             2000
+         :max             2022
+         :label-step-size (- 2022 2000)
+         :value           @value
+         :step-size       1
+         :on-change       #(reset! value %)
+         :disabled        @all-time?}]])))
+
 (defn- main-national-layer-details [{:keys [_layer] {:keys [_opacity]} :layer-state}]
   (let [selected-tab (reagent/atom "legend") 
         alternate-view (reagent/atom nil)]   ; Graduate to event probably at some point to be able to filter displayed layer
@@ -159,7 +177,7 @@
           :title "Filters"
           :panel
           (reagent/as-element
-           [:div
+           [:<>
             [components/form-group
              {:label "Alternate View"}
              [components/select
@@ -171,7 +189,8 @@
                :isClearable  true
                :keyfns
                {:id   identity
-                :text identity}}]]])}]]])))
+                :text identity}}]]
+            [main-national-layer-time-filter]])}]]])))
 
 (defn- main-national-layer-card-content [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
