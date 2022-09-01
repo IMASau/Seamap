@@ -300,13 +300,16 @@
       {} keyed-layers))
     db))
 
-(defn update-layers [{:keys [legend-ids opacity-ids] :as db} [_ layers]]
-  (let [layers (process-layers layers)
+(defn update-layers [{:keys [db]} [_ layers]]
+  (let [{:keys [legend-ids opacity-ids]} db
+        layers (process-layers layers)
         db     (-> db
                    (assoc-in [:map :layers] layers)
                    (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
-                   (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
-    (keyed-layers-join db)))
+                   (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids))
+                   keyed-layers-join)]
+    {:db         db
+     :dispatch-n (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))}))
 
 (defn- ->sort-map [ms]
   ;; Associate a category of objects (categories, organisations) with
