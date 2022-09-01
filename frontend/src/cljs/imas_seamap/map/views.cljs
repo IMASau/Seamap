@@ -12,6 +12,7 @@
             ["react-leaflet" :as ReactLeaflet]
             ["/leaflet-zoominfo/L.Control.Zoominfo"]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
+            ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn point->latlng [[x y]] {:lat y :lng x})
@@ -302,6 +303,12 @@
         #(when-let [leaflet-map (ReactLeaflet/useMap)]
            (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
            nil))
+
+       ;; When the current active layer is a vector tile layer, display the default
+       ;; basemap layer underneath, since vector tile layers don't support printing.
+       (when (= (:layer_type active-base-layer) :vector)
+         [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index -1}}
+          [basemap-layer-component (first grouped-base-layers)]])
 
        ;; Basemap selection:
        [leaflet/layers-control {:position "topright" :auto-z-index false}
