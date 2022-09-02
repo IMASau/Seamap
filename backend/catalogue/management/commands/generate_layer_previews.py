@@ -48,7 +48,7 @@ def subdivide_requests(layer, horizontal_subdivisions=1, vertical_subdivisions=1
         'west':  float(layer.minx)
     }
 
-    x_delta = bbox['east'] - bbox['west']
+    x_delta = (bbox['east'] - bbox['west'] + 360) % 360
     y_delta = bbox['north'] - bbox['south']
     aspect_ratio = x_delta / y_delta
     width = 386
@@ -107,7 +107,7 @@ def retrieve_image(layer, horizontal_subdivisions=1, vertical_subdivisions=1):
         'west': float(layer.minx)
     }
 
-    x_delta = bbox['east'] - bbox['west']
+    x_delta = (bbox['east'] - bbox['west'] + 360) % 360
     y_delta = bbox['north'] - bbox['south']
     aspect_ratio = x_delta / y_delta
     width = 386
