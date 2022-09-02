@@ -618,20 +618,18 @@
 
     {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)}))
 
+(defn- convert-wms-legend [response]
+  (->> response :Legend first :rules
+       (mapv
+        (fn [{:keys [title filter symbolizers]}]
+          {:title  title
+           :filter filter
+           :color  (-> symbolizers first :Polygon :fill)}))))
+
 (defn get-layer-legend-success [db [_ {:keys [id layer_type] :as _layer} response]]
   (let [legend
         (case layer_type
-          
-          :wms
-          (->> response
-               :Legend
-               first
-               :rules
-               (mapv
-                (fn [{:keys [title filter symbolizers]}]
-                  {:title  title
-                   :filter filter
-                   :color  (-> symbolizers first :Polygon :fill)}))))]
+          :wms     (convert-wms-legend response))]
     (assoc-in db [:map :legends id] legend)))
 
 (defn get-layer-legend-error [db [_ {:keys [id] :as _layer}]]
