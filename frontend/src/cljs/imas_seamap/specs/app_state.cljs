@@ -167,8 +167,8 @@
 (s/def :map/legends
   (s/map-of :map.layer/id
             (s/or
-             :loading #{:map.legend/loading}
-             :legend  map?)))
+             :status #{:map.legend/loading}
+             :info   map?)))
 
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))

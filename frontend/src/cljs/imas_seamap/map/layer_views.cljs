@@ -89,12 +89,14 @@
     legend-info)])
 
 (defn- legend-display [{:keys [legend_url] :as layer}]
-  (let [{:keys [has-info? info]} @(re-frame/subscribe [:map.layer/legend layer])]
+  (let [{:keys [status info]} @(re-frame/subscribe [:map.layer/legend layer])]
     [:div.legend-wrapper
-     (cond
-       legend_url [:img {:src legend_url}] ; if we have a custom legend url, use that to display an image
-       has-info?  [vector-legend info]     ; else if we have the info for the layer then display it
-       :else      [b/spinner])]))          ; else if we're loading show that
+     (if legend_url 
+       [:img {:src legend_url}] ; if we have a custom legend url, use that to display an image
+       (case status             ; else use legend status to decide action
+         :map.legend/loaded  [vector-legend info]
+         :map.legend/loading [b/spinner]
+         :map.legend/none    [:div "None"]))]))
 
 (defn- layer-details
   "Layer details, including advanced opacity slider control and the layer's legend."
