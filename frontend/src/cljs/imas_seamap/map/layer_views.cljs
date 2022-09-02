@@ -17,14 +17,13 @@
   "Layer name, with some other fancy stuff on top. Clicking it will expand the
    layer's details."
   [{{:keys [name] :as layer} :layer {:keys [expanded? active?]} :layer-state}]
-  [b/tooltip
+  [:div.layer-header-text
+   {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
+   [b/tooltip
    {:content (if expanded? "Hide details" "Show details")
-    :disabled (not active?)
-    :class "layer-header-text"}
-   [b/clipped-text
-    {:ellipsize true
-     :on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
-    name]])
+    :disabled (not active?)}
+   [b/clipped-text {:ellipsize true}
+    name]]])
 
 (defn- layer-control
   "Basic layer control. It's an icon with a tooltip that does something when
