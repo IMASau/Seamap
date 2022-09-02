@@ -599,63 +599,64 @@
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
     {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
 
-(defn get-layer-legend [{:keys [db]} [_ {:keys [id server_url layer_name layer_type] :as layer}]]
-  (case layer_type
+(defmulti get-layer-legend #(get-in %2 [1 :layer_type]))
 
-    :wms
-    {:db         (assoc-in db [:map :legends id] :map.legend/loading)
-     :http-xhrio {:method          :get
-                  :uri             server_url
-                  :params          {:REQUEST     "GetLegendGraphic"
-                                    :LAYER       layer_name
-                                    :TRANSPARENT true
-                                    :SERVICE     "WMS"
-                                    :VERSION     "1.1.1"
-                                    :FORMAT      "application/json"}
-                  :response-format (ajax/json-response-format {:keywords? true})
-                  :on-success      [:map.layer/get-legend-success layer]
-                  :on-failure      [:map.layer/get-legend-error layer]}}
+(defmethod get-layer-legend :wms
+  [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
+  {:db         (assoc-in db [:map :legends id] :map.legend/loading)
+   :http-xhrio {:method          :get
+                :uri             server_url
+                :params          {:REQUEST     "GetLegendGraphic"
+                                  :LAYER       layer_name
+                                  :TRANSPARENT true
+                                  :SERVICE     "WMS"
+                                  :VERSION     "1.1.1"
+                                  :FORMAT      "application/json"}
+                :response-format (ajax/json-response-format {:keywords? true})
+                :on-success      [:map.layer/get-legend-success layer]
+                :on-failure      [:map.layer/get-legend-error layer]}})
 
-    :feature
-    {:db         (assoc-in db [:map :legends id] :map.legend/loading)
-     :http-xhrio {:method          :get
-                  :uri             server_url
-                  :params          {:f "json"}
-                  :response-format (ajax/json-response-format {:keywords? true})
-                  :on-success      [:map.layer/get-legend-success layer]
-                  :on-failure      [:map.layer/get-legend-error layer]}}
+(defmethod get-layer-legend :feature
+  [{:keys [db]} [_ {:keys [id server_url] :as layer}]]
+  {:db         (assoc-in db [:map :legends id] :map.legend/loading)
+   :http-xhrio {:method          :get
+                :uri             server_url
+                :params          {:f "json"}
+                :response-format (ajax/json-response-format {:keywords? true})
+                :on-success      [:map.layer/get-legend-success layer]
+                :on-failure      [:map.layer/get-legend-error layer]}})
 
-    {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)}))
+(defmethod get-layer-legend :default
+  [{:keys [db]} [_ {:keys [id] :as _layer}]]
+  {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)})
 
-(defn- convert-wms-legend [response]
-  (->> response :Legend first :rules
-       (mapv
-        (fn [{:keys [title filter symbolizers]}]
-          {:label  title
-           :filter filter
-           :color  (-> symbolizers first :Polygon :fill)}))))
+(defmulti get-layer-legend-success #(get-in %2 [1 :layer_type]))
 
-(defn- convert-feature-legend [response {:keys [name] :as _layer}]
-  (letfn [(convert-color
-           [[r g b a]]
-           (str "rgba(" r "," g "," b "," a ")"))
-          (convert-value-info
-           [{:keys [label] :as value-info}]
-           {:label   (or label name)
-            :color   (-> value-info :symbol :color convert-color)
-            :outline (-> value-info :symbol :outline :color convert-color)})]
-    (let [render-info (get-in response [:drawingInfo :renderer])]
-      (if (:uniqueValueInfos render-info)
-        (mapv convert-value-info (:uniqueValueInfos render-info))
-        (-> render-info convert-value-info vector)))))
-
-(defn get-layer-legend-success [db [_ {:keys [id layer_type] :as layer} response]]
-  (let [legend
-        (case layer_type
-          
-          :wms     (convert-wms-legend response)
-          :feature (convert-feature-legend response layer))]
+(defmethod get-layer-legend-success :wms
+  [db [_ {:keys [id] :as _layer} response]]
+  (let [legend (->> response :Legend first :rules
+                    (mapv
+                     (fn [{:keys [title filter symbolizers]}]
+                       {:label  title
+                        :filter filter
+                        :color  (-> symbolizers first :Polygon :fill)})))]
     (assoc-in db [:map :legends id] legend)))
+
+(defmethod get-layer-legend-success :feature
+  [db [_ {:keys [id] :as _layer} response]]
+  (letfn [(convert-color
+            [[r g b a]]
+            (str "rgba(" r "," g "," b "," a ")"))
+          (convert-value-info
+            [{:keys [label] :as value-info}]
+            {:label   (or label name)
+             :color   (-> value-info :symbol :color convert-color)
+             :outline (-> value-info :symbol :outline :color convert-color)})]
+    (let [render-info (get-in response [:drawingInfo :renderer])
+          legend      (if (:uniqueValueInfos render-info)
+                        (mapv convert-value-info (:uniqueValueInfos render-info))
+                        (-> render-info convert-value-info vector))]
+      (assoc-in db [:map :legends id] legend))))
 
 (defn get-layer-legend-error [db [_ {:keys [id] :as _layer}]]
   (assoc-in db [:map :legends id] :map.legend/error))
