@@ -641,13 +641,13 @@
            (str "rgba(" r "," g "," b "," a ")"))
           (convert-value-info
            [{:keys [label] :as value-info}]
-           {:label   label
+           {:label   (or label name)
             :color   (-> value-info :symbol :color convert-color)
             :outline (-> value-info :symbol :outline :color convert-color)})]
     (let [render-info (get-in response [:drawingInfo :renderer])]
       (if (:uniqueValueInfos render-info)
         (mapv convert-value-info (:uniqueValueInfos render-info))
-        (-> render-info convert-value-info (assoc :label name) vector)))))
+        (-> render-info convert-value-info vector)))))
 
 (defn get-layer-legend-success [db [_ {:keys [id layer_type] :as layer} response]]
   (let [legend
