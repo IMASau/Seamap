@@ -74,18 +74,17 @@
    [layer-header-text props]
    [layer-card-controls props]])
 
-(defn- vector-legend-rule [{:keys [title symbolizers] :as _rule}]
-  (let [color (-> symbolizers first :Polygon :fill)]
-    [:div.vector-legend-rule
-     [:div {:style {:background-color color}}]
-     [:div title]]))
+(defn- vector-legend-entry [{:keys [title color] :as _entry}]
+  [:div.vector-legend-rule
+   [:div {:style {:background-color color}}]
+   [:div title]])
 
 (defn- vector-legend [legend-info]
   [:div
    (map
-    (fn [{:keys [title] :as rule}]
+    (fn [{:keys [title] :as entry}]
       ^{:key title}
-      [vector-legend-rule rule])
+      [vector-legend-entry entry])
     legend-info)])
 
 (defn- legend-display [{:keys [legend_url] :as layer}]
