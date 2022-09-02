@@ -74,16 +74,16 @@
    [layer-header-text props]
    [layer-card-controls props]])
 
-(defn- vector-legend-entry [{:keys [title color] :as _entry}]
+(defn- vector-legend-entry [{:keys [label color] :as _entry}]
   [:div.vector-legend-rule
    [:div {:style {:background-color color}}]
-   [:div title]])
+   [:div label]])
 
 (defn- vector-legend [legend-info]
   [:div
    (map
-    (fn [{:keys [title] :as entry}]
-      ^{:key title}
+    (fn [{:keys [label] :as entry}]
+      ^{:key label}
       [vector-legend-entry entry])
     legend-info)])
 
