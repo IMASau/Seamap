@@ -94,9 +94,19 @@
      (if legend_url 
        [:img {:src legend_url}] ; if we have a custom legend url, use that to display an image
        (case status             ; else use legend status to decide action
-         :map.legend/loaded  [vector-legend info]
-         :map.legend/loading [b/spinner]
-         :map.legend/none    [:div "None"]))]))
+         
+         :map.legend/loaded
+         [vector-legend info]
+
+         :map.legend/loading
+         [b/non-ideal-state
+          {:icon  (reagent/as-element [b/spinner {:intent "success"}])}]
+         
+         :map.legend/none
+         [b/non-ideal-state
+          {:title       "No Data"
+           :description "We are unable to display any legend data at this time"
+           :icon        "info-sign"}]))]))
 
 (defn- layer-details
   "Layer details, including advanced opacity slider control and the layer's legend."
