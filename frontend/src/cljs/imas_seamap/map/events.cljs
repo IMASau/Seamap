@@ -599,19 +599,24 @@
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
     {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
 
-(defn get-layer-legend [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
-  {:db         (assoc-in db [:map :legends id] :map.legend/loading)
-   :http-xhrio {:method          :get
-                :uri             server_url
-                :params          {:REQUEST     "GetLegendGraphic"
-                                  :LAYER       layer_name
-                                  :TRANSPARENT true
-                                  :SERVICE     "WMS"
-                                  :VERSION     "1.1.1"
-                                  :FORMAT      "application/json"}
-                :response-format (ajax/json-response-format {:keywords? true})
-                :on-success      [:map.layer/got-legend layer]
-                :on-failure      [:ajax/default-err-handler]}})
+(defn get-layer-legend [{:keys [db]} [_ {:keys [id server_url layer_name layer_type] :as layer}]]
+  (case layer_type
+    
+    :wms
+    {:db         (assoc-in db [:map :legends id] :map.legend/loading)
+     :http-xhrio {:method          :get
+                  :uri             server_url
+                  :params          {:REQUEST     "GetLegendGraphic"
+                                    :LAYER       layer_name
+                                    :TRANSPARENT true
+                                    :SERVICE     "WMS"
+                                    :VERSION     "1.1.1"
+                                    :FORMAT      "application/json"}
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success      [:map.layer/got-legend layer]
+                  :on-failure      [:ajax/default-err-handler]}}
+
+    {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)}))
 
 (defn got-layer-legend [db [_ {:keys [id] :as _layer} response]]
   (let [legend (-> response :Legend first :rules)]
