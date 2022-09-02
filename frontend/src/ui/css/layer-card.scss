@@ -56,12 +56,12 @@
     height: 20px;
 }
 
-.legend-wrapper {
-    overflow-x: hidden;
-}
-
 .legend-wrapper img {
     max-width: 100%;
+}
+
+.legend-wrapper .bp3-non-ideal-state {
+    height: 150px;
 }
 
 .vector-legend-rule {

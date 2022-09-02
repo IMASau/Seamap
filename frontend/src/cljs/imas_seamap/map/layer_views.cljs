@@ -74,27 +74,50 @@
    [layer-header-text props]
    [layer-card-controls props]])
 
-(defn- vector-legend-rule [{:keys [title symbolizers] :as _rule}]
-  (let [color (-> symbolizers first :Polygon :fill)]
-    [:div.vector-legend-rule
-     [:div {:style {:background-color color}}]
-     [:div title]]))
+(defn- vector-legend-entry [{:keys [label color outline] :as _entry}]
+  [:div.vector-legend-rule
+   [:div {:style {:background-color color :border (when outline (str "solid 2px " outline))}}]
+   [:div label]])
 
 (defn- vector-legend [legend-info]
   [:div
    (map
-    (fn [{:keys [title] :as rule}]
-      ^{:key title}
-      [vector-legend-rule rule])
+    (fn [{:keys [label] :as entry}]
+      ^{:key label}
+      [vector-legend-entry entry])
     legend-info)])
 
 (defn- legend-display [{:keys [legend_url] :as layer}]
-  (let [{:keys [has-info? info]} @(re-frame/subscribe [:map.layer/legend layer])]
+  (let [{:keys [status info]} @(re-frame/subscribe [:map.layer/legend layer])]
     [:div.legend-wrapper
-     (cond
-       legend_url [:img {:src legend_url}] ; if we have a custom legend url, use that to display an image
-       has-info?  [vector-legend info]     ; else if we have the info for the layer then display it
-       :else      [b/spinner])]))          ; else if we're loading show that
+     (if legend_url 
+       [:img {:src legend_url}] ; if we have a custom legend url, use that to display an image
+       (case status             ; else use legend status to decide action
+
+         :map.legend/loaded
+         [vector-legend info]
+
+         :map.legend/loading
+         [b/non-ideal-state
+          {:icon  (reagent/as-element [b/spinner {:intent "success"}])}]
+
+         :map.legend/unsupported-layer
+         [b/non-ideal-state
+          {:title       "Unsupported Layer"
+           :description "This layer does not currently support legends."
+           :icon        "warning-sign"}]
+
+         :map.legend/error
+         [b/non-ideal-state
+          {:title       "Unexpected Error"
+           :description "There was an issue in retrieving the legend."
+           :icon        "error"}]
+
+         :map.legend/none
+         [b/non-ideal-state
+          {:title       "No Data"
+           :description "We are unable to display any legend data at this time."
+           :icon        "info-sign"}]))]))
 
 (defn- layer-details
   "Layer details, including advanced opacity slider control and the layer's legend."

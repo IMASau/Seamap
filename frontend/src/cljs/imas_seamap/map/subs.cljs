@@ -156,7 +156,9 @@
 
 (defn layer-legend [db [_ {:keys [id] :as _layer}]]
   (let [legend-info (get-in db [:map :legends id])
-        loading?    (= legend-info :map.legend/loading)]
-    {:has-info? (and (not loading?) legend-info)
-     :loading?  loading?
-     :info      legend-info}))
+        status      (cond
+                      (keyword? legend-info) legend-info
+                      legend-info            :map.legend/loaded
+                      :else                  :map.legend/none)]
+    {:status    status
+     :info      (when (= status :map.legend/loaded) legend-info)}))
