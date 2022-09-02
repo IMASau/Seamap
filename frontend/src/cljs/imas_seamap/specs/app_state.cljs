@@ -167,7 +167,7 @@
 (s/def :map/legends
   (s/map-of :map.layer/id
             (s/or
-             :status #{:map.legend/loading :map.legend/unsupported-layer}
+             :status #{:map.legend/loading :map.legend/unsupported-layer :map.legend/error}
              :info   map?)))
 
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))

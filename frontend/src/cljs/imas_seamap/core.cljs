@@ -143,7 +143,8 @@
     :map.layers/filter                    [mevents/map-set-layer-filter]
     :map.layers/others-filter             mevents/map-set-others-layer-filter
     :map.layer/get-legend                 [mevents/get-layer-legend]
-    :map.layer/got-legend                 mevents/got-layer-legend
+    :map.layer/get-legend-success         mevents/get-layer-legend-success
+    :map.layer/get-legend-error           mevents/get-layer-legend-error
     :map.layer.legend/toggle              [mevents/toggle-legend-display]
     :map.layer.selection/enable           mevents/map-start-selecting
     :map.layer.selection/disable          mevents/map-cancel-selecting

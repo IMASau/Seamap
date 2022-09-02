@@ -613,11 +613,14 @@
                                     :VERSION     "1.1.1"
                                     :FORMAT      "application/json"}
                   :response-format (ajax/json-response-format {:keywords? true})
-                  :on-success      [:map.layer/got-legend layer]
-                  :on-failure      [:ajax/default-err-handler]}}
+                  :on-success      [:map.layer/get-legend-success layer]
+                  :on-failure      [:map.layer/get-legend-error layer]}} 
 
     {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)}))
 
-(defn got-layer-legend [db [_ {:keys [id] :as _layer} response]]
+(defn get-layer-legend-success [db [_ {:keys [id] :as _layer} response]]
   (let [legend (-> response :Legend first :rules)]
     (assoc-in db [:map :legends id] legend)))
+
+(defn get-layer-legend-error [db [_ {:keys [id] :as _layer}]]
+  (assoc-in db [:map :legends id] :map.legend/error))

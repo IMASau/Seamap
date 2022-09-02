@@ -108,6 +108,12 @@
            :description "This layer does not currently support legends."
            :icon        "warning-sign"}]
 
+         :map.legend/error
+         [b/non-ideal-state
+          {:title       "Unexpected Error"
+           :description "There was an issue in retrieving the legend."
+           :icon        "error"}]
+
          :map.legend/none
          [b/non-ideal-state
           {:title       "No Data"
