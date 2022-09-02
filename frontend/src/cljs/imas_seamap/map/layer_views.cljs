@@ -181,9 +181,11 @@
 (defn layer-catalogue-content
   "Content of a layer catalogue element; includes both the header and the details
    that can be expanded and collapsed."
-  [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
+  [{:keys [layer] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
-   {:class (when active? "active-layer")}
+   {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer layer])
+    :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
+    :class         (when active? "active-layer")}
    [layer-catalogue-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [layer-details props]]])
