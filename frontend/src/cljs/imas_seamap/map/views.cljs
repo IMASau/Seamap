@@ -292,7 +292,6 @@
          :zoominfoControl      true
          :scaleFactor          true
          :keyboard             false ; handled externally
-         :double-click-zoom    false
          :close-popup-on-click false} ; We'll handle that ourselves
         (when (seq bounds) {:bounds (map->bounds bounds)}))
        
