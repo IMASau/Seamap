@@ -84,7 +84,7 @@
 
    :events
    {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code)]
-    :re-boot                              events/re-boot
+    :re-boot                              [events/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     :load-hash-state                      [events/load-hash-state]

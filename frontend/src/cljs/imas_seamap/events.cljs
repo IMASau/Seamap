@@ -109,18 +109,18 @@
 ;;; Reset state.  Gets a bit messy because we can't just return
 ;;; default-db without throwing away ajax-loaded layer info, so we
 ;;; restore that manually first.
-(defn re-boot [{:keys [habitat-colours habitat-titles sorting] 
+(defn re-boot [{{:keys [habitat-colours habitat-titles sorting] 
                 {:keys
                  [layers base-layers
                   base-layer-groups
                   grouped-base-layers
                   organisations
-                  categories keyed-layers]
-                 :as _map-state} :map
+                  categories keyed-layers
+                  leaflet-map]
+                 :as _map} :map
                 {{{:keys [networks parks zones zones-iucn]} :amp
                   {:keys [provincial-bioregions mesoscale-bioregions]} :imcra
-                  {:keys [realms provinces ecoregions]} :meow} :boundaries} :state-of-knowledge
-                :as _db} _]
+                  {:keys [realms provinces ecoregions]} :meow} :boundaries} :state-of-knowledge} :db} _]
   (let [db (-> db/default-db
                (update :map merge {:layers              layers
                                    :base-layers         base-layers
@@ -129,7 +129,8 @@
                                    :active-base-layer   (first grouped-base-layers)
                                    :organisations       organisations
                                    :categories          categories
-                                   :keyed-layers        keyed-layers})
+                                   :keyed-layers        keyed-layers
+                                   :leaflet-map         leaflet-map})
                (update-in
                 [:state-of-knowledge :boundaries]
                 #(-> %
@@ -144,8 +145,12 @@
                                            :ecoregions ecoregions})))
                (merge {:habitat-colours habitat-colours
                        :habitat-titles  habitat-titles
-                       :sorting         sorting}))]
-    (assoc-in db [:map :active-layers] (get-in db [:map :keyed-layers :startup] []))))
+                       :sorting         sorting}))
+        db (assoc-in db [:map :active-layers] (get-in db [:map :keyed-layers :startup] [])) 
+        {:keys [zoom center]} (:map db)]
+        {:db       db
+         :put-hash (encode-state db)
+         :dispatch [:map/update-map-view {:zoom zoom :center center :instant? true}]}))
 
 (defn loading-screen [db [_ msg]]
   (assoc db
