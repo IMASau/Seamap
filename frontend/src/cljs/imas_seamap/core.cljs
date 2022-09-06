@@ -80,7 +80,8 @@
     :app/loading?                         subs/app-loading?
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
-    :info/message                         subs/user-message}
+    :info/message                         subs/user-message
+    :autosave-application-state?          subs/autosave-application-state?}
 
    :events
    {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code)]
@@ -101,6 +102,7 @@
     :create-save-state                    [events/create-save-state]
     :create-save-state-success            [events/create-save-state-success]
     :create-save-state-failure            [events/create-save-state-failure]
+    :toggle-autosave-application-state    events/toggle-autosave-application-state
     :info/show-message                    [events/show-message]
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]

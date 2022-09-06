@@ -678,3 +678,6 @@
 
 (defn mouse-pos [db [_ mouse-pos]]
   (assoc-in db [:display :mouse-pos] mouse-pos))
+
+(defn toggle-autosave-application-state [db _]
+  (update db :autosave-application-state? not))
