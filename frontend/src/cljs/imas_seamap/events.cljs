@@ -148,9 +148,9 @@
                        :sorting         sorting}))
         db (assoc-in db [:map :active-layers] (get-in db [:map :keyed-layers :startup] [])) 
         {:keys [zoom center]} (:map db)]
-        {:db       db
-         :put-hash (encode-state db)
-         :dispatch [:map/update-map-view {:zoom zoom :center center :instant? true}]}))
+        {:db         db
+         :dispatch-n [[:map/update-map-view {:zoom zoom :center center :instant? true}]
+                      [:put-hash-if-autosave]]}))
 
 (defn loading-screen [db [_ msg]]
   (assoc db
@@ -395,13 +395,11 @@
         visible-layers (filter #(not (hidden-layers %)) active-layers)
         habitat-layers (filter habitat-layer? visible-layers)]
     (merge
-     {:db db
-      :put-hash (encode-state db)}
-     (when (seq habitat-layers) ; only display transect plot if there's an active habitat layer
-       {:dispatch-n [[:transect.plot/show]
-                     [:transect.query/habitat    query-id linestring]
-                     [:transect.query/bathymetry query-id linestring]]}))))
-
+     {:db         db
+      :dispatch-n [[:put-hash-if-autosave]
+                   (when (seq habitat-layers) [:transect.plot/show])                                 ; only display transect plot if there's an active habitat layer
+                   (when (seq habitat-layers) [:transect.query/habitat query-id linestring])         ; only query transect habitat
+                   (when (seq habitat-layers) [:transect.query/bathymetry query-id linestring])]}))) ; only query transect bathymetry
 (defn transect-maybe-query [{:keys [db]}]
   ;; When existing transect state is rehydrated it will have the
   ;; query, but that will need to be re-executed. Only do this if we
@@ -591,18 +589,18 @@
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]
   (let [db (assoc-in db [:display :catalogue :tab] tabid)]
     {:db       db
-     :put-hash (encode-state db)}))
+     :dispatch [:put-hash-if-autosave]}))
 
 (defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
   (let [nodes (get-in db [:display :catalogue :expanded])
         db    (update-in db [:display :catalogue :expanded] (if (nodes nodeid) disj conj) nodeid)]
     {:db       db
-     :put-hash (encode-state db)}))
+     :dispatch [:put-hash-if-autosave]}))
 
 (defn catalogue-add-node [{:keys [db]} [_ nodeid]]
   (let [db (update-in db [:display :catalogue :expanded] conj nodeid)]
    {:db       db
-    :put-hash (encode-state db)}))
+    :dispatch [:put-hash-if-autosave]}))
 
 (defn catalogue-add-nodes-to-layer
   "Opens nodes in catalogue along path to specified layer"
@@ -624,8 +622,8 @@
                (assoc-in [:display :sidebar :selected] tabid)
                ;; Allow the left tab to close as well as open, if clicking same icon:
                (assoc-in [:display :sidebar :collapsed] (and (= tabid selected) (not collapsed))))]
-    {:db db
-     :put-hash (encode-state db)}))
+    {:db       db
+     :dispatch [:put-hash-if-autosave]}))
 
 (defn sidebar-close [db _]
   (assoc-in db [:display :sidebar :collapsed] true))
@@ -651,7 +649,7 @@
         readded (into [] (concat (subvec removed 0 dst-idx) [element] (subvec removed dst-idx (count removed))))
         db (assoc-in db data-path readded)]
     {:db       db
-     :put-hash (encode-state db)}))
+     :dispatch [:put-hash-if-autosave]}))
 
 (defn left-drawer-toggle [db _]
   (update-in db [:display :left-drawer] not))
@@ -665,7 +663,7 @@
 (defn left-drawer-tab [{:keys [db]} [_ tab]]
   (let [db (assoc-in db [:display :left-drawer-tab] tab)]
     {:db       db
-     :put-hash (encode-state db)}))
+     :dispatch [:put-hash-if-autosave]}))
 
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))
@@ -679,5 +677,10 @@
 (defn mouse-pos [db [_ mouse-pos]]
   (assoc-in db [:display :mouse-pos] mouse-pos))
 
-(defn toggle-autosave-application-state [db _]
-  (update db :autosave-application-state? not))
+(defn toggle-autosave-application-state [{:keys [db]} _]
+  {:db       (update db :autosave-application-state? not)
+   :dispatch [:put-hash-if-autosave]})
+
+(defn put-hash-if-autosave [{{:keys [autosave-application-state?] :as db} :db} _]
+  (when autosave-application-state?
+    {:put-hash (encode-state db)}))

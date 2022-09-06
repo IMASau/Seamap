@@ -102,7 +102,8 @@
     :create-save-state                    [events/create-save-state]
     :create-save-state-success            [events/create-save-state-success]
     :create-save-state-failure            [events/create-save-state-failure]
-    :toggle-autosave-application-state    events/toggle-autosave-application-state
+    :toggle-autosave-application-state    [events/toggle-autosave-application-state]
+    :put-hash-if-autosave                 [events/put-hash-if-autosave]
     :info/show-message                    [events/show-message]
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]
@@ -268,7 +269,8 @@
                               :sok/get-habitat-observations
                               :transect/maybe-query
                               :welcome-layer/open
-                              :map/update-leaflet-map))
+                              :map/update-leaflet-map
+                              :put-hash-if-autosave))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
 (defn register-handlers! [{:keys [subs events]}]
