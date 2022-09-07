@@ -114,7 +114,7 @@
     :transect.query/bathymetry            [events/transect-query-bathymetry]
     :transect.query.bathymetry/success    events/transect-query-bathymetry-success
     :transect.query.habitat/success       events/transect-query-habitat-success
-    :transect.draw/enable                 events/transect-drawing-start
+    :transect.draw/enable                 [events/transect-drawing-start]
     :transect.draw/disable                events/transect-drawing-finish
     :transect.draw/clear                  events/transect-drawing-clear
     :transect.draw/toggle                 [events/transect-drawing-toggle]
@@ -149,7 +149,7 @@
     :map.layer/get-legend-success         mevents/get-layer-legend-success
     :map.layer/get-legend-error           mevents/get-layer-legend-error
     :map.layer.legend/toggle              [mevents/toggle-legend-display]
-    :map.layer.selection/enable           mevents/map-start-selecting
+    :map.layer.selection/enable           [mevents/map-start-selecting]
     :map.layer.selection/disable          mevents/map-cancel-selecting
     :map.layer.selection/clear            mevents/map-clear-selection
     :map.layer.selection/finalise         [mevents/map-finalise-selection]
@@ -219,9 +219,9 @@
     :ui.sidebar/toggle                    events/sidebar-toggle
     :ui/mouse-pos                         events/mouse-pos
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
-    :left-drawer/toggle                   events/left-drawer-toggle
-    :left-drawer/open                     events/left-drawer-open
-    :left-drawer/close                    events/left-drawer-close
+    :left-drawer/toggle                   [events/left-drawer-toggle]
+    :left-drawer/open                     [events/left-drawer-open]
+    :left-drawer/close                    [events/left-drawer-close]
     :left-drawer/tab                      [events/left-drawer-tab]
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open

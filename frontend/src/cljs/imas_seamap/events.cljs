@@ -488,11 +488,11 @@
                 (vec (map-indexed (fn [i v] [(* i increment) (if (js/isNaN v) nil (- v))]) values))))
     db))
 
-(defn transect-drawing-start [db _]
-  (-> db
-      (assoc-in [:display :left-drawer] false)
-      (assoc-in [:map :controls :transect] true)
-      (assoc-in [:transect :query] nil)))
+(defn transect-drawing-start [{:keys [db]} _]
+  {:db       (-> db
+                 (assoc-in [:map :controls :transect] true)
+                 (assoc-in [:transect :query] nil))
+   :dispatch [:left-drawer/close]})
 
 (defn transect-drawing-finish [db _]
   (assoc-in db [:map :controls :transect] false))
@@ -654,14 +654,17 @@
     {:db       db
      :dispatch [:maybe-autosave]}))
 
-(defn left-drawer-toggle [db _]
-  (update-in db [:display :left-drawer] not))
+(defn left-drawer-toggle [{:keys [db]} _]
+  {:db       (update-in db [:display :left-drawer] not)
+   :dispatch [:maybe-autosave]})
 
-(defn left-drawer-open [db _]
-  (assoc-in db [:display :left-drawer] true))
+(defn left-drawer-open [{:keys [db]} _]
+  {:db       (assoc-in db [:display :left-drawer] true)
+   :dispatch [:maybe-autosave]})
 
-(defn left-drawer-close [db _]
-  (assoc-in db [:display :left-drawer] false))
+(defn left-drawer-close [{:keys [db]} _]
+  {:db       (assoc-in db [:display :left-drawer] false)
+   :dispatch [:maybe-autosave]})
 
 (defn left-drawer-tab [{:keys [db]} [_ tab]]
   (let [db (assoc-in db [:display :left-drawer-tab] tab)]

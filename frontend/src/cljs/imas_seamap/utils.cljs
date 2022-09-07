@@ -66,6 +66,7 @@
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]
                                       [:display :catalogue]
+                                      [:display :left-drawer]
                                       [:display :left-drawer-tab]
                                       [:filters :layers]
                                       :layer-state
@@ -91,6 +92,7 @@
   (select-keys* state
                 [[:display :sidebar :selected]
                  [:display :catalogue]
+                 [:display :left-drawer]
                  [:display :left-drawer-tab]
                  [:filters :layers]
                  [:state-of-knowledge :boundaries :active-boundary]
