@@ -237,3 +237,11 @@
     (doseq [[k v] params]
       (.setParameterValue u (name k) v))
     (str u)))
+
+(defn index-of
+  "Returns a list of indexes that match the predicate within the collection."
+  [pred coll]
+  (->> coll
+       (map-indexed vector)
+       (filter #(pred (second %)))
+       (map first)))
