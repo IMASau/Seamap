@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [encode-state ids->layers first-where]]
+            [imas-seamap.utils :refer [encode-state ids->layers first-where index-of]]
             [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
@@ -532,6 +532,21 @@
   (let [active-layers (get-in db [:map :active-layers])
         db            (if-not ((set active-layers) layer)
                         (update-in db [:map :active-layers] conj layer)
+                        db)]
+    {:db       db
+     :put-hash (encode-state db)
+     :dispatch [:map/popup-closed]}))
+
+(defn add-layer-below-layer
+  "Instead of adding the layer to the end of the list, it instead adds it just
+   below the target layer. Does nothing if the layer is already added."
+  [{:keys [db]} [_ layer target-layer]]
+  (let [active-layers (get-in db [:map :active-layers])
+        index         (first (index-of #(= % target-layer) active-layers))
+        below         (subvec active-layers 0 index)
+        above         (subvec active-layers index)
+        db            (if-not ((set active-layers) layer)
+                        (assoc-in db [:map :active-layers] (vec (concat below [layer] above)))
                         db)]
     {:db       db
      :put-hash (encode-state db)
