@@ -375,11 +375,14 @@
         active-boundary-layer (get-in db [:state-of-knowledge :boundaries :active-boundary-layer])]
     {:db db
      :dispatch-n
-     (mapv
-      #(if show-layers?
-         [:map/add-layer-below-layer % active-boundary-layer]
-         [:map/remove-layer %])
-      habitat-layers)}))
+     (conj
+      (mapv
+       #(if show-layers?
+          [:map/add-layer-below-layer % active-boundary-layer]
+          [:map/remove-layer %])
+       habitat-layers)
+      [:left-drawer/open]
+      [:left-drawer/tab "active-layers"])}))
 
 (defn bathymetry-toggle-show-layers [{:keys [db]} _]
   (let [db               (update-in db [:state-of-knowledge :statistics :bathymetry :show-layers?] not)
@@ -388,11 +391,14 @@
         active-boundary-layer (get-in db [:state-of-knowledge :boundaries :active-boundary-layer])]
     {:db db
      :dispatch-n
-     (mapv
-      #(if show-layers?
-         [:map/add-layer-below-layer % active-boundary-layer]
-         [:map/remove-layer %])
-      bathymetry-layers)}))
+     (conj
+      (mapv
+       #(if show-layers?
+          [:map/add-layer-below-layer % active-boundary-layer]
+          [:map/remove-layer %])
+       bathymetry-layers)
+      [:left-drawer/open]
+      [:left-drawer/tab "active-layers"])}))
 
 (defn habitat-observations-toggle-show-layers [{:keys [db]} _]
   (let [db                  (update-in db [:state-of-knowledge :statistics :habitat-observations :show-layers?] not)
@@ -401,8 +407,11 @@
         active-boundary-layer (get-in db [:state-of-knowledge :boundaries :active-boundary-layer])]
     {:db db
      :dispatch-n
-     (mapv
-      #(if show-layers?
-         [:map/add-layer-below-layer % active-boundary-layer]
-         [:map/remove-layer %])
-      habitat-obs-layers)}))
+     (conj
+      (mapv
+       #(if show-layers?
+          [:map/add-layer-below-layer % active-boundary-layer]
+          [:map/remove-layer %])
+       habitat-obs-layers)
+      [:left-drawer/open]
+      [:left-drawer/tab "active-layers"])}))
