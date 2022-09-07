@@ -150,7 +150,7 @@
         {:keys [zoom center]} (:map db)]
         {:db         db
          :dispatch-n [[:map/update-map-view {:zoom zoom :center center :instant? true}]
-                      [:maybe-put-hash]]}))
+                      [:maybe-autosave]]}))
 
 (defn loading-screen [db [_ msg]]
   (assoc db
@@ -396,7 +396,7 @@
         habitat-layers (filter habitat-layer? visible-layers)]
     (merge
      {:db         db
-      :dispatch-n (cond-> [[:maybe-put-hash]]
+      :dispatch-n (cond-> [[:maybe-autosave]]
                     (seq habitat-layers) ; only display transect plot if there's an active habitat layer
                     (conj [:transect.plot/show]
                           [:transect.query/habitat query-id linestring]
@@ -591,18 +591,18 @@
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]
   (let [db (assoc-in db [:display :catalogue :tab] tabid)]
     {:db       db
-     :dispatch [:maybe-put-hash]}))
+     :dispatch [:maybe-autosave]}))
 
 (defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
   (let [nodes (get-in db [:display :catalogue :expanded])
         db    (update-in db [:display :catalogue :expanded] (if (nodes nodeid) disj conj) nodeid)]
     {:db       db
-     :dispatch [:maybe-put-hash]}))
+     :dispatch [:maybe-autosave]}))
 
 (defn catalogue-add-node [{:keys [db]} [_ nodeid]]
   (let [db (update-in db [:display :catalogue :expanded] conj nodeid)]
    {:db       db
-    :dispatch [:maybe-put-hash]}))
+    :dispatch [:maybe-autosave]}))
 
 (defn catalogue-add-nodes-to-layer
   "Opens nodes in catalogue along path to specified layer"
@@ -625,7 +625,7 @@
                ;; Allow the left tab to close as well as open, if clicking same icon:
                (assoc-in [:display :sidebar :collapsed] (and (= tabid selected) (not collapsed))))]
     {:db       db
-     :dispatch [:maybe-put-hash]}))
+     :dispatch [:maybe-autosave]}))
 
 (defn sidebar-close [db _]
   (assoc-in db [:display :sidebar :collapsed] true))
@@ -651,7 +651,7 @@
         readded (into [] (concat (subvec removed 0 dst-idx) [element] (subvec removed dst-idx (count removed))))
         db (assoc-in db data-path readded)]
     {:db       db
-     :dispatch [:maybe-put-hash]}))
+     :dispatch [:maybe-autosave]}))
 
 (defn left-drawer-toggle [db _]
   (update-in db [:display :left-drawer] not))
@@ -665,7 +665,7 @@
 (defn left-drawer-tab [{:keys [db]} [_ tab]]
   (let [db (assoc-in db [:display :left-drawer-tab] tab)]
     {:db       db
-     :dispatch [:maybe-put-hash]}))
+     :dispatch [:maybe-autosave]}))
 
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))
@@ -681,7 +681,7 @@
 
 (defn toggle-autosave [{:keys [db]} _]
   {:db       (update db :autosave? not)
-   :dispatch [:maybe-put-hash]})
+   :dispatch [:maybe-autosave]})
 
-(defn maybe-put-hash [{{:keys [autosave?] :as db} :db} _]
+(defn maybe-autosave [{{:keys [autosave?] :as db} :db} _]
   (when autosave? {:put-hash (encode-state db)}))

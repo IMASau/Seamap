@@ -103,7 +103,7 @@
     :create-save-state-success            [events/create-save-state-success]
     :create-save-state-failure            [events/create-save-state-failure]
     :toggle-autosave                      [events/toggle-autosave]
-    :maybe-put-hash                       [events/maybe-put-hash]
+    :maybe-autosave                       [events/maybe-autosave]
     :info/show-message                    [events/show-message]
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]
@@ -270,7 +270,7 @@
                               :transect/maybe-query
                               :welcome-layer/open
                               :map/update-leaflet-map
-                              :maybe-put-hash))
+                              :maybe-autosave))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
 (defn register-handlers! [{:keys [subs events]}]
