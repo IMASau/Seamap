@@ -84,11 +84,12 @@
       (some #{(:habitat-layer region-stats)} habitat-layers) (:habitat-layer region-stats))))
 
 (defn sort-layers
-  [layers categories]
-  (sort-by
-   (juxt #(get-in categories [(:category %) :display_name]) :category :data_classification :id)
-   #(< %1 %2) ; comparator so nil is always last (instead of first)
-   layers))
+  [layers sorting-info]
+  (letfn [(get-sort [ordering layer] (get-in sorting-info [ordering (ordering layer) 0]))] ; gets the sort key of a value in an ordering in the sorting-info
+   (sort-by
+    (juxt #(get-sort :category %) #(get-sort :data_classification %) :sort_key)
+    #(< %1 %2) ; comparator so nil is always last (instead of first)
+    layers)))
 
 (def ^:private type->format-str {:map.layer.download/csv     "csv"
                                  :map.layer.download/shp     "shape-zip"

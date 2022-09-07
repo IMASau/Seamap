@@ -44,13 +44,14 @@
            (> (/ error-count total-count)
               0.4)))))       ; Might be nice to make this configurable eventually
 
-(defn map-layers [{:keys [layer-state filters map] :as _db} _]
+(defn map-layers [{:keys [layer-state filters map sorting] :as _db} _]
   (let [{:keys [layers active-layers hidden-layers bounds]} map
         categories      (map-on-key (:categories map) :name)
         filter-text     (:layers filters)
         layers          (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
         viewport-layers (viewport-layers bounds layers)
-        filtered-layers (filter (partial match-layer filter-text categories) layers)]
+        filtered-layers (filter (partial match-layer filter-text categories) layers)
+        sorted-layers   (sort-layers filtered-layers sorting)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
@@ -59,6 +60,7 @@
      :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
      :filtered-layers filtered-layers
+     :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
      :main-national-layer (first (get-in map [:keyed-layers :main-national-layer]))}))
 
