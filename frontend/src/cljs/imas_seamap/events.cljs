@@ -396,10 +396,12 @@
         habitat-layers (filter habitat-layer? visible-layers)]
     (merge
      {:db         db
-      :dispatch-n [[:maybe-put-hash]
-                   (when (seq habitat-layers) [:transect.plot/show])                                 ; only display transect plot if there's an active habitat layer
-                   (when (seq habitat-layers) [:transect.query/habitat query-id linestring])         ; only query transect habitat
-                   (when (seq habitat-layers) [:transect.query/bathymetry query-id linestring])]}))) ; only query transect bathymetry
+      :dispatch-n (cond-> [[:maybe-put-hash]]
+                    (seq habitat-layers) ; only display transect plot if there's an active habitat layer
+                    (conj [:transect.plot/show]
+                          [:transect.query/habitat query-id linestring]
+                          [:transect.query/bathymetry query-id linestring]))})))
+
 (defn transect-maybe-query [{:keys [db]}]
   ;; When existing transect state is rehydrated it will have the
   ;; query, but that will need to be re-executed. Only do this if we
