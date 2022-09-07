@@ -237,3 +237,10 @@
     (doseq [[k v] params]
       (.setParameterValue u (name k) v))
     (str u)))
+
+(defn index-of [pred coll]
+  (map
+   first
+   (filter
+    #(pred (second %))
+    (map-indexed vector coll))))
