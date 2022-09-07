@@ -482,13 +482,13 @@
 
 (defn- layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])
-        open?                @(re-frame/subscribe [:layers-search-omnibar/open?])
-        {:keys [filtered-layers]} @(re-frame/subscribe [:map/layers])]
+        open?      @(re-frame/subscribe [:layers-search-omnibar/open?])
+        {:keys [sorted-layers]} @(re-frame/subscribe [:map/layers])]
     [components/omnibar
      {:placeholder  "Search Layers..."
       :isOpen       open?
       :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
-      :items        filtered-layers
+      :items        sorted-layers
       :onItemSelect #(re-frame/dispatch [:map/add-layer-from-omnibar %])
       :keyfns
       {:id          :id
