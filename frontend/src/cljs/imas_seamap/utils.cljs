@@ -238,9 +238,10 @@
       (.setParameterValue u (name k) v))
     (str u)))
 
-(defn index-of [pred coll]
-  (map
-   first
-   (filter
-    #(pred (second %))
-    (map-indexed vector coll))))
+(defn index-of
+  "Returns a list of indexes that match the predicate within the collection."
+  [pred coll]
+  (->> coll
+       (map-indexed vector)
+       (filter #(pred (second %)))
+       (map first)))
