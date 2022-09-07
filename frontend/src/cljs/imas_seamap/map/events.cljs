@@ -24,7 +24,7 @@
     (when selected-base-layer
       (let [db (assoc-in db [:map :active-base-layer] selected-base-layer)]
         {:db       db
-         :dispatch [:put-hash-if-autosave]}))))
+         :dispatch [:maybe-put-hash]}))))
 
 (defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a
@@ -218,7 +218,7 @@
 (defn map-set-layer-filter [{:keys [db]} [_ filter-text]]
   (let [db (assoc-in db [:filters :layers] filter-text)]
     {:db       db
-     :dispatch [:put-hash-if-autosave]}))
+     :dispatch [:maybe-put-hash]}))
 
 (defn map-set-others-layer-filter [db [_ filter-text]]
   (assoc-in db [:filters :other-layers] filter-text))
@@ -227,7 +227,7 @@
   (s/assert (s/int-in 0 100) opacity)
   (let [db (assoc-in db [:layer-state :opacity layer] opacity)]
     {:db       db
-     :dispatch [:put-hash-if-autosave]}))
+     :dispatch [:maybe-put-hash]}))
 
 (defn process-layer [layer]
   (-> layer
@@ -387,7 +387,7 @@
                  (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
     {:db         db
      :dispatch-n [[:map/popup-closed]
-                  [:put-hash-if-autosave]]}))
+                  [:maybe-put-hash]]}))
 
 (defn toggle-layer-visibility
   [{:keys [db]} [_ layer]]
@@ -396,12 +396,12 @@
         db (update-in db [:map :hidden-layers] #((if hidden? disj conj) % layer))]
     {:db         db
      :dispatch-n [[:map/popup-closed]
-                  [:put-hash-if-autosave]]}))
+                  [:maybe-put-hash]]}))
 
 (defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))]
     {:db         db
-     :dispatch-n [[:put-hash-if-autosave]
+     :dispatch-n [[:maybe-put-hash]
                   (when-not (get-in db [:map :legends id]) [:map.layer/get-legend layer])]})) ; Retrieve layer legend data for display if we don't already have it or aren't already retrieving it
 
 (defn zoom-to-layer
@@ -412,7 +412,7 @@
                           (not already-active?) (update-in [:map :active-layers] (partial toggle-layer-logic layer)))]
     {:db         db
      :dispatch-n [[:map/update-map-view {:bounds bounding_box}]
-                  [:put-hash-if-autosave]]}))
+                  [:maybe-put-hash]]}))
 
 (defn region-stats-select-habitat [db [_ layer]]
   (assoc-in db [:region-stats :habitat-layer] layer))
@@ -459,7 +459,7 @@
                           (assoc :initialised true))]
     {:db         db
      :dispatch-n [[:ui/hide-loading]
-                  [:put-hash-if-autosave]]}))
+                  [:maybe-put-hash]]}))
 
 (defn update-leaflet-map [db [_ leaflet-map]]
   (when (not= leaflet-map (get-in db [:map :leaflet-map]))
@@ -495,7 +495,7 @@
                    :center center
                    :bounds bounds)]
     {:db       db
-     :dispatch [:put-hash-if-autosave]}))
+     :dispatch [:maybe-put-hash]}))
 
 (defn map-start-selecting [db _]
   (-> db
@@ -533,7 +533,7 @@
                         db)]
     {:db         db
      :dispatch-n [[:map/popup-closed]
-                  [:put-hash-if-autosave]]}))
+                  [:maybe-put-hash]]}))
 
 (defn remove-layer
   [{:keys [db]} [_ layer]]
@@ -555,7 +555,7 @@
                   (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
     {:db         db
      :dispatch-n [[:map/popup-closed]
-                  [:put-hash-if-autosave]]}))
+                  [:maybe-put-hash]]}))
 
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ layer]]
@@ -573,7 +573,7 @@
 (defn toggle-viewport-only [{:keys [db]} _]
   (let [db (update-in db [:map :viewport-only?] not)]
     {:db       db
-     :dispatch [:put-hash-if-autosave]}))
+     :dispatch [:maybe-put-hash]}))
 
 (defn pan-to-popup
   "Based on a known location and size of the popup, we can find out if it will be

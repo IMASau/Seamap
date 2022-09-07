@@ -86,7 +86,7 @@
                                              :expanded #{}}
                      :sidebar               {:collapsed false
                                              :selected  "tab-activelayers"}}
-   :autosave-application-state? false
+   :autosave?       false
    :config          {:layer-url             (str api-url-base "layers/")
                      :base-layer-url        (str api-url-base "baselayers/")
                      :base-layer-group-url  (str api-url-base "baselayergroups/")

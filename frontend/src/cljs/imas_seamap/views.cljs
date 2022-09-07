@@ -203,13 +203,13 @@
       :text     text}]))
 
 (defn- autosave-application-state-toggle []
-  (let [[icon text] (if @(re-frame/subscribe [:autosave-application-state?])
+  (let [[icon text] (if @(re-frame/subscribe [:autosave?])
                       ["disable" "Disable autosave application state"]
                       ["floppy-disk" "Enable autosave application state"])]
     [b/button
      {:icon     icon
       :class    "bp3-fill"
-      :on-click #(re-frame/dispatch [:toggle-autosave-application-state])
+      :on-click #(re-frame/dispatch [:toggle-autosave])
       :text     text}]))
 
 (defn- layer-search-filter []

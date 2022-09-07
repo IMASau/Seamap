@@ -144,5 +144,5 @@
 (defn mouse-pos [db _]
   (get-in db [:display :mouse-pos]))
 
-(defn autosave-application-state? [db _]
-  (:autosave-application-state? db))
+(defn autosave? [db _]
+  (:autosave? db))
