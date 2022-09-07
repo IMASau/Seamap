@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [encode-state ids->layers first-where]]
+            [imas-seamap.utils :refer [encode-state ids->layers first-where index-of]]
             [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
@@ -526,11 +526,28 @@
      :default                                          [:map.layer.selection/enable])})
 
 (defn add-layer
-  [{:keys [db]} [_ layer]]
+  "Adds a layer to the list of active layers.
+   
+   Params:
+    - layer: Layer you wish to add to active layers
+    - target-layer (optional): If supplied, the new layer will be added just beneath
+      this layer in the active layers list."
+  [{:keys [db]} [_ layer target-layer]]
   (let [active-layers (get-in db [:map :active-layers])
-        db            (if-not ((set active-layers) layer)
-                        (update-in db [:map :active-layers] conj layer)
-                        db)]
+        db            (cond
+                        
+                        ((set active-layers) layer) ; if the layer is already active, do nothing
+                        db
+
+                        target-layer                ; else if a target layer was specified, insert the new layer beneath the target
+                        (let [index         (first (index-of #(= % target-layer) active-layers))
+                              below         (subvec active-layers 0 index)
+                              above         (subvec active-layers index)
+                              active-layers (vec (concat below [layer] above))]
+                          (assoc-in db [:map :active-layers] active-layers))
+
+                        :else                       ; else, add the layer to the end of the list
+                        (update-in db [:map :active-layers] conj layer))]
     {:db         db
      :dispatch-n [[:map/popup-closed]
                   [:maybe-autosave]]}))
