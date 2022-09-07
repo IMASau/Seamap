@@ -528,26 +528,28 @@
      :default                                          [:map.layer.selection/enable])})
 
 (defn add-layer
-  [{:keys [db]} [_ layer]]
-  (let [active-layers (get-in db [:map :active-layers])
-        db            (if-not ((set active-layers) layer)
-                        (update-in db [:map :active-layers] conj layer)
-                        db)]
-    {:db       db
-     :put-hash (encode-state db)
-     :dispatch [:map/popup-closed]}))
-
-(defn add-layer-below-layer
-  "Instead of adding the layer to the end of the list, it instead adds it just
-   below the target layer. Does nothing if the layer is already added."
+  "Adds a layer to the list of active layers.
+   
+   Params:
+    - layer: Layer you wish to add to active layers
+    - target-layer (optional): If supplied, the new layer will be added just beneath
+      this layer in the active layers list."
   [{:keys [db]} [_ layer target-layer]]
   (let [active-layers (get-in db [:map :active-layers])
-        index         (first (index-of #(= % target-layer) active-layers))
-        below         (subvec active-layers 0 index)
-        above         (subvec active-layers index)
-        db            (if-not ((set active-layers) layer)
-                        (assoc-in db [:map :active-layers] (vec (concat below [layer] above)))
-                        db)]
+        db            (cond
+                        
+                        ((set active-layers) layer) ; if the layer is already active, do nothing
+                        db
+
+                        target-layer                ; else if a target layer was specified, insert the new layer beneath the target
+                        (let [index         (first (index-of #(= % target-layer) active-layers))
+                              below         (subvec active-layers 0 index)
+                              above         (subvec active-layers index)
+                              active-layers (vec (concat below [layer] above))]
+                          (assoc-in db [:map :active-layers] active-layers))
+
+                        :else                       ; else, add the layer to the end of the list
+                        (update-in db [:map :active-layers] conj layer))]
     {:db       db
      :put-hash (encode-state db)
      :dispatch [:map/popup-closed]}))

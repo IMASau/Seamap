@@ -378,7 +378,7 @@
      (conj
       (mapv
        #(if show-layers?
-          [:map/add-layer-below-layer % active-boundary-layer]
+          [:map/add-layer % active-boundary-layer]
           [:map/remove-layer %])
        habitat-layers)
       [:left-drawer/open]
@@ -394,7 +394,7 @@
      (conj
       (mapv
        #(if show-layers?
-          [:map/add-layer-below-layer % active-boundary-layer]
+          [:map/add-layer % active-boundary-layer]
           [:map/remove-layer %])
        bathymetry-layers)
       [:left-drawer/open]
@@ -410,7 +410,7 @@
      (conj
       (mapv
        #(if show-layers?
-          [:map/add-layer-below-layer % active-boundary-layer]
+          [:map/add-layer % active-boundary-layer]
           [:map/remove-layer %])
        habitat-obs-layers)
       [:left-drawer/open]
