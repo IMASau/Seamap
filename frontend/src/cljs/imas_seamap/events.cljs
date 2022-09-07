@@ -99,12 +99,13 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot [{:keys [save-code hash-code]} _]
+(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} _]
   {:db         db/default-db
    :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
-                 (seq save-code) (boot-flow-save-state save-code) ; A shortform save-code that can be used to query for a hash-code
-                 (seq hash-code) (boot-flow-hash-state hash-code) ; A hash-code that can be decoded into th DB's initial state
-                 :else           (boot-flow))})                   ; No information, so we start with an empty DB
+                 (seq save-code)    (boot-flow-save-state save-code)    ; A shortform save-code that can be used to query for a hash-code
+                 (seq hash-code)    (boot-flow-hash-state hash-code)    ; A hash-code that can be decoded into th DB's initial state
+                 (seq cookie-state) (boot-flow-hash-state cookie-state) ; Same as hash-code, except that we use the one stored in the cookies
+                 :else              (boot-flow))})                      ; No information, so we start with an empty DB
 
 ;;; Reset state.  Gets a bit messy because we can't just return
 ;;; default-db without throwing away ajax-loaded layer info, so we
@@ -680,8 +681,16 @@
   (assoc-in db [:display :mouse-pos] mouse-pos))
 
 (defn toggle-autosave [{:keys [db]} _]
-  {:db       (update db :autosave? not)
-   :dispatch [:maybe-autosave]})
+  (let [db        (update db :autosave? not)
+        autosave? (:autosave? db)]
+    (merge
+     {:db db}
+     (if autosave?
+       {:dispatch [:maybe-autosave]}
+       {:cookie/set {:name  :cookie-state
+                     :value nil}}))))
 
 (defn maybe-autosave [{{:keys [autosave?] :as db} :db} _]
-  (when autosave? {:put-hash (encode-state db)}))
+  (when autosave?
+    {:cookie/set {:name  :cookie-state
+                  :value (encode-state db)}}))
