@@ -99,7 +99,10 @@ def subdivide_requests(layer, horizontal_subdivisions=1, vertical_subdivisions=1
 
     return urls
 
-def retrieve_image(layer, horizontal_subdivisions=1, vertical_subdivisions=1):
+def retrieve_image(layer, horizontal_subdivisions=None, vertical_subdivisions=None):
+    horizontal_subdivisions = horizontal_subdivisions or 1
+    vertical_subdivisions = vertical_subdivisions or 1
+
     bbox = {
         'north': float(layer.maxy),
         'south': float(layer.miny),
@@ -131,6 +134,37 @@ def retrieve_image(layer, horizontal_subdivisions=1, vertical_subdivisions=1):
 
     return cropped_basemap
 
+def generate_layer_preview(layer, only_generate_missing, horizontal_subdivisions, vertical_subdivisions):
+    """
+    Generate and save a layer preview.
+
+    :return: True if no errors (i.e. successful image generation or expected
+    non-generation), False if failure to generate.
+    """
+    filepath = f'layer_previews/{layer.id}.png'
+    if not only_generate_missing or not default_storage.exists(filepath):
+        with BytesIO() as bytes_io:
+            layer_image = None
+
+            if horizontal_subdivisions or vertical_subdivisions:
+                layer_image = retrieve_image(layer, horizontal_subdivisions, vertical_subdivisions)
+            else:
+                try:
+                    layer_image = retrieve_image(layer)
+                except Exception:
+                    logging.warn(f'Failed to retrieve {layer.layer_name} ({layer.id}) in a single request; attempting retrieval in chunks (40x40)')
+                    try:
+                        layer_image = retrieve_image(layer, 40, 40)
+                    except Exception:
+                        logging.warn(f'Failed to retrieve {layer.layer_name} ({layer.id})')
+
+            if layer_image:
+                layer_image.save(bytes_io, 'PNG')
+                default_storage.delete(filepath)
+                default_storage.save(filepath, File(bytes_io, ''))
+                return True
+        return False
+    return True
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
@@ -154,37 +188,20 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         layer_id = int(options['layer_id']) if options['layer_id'] != None else None
         only_generate_missing = options['only_generate_missing'].lower() in ['t', 'true'] if options['only_generate_missing'] != None else False
-        horizontal_subdivisions = int(options['horizontal_subdivisions']) if options['horizontal_subdivisions'] != None else 1
-        vertical_subdivisions = int(options['vertical_subdivisions']) if options['vertical_subdivisions'] != None else 1
+        horizontal_subdivisions = int(options['horizontal_subdivisions']) if options['horizontal_subdivisions'] != None else None
+        vertical_subdivisions = int(options['vertical_subdivisions']) if options['vertical_subdivisions'] != None else None
 
         if layer_id is not None:
             layer = Layer.objects.get(id=layer_id)
-
-            filepath = f'layer_previews/{layer.id}.png'
-            if not only_generate_missing or not default_storage.exists(filepath):
-                with BytesIO() as bytes_io:
-                    layer_image = retrieve_image(layer, horizontal_subdivisions, vertical_subdivisions)
-                    layer_image.save(bytes_io, 'PNG')
-
-                    default_storage.delete(filepath)
-                    default_storage.save(filepath, File(bytes_io, ''))
+            generate_layer_preview(layer, only_generate_missing, horizontal_subdivisions, vertical_subdivisions)
         else:
             failures = []
 
             for layer in Layer.objects.all():
-                filepath = f'layer_previews/{layer.id}.png'
-                if not only_generate_missing or not default_storage.exists(filepath):
-                    with BytesIO() as bytes_io:
-                        try:
-                            logging.info(f'Retrieving layer {layer.layer_name} ({layer.id})')
-                            layer_image = retrieve_image(layer, horizontal_subdivisions, vertical_subdivisions)
-                            layer_image.save(bytes_io, 'PNG')
-                            
-                            default_storage.delete(filepath)
-                            default_storage.save(filepath, File(bytes_io, ''))
-                        except Exception:
-                            logging.warn(f'Failed to retrieve layer {layer.layer_name} ({layer.id})')
-                            failures.append(layer)
+                success = generate_layer_preview(layer, only_generate_missing, horizontal_subdivisions, vertical_subdivisions)
+
+                if not success:
+                    failures.append(layer)
 
             if len(failures):
                 logging.warn('Failed to retrieve the following layers: \n - {}'.format(
