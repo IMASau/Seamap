@@ -143,3 +143,6 @@
 
 (defn mouse-pos [db _]
   (get-in db [:display :mouse-pos]))
+
+(defn autosave? [db _]
+  (:autosave? db))

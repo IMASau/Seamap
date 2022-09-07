@@ -99,12 +99,13 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot [{:keys [save-code hash-code]} _]
+(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} _]
   {:db         db/default-db
    :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
-                 (seq save-code) (boot-flow-save-state save-code) ; A shortform save-code that can be used to query for a hash-code
-                 (seq hash-code) (boot-flow-hash-state hash-code) ; A hash-code that can be decoded into th DB's initial state
-                 :else           (boot-flow))})                   ; No information, so we start with an empty DB
+                 (seq save-code)    (boot-flow-save-state save-code)    ; A shortform save-code that can be used to query for a hash-code
+                 (seq hash-code)    (boot-flow-hash-state hash-code)    ; A hash-code that can be decoded into th DB's initial state
+                 (seq cookie-state) (boot-flow-hash-state cookie-state) ; Same as hash-code, except that we use the one stored in the cookies
+                 :else              (boot-flow))})                      ; No information, so we start with an empty DB
 
 ;;; Reset state.  Gets a bit messy because we can't just return
 ;;; default-db without throwing away ajax-loaded layer info, so we
@@ -148,9 +149,9 @@
                        :sorting         sorting}))
         db (assoc-in db [:map :active-layers] (get-in db [:map :keyed-layers :startup] [])) 
         {:keys [zoom center]} (:map db)]
-        {:db       db
-         :put-hash (encode-state db)
-         :dispatch [:map/update-map-view {:zoom zoom :center center :instant? true}]}))
+        {:db         db
+         :dispatch-n [[:map/update-map-view {:zoom zoom :center center :instant? true}]
+                      [:maybe-autosave]]}))
 
 (defn loading-screen [db [_ msg]]
   (assoc db
@@ -395,12 +396,12 @@
         visible-layers (filter #(not (hidden-layers %)) active-layers)
         habitat-layers (filter habitat-layer? visible-layers)]
     (merge
-     {:db db
-      :put-hash (encode-state db)}
-     (when (seq habitat-layers) ; only display transect plot if there's an active habitat layer
-       {:dispatch-n [[:transect.plot/show]
-                     [:transect.query/habitat    query-id linestring]
-                     [:transect.query/bathymetry query-id linestring]]}))))
+     {:db         db
+      :dispatch-n (cond-> [[:maybe-autosave]]
+                    (seq habitat-layers) ; only display transect plot if there's an active habitat layer
+                    (conj [:transect.plot/show]
+                          [:transect.query/habitat query-id linestring]
+                          [:transect.query/bathymetry query-id linestring]))})))
 
 (defn transect-maybe-query [{:keys [db]}]
   ;; When existing transect state is rehydrated it will have the
@@ -591,18 +592,18 @@
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]
   (let [db (assoc-in db [:display :catalogue :tab] tabid)]
     {:db       db
-     :put-hash (encode-state db)}))
+     :dispatch [:maybe-autosave]}))
 
 (defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
   (let [nodes (get-in db [:display :catalogue :expanded])
         db    (update-in db [:display :catalogue :expanded] (if (nodes nodeid) disj conj) nodeid)]
     {:db       db
-     :put-hash (encode-state db)}))
+     :dispatch [:maybe-autosave]}))
 
 (defn catalogue-add-node [{:keys [db]} [_ nodeid]]
   (let [db (update-in db [:display :catalogue :expanded] conj nodeid)]
    {:db       db
-    :put-hash (encode-state db)}))
+    :dispatch [:maybe-autosave]}))
 
 (defn catalogue-add-nodes-to-layer
   "Opens nodes in catalogue along path to specified layer"
@@ -624,8 +625,8 @@
                (assoc-in [:display :sidebar :selected] tabid)
                ;; Allow the left tab to close as well as open, if clicking same icon:
                (assoc-in [:display :sidebar :collapsed] (and (= tabid selected) (not collapsed))))]
-    {:db db
-     :put-hash (encode-state db)}))
+    {:db       db
+     :dispatch [:maybe-autosave]}))
 
 (defn sidebar-close [db _]
   (assoc-in db [:display :sidebar :collapsed] true))
@@ -651,7 +652,7 @@
         readded (into [] (concat (subvec removed 0 dst-idx) [element] (subvec removed dst-idx (count removed))))
         db (assoc-in db data-path readded)]
     {:db       db
-     :put-hash (encode-state db)}))
+     :dispatch [:maybe-autosave]}))
 
 (defn left-drawer-toggle [db _]
   (update-in db [:display :left-drawer] not))
@@ -665,7 +666,7 @@
 (defn left-drawer-tab [{:keys [db]} [_ tab]]
   (let [db (assoc-in db [:display :left-drawer-tab] tab)]
     {:db       db
-     :put-hash (encode-state db)}))
+     :dispatch [:maybe-autosave]}))
 
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))
@@ -678,3 +679,18 @@
 
 (defn mouse-pos [db [_ mouse-pos]]
   (assoc-in db [:display :mouse-pos] mouse-pos))
+
+(defn toggle-autosave [{:keys [db]} _]
+  (let [db        (update db :autosave? not)
+        autosave? (:autosave? db)]
+    (merge
+     {:db db}
+     (if autosave?
+       {:dispatch [:maybe-autosave]}
+       {:cookie/set {:name  :cookie-state
+                     :value nil}}))))
+
+(defn maybe-autosave [{{:keys [autosave?] :as db} :db} _]
+  (when autosave?
+    {:cookie/set {:name  :cookie-state
+                  :value (encode-state db)}}))

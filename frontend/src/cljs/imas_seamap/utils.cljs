@@ -70,7 +70,8 @@
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
-                                      [:transect :query]])
+                                      [:transect :query]
+                                      :autosave?])
                        (assoc :map pruned-map)
                        (assoc-in [:state-of-knowledge :boundaries] pruned-boundaries)
                        (assoc-in [:state-of-knowledge :statistics] pruned-statistics)
@@ -115,7 +116,8 @@
                  [:map :bounds]
                  [:map :viewport-only?]
                  :legend-ids
-                 :opacity-ids]))
+                 :opacity-ids
+                 :autosave?]))
 
 (defn parse-state [hash-str]
   (try

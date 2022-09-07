@@ -80,10 +80,11 @@
     :app/loading?                         subs/app-loading?
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
-    :info/message                         subs/user-message}
+    :info/message                         subs/user-message
+    :autosave?                            subs/autosave?}
 
    :events
-   {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code)]
+   {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
     :re-boot                              [events/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
@@ -101,6 +102,8 @@
     :create-save-state                    [events/create-save-state]
     :create-save-state-success            [events/create-save-state-success]
     :create-save-state-failure            [events/create-save-state-failure]
+    :toggle-autosave                      [events/toggle-autosave]
+    :maybe-autosave                       [events/maybe-autosave]
     :info/show-message                    [events/show-message]
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]
@@ -266,7 +269,8 @@
                               :sok/get-habitat-observations
                               :transect/maybe-query
                               :welcome-layer/open
-                              :map/update-leaflet-map))
+                              :map/update-leaflet-map
+                              :maybe-autosave))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
 (defn register-handlers! [{:keys [subs events]}]

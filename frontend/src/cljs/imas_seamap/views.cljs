@@ -202,6 +202,16 @@
       :on-click #(re-frame/dispatch [:map/toggle-viewport-only])
       :text     text}]))
 
+(defn- autosave-application-state-toggle []
+  (let [[icon text] (if @(re-frame/subscribe [:autosave?])
+                      ["disable" "Disable autosave application state"]
+                      ["floppy-disk" "Enable autosave application state"])]
+    [b/button
+     {:icon     icon
+      :class    "bp3-fill"
+      :on-click #(re-frame/dispatch [:toggle-autosave])
+      :text     text}]))
+
 (defn- layer-search-filter []
   (let [filter-text (re-frame/subscribe [:map.layers/filter])]
     [:div.bp3-input-group {:data-helper-text "Filter Layers"}
@@ -560,6 +570,7 @@
                   [components/drawer-group
                    {:heading "Settings"
                     :icon    "cog"}
+                   [autosave-application-state-toggle]
                    [viewport-only-toggle]
                    [b/button
                     {:icon     "undo"
