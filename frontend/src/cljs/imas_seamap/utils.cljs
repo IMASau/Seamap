@@ -263,6 +263,7 @@
     [:map :categories]
     [:map :keyed-layers]
     [:map :leaflet-map]
+    [:map :legends]
     [:state-of-knowledge :boundaries :amp :networks]
     [:state-of-knowledge :boundaries :amp :parks]
     [:state-of-knowledge :boundaries :amp :zones]
