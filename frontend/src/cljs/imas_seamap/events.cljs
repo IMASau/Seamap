@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map map-on-key]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info]]
             [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -110,48 +110,15 @@
 ;;; Reset state.  Gets a bit messy because we can't just return
 ;;; default-db without throwing away ajax-loaded layer info, so we
 ;;; restore that manually first.
-(defn re-boot [{{:keys [habitat-colours habitat-titles sorting] 
-                {:keys
-                 [layers base-layers
-                  base-layer-groups
-                  grouped-base-layers
-                  organisations
-                  categories keyed-layers
-                  leaflet-map]
-                 :as _map} :map
-                {{{:keys [networks parks zones zones-iucn]} :amp
-                  {:keys [provincial-bioregions mesoscale-bioregions]} :imcra
-                  {:keys [realms provinces ecoregions]} :meow} :boundaries} :state-of-knowledge} :db} _]
-  (let [db (-> db/default-db
-               (update :map merge {:layers              layers
-                                   :base-layers         base-layers
-                                   :base-layer-groups   base-layer-groups
-                                   :grouped-base-layers grouped-base-layers
-                                   :active-base-layer   (first grouped-base-layers)
-                                   :organisations       organisations
-                                   :categories          categories
-                                   :keyed-layers        keyed-layers
-                                   :leaflet-map         leaflet-map})
-               (update-in
-                [:state-of-knowledge :boundaries]
-                #(-> %
-                     (update :amp merge   {:networks   networks
-                                           :parks      parks
-                                           :zones      zones
-                                           :zones-iucn zones-iucn})
-                     (update :imcra merge {:provincial-bioregions provincial-bioregions
-                                           :mesoscale-bioregions  mesoscale-bioregions})
-                     (update :meow merge  {:realms     realms
-                                           :provinces  provinces
-                                           :ecoregions ecoregions})))
-               (merge {:habitat-colours habitat-colours
-                       :habitat-titles  habitat-titles
-                       :sorting         sorting}))
-        db (assoc-in db [:map :active-layers] (get-in db [:map :keyed-layers :startup] [])) 
+(defn re-boot [{:keys [db]} _]
+  (let [db (merge-in db/default-db (ajax-loaded-info db))
+        db (assoc-in db [:map :active-layers] (get-in db [:map :keyed-layers :startup] []))
+        db (assoc-in db [:map :active-base-layer] (first (get-in db [:map :grouped-base-layers])))
         {:keys [zoom center]} (:map db)]
         {:db         db
-         :dispatch-n [[:map/update-map-view {:zoom zoom :center center :instant? true}]
-                      [:maybe-autosave]]}))
+         :dispatch   [:map/update-map-view {:zoom zoom :center center :instant? true}]
+         :cookie/set {:name  :cookie-state
+                      :value nil}}))
 
 (defn loading-screen [db [_ msg]]
   (assoc db
