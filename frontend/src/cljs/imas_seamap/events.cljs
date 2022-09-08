@@ -73,10 +73,10 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot-flow-save-state [save-code]
+(defn boot-flow-save-state [shortcode]
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state save-code]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state shortcode [:load-hash-state]]}
     {:when :seen? :events :load-hash-state
      :dispatch-n [[:initialise-layers]
                   [:sok/get-habitat-statistics]
@@ -175,21 +175,20 @@
      :dispatch [:map/update-map-view (assoc (:map db) :instant? true)]}))
 
 (defn get-save-state
-  [{:keys [db]} [_ save-code]]
+  "Uses a shortcode to retrieve a save-state. On success dispatches an event with
+   the retrieved save-state."
+  [{:keys [db]} [_ shortcode dispatch]]
   (let [save-state-url (get-in db [:config :save-state-url])]
     {:db db
      :http-xhrio
      [{:method          :get
-       :uri             (append-params-from-map save-state-url {:id save-code})
+       :uri             (append-params-from-map save-state-url {:id shortcode})
        :response-format (ajax/json-response-format {:keywords? true})
-       :on-success      [:load-save-state]
+       :on-success      [:get-save-state-success dispatch]
        :on-failure      [:ajax/default-err-handler]}]}))
 
-(defn load-save-state
-  [{:keys [db]} [_ save-state]]
-  (let [hash-code  (:hashstate (first save-state))]
-    {:db db
-     :dispatch [:load-hash-state hash-code]}))
+(defn get-save-state-success [_ [_ dispatch save-state]]
+  {:dispatch (conj dispatch (-> save-state first :hashstate))})
 
 (defn initialise-layers [{:keys [db]} _]
   (let [{:keys [layer-url

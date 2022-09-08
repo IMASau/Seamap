@@ -90,7 +90,7 @@
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     :load-hash-state                      [events/load-hash-state]
     :get-save-state                       [events/get-save-state]
-    :load-save-state                      [events/load-save-state]
+    :get-save-state-success               [events/get-save-state-success]
     :initialise-db                        [events/initialise-db]
     :initialise-layers                    [events/initialise-layers]
     :loading-failed                       events/loading-failed
