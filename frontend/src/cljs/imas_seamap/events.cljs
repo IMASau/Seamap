@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map map-on-key]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info]]
             [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -73,10 +73,10 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot-flow-save-state [save-code]
+(defn boot-flow-save-state [shortcode]
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state save-code]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state shortcode [:load-hash-state]]}
     {:when :seen? :events :load-hash-state
      :dispatch-n [[:initialise-layers]
                   [:sok/get-habitat-statistics]
@@ -107,51 +107,26 @@
                  (seq cookie-state) (boot-flow-hash-state cookie-state) ; Same as hash-code, except that we use the one stored in the cookies
                  :else              (boot-flow))})                      ; No information, so we start with an empty DB
 
-;;; Reset state.  Gets a bit messy because we can't just return
-;;; default-db without throwing away ajax-loaded layer info, so we
-;;; restore that manually first.
-(defn re-boot [{{:keys [habitat-colours habitat-titles sorting] 
-                {:keys
-                 [layers base-layers
-                  base-layer-groups
-                  grouped-base-layers
-                  organisations
-                  categories keyed-layers
-                  leaflet-map]
-                 :as _map} :map
-                {{{:keys [networks parks zones zones-iucn]} :amp
-                  {:keys [provincial-bioregions mesoscale-bioregions]} :imcra
-                  {:keys [realms provinces ecoregions]} :meow} :boundaries} :state-of-knowledge} :db} _]
-  (let [db (-> db/default-db
-               (update :map merge {:layers              layers
-                                   :base-layers         base-layers
-                                   :base-layer-groups   base-layer-groups
-                                   :grouped-base-layers grouped-base-layers
-                                   :active-base-layer   (first grouped-base-layers)
-                                   :organisations       organisations
-                                   :categories          categories
-                                   :keyed-layers        keyed-layers
-                                   :leaflet-map         leaflet-map})
-               (update-in
-                [:state-of-knowledge :boundaries]
-                #(-> %
-                     (update :amp merge   {:networks   networks
-                                           :parks      parks
-                                           :zones      zones
-                                           :zones-iucn zones-iucn})
-                     (update :imcra merge {:provincial-bioregions provincial-bioregions
-                                           :mesoscale-bioregions  mesoscale-bioregions})
-                     (update :meow merge  {:realms     realms
-                                           :provinces  provinces
-                                           :ecoregions ecoregions})))
-               (merge {:habitat-colours habitat-colours
-                       :habitat-titles  habitat-titles
-                       :sorting         sorting}))
-        db (assoc-in db [:map :active-layers] (get-in db [:map :keyed-layers :startup] [])) 
+(defn set-state
+  "Takes a hash-code and updates the application state to match. If no hash-code is
+   supplied then the application resets to the default state."
+  [{:keys [db]} [_ hash-code]]
+  (let [db (merge-in
+            db/default-db
+            (ajax-loaded-info db)
+            (when (seq hash-code) (parse-state hash-code)))
+        db (-> db
+               (assoc-in [:map :active-layers] (get-in db [:map :keyed-layers :startup] []))
+               (assoc-in [:map :active-base-layer] (first (get-in db [:map :grouped-base-layers])))
+               (assoc :initialised true))
         {:keys [zoom center]} (:map db)]
-        {:db         db
-         :dispatch-n [[:map/update-map-view {:zoom zoom :center center :instant? true}]
-                      [:maybe-autosave]]}))
+    {:db       db
+     :dispatch [:map/update-map-view {:zoom zoom :center center}]}))
+
+(defn re-boot []
+  {:dispatch   [:set-state nil]
+   :cookie/set {:name  :cookie-state
+                :value nil}})
 
 (defn loading-screen [db [_ msg]]
   (assoc db
@@ -175,21 +150,20 @@
      :dispatch [:map/update-map-view (assoc (:map db) :instant? true)]}))
 
 (defn get-save-state
-  [{:keys [db]} [_ save-code]]
+  "Uses a shortcode to retrieve a save-state. On success dispatches an event with
+   the retrieved save-state."
+  [{:keys [db]} [_ shortcode dispatch]]
   (let [save-state-url (get-in db [:config :save-state-url])]
     {:db db
      :http-xhrio
      [{:method          :get
-       :uri             (append-params-from-map save-state-url {:id save-code})
+       :uri             (append-params-from-map save-state-url {:id shortcode})
        :response-format (ajax/json-response-format {:keywords? true})
-       :on-success      [:load-save-state]
+       :on-success      [:get-save-state-success dispatch]
        :on-failure      [:ajax/default-err-handler]}]}))
 
-(defn load-save-state
-  [{:keys [db]} [_ save-state]]
-  (let [hash-code  (:hashstate (first save-state))]
-    {:db db
-     :dispatch [:load-hash-state hash-code]}))
+(defn get-save-state-success [_ [_ dispatch save-state]]
+  {:dispatch (conj dispatch (-> save-state first :hashstate))})
 
 (defn initialise-layers [{:keys [db]} _]
   (let [{:keys [layer-url

@@ -85,12 +85,13 @@
 
    :events
    {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
+    :set-state                            [events/set-state]
     :re-boot                              [events/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     :load-hash-state                      [events/load-hash-state]
     :get-save-state                       [events/get-save-state]
-    :load-save-state                      [events/load-save-state]
+    :get-save-state-success               [events/get-save-state-success]
     :initialise-db                        [events/initialise-db]
     :initialise-layers                    [events/initialise-layers]
     :loading-failed                       events/loading-failed

@@ -249,3 +249,30 @@
        (map-indexed vector)
        (filter #(pred (second %)))
        (map first)))
+
+(defn ajax-loaded-info
+  "Returns db of all the info retrieved via ajax"
+  [db]
+  (select-keys*
+   db
+   [[:map :layers]
+    [:map :base-layers]
+    [:map :base-layer-groups]
+    [:map :grouped-base-layers]
+    [:map :organisations]
+    [:map :categories]
+    [:map :keyed-layers]
+    [:map :leaflet-map]
+    [:map :legends]
+    [:state-of-knowledge :boundaries :amp :networks]
+    [:state-of-knowledge :boundaries :amp :parks]
+    [:state-of-knowledge :boundaries :amp :zones]
+    [:state-of-knowledge :boundaries :amp :zones-iucn]
+    [:state-of-knowledge :boundaries :imcra :provincial-bioregions]
+    [:state-of-knowledge :boundaries :imcra :mesoscale-bioregions]
+    [:state-of-knowledge :boundaries :meow :realms]
+    [:state-of-knowledge :boundaries :meow :provinces]
+    [:state-of-knowledge :boundaries :meow :ecoregions]
+    [:habitat-colours]
+    [:habitat-titles]
+    [:sorting]]))
