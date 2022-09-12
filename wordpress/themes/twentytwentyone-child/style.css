@@ -1,0 +1,61 @@
+/*
+ Theme Name:   Twenty Twenty-One Child
+ Theme URI:    https://wordpress.org/themes/twentytwentyone-child/
+ Description:  Twenty Twenty-One Child Theme
+ Author:       Joshua Groombridge
+ Author URI:   http://example.com
+ Template:     twentytwentyone
+ Version:      1.0.0
+ License:      GNU General Public License v2 or later
+ License URI:  http://www.gnu.org/licenses/gpl-2.0.html
+ Tags:         light, dark, one-columns, right-sidebar, responsive-layout, accessibility-ready
+ Text Domain:  twentytwentyonechild
+*/
+
+body {
+  background-color: white;
+}
+
+.story-map {
+  margin: auto;
+}
+
+@media (min-width: 576px) {
+  .story-map {
+    max-width: 540px;
+  }
+}
+@media (min-width: 768px) {
+  .story-map {
+    max-width: 720px;
+  }
+}
+@media (min-width: 992px) {
+  .story-map {
+    max-width: 960px;
+  }
+}
+@media (min-width: 1200px) {
+  .story-map {
+    max-width: 1140px;
+  }
+}
+@media (min-width: 1400px) {
+  .story-map {
+    max-width: 1320px;
+  }
+}
+
+.map-link {
+  max-width: 720px;
+  padding: 20px 32px;
+  border: 2px solid black;
+  position: relative;
+}
+
+.map-link .subtitle {
+  padding: 0 8px;
+  position: absolute;
+  top: -18px;
+  background-color: white;
+}
