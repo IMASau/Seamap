@@ -5,6 +5,7 @@
 
 (goog-define api-url-base "http://localhost:8000/api/")
 (goog-define media-url-base "http://localhost:8000/media/")
+(goog-define wordpress-url-base "http://localhost:8888/")
 (goog-define img-url-base "/img/")
 
 (def default-db
