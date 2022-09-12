@@ -276,3 +276,11 @@
     [:habitat-colours]
     [:habitat-titles]
     [:sorting]]))
+
+(defn decode-html-entities
+  "Removes HTML entities from an HTML entity encoded string:
+   https://stackoverflow.com/a/34064434"
+  [input]
+  (-> (-> (js/DOMParser.)
+          (.parseFromString input "text/html"))
+      .-documentElement .-textContent))
