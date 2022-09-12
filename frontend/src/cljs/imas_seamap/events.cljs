@@ -176,7 +176,8 @@
                 keyed-layers-url
                 amp-boundaries-url
                 imcra-boundaries-url
-                meow-boundaries-url]} (:config db)]
+                meow-boundaries-url
+                story-maps-url]} (:config db)]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -232,6 +233,11 @@
                    :uri             meow-boundaries-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:sok/update-meow-boundaries]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             story-maps-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:sm/update-featured-maps]
                    :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn help-layer-toggle [db _]

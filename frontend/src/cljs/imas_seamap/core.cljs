@@ -208,6 +208,7 @@
     :sok/habitat-toggle-show-layers       [sokevents/habitat-toggle-show-layers]
     :sok/bathymetry-toggle-show-layers    [sokevents/bathymetry-toggle-show-layers]
     :sok/habitat-observations-toggle-show-layers [sokevents/habitat-observations-toggle-show-layers]
+    :sm/update-featured-maps              smevents/update-featured-maps
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]
