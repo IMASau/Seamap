@@ -20,6 +20,8 @@
             [imas-seamap.map.subs :as msubs]
             [imas-seamap.state-of-knowledge.events :as sokevents]
             [imas-seamap.state-of-knowledge.subs :as soksubs]
+            [imas-seamap.story-maps.events :as smevents]
+            [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
             [imas-seamap.views :as views]
