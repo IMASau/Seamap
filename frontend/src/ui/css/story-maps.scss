@@ -1,0 +1,20 @@
+.featured-map {
+    display: flex;
+    margin: 8px 12px;
+}
+
+.featured-map > img {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid rgba(0,0,0,.2);
+}
+
+.featured-map > .details {
+    flex: 2;
+    padding: 8px;
+}
+
+.featured-map > .details > .title {
+    font-weight: bold;
+    font-size: 16px;
+}
