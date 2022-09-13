@@ -119,9 +119,9 @@ if (class_exists('acf')) {
                 ],
                 [
                     'key'        => 'field_story_map_map_link',
-                    'label'      => 'Map Link',
-                    'name'       => 'map_link',
-                    'type'       => 'group',
+                    'label'      => 'Map Links',
+                    'name'       => 'map_links',
+                    'type'       => 'repeater',
                     'layout'     => 'block',
                     'sub_fields' => [
                         [

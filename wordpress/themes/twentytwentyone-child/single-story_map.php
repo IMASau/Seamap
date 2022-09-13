@@ -6,7 +6,7 @@
         $title = get_the_title();
         $content = get_the_content();
         $image = get_field('image');
-        $map_link = get_field('map_link');
+        $map_links = get_field('map_links');
 ?>
     <article class="story-map">
         <section>
@@ -19,17 +19,21 @@
         </section>
 
         <section>
-            <!-- Iterate over map link repeaters -->
-            <div class="map-link">
-                <div class="subtitle"><?php echo $map_link['subtitle'] ?></div>
-                <div class="description"><?php echo $map_link['description'] ?></div>
-                <a
-                    class="shortcode"
-                    href="https://seamapaustralia-dev.imas.utas.edu.au/map/#<?php echo $map_link['shortcode'] ?>"
-                >
-                    Show me
-                </a>
-            </div>
+            <?php
+                // Iterate over map link repeaters
+                if ($map_links): foreach ($map_links as $map_link):
+            ?>
+                <div class="map-link">
+                    <div class="subtitle"><?php echo $map_link['subtitle'] ?></div>
+                    <div class="description"><?php echo $map_link['description'] ?></div>
+                    <a
+                        class="shortcode"
+                        href="https://seamapaustralia-dev.imas.utas.edu.au/map/#<?php echo $map_link['shortcode'] ?>"
+                    >
+                        Show me
+                    </a>
+                </div>
+            <?php endforeach; endif; ?>
         </section>
     </article>
 <?php endwhile; ?>
