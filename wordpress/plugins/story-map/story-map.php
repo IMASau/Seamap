@@ -74,25 +74,90 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-story-map.php';
  * @since    1.0.0
  */
 function run_story_map() {
-
     $plugin = new Story_Map();
     $plugin->run();
-
 }
 run_story_map();
 
-function story_map_custom_post_type() {
+
+/**
+ * Registers story-map post type.
+ */
+add_action('init', function () {
     register_post_type('story_map',
-        array(
+        [
             'labels'      => array(
                 'name'          => __('Story Maps', 'textdomain'),
                 'singular_name' => __('Story Map', 'textdomain'),
             ),
-            'public'      => true,
-            'has_archive' => true,
+            'public'       => true,
+            'has_archive'  => true,
             'show_in_rest' => true,
-            'rewrite'     => array( 'slug' => 'story-maps' ),
-        )
+            'rewrite'      => array( 'slug' => 'story-maps' ),
+        ]
     );
+});
+
+
+/**
+ * Adds custom fields from ACF to the story-map post type.
+ */
+if (class_exists('acf')) {
+    add_action('acf/init', function() {
+        acf_add_local_field_group([
+            'key'          => 'group_story_map',
+            'title'        => 'Story Map',
+            'position'     => 'side',
+            'show_in_rest' => true,
+            'fields'       => [
+                [
+                    'key'           => 'field_story_map_image',
+                    'label'         => 'Image',
+                    'name'          => 'image',
+                    'type'          => 'image',
+                    'return_format' => 'url',
+                ],
+                [
+                    'key'        => 'field_story_map_map_link',
+                    'label'      => 'Map Link',
+                    'name'       => 'map_link',
+                    'type'       => 'group',
+                    'layout'     => 'block',
+                    'sub_fields' => [
+                        [
+                            'key'      => 'field_story_map_map_link_subtitle',
+                            'label'    => 'Subtitle',
+                            'name'     => 'subtitle',
+                            'type'     => 'text',
+                            'required' => true,
+                        ],
+                        [
+                            'key'      => 'field_story_map_map_link_description',
+                            'label'    => 'Description',
+                            'name'     => 'description',
+                            'type'     => 'textarea',
+                            'required' => true,
+                        ],
+                        [
+                            'key'      => 'field_story_map_map_link_shortcode',
+                            'label'    => 'Shortcode',
+                            'name'     => 'shortcode',
+                            'type'     => 'text',
+                            'required' => true,
+                        ],
+                    ],
+                    
+                ],
+            ],
+            'location'     => [
+                [
+                    [
+                        'param'    => 'post_type',
+                        'operator' => '==',
+                        'value'    => 'story_map',
+                    ],
+                ],
+            ],
+        ]);
+    });
 }
-add_action('init', 'story_map_custom_post_type');

@@ -59,3 +59,9 @@ body {
   top: -18px;
   background-color: white;
 }
+
+.story-map > section > img {
+  margin: 10px auto;
+  display: block;
+  width: 50%;
+}
