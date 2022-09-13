@@ -107,4 +107,4 @@
                      :bathymetry-statistics-url (str api-url-base "habitat/bathymetrystatistics")
                      :habitat-observations-url (str api-url-base "habitat/habitatobservations")
                      :layer-previews-url    (str media-url-base "layer_previews/")
-                     :story-maps-url        (str wordpress-url-base "wp-json/wp/v2/story_map/")}})
+                     :story-maps-url        (str wordpress-url-base "wp-json/wp/v2/story_map?acf_format=standard")}})

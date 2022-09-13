@@ -487,12 +487,14 @@
 (s/def :story-maps.story-map/id integer?)
 (s/def :story-maps.story-map/title string?)
 (s/def :story-maps.story-map/content string?)
+(s/def :story-maps.story-map/image (s/nilable string?))
 (s/def :story-maps.story-map/map-links (s/coll-of :story-maps.story-map/map-link
                                                   :kind vector?))
 (s/def :story-maps/story-map
   (s/keys :req-un [:story-maps.story-map/id
                    :story-maps.story-map/title
                    :story-maps.story-map/content
+                   :story-maps.story-map/image
                    :story-maps.story-map/map-links]))
 
 (s/def :story-maps/featured-maps (s/coll-of :story-maps/story-map
