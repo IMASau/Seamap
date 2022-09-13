@@ -4,7 +4,7 @@ CREATE TABLE TRANSFORM_GLOBALARCHIVE_DEPLOYMENT_POINTS (
     deployment_id int null,
     deployment_time datetime NULL,
     description nvarchar(255) NULL,
-    [depth] int NULL,
+    [depth] float NULL,
     site nvarchar(255) NULL,
     status nvarchar(255) NULL,
     successful_count nvarchar(255) NULL,
