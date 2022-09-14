@@ -16,9 +16,7 @@
             <?php if (!empty($image)): ?>
                 <img src="<?php echo $image; ?>" />
             <?php endif; ?>
-        </section>
 
-        <section>
             <?php
                 // Iterate over map link repeaters
                 if ($map_links): foreach ($map_links as $map_link):
