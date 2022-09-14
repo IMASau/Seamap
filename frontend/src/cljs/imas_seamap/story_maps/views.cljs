@@ -11,10 +11,11 @@
    {:elevation   1
     :interactive true
     :class       "featured-map"}
-   (when (seq image) [:img {:src image}])
-   [:div.details
-    [:div.title title]
-    [:div content]]])
+   (when (seq image)
+     [:div.image-container
+      [:img {:src image}]])
+   [:div.title title]
+   [:div content]])
 
 (defn featured-maps []
   (let [story-maps @(re-frame/subscribe [:sm/featured-maps])]
