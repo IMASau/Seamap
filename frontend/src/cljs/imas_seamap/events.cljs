@@ -107,26 +107,26 @@
                  (seq cookie-state) (boot-flow-hash-state cookie-state) ; Same as hash-code, except that we use the one stored in the cookies
                  :else              (boot-flow))})                      ; No information, so we start with an empty DB
 
-(defn set-state
-  "Takes a hash-code and updates the application state to match. If no hash-code is
-   supplied then the application resets to the default state."
+(defn merge-state
+  "Takes a hash-code and merges it into the current application state."
   [{:keys [db]} [_ hash-code]]
-  (let [db (merge-in
-            db/default-db
-            (ajax-loaded-info db)
-            (when (seq hash-code) (parse-state hash-code)))
+  (let [db (merge-in db (parse-state hash-code))
+        {:keys [zoom center]} (:map db)]
+    {:db       db
+     :dispatch-n [[:map/initialise-display]
+                  [:map/update-map-view {:zoom zoom :center center}]]}))
+
+(defn re-boot [{:keys [db]} _]
+  (let [db (merge-in db/default-db (ajax-loaded-info db))
         db (-> db
                (assoc-in [:map :active-layers] (get-in db [:map :keyed-layers :startup] []))
                (assoc-in [:map :active-base-layer] (first (get-in db [:map :grouped-base-layers])))
                (assoc :initialised true))
         {:keys [zoom center]} (:map db)]
-    {:db       db
-     :dispatch [:map/update-map-view {:zoom zoom :center center}]}))
-
-(defn re-boot []
-  {:dispatch   [:set-state nil]
-   :cookie/set {:name  :cookie-state
-                :value nil}})
+    {:db         db
+     :dispatch   [:map/update-map-view {:zoom zoom :center center}]
+     :cookie/set {:name  :cookie-state
+                  :value nil}}))
 
 (defn loading-screen [db [_ msg]]
   (assoc db

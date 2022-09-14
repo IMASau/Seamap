@@ -34,7 +34,7 @@
     {:icon     "search"
      :text     "Show me"
      :intent   "primary"
-     :on-click #(re-frame/dispatch [:get-save-state shortcode [:set-state]])}]])
+     :on-click #(re-frame/dispatch [:get-save-state shortcode [:merge-state]])}]])
 
 (defn featured-map-drawer []
   (let [{:keys [title content map-links] :as _story-map} @(re-frame/subscribe [:sm/featured-map])]
