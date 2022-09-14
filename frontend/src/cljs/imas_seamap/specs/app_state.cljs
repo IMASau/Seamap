@@ -499,10 +499,12 @@
 
 (s/def :story-maps/featured-maps (s/coll-of :story-maps/story-map
                                             :kind vector?))
-(s/def :story-maps/active-map (s/nilable :story-maps/story-map))
+(s/def :story-maps/featured-map (s/nilable :story-maps/story-map))
+(s/def :story-maps/open? boolean?)
 (s/def ::story-maps
   (s/def :req-un [:story-maps/featured-maps
-                  :story-maps/active-map]))
+                  :story-maps/featured-map
+                  :story-maps/open?]))
 
 
 ;; display
