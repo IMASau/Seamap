@@ -453,9 +453,13 @@
         active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         active-base   (or active-base   ; If no base is set (eg no existing hash-state), use the first candidate
                           (first (get-in db [:map :grouped-base-layers])))
+        story-maps    (get-in db [:story-maps :featured-maps])
+        featured-map  (get-in db [:story-maps :featured-map])
+        featured-map  (first-where #(= (% :id) featured-map) story-maps)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
+                          (assoc-in [:story-maps :featured-map] featured-map)
                           (assoc :initialised true))]
     {:db         db
      :dispatch-n [[:ui/hide-loading]
