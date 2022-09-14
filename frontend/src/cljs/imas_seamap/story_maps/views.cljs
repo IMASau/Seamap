@@ -26,13 +26,28 @@
        ^{:key (str id)}
        [featured-map story-map])]))
 
+(defn- map-link [{:keys [subtitle description shortcode] :as _map-link}]
+  [:div.map-link
+   [:div.subtitle subtitle]
+   [:div.description description]
+   [b/button
+    {:icon     "search"
+     :text     "Show me"
+     :intent   "primary"
+     :on-click #(re-frame/dispatch [:get-save-state shortcode [:set-state]])}]])
+
 (defn featured-map-drawer []
-  (let [{:keys [title content] :as _story-map} @(re-frame/subscribe [:sm/featured-map])]
+  (let [{:keys [title content map-links] :as _story-map} @(re-frame/subscribe [:sm/featured-map])]
    [components/drawer
-    {:title    title
-     :position "right"
-     :size     "460px"
-     :isOpen   @(re-frame/subscribe [:sm.featured-map/open?])
-     :onClose  #(re-frame/dispatch [:sm.featured-map/open false])
-     :hasBackdrop false}
-    [:div content]]))
+    {:title       (or title "Featured Map") ; suitable default that shouldn't be seen anyway
+     :position    "right"
+     :size        "460px"
+     :isOpen      @(re-frame/subscribe [:sm.featured-map/open?])
+     :onClose     #(re-frame/dispatch [:sm.featured-map/open false])
+     :hasBackdrop false
+     :className   "featured-map-drawer"}
+    [:<>
+     [:div content]
+     (for [{:keys [subtitle] :as map-link-val} map-links]
+       ^{:key subtitle}
+       [map-link map-link-val])]]))

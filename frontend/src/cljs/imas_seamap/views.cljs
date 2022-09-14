@@ -11,7 +11,7 @@
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-content main-national-layer-card]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
-            [imas-seamap.story-maps.views :refer [featured-maps]]
+            [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
@@ -694,6 +694,7 @@
      [loading-display]
      [left-drawer]
      [state-of-knowledge]
+     [featured-map-drawer]
      [layers-search-omnibar]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 
