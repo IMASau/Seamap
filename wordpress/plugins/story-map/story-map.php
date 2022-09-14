@@ -8,96 +8,62 @@
  * registers the activation and deactivation functions, and defines a function
  * that starts the plugin.
  *
- * @link              http://example.com
  * @since             1.0.0
  * @package           Story_Map
  *
  * @wordpress-plugin
  * Plugin Name:       Story Maps
- * Plugin URI:        http://example.com/story-map-uri/
- * Description:       Adds the story map post type to your site.
- * Version:           -0.1189998819991197253
- * Author:            Your Name or Your Company
- * Author URI:        http://example.com/
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Description:       Adds the Seamap story map post type.
+ * Version:           1.0.0
+ * Author:            Condense Pty Ltd.
+ * Author URI:        https://condense.com.au/
+ * License:           Affero General Public Licence (AGPL) v3
+ * License URI:       https://www.gnu.org/licenses/agpl-3.0.en.html
  * Text Domain:       story-map
- * Domain Path:       /languages
  */
-
-// If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
-    die;
-}
-
-/**
- * Currently plugin version.
- * Start at version 1.0.0 and use SemVer - https://semver.org
- * Rename this for your plugin and update it as you release new versions.
- */
-define( 'STORY_MAP_VERSION', '1.0.0' );
-
-/**
- * The code that runs during plugin activation.
- * This action is documented in includes/class-story-map-activator.php
- */
-function activate_story_map() {
-    require_once plugin_dir_path( __FILE__ ) . 'includes/class-story-map-activator.php';
-    Story_Map_Activator::activate();
-}
-
-/**
- * The code that runs during plugin deactivation.
- * This action is documented in includes/class-story-map-deactivator.php
- */
-function deactivate_story_map() {
-    require_once plugin_dir_path( __FILE__ ) . 'includes/class-story-map-deactivator.php';
-    Story_Map_Deactivator::deactivate();
-}
-
-register_activation_hook( __FILE__, 'activate_story_map' );
-register_deactivation_hook( __FILE__, 'deactivate_story_map' );
-
-/**
- * The core plugin class that is used to define internationalization,
- * admin-specific hooks, and public-facing site hooks.
- */
-require plugin_dir_path( __FILE__ ) . 'includes/class-story-map.php';
-
-/**
- * Begins execution of the plugin.
- *
- * Since everything within the plugin is registered via hooks,
- * then kicking off the plugin from this point in the file does
- * not affect the page life cycle.
- *
- * @since    1.0.0
- */
-function run_story_map() {
-    $plugin = new Story_Map();
-    $plugin->run();
-}
-run_story_map();
 
 
 /**
- * Registers story-map post type.
- */
-add_action('init', function () {
-    register_post_type('story_map',
+* Register story map custom post type.
+*/
+function story_map_setup_post_type() {
+    register_post_type(
+        'story_map',
         [
-            'labels'      => array(
+            'labels'      => [
                 'name'          => __('Story Maps', 'textdomain'),
                 'singular_name' => __('Story Map', 'textdomain'),
-            ),
+            ],
             'public'       => true,
             'has_archive'  => true,
             'show_in_rest' => true,
-            'rewrite'      => array( 'slug' => 'story-maps' ),
+            'rewrite'      => [
+                'slug' => 'story-maps'
+            ],
         ]
     );
-});
+}
+add_action('init', 'story_map_setup_post_type');
 
+
+/**
+ * Activate the plugin.
+ */
+function story_map_activate() {
+    story_map_setup_post_type(); 
+    flush_rewrite_rules(); 
+}
+register_activation_hook(__FILE__, 'story_map_activate');
+
+
+/**
+ * Deactivation hook.
+ */
+function story_map_deactivate() {
+    unregister_post_type('story_map');
+    flush_rewrite_rules();
+}
+register_deactivation_hook(__FILE__, 'story_map_deactivate');
 
 /**
  * Adds custom fields from ACF to the story-map post type.
