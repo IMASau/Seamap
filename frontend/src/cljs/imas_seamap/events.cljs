@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers]]
             [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -110,11 +110,20 @@
 (defn merge-state
   "Takes a hash-code and merges it into the current application state."
   [{:keys [db]} [_ hash-code]]
-  (let [db (merge-in db (parse-state hash-code))
-        {:keys [zoom center]} (:map db)]
+  (let [parsed-state (-> (parse-state hash-code)
+                         (dissoc :display :story-maps))
+        db           (merge-in db parsed-state)
+        {:keys [active active-base zoom center]} (:map db)
+
+        active-layers (if active
+                        (vec (ids->layers active (get-in db [:map :layers])))
+                        (get-in db [:map :keyed-layers :startup] []))
+        active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
+        db            (-> db
+                          (assoc-in [:map :active-layers] active-layers)
+                          (assoc-in [:map :active-base-layer] active-base))]
     {:db       db
-     :dispatch-n [[:map/initialise-display]
-                  [:map/update-map-view {:zoom zoom :center center}]]}))
+     :dispatch [:map/update-map-view {:zoom zoom :center center}]}))
 
 (defn re-boot [{:keys [db]} _]
   (let [db (merge-in db/default-db (ajax-loaded-info db))
