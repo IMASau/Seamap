@@ -4,13 +4,15 @@
 (ns imas-seamap.story-maps.views
   (:require [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
+            [imas-seamap.components :as components]
             [clojure.pprint]))
 
-(defn featured-map [{:keys [title content image] :as _story-map}]
+(defn- featured-map [{:keys [title content image] :as story-map}]
   [b/card
    {:elevation   1
     :interactive true
-    :class       "featured-map"}
+    :class       "featured-map"
+    :on-click    #(re-frame/dispatch [:sm/featured-map story-map])}
    (when (seq image)
      [:div.image-container
       [:img {:src image}]])
@@ -23,3 +25,29 @@
      (for [{:keys [id] :as story-map} story-maps]
        ^{:key (str id)}
        [featured-map story-map])]))
+
+(defn- map-link [{:keys [subtitle description shortcode] :as _map-link}]
+  [:div.map-link
+   [:div.subtitle subtitle]
+   [:div.description description]
+   [b/button
+    {:icon     "search"
+     :text     "Show me"
+     :intent   "primary"
+     :on-click #(re-frame/dispatch [:get-save-state shortcode [:merge-state]])}]])
+
+(defn featured-map-drawer []
+  (let [{:keys [title content map-links] :as _story-map} @(re-frame/subscribe [:sm/featured-map])]
+   [components/drawer
+    {:title       (or title "Featured Map") ; suitable default that shouldn't be seen anyway
+     :position    "right"
+     :size        "460px"
+     :isOpen      @(re-frame/subscribe [:sm.featured-map/open?])
+     :onClose     #(re-frame/dispatch [:sm.featured-map/open false])
+     :hasBackdrop false
+     :className   "featured-map-drawer"}
+    [:<>
+     [:div content]
+     (for [{:keys [subtitle] :as map-link-val} map-links]
+       ^{:key subtitle}
+       [map-link map-link-val])]]))

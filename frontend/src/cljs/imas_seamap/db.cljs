@@ -64,7 +64,8 @@
                                                             :show-layers?   false}}
                         :open-pill  nil}
    :story-maps      {:featured-maps []
-                     :active-map    nil}
+                     :featured-map  nil
+                     :open?         false}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}

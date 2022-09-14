@@ -32,3 +32,26 @@
     font-weight: bold;
     font-size: 16px;
 }
+
+.featured-map-drawer .drawer-children {
+    padding: 20px 16px;
+}
+
+.map-link {
+    max-width: 720px;
+    padding: 8px 12px;
+    border: 2px solid black;
+    position: relative;
+    margin: 20px 0;
+}
+
+.map-link .subtitle {
+    padding: 0 8px;
+    position: absolute;
+    top: -10px;
+    background-color: white;
+}
+
+.map-link .description {
+    margin: 6px 0 8px 0;
+}
