@@ -65,6 +65,8 @@
     :sok/open-pill                        soksubs/open-pill
     :sok/boundary-layer-filter            soksubs/boundary-layer-filter-fn
     :sm/featured-maps                     smsubs/featured-maps
+    :sm/featured-map                      smsubs/featured-map
+    :sm.featured-map/open?                smsubs/featured-map-open?
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
