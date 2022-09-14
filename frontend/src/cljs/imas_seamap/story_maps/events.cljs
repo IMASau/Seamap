@@ -23,3 +23,10 @@
 
 (defn update-featured-maps [db [_ response]]
   (assoc-in db [:story-maps :featured-maps] (mapv response->story-map response)))
+
+(defn featured-map [{:keys [db]} [_ story-map]]
+  {:db (assoc-in db [:story-maps :featured-map] story-map)
+   :dispatch [:sm.featured-map/open true]})
+
+(defn featured-map-open [db [_ open?]]
+  (assoc-in db [:story-maps :open?] open?))
