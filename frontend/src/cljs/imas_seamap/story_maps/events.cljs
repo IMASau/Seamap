@@ -25,8 +25,10 @@
   (assoc-in db [:story-maps :featured-maps] (mapv response->story-map response)))
 
 (defn featured-map [{:keys [db]} [_ story-map]]
-  {:db (assoc-in db [:story-maps :featured-map] story-map)
-   :dispatch [:sm.featured-map/open true]})
+  {:db         (assoc-in db [:story-maps :featured-map] story-map)
+   :dispatch-n [[:sm.featured-map/open true]
+                [:maybe-autosave]]})
 
-(defn featured-map-open [db [_ open?]]
-  (assoc-in db [:story-maps :open?] open?))
+(defn featured-map-open [{:keys [db]} [_ open?]]
+  {:db       (assoc-in db [:story-maps :open?] open?)
+   :dispatch [:maybe-autosave]})
