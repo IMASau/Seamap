@@ -663,10 +663,10 @@
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
-        catalogue-open?          @(re-frame/subscribe [:left-drawer/open?])
-        state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])]
+        catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
+        right-drawer-open? (or @(re-frame/subscribe [:sok/open?]) @(re-frame/subscribe [:sm.featured-map/open?]))]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
-     {:class (str (when catalogue-open? " catalogue-open") (when state-of-knowledge-open? " state-of-knowledge-open"))}
+     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper
       [map-component [floating-pills]]
       [plot-component]]
