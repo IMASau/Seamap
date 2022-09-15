@@ -40,7 +40,7 @@
 
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
-  [{map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
+  [{:keys [story-maps] map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
   (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :bounds])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
@@ -63,6 +63,8 @@
                            [[:habitat :show-layers?]
                             [:bathymetry :show-layers?]
                             [:habitat-observations :show-layers?]])
+        pruned-story-maps (-> (select-keys story-maps [:featured-map :open?])
+                              (update :featured-map :id))
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]
                                       [:display :catalogue]
@@ -76,6 +78,7 @@
                        (assoc :map pruned-map)
                        (assoc-in [:state-of-knowledge :boundaries] pruned-boundaries)
                        (assoc-in [:state-of-knowledge :statistics] pruned-statistics)
+                       (assoc :story-maps pruned-story-maps)
                        #_(update-in [:display :catalogue :expanded] #(into {} (filter second %))))
         legends    (->> db :layer-state :legend-shown (map :id))
         opacities  (->> db :layer-state :opacity (reduce (fn [acc [k v]] (if (= v 100) acc (conj acc [(:id k) v]))) {}))
@@ -109,6 +112,8 @@
                  [:state-of-knowledge :statistics :habitat :show-layers?]
                  [:state-of-knowledge :statistics :bathymetry :show-layers?]
                  [:state-of-knowledge :statistics :habitat-observations :show-layers?]
+                 [:story-maps :featured-map]
+                 [:story-maps :open?]
                  [:transect :show?]
                  [:transect :query]
                  [:map :active]
@@ -273,6 +278,15 @@
     [:state-of-knowledge :boundaries :meow :realms]
     [:state-of-knowledge :boundaries :meow :provinces]
     [:state-of-knowledge :boundaries :meow :ecoregions]
+    [:story-maps :featured-maps]
     [:habitat-colours]
     [:habitat-titles]
     [:sorting]]))
+
+(defn decode-html-entities
+  "Removes HTML entities from an HTML entity encoded string:
+   https://stackoverflow.com/a/34064434"
+  [input]
+  (-> (-> (js/DOMParser.)
+          (.parseFromString input "text/html"))
+      .-documentElement .-textContent))

@@ -11,6 +11,7 @@
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-content main-national-layer-card]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
+            [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
@@ -555,7 +556,7 @@
                      :error-fn       error-layers
                      :expanded-fn    expanded-layers
                      :opacity-fn     layer-opacities}]]])}]
-       
+
        [b/tab
         {:id    "controls"
          :title "Controls"
@@ -566,7 +567,7 @@
                     :icon    "settings"}
                    [transect-toggle]
                    [selection-button]]
-                  
+
                   [components/drawer-group
                    {:heading "Settings"
                     :icon    "cog"}
@@ -575,7 +576,13 @@
                    [b/button
                     {:icon     "undo"
                      :text     "Reset Interface"
-                     :on-click   #(re-frame/dispatch [:re-boot])}]]])}]]]]))
+                     :on-click   #(re-frame/dispatch [:re-boot])}]]])}]
+
+       [b/tab
+        {:id    "featured-maps"
+         :title "Featured Maps"
+         :panel (reagent/as-element
+                 [featured-maps])}]]]]))
 
 (defn- layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
@@ -656,10 +663,10 @@
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
-        catalogue-open?          @(re-frame/subscribe [:left-drawer/open?])
-        state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])]
+        catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
+        right-drawer-open? (or @(re-frame/subscribe [:sok/open?]) @(re-frame/subscribe [:sm.featured-map/open?]))]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
-     {:class (str (when catalogue-open? " catalogue-open") (when state-of-knowledge-open? " state-of-knowledge-open"))}
+     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper
       [map-component [floating-pills]]
       [plot-component]]
@@ -687,6 +694,7 @@
      [loading-display]
      [left-drawer]
      [state-of-knowledge]
+     [featured-map-drawer]
      [layers-search-omnibar]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 

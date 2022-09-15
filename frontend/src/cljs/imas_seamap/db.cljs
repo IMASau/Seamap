@@ -5,6 +5,7 @@
 
 (goog-define api-url-base "http://localhost:8000/api/")
 (goog-define media-url-base "http://localhost:8000/media/")
+(goog-define wordpress-url-base "http://localhost:8888/")
 (goog-define img-url-base "/img/")
 
 (def default-db
@@ -62,6 +63,9 @@
                                                             :loading?       false
                                                             :show-layers?   false}}
                         :open-pill  nil}
+   :story-maps      {:featured-maps []
+                     :featured-map  nil
+                     :open?         false}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}
@@ -103,4 +107,5 @@
                      :habitat-statistics-url (str api-url-base "habitat/habitatstatistics")
                      :bathymetry-statistics-url (str api-url-base "habitat/bathymetrystatistics")
                      :habitat-observations-url (str api-url-base "habitat/habitatobservations")
-                     :layer-previews-url    (str media-url-base "layer_previews/")}})
+                     :layer-previews-url    (str media-url-base "layer_previews/")
+                     :story-maps-url        (str wordpress-url-base "wp-json/wp/v2/story_map?acf_format=standard")}})

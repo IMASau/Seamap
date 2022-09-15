@@ -474,6 +474,40 @@
                    :state-of-knowledge/open?
                    :state-of-knowledge/pill-open?]))
 
+
+;; story-maps
+(s/def :story-maps.story-map.map-link/subtitle string?)
+(s/def :story-maps.story-map.map-link/description string?)
+(s/def :story-maps.story-map.map-link/shortcode string?)
+(s/def :story-maps.story-map/map-link
+  (s/keys :req-un [:story-maps.story-map.map-link/subtitle
+                   :story-maps.story-map.map-link/description
+                   :story-maps.story-map.map-link/shortcode]))
+
+(s/def :story-maps.story-map/id integer?)
+(s/def :story-maps.story-map/title string?)
+(s/def :story-maps.story-map/content string?)
+(s/def :story-maps.story-map/image (s/nilable string?))
+(s/def :story-maps.story-map/map-links (s/coll-of :story-maps.story-map/map-link
+                                                  :kind vector?))
+(s/def :story-maps/story-map
+  (s/keys :req-un [:story-maps.story-map/id
+                   :story-maps.story-map/title
+                   :story-maps.story-map/content
+                   :story-maps.story-map/image
+                   :story-maps.story-map/map-links]))
+
+(s/def :story-maps/featured-maps (s/coll-of :story-maps/story-map
+                                            :kind vector?))
+(s/def :story-maps/featured-map (s/nilable :story-maps/story-map))
+(s/def :story-maps/open? boolean?)
+(s/def ::story-maps
+  (s/def :req-un [:story-maps/featured-maps
+                  :story-maps/featured-map
+                  :story-maps/open?]))
+
+
+;; display
 (s/def ::display
   (s/keys :req-un [:display/mouse-pos
                    :display/catalogue
@@ -499,6 +533,7 @@
   (s/keys :req-un [::config
                    ::display
                    ::state-of-knowledge
+                   ::story-maps
                    ::filters
                    ::region-stats
                    ::habitat-colours

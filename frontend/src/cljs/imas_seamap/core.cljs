@@ -20,6 +20,8 @@
             [imas-seamap.map.subs :as msubs]
             [imas-seamap.state-of-knowledge.events :as sokevents]
             [imas-seamap.state-of-knowledge.subs :as soksubs]
+            [imas-seamap.story-maps.events :as smevents]
+            [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
             [imas-seamap.views :as views]
@@ -62,6 +64,9 @@
     :sok/open?                            soksubs/open?
     :sok/open-pill                        soksubs/open-pill
     :sok/boundary-layer-filter            soksubs/boundary-layer-filter-fn
+    :sm/featured-maps                     smsubs/featured-maps
+    :sm/featured-map                      smsubs/featured-map
+    :sm.featured-map/open?                smsubs/featured-map-open?
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
@@ -85,7 +90,7 @@
 
    :events
    {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
-    :set-state                            [events/set-state]
+    :merge-state                          [events/merge-state]
     :re-boot                              [events/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
@@ -206,6 +211,9 @@
     :sok/habitat-toggle-show-layers       [sokevents/habitat-toggle-show-layers]
     :sok/bathymetry-toggle-show-layers    [sokevents/bathymetry-toggle-show-layers]
     :sok/habitat-observations-toggle-show-layers [sokevents/habitat-observations-toggle-show-layers]
+    :sm/update-featured-maps              smevents/update-featured-maps
+    :sm/featured-map                      [smevents/featured-map]
+    :sm.featured-map/open                 [smevents/featured-map-open]
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]

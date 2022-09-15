@@ -29,10 +29,11 @@
                                    imas-seamap.specs.preload]}
 
           :min {:target            :browser
-                :closure-defines   {goog.DEBUG                    false
-                                    imas-seamap.db/api-url-base   "https://data.imas.utas.edu.au/seamap/api/"
-                                    imas-seamap.db/media-url-base "https://data.imas.utas.edu.au/seamap/media/"
-                                    imas-seamap.db/img-url-base   "/app/img/"}
+                :closure-defines   {goog.DEBUG                        false
+                                    imas-seamap.db/api-url-base       "https://data.imas.utas.edu.au/seamap/api/"
+                                    imas-seamap.db/media-url-base     "https://data.imas.utas.edu.au/seamap/media/"
+                                    imas-seamap.db/wordpress-url-base "https://seamapaustralia.org/"
+                                    imas-seamap.db/img-url-base       "/app/img/"}
                 :output-dir        "resources/public/js/compiled/app"
                 :module-hash-names true
                 :build-options     {:manifest-name "manifest.json"}
@@ -40,10 +41,11 @@
 
           :mindev {:target            :browser
                    :output-dir        "resources/public/js/compiled/"
-                   :closure-defines   {goog.DEBUG                    false
-                                       imas-seamap.db/api-url-base   "https://data-dev.imas.utas.edu.au/seamap/api/"
-                                       imas-seamap.db/media-url-base "https://data-dev.imas.utas.edu.au/seamap/media/"
-                                       imas-seamap.db/img-url-base   "/app/img/"}
+                   :closure-defines   {goog.DEBUG                        false
+                                       imas-seamap.db/api-url-base       "https://data-dev.imas.utas.edu.au/seamap/api/"
+                                       imas-seamap.db/media-url-base     "https://data-dev.imas.utas.edu.au/seamap/media/"
+                                       imas-seamap.db/wordpress-url-base "https://seamapaustralia-dev.imas.utas.edu.au/"
+                                       imas-seamap.db/img-url-base       "/app/img/"}
                    :module-hash-names true
                    :build-options     {:manifest-name "manifest.json"}
                    :modules           {:app {:entries [imas-seamap.core]}}
