@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [encode-state ids->layers first-where index-of]]
+            [imas-seamap.utils :refer [encode-state ids->layers first-where index-of append-query-params]]
             [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
@@ -651,14 +651,43 @@
 
 (defmulti get-layer-legend-success #(get-in %2 [1 :layer_type]))
 
+(defmulti wms-symbolizer->key #(-> % keys first))
+
+(defmethod wms-symbolizer->key :Polygon
+  [{{:keys [fill]} :Polygon :as _symbolizer}]
+  {:background-color fill
+   :height           "100%"
+   :width            "100%"})
+
+(defmethod wms-symbolizer->key :Point
+  [{{:keys [graphics size]} :Point :as _symbolizer}]
+  (let [{:keys [mark fill stroke stroke-width]} (first graphics)]
+    (merge
+     {:background-color fill
+      :border           (str "solid " stroke-width "px " stroke)
+      :width            (str size "px")
+      :height           (str size "px")}
+     (when (= mark "circle") {:border-radius "100%"}))))
+
+(defmethod wms-symbolizer->key :default [] nil)
+
 (defmethod get-layer-legend-success :wms
-  [db [_ {:keys [id] :as _layer} response]]
-  (let [legend (->> response :Legend first :rules
-                    (mapv
-                     (fn [{:keys [title filter symbolizers]}]
-                       {:label  title
-                        :filter filter
-                        :color  (-> symbolizers first :Polygon :fill)})))]
+  [db [_ {:keys [id server_url layer_name] :as _layer} response]]
+  (let [legend (if (-> response :Legend first :rules first :symbolizers first wms-symbolizer->key) ; Convert the symbolizer for the first key
+                 (->> response :Legend first :rules                                                ; if it converts successfully, then we make a vector legend and convert to keys and labels
+                      (mapv
+                       (fn [{:keys [title filter symbolizers]}]
+                         {:label  title
+                          :filter filter
+                          :style  (-> symbolizers first wms-symbolizer->key)})))
+                 (append-query-params                                                              ; else we just use an image for the legend graphic
+                  server_url
+                  {:REQUEST     "GetLegendGraphic"
+                   :LAYER       layer_name
+                   :TRANSPARENT true
+                   :SERVICE     "WMS"
+                   :VERSION     "1.1.1"
+                   :FORMAT      "image/png"}))]
     (assoc-in db [:map :legends id] legend)))
 
 (defmethod get-layer-legend-success :feature
@@ -669,8 +698,11 @@
           (convert-value-info
             [{:keys [label] :as value-info}]
             {:label   (or label name)
-             :color   (-> value-info :symbol :color convert-color)
-             :outline (-> value-info :symbol :outline :color convert-color)})]
+             :style
+             {:background-color (-> value-info :symbol :color convert-color)
+              :border           (str "solid 2px " (-> value-info :symbol :outline :color convert-color))
+              :height           "100%"
+              :width            "100%"}})]
     (let [render-info (get-in response [:drawingInfo :renderer])
           legend      (if (:uniqueValueInfos render-info)
                         (mapv convert-value-info (:uniqueValueInfos render-info))

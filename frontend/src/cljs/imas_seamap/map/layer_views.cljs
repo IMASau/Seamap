@@ -73,28 +73,31 @@
    [layer-header-text props]
    [layer-card-controls props]])
 
-(defn- vector-legend-entry [{:keys [label color outline] :as _entry}]
-  [:div.vector-legend-rule
-   [:div {:style {:background-color color :border (when outline (str "solid 2px " outline))}}]
-   [:div label]])
+(defn- vector-legend-entry [{:keys [label style] :as _entry}]
+  [:div.vector-legend-entry
+   [:div.key
+    [:div {:style style}]]
+   [:div.label label]])
 
-(defn- vector-legend [legend-info]
-  [:div
-   (map
-    (fn [{:keys [label] :as entry}]
-      ^{:key label}
-      [vector-legend-entry entry])
-    legend-info)])
+(defn- legend [legend-info]
+  (if (string? legend-info)
+    [:img {:src legend-info}] ; if legend-info is a string, we treat it as a url to a legend graphic
+    [:<>                      ; else we render the legend as a vector legend
+     (map
+      (fn [{:keys [label] :as entry}]
+        ^{:key label}
+        [vector-legend-entry entry])
+      legend-info)]))
 
 (defn- legend-display [{:keys [legend_url] :as layer}]
   (let [{:keys [status info]} @(re-frame/subscribe [:map.layer/legend layer])]
     [:div.legend-wrapper
      (if legend_url 
-       [:img {:src legend_url}] ; if we have a custom legend url, use that to display an image
-       (case status             ; else use legend status to decide action
+       [legend legend_url] ; if we have a custom legend url, use that
+       (case status        ; else use legend status to decide action
 
          :map.legend/loaded
-         [vector-legend info]
+         [legend info]
 
          :map.legend/loading
          [b/non-ideal-state
