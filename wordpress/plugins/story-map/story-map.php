@@ -84,6 +84,13 @@ if (class_exists('acf')) {
                     'return_format' => 'url',
                 ],
                 [
+                    'key'      => 'field_story_map_description',
+                    'label'    => 'Description',
+                    'name'     => 'description',
+                    'type'     => 'textarea',
+                    'required' => true,
+                ],
+                [
                     'key'        => 'field_story_map_map_link',
                     'label'      => 'Map Links',
                     'name'       => 'map_links',

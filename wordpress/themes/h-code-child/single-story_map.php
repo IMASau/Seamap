@@ -6,11 +6,13 @@
         $title = get_the_title();
         $content = get_the_content();
         $image = get_field('image');
+        $description = get_field('description');
         $map_links = get_field('map_links');
 ?>
     <article class="story-map">
         <section>
             <h2><?php echo $title; ?></h2>
+            <p><?php echo $description; ?></p>
             <?php echo $content; ?>
 
             <?php if (!empty($image)): ?>
