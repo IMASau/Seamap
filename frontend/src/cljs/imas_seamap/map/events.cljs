@@ -651,41 +651,43 @@
 
 (defmulti get-layer-legend-success #(get-in %2 [1 :layer_type]))
 
+(defmulti wms-symbolizer->key #(-> % keys first))
+
+(defmethod wms-symbolizer->key :Polygon
+  [{{:keys [fill]} :Polygon :as _symbolizer}]
+  {:background-color fill
+   :height           "100%"
+   :width            "100%"})
+
+(defmethod wms-symbolizer->key :Point
+  [{{:keys [graphics size]} :Point :as _symbolizer}]
+  (let [{:keys [mark fill stroke stroke-width]} (first graphics)]
+    (merge
+     {:background-color fill
+      :border           (str "solid " stroke-width "px " stroke)
+      :width            (str size "px")
+      :height           (str size "px")}
+     (when (= mark "circle") {:border-radius "100%"}))))
+
+(defmethod wms-symbolizer->key :default [] nil)
+
 (defmethod get-layer-legend-success :wms
   [db [_ {:keys [id server_url layer_name] :as _layer} response]]
-  (let [legend (cond
-                 (-> response :Legend first :rules first :symbolizers first :Raster)
-                 (append-query-params-from-map
+  (let [legend (if (-> response :Legend first :rules first :symbolizers first wms-symbolizer->key) ; Convert the symbolizer for the first key
+                 (->> response :Legend first :rules                                                ; if it converts successfully, then we make a vector legend and convert to keys and labels
+                      (mapv
+                       (fn [{:keys [title filter symbolizers]}]
+                         {:label  title
+                          :filter filter
+                          :style  (-> symbolizers first wms-symbolizer->key)})))
+                 (append-query-params-from-map                                                     ; else we just use an image for the legend graphic
                   server_url
                   {:REQUEST     "GetLegendGraphic"
                    :LAYER       layer_name
                    :TRANSPARENT true
                    :SERVICE     "WMS"
                    :VERSION     "1.1.1"
-                   :FORMAT      "image/png"})
-
-                 :else
-                 (->> response :Legend first :rules
-                      (mapv
-                       (fn [{:keys [title filter symbolizers]}]
-                         {:label  title
-                          :filter filter
-                          :style
-                          (cond
-                            (-> symbolizers first :Polygon)
-                            {:background-color (-> symbolizers first :Polygon :fill)
-                             :height           "100%"
-                             :width            "100%"}
-
-                            (-> symbolizers first :Point)
-                            (let [{:keys [graphics size]} (-> symbolizers first :Point)
-                                  {:keys [mark fill stroke stroke-width]} (first graphics)]
-                              (merge
-                               {:background-color fill
-                                :border           (str "solid " stroke-width "px " stroke)
-                                :width            (str size "px")
-                                :height           (str size "px")}
-                               (when (= mark "circle") {:border-radius "100%"}))))}))))]
+                   :FORMAT      "image/png"}))]
     (assoc-in db [:map :legends id] legend)))
 
 (defmethod get-layer-legend-success :feature
