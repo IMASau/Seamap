@@ -658,7 +658,10 @@
                      (fn [{:keys [title filter symbolizers]}]
                        {:label  title
                         :filter filter
-                        :color  (-> symbolizers first :Polygon :fill)})))]
+                        :style
+                        {:background-color (-> symbolizers first :Polygon :fill)
+                         :height           "100%"
+                         :width            "100%"}})))]
     (assoc-in db [:map :legends id] legend)))
 
 (defmethod get-layer-legend-success :feature
@@ -669,8 +672,11 @@
           (convert-value-info
             [{:keys [label] :as value-info}]
             {:label   (or label name)
-             :color   (-> value-info :symbol :color convert-color)
-             :outline (-> value-info :symbol :outline :color convert-color)})]
+             :style
+             {:background-color (-> value-info :symbol :color convert-color)
+              :border           (str "solid 2px " (-> value-info :symbol :outline :color convert-color))
+              :height           "100%"
+              :width            "100%"}})]
     (let [render-info (get-in response [:drawingInfo :renderer])
           legend      (if (:uniqueValueInfos render-info)
                         (mapv convert-value-info (:uniqueValueInfos render-info))

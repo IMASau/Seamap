@@ -73,9 +73,10 @@
    [layer-header-text props]
    [layer-card-controls props]])
 
-(defn- vector-legend-entry [{:keys [label color outline] :as _entry}]
+(defn- vector-legend-entry [{:keys [label style] :as _entry}]
   [:div.vector-legend-entry
-   [:div.key {:style {:background-color color :border (when outline (str "solid 2px " outline))}}]
+   [:div.key
+    [:div {:style style}]]
    [:div.label label]])
 
 (defn- vector-legend [legend-info]
