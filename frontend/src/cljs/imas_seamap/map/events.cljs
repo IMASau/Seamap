@@ -659,9 +659,21 @@
                        {:label  title
                         :filter filter
                         :style
-                        {:background-color (-> symbolizers first :Polygon :fill)
-                         :height           "100%"
-                         :width            "100%"}})))]
+                        (cond
+                          (-> symbolizers first :Polygon)
+                          {:background-color (-> symbolizers first :Polygon :fill)
+                           :height           "100%"
+                           :width            "100%"}
+                          
+                          (-> symbolizers first :Point)
+                          (let [{:keys [graphics size]} (-> symbolizers first :Point)
+                                {:keys [mark fill stroke stroke-width]} (first graphics)]
+                            (merge
+                             {:background-color fill
+                              :border           (str "solid " stroke-width "px " stroke)
+                              :width            (str size "px")
+                              :height           (str size "px")}
+                             (when (= mark "circle") {:border-radius "100%"}))))})))]
     (assoc-in db [:map :legends id] legend)))
 
 (defmethod get-layer-legend-success :feature
