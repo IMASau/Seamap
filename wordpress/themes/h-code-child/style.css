@@ -1,20 +1,14 @@
 /*
- Theme Name:   Twenty Twenty-One Child
- Theme URI:    https://wordpress.org/themes/twentytwentyone-child/
- Description:  Twenty Twenty-One Child Theme
- Author:       Joshua Groombridge
- Author URI:   http://example.com
- Template:     twentytwentyone
+ Theme Name:   H-Code Seamap Extension
+ Description:  Extension of H-Code theme that supports Seamap custom post types
+ Author:       Condense Pty Ltd.
+ Author URI:   https://condense.com.au/
+ Template:     h-code
  Version:      1.0.0
- License:      GNU General Public License v2 or later
- License URI:  http://www.gnu.org/licenses/gpl-2.0.html
- Tags:         light, dark, one-columns, right-sidebar, responsive-layout, accessibility-ready
- Text Domain:  twentytwentyonechild
+ License:      Affero General Public Licence (AGPL) v3
+ License URI:  https://www.gnu.org/licenses/agpl-3.0.en.html
+ Text Domain:  h-code-seamap-extension
 */
-
-body {
-  background-color: white;
-}
 
 .story-map {
   margin: auto;
@@ -51,11 +45,19 @@ body {
   padding: 20px 32px;
   border: 2px solid black;
   position: relative;
+  margin: 40px 0;
 }
 
 .map-link .subtitle {
   padding: 0 8px;
   position: absolute;
-  top: -18px;
+  top: -13px;
   background-color: white;
+  font-size: 16px;
+}
+
+.story-map > section > img {
+  margin: 10px auto;
+  display: block;
+  width: 50%;
 }
