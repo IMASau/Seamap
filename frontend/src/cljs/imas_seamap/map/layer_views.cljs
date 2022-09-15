@@ -75,8 +75,8 @@
 
 (defn- vector-legend-entry [{:keys [label color outline] :as _entry}]
   [:div.vector-legend-entry
-   [:div {:style {:background-color color :border (when outline (str "solid 2px " outline))}}]
-   [:div label]])
+   [:div.key {:style {:background-color color :border (when outline (str "solid 2px " outline))}}]
+   [:div.label label]])
 
 (defn- vector-legend [legend-info]
   [:div

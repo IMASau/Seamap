@@ -71,13 +71,13 @@
     height: 20px;
 }
 
-.vector-legend-entry > :first-child {
+.vector-legend-entry > .key {
     width: 13px;
     height: 13px;
     margin-left: 3px;
 }
 
-.vector-legend-entry > :nth-child(2) {
+.vector-legend-entry > .label {
     white-space: pre;
     font-size: 13px;
 }
