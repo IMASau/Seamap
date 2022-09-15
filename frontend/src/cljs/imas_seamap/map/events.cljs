@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [encode-state ids->layers first-where index-of append-query-params-from-map]]
+            [imas-seamap.utils :refer [encode-state ids->layers first-where index-of append-query-params]]
             [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
@@ -680,7 +680,7 @@
                          {:label  title
                           :filter filter
                           :style  (-> symbolizers first wms-symbolizer->key)})))
-                 (append-query-params-from-map                                                     ; else we just use an image for the legend graphic
+                 (append-query-params                                                              ; else we just use an image for the legend graphic
                   server_url
                   {:REQUEST     "GetLegendGraphic"
                    :LAYER       layer_name

@@ -199,7 +199,7 @@
   [url params]
   (reduce-kv (fn [acc key val] (str acc "?" (name key) "=" val)) url params))
 
-(defn append-query-params-from-map
+(defn append-query-params
   [url params]
   (let [params (map (fn [[key val]] (str (name key) "=" val)) params)
         params (apply str (interpose "&" params))]

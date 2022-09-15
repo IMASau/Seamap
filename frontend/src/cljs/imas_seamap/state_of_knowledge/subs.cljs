@@ -2,7 +2,7 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.state-of-knowledge.subs
-  (:require [imas-seamap.utils :refer [append-query-params-from-map]]
+  (:require [imas-seamap.utils :refer [append-query-params]]
             [imas-seamap.state-of-knowledge.utils :as utils :refer [boundary-filter-names cql-filter]]))
 
 (defn habitat-statistics [db _]
@@ -25,7 +25,7 @@
          [active-network active-park active-zone active-zone-iucn
           active-provincial-bioregion active-mesoscale-bioregion active-realm
           active-province active-ecoregion])]
-    (append-query-params-from-map
+    (append-query-params
      habitat-statistics-url
      {:boundary-type        active-boundary
       :network              active-network
@@ -59,7 +59,7 @@
          [active-network active-park active-zone active-zone-iucn
           active-provincial-bioregion active-mesoscale-bioregion active-realm
           active-province active-ecoregion])]
-    (append-query-params-from-map
+    (append-query-params
      bathymetry-statistics-url
      {:boundary-type        active-boundary
       :network              active-network
