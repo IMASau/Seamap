@@ -8,12 +8,9 @@
   "Extracts useful parts of a story-map response."
   [response]
   (let [id        (:id response)
-        title     (-> (get-in response [:title :rendered])
-                      decode-html-entities)
-        content   (->> (get-in response [:content :rendered])
-                       (re-find (re-pattern "(?<=<p>).+(?=</p>)"))
-                       decode-html-entities)
-        image (or (get-in response [:acf :image]) nil) ; we do this because we want nil instead of false if there's no image
+        title     (decode-html-entities (get-in response [:title :rendered]))
+        content   (get-in response [:acf :description])
+        image     (or (get-in response [:acf :image]) nil) ; we do this because we want nil instead of false if there's no image
         map-links (get-in response [:acf :map_links])]
     {:id        id
      :title     title
