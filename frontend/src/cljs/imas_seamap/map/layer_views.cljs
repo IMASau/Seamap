@@ -3,6 +3,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b]
             [imas-seamap.components :as components]
+            [clojure.string :as string]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn- layer-status-icons
@@ -77,7 +78,9 @@
   [:div.vector-legend-entry
    [:div.key
     [:div {:style style}]]
-   [:div.label label]])
+   [b/clipped-text
+    {:ellipsize true :class "label"}
+    (string/replace label #"\\n" "\n")]])
 
 (defn- legend [legend-info]
   (if (string? legend-info)
