@@ -409,10 +409,10 @@
               :right-icon "caret-down"}]])
 
 (defn- info-card []
-  (let [layer-info                       @(re-frame/subscribe [:map.layer/info])
-        {:keys [metadata_url] :as layer} (:layer layer-info)
-        title                            (or (get-in layer-info [:layer :name]) "Layer Information")
-        {:keys [region]}                 @(re-frame/subscribe [:map.layer.selection/info])]
+  (let [layer-info       @(re-frame/subscribe [:map.layer/info])
+        {:keys [metadata_url category] :as layer} (:layer layer-info)
+        title            (or (get-in layer-info [:layer :name]) "Layer Information")
+        {:keys [region]} @(re-frame/subscribe [:map.layer.selection/info])]
     [b/dialogue {:title    title
                  :is-open  (and layer-info (not (:hidden? layer-info)))
                  :on-close #(re-frame/dispatch [:map.layer/close-info])}
@@ -432,7 +432,10 @@
         [metadata-record layer-info])]
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions
-       (when (and metadata_url (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog\.search#/metadata/[-0-9a-zA-Z]+$" metadata_url))
+       (when (and
+              metadata_url
+              (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog\.search#/metadata/[-0-9a-zA-Z]+$" metadata_url)
+              (= category :habitat))
          [:div
           [download-menu {:title     "Download Selection..."
                           :layer     layer
