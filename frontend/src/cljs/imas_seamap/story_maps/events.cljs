@@ -21,13 +21,11 @@
 (defn update-featured-maps [db [_ response]]
   (assoc-in db [:story-maps :featured-maps] (mapv response->story-map response)))
 
-(defn featured-map [{:keys [db]} [_ {:keys [map-links] :as story-map}]]
-  (let [db        (assoc-in db [:story-maps :featured-map] story-map)
-        shortcode (-> map-links first :shortcode)]
+(defn featured-map [{:keys [db]} [_ story-map]]
+  (let [db        (assoc-in db [:story-maps :featured-map] story-map)]
     {:db         db
      :dispatch-n [[:sm.featured-map/open true]
-                  [:maybe-autosave]
-                  (when shortcode [:get-save-state shortcode [:merge-state]])]}))
+                  [:maybe-autosave]]}))
 
 (defn featured-map-open [{:keys [db]} [_ open?]]
   {:db       (assoc-in db [:story-maps :open?] open?)
