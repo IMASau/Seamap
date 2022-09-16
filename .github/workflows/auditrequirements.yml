@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - uses: pypa/gh-action-pip-audit@v1.0.0
         with:
           inputs: backend/deploy_requirements.txt
