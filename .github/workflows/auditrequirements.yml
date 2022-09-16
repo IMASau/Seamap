@@ -2,19 +2,15 @@ name: Audit requirements
 
 on:
   schedule:
-    - cron:  '0 0 * * 0' # 0:00 every Sunday
+    - cron:  '0 0 * * 0' # 0:00 every Sunday (UTC)
 
 jobs:
   pip-audit:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: backend
-
     steps:
       - uses: pypa/gh-action-pip-audit@v1.0.0
         with:
-          inputs: deploy_requirements.txt
+          inputs: backend/deploy_requirements.txt
           summary: true
           # ignore-vulns: | # Ignore vulnerabilities as needed: https://github.com/pypa/gh-action-pip-audit#ignore-vulns
