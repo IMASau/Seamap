@@ -3,6 +3,7 @@ name: Audit requirements
 on:
   schedule:
     - cron:  '0 0 * * 0' # 0:00 every Sunday (UTC)
+  workflow_dispatch
 
 jobs:
   pip-audit:
