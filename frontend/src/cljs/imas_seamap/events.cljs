@@ -111,7 +111,12 @@
   "Takes a hash-code and merges it into the current application state."
   [{:keys [db]} [_ hash-code]]
   (let [parsed-state (-> (parse-state hash-code)
-                         (dissoc :display :story-maps))
+                         (dissoc :story-maps))
+        parsed-state (-> parsed-state
+                         (update :display dissoc :left-drawer) ; discard the left drawer open/closed state
+                         (cond->
+                           (not (get-in parsed-state [:display :left-drawer])) ; if the left drawer was closed, then discard the tab state
+                           (update :display dissoc :left-drawer-tab)))
         db           (merge-in db parsed-state)
         {:keys [active active-base zoom center]} (:map db)
 
