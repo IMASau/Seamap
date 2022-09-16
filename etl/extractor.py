@@ -25,7 +25,7 @@ def extract(source_name):
         resp = [line.decode('utf-8') for line in resp.readlines()]
         csv_reader = csv.reader(resp)
 
-        cursor.execute(f'DELETE FROM {config[source_name]["table"]}')
+        cursor.execute(f'TRUNCATE TABLE {config[source_name]["table"]}')
         columns = next(csv_reader)
         # convert column_name => [column_name] for column_name that can be keyword
         columns = list(map(lambda c: f'[{c.lower()}]', columns))
@@ -43,7 +43,6 @@ def extract(source_name):
 
         for idx, row in enumerate(csv_reader):
             geom_data = row[geom_column_index]
-            print(source_name, idx)
             if len(geom_data) == 0:
                 geom_data = None
             else:

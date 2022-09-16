@@ -12,6 +12,8 @@ BEGIN
 	SET NOCOUNT ON;
     BEGIN TRANSACTION
     BEGIN TRY
+        TRUNCATE TABLE EXTRACT_MARS
+
         -- Vars for cursor
         DECLARE @FID nvarchar(255)
         DECLARE @SURVEY_ID nvarchar(255)

@@ -6,11 +6,13 @@
 CREATE OR ALTER PROCEDURE [dbo].[IMPORT_GLOBALARCHIVE_DEPLOYMENT_POINTS]
 AS
 BEGIN
+    -- SET NOCOUNT ON added to prevent extra result sets from
+    -- interfering with SELECT statements.
+    SET NOCOUNT ON;
+
     BEGIN TRANSACTION
     BEGIN TRY
-        -- SET NOCOUNT ON added to prevent extra result sets from
-        -- interfering with SELECT statements.
-        SET NOCOUNT ON;
+        TRUNCATE TABLE EXTRACT_GLOBALARCHIVE_DEPLOYMENT_POINTS
 
         -- Vars for cursor
         DECLARE @FID nvarchar(255)
