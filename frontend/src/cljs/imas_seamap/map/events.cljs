@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [encode-state ids->layers first-where index-of append-query-params]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -241,20 +241,6 @@
 
 (defn process-layers [layers]
   (mapv process-layer layers))
-
-(defn init-layer-legend-status [layers legend-ids]
-  (let [legends (set legend-ids)]
-    (->> layers
-         (filter (comp legends :id))
-         set)))
-
-(defn init-layer-opacities [layers opacity-maps]
-  (->> layers
-       (reduce (fn [acc lyr]
-                 (if-let [o (get opacity-maps (:id lyr))]
-                   (conj acc [lyr o])
-                   acc))
-               {})))
 
 (defn update-grouped-base-layers [{{layers :base-layers groups :base-layer-groups} :map :as db}]
   (if (and (seq layers) (seq groups))

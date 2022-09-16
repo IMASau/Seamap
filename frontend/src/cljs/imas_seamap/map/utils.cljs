@@ -284,3 +284,17 @@
        (. -latlng)
        (js->clj :keywordize-keys true)
        (select-keys [:lat :lng]))))
+
+(defn init-layer-legend-status [layers legend-ids]
+  (let [legends (set legend-ids)]
+    (->> layers
+         (filter (comp legends :id))
+         set)))
+
+(defn init-layer-opacities [layers opacity-maps]
+  (->> layers
+       (reduce (fn [acc lyr]
+                 (if-let [o (get opacity-maps (:id lyr))]
+                   (conj acc [lyr o])
+                   acc))
+               {})))

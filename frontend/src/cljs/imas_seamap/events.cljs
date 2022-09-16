@@ -11,7 +11,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers]]
-            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance]]
+            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -115,7 +115,7 @@
         parsed-state (-> parsed-state
                          (update :display dissoc :left-drawer) ; discard the left drawer open/closed state
                          (cond->
-                           (not (get-in parsed-state [:display :left-drawer])) ; if the left drawer was closed, then discard the tab state
+                          (not (get-in parsed-state [:display :left-drawer])) ; if the left drawer was closed, then discard the tab state
                            (update :display dissoc :left-drawer-tab)))
         db           (merge-in db parsed-state)
         {:keys [active active-base zoom center]} (:map db)
@@ -126,9 +126,17 @@
         active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
-                          (assoc-in [:map :active-base-layer] active-base))]
-    {:db       db
-     :dispatch [:map/update-map-view {:zoom zoom :center center}]}))
+                          (assoc-in [:map :active-base-layer] active-base))
+
+        {:keys [legend-ids opacity-ids]} db
+        layers        (get-in db [:map :layers])
+        db            (-> db
+                          (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
+                          (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
+    {:db         db
+     :dispatch-n (conj
+                  (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))
+                  [:map/update-map-view {:zoom zoom :center center}])}))
 
 (defn re-boot [{:keys [db]} _]
   (let [db (merge-in db/default-db (ajax-loaded-info db))
