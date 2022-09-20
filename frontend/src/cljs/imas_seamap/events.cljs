@@ -698,4 +698,5 @@
 (defn maybe-autosave [{{:keys [autosave?] :as db} :db} _]
   (when autosave?
     {:cookie/set {:name  :cookie-state
-                  :value (encode-state db)}}))
+                  :value (encode-state db)}
+     :put-hash   ""}))
