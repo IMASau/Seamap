@@ -39,16 +39,6 @@ class BaseLayerViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.BaseLayerSerializer
 
 
-class GroupViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = models.LayerGroup.objects.all()
-    serializer_class = serializers.GroupSerializer
-
-
-class GroupPriorityViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = models.LayerGroupPriority.objects.all()
-    serializer_class = serializers.GroupPrioritySerializer
-
-
 class BaseLayerGroupViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.BaseLayerGroup.objects.all()
     serializer_class = serializers.BaseLayerGroupSerializer
@@ -57,3 +47,8 @@ class BaseLayerGroupViewset(viewsets.ReadOnlyModelViewSet):
 class CategoryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.Category.objects.all()
     serializer_class = serializers.CategorySerializer
+
+
+class KeyedLayerViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = models.KeyedLayer.objects.all()
+    serializer_class = serializers.KeyedLayerSerializer

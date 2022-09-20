@@ -10,8 +10,8 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map map-on-key]]
-            [imas-seamap.map.utils :as mutils :refer [applicable-layers habitat-layer? download-link]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers]]
+            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -25,14 +25,16 @@
 (defn boot-flow []
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:initialise-layers]}
+   [{:when :seen? :events :ui/show-loading
+     :dispatch-n [[:initialise-layers]
+                  [:sok/get-habitat-statistics]
+                  [:sok/get-bathymetry-statistics]
+                  [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
-                                  :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
-                                  :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
                                   :sok/update-amp-boundaries
@@ -49,14 +51,16 @@
   {:first-dispatch [:ui/show-loading]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:load-hash-state hash-code]}
-    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+    {:when :seen? :events :load-hash-state
+     :dispatch-n [[:initialise-layers]
+                  [:sok/get-habitat-statistics]
+                  [:sok/get-bathymetry-statistics]
+                  [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
-                                  :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
-                                  :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
                                   :sok/update-amp-boundaries
@@ -69,18 +73,20 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot-flow-save-state [save-code]
+(defn boot-flow-save-state [shortcode]
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state save-code]}
-    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state shortcode [:load-hash-state]]}
+    {:when :seen? :events :load-hash-state
+     :dispatch-n [[:initialise-layers]
+                  [:sok/get-habitat-statistics]
+                  [:sok/get-bathymetry-statistics]
+                  [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
-                                  :map/update-groups
                                   :map/update-organisations
                                   :map/update-classifications
-                                  :map/update-priorities
                                   :map/update-descriptors
                                   :map/update-categories
                                   :sok/update-amp-boundaries
@@ -93,54 +99,56 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot [{:keys [save-code hash-code]} _]
+(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} _]
   {:db         db/default-db
    :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
-                 (seq save-code) (boot-flow-save-state save-code) ; A shortform save-code that can be used to query for a hash-code
-                 (seq hash-code) (boot-flow-hash-state hash-code) ; A hash-code that can be decoded into th DB's initial state
-                 :else           (boot-flow))})                   ; No information, so we start with an empty DB
+                 (seq save-code)    (boot-flow-save-state save-code)    ; A shortform save-code that can be used to query for a hash-code
+                 (seq hash-code)    (boot-flow-hash-state hash-code)    ; A hash-code that can be decoded into th DB's initial state
+                 (seq cookie-state) (boot-flow-hash-state cookie-state) ; Same as hash-code, except that we use the one stored in the cookies
+                 :else              (boot-flow))})                      ; No information, so we start with an empty DB
 
-;;; Reset state.  Gets a bit messy because we can't just return
-;;; default-db without throwing away ajax-loaded layer info, so we
-;;; restore that manually first.
-(defn re-boot [{:keys [habitat-colours habitat-titles sorting] 
-                {:keys
-                 [layers base-layers
-                  base-layer-groups
-                  grouped-base-layers groups
-                  priorities organisations
-                  categories]
-                 :as _map-state} :map
-                {{{:keys [networks parks zones zones-iucn]} :amp
-                  {:keys [provincial-bioregions mesoscale-bioregions]} :imcra
-                  {:keys [realms provinces ecoregions]} :meow} :boundaries} :state-of-knowledge
-                :as _db} _]
-  (let [db (-> db/default-db
-               (update :map merge {:layers              layers
-                                   :base-layers         base-layers
-                                   :base-layer-groups   base-layer-groups
-                                   :grouped-base-layers grouped-base-layers
-                                   :active-base-layer   (first grouped-base-layers)
-                                   :groups              groups
-                                   :priorities          priorities
-                                   :organisations       organisations
-                                   :categories          categories})
-               (update-in
-                [:state-of-knowledge :boundaries]
-                #(-> %
-                     (update :amp merge   {:networks   networks
-                                           :parks      parks
-                                           :zones      zones
-                                           :zones-iucn zones-iucn})
-                     (update :imcra merge {:provincial-bioregions provincial-bioregions
-                                           :mesoscale-bioregions  mesoscale-bioregions})
-                     (update :meow merge  {:realms     realms
-                                           :provinces  provinces
-                                           :ecoregions ecoregions})))
-               (merge {:habitat-colours habitat-colours
-                       :habitat-titles  habitat-titles
-                       :sorting         sorting}))]
-    (assoc-in db [:map :active-layers] (vec (applicable-layers db :category :habitat)))))
+(defn merge-state
+  "Takes a hash-code and merges it into the current application state."
+  [{:keys [db]} [_ hash-code]]
+  (let [parsed-state (-> (parse-state hash-code)
+                         (dissoc :story-maps))
+        parsed-state (-> parsed-state
+                         (update :display dissoc :left-drawer) ; discard the left drawer open/closed state
+                         (cond->
+                          (not (get-in parsed-state [:display :left-drawer])) ; if the left drawer was closed, then discard the tab state
+                           (update :display dissoc :left-drawer-tab)))
+        db           (merge-in db parsed-state)
+        {:keys [active active-base zoom center]} (:map db)
+
+        active-layers (if active
+                        (vec (ids->layers active (get-in db [:map :layers])))
+                        (get-in db [:map :keyed-layers :startup] []))
+        active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
+        db            (-> db
+                          (assoc-in [:map :active-layers] active-layers)
+                          (assoc-in [:map :active-base-layer] active-base))
+
+        {:keys [legend-ids opacity-ids]} db
+        layers        (get-in db [:map :layers])
+        db            (-> db
+                          (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
+                          (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
+    {:db         db
+     :dispatch-n (conj
+                  (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))
+                  [:map/update-map-view {:zoom zoom :center center}])}))
+
+(defn re-boot [{:keys [db]} _]
+  (let [db (merge-in db/default-db (ajax-loaded-info db))
+        db (-> db
+               (assoc-in [:map :active-layers] (get-in db [:map :keyed-layers :startup] []))
+               (assoc-in [:map :active-base-layer] (first (get-in db [:map :grouped-base-layers])))
+               (assoc :initialised true))
+        {:keys [zoom center]} (:map db)]
+    {:db         db
+     :dispatch   [:map/update-map-view {:zoom zoom :center center}]
+     :cookie/set {:name  :cookie-state
+                  :value nil}}))
 
 (defn loading-screen [db [_ msg]]
   (assoc db
@@ -158,39 +166,40 @@
    :dispatch [:db-initialised]})
 
 (defn load-hash-state
-  [db [_ hash-code]]
-  (let [db (merge-in db (parse-state hash-code))
-        db (assoc-in db [:map :logic :type] :map.layer-logic/manual)]
-    db))
+  [{:keys [db]} [_ hash-code]]
+  (let [db (merge-in db (parse-state hash-code))]
+    {:db db
+     :dispatch [:map/update-map-view (assoc (:map db) :instant? true)]}))
 
 (defn get-save-state
-  [{:keys [db]} [_ save-code]]
+  "Uses a shortcode to retrieve a save-state. On success dispatches an event with
+   the retrieved save-state."
+  [{:keys [db]} [_ shortcode dispatch]]
   (let [save-state-url (get-in db [:config :save-state-url])]
     {:db db
      :http-xhrio
      [{:method          :get
-       :uri             (append-params-from-map save-state-url {:id save-code})
+       :uri             (append-params-from-map save-state-url {:id shortcode})
        :response-format (ajax/json-response-format {:keywords? true})
-       :on-success      [:load-save-state]
+       :on-success      [:get-save-state-success dispatch]
        :on-failure      [:ajax/default-err-handler]}]}))
 
-(defn load-save-state
-  [{:keys [db]} [_ save-state]]
-  (let [hash-code  (:hashstate (first save-state))]
-    {:db db
-     :dispatch [:load-hash-state hash-code]}))
+(defn get-save-state-success [_ [_ dispatch save-state]]
+  {:dispatch (conj dispatch (-> save-state first :hashstate))})
 
 (defn initialise-layers [{:keys [db]} _]
   (let [{:keys [layer-url
                 base-layer-url
                 base-layer-group-url
-                group-url organisation-url
-                classification-url priority-url
+                organisation-url
+                classification-url
                 descriptor-url
                 category-url
+                keyed-layers-url
                 amp-boundaries-url
                 imcra-boundaries-url
-                meow-boundaries-url]} (:config db)]
+                meow-boundaries-url
+                story-maps-url]} (:config db)]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -206,16 +215,6 @@
                    :uri             base-layer-group-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-base-layer-groups]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             group-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-groups]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             priority-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-priorities]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             descriptor-url
@@ -238,6 +237,11 @@
                    :on-success      [:map/update-categories]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
+                   :uri             keyed-layers-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-keyed-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
                    :uri             amp-boundaries-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:sok/update-amp-boundaries]
@@ -251,6 +255,11 @@
                    :uri             meow-boundaries-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:sok/update-meow-boundaries]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             story-maps-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:sm/update-featured-maps]
                    :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn help-layer-toggle [db _]
@@ -366,21 +375,35 @@
      :east  maxx
      :north maxy}))
 
-(defn transect-query [{:keys [db]} [_ geojson]]
+(defn- linestring->distance [linestring]
+  (:distance
+   (reduce
+    (fn [{:keys [prev-latlng] :as acc} curr-latlng]
+      (-> acc
+          (update :distance + (latlng-distance prev-latlng curr-latlng))
+          (assoc :prev-latlng curr-latlng)))
+    {:distance 0 :prev-latlng (first linestring)}
+    (rest linestring))))
+
+(defn transect-query [{{{:keys [active-layers hidden-layers]} :map :as db} :db} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
   ;; unlikely race conditions; do this before dispatching)
   (let [query-id (gensym)
+        linestring (geojson->linestring geojson)
         db (assoc db :transect {:query geojson
                                 :query-id query-id
-                                :show? true
+                                :distance (linestring->distance linestring)
                                 :habitat :loading
                                 :bathymetry :loading})
-        linestring (geojson->linestring geojson)]
-    {:db db
-     :put-hash (encode-state db)
-     :dispatch-n [[:transect.plot/show] ; A bit redundant since we set the :show key above
-                  [:transect.query/habitat    query-id linestring]
-                  [:transect.query/bathymetry query-id linestring]]}))
+        visible-layers (filter #(not (hidden-layers %)) active-layers)
+        habitat-layers (filter habitat-layer? visible-layers)]
+    (merge
+     {:db         db
+      :dispatch-n (cond-> [[:maybe-autosave]]
+                    (seq habitat-layers) ; only display transect plot if there's an active habitat layer
+                    (conj [:transect.plot/show]
+                          [:transect.query/habitat query-id linestring]
+                          [:transect.query/bathymetry query-id linestring]))})))
 
 (defn transect-maybe-query [{:keys [db]}]
   ;; When existing transect state is rehydrated it will have the
@@ -410,8 +433,9 @@
       {:db      (assoc-in db [:transect type] status-text)
        :message [status-text b/INTENT-DANGER]})))
 
-(defn transect-query-habitat [{:keys [db]} [_ query-id linestring]]
-  (let [habitat-layers (->> db :map :active-layers (filter habitat-layer?))
+(defn transect-query-habitat [{{{:keys [active-layers hidden-layers]} :map :as db} :db} [_ query-id linestring]]
+  (let [visible-layers (filter #(not (hidden-layers %)) active-layers)
+        habitat-layers (filter habitat-layer? visible-layers)
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it
         ;; must be at the front of the list:
@@ -437,8 +461,7 @@
 
 (defn transect-query-bathymetry [{:keys [db]} [_ query-id linestring]]
   (if-let [{:keys [server_url layer_name] :as _bathy-layer}
-           (first (applicable-layers db :category :bathy-transect
-                                     :server_type :ncwms))]
+           (first (get-in db [:map :keyed-layers :transect-bathy]))]
     {:db         db
      :http-xhrio {:method          :get
                   :uri             server_url
@@ -467,11 +490,11 @@
                 (vec (map-indexed (fn [i v] [(* i increment) (if (js/isNaN v) nil (- v))]) values))))
     db))
 
-(defn transect-drawing-start [db _]
-  (-> db
-      (assoc-in [:display :left-drawer] false)
-      (assoc-in [:map :controls :transect] true)
-      (assoc-in [:transect :query] nil)))
+(defn transect-drawing-start [{:keys [db]} _]
+  {:db       (-> db
+                 (assoc-in [:map :controls :transect] true)
+                 (assoc-in [:transect :query] nil))
+   :dispatch [:left-drawer/close]})
 
 (defn transect-drawing-finish [db _]
   (assoc-in db [:map :controls :transect] false))
@@ -479,6 +502,7 @@
 (defn transect-drawing-clear [db _]
   (update-in db [:transect] merge {:show?      false
                                    :query      nil
+                                   :distance   nil
                                    :habitat    nil
                                    :bathymetry nil}))
 
@@ -568,17 +592,20 @@
              {:intent b/INTENT-WARNING :icon "warning-sign"}]})
 
 (defn catalogue-select-tab [{:keys [db]} [_ tabid]]
-  {:db       (assoc-in db [:display :catalogue :tab] tabid)
-   :put-hash (encode-state db)})
+  (let [db (assoc-in db [:display :catalogue :tab] tabid)]
+    {:db       db
+     :dispatch [:maybe-autosave]}))
 
 (defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
-  (let [nodes (get-in db [:display :catalogue :expanded])]
-    {:db       (update-in db [:display :catalogue :expanded] (if (nodes nodeid) disj conj) nodeid)
-     :put-hash (encode-state db)}))
+  (let [nodes (get-in db [:display :catalogue :expanded])
+        db    (update-in db [:display :catalogue :expanded] (if (nodes nodeid) disj conj) nodeid)]
+    {:db       db
+     :dispatch [:maybe-autosave]}))
 
 (defn catalogue-add-node [{:keys [db]} [_ nodeid]]
-  {:db       (update-in db [:display :catalogue :expanded] conj nodeid)
-   :put-hash (encode-state db)})
+  (let [db (update-in db [:display :catalogue :expanded] conj nodeid)]
+   {:db       db
+    :dispatch [:maybe-autosave]}))
 
 (defn catalogue-add-nodes-to-layer
   "Opens nodes in catalogue along path to specified layer"
@@ -592,8 +619,7 @@
                                         (str "|" sorting-id))]
                         (conj node-ids node-id)))
                     [] categories)]
-    {:db       db
-     :dispatch-n (map #(vec [:ui.catalogue/add-node %]) node-ids)}))
+    {:dispatch-n (map #(vec [:ui.catalogue/add-node %]) node-ids)}))
 
 (defn sidebar-open [{:keys [db]} [_ tabid]]
   (let [{:keys [selected collapsed]} (get-in db [:display :sidebar])
@@ -601,8 +627,8 @@
                (assoc-in [:display :sidebar :selected] tabid)
                ;; Allow the left tab to close as well as open, if clicking same icon:
                (assoc-in [:display :sidebar :collapsed] (and (= tabid selected) (not collapsed))))]
-    {:db db
-     :put-hash (encode-state db)}))
+    {:db       db
+     :dispatch [:maybe-autosave]}))
 
 (defn sidebar-close [db _]
   (assoc-in db [:display :sidebar :collapsed] true))
@@ -627,20 +653,25 @@
         removed (into [] (concat (subvec data 0 src-idx) (subvec data (+ src-idx 1) (count data))))
         readded (into [] (concat (subvec removed 0 dst-idx) [element] (subvec removed dst-idx (count removed))))
         db (assoc-in db data-path readded)]
-    {:db db
-     :put-hash (encode-state db)}))
+    {:db       db
+     :dispatch [:maybe-autosave]}))
 
-(defn left-drawer-toggle [db _]
-  (update-in db [:display :left-drawer] not))
+(defn left-drawer-toggle [{:keys [db]} _]
+  {:db       (update-in db [:display :left-drawer] not)
+   :dispatch [:maybe-autosave]})
 
-(defn left-drawer-open [db _]
-  (assoc-in db [:display :left-drawer] true))
+(defn left-drawer-open [{:keys [db]} _]
+  {:db       (assoc-in db [:display :left-drawer] true)
+   :dispatch [:maybe-autosave]})
 
-(defn left-drawer-close [db _]
-  (assoc-in db [:display :left-drawer] false))
+(defn left-drawer-close [{:keys [db]} _]
+  {:db       (assoc-in db [:display :left-drawer] false)
+   :dispatch [:maybe-autosave]})
 
-(defn left-drawer-tab [db [_ tab]]
-  (assoc-in db [:display :left-drawer-tab] tab))
+(defn left-drawer-tab [{:keys [db]} [_ tab]]
+  (let [db (assoc-in db [:display :left-drawer-tab] tab)]
+    {:db       db
+     :dispatch [:maybe-autosave]}))
 
 (defn layers-search-omnibar-toggle [db _]
   (update-in db [:display :layers-search-omnibar] not))
@@ -650,3 +681,22 @@
 
 (defn layers-search-omnibar-close [db _]
   (assoc-in db [:display :layers-search-omnibar] false))
+
+(defn mouse-pos [db [_ mouse-pos]]
+  (assoc-in db [:display :mouse-pos] mouse-pos))
+
+(defn toggle-autosave [{:keys [db]} _]
+  (let [db        (update db :autosave? not)
+        autosave? (:autosave? db)]
+    (merge
+     {:db db}
+     (if autosave?
+       {:dispatch [:maybe-autosave]}
+       {:cookie/set {:name  :cookie-state
+                     :value nil}}))))
+
+(defn maybe-autosave [{{:keys [autosave?] :as db} :db} _]
+  (when autosave?
+    {:cookie/set {:name  :cookie-state
+                  :value (encode-state db)}
+     :put-hash   ""}))

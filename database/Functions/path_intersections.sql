@@ -63,9 +63,10 @@ BEGIN
 
   -- Finally, flatten into the results table:
   INSERT INTO @TransectSegments
-    SELECT ir.layer_name, ir.name, simplified.geom
+    SELECT layer.name AS layer_name, ir.name, simplified.geom
     FROM intermediate_results AS ir
-    CROSS APPLY simplify_geoms(ir.intersections) AS simplified;
+    CROSS APPLY simplify_geoms(ir.intersections) AS simplified
+    LEFT JOIN catalogue_layer AS layer ON layer.layer_name = ir.layer_name;
   RETURN;
 END;
 GO

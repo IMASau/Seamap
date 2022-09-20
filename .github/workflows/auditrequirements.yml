@@ -1,0 +1,20 @@
+name: Audit requirements
+
+on:
+  schedule:
+    - cron:  '0 0 * * 0' # 0:00 every Sunday (UTC)
+  workflow_dispatch:
+
+jobs:
+  pip-audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: pypa/gh-action-pip-audit@v1.0.0
+        with:
+          inputs: backend/deploy_requirements.txt
+          summary: true
+          # ignore-vulns: | # Ignore vulnerabilities as needed: https://github.com/pypa/gh-action-pip-audit#ignore-vulns

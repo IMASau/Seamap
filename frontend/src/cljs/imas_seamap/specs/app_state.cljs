@@ -8,6 +8,12 @@
 (s/def :map/center
   (s/coll-of number? :count 2 :kind vector?))
 
+(s/def :map.size/x number?)
+(s/def :map.size/y number?)
+(s/def :map/size
+  (s/keys :req-un [:map.size/x
+                   :map.size/y]))
+
 (s/def :map/zoom integer?)
 (s/def :map/zoom-cutover integer?)
 
@@ -22,6 +28,7 @@
 (s/def :map/categories (s/coll-of :map/category
                                   :kind vector?))
 
+(s/def :map.layer/id integer?)
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
 (s/def :map.layer/legend_url string?)
@@ -123,24 +130,6 @@
 
 (s/def :map/preview-layer :map/layer)
 
-
-(s/def :map.layer-group.priority/layer integer?)
-(s/def :map.layer-group.priority/group integer?)
-(s/def :map.layer-group.priority/priority integer?)
-(s/def :map.layer-group/priority (s/keys :req-un [:map.layer-group.priorty/layer
-                                                  :map.layer-group.priorty/group
-                                                  :map.layer-group.priorty/priority]))
-(s/def :map/priorities (s/coll-of :map.layer-group/priority))
-
-(s/def :map.layer.group/id integer?)
-(s/def :map.layer.group/name string?)
-(s/def :map.layer.group/detail_resolution (s/nilable boolean?))
-(s/def :map.layer/group (s/keys :req-un [:map.layer.group/id
-                                         :map.layer/bounding_box
-                                         :map.layer.group/name
-                                         :map.layer.group/detail_resolution]))
-(s/def :map/groups (s/coll-of :map.layer/group))
-
 (s/def :map.layer.organisation/name string?)
 (s/def :map.layer.organisation/logo (s/nilable string?))
 (s/def :map.layer/organisation (s/keys :req-un [:map.layer.organisation/name
@@ -166,17 +155,27 @@
 (s/def :map/controls (s/keys :req-un [:map.controls/transect
                                       :map.controls/download]))
 
-(s/def :map/priority-cutoff (s/and pos? integer?))
 
-(s/def :map.logic/type #{:map.layer-logic/automatic :map.layer-logic/manual})
-(s/def :map.logic/trigger #{:map.logic.trigger/automatic :map.logic.trigger/user})
-(s/def :map/logic (s/keys :req-un [:map.logic/type :map.logic/trigger]))
+(s/def :map/viewport-only? boolean?)
+
+(s/def :map/keyed-layers
+  (s/map-of keyword?
+            (s/or
+             :id    integer?
+             :layer :map/layer)))
+
+(s/def :map/legends
+  (s/map-of :map.layer/id
+            (s/or
+             :status #{:map.legend/loading :map.legend/unsupported-layer :map.legend/error}
+             :info   map?)))
 
 (s/def ::habitat-titles  (s/map-of string? (s/nilable string?)))
 (s/def ::habitat-colours (s/map-of string? string?))
 
 (s/def ::map
   (s/keys :req-un [:map/center
+                   :map/size
                    :map/zoom
                    :map/zoom-cutover
                    :map/controls
@@ -187,11 +186,9 @@
                    :map/active-layers
                    :map/hidden-layers
                    :map/preview-layer
-                   :map/groups
                    :map/organisations
-                   :map/priorities
-                   :map/priority-cutoff
-                   :map/logic]))
+                   :map/viewport-only?
+                   :map/keyed-layers]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
 (s/def :map.state/error-count (s/map-of :map/layer integer?))
@@ -216,12 +213,19 @@
 (s/def :geojson/properties map?)
 (s/def ::geojson (s/keys :req-un [:geojson/type :geojson/geometry :geojson/properties]))
 (s/def :transect/query (s/nilable ::geojson))
+(s/def :transect/distance (s/nilable float?))
 (s/def :transect/show? (s/nilable boolean?))
 (s/def :transect/habitat ::transect-results-format)
 (s/def :transect/bathymetry ::transect-results-format)
 (s/def :transect/mouse-percentage (s/nilable number?))
-(s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]
+(s/def ::transect (s/keys :req-un [:transect/query :transect/distance :transect/show? :transect/habitat :transect/bathymetry]
                           :opt-un [:transect/mouse-percentage]))
+
+(s/def :display.mouse-pos/x number?)
+(s/def :display.mouse-pos/y number?)
+(s/def :display/mouse-pos
+  (s/nilable (s/keys :req-un [:display.mouse-pos/x
+                              :display.mouse-pos/y])))
 
 ;;; catalogue
 (s/def :display.catalogue.group/tab string?)
@@ -371,9 +375,11 @@
 (s/def :state-of-knowledge.statistics.habitat/results (s/coll-of :state-of-knowledge.statistics.habitat/result
                                                            :kind vector?))
 (s/def :state-of-knowledge.statistics.habitat/loading? boolean?)
+(s/def :state-of-knowledge.statistics.habitat/show-layers? boolean?)
 (s/def :state-of-knowledge.statistics/habitat
   (s/keys :req-un [:state-of-knowledge.statistics.habitat/results
-                   :state-of-knowledge.statistics.habitat/loading?]))
+                   :state-of-knowledge.statistics.habitat/loading?
+                   :state-of-knowledge.statistics.habitat/show-layers?]))
 
 (s/def :state-of-knowledge.statistics.bathymetry.result/resolution (s/nilable string?))
 (s/def :state-of-knowledge.statistics.bathymetry.result/rank (s/nilable integer?))
@@ -389,9 +395,11 @@
 (s/def :state-of-knowledge.statistics.bathymetry/results (s/coll-of :state-of-knowledge.statistics.bathymetry/result
                                                               :kind vector?))
 (s/def :state-of-knowledge.statistics.bathymetry/loading? :state-of-knowledge.statistics.habitat/loading?)
+(s/def :state-of-knowledge.statistics.bathymetry/show-layers? :state-of-knowledge.statistics.habitat/show-layers?)
 (s/def :state-of-knowledge.statistics/bathymetry
   (s/keys :req-un [:state-of-knowledge.statistics.bathymetry/results
-                   :state-of-knowledge.statistics.bathymetry/loading?]))
+                   :state-of-knowledge.statistics.bathymetry/loading?
+                   :state-of-knowledge.statistics.bathymetry/show-layers?]))
 
 
 (s/def :state-of-knowledge.statistics.habitat-observations.global-archive/deployment_id integer?)
@@ -444,12 +452,14 @@
                     :state-of-knowledge.statistics.habitat-observations.squidle/total_annotations
                     :state-of-knowledge.statistics.habitat-observations.squidle/public_annotations])))
 (s/def :state-of-knowledge.statistics.habitat-observations/loading? boolean?)
+(s/def :state-of-knowledge.statistics.habitat-observations/show-layers? boolean?)
 
 (s/def :state-of-knowledge.statistics/habitat-observations
   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations/global-archive
                    :state-of-knowledge.statistics.habitat-observations/sediment
                    :state-of-knowledge.statistics.habitat-observations/squidle
-                   :state-of-knowledge.statistics.habitat-observations/loading?]))
+                   :state-of-knowledge.statistics.habitat-observations/loading?
+                   :state-of-knowledge.statistics.habitat-observations/show-layers?]))
 
 (s/def :state-of-knowledge/statistics
   (s/keys :req-un [:state-of-knowledge.statistics/habitat
@@ -464,8 +474,43 @@
                    :state-of-knowledge/open?
                    :state-of-knowledge/pill-open?]))
 
+
+;; story-maps
+(s/def :story-maps.story-map.map-link/subtitle string?)
+(s/def :story-maps.story-map.map-link/description string?)
+(s/def :story-maps.story-map.map-link/shortcode string?)
+(s/def :story-maps.story-map/map-link
+  (s/keys :req-un [:story-maps.story-map.map-link/subtitle
+                   :story-maps.story-map.map-link/description
+                   :story-maps.story-map.map-link/shortcode]))
+
+(s/def :story-maps.story-map/id integer?)
+(s/def :story-maps.story-map/title string?)
+(s/def :story-maps.story-map/content string?)
+(s/def :story-maps.story-map/image (s/nilable string?))
+(s/def :story-maps.story-map/map-links (s/coll-of :story-maps.story-map/map-link
+                                                  :kind vector?))
+(s/def :story-maps/story-map
+  (s/keys :req-un [:story-maps.story-map/id
+                   :story-maps.story-map/title
+                   :story-maps.story-map/content
+                   :story-maps.story-map/image
+                   :story-maps.story-map/map-links]))
+
+(s/def :story-maps/featured-maps (s/coll-of :story-maps/story-map
+                                            :kind vector?))
+(s/def :story-maps/featured-map (s/nilable :story-maps/story-map))
+(s/def :story-maps/open? boolean?)
+(s/def ::story-maps
+  (s/def :req-un [:story-maps/featured-maps
+                  :story-maps/featured-map
+                  :story-maps/open?]))
+
+
+;; display
 (s/def ::display
-  (s/keys :req-un [:display/catalogue
+  (s/keys :req-un [:display/mouse-pos
+                   :display/catalogue
                    :display/help-overlay
                    :display/welcome-overlay
                    :display/sidebar
@@ -488,6 +533,7 @@
   (s/keys :req-un [::config
                    ::display
                    ::state-of-knowledge
+                   ::story-maps
                    ::filters
                    ::region-stats
                    ::habitat-colours

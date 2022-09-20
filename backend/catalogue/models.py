@@ -4,7 +4,7 @@
 
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 from uuid import uuid4
 
 
@@ -64,24 +64,6 @@ class HabitatDescriptor(models.Model):
         return self.name
 
 
-# We have groups of layers, for the purposes of automatic layer
-# switching logic.  A group is a collection of overlapping layers, and
-# layers have a priority within that group that determines in what
-# order they're displayed, and (using a cutoff) which are displayed or
-# not in auto-mode.  A group is also either a detail resolution (most
-# of them; the local area layers), or not (probably only one; the
-# national group).
-
-
-@python_2_unicode_compatible
-class LayerGroup(models.Model):
-    name = models.CharField(max_length = 200)
-    detail_resolution = models.NullBooleanField(default=True)
-
-    def __str__(self):
-        return self.name
-
-
 @python_2_unicode_compatible
 class Layer(models.Model):
     name = models.CharField(max_length = 200)
@@ -104,6 +86,7 @@ class Layer(models.Model):
     info_format_type = models.IntegerField()
     keywords = models.CharField(max_length = 400, null=True, blank=True)
     style = models.CharField(max_length=200, null=True, blank=True)
+    layer_type = models.CharField(max_length=10)
 
     def __str__(self):
         return self.name
@@ -116,21 +99,10 @@ class BaseLayer(models.Model):
     attribution = models.CharField(max_length = 200)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
     layer_group = models.IntegerField(null=True)
+    layer_type = models.CharField(max_length=10)
 
     def __str__(self):
         return self.name
-
-
-@python_2_unicode_compatible
-class LayerGroupPriority(models.Model):
-    priority = models.IntegerField(default=1, validators=[MinValueValidator(1)])
-    group = models.ForeignKey(LayerGroup, related_name='layerpriorities', on_delete=models.PROTECT)
-    layer = models.ForeignKey(Layer, related_name='grouppriorities', on_delete=models.PROTECT)
-
-    def __str__(self):
-        return '{}:[{} / {}]'.format(self.priority,
-                                     str(self.layer),
-                                     str(self.group))
 
 
 @python_2_unicode_compatible
@@ -150,3 +122,11 @@ class SaveState(models.Model):
 
     def __str__(self):
         return self.id
+
+@python_2_unicode_compatible
+class KeyedLayer(models.Model):
+    keyword = models.CharField(max_length = 200)
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return self.keyword

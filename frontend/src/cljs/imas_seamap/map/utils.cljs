@@ -5,9 +5,9 @@
   (:require [cemerick.url :as url]
             [clojure.string :as string]
             [imas-seamap.db :refer [api-url-base]]
-            [imas-seamap.utils :refer [merge-in first-where]]
+            [imas-seamap.utils :refer [merge-in select-values]]
             ["proj4" :as proj4]
-            [clojure.string :as str]
+            [imas-seamap.interop.leaflet :as leaflet]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
@@ -84,74 +84,12 @@
       (some #{(:habitat-layer region-stats)} habitat-layers) (:habitat-layer region-stats))))
 
 (defn sort-layers
-  [layers categories]
-  (sort-by
-   (juxt #(get-in categories [(:category %) :display_name]) :category :data_classification :id)
-   #(< %1 %2) ; comparator so nil is always last (instead of first)
-   layers))
-
-(defn sort-layers-presentation
-  "Return layers in an order suitable for presentation (essentially,
-  bathymetry at the bottom, third-party on top, and habitat layers by
-  priority when in auto mode)"
-  [layers group-priorities logic-type]
-  (let [layer-priority (fn [id]
-                         (if (= logic-type :map.layer-logic/automatic)
-                           ;; If automatic, pick the highest priority present
-                           (reduce (fn [p {:keys [layer priority]}]
-                                     (if (= layer id) (min p priority) p))
-                                   99
-                                   group-priorities)
-                           ;; If in manual mode, just use a default priority
-                           1))]
-    ;; Schwarztian transform (map-sort-map):
-    (->> layers
-         (map (fn [{:keys [id] :as layer}]
-                [(layer-priority id) layer]))
-         (sort-by (comp vec (partial take 1)))
-         (map last))))
-
-(defn applicable-layers
-  [{{:keys [layers groups priorities priority-cutoff zoom zoom-cutover bounds logic]} :map :as _db}
-   & {:keys [category server_type]}]
-  ;; Generic utility to retrieve a list of relevant layers, filtered as necessary.
-  ;; figures out cut-off point, and restricts to those on the right side of it;
-  ;; filters to those groups intersecting the bbox;
-  ;; sorts by priority and grouping.
-  (let [logic-type         (:type logic)
-        match-category?    #(if category (= category (:category %)) true)
-        match-server?      #(if server_type (= server_type (:server_type %)) true)
-        detail-resolution? (< zoom-cutover zoom)
-        group-ids          (->> groups
-                                (filter (fn [{:keys [bounding_box detail_resolution]}]
-                                          ;; detail_resolution only applies to habitat layers:
-                                          (and (or (nil? detail_resolution)
-                                                   (= detail_resolution detail-resolution?))
-                                               (bbox-intersects? bounds bounding_box))))
-                                (map :id)
-                                set)
-        group-priorities   (filter #(and (or (= logic-type :map.layer-logic/manual)
-                                             (< (:priority %) priority-cutoff))
-                                         (group-ids (:group %)))
-                                   priorities)
-        layer-ids          (->> group-priorities (map :layer) (into #{}))
-        selected-layers    (filter #(and (layer-ids (:id %)) (match-category? %) (match-server? %)) layers)
-        viewport-layers (filter #(bbox-intersects? bounds (:bounding_box %)) selected-layers)]
-    (sort-layers-presentation viewport-layers priorities logic-type)))
-
-(defn all-priority-layers
-  "Return the list of priority layers: that is, every layer for which
-  its priority in *some* group is higher than the priority-cutoff.
-  This only applies to habitat and bathymetry layers; other categories
-  aren't handled via priorities and are always included."
-  [layers {{:keys [priorities priority-cutoff]} :map :as _db}]
-  (let [priority-layer-ids (->> priorities
-                                (filter #(< (:priority %) priority-cutoff))
-                                (map :layer)
-                                set)]
-    (filter #(or (not (#{:habitat :bathymetry} (:category %)))
-                 (priority-layer-ids (:id %)))
-            layers)))
+  [layers sorting-info]
+  (letfn [(get-sort [ordering layer] (get-in sorting-info [ordering (ordering layer) 0]))] ; gets the sort key of a value in an ordering in the sorting-info
+   (sort-by
+    (juxt #(get-sort :category %) #(get-sort :data_classification %) :sort_key)
+    #(< %1 %2) ; comparator so nil is always last (instead of first)
+    layers)))
 
 (def ^:private type->format-str {:map.layer.download/csv     "csv"
                                  :map.layer.download/shp     "shape-zip"
@@ -222,19 +160,22 @@
         str)))
 
 (def feature-info-none
-  {:info (str
-          "<div>"
-          "<h4>No info available</h4>"
-          "Layer summary not configured"
-          "</div>")})
+  {:style nil
+   :body
+   (str
+    "<div>"
+    "    <h4>No info available</h4>"
+    "    Layer summary not configured"
+    "</div>")})
 
 (defn feature-info-html
   [response]
   (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
-        body  (first (array-seq (.querySelectorAll parsed "body")))]
-    (if (.-firstElementChild body)
-      {:info (.-innerHTML body)}
-      {:status :feature-info/empty})))
+        body  (first (array-seq (.querySelectorAll parsed "body")))
+        style  (first (array-seq (.querySelectorAll parsed "style")))] ; only grabs the first style element
+    (when (.-firstElementChild body)
+      {:style (when style (.-innerHTML style))
+       :body (.-innerHTML body)})))
 
 (defn feature-info-json
   [response]
@@ -242,16 +183,118 @@
         id (get-in parsed ["features" 0 "id"])
         properties (map (fn [[label value]] {:label label :value value}) (get-in parsed ["features" 0 "properties"]))
         property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
-        property-rows (str/join "" (map (fn [property] (property-to-row property)) properties))]
-    (if (or id (not-empty properties))
-      {:info (str
-              "<div class=\"feature-info-json\">"
-              "<h4>" id "</h4>"
-              "<table>" property-rows "</table>"
-              "</div>")}
-      {:status :feature-info/empty})))
+        property-rows (string/join "" (map (fn [property] (property-to-row property)) properties))]
+    (when (or id (not-empty properties))
+      {:style
+       (str
+        ".feature-info-json {"
+        "    max-height: 257px;"
+        "    overflow-y: scroll;"
+        "}"
+
+        ".feature-info-json table {"
+        "    border-spacing: 0;"
+        "}"
+
+        ".feature-info-json tr:nth-child(odd) {"
+        "    background-color: rgb(235, 235, 235);"
+        "}"
+
+        ".feature-info-json td {"
+        "    padding: 3px 0px 3px 10px;"
+        "    vertical-align: top;"
+        "}")
+       :body
+       (str
+        "<div class=\"feature-info-json\">"
+        "    <h4>" id "</h4>"
+        "    <table>" property-rows "</table>"
+        "</div>")})))
 
 (defn sort-by-sort-key
   "Sorts a collection by its sort-key first and its id second."
   [coll]
   (sort-by (juxt #(or (:sort_key %) "zzzzzzzzzz") :id) coll))
+
+(defn normal-latitude
+  "Latitude can get pretty wacky if one loops around the entire globe a few times.
+   This puts the latitude within the normal latitude range."
+  [lat]
+  (-> lat
+   (+ 180)
+   (mod 360)
+   (- 180)))
+
+(defn normal-bounds
+  "Latitude can get pretty wacky if one loops around the entire globe a few times.
+   This puts the bounds within the normal latitude range."
+  [{:keys [west _south east _north] :as bounds}]
+  (let [east (normal-latitude east)
+        west (normal-latitude west)
+        east (if (< east west) (+ east 360) east)]
+    (assoc bounds :east east :west west)))
+
+(defn layer-visible? [bounds {:keys [bounding_box] :as _layer}]
+  (let [{:keys [west south east north]} (normal-bounds bounds)]
+    (or
+     (empty? bounds) ; if no bounds assume we can see the whole map
+     (not (or (> (:south bounding_box) north)
+              (< (:north bounding_box) south)
+              (> (:west  bounding_box) east)
+              (< (:east  bounding_box) west))))))
+
+(defn viewport-layers [{:keys [_west _south _east _north] :as bounds} layers]
+  (filter (partial layer-visible? bounds) layers))
+
+(defn latlng-distance [[lat1 lng1] [lat2 lng2]]
+  (.distanceTo (leaflet/latlng. lat1 lng1) (leaflet/latlng. lat2 lng2)))
+
+(defn map->bounds [{:keys [west south east north] :as _bounds}]
+  [[south west]
+   [north east]])
+
+(defn latlng->vec [ll]
+  (-> ll
+      js->clj
+      (select-values ["lat" "lng"])))
+
+(defn bounds->map [bounds]
+  {:north (. bounds getNorth)
+   :south (. bounds getSouth)
+   :east  (. bounds getEast)
+   :west  (. bounds getWest)})
+
+(defn leaflet-props [e]
+  (let [m (. e -target)]
+    {:zoom   (. m getZoom)
+     :size   (-> m (. getSize) (js->clj :keywordize-keys true) (select-keys [:x :y]))
+     :center (-> m (. getCenter) latlng->vec)
+     :bounds (-> m (. getBounds) bounds->map)}))
+
+(defn mouseevent->coords [e]
+  (merge
+   (-> e
+       ;; Note need to round; fractional offsets (eg as in wordpress
+       ;; navbar) cause fractional x/y which causes geoserver to
+       ;; return errors in GetFeatureInfo
+       (.. -containerPoint round)
+       (js->clj :keywordize-keys true)
+       (select-keys [:x :y]))
+   (-> e
+       (. -latlng)
+       (js->clj :keywordize-keys true)
+       (select-keys [:lat :lng]))))
+
+(defn init-layer-legend-status [layers legend-ids]
+  (let [legends (set legend-ids)]
+    (->> layers
+         (filter (comp legends :id))
+         set)))
+
+(defn init-layer-opacities [layers opacity-maps]
+  (->> layers
+       (reduce (fn [acc lyr]
+                 (if-let [o (get opacity-maps (:id lyr))]
+                   (conj acc [lyr o])
+                   acc))
+               {})))

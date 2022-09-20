@@ -4,7 +4,7 @@
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
             [imas-seamap.utils :refer [map-on-key]]
-            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer layer-search-keywords sort-layers]]
+            [imas-seamap.map.utils :refer [bbox-intersects? region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
@@ -44,15 +44,14 @@
            (> (/ error-count total-count)
               0.4)))))       ; Might be nice to make this configurable eventually
 
-(defn map-layers [{:keys [layer-state filters map] :as db} _]
-  (let [{:keys [layers active-layers hidden-layers bounds logic]} map
+(defn map-layers [{:keys [layer-state filters map sorting] :as _db} _]
+  (let [{:keys [layers active-layers hidden-layers bounds]} map
         categories      (map-on-key (:categories map) :name)
         filter-text     (:layers filters)
-        layers (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
-        layers          (if (= (:type logic) :map.layer-logic/automatic)
-                          (all-priority-layers layers db)
-                          layers)
-        filtered-layers (filter (partial match-layer filter-text categories) layers)]
+        layers          (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
+        viewport-layers (viewport-layers bounds layers)
+        filtered-layers (filter (partial match-layer filter-text categories) layers)
+        sorted-layers   (sort-layers filtered-layers sorting)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
@@ -60,7 +59,10 @@
      :active-layers   active-layers
      :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
-     :filtered-layers filtered-layers}))
+     :filtered-layers filtered-layers
+     :sorted-layers   sorted-layers
+     :viewport-layers viewport-layers
+     :main-national-layer (first (get-in map [:keyed-layers :main-national-layer]))}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
@@ -84,14 +86,6 @@
   ;; The selected habitat layer for region-stats, providing it is
   ;; active; default selection if there's a single habitat layer:
   {:habitat-layer (region-stats-habitat-layer db)})
-
-(defn map-layer-priorities [db _]
-  (get-in db [:map :priorities]))
-
-(defn map-layer-logic [db _]
-  (get-in db [:map :logic]
-          {:type    :map.layer-logic/automatic
-           :trigger :map.logic.trigger/automatic}))
 
 (defn map-layers-filter [db _]
   (get-in db [:filters :layers]))
@@ -158,3 +152,15 @@
   (if org-name
     (some #(and (= org-name (:name %)) %) organisations)
     organisations))
+
+(defn viewport-only? [db _]
+  (get-in db [:map :viewport-only?]))
+
+(defn layer-legend [db [_ {:keys [id] :as _layer}]]
+  (let [legend-info (get-in db [:map :legends id])
+        status      (cond
+                      (keyword? legend-info) legend-info
+                      legend-info            :map.legend/loaded
+                      :else                  :map.legend/none)]
+    {:status    status
+     :info      (when (= status :map.legend/loaded) legend-info)}))

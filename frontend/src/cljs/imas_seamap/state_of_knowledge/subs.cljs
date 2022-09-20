@@ -2,13 +2,13 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.state-of-knowledge.subs
-  (:require [imas-seamap.utils :refer [append-query-params-from-map]]
-            [imas-seamap.state-of-knowledge.utils :as utils :refer [boundary-filter-names]]))
+  (:require [imas-seamap.utils :refer [append-query-params]]
+            [imas-seamap.state-of-knowledge.utils :as utils :refer [boundary-filter-names cql-filter]]))
 
 (defn habitat-statistics [db _]
-  (let [{:keys [results loading?]} (get-in db [:state-of-knowledge :statistics :habitat])
+  (let [{:keys [results loading? show-layers?]} (get-in db [:state-of-knowledge :statistics :habitat])
         results (map #(assoc % :color (get-in db [:habitat-colours (:habitat %)])) results)]
-    {:results results :loading? loading?}))
+    {:results results :loading? loading? :show-layers? show-layers?}))
 
 (defn habitat-statistics-download-url [db _]
   (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
@@ -25,7 +25,7 @@
          [active-network active-park active-zone active-zone-iucn
           active-provincial-bioregion active-mesoscale-bioregion active-realm
           active-province active-ecoregion])]
-    (append-query-params-from-map
+    (append-query-params
      habitat-statistics-url
      {:boundary-type        active-boundary
       :network              active-network
@@ -40,9 +40,9 @@
       :format               "raw"})))
 
 (defn bathymetry-statistics [db _]
-  (let [{:keys [results loading?]} (get-in db [:state-of-knowledge :statistics :bathymetry])
+  (let [{:keys [results loading? show-layers?]} (get-in db [:state-of-knowledge :statistics :bathymetry])
         results (map #(assoc % :color (get-in db [:habitat-colours (:resolution %)])) results)]
-    {:results results :loading? loading?}))
+    {:results results :loading? loading? :show-layers? show-layers?}))
 
 (defn bathymetry-statistics-download-url [db _]
   (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])
@@ -59,7 +59,7 @@
          [active-network active-park active-zone active-zone-iucn
           active-provincial-bioregion active-mesoscale-bioregion active-realm
           active-province active-ecoregion])]
-    (append-query-params-from-map
+    (append-query-params
      bathymetry-statistics-url
      {:boundary-type        active-boundary
       :network              active-network
@@ -144,22 +144,7 @@
 
 (defn boundary-layer-filter-fn [db _]
   (let [{:keys [active-boundary-layer] :as boundaries} (get-in db [:state-of-knowledge :boundaries])
-        {:keys
-         [network park zone zone-iucn
-          provincial-bioregion mesoscale-bioregion
-          realm province ecoregion]} (boundary-filter-names boundaries)
-        filters (remove
-                 nil?
-                 [(when network (str "NETNAME='" network "'"))
-                  (when park (str "RESNAME='" park "'"))
-                  (when zone (str "ZONENAME='" zone "'"))
-                  (when zone-iucn (str "ZONEIUCN='" zone-iucn "'"))
-                  (when provincial-bioregion (str "PB_NAME='" provincial-bioregion "'"))
-                  (when mesoscale-bioregion (str "MESO_NAME='" mesoscale-bioregion "'"))
-                  (when realm (str "REALM='" realm "'"))
-                  (when province (str "PROVINCE='" province "'"))
-                  (when ecoregion (str "ECOREGION='" ecoregion "'"))])]
+        cql-filter (cql-filter boundaries)]
     (fn [layer]
-      (if (and (= layer active-boundary-layer) (seq filters))
-        {:cql_filter (apply str (interpose " AND " filters))}
-        nil))))
+      (when (and (= layer active-boundary-layer) cql-filter)
+        {:cql_filter cql-filter}))))

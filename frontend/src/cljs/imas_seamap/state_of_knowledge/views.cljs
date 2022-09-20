@@ -36,14 +36,16 @@
   (let [selected-tab (reagent/atom "breakdown")
         collapsed?   (reagent/atom false)]
     (fn []
-      (let [{:keys [loading? results]} @(re-frame/subscribe [:sok/habitat-statistics])
+      (let [{:keys [loading? results show-layers?]} @(re-frame/subscribe [:sok/habitat-statistics])
             download-url @(re-frame/subscribe [:sok/habitat-statistics-download-url])
             without-unmapped   (filter :habitat results)]
-        [components/drawer-group
-         {:heading     "Habitat Statistics"
-          :icon        "home"
-          :collapsed?  @collapsed?
-          :toggle-collapse #(swap! collapsed? not)}
+        [components/state-of-knowledge-drawer-group
+         {:heading         "Habitat Statistics"
+          :icon            "home"
+          :collapsed?      @collapsed?
+          :toggle-collapse #(swap! collapsed? not)
+          :show-layers?    show-layers?
+          :toggle-layers   #(re-frame/dispatch [:sok/habitat-toggle-show-layers])}
          (if loading?
            [b/spinner]
            [b/tabs
@@ -114,14 +116,16 @@
   (let [selected-tab (reagent/atom "breakdown")
         collapsed?   (reagent/atom false)]
     (fn []
-      (let [{:keys [loading? results]} @(re-frame/subscribe [:sok/bathymetry-statistics])
+      (let [{:keys [loading? results show-layers?]} @(re-frame/subscribe [:sok/bathymetry-statistics])
             download-url @(re-frame/subscribe [:sok/bathymetry-statistics-download-url])
             without-unmapped      (filter :resolution results)]
-        [components/drawer-group
+        [components/state-of-knowledge-drawer-group
          {:heading         "Bathymetry Statistics"
           :icon            "timeline-area-chart"
           :collapsed?      @collapsed?
-          :toggle-collapse #(swap! collapsed? not)}
+          :toggle-collapse #(swap! collapsed? not)
+          :show-layers?    show-layers?
+          :toggle-layers   #(re-frame/dispatch [:sok/bathymetry-toggle-show-layers])}
          (if loading?
            [b/spinner]
            [b/tabs
@@ -232,12 +236,14 @@
 (defn habitat-observations []
   (let [collapsed?   (reagent/atom false)]
     (fn []
-      (let [{:keys [squidle global-archive sediment loading?]} @(re-frame/subscribe [:sok/habitat-observations])]
-        [components/drawer-group
+      (let [{:keys [squidle global-archive sediment loading? show-layers?]} @(re-frame/subscribe [:sok/habitat-observations])]
+        [components/state-of-knowledge-drawer-group
          {:heading         "Habitat Observations"
           :icon            "media"
           :collapsed?      @collapsed?
-          :toggle-collapse #(swap! collapsed? not)}
+          :toggle-collapse #(swap! collapsed? not)
+          :show-layers?    show-layers?
+          :toggle-layers   #(re-frame/dispatch [:sok/habitat-observations-toggle-show-layers])}
          (if loading?
            [b/spinner]
            [:div
@@ -285,7 +291,9 @@
    {:title       "State of Knowledge"
     :position    "right"
     :size        "460px"
-    :isOpen      @(re-frame/subscribe [:sok/open?])
+    :isOpen      (and
+                  @(re-frame/subscribe [:sok/open?])
+                  (not @(re-frame/subscribe [:sm.featured-map/open?])))
     :onClose     #(re-frame/dispatch [:sok/close])
     :hasBackdrop false
     :className   "state-of-knowledge-drawer"}

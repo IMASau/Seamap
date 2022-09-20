@@ -40,18 +40,45 @@
 
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
-  [{map-state :map :as db}]
-  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer])
+  [{:keys [story-maps] map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
+  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :bounds])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
                        (update :active-base :id))
+        pruned-boundaries (select-keys*
+                           boundaries-state
+                           [[:active-boundary]
+                            [:active-boundary-layer]
+                            [:amp :active-network]
+                            [:amp :active-park]
+                            [:amp :active-zone]
+                            [:amp :active-zone-iucn]
+                            [:imcra :active-provincial-bioregion]
+                            [:imcra :active-mesoscale-bioregion]
+                            [:meow :active-realm]
+                            [:meow :active-province]
+                            [:meow :active-ecoregion]])
+        pruned-statistics (select-keys*
+                           statistics-state
+                           [[:habitat :show-layers?]
+                            [:bathymetry :show-layers?]
+                            [:habitat-observations :show-layers?]])
+        pruned-story-maps (-> (select-keys story-maps [:featured-map :open?])
+                              (update :featured-map :id))
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]
                                       [:display :catalogue]
+                                      [:display :left-drawer]
+                                      [:display :left-drawer-tab]
+                                      [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
-                                      [:transect :query]])
+                                      [:transect :query]
+                                      :autosave?])
                        (assoc :map pruned-map)
+                       (assoc-in [:state-of-knowledge :boundaries] pruned-boundaries)
+                       (assoc-in [:state-of-knowledge :statistics] pruned-statistics)
+                       (assoc :story-maps pruned-story-maps)
                        #_(update-in [:display :catalogue :expanded] #(into {} (filter second %))))
         legends    (->> db :layer-state :legend-shown (map :id))
         opacities  (->> db :layer-state :opacity (reduce (fn [acc [k v]] (if (= v 100) acc (conj acc [(:id k) v]))) {}))
@@ -68,14 +95,36 @@
   (select-keys* state
                 [[:display :sidebar :selected]
                  [:display :catalogue]
+                 [:display :left-drawer]
+                 [:display :left-drawer-tab]
+                 [:filters :layers]
+                 [:state-of-knowledge :boundaries :active-boundary]
+                 [:state-of-knowledge :boundaries :active-boundary-layer]
+                 [:state-of-knowledge :boundaries :amp :active-network]
+                 [:state-of-knowledge :boundaries :amp :active-park]
+                 [:state-of-knowledge :boundaries :amp :active-zone]
+                 [:state-of-knowledge :boundaries :amp :active-zone-iucn]
+                 [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion]
+                 [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion]
+                 [:state-of-knowledge :boundaries :meow :active-realm]
+                 [:state-of-knowledge :boundaries :meow :active-province]
+                 [:state-of-knowledge :boundaries :meow :active-ecoregion]
+                 [:state-of-knowledge :statistics :habitat :show-layers?]
+                 [:state-of-knowledge :statistics :bathymetry :show-layers?]
+                 [:state-of-knowledge :statistics :habitat-observations :show-layers?]
+                 [:story-maps :featured-map]
+                 [:story-maps :open?]
                  [:transect :show?]
                  [:transect :query]
                  [:map :active]
                  [:map :active-base]
                  [:map :center]
                  [:map :zoom]
+                 [:map :bounds]
+                 [:map :viewport-only?]
                  :legend-ids
-                 :opacity-ids]))
+                 :opacity-ids
+                 :autosave?]))
 
 (defn parse-state [hash-str]
   (try
@@ -150,7 +199,7 @@
   [url params]
   (reduce-kv (fn [acc key val] (str acc "?" (name key) "=" val)) url params))
 
-(defn append-query-params-from-map
+(defn append-query-params
   [url params]
   (let [params (map (fn [[key val]] (str (name key) "=" val)) params)
         params (apply str (interpose "&" params))]
@@ -177,3 +226,67 @@
   "Returns the first item in a collection that fulfills the predicate."
   [pred coll]
   (first (filter pred coll)))
+
+(defn create-shadow-dom-element [{:keys [style body]}]
+  (let [element       (js/document.createElement "div")
+        style-element (js/document.createElement "style")
+        body-element  (js/document.createElement "body")
+        shadow        (.attachShadow element (clj->js {:mode "closed"}))]
+
+    (set! (.-textContent style-element) style)
+    (set! (.-innerHTML body-element) body)
+
+    (.appendChild shadow style-element)
+    (.appendChild shadow body-element)
+
+    element))
+
+(defn with-params [url params]
+  (let [u (goog/Uri. url)]
+    (doseq [[k v] params]
+      (.setParameterValue u (name k) v))
+    (str u)))
+
+(defn index-of
+  "Returns a list of indexes that match the predicate within the collection."
+  [pred coll]
+  (->> coll
+       (map-indexed vector)
+       (filter #(pred (second %)))
+       (map first)))
+
+(defn ajax-loaded-info
+  "Returns db of all the info retrieved via ajax"
+  [db]
+  (select-keys*
+   db
+   [[:map :layers]
+    [:map :base-layers]
+    [:map :base-layer-groups]
+    [:map :grouped-base-layers]
+    [:map :organisations]
+    [:map :categories]
+    [:map :keyed-layers]
+    [:map :leaflet-map]
+    [:map :legends]
+    [:state-of-knowledge :boundaries :amp :networks]
+    [:state-of-knowledge :boundaries :amp :parks]
+    [:state-of-knowledge :boundaries :amp :zones]
+    [:state-of-knowledge :boundaries :amp :zones-iucn]
+    [:state-of-knowledge :boundaries :imcra :provincial-bioregions]
+    [:state-of-knowledge :boundaries :imcra :mesoscale-bioregions]
+    [:state-of-knowledge :boundaries :meow :realms]
+    [:state-of-knowledge :boundaries :meow :provinces]
+    [:state-of-knowledge :boundaries :meow :ecoregions]
+    [:story-maps :featured-maps]
+    [:habitat-colours]
+    [:habitat-titles]
+    [:sorting]]))
+
+(defn decode-html-entities
+  "Removes HTML entities from an HTML entity encoded string:
+   https://stackoverflow.com/a/34064434"
+  [input]
+  (-> (-> (js/DOMParser.)
+          (.parseFromString input "text/html"))
+      .-documentElement .-textContent))

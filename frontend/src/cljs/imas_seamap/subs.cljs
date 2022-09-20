@@ -41,12 +41,13 @@
     (scale-distance s1 s2 remainder-pct)))
 
 (defn feature-info [{:keys [feature] :as _db} _]
-  (if-let [{:keys [status info location had-insecure?]} feature]
-    {:has-info? true
+  (if-let [{:keys [status location had-insecure? responses show?]} feature]
+    {:has-info?     true
      :had-insecure? had-insecure?
-     :status status
-     :info-body info
-     :location ((juxt :lat :lng) location)}
+     :status        status
+     :responses     responses
+     :location      ((juxt :lat :lng) location)
+     :show?         show?}
     {:has-info? false}))
 
 (defn download-info [db _]
@@ -59,7 +60,8 @@
 (defn transect-info [{:keys [map transect] :as _db} _]
   (merge
    {:drawing? (boolean (get-in map [:controls :transect]))
-    :query (:query transect)}
+    :query (:query transect)
+    :distance (:distance transect)}
    (when-let [pctg (:mouse-percentage transect)]
      {:mouse-loc (point->latlng
                   (point-along-line (-> transect :query :geometry :coordinates)
@@ -138,3 +140,9 @@
 
 (defn layers-search-omnibar-open? [db _]
   (get-in db [:display :layers-search-omnibar]))
+
+(defn mouse-pos [db _]
+  (get-in db [:display :mouse-pos]))
+
+(defn autosave? [db _]
+  (:autosave? db))
