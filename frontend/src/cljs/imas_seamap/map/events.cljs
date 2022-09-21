@@ -81,7 +81,7 @@
        :SERVICE       "WMS"
        :VERSION       "1.1.1"}
       :response-format (ajax/text-response-format)
-      :on-success      [:map/got-featureinfo request-id point "text/html"]
+      :on-success      [:map/got-featureinfo request-id point "text/html" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
 (defmethod get-feature-info 2
@@ -113,7 +113,7 @@
        :SERVICE       "WMS"
        :VERSION       "1.1.1"}
       :response-format (ajax/json-response-format)
-      :on-success      [:map/got-featureinfo request-id point "application/json"]
+      :on-success      [:map/got-featureinfo request-id point "application/json" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
 (defmethod get-feature-info 4
@@ -124,12 +124,12 @@
     (.run query (fn [error feature-collection _response]
                   (if error
                     (re-frame/dispatch [:map/got-featureinfo-err request-id point nil])
-                    (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" (js->clj feature-collection)]))))
+                    (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" (js->clj feature-collection) layers]))))
     nil))
 
 (defmethod get-feature-info :default
-  [_ [_ _info-format-type _layers request-id _leaflet-props point]]
-  {:dispatch [:map/got-featureinfo request-id point nil nil]})
+  [_ [_ _info-format-type layers request-id _leaflet-props point]]
+  {:dispatch [:map/got-featureinfo request-id point nil nil layers]})
 
 (defn feature-info-dispatcher [{:keys [db]} [_ leaflet-props point]]
   (let [{:keys [hidden-layers active-layers]} (:map db)
@@ -160,7 +160,7 @@
       :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
      (if (and (seq requests) (not had-insecure?))
        {:dispatch-n requests}
-       {:dispatch   [:map/got-featureinfo request-id point nil nil]}))))
+       {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))
 
 (defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
   (let [{:keys [hidden-layers active-layers]} (:map db)
@@ -177,7 +177,7 @@
                                       :x        x
                                       :y        y}
                     :response-format (ajax/text-response-format)
-                    :on-success      [:map/got-featureinfo request-id point "text/html"]
+                    :on-success      [:map/got-featureinfo request-id point "text/html" []]
                     :on-failure      [:map/got-featureinfo-err request-id point]}
        :db         (assoc db :feature-query {:request-id        request-id
                                              :response-remain   1
@@ -224,12 +224,12 @@
     (when (seq responses)
       {:location point :had-insecure? had-insecure? :responses responses :show? true})))
 
-(defn got-feature-info [db [_ request-id point info-format response]]
+(defn got-feature-info [db [_ request-id point info-format response layers]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
     (let [db (-> db
                  (update-in [:feature-query :response-remain] dec)
-                 (update-in [:feature-query :responses] conj {:response response :info-format info-format}))]
+                 (update-in [:feature-query :responses] conj {:response response :info-format info-format :layers layers}))]
 
       (if-not (pos? (get-in db [:feature-query :response-remain]))
         (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
@@ -264,10 +264,11 @@
      :dispatch [:maybe-autosave]}))
 
 (defn process-layer [layer]
-  (-> layer
-      (update :category    (comp keyword string/lower-case))
-      (update :server_type (comp keyword string/lower-case))
-      (update :layer_type  (comp keyword string/lower-case))))
+  (let [layer (-> layer
+                  (update :category    (comp keyword string/lower-case))
+                  (update :server_type (comp keyword string/lower-case))
+                  (update :layer_type  (comp keyword string/lower-case)))]
+    (if (= (:layer_type layer) :feature) (assoc layer :info_format_type 4) layer)))
 
 (defn process-layers [layers]
   (mapv process-layer layers))
