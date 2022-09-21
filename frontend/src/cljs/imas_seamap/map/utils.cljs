@@ -192,11 +192,13 @@
        (str
         ".feature-info-json {"
         "    max-height: 257px;"
-        "    overflow-y: scroll;"
+        "    overflow-y: auto;"
+        "    width: 391px;"
         "}"
 
         ".feature-info-json table {"
         "    border-spacing: 0;"
+        "    width: 100%;"
         "}"
 
         ".feature-info-json tr:nth-child(odd) {"
@@ -206,6 +208,12 @@
         ".feature-info-json td {"
         "    padding: 3px 0px 3px 10px;"
         "    vertical-align: top;"
+        "}"
+
+        ".feature-info-json h4 {"
+        "    width: 100%;"
+        "    text-overflow: ellipsis;"
+        "    overflow-x: hidden;"
         "}")
        :body
        (str
