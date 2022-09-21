@@ -46,62 +46,86 @@
      :east  (+ lng (/ img-x-bounds 2))
      :west  (- lng (/ img-x-bounds 2))}))
 
-;; TODO: Remove, unused
-#_(defn bounds-for-point
-  "Uses current bounds and a map point coordinate to get the map bounds centered
-   on that point. Called from get-feature-info, where we have both the geographic
-   bounds and xy map coordinates."
-  [{:keys [lat lng]}
-   {:keys [north south east west]}]
-  (let [x-bounds (Math/abs (- west east))
-        y-bounds (Math/abs (- north south))]
-    {:north (+ lat (/ y-bounds 2))
-     :south (- lat (/ y-bounds 2))
-     :east  (+ lng (/ x-bounds 2))
-     :west  (- lng (/ x-bounds 2))}))
+(defmulti get-feature-info #(second %2))
 
-(defn get-feature-info-request
-  [request-id per-request img-size img-bounds point]
-  (let [layers->str   #(->> % (map layer-name) reverse (string/join ","))]
-   ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
-    (for [[[server-url info-format] active-layers] per-request
-          :let [layers   (layers->str active-layers)]]
-      (let [params {:REQUEST       "GetFeatureInfo"
-                    :LAYERS        layers
-                    :QUERY_LAYERS  layers
-                    :WIDTH         (:width img-size)
-                    :HEIGHT        (:height img-size)
-                    :BBOX          (->> img-bounds
-                                        (bounds->projected wgs84->epsg3112)
-                                        (bounds->str 3112))
-                    :FEATURE_COUNT 1000
-                    :STYLES        ""
-                    :X             50
-                    :Y             50
-                    :TRANSPARENT   true
-                    :CRS           "EPSG:3112"
-                    :SRS           "EPSG:3112"
-                    :FORMAT        "image/png"
-                    :INFO_FORMAT   info-format
-                    :SERVICE       "WMS"
-                    :VERSION       "1.1.1"}]
-        {:method          :get
-         :uri             server-url
-         :params          params
-         :response-format (ajax/text-response-format)
-         :on-success      [:map/got-featureinfo request-id point info-format]
-         :on-failure      [:map/got-featureinfo-err request-id point]}))))
+(def feature-info-image-size
+  {:width 101 :height 101})
 
-(defn get-feature-info [{:keys [db]} [_ {:keys [size bounds]} point]]
+(defmethod get-feature-info 1 [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+  (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
+                  (bounds->projected wgs84->epsg3112)
+                  (bounds->str 3112))
+        layer-names (->> layers (map layer-name) reverse (string/join ","))]
+    {:http-xhrio
+     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
+     {:method          :get
+      :uri             (-> layers first :server_url)
+      :params
+      {:REQUEST       "GetFeatureInfo"
+       :LAYERS        layer-names
+       :QUERY_LAYERS  layer-names
+       :WIDTH         (:width feature-info-image-size)
+       :HEIGHT        (:height feature-info-image-size)
+       :BBOX          bbox
+       :FEATURE_COUNT 1000
+       :STYLES        ""
+       :X             50
+       :Y             50
+       :TRANSPARENT   true
+       :CRS           "EPSG:3112"
+       :SRS           "EPSG:3112"
+       :FORMAT        "image/png"
+       :INFO_FORMAT   "text/html"
+       :SERVICE       "WMS"
+       :VERSION       "1.1.1"}
+      :response-format (ajax/text-response-format)
+      :on-success      [:map/got-featureinfo request-id point "text/html"]
+      :on-failure      [:map/got-featureinfo-err request-id point]}}))
+
+(defmethod get-feature-info 2 [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+  (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
+                  (bounds->projected wgs84->epsg3112)
+                  (bounds->str 3112))
+        layer-names (->> layers (map layer-name) reverse (string/join ","))]
+    {:http-xhrio
+     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
+     {:method          :get
+      :uri             (-> layers first :server_url)
+      :params
+      {:REQUEST       "GetFeatureInfo"
+       :LAYERS        layer-names
+       :QUERY_LAYERS  layer-names
+       :WIDTH         (:width feature-info-image-size)
+       :HEIGHT        (:height feature-info-image-size)
+       :BBOX          bbox
+       :FEATURE_COUNT 1000
+       :STYLES        ""
+       :X             50
+       :Y             50
+       :TRANSPARENT   true
+       :CRS           "EPSG:3112"
+       :SRS           "EPSG:3112"
+       :FORMAT        "image/png"
+       :INFO_FORMAT   "application/json"
+       :SERVICE       "WMS"
+       :VERSION       "1.1.1"}
+      :response-format (ajax/text-response-format)
+      :on-success      [:map/got-featureinfo request-id point "application/json"]
+      :on-failure      [:map/got-featureinfo-err request-id point]}}))
+
+(defmethod get-feature-info :default [_ [_ _info-format-type _layers request-id _leaflet-props point]]
+  {:dispatch [:map/got-featureinfo request-id point nil nil]})
+
+(defn feature-info-dispatcher [{:keys [db]} [_ leaflet-props point]]
   (let [{:keys [hidden-layers active-layers]} (:map db)
         visible-layers (remove #((set hidden-layers) %) active-layers)
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
-        per-request    (group-by (juxt :server_url :info-format) (filter :info-format secure-layers))
-        ;; Note, we don't use the entire viewport for the pixel bounds because of inaccuracies when zoomed out.
-        img-size       {:width 101 :height 101}
-        img-bounds     (bounds-for-zoom point size bounds img-size)
-        ;; Note, top layer, last in the list, must be first in our search string:
+        per-request    (group-by (juxt :server_url :info_format_type) secure-layers)
         request-id     (gensym)
+        requests       (reduce-kv
+                        (fn [acc [_ info-format-type] layers]
+                          (conj acc [:map/get-feature-info info-format-type layers request-id leaflet-props point]))
+                        [] per-request)
         had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
         db             (if had-insecure?
                          (assoc db :feature {:status :feature-info/none-queryable :location point :show? true}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
@@ -109,19 +133,19 @@
                           db
                           :feature-query
                           {:request-id        request-id
-                           :response-remain   (count per-request)
+                           :response-remain   (count requests)
                            :had-insecure?     had-insecure?
                            :responses         []}
                           :feature
                           {:status   :feature-info/waiting
                            :location point
-                           :show?    false}))]
+                           :show?    false}))] 
     (merge
      {:db db
       :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
-     (if (seq per-request)
-       {:http-xhrio (get-feature-info-request request-id per-request img-size img-bounds point)}
-       {:dispatch [:map/got-featureinfo request-id point nil nil]}))))
+     (if (and (seq requests) (not had-insecure?))
+       {:dispatch-n requests}
+       {:dispatch   [:map/got-featureinfo request-id point nil nil]}))))
 
 (defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
   (let [{:keys [hidden-layers active-layers]} (:map db)
@@ -171,7 +195,7 @@
        (not (get-in db [:map :controls :transect]))            ; we aren't drawing a transect;
        (not (get-in db [:map :controls :download :selecting])) ; we aren't selecting a region; and
        (seq visible-layers))                                   ; there are visible layers
-      (get-feature-info ctx event-v))))
+      (feature-info-dispatcher ctx event-v))))
 
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))
