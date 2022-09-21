@@ -164,16 +164,7 @@
   :info-format)
 
 (defmethod feature-info-response->display "text/html"
-  [{:keys [response _info-format]}]
-  (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
-        body  (first (array-seq (.querySelectorAll parsed "body")))
-        style  (first (array-seq (.querySelectorAll parsed "style")))] ; only grabs the first style element
-    (when (.-firstElementChild body)
-      {:style (when style (.-innerHTML style))
-       :body (.-innerHTML body)})))
-
-(defmethod feature-info-response->display "text/html"
-  [{:keys [response _info-format]}]
+  [{:keys [response _info-format _layers]}]
   (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
         body  (first (array-seq (.querySelectorAll parsed "body")))
         style  (first (array-seq (.querySelectorAll parsed "style")))] ; only grabs the first style element
@@ -182,12 +173,15 @@
        :body (.-innerHTML body)})))
 
 (defmethod feature-info-response->display "application/json"
-  [{:keys [response _info-format]}]
-  (let [id (get-in response ["features" 0 "id"])
-        properties (map (fn [[label value]] {:label label :value value}) (get-in response ["features" 0 "properties"]))
+  [{:keys [response _info-format layers]}]
+  (let [properties      (map (fn [[label value]] {:label label :value value}) (get-in response ["features" 0 "properties"]))
         property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
-        property-rows (string/join "" (map (fn [property] (property-to-row property)) properties))]
-    (when (or id (not-empty properties))
+        property-rows   (string/join "" (map (fn [property] (property-to-row property)) properties))
+        title           (->> layers
+                             (map :name)
+                             (interpose ", ")
+                             (apply str))]
+    (when (not-empty properties)
       {:style
        (str
         ".feature-info-json {"
@@ -218,12 +212,12 @@
        :body
        (str
         "<div class=\"feature-info-json\">"
-        "    <h4>" id "</h4>"
+        "    <h4>" title "</h4>"
         "    <table>" property-rows "</table>"
         "</div>")})))
 
 (defmethod feature-info-response->display :default
-  [{:keys [_info-format _response]}]
+  [{:keys [_info-format _response _layers]}]
   {:style nil
    :body
    (str
