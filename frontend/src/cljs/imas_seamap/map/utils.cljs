@@ -179,9 +179,9 @@
 
 (defn feature-info-json
   [response]
-  (let [parsed (js->clj (.parse js/JSON response))
-        id (get-in parsed ["features" 0 "id"])
-        properties (map (fn [[label value]] {:label label :value value}) (get-in parsed ["features" 0 "properties"]))
+  (js/console.log response)
+  (let [id (get-in response [:features 0 :id])
+        properties (map (fn [[label value]] {:label label :value value}) (get-in response [:features 0 :properties]))
         property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
         property-rows (string/join "" (map (fn [property] (property-to-row property)) properties))]
     (when (or id (not-empty properties))

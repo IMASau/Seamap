@@ -109,7 +109,7 @@
        :INFO_FORMAT   "application/json"
        :SERVICE       "WMS"
        :VERSION       "1.1.1"}
-      :response-format (ajax/text-response-format)
+      :response-format (ajax/json-response-format {:keywords? true})
       :on-success      [:map/got-featureinfo request-id point "application/json"]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
@@ -257,11 +257,7 @@
   (-> layer
       (update :category    (comp keyword string/lower-case))
       (update :server_type (comp keyword string/lower-case))
-      (update :layer_type  (comp keyword string/lower-case))
-      (assoc  :info-format (case (:info_format_type layer)
-                             1 "text/html"
-                             2 "application/json"
-                             nil))))
+      (update :layer_type  (comp keyword string/lower-case))))
 
 (defn process-layers [layers]
   (mapv process-layer layers))
