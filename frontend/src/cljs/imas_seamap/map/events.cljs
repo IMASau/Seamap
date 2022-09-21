@@ -264,11 +264,10 @@
      :dispatch [:maybe-autosave]}))
 
 (defn process-layer [layer]
-  (let [layer (-> layer
-                  (update :category    (comp keyword string/lower-case))
-                  (update :server_type (comp keyword string/lower-case))
-                  (update :layer_type  (comp keyword string/lower-case)))]
-    (if (= (:layer_type layer) :feature) (assoc layer :info_format_type 4) layer)))
+  (-> layer
+      (update :category    (comp keyword string/lower-case))
+      (update :server_type (comp keyword string/lower-case))
+      (update :layer_type  (comp keyword string/lower-case))))
 
 (defn process-layers [layers]
   (mapv process-layer layers))
