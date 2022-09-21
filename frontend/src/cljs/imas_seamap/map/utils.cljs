@@ -159,17 +159,12 @@
                        :layers      (or detail_layer layer_name)})
         str)))
 
-(def feature-info-none
-  {:style nil
-   :body
-   (str
-    "<div>"
-    "    <h4>No info available</h4>"
-    "    Layer summary not configured"
-    "</div>")})
+(defmulti feature-info-response->display
+  "Converts a response and info format into readable information for the feature info popup"
+  :info-format)
 
-(defn feature-info-html
-  [response]
+(defmethod feature-info-response->display "text/html"
+  [{:keys [response _info-format]}]
   (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
         body  (first (array-seq (.querySelectorAll parsed "body")))
         style  (first (array-seq (.querySelectorAll parsed "style")))] ; only grabs the first style element
@@ -177,9 +172,17 @@
       {:style (when style (.-innerHTML style))
        :body (.-innerHTML body)})))
 
-(defn feature-info-json
-  [response]
-  (js/console.log response)
+(defmethod feature-info-response->display "text/html"
+  [{:keys [response _info-format]}]
+  (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
+        body  (first (array-seq (.querySelectorAll parsed "body")))
+        style  (first (array-seq (.querySelectorAll parsed "style")))] ; only grabs the first style element
+    (when (.-firstElementChild body)
+      {:style (when style (.-innerHTML style))
+       :body (.-innerHTML body)})))
+
+(defmethod feature-info-response->display "application/json"
+  [{:keys [response _info-format]}]
   (let [id (get-in response [:features 0 :id])
         properties (map (fn [[label value]] {:label label :value value}) (get-in response [:features 0 :properties]))
         property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
@@ -210,6 +213,16 @@
         "    <h4>" id "</h4>"
         "    <table>" property-rows "</table>"
         "</div>")})))
+
+(defmethod feature-info-response->display :default
+  [{:keys [_info-format _response]}]
+  {:style nil
+   :body
+   (str
+    "<div>"
+    "    <h4>No info available</h4>"
+    "    Layer summary not configured"
+    "</div>")})
 
 (defn sort-by-sort-key
   "Sorts a collection by its sort-key first and its id second."

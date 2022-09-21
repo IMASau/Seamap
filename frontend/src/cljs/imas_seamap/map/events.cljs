@@ -5,8 +5,8 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [encode-state ids->layers first-where index-of append-query-params]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-html feature-info-json feature-info-none bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities]]
+            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -51,7 +51,8 @@
 (def feature-info-image-size
   {:width 101 :height 101})
 
-(defmethod get-feature-info 1 [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+(defmethod get-feature-info 1
+  [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
@@ -82,7 +83,8 @@
       :on-success      [:map/got-featureinfo request-id point "text/html"]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
-(defmethod get-feature-info 2 [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+(defmethod get-feature-info 2
+  [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
@@ -113,7 +115,8 @@
       :on-success      [:map/got-featureinfo request-id point "application/json"]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
-(defmethod get-feature-info :default [_ [_ _info-format-type _layers request-id _leaflet-props point]]
+(defmethod get-feature-info :default
+  [_ [_ _info-format-type _layers request-id _leaflet-props point]]
   {:dispatch [:map/got-featureinfo request-id point nil nil]})
 
 (defn feature-info-dispatcher [{:keys [db]} [_ leaflet-props point]]
@@ -201,18 +204,11 @@
   (update-in db [:map :controls :ignore-click] not))
 
 (defn responses-feature-info [db point]
-  (letfn [(response-to-info [response] ; Converts a response and info format into readable information for the feature info popup
-            (when-let [{:keys [response info-format]} response] ; If we have a response then process the response into readable information
-              (case info-format
-                "text/html"        (feature-info-html response)
-                "application/json" (feature-info-json response)
-                feature-info-none)))]
-    
-    (let [responses     (get-in db [:feature-query :responses])
-          responses     (vec (remove nil? (map response-to-info responses)))
-          had-insecure? (get-in db [:feature-query :had-insecure?])]
-      (when (seq responses)
-       {:location point :had-insecure? had-insecure? :responses responses :show? true}))))
+  (let [responses     (get-in db [:feature-query :responses])
+        responses     (mapv feature-info-response->display responses)
+        had-insecure? (get-in db [:feature-query :had-insecure?])]
+    (when (seq responses)
+      {:location point :had-insecure? had-insecure? :responses responses :show? true})))
 
 (defn got-feature-info [db [_ request-id point info-format response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
