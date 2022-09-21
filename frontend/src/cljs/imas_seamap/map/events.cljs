@@ -124,7 +124,7 @@
     (.run query (fn [error feature-collection _response]
                   (if error
                     (re-frame/dispatch [:map/got-featureinfo-err request-id point nil])
-                    (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" (js->clj feature-collection) layers]))))
+                    (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers (js->clj feature-collection)]))))
     nil))
 
 (defmethod get-feature-info :default
@@ -224,7 +224,7 @@
     (when (seq responses)
       {:location point :had-insecure? had-insecure? :responses responses :show? true})))
 
-(defn got-feature-info [db [_ request-id point info-format response layers]]
+(defn got-feature-info [db [_ request-id point info-format layers response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
     (let [db (-> db
