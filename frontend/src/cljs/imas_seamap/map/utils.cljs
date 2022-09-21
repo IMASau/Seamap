@@ -183,8 +183,8 @@
 
 (defmethod feature-info-response->display "application/json"
   [{:keys [response _info-format]}]
-  (let [id (get-in response [:features 0 :id])
-        properties (map (fn [[label value]] {:label label :value value}) (get-in response [:features 0 :properties]))
+  (let [id (get-in response ["features" 0 "id"])
+        properties (map (fn [[label value]] {:label label :value value}) (get-in response ["features" 0 "properties"]))
         property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
         property-rows (string/join "" (map (fn [property] (property-to-row property)) properties))]
     (when (or id (not-empty properties))

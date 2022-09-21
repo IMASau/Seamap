@@ -10,6 +10,7 @@
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
+            [imas-seamap.interop.leaflet :as leaflet]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
@@ -111,9 +112,20 @@
        :INFO_FORMAT   "application/json"
        :SERVICE       "WMS"
        :VERSION       "1.1.1"}
-      :response-format (ajax/json-response-format {:keywords? true})
+      :response-format (ajax/json-response-format)
       :on-success      [:map/got-featureinfo request-id point "application/json"]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
+
+(defmethod get-feature-info 4
+  [_ [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point}]]
+  (let [query         (leaflet/esri-query {:url (-> layers first :server_url)})
+        leaflet-point (leaflet/latlng. lat lng)]
+    (.intersects query leaflet-point)
+    (.run query (fn [error feature-collection _response]
+                  (if error
+                    (re-frame/dispatch [:map/got-featureinfo-err request-id point nil])
+                    (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" (js->clj feature-collection)]))))
+    nil))
 
 (defmethod get-feature-info :default
   [_ [_ _info-format-type _layers request-id _leaflet-props point]]
@@ -204,8 +216,10 @@
   (update-in db [:map :controls :ignore-click] not))
 
 (defn responses-feature-info [db point]
-  (let [responses     (get-in db [:feature-query :responses])
-        responses     (mapv feature-info-response->display responses)
+  (let [responses     (->> (get-in db [:feature-query :responses])
+                           (map feature-info-response->display)
+                           (remove nil?)
+                           vec)
         had-insecure? (get-in db [:feature-query :had-insecure?])]
     (when (seq responses)
       {:location point :had-insecure? had-insecure? :responses responses :show? true})))
