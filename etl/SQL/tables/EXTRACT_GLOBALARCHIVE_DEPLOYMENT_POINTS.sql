@@ -1,0 +1,21 @@
+CREATE TABLE EXTRACT_GLOBALARCHIVE_DEPLOYMENT_POINTS (
+	FID nvarchar(255) NOT NULL PRIMARY KEY,
+    campaign_id nvarchar(255) NULL,
+    deployment_id nvarchar(255) NULL,
+    deployment_time nvarchar(255) NULL,
+    description nvarchar(255) NULL,
+    [depth] nvarchar(255) NULL,
+    site nvarchar(255) NULL,
+    status nvarchar(255) NULL,
+    successful_count nvarchar(255) NULL,
+    successful_length nvarchar(255) NULL,
+    coordinates nvarchar(255) NULL,
+    observer nvarchar(255) NULL,
+    location nvarchar(255) NULL,
+    campaign_name nvarchar(255) NULL,
+    campaign_link nvarchar(255) NULL,
+    project_name nvarchar(255) NULL,
+    method_name nvarchar(255) NULL,
+    colour nvarchar(255) NULL,
+	geom geometry NULL
+);
