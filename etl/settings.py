@@ -1,14 +1,15 @@
 import configparser
-import logging
 import logging.handlers
+import os
 
 import pyodbc
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+dir_path = os.path.dirname(os.path.realpath(__file__))
+config.read(os.path.join(dir_path, 'config.ini'))
 
 # set up logging
-log_handler = logging.handlers.WatchedFileHandler('etl.log')
+log_handler = logging.handlers.WatchedFileHandler(os.path.join(dir_path, 'etl.log'))
 formatter = logging.Formatter(
     '%(asctime)s program_name [%(process)d]: %(message)s',
     '%b %d %H:%M:%S')
