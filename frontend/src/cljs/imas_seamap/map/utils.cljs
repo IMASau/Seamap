@@ -159,17 +159,12 @@
                        :layers      (or detail_layer layer_name)})
         str)))
 
-(def feature-info-none
-  {:style nil
-   :body
-   (str
-    "<div>"
-    "    <h4>No info available</h4>"
-    "    Layer summary not configured"
-    "</div>")})
+(defmulti feature-info-response->display
+  "Converts a response and info format into readable information for the feature info popup"
+  :info-format)
 
-(defn feature-info-html
-  [response]
+(defmethod feature-info-response->display "text/html"
+  [{:keys [response _info-format _layers]}]
   (let [parsed (.parseFromString (js/DOMParser.) response "text/html")
         body  (first (array-seq (.querySelectorAll parsed "body")))
         style  (first (array-seq (.querySelectorAll parsed "style")))] ; only grabs the first style element
@@ -177,23 +172,27 @@
       {:style (when style (.-innerHTML style))
        :body (.-innerHTML body)})))
 
-(defn feature-info-json
-  [response]
-  (let [parsed (js->clj (.parse js/JSON response))
-        id (get-in parsed ["features" 0 "id"])
-        properties (map (fn [[label value]] {:label label :value value}) (get-in parsed ["features" 0 "properties"]))
+(defmethod feature-info-response->display "application/json"
+  [{:keys [response _info-format layers]}]
+  (let [properties      (map (fn [[label value]] {:label label :value value}) (get-in response ["features" 0 "properties"]))
         property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
-        property-rows (string/join "" (map (fn [property] (property-to-row property)) properties))]
-    (when (or id (not-empty properties))
+        property-rows   (string/join "" (map (fn [property] (property-to-row property)) properties))
+        title           (->> layers
+                             (map :name)
+                             (interpose ", ")
+                             (apply str))]
+    (when (not-empty properties)
       {:style
        (str
         ".feature-info-json {"
         "    max-height: 257px;"
-        "    overflow-y: scroll;"
+        "    overflow-y: auto;"
+        "    width: 391px;"
         "}"
 
         ".feature-info-json table {"
         "    border-spacing: 0;"
+        "    width: 100%;"
         "}"
 
         ".feature-info-json tr:nth-child(odd) {"
@@ -203,13 +202,29 @@
         ".feature-info-json td {"
         "    padding: 3px 0px 3px 10px;"
         "    vertical-align: top;"
+        "}"
+
+        ".feature-info-json h4 {"
+        "    width: 100%;"
+        "    text-overflow: ellipsis;"
+        "    overflow-x: hidden;"
         "}")
        :body
        (str
         "<div class=\"feature-info-json\">"
-        "    <h4>" id "</h4>"
+        "    <h4>" title "</h4>"
         "    <table>" property-rows "</table>"
         "</div>")})))
+
+(defmethod feature-info-response->display :default
+  [{:keys [_info-format _response _layers]}]
+  {:style nil
+   :body
+   (str
+    "<div>"
+    "    <h4>No info available</h4>"
+    "    Layer summary not configured"
+    "</div>")})
 
 (defn sort-by-sort-key
   "Sorts a collection by its sort-key first and its id second."

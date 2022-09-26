@@ -7,6 +7,7 @@
             ["react-leaflet" :as ReactLeaflet]
             ["@react-leaflet/core" :as ReactLeafletCore]
             ["react-leaflet-custom-control" :as ReactLeafletControl]
+            ["esri-leaflet" :as esri]
             ["leaflet-draw"]
             ["leaflet-easyprint"]
             ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
@@ -34,6 +35,7 @@
 (def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.coordinates (.-control L) %))))
 (def geojson-feature     L/geoJson)
 (def latlng              L/LatLng)
+(def esri-query          #(.query esri (clj->js %)))
 
 ;;; Multiple basemaps:
 (def layers-control         (r/adapt-react-class ReactLeaflet/LayersControl))
