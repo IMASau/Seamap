@@ -136,7 +136,8 @@
     {:db         db
      :dispatch-n (conj
                   (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))
-                  [:map/update-map-view {:zoom zoom :center center}])}))
+                  [:map/update-map-view {:zoom zoom :center center}]
+                  [:map/popup-closed])}))
 
 (defn re-boot [{:keys [db]} _]
   (let [db (merge-in db/default-db (ajax-loaded-info db))
