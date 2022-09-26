@@ -246,8 +246,9 @@
         (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
         db))))  
 
-(defn destroy-popup [db _]
-  (assoc db :feature nil))
+(defn destroy-popup [{:keys [db]} _]
+  {:db       (assoc db :feature nil)
+   :put-hash ""})
 
 (defn map-set-layer-filter [{:keys [db]} [_ filter-text]]
   (let [db (assoc-in db [:filters :layers] filter-text)]

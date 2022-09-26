@@ -179,7 +179,7 @@
     :map/update-leaflet-map               mevents/update-leaflet-map
     :map/update-map-view                  mevents/update-map-view
     :map/view-updated                     [mevents/map-view-updated]
-    :map/popup-closed                     mevents/destroy-popup
+    :map/popup-closed                     [mevents/destroy-popup]
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :map/toggle-viewport-only             [mevents/toggle-viewport-only]
     :map/pan-to-popup                     [mevents/pan-to-popup]
