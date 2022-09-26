@@ -1,7 +1,5 @@
 import csv
 import re
-import sys
-import traceback
 import urllib.request
 
 import pyodbc
@@ -9,12 +7,12 @@ from pyproj import Transformer
 
 from settings import config, cnxn
 
-transformer = Transformer.from_crs("epsg:4326", "epsg:3112")
+transformer = Transformer.from_crs("epsg:4326", "epsg:3112", always_xy=True)
 
 
 def convert_geometry(src):
-    coords = re.findall(r'\d+(?:\.\d*)?', src)
-    y_out, x_out = transformer.transform(float(coords[1]), float(coords[0]))
+    coords = re.findall(r'-?\d+(?:\.-?\d*)?', src)
+    x_out, y_out = transformer.transform(float(coords[0]), float(coords[1]))
     return f"POINT({x_out} {y_out})"
 
 

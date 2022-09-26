@@ -1,7 +1,7 @@
 create table EXTRACT_MARS (
 	FID nvarchar(255) NOT NULL PRIMARY KEY,
 	SURVEY_ID nvarchar(255) NULL,
-	SURVEY_NAME nvarchar(255) NULL,
+	SURVEY_NAME nvarchar(500) NULL,
 	BASE_DEPTH_M nvarchar(255) NULL,
 	SAMPLE_LOCATION nvarchar(255) NULL,
 	ENO nvarchar(255) NULL,
