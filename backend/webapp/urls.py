@@ -36,10 +36,6 @@ urlpatterns = [
     re_path(r'^api/habitat/habitatobservations', habitat_observations),
     re_path(r'^api/savestates', SaveStateView.as_view()),
     re_path(r'^api/', include(router.urls)),
+    re_path(r'^admin/', admin.site.urls),
+    re_path(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-if settings.DEBUG:
-    urlpatterns += [
-        re_path(r'^admin/', admin.site.urls),
-        re_path(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
-    ]
