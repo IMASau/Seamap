@@ -108,4 +108,37 @@
                      :bathymetry-statistics-url (str api-url-base "habitat/bathymetrystatistics")
                      :habitat-observations-url (str api-url-base "habitat/habitatobservations")
                      :layer-previews-url    (str media-url-base "layer_previews/")
-                     :story-maps-url        (str wordpress-url-base "wp-json/wp/v2/story_map?acf_format=standard")}})
+                     :story-maps-url        (str wordpress-url-base "wp-json/wp/v2/story_map?acf_format=standard")
+                     :url-paths {:layer                 "layers/"
+                                 :base-layer            "baselayers/"
+                                 :base-layer-group      "baselayergroups/"
+                                 :organisation          "organisations/"
+                                 :classification        "classifications/"
+                                 :region-stats          "habitat/regions/"
+                                 :descriptor            "descriptors/"
+                                 :save-state            "savestates"
+                                 :category              "categories/"
+                                 :keyed-layers          "keyedlayers/"
+                                 :amp-boundaries        "habitat/ampboundaries"
+                                 :imcra-boundaries      "habitat/imcraboundaries"
+                                 :meow-boundaries       "habitat/meowboundaries"
+                                 :habitat-statistics    "habitat/habitatstatistics"
+                                 :bathymetry-statistics "habitat/bathymetrystatistics"
+                                 :habitat-observations  "habitat/habitatobservations"
+                                 :layer-previews        "layer_previews/"
+                                 :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"}
+                     :url-bases {"http://localhost:3451/"
+                                 {:api-url-base       "http://localhost:8000/api/"
+                                  :media-url-base     "http://localhost:8000/media/"
+                                  :wordpress-url-base "http://localhost:8888/"
+                                  :img-url-base       "/img/"}
+                                 "https://seamapaustralia.org/map/"
+                                 {:api-url-base       "https://data.imas.utas.edu.au/seamap/api/"
+                                  :media-url-base     "https://data.imas.utas.edu.au/seamap/media/"
+                                  :wordpress-url-base "https://seamapaustralia.org/"
+                                  :img-url-base       "/app/img/"}
+                                 "https://seamapaustralia-dev.imas.utas.edu.au/map"
+                                 {:api-url-base       "https://data-dev.imas.utas.edu.au/seamap/api/"
+                                  :media-url-base     "https://data-dev.imas.utas.edu.au/seamap/media/"
+                                  :wordpress-url-base "https://seamapaustralia-dev.imas.utas.edu.au/"
+                                  :img-url-base       "/app/img/"}}}})
