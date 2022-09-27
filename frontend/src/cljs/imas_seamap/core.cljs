@@ -315,11 +315,12 @@
 (defn ^:export show-db []
   @re-frame.db/app-db)
 
-(defn ^:export init []
-  (register-handlers! config)
-  (re-frame/dispatch-sync [:boot])
-  (dev-setup)
-  (mount-root))
+(defn ^:export init [] 
+  (let [url-base (str (.-origin js/location) (.-pathname js/location))]
+    (register-handlers! config)
+    (re-frame/dispatch-sync [:boot url-base])
+    (dev-setup)
+    (mount-root)))
 
 (defn ^:dev/after-load re-render
   []

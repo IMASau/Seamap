@@ -22,7 +22,7 @@
   (js/console.warn "Warning: no handler for" sym "implemented yet")
   db)
 
-(defn boot-flow []
+(defn boot-flow [url-base]
   {:first-dispatch [:ui/show-loading]
    :rules
    [{:when :seen? :events :ui/show-loading
@@ -47,7 +47,7 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot-flow-hash-state [hash-code]
+(defn boot-flow-hash-state [url-base hash-code]
   {:first-dispatch [:ui/show-loading]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:load-hash-state hash-code]}
@@ -73,7 +73,7 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot-flow-save-state [shortcode]
+(defn boot-flow-save-state [url-base shortcode]
   {:first-dispatch [:ui/show-loading]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state shortcode [:load-hash-state]]}
@@ -99,13 +99,13 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} _]
+(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ url-base]]
   {:db         db/default-db
    :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
-                 (seq save-code)    (boot-flow-save-state save-code)    ; A shortform save-code that can be used to query for a hash-code
-                 (seq hash-code)    (boot-flow-hash-state hash-code)    ; A hash-code that can be decoded into th DB's initial state
-                 (seq cookie-state) (boot-flow-hash-state cookie-state) ; Same as hash-code, except that we use the one stored in the cookies
-                 :else              (boot-flow))})                      ; No information, so we start with an empty DB
+                 (seq save-code)    (boot-flow-save-state url-base save-code)    ; A shortform save-code that can be used to query for a hash-code
+                 (seq hash-code)    (boot-flow-hash-state url-base hash-code)    ; A hash-code that can be decoded into th DB's initial state
+                 (seq cookie-state) (boot-flow-hash-state url-base cookie-state) ; Same as hash-code, except that we use the one stored in the cookies
+                 :else              (boot-flow url-base))})                      ; No information, so we start with an empty DB
 
 (defn merge-state
   "Takes a hash-code and merges it into the current application state."
