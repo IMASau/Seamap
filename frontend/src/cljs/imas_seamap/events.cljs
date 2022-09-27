@@ -25,7 +25,8 @@
 (defn boot-flow [url-base]
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls url-base]}
+    {:when :seen? :events :construct-urls
      :dispatch-n [[:initialise-layers]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
@@ -50,7 +51,8 @@
 (defn boot-flow-hash-state [url-base hash-code]
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:load-hash-state hash-code]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls url-base]}
+    {:when :seen? :events :construct-urls :dispatch [:load-hash-state hash-code]}
     {:when :seen? :events :load-hash-state
      :dispatch-n [[:initialise-layers]
                   [:sok/get-habitat-statistics]
@@ -76,7 +78,8 @@
 (defn boot-flow-save-state [url-base shortcode]
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state shortcode [:load-hash-state]]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls url-base]}
+    {:when :seen? :events :construct-urls :dispatch [:get-save-state shortcode [:load-hash-state]]}
     {:when :seen? :events :load-hash-state
      :dispatch-n [[:initialise-layers]
                   [:sok/get-habitat-statistics]
@@ -98,6 +101,32 @@
      :dispatch [:welcome-layer/open]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
+
+(defn construct-urls [db [_ url-base]]
+  (let [{:keys [api-url-base media-url-base wordpress-url-base _img-url-base] :as url-bases}
+        (get-in db [:config :url-bases url-base])] 
+    (-> db
+        (assoc-in
+         [:config :urls]
+         {:layer                 (str api-url-base "layers/")
+          :base-layer            (str api-url-base "baselayers/")
+          :base-layer-group      (str api-url-base "baselayergroups/")
+          :organisation          (str api-url-base "organisations/")
+          :classification        (str api-url-base "classifications/")
+          :region-stats          (str api-url-base "habitat/regions/")
+          :descriptor            (str api-url-base "descriptors/")
+          :save-state            (str api-url-base "savestates")
+          :category              (str api-url-base "categories/")
+          :keyed-layers          (str api-url-base "keyedlayers/")
+          :amp-boundaries        (str api-url-base "habitat/ampboundaries")
+          :imcra-boundaries      (str api-url-base "habitat/imcraboundaries")
+          :meow-boundaries       (str api-url-base "habitat/meowboundaries")
+          :habitat-statistics    (str api-url-base "habitat/habitatstatistics")
+          :bathymetry-statistics (str api-url-base "habitat/bathymetrystatistics")
+          :habitat-observations  (str api-url-base "habitat/habitatobservations")
+          :layer-previews        (str media-url-base "layer_previews/")
+          :story-maps            (str wordpress-url-base "wp-json/wp/v2/story_map?acf_format=standard")})
+        (assoc-in [:config :url-base] url-bases))))
 
 (defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ url-base]]
   {:db         db/default-db

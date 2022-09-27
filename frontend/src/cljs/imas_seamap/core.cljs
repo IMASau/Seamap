@@ -90,6 +90,7 @@
 
    :events
    {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
+    :construct-urls                       events/construct-urls
     :merge-state                          [events/merge-state]
     :re-boot                              [events/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
