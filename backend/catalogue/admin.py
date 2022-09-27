@@ -12,5 +12,8 @@ admin.site.register(models.HabitatDescriptor)
 admin.site.register(models.Layer)
 admin.site.register(models.BaseLayerGroup)
 admin.site.register(models.BaseLayer)
-admin.site.register(models.SaveState)
 admin.site.register(models.KeyedLayer)
+
+class SaveStateAdmin(admin.ModelAdmin):
+    readonly_fields = ('time_created',)
+admin.site.register(models.SaveState, SaveStateAdmin)

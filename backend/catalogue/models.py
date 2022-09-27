@@ -118,14 +118,20 @@ class BaseLayer(models.Model):
 class SaveState(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     hashstate = models.CharField(max_length = 5000)
+    description = models.TextField()
+    time_created = models.DateTimeField()
 
     def __str__(self):
-        return str(self.id)
+        return '{id} ({time_created})'.format(
+            id=self.id,
+            time_created=self.time_created.strftime('%Y/%m/%d, %H:%M:%S')
+        )
 
 @python_2_unicode_compatible
 class KeyedLayer(models.Model):
     keyword = models.CharField(max_length = 200)
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    description = models.TextField()
 
     def __str__(self):
         return self.keyword
