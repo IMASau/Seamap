@@ -121,7 +121,7 @@ class SaveState(models.Model):
     hashstate = models.CharField(max_length = 5000)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 @python_2_unicode_compatible
 class KeyedLayer(models.Model):
