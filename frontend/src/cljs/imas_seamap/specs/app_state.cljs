@@ -527,7 +527,26 @@
 (s/def :region-stats/habitat-layer (s/nilable :map/layer))
 (s/def ::region-stats (s/keys :req-un [:region-stats/habitat-layer]))
 
-(s/def ::config map?)
+;; config
+(s/def :config.url-base-type/api-url-base string?)
+(s/def :config.url-base-type/media-url-base string?)
+(s/def :config.url-base-type/wordpress-url-base string?)
+(s/def :config.url-base-type/img-url-base string?)
+(s/def :config/url-base-type
+  (s/keys :req-un [:config.url-base-type/api-url-base
+                   :config.url-base-type/media-url-base
+                   :config.url-base-type/wordpress-url-base
+                   :config.url-base-type/img-url-base]))
+
+(s/def :config/url-paths (s/map-of keyword? string?))
+(s/def :config/urls      (s/nilable (s/map-of keyword? string?)))
+(s/def :config/url-bases (s/map-of string? :config/url-base-type))
+(s/def :config/url-base  (s/nilable :config/url-base-type))
+(s/def ::config
+  (s/keys :req-un [:config/url-paths
+                   :config/urls
+                   :config/url-bases
+                   :config/url-base]))
 
 (s/def :seamap/app-state
   (s/keys :req-un [::config

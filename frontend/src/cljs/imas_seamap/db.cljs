@@ -141,4 +141,6 @@
                                  {:api-url-base       "https://data-dev.imas.utas.edu.au/seamap/api/"
                                   :media-url-base     "https://data-dev.imas.utas.edu.au/seamap/media/"
                                   :wordpress-url-base "https://seamapaustralia-dev.imas.utas.edu.au/"
-                                  :img-url-base       "/app/img/"}}}})
+                                  :img-url-base       "/app/img/"}}
+                     :url-base  nil
+                     :urls      nil}})
