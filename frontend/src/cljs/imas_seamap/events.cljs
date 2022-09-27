@@ -104,28 +104,48 @@
 
 (defn construct-urls [db [_ url-base]]
   (let [{:keys [api-url-base media-url-base wordpress-url-base _img-url-base] :as url-bases}
-        (get-in db [:config :url-bases url-base])] 
+        (get-in db [:config :url-bases url-base])
+        {:keys
+         [layer
+          base-layer
+          base-layer-group
+          organisation
+          classification
+          region-stats
+          descriptor
+          save-state
+          category
+          keyed-layers
+          amp-boundaries
+          imcra-boundaries
+          meow-boundaries
+          habitat-statistics
+          bathymetry-statistics
+          habitat-observations
+          layer-previews
+          story-maps]}
+        (get-in db [:config :url-paths])]
     (-> db
         (assoc-in
          [:config :urls]
-         {:layer                 (str api-url-base "layers/")
-          :base-layer            (str api-url-base "baselayers/")
-          :base-layer-group      (str api-url-base "baselayergroups/")
-          :organisation          (str api-url-base "organisations/")
-          :classification        (str api-url-base "classifications/")
-          :region-stats          (str api-url-base "habitat/regions/")
-          :descriptor            (str api-url-base "descriptors/")
-          :save-state            (str api-url-base "savestates")
-          :category              (str api-url-base "categories/")
-          :keyed-layers          (str api-url-base "keyedlayers/")
-          :amp-boundaries        (str api-url-base "habitat/ampboundaries")
-          :imcra-boundaries      (str api-url-base "habitat/imcraboundaries")
-          :meow-boundaries       (str api-url-base "habitat/meowboundaries")
-          :habitat-statistics    (str api-url-base "habitat/habitatstatistics")
-          :bathymetry-statistics (str api-url-base "habitat/bathymetrystatistics")
-          :habitat-observations  (str api-url-base "habitat/habitatobservations")
-          :layer-previews        (str media-url-base "layer_previews/")
-          :story-maps            (str wordpress-url-base "wp-json/wp/v2/story_map?acf_format=standard")})
+         {:layer-url                 (str api-url-base layer)
+          :base-layer-url            (str api-url-base base-layer)
+          :base-layer-group-url      (str api-url-base base-layer-group)
+          :organisation-url          (str api-url-base organisation)
+          :classification-url        (str api-url-base classification)
+          :region-stats-url          (str api-url-base region-stats)
+          :descriptor-url            (str api-url-base descriptor)
+          :save-state-url            (str api-url-base save-state)
+          :category-url              (str api-url-base category)
+          :keyed-layers-url          (str api-url-base keyed-layers)
+          :amp-boundaries-url        (str api-url-base amp-boundaries)
+          :imcra-boundaries-url      (str api-url-base imcra-boundaries)
+          :meow-boundaries-url       (str api-url-base meow-boundaries)
+          :habitat-statistics-url    (str api-url-base habitat-statistics)
+          :bathymetry-statistics-url (str api-url-base bathymetry-statistics)
+          :habitat-observations-url  (str api-url-base habitat-observations)
+          :layer-previews-url        (str media-url-base layer-previews)
+          :story-maps-url            (str wordpress-url-base story-maps)})
         (assoc-in [:config :url-base] url-bases))))
 
 (defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ url-base]]
