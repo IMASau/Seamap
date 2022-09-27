@@ -2,14 +2,18 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from django.contrib import admin
-from .models import Category, DataClassification, Organisation, ServerType, Layer, HabitatDescriptor, BaseLayerGroup, SaveState, KeyedLayer
+import catalogue.models as models
 
-admin.site.register(Category)
-admin.site.register(DataClassification)
-admin.site.register(Organisation)
-admin.site.register(ServerType)
-admin.site.register(HabitatDescriptor)
-admin.site.register(Layer)
-admin.site.register(BaseLayerGroup)
-admin.site.register(SaveState)
-admin.site.register(KeyedLayer)
+admin.site.register(models.Category)
+admin.site.register(models.DataClassification)
+admin.site.register(models.ServerType)
+admin.site.register(models.Organisation)
+admin.site.register(models.HabitatDescriptor)
+admin.site.register(models.Layer)
+admin.site.register(models.BaseLayerGroup)
+admin.site.register(models.BaseLayer)
+admin.site.register(models.KeyedLayer)
+
+class SaveStateAdmin(admin.ModelAdmin):
+    readonly_fields = ('time_created',)
+admin.site.register(models.SaveState, SaveStateAdmin)
