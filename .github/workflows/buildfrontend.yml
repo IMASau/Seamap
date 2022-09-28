@@ -82,32 +82,6 @@ jobs:
           app_tag=$(echo $app_tag | sed 's/^"//;s/"$//')
           sed -i "s/app.js/$app_tag/" 'resources/public/index.html'
 
-      - name: Conditionally update base URLs in index (master)
-        if: endswith(github.ref, '/master')
-        uses: ansible.builtin.blockinfile
-        with:
-          path: resources/public/index.html
-          marker: '// {mark} ANSIBLE MANAGED BLOCK'
-          block: |
-            const
-              api_url_base = "https://data.imas.utas.edu.au/seamap/api/",
-              media_url_base = "https://data.imas.utas.edu.au/seamap/media/",
-              wordpress_url_base = "https://seamapaustralia.org/",
-              img_url_base = "/app/img/";
-
-      - name: Conditionally update base URLs in index (develop)
-        if: endswith(github.ref, '/develop')
-        uses: ansible.builtin.blockinfile
-        with:
-          path: resources/public/index.html
-          marker: '// {mark} ANSIBLE MANAGED BLOCK'
-          block: |
-            const
-              api_url_base = "https://data-dev.imas.utas.edu.au/seamap/api/",
-              media_url_base = "https://data-dev.imas.utas.edu.au/seamap/media/",
-              wordpress_url_base = "https://seamapaustralia-dev.imas.utas.edu.au/",
-              img_url_base = "/app/img/";
-
       - run: tar -c -z -v -C resources/public -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" .
 
       - name: Create timestamp for release tag-name
