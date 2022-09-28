@@ -84,19 +84,27 @@ jobs:
 
       - name: Conditionally update base URLs in index (master)
         if: endswith(github.ref, '/master')
-        run: |
-          sed -i 's/(?<=api_url_base = ").+(?=",)/https:\/\/data.imas.utas.edu.au\/seamap\/api\//' 'resources/public/index.html'
-          sed -i 's/(?<=media_url_base = ").+(?=",)/https:\/\/data.imas.utas.edu.au\/seamap\/media\//' 'resources/public/index.html'
-          sed -i 's/(?<=wordpress_url_base = ").+(?=",)/https:\/\/seamapaustralia.org\//' 'resources/public/index.html'
-          sed -i 's/(?<=img_url_base = ").+(?=",)/\/app\/img\//' 'resources/public/index.html'
+        ansible.builtin.blockinfile:
+          path: resources/public/index.html
+          marker: '// {mark} ANSIBLE MANAGED BLOCK'
+          block: |
+            const
+              api_url_base = "https://data.imas.utas.edu.au/seamap/api/",
+              media_url_base = "https://data.imas.utas.edu.au/seamap/media/",
+              wordpress_url_base = "https://seamapaustralia.org/",
+              img_url_base = "/app/img/";
 
       - name: Conditionally update base URLs in index (develop)
         if: endswith(github.ref, '/develop')
-        run: |
-          sed -i 's/(?<=api_url_base = ").+(?=",)/https:\/\/data-dev.imas.utas.edu.au\/seamap\/api\//' 'resources/public/index.html'
-          sed -i 's/(?<=media_url_base = ").+(?=",)/https:\/\/data-dev.imas.utas.edu.au\/seamap\/media\//' 'resources/public/index.html'
-          sed -i 's/(?<=wordpress_url_base = ").+(?=",)/https:\/\/seamapaustralia-dev.imas.utas.edu.au\//' 'resources/public/index.html'
-          sed -i 's/(?<=img_url_base = ").+(?=",)/\/app\/img\//' 'resources/public/index.html'
+        ansible.builtin.blockinfile:
+          path: resources/public/index.html
+          marker: '// {mark} ANSIBLE MANAGED BLOCK'
+          block: |
+            const
+              api_url_base = "https://data-dev.imas.utas.edu.au/seamap/api/",
+              media_url_base = "https://data-dev.imas.utas.edu.au/seamap/media/",
+              wordpress_url_base = "https://seamapaustralia-dev.imas.utas.edu.au/",
+              img_url_base = "/app/img/";
 
       - run: tar -c -z -v -C resources/public -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" .
 
