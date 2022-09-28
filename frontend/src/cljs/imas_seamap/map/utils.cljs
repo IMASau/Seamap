@@ -7,6 +7,7 @@
             [imas-seamap.utils :refer [merge-in select-values]]
             ["proj4" :as proj4]
             [imas-seamap.interop.leaflet :as leaflet]
+            [imas-seamap.db :as db]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
@@ -104,14 +105,14 @@
         :map.layer.download/geotiff "GeoTIFF"}
        type-key))
 
-(defmulti download-link (fn [_layer _bounds download-type _api-url-base] (type->servertype download-type)))
+(defmulti download-link (fn [_layer _bounds download-type] (type->servertype download-type)))
 
-(defmethod download-link :api [{:keys [id] :as layer} bounds download-type api-url-base]
+(defmethod download-link :api [{:keys [id] :as layer} bounds download-type]
   ;; At the moment we still use geoserver for CSV downloads (all), and
   ;; shp downloads of the entire data, ie when bounds arg is nil.
   (if-not bounds
     ((get-method download-link :wfs) layer bounds download-type)
-    (let [base-url (str api-url-base "habitat/subset/")
+    (let [base-url (str db/api-url-base "habitat/subset/")
           bounds-arg (->> bounds (bounds->projected wgs84->epsg3112) (bounds->str 3112))]
       (-> (url/url base-url)
           (assoc :query {:layer_id id
@@ -121,8 +122,7 @@
 
 (defmethod download-link :wfs [{:keys [server_url detail_layer layer_name] :as _layer}
                                bounds
-                               download-type
-                               _api-url-base]
+                               download-type]
   (-> (url/url server_url)
       (assoc :query {:service      "wfs"
                      :version      "1.1.0"
@@ -139,8 +139,7 @@
 
 (defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
                                bounds
-                               download-type
-                               _api-url-base]
+                               download-type]
   ;; Crude ratio calculations for approximating image dimensions (note, bbox could be param or layer extent):
   (let [{:keys [north south east west] :as bounds} (or bounds bounding_box)
         ratio (/ (- north south) (- east west))

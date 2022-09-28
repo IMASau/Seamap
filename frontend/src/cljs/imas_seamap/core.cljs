@@ -86,8 +86,7 @@
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
     :info/message                         subs/user-message
-    :autosave?                            subs/autosave?
-    :url-base                             subs/url-base}
+    :autosave?                            subs/autosave?}
 
    :events
    {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]

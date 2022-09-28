@@ -541,12 +541,10 @@
 (s/def :config/url-paths (s/map-of keyword? string?))
 (s/def :config/urls      (s/nilable (s/map-of keyword? string?)))
 (s/def :config/url-bases (s/map-of string? :config/url-base-type))
-(s/def :config/url-base  (s/nilable :config/url-base-type))
 (s/def ::config
   (s/keys :req-un [:config/url-paths
                    :config/urls
-                   :config/url-bases
-                   :config/url-base]))
+                   :config/url-bases]))
 
 (s/def :seamap/app-state
   (s/keys :req-un [::config
