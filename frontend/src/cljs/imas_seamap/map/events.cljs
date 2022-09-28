@@ -671,8 +671,9 @@
 (defmulti wms-symbolizer->key #(-> % keys first))
 
 (defmethod wms-symbolizer->key :Polygon
-  [{{:keys [fill]} :Polygon :as _symbolizer}]
+  [{{:keys [fill stroke stroke-width ]} :Polygon :as _symbolizer}]
   {:background-color fill
+   :border           (str "solid " stroke-width "px " stroke)
    :height           "100%"
    :width            "100%"})
 
