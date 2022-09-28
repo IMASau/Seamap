@@ -17,12 +17,13 @@
     <script src="https://use.fontawesome.com/d25c01a5e8.js"></script>
     <script src="js/app.js"></script>
     <script>
-      imas_seamap.db.api_url_base = "http://localhost:8000/api/";
-      imas_seamap.db.media_url_base = "http://localhost:8000/media/";
-      imas_seamap.db.wordpress_url_base = "http://localhost:8888/";
-      imas_seamap.db.img_url_base = "/img/";
+      const
+        api_url_base = "http://localhost:8000/api/",
+        media_url_base = "http://localhost:8000/media/",
+        wordpress_url_base = "http://localhost:8888/",
+        img_url_base = "/img/";
+      imas_seamap.core.init(api_url_base, media_url_base, wordpress_url_base, img_url_base);
     </script>
-    <script>imas_seamap.core.init();</script>
   </body>
   <!-- Made with love by Condense Pty Ltd, 2017 -->
 </html>

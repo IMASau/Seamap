@@ -316,9 +316,9 @@
 (defn ^:export show-db []
   @re-frame.db/app-db)
 
-(defn ^:export init []
+(defn ^:export init [api-url-base media-url-base wordpress-url-base img-url-base]
   (register-handlers! config)
-  (re-frame/dispatch-sync [:boot])
+  (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base])
   (dev-setup)
   (mount-root))
 

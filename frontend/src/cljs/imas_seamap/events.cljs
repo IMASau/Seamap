@@ -144,8 +144,13 @@
       :layer-previews-url        (str db/media-url-base layer-previews)
       :story-maps-url            (str db/wordpress-url-base story-maps)})))
 
-(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} _]
-  {:db         db/default-db
+(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
+  {:db         (assoc-in
+                db/default-db [:config :url-base]
+                {:api-url-base       api-url-base
+                 :media-url-base     media-url-base
+                 :wordpress-url-base wordpress-url-base
+                 :img-url-base       img-url-base})
    :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
                  (seq save-code)    (boot-flow-save-state save-code)    ; A shortform save-code that can be used to query for a hash-code
                  (seq hash-code)    (boot-flow-hash-state hash-code)    ; A hash-code that can be decoded into th DB's initial state
