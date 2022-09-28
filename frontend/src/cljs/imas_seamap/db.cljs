@@ -3,11 +3,6 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.db)
 
-(goog-define api-url-base "http://localhost:8000/api/")
-(goog-define media-url-base "http://localhost:8000/media/")
-(goog-define wordpress-url-base "http://localhost:8888/")
-(goog-define img-url-base "/img/")
-
 (def default-db
   {:initialised     false               ; Flag to prevent early updates
    :map             {:center          [-27.819644755 132.133333]
@@ -91,21 +86,26 @@
                      :sidebar               {:collapsed false
                                              :selected  "tab-activelayers"}}
    :autosave?       false
-   :config          {:layer-url             (str api-url-base "layers/")
-                     :base-layer-url        (str api-url-base "baselayers/")
-                     :base-layer-group-url  (str api-url-base "baselayergroups/")
-                     :organisation-url      (str api-url-base "organisations/")
-                     :classification-url    (str api-url-base "classifications/")
-                     :region-stats-url      (str api-url-base "habitat/regions/")
-                     :descriptor-url        (str api-url-base "descriptors/")
-                     :save-state-url        (str api-url-base "savestates")
-                     :category-url          (str api-url-base "categories/")
-                     :keyed-layers-url      (str api-url-base "keyedlayers/")
-                     :amp-boundaries-url    (str api-url-base "habitat/ampboundaries")
-                     :imcra-boundaries-url  (str api-url-base "habitat/imcraboundaries")
-                     :meow-boundaries-url   (str api-url-base "habitat/meowboundaries")
-                     :habitat-statistics-url (str api-url-base "habitat/habitatstatistics")
-                     :bathymetry-statistics-url (str api-url-base "habitat/bathymetrystatistics")
-                     :habitat-observations-url (str api-url-base "habitat/habitatobservations")
-                     :layer-previews-url    (str media-url-base "layer_previews/")
-                     :story-maps-url        (str wordpress-url-base "wp-json/wp/v2/story_map?acf_format=standard")}})
+   :config          {:url-paths {:layer                 "layers/"
+                                 :base-layer            "baselayers/"
+                                 :base-layer-group      "baselayergroups/"
+                                 :organisation          "organisations/"
+                                 :classification        "classifications/"
+                                 :region-stats          "habitat/regions/"
+                                 :descriptor            "descriptors/"
+                                 :save-state            "savestates"
+                                 :category              "categories/"
+                                 :keyed-layers          "keyedlayers/"
+                                 :amp-boundaries        "habitat/ampboundaries"
+                                 :imcra-boundaries      "habitat/imcraboundaries"
+                                 :meow-boundaries       "habitat/meowboundaries"
+                                 :habitat-statistics    "habitat/habitatstatistics"
+                                 :bathymetry-statistics "habitat/bathymetrystatistics"
+                                 :habitat-observations  "habitat/habitatobservations"
+                                 :layer-previews        "layer_previews/"
+                                 :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"}
+                     :urls      nil
+                     :url-base {:api-url-base       "http://localhost:8000/api/"
+                                :media-url-base     "http://localhost:8000/media/"
+                                :wordpress-url-base "http://localhost:8888/"
+                                :img-url-base       "/img/"}}})

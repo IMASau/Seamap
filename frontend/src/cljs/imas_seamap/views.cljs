@@ -6,7 +6,6 @@
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
-            [imas-seamap.db :refer [img-url-base]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-content main-national-layer-card]]
@@ -16,6 +15,7 @@
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
+            [imas-seamap.db :as db]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -342,7 +342,8 @@
                   :on-click   (handler-dispatch [:welcome-layer/close])}]]]]))
 
 (defn- metadata-record [_props]
-  (let [expanded (reagent/atom false)]
+  (let [expanded (reagent/atom false)
+        {:keys [img-url-base]} @(re-frame/subscribe [:url-base])]
     (fn  [{:keys [license-name license-link license-img constraints other]
            {:keys [category organisation name metadata_url server_url layer_name]} :layer
            :as _layer-info}]
@@ -350,7 +351,7 @@
        [:div.metadata-header.clearfix.section
         (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
           [:img.metadata-img.org-logo {:class (string/replace logo #"\..+$" "")
-                                       :src        (str img-url-base logo)}])
+                                       :src   (str img-url-base logo)}])
         [:h3.bp3-heading name]]
        [:h6.bp3-heading.metadata-subheader "Citation Information:"]
        [:div.section

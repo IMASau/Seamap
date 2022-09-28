@@ -86,10 +86,12 @@
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
     :info/message                         subs/user-message
-    :autosave?                            subs/autosave?}
+    :autosave?                            subs/autosave?
+    :url-base                             subs/url-base}
 
    :events
    {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
+    :construct-urls                       events/construct-urls
     :merge-state                          [events/merge-state]
     :re-boot                              [events/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
@@ -315,9 +317,9 @@
 (defn ^:export show-db []
   @re-frame.db/app-db)
 
-(defn ^:export init []
+(defn ^:export init [api-url-base media-url-base wordpress-url-base img-url-base]
   (register-handlers! config)
-  (re-frame/dispatch-sync [:boot])
+  (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base])
   (dev-setup)
   (mount-root))
 

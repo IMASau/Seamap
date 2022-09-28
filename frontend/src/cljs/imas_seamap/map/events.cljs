@@ -171,7 +171,7 @@
         request-id     (gensym)]
     (when (and boundary habitat)
       {:http-xhrio {:method          :get
-                    :uri             (get-in db [:config :region-stats-url])
+                    :uri             (get-in db [:config :urls :region-stats-url])
                     :params          {:boundary (:id boundary)
                                       :habitat  (:id habitat)
                                       :x        x

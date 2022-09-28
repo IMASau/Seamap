@@ -527,7 +527,12 @@
 (s/def :region-stats/habitat-layer (s/nilable :map/layer))
 (s/def ::region-stats (s/keys :req-un [:region-stats/habitat-layer]))
 
-(s/def ::config map?)
+;; config
+(s/def :config/url-paths (s/map-of keyword? string?))
+(s/def :config/urls      (s/nilable (s/map-of keyword? string?)))
+(s/def ::config
+  (s/keys :req-un [:config/url-paths
+                   :config/urls]))
 
 (s/def :seamap/app-state
   (s/keys :req-un [::config

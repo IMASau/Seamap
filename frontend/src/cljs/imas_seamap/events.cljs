@@ -25,7 +25,8 @@
 (defn boot-flow []
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
+    {:when :seen? :events :construct-urls
      :dispatch-n [[:initialise-layers]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
@@ -50,7 +51,8 @@
 (defn boot-flow-hash-state [hash-code]
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:load-hash-state hash-code]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
+    {:when :seen? :events :construct-urls :dispatch [:load-hash-state hash-code]}
     {:when :seen? :events :load-hash-state
      :dispatch-n [[:initialise-layers]
                   [:sok/get-habitat-statistics]
@@ -76,7 +78,8 @@
 (defn boot-flow-save-state [shortcode]
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:get-save-state shortcode [:load-hash-state]]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
+    {:when :seen? :events :construct-urls :dispatch [:get-save-state shortcode [:load-hash-state]]}
     {:when :seen? :events :load-hash-state
      :dispatch-n [[:initialise-layers]
                   [:sok/get-habitat-statistics]
@@ -99,8 +102,56 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} _]
-  {:db         db/default-db
+(defn construct-urls [db _]
+  (let [{:keys
+         [layer
+          base-layer
+          base-layer-group
+          organisation
+          classification
+          region-stats
+          descriptor
+          save-state
+          category
+          keyed-layers
+          amp-boundaries
+          imcra-boundaries
+          meow-boundaries
+          habitat-statistics
+          bathymetry-statistics
+          habitat-observations
+          layer-previews
+          story-maps]}
+        (get-in db [:config :url-paths])
+        {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
+    (assoc-in
+     db [:config :urls]
+     {:layer-url                 (str api-url-base layer)
+      :base-layer-url            (str api-url-base base-layer)
+      :base-layer-group-url      (str api-url-base base-layer-group)
+      :organisation-url          (str api-url-base organisation)
+      :classification-url        (str api-url-base classification)
+      :region-stats-url          (str api-url-base region-stats)
+      :descriptor-url            (str api-url-base descriptor)
+      :save-state-url            (str api-url-base save-state)
+      :category-url              (str api-url-base category)
+      :keyed-layers-url          (str api-url-base keyed-layers)
+      :amp-boundaries-url        (str api-url-base amp-boundaries)
+      :imcra-boundaries-url      (str api-url-base imcra-boundaries)
+      :meow-boundaries-url       (str api-url-base meow-boundaries)
+      :habitat-statistics-url    (str api-url-base habitat-statistics)
+      :bathymetry-statistics-url (str api-url-base bathymetry-statistics)
+      :habitat-observations-url  (str api-url-base habitat-observations)
+      :layer-previews-url        (str media-url-base layer-previews)
+      :story-maps-url            (str wordpress-url-base story-maps)})))
+
+(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
+  {:db         (assoc-in
+                db/default-db [:config :url-base]
+                {:api-url-base       api-url-base
+                 :media-url-base     media-url-base
+                 :wordpress-url-base wordpress-url-base
+                 :img-url-base       img-url-base})
    :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
                  (seq save-code)    (boot-flow-save-state save-code)    ; A shortform save-code that can be used to query for a hash-code
                  (seq hash-code)    (boot-flow-hash-state hash-code)    ; A hash-code that can be decoded into th DB's initial state
@@ -176,7 +227,7 @@
   "Uses a shortcode to retrieve a save-state. On success dispatches an event with
    the retrieved save-state."
   [{:keys [db]} [_ shortcode dispatch]]
-  (let [save-state-url (get-in db [:config :save-state-url])]
+  (let [save-state-url (get-in db [:config :urls :save-state-url])]
     {:db db
      :http-xhrio
      [{:method          :get
@@ -200,7 +251,7 @@
                 amp-boundaries-url
                 imcra-boundaries-url
                 meow-boundaries-url
-                story-maps-url]} (:config db)]
+                story-maps-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -440,11 +491,12 @@
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it
         ;; must be at the front of the list:
-        layer-names    (->> habitat-layers (map :layer_name) reverse (string/join ","))]
+        layer-names    (->> habitat-layers (map :layer_name) reverse (string/join ","))
+        api-url-base   (get-in db [:config :url-base :api-url-base])]
     (if (seq habitat-layers)
       {:db         db
        :http-xhrio {:method          :get
-                    :uri             (str db/api-url-base "habitat/transect/")
+                    :uri             (str api-url-base "habitat/transect/")
                     :params          {:layers layer-names
                                       :line   (->> linestring
                                                    (map mutils/wgs84->epsg3112)
@@ -531,7 +583,7 @@
 
 (defn download-show-link [db [_ layer bounds download-type]]
   (update-in db [:map :controls :download]
-             merge {:link         (download-link layer bounds download-type)
+             merge {:link         (download-link layer bounds download-type (get-in db [:config :url-base :api-url-base]))
                     :layer        layer
                     :type         download-type
                     :bbox         bounds
@@ -571,7 +623,7 @@
 
 (defn create-save-state [{:keys [db]} _]
   (copy-text js/location.href)
-  (let [save-state-url (get-in db [:config :save-state-url])]
+  (let [save-state-url (get-in db [:config :urls :save-state-url])]
     {:http-xhrio [{:method          :post
                    :uri             save-state-url
                    :params          {:hashstate (encode-state db)}
