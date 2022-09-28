@@ -147,3 +147,5 @@
 (defn autosave? [db _]
   (:autosave? db))
 
+(defn url-base [db _]
+  (get-in db [:config :url-base]))
