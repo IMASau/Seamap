@@ -22,10 +22,10 @@
   (js/console.warn "Warning: no handler for" sym "implemented yet")
   db)
 
-(defn boot-flow [url-base]
+(defn boot-flow []
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls url-base]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
     {:when :seen? :events :construct-urls
      :dispatch-n [[:initialise-layers]
                   [:sok/get-habitat-statistics]
@@ -48,10 +48,10 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot-flow-hash-state [url-base hash-code]
+(defn boot-flow-hash-state [hash-code]
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls url-base]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
     {:when :seen? :events :construct-urls :dispatch [:load-hash-state hash-code]}
     {:when :seen? :events :load-hash-state
      :dispatch-n [[:initialise-layers]
@@ -75,10 +75,10 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn boot-flow-save-state [url-base shortcode]
+(defn boot-flow-save-state [shortcode]
   {:first-dispatch [:ui/show-loading]
    :rules
-   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls url-base]}
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
     {:when :seen? :events :construct-urls :dispatch [:get-save-state shortcode [:load-hash-state]]}
     {:when :seen? :events :load-hash-state
      :dispatch-n [[:initialise-layers]
@@ -102,10 +102,8 @@
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
-(defn construct-urls [db [_ url-base]]
-  (let [{:keys [api-url-base media-url-base wordpress-url-base _img-url-base] :as url-bases}
-        (get-in db [:config :url-bases url-base])
-        {:keys
+(defn construct-urls [db _]
+  (let [{:keys
          [layer
           base-layer
           base-layer-group
@@ -125,36 +123,34 @@
           layer-previews
           story-maps]}
         (get-in db [:config :url-paths])]
-    (-> db
-        (assoc-in
-         [:config :urls]
-         {:layer-url                 (str api-url-base layer)
-          :base-layer-url            (str api-url-base base-layer)
-          :base-layer-group-url      (str api-url-base base-layer-group)
-          :organisation-url          (str api-url-base organisation)
-          :classification-url        (str api-url-base classification)
-          :region-stats-url          (str api-url-base region-stats)
-          :descriptor-url            (str api-url-base descriptor)
-          :save-state-url            (str api-url-base save-state)
-          :category-url              (str api-url-base category)
-          :keyed-layers-url          (str api-url-base keyed-layers)
-          :amp-boundaries-url        (str api-url-base amp-boundaries)
-          :imcra-boundaries-url      (str api-url-base imcra-boundaries)
-          :meow-boundaries-url       (str api-url-base meow-boundaries)
-          :habitat-statistics-url    (str api-url-base habitat-statistics)
-          :bathymetry-statistics-url (str api-url-base bathymetry-statistics)
-          :habitat-observations-url  (str api-url-base habitat-observations)
-          :layer-previews-url        (str media-url-base layer-previews)
-          :story-maps-url            (str wordpress-url-base story-maps)})
-        (assoc-in [:config :url-base] url-bases))))
+    (assoc-in
+     db [:config :urls]
+     {:layer-url                 (str db/api-url-base layer)
+      :base-layer-url            (str db/api-url-base base-layer)
+      :base-layer-group-url      (str db/api-url-base base-layer-group)
+      :organisation-url          (str db/api-url-base organisation)
+      :classification-url        (str db/api-url-base classification)
+      :region-stats-url          (str db/api-url-base region-stats)
+      :descriptor-url            (str db/api-url-base descriptor)
+      :save-state-url            (str db/api-url-base save-state)
+      :category-url              (str db/api-url-base category)
+      :keyed-layers-url          (str db/api-url-base keyed-layers)
+      :amp-boundaries-url        (str db/api-url-base amp-boundaries)
+      :imcra-boundaries-url      (str db/api-url-base imcra-boundaries)
+      :meow-boundaries-url       (str db/api-url-base meow-boundaries)
+      :habitat-statistics-url    (str db/api-url-base habitat-statistics)
+      :bathymetry-statistics-url (str db/api-url-base bathymetry-statistics)
+      :habitat-observations-url  (str db/api-url-base habitat-observations)
+      :layer-previews-url        (str db/media-url-base layer-previews)
+      :story-maps-url            (str db/wordpress-url-base story-maps)})))
 
-(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ url-base]]
+(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} _]
   {:db         db/default-db
    :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
-                 (seq save-code)    (boot-flow-save-state url-base save-code)    ; A shortform save-code that can be used to query for a hash-code
-                 (seq hash-code)    (boot-flow-hash-state url-base hash-code)    ; A hash-code that can be decoded into th DB's initial state
-                 (seq cookie-state) (boot-flow-hash-state url-base cookie-state) ; Same as hash-code, except that we use the one stored in the cookies
-                 :else              (boot-flow url-base))})                      ; No information, so we start with an empty DB
+                 (seq save-code)    (boot-flow-save-state save-code)    ; A shortform save-code that can be used to query for a hash-code
+                 (seq hash-code)    (boot-flow-hash-state hash-code)    ; A hash-code that can be decoded into th DB's initial state
+                 (seq cookie-state) (boot-flow-hash-state cookie-state) ; Same as hash-code, except that we use the one stored in the cookies
+                 :else              (boot-flow))})                      ; No information, so we start with an empty DB
 
 (defn merge-state
   "Takes a hash-code and merges it into the current application state."
