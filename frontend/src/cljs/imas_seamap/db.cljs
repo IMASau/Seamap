@@ -3,11 +3,6 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.db)
 
-(def api-url-base       "http://localhost:8000/api/")
-(def media-url-base     "http://localhost:8000/media/")
-(def wordpress-url-base "http://localhost:8888/")
-(def img-url-base       "/img/")
-
 (def default-db
   {:initialised     false               ; Flag to prevent early updates
    :map             {:center          [-27.819644755 132.133333]
