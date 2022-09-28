@@ -489,11 +489,12 @@
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it
         ;; must be at the front of the list:
-        layer-names    (->> habitat-layers (map :layer_name) reverse (string/join ","))]
+        layer-names    (->> habitat-layers (map :layer_name) reverse (string/join ","))
+        api-url-base   (get-in db [:config :url-base :api-url-base])]
     (if (seq habitat-layers)
       {:db         db
        :http-xhrio {:method          :get
-                    :uri             (str db/api-url-base "habitat/transect/")
+                    :uri             (str api-url-base "habitat/transect/")
                     :params          {:layers layer-names
                                       :line   (->> linestring
                                                    (map mutils/wgs84->epsg3112)
@@ -580,7 +581,7 @@
 
 (defn download-show-link [db [_ layer bounds download-type]]
   (update-in db [:map :controls :download]
-             merge {:link         (download-link layer bounds download-type)
+             merge {:link         (download-link layer bounds download-type (get-in db [:config :url-base :api-url-base]))
                     :layer        layer
                     :type         download-type
                     :bbox         bounds
