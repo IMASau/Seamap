@@ -225,7 +225,7 @@
   "Uses a shortcode to retrieve a save-state. On success dispatches an event with
    the retrieved save-state."
   [{:keys [db]} [_ shortcode dispatch]]
-  (let [save-state-url (get-in db [:config :save-state-url])]
+  (let [save-state-url (get-in db [:config :urls :save-state-url])]
     {:db db
      :http-xhrio
      [{:method          :get
@@ -249,7 +249,7 @@
                 amp-boundaries-url
                 imcra-boundaries-url
                 meow-boundaries-url
-                story-maps-url]} (:config db)]
+                story-maps-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -620,7 +620,7 @@
 
 (defn create-save-state [{:keys [db]} _]
   (copy-text js/location.href)
-  (let [save-state-url (get-in db [:config :save-state-url])]
+  (let [save-state-url (get-in db [:config :urls :save-state-url])]
     {:http-xhrio [{:method          :post
                    :uri             save-state-url
                    :params          {:hashstate (encode-state db)}

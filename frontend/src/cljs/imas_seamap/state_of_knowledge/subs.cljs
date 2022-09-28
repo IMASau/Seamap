@@ -11,7 +11,7 @@
     {:results results :loading? loading? :show-layers? show-layers?}))
 
 (defn habitat-statistics-download-url [db _]
-  (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
+  (let [habitat-statistics-url (get-in db [:config :urls :habitat-statistics-url])
         {:keys [active-boundary amp imcra meow]} (get-in db [:state-of-knowledge :boundaries])
         {:keys [active-network active-park active-zone active-zone-iucn]} amp
         {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
@@ -45,7 +45,7 @@
     {:results results :loading? loading? :show-layers? show-layers?}))
 
 (defn bathymetry-statistics-download-url [db _]
-  (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])
+  (let [bathymetry-statistics-url (get-in db [:config :urls :bathymetry-statistics-url])
         {:keys [active-boundary amp imcra meow]} (get-in db [:state-of-knowledge :boundaries])
         {:keys [active-network active-park active-zone active-zone-iucn]} amp
         {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra

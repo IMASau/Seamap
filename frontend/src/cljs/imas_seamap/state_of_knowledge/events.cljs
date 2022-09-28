@@ -260,7 +260,7 @@
                   [:sok/get-habitat-observations]]}))
 
 (defn get-habitat-statistics [{:keys [db]}]
-  (let [habitat-statistics-url (get-in db [:config :habitat-statistics-url])
+  (let [habitat-statistics-url (get-in db [:config :urls :habitat-statistics-url])
         {:keys [active-boundary] :as boundaries} (get-in db [:state-of-knowledge :boundaries])
         active-boundary (:id active-boundary)]
     (if
@@ -282,7 +282,7 @@
       (assoc-in [:state-of-knowledge :statistics :habitat :loading?] false)))
 
 (defn get-bathymetry-statistics [{:keys [db]}]
-  (let [bathymetry-statistics-url (get-in db [:config :bathymetry-statistics-url])
+  (let [bathymetry-statistics-url (get-in db [:config :urls :bathymetry-statistics-url])
         {:keys [active-boundary] :as boundaries} (get-in db [:state-of-knowledge :boundaries])
         active-boundary (:id active-boundary)]
     (if
@@ -304,7 +304,7 @@
       (assoc-in [:state-of-knowledge :statistics :bathymetry :loading?] false)))
 
 (defn get-habitat-observations [{:keys [db]}]
-  (let [habitat-observations-url (get-in db [:config :habitat-observations-url])
+  (let [habitat-observations-url (get-in db [:config :urls :habitat-observations-url])
         {:keys [active-boundary] :as boundaries} (get-in db [:state-of-knowledge :boundaries])
         active-boundary (:id active-boundary)]
     (if
