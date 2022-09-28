@@ -84,7 +84,8 @@ jobs:
 
       - name: Conditionally update base URLs in index (master)
         if: endswith(github.ref, '/master')
-        ansible.builtin.blockinfile:
+        uses: ansible.builtin.blockinfile
+        with:
           path: resources/public/index.html
           marker: '// {mark} ANSIBLE MANAGED BLOCK'
           block: |
@@ -96,7 +97,8 @@ jobs:
 
       - name: Conditionally update base URLs in index (develop)
         if: endswith(github.ref, '/develop')
-        ansible.builtin.blockinfile:
+        uses: ansible.builtin.blockinfile
+        with:
           path: resources/public/index.html
           marker: '// {mark} ANSIBLE MANAGED BLOCK'
           block: |
