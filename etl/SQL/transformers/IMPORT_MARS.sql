@@ -17,7 +17,7 @@ BEGIN
         -- Vars for cursor
         DECLARE @FID nvarchar(255)
         DECLARE @SURVEY_ID nvarchar(255)
-        DECLARE @SURVEY_NAME nvarchar(255)
+        DECLARE @SURVEY_NAME nvarchar(500)
         DECLARE @BASE_DEPTH_M nvarchar(255)
         DECLARE @SAMPLE_LOCATION nvarchar(255)
         DECLARE @ENO nvarchar(255)

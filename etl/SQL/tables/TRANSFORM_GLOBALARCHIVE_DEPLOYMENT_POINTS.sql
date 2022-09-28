@@ -1,7 +1,7 @@
 CREATE TABLE TRANSFORM_GLOBALARCHIVE_DEPLOYMENT_POINTS (
 	FID nvarchar(255) NOT NULL PRIMARY KEY,
     campaign_id int NULL,
-    deployment_id int null,
+    deployment_id nvarchar(255) null,
     deployment_time datetime NULL,
     description nvarchar(255) NULL,
     [depth] float NULL,
