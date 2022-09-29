@@ -3,6 +3,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b]
             [imas-seamap.components :as components]
+            [imas-seamap.utils :refer [round-to-nearest]]
             [clojure.string :as string]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -202,23 +203,17 @@
 (defn- main-national-layer-time-filter
   "Time filter for main national layer, which filters what layers are displayed on
    the map."
-  [_national-layer-timeline]
-  (let [value     (reagent/atom 2000)   ; Graduate to event probably at some point to be able to filter displayed layer
-        all-time? (reagent/atom false)] ; Graduate to event probably at some point to be able to filter displayed layer
+  [national-layer-timeline]
+  (let [years (mapv :year national-layer-timeline)
+        value (reagent/atom (apply max years))] ; Graduate to event probably at some point to be able to filter displayed layer
     (fn [_national-layer-timeline]
       [components/form-group {:label "Time"}
-       [b/checkbox
-        {:label    "At all points in time"
-         :checked  @all-time?
-         :on-click #(swap! all-time? not)}]
        [b/slider
-        {:min             2000
-         :max             2022
-         :label-step-size (- 2022 2000)
+        {:min             (apply min years)
+         :max             (apply max years)
          :value           @value
-         :step-size       1
-         :on-change       #(reset! value %)
-         :disabled        @all-time?}]])))
+         :label-values    years
+         :on-change       #(reset! value (round-to-nearest % years))}]]))) ; there's no "stepValues" prop for the Blueprint slider, so we just round it to the nearest step ourselves
 
 (defn- main-national-layer-details
   "Expanded details for main national layer. Differs from regular details by having
