@@ -38,6 +38,8 @@
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
+                                  :map/update-keyed-layers
+                                  :map/update-national-layer-timeline
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries]
@@ -65,6 +67,8 @@
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
+                                  :map/update-keyed-layers
+                                  :map/update-national-layer-timeline
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries]
@@ -92,6 +96,8 @@
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
+                                  :map/update-keyed-layers
+                                  :map/update-national-layer-timeline
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries]
