@@ -202,10 +202,10 @@
 (defn- main-national-layer-time-filter
   "Time filter for main national layer, which filters what layers are displayed on
    the map."
-  []
+  [_national-layer-timeline]
   (let [value     (reagent/atom 2000)   ; Graduate to event probably at some point to be able to filter displayed layer
         all-time? (reagent/atom false)] ; Graduate to event probably at some point to be able to filter displayed layer
-    (fn []
+    (fn [_national-layer-timeline]
       [components/form-group {:label "Time"}
        [b/checkbox
         {:label    "At all points in time"
@@ -224,7 +224,7 @@
   "Expanded details for main national layer. Differs from regular details by having
    a tabbed view, with a tab for the legend and a tab for filters. The filters
    alter how the main national layer is displayed on the map."
-  [{:keys [_layer] {:keys [_opacity]} :layer-state}]
+  [{:keys [_layer national-layer-timeline] {:keys [_opacity]} :layer-state}]
   (let [selected-tab (reagent/atom "legend") 
         alternate-view (reagent/atom nil)]   ; Graduate to event probably at some point to be able to filter displayed layer
     (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
@@ -264,12 +264,12 @@
                :keyfns
                {:id   identity
                 :text identity}}]]
-            [main-national-layer-time-filter]])}]]])))
+            [main-national-layer-time-filter national-layer-timeline]])}]]])))
 
 (defn- main-national-layer-card-content
   "Content of the main national layer card; includes both the header and the main
    national layer details that can be expanded and collapsed."
-  [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
+  [{:keys [_layer _national-layer-timeline] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
    {:class (when active? "active-layer")}
    [layer-card-header props]
@@ -278,7 +278,7 @@
 
 (defn main-national-layer-card
   "Wrapper of main-national-layer-card-content in a card for displaying in lists."
-  [{:keys [_layer _layer-state] :as props}]
+  [{:keys [_layer _layer-state _national-layer-timeline] :as props}]
   [b/card
    {:elevation 1
     :class     "layer-card"}

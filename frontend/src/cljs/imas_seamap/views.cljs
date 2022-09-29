@@ -225,7 +225,7 @@
                                                [:map.layers/filter (.. event -target -value)])}]]))
 
 (defn- active-layer-selection-list
-  [{:keys [layers visible-layers main-national-layer loading-fn error-fn expanded-fn opacity-fn]}]
+  [{:keys [layers visible-layers main-national-layer national-layer-timeline loading-fn error-fn expanded-fn opacity-fn]}]
   [components/items-selection-list
    {:items
     (for [{:keys [id] :as layer} layers]
@@ -240,7 +240,8 @@
             :loading?  (loading-fn layer)
             :errors?   (error-fn layer)
             :expanded? (expanded-fn layer)
-            :opacity   (opacity-fn layer)}}]
+            :opacity   (opacity-fn layer)}
+           :national-layer-timeline national-layer-timeline}]
          [layer-card
           {:layer layer
            :layer-state
@@ -510,7 +511,7 @@
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
+        {:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer national-layer-timeline]} @(re-frame/subscribe [:map/layers])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
     [components/drawer
@@ -556,6 +557,7 @@
                     {:layers         active-layers
                      :visible-layers visible-layers
                      :main-national-layer main-national-layer
+                     :national-layer-timeline national-layer-timeline
                      :loading-fn     loading-layers
                      :error-fn       error-layers
                      :expanded-fn    expanded-layers
