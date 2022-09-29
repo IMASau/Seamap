@@ -114,6 +114,7 @@
           save-state
           category
           keyed-layers
+          national-layer-timeline
           amp-boundaries
           imcra-boundaries
           meow-boundaries
@@ -126,24 +127,25 @@
         {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
      db [:config :urls]
-     {:layer-url                 (str api-url-base layer)
-      :base-layer-url            (str api-url-base base-layer)
-      :base-layer-group-url      (str api-url-base base-layer-group)
-      :organisation-url          (str api-url-base organisation)
-      :classification-url        (str api-url-base classification)
-      :region-stats-url          (str api-url-base region-stats)
-      :descriptor-url            (str api-url-base descriptor)
-      :save-state-url            (str api-url-base save-state)
-      :category-url              (str api-url-base category)
-      :keyed-layers-url          (str api-url-base keyed-layers)
-      :amp-boundaries-url        (str api-url-base amp-boundaries)
-      :imcra-boundaries-url      (str api-url-base imcra-boundaries)
-      :meow-boundaries-url       (str api-url-base meow-boundaries)
-      :habitat-statistics-url    (str api-url-base habitat-statistics)
-      :bathymetry-statistics-url (str api-url-base bathymetry-statistics)
-      :habitat-observations-url  (str api-url-base habitat-observations)
-      :layer-previews-url        (str media-url-base layer-previews)
-      :story-maps-url            (str wordpress-url-base story-maps)})))
+     {:layer-url                   (str api-url-base layer)
+      :base-layer-url              (str api-url-base base-layer)
+      :base-layer-group-url        (str api-url-base base-layer-group)
+      :organisation-url            (str api-url-base organisation)
+      :classification-url          (str api-url-base classification)
+      :region-stats-url            (str api-url-base region-stats)
+      :descriptor-url              (str api-url-base descriptor)
+      :save-state-url              (str api-url-base save-state)
+      :category-url                (str api-url-base category)
+      :keyed-layers-url            (str api-url-base keyed-layers)
+      :national-layer-timeline-url (str api-url-base national-layer-timeline)
+      :amp-boundaries-url          (str api-url-base amp-boundaries)
+      :imcra-boundaries-url        (str api-url-base imcra-boundaries)
+      :meow-boundaries-url         (str api-url-base meow-boundaries)
+      :habitat-statistics-url      (str api-url-base habitat-statistics)
+      :bathymetry-statistics-url   (str api-url-base bathymetry-statistics)
+      :habitat-observations-url    (str api-url-base habitat-observations)
+      :layer-previews-url          (str media-url-base layer-previews)
+      :story-maps-url              (str wordpress-url-base story-maps)})))
 
 (defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (assoc-in
@@ -248,6 +250,7 @@
                 descriptor-url
                 category-url
                 keyed-layers-url
+                national-layer-timeline-url
                 amp-boundaries-url
                 imcra-boundaries-url
                 meow-boundaries-url
@@ -292,6 +295,11 @@
                    :uri             keyed-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-keyed-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             national-layer-timeline-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-national-layer-timeline]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             amp-boundaries-url

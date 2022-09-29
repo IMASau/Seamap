@@ -23,6 +23,7 @@
                      :preview-layer   nil
                      :viewport-only?  false
                      :keyed-layers    {}
+                     :national-layer-timeline []
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}
@@ -96,6 +97,7 @@
                                  :save-state            "savestates"
                                  :category              "categories/"
                                  :keyed-layers          "keyedlayers/"
+                                 :national-layer-timeline "nationallayertimeline/"
                                  :amp-boundaries        "habitat/ampboundaries"
                                  :imcra-boundaries      "habitat/imcraboundaries"
                                  :meow-boundaries       "habitat/meowboundaries"
