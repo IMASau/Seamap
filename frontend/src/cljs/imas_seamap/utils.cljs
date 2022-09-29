@@ -267,6 +267,7 @@
     [:map :organisations]
     [:map :categories]
     [:map :keyed-layers]
+    [:map :national-layer-timeline]
     [:map :leaflet-map]
     [:map :legends]
     [:state-of-knowledge :boundaries :amp :networks]
