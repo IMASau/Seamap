@@ -27,6 +27,9 @@
         {:db       db
          :dispatch [:maybe-autosave]}))))
 
+(defn national-layer-timeline-selected [db [_ national-layer-timeline-selected]]
+  (assoc-in db [:map :national-layer-timeline-selected] national-layer-timeline-selected))
+
 (defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a
   geographic point, to translate a click into a feature. The

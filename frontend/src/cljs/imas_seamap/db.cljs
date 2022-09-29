@@ -24,6 +24,7 @@
                      :viewport-only?  false
                      :keyed-layers    {}
                      :national-layer-timeline []
+                     :national-layer-timeline-selected nil
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}

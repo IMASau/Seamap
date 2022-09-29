@@ -176,6 +176,8 @@
   (s/coll-of :map.national-layer-timeline/entry
              :kind vector?))
 
+(s/def :map/national-layer-timeline-selected (s/nilable :map.national-layer-timeline/entry))
+
 (s/def :map/legends
   (s/map-of :map.layer/id
             (s/or
@@ -201,7 +203,8 @@
                    :map/organisations
                    :map/viewport-only?
                    :map/keyed-layers
-                   :map/national-layer-timeline]))
+                   :map/national-layer-timeline
+                   :map/national-layer-timeline-selected]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
 (s/def :map.state/error-count (s/map-of :map/layer integer?))

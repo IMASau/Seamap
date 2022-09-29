@@ -54,13 +54,8 @@
         viewport-layers (viewport-layers bounds layers)
         filtered-layers (filter (partial match-layer filter-text categories) layers)
         sorted-layers   (sort-layers filtered-layers sorting)
-        national-layer-timeline
-        (mapv
-         (fn [{layer-id :layer :as timeline-entry}]
-           (assoc
-            timeline-entry :layer
-            (first-where #(= (:id %) layer-id) all-layers)))
-         national-layer-timeline)]
+        main-national-layer (-> national-layer-timeline last :layer)
+        main-national-layer (first-where #(= (:id %) main-national-layer) all-layers)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
@@ -71,7 +66,7 @@
      :filtered-layers filtered-layers
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
-     :main-national-layer (-> national-layer-timeline last :layer)
+     :main-national-layer main-national-layer
      :national-layer-timeline national-layer-timeline}))
 
 (defn map-base-layers [{:keys [map]} _]
@@ -87,6 +82,9 @@
 (defn categories-map [db _]
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))
+
+(defn national-layer-timeline-selected [db _]
+  (get-in db [:map :national-layer-timeline-selected]))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
