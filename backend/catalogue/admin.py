@@ -13,6 +13,7 @@ admin.site.register(models.Layer)
 admin.site.register(models.BaseLayerGroup)
 admin.site.register(models.BaseLayer)
 admin.site.register(models.KeyedLayer)
+admin.site.register(models.NationalLayerTimeline)
 
 class SaveStateAdmin(admin.ModelAdmin):
     readonly_fields = ('time_created',)

@@ -81,3 +81,8 @@ class KeyedLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.KeyedLayer
         fields = ('keyword', 'layer')
+
+class NationalLayerTimelineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.NationalLayerTimeline
+        fields = '__all__'

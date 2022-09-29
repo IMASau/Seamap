@@ -135,3 +135,11 @@ class KeyedLayer(models.Model):
 
     def __str__(self):
         return self.keyword
+
+@python_2_unicode_compatible
+class NationalLayerTimeline(models.Model):
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    year = models.IntegerField()
+
+    def __str__(self):
+        return f'{self.layer} ({self.year})'
