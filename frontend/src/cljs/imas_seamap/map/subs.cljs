@@ -3,8 +3,8 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
-            [imas-seamap.utils :refer [map-on-key]]
-            [imas-seamap.map.utils :refer [bbox-intersects? region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers]]
+            [imas-seamap.utils :refer [map-on-key first-where]]
+            [imas-seamap.map.utils :refer [bbox-intersects? region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers ]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
@@ -44,14 +44,23 @@
            (> (/ error-count total-count)
               0.4)))))       ; Might be nice to make this configurable eventually
 
-(defn map-layers [{:keys [layer-state filters map sorting] :as _db} _]
-  (let [{:keys [layers active-layers hidden-layers bounds]} map
-        categories      (map-on-key (:categories map) :name)
+(defn map-layers [{:keys [layer-state filters sorting]
+                   {:keys [layers active-layers hidden-layers bounds categories national-layer-timeline]} :map
+                   :as _db} _]
+  (let [all-layers      layers
+        categories      (map-on-key categories :name)
         filter-text     (:layers filters)
         layers          (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
         viewport-layers (viewport-layers bounds layers)
         filtered-layers (filter (partial match-layer filter-text categories) layers)
-        sorted-layers   (sort-layers filtered-layers sorting)]
+        sorted-layers   (sort-layers filtered-layers sorting)
+        national-layer-timeline
+        (mapv
+         (fn [{layer-id :layer :as timeline-entry}]
+           (assoc
+            timeline-entry :layer
+            (first-where #(= (:id %) layer-id) all-layers)))
+         national-layer-timeline)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
@@ -62,7 +71,8 @@
      :filtered-layers filtered-layers
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
-     :main-national-layer (first (get-in map [:keyed-layers :main-national-layer]))}))
+     :main-national-layer (-> national-layer-timeline last :layer)
+     :national-layer-timeline national-layer-timeline}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
