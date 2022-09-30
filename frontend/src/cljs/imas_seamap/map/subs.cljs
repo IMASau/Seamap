@@ -4,7 +4,7 @@
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
             [imas-seamap.utils :refer [map-on-key first-where]]
-            [imas-seamap.map.utils :refer [bbox-intersects? region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers]]
+            [imas-seamap.map.utils :refer [bbox-intersects? region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers main-national-layer]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
@@ -54,8 +54,7 @@
         viewport-layers (viewport-layers bounds layers)
         filtered-layers (filter (partial match-layer filter-text categories) layers)
         sorted-layers   (sort-layers filtered-layers sorting)
-        main-national-layer (-> national-layer-timeline last :layer)
-        main-national-layer (first-where #(= (:id %) main-national-layer) all-layers)]
+        main-national-layer (main-national-layer db-map)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
@@ -91,12 +90,9 @@
     (last (get-in db [:map :national-layer-timeline])))))
 
 (defn national-layer-alternate-view [db _]
-  (let [{:keys [national-layer-timeline layers]} (:map db)
-        main-national-layer (-> national-layer-timeline last :layer)
-        main-national-layer (first-where #(= (:id %) main-national-layer) layers)]
-    (or ; we use 'or' here instead of having an additional param in 'get-in' because get-in will actually read nil as a success and return that
-     (get-in db [:map :national-layer-alternate-view])
-     main-national-layer)))
+  (or ; we use 'or' here instead of having an additional param in 'get-in' because get-in will actually read nil as a success and return that
+   (get-in db [:map :national-layer-alternate-view])
+   (main-national-layer (:map db))))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
