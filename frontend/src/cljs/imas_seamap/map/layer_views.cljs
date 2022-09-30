@@ -207,9 +207,9 @@
    [b/slider
     {:min          (apply min national-layer-years)
      :max          (apply max national-layer-years)
-     :value        @(re-frame/subscribe [:map/national-layer-year])
+     :value        @(re-frame/subscribe [:map.national-layer/year])
      :label-values national-layer-years
-     :on-change    #(re-frame/dispatch [:map/national-layer-year %])}]])
+     :on-change    #(re-frame/dispatch [:map.national-layer/year %])}]])
 
 (defn- main-national-layer-details
   "Expanded details for main national layer. Differs from regular details by having
@@ -218,7 +218,7 @@
   [{:keys [_layer national-layer-years national-layer-alternate-views] {:keys [_opacity]} :layer-state}]
   (let [selected-tab (reagent/atom "legend")]
     (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
-      (let [displayed-national-layer @(re-frame/subscribe [:map/displayed-national-layer])]
+      (let [displayed-national-layer @(re-frame/subscribe [:map.national-layer/displayed-layer])]
         [:div.layer-details
          [b/slider
           {:label-renderer false :initial-value 0 :max 100 :value opacity
@@ -246,9 +246,9 @@
               [components/form-group
                {:label "Alternate View"}
                [components/select
-                {:value        @(re-frame/subscribe [:map/national-layer-alternate-view])
+                {:value        @(re-frame/subscribe [:map.national-layer/alternate-view])
                  :options      national-layer-alternate-views
-                 :onChange     #(re-frame/dispatch [:map/national-layer-alternate-view %])
+                 :onChange     #(re-frame/dispatch [:map.national-layer/alternate-view %])
                  :isSearchable true
                  :isClearable  true
                  :keyfns

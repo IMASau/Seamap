@@ -318,7 +318,7 @@
   (let [id (-> national-layer-timeline last :layer)]
     (first-where #(= (:id %) id) layers)))
 
-(defn displayed-national-layer-util
+(defn displayed-national-layer
   "What layer is currently being substituted for the main national layer?"
   [{:keys [national-layer-timeline-selected national-layer-alternate-view layers] :as db-map}]
   (let [main-national-layer    (main-national-layer db-map)
