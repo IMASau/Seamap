@@ -25,6 +25,7 @@
                      :keyed-layers    {}
                      :national-layer-timeline []
                      :national-layer-timeline-selected nil
+                     :national-layer-alternate-view-selected nil
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}

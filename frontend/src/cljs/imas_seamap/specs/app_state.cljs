@@ -177,6 +177,7 @@
              :kind vector?))
 
 (s/def :map/national-layer-timeline-selected (s/nilable :map.national-layer-timeline/entry))
+(s/def :map/national-layer-alternate-view-selected (s/nilable :map/layer))
 
 (s/def :map/legends
   (s/map-of :map.layer/id
@@ -204,7 +205,8 @@
                    :map/viewport-only?
                    :map/keyed-layers
                    :map/national-layer-timeline
-                   :map/national-layer-timeline-selected]))
+                   :map/national-layer-timeline-selected
+                   :map/national-layer-alternate-view-selected]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
 (s/def :map.state/error-count (s/map-of :map/layer integer?))
