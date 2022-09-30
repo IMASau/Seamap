@@ -45,7 +45,7 @@
               0.4)))))       ; Might be nice to make this configurable eventually
 
 (defn map-layers [{:keys [layer-state filters sorting]
-                   {:keys [layers active-layers hidden-layers bounds categories national-layer-timeline]} :map
+                   {:keys [layers active-layers hidden-layers bounds categories national-layer-timeline keyed-layers]} :map
                    :as _db} _]
   (let [all-layers      layers
         categories      (map-on-key categories :name)
@@ -67,7 +67,8 @@
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
      :main-national-layer main-national-layer
-     :national-layer-timeline national-layer-timeline}))
+     :national-layer-timeline national-layer-timeline
+     :national-layer-alternate-views (:national-layer-alternate-view keyed-layers)}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))

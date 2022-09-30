@@ -220,9 +220,8 @@
   "Expanded details for main national layer. Differs from regular details by having
    a tabbed view, with a tab for the legend and a tab for filters. The filters
    alter how the main national layer is displayed on the map."
-  [{:keys [_layer national-layer-timeline] {:keys [_opacity]} :layer-state}]
-  (let [selected-tab (reagent/atom "legend") 
-        alternate-view (reagent/atom nil)]   ; Graduate to event probably at some point to be able to filter displayed layer
+  [{:keys [_layer national-layer-timeline national-layer-alternate-views] {:keys [_opacity]} :layer-state}]
+  (let [selected-tab (reagent/atom "legend")]
     (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
       [:div.layer-details
        [b/slider
@@ -239,7 +238,7 @@
           :panel
           (reagent/as-element
            [:<>
-            (when @alternate-view [:h2.bp3-heading @alternate-view])
+            (when layer [:h2.bp3-heading (:name layer)])
             [legend-display layer]])}]
         
         [b/tab
@@ -251,21 +250,20 @@
             [components/form-group
              {:label "Alternate View"}
              [components/select
-              {:value        @alternate-view        
-               :options
-               ["CBICS Classified" "Seagrass" "..." ".." "."]
-               :onChange     #(reset! alternate-view %)
+              {:value        layer
+               :options      (cons layer national-layer-alternate-views)
+               :onChange     #(js/console.log %)
                :isSearchable true
                :isClearable  true
                :keyfns
-               {:id   identity
-                :text identity}}]]
+               {:id   :id
+                :text :name}}]]
             [main-national-layer-time-filter national-layer-timeline]])}]]])))
 
 (defn- main-national-layer-card-content
   "Content of the main national layer card; includes both the header and the main
    national layer details that can be expanded and collapsed."
-  [{:keys [_layer _national-layer-timeline] {:keys [active? expanded?]} :layer-state :as props}]
+  [{:keys [_layer _national-layer-timeline _national-layer-alternate-views] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
    {:class (when active? "active-layer")}
    [layer-card-header props]
@@ -274,7 +272,7 @@
 
 (defn main-national-layer-card
   "Wrapper of main-national-layer-card-content in a card for displaying in lists."
-  [{:keys [_layer _layer-state _national-layer-timeline] :as props}]
+  [{:keys [_layer _layer-state _national-layer-timeline _national-layer-alternate-views] :as props}]
   [b/card
    {:elevation 1
     :class     "layer-card"}
