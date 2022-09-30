@@ -118,7 +118,7 @@ class BaseLayer(models.Model):
 class SaveState(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     hashstate = models.CharField(max_length = 5000)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     time_created = models.DateTimeField()
 
     def __str__(self):
@@ -131,7 +131,7 @@ class SaveState(models.Model):
 class KeyedLayer(models.Model):
     keyword = models.CharField(max_length = 200)
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.keyword
