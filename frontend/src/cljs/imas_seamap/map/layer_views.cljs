@@ -202,23 +202,29 @@
 (defn- main-national-layer-time-filter
   "Time filter for main national layer, which filters what layers are displayed on
    the map."
-  [national-layer-years]
+  [years year]
   [components/form-group {:label "Time"}
    [b/slider
-    {:min          (apply min national-layer-years)
-     :max          (apply max national-layer-years)
-     :value        @(re-frame/subscribe [:map.national-layer/year])
-     :label-values national-layer-years
+    {:min          (apply min years)
+     :max          (apply max years)
+     :value        (or year (apply max years))
+     :label-values years
      :on-change    #(re-frame/dispatch [:map.national-layer/year %])}]])
 
 (defn- main-national-layer-details
   "Expanded details for main national layer. Differs from regular details by having
    a tabbed view, with a tab for the legend and a tab for filters. The filters
    alter how the main national layer is displayed on the map."
-  [{:keys [_layer national-layer-years national-layer-alternate-views] {:keys [_opacity]} :layer-state}]
+  [{:keys [_layer] {:keys [_opacity]} :layer-state}]
   (let [selected-tab (reagent/atom "legend")]
     (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
-      (let [displayed-national-layer @(re-frame/subscribe [:map.national-layer/displayed-layer])]
+      (let [{:keys
+             [years
+              year
+              alternate-views
+              alternate-view
+              displayed-layer]}
+            @(re-frame/subscribe [:map/national-layer])]
         [:div.layer-details
          [b/slider
           {:label-renderer false :initial-value 0 :max 100 :value opacity
@@ -234,8 +240,8 @@
             :panel
             (reagent/as-element
              [:<>
-              (when (not= displayed-national-layer layer) [:h2.bp3-heading (:name displayed-national-layer)])
-              [legend-display displayed-national-layer]])}]
+              (when (not= displayed-layer layer) [:h2.bp3-heading (:name displayed-layer)])
+              [legend-display displayed-layer]])}]
 
           [b/tab
            {:id    "filters"
@@ -246,20 +252,20 @@
               [components/form-group
                {:label "Alternate View"}
                [components/select
-                {:value        @(re-frame/subscribe [:map.national-layer/alternate-view])
-                 :options      national-layer-alternate-views
+                {:value        alternate-view
+                 :options      alternate-views
                  :onChange     #(re-frame/dispatch [:map.national-layer/alternate-view %])
                  :isSearchable true
                  :isClearable  true
                  :keyfns
                  {:id   :id
                   :text :name}}]]
-              [main-national-layer-time-filter national-layer-years]])}]]]))))
+              [main-national-layer-time-filter years year]])}]]]))))
 
 (defn- main-national-layer-card-content
   "Content of the main national layer card; includes both the header and the main
    national layer details that can be expanded and collapsed."
-  [{:keys [_layer _national-layer-years _national-layer-alternate-views] {:keys [active? expanded?]} :layer-state :as props}]
+  [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
    {:class (when active? "active-layer")}
    [layer-card-header props]
@@ -268,7 +274,7 @@
 
 (defn main-national-layer-card
   "Wrapper of main-national-layer-card-content in a card for displaying in lists."
-  [{:keys [_layer _layer-state _national-layer-years _national-layer-alternate-views] :as props}]
+  [{:keys [_layer _layer-state] :as props}]
   [b/card
    {:elevation 1
     :class     "layer-card"}

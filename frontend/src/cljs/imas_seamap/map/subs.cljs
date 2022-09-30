@@ -45,7 +45,7 @@
               0.4)))))       ; Might be nice to make this configurable eventually
 
 (defn map-layers [{:keys [layer-state filters sorting]
-                   {:keys [layers active-layers bounds categories national-layer-timeline keyed-layers] :as db-map} :map
+                   {:keys [layers active-layers bounds categories] :as db-map} :map
                    :as _db} _]
   (let [categories      (map-on-key categories :name)
         filter-text     (:layers filters)
@@ -64,9 +64,7 @@
      :filtered-layers filtered-layers
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
-     :main-national-layer main-national-layer
-     :national-layer-years (mapv :year national-layer-timeline)
-     :national-layer-alternate-views (vec (cons main-national-layer (:national-layer-alternate-view keyed-layers)))}))
+     :main-national-layer main-national-layer}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
@@ -82,19 +80,12 @@
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))
 
-(defn national-layer-year [db _]
-  (:year
-   (or ; we use 'or' here instead of having an additional param in 'get-in' because get-in will actually read nil as a success and return that
-    (get-in db [:map :national-layer-timeline-selected])
-    (last (get-in db [:map :national-layer-timeline])))))
-
-(defn national-layer-alternate-view [db _]
-  (or ; we use 'or' here instead of having an additional param in 'get-in' because get-in will actually read nil as a success and return that
-   (get-in db [:map :national-layer-alternate-view])
-   (main-national-layer (:map db))))
-
-(defn national-layer-displayed-layer [db _]
-  (displayed-national-layer (:map db)))
+(defn national-layer [db _]
+  {:years           (mapv :year (get-in db [:map :national-layer-timeline]))
+   :year            (get-in db [:map :national-layer-timeline-selected :year])
+   :alternate-views (get-in db [:map :keyed-layers :national-layer-alternate-view])
+   :alternate-view  (get-in db [:map :national-layer-alternate-view])
+   :displayed-layer (displayed-national-layer (:map db))})
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))

@@ -36,9 +36,7 @@
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
-    :map.national-layer/year              msubs/national-layer-year
-    :map.national-layer/alternate-view    msubs/national-layer-alternate-view
-    :map.national-layer/displayed-layer   msubs/national-layer-displayed-layer
+    :map/national-layer                   msubs/national-layer
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/lookup                    msubs/map-layer-lookup

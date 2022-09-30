@@ -332,7 +332,7 @@
   "Shows only layers which should be visible from the map."
   [{:keys [hidden-layers active-layers] :as db-map}]
   (let [main-national-layer    (main-national-layer db-map)
-        displayed-national-layer (displayed-national-layer-util db-map)]
+        displayed-national-layer (displayed-national-layer db-map)]
     (->> active-layers
          (remove #(hidden-layers %))
          (replace {main-national-layer displayed-national-layer}))))
