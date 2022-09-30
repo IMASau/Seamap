@@ -84,7 +84,9 @@
     (map-on-key categories :name)))
 
 (defn national-layer-timeline-selected [db _]
-  (get-in db [:map :national-layer-timeline-selected]))
+  (or ; we use 'or' here instead of having an additional param in 'get-in' because get-in will actually read nil as a success and return that
+   (get-in db [:map :national-layer-timeline-selected])
+   (last (get-in db [:map :national-layer-timeline]))))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))

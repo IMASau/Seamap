@@ -3,7 +3,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b]
             [imas-seamap.components :as components]
-            [imas-seamap.utils :refer [round-to-nearest]]
+            [imas-seamap.utils :refer [round-to-nearest first-where]]
             [clojure.string :as string]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -204,16 +204,17 @@
   "Time filter for main national layer, which filters what layers are displayed on
    the map."
   [national-layer-timeline]
-  (let [years (mapv :year national-layer-timeline)
-        value (reagent/atom (apply max years))] ; Graduate to event probably at some point to be able to filter displayed layer
+  (let [years (mapv :year national-layer-timeline)]
     (fn [_national-layer-timeline]
       [components/form-group {:label "Time"}
        [b/slider
         {:min             (apply min years)
          :max             (apply max years)
-         :value           @value
+         :value           (:year @(re-frame/subscribe [:map/national-layer-timeline-selected]))
          :label-values    years
-         :on-change       #(reset! value (round-to-nearest % years))}]]))) ; there's no "stepValues" prop for the Blueprint slider, so we just round it to the nearest step ourselves
+         :on-change       #(let [nearest-year (round-to-nearest % years)  ; there's no "stepValues" prop for the Blueprint slider, so we just round it to the nearest step ourselves
+                                 national-layer-timeline-selected (first-where (fn [{:keys [year]}] (= year nearest-year)) national-layer-timeline)]
+                             (re-frame/dispatch [:map/national-layer-timeline-selected national-layer-timeline-selected]))}]])))
 
 (defn- main-national-layer-details
   "Expanded details for main national layer. Differs from regular details by having
