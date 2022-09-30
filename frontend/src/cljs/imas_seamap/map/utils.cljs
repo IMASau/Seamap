@@ -4,7 +4,7 @@
 (ns imas-seamap.map.utils
   (:require [cemerick.url :as url]
             [clojure.string :as string]
-            [imas-seamap.utils :refer [merge-in select-values]]
+            [imas-seamap.utils :refer [merge-in select-values first-where]]
             ["proj4" :as proj4]
             [imas-seamap.interop.leaflet :as leaflet]
             [imas-seamap.db :as db]
@@ -320,5 +320,13 @@
 
 (defn visible-layers
   "Shows only layers which should be visible from the map."
-  [{:keys [hidden-layers active-layers] :as _map}]
-  (remove #(hidden-layers %) active-layers))
+  [{:keys [hidden-layers active-layers national-layer-timeline-selected national-layer-alternate-view layers] :as db-map}]
+  (let [main-national-layer    (main-national-layer db-map)
+        national-layer-timeline-selected (first-where #(= (:id %) (:layer national-layer-timeline-selected)) layers)
+        replace-national-layer (or
+                                national-layer-timeline-selected
+                                national-layer-alternate-view
+                                main-national-layer)]
+    (->> active-layers
+         (remove #(hidden-layers %))
+         (replace {main-national-layer replace-national-layer}))))
