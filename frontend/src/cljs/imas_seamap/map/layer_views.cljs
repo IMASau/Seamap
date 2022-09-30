@@ -199,6 +199,43 @@
 
 ;; Main national layer
 
+(defn- main-national-layer-card-controls
+  "To the right of the layer name. Basic controls for the layer. Different from
+   regular layer card controls because the controls are based on the state of the
+   main national layer."
+  [{:keys [layer] {:keys [visible?]} :layer-state}]
+  [:div.layer-controls
+
+   [layer-control
+    {:tooltip  "Layer info / Download data"
+     :icon     "info-sign"
+     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
+
+   [layer-control
+    {:tooltip  "Zoom to layer"
+     :icon     "zoom-to-fit"
+     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
+
+   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
+    [b/icon
+     {:icon     (if visible? "eye-on" "eye-off")
+      :size     20
+      :class    "bp3-text-muted layer-control"
+      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]]
+
+   [layer-control
+    {:tooltip  "Deactivate layer"
+     :icon     "remove"
+     :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
+
+(defn- main-national-layer-card-header
+  [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [:div.layer-header
+   (when (and active? visible?)
+     [layer-status-icons layer-state])
+   [layer-header-text props]
+   [main-national-layer-card-controls props]])
+
 (defn- main-national-layer-alternate-view-select
   [{:keys [year years alternate-views alternate-view]}]
   [components/form-group
@@ -270,7 +307,7 @@
   [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
    {:class (when active? "active-layer")}
-   [layer-card-header props]
+   [main-national-layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [main-national-layer-details props]]])
 
