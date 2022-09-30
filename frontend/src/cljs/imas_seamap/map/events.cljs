@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -145,8 +145,7 @@
   {:dispatch [:map/got-featureinfo request-id point nil nil layers]})
 
 (defn feature-info-dispatcher [{:keys [db]} [_ leaflet-props point]]
-  (let [{:keys [hidden-layers active-layers]} (:map db)
-        visible-layers (remove #((set hidden-layers) %) active-layers)
+  (let [visible-layers (visible-layers (:map db))
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         per-request    (group-by (juxt :server_url :info_format_type) secure-layers)
         request-id     (gensym)
@@ -176,8 +175,7 @@
        {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))
 
 (defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
-  (let [{:keys [hidden-layers active-layers]} (:map db)
-        visible-layers (remove #((set hidden-layers) %) active-layers)
+  (let [visible-layers (visible-layers (:map db))
         boundary       (first-where #(= (:category %) :boundaries) visible-layers)
         habitat        (region-stats-habitat-layer db)
         [x y]          (wgs84->epsg3112 ((juxt :lng :lat) point))
@@ -210,8 +208,7 @@
   we're in calculating-region-statistics mode we want to issue a
   different request, and it's cleaner to handle those separately."
   [{:keys [db] :as ctx} event-v]
-  (let [{:keys [hidden-layers active-layers]} (:map db)
-        visible-layers (remove #((set hidden-layers) %) active-layers)]
+  (let [visible-layers (visible-layers (:map db))]
     (cond
       (get-in db [:map :controls :ignore-click])
       {:dispatch [:map/toggle-ignore-click]}

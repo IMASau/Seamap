@@ -313,3 +313,8 @@
                    (conj acc [lyr o])
                    acc))
                {})))
+
+(defn visible-layers
+  "Shows only layers which should be visible from the map."
+  [{:keys [hidden-layers active-layers] :as _map}]
+  (remove #(hidden-layers %) active-layers))

@@ -11,7 +11,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers]]
-            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities]]
+            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities visible-layers]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -451,7 +451,7 @@
     {:distance 0 :prev-latlng (first linestring)}
     (rest linestring))))
 
-(defn transect-query [{{{:keys [active-layers hidden-layers]} :map :as db} :db} [_ geojson]]
+(defn transect-query [{{db-map :map :as db} :db} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
   ;; unlikely race conditions; do this before dispatching)
   (let [query-id (gensym)
@@ -461,7 +461,7 @@
                                 :distance (linestring->distance linestring)
                                 :habitat :loading
                                 :bathymetry :loading})
-        visible-layers (filter #(not (hidden-layers %)) active-layers)
+        visible-layers (visible-layers db-map)
         habitat-layers (filter habitat-layer? visible-layers)]
     (merge
      {:db         db
@@ -499,8 +499,8 @@
       {:db      (assoc-in db [:transect type] status-text)
        :message [status-text b/INTENT-DANGER]})))
 
-(defn transect-query-habitat [{{{:keys [active-layers hidden-layers]} :map :as db} :db} [_ query-id linestring]]
-  (let [visible-layers (filter #(not (hidden-layers %)) active-layers)
+(defn transect-query-habitat [{{db-map :map :as db} :db} [_ query-id linestring]]
+  (let [visible-layers (visible-layers db-map)
         habitat-layers (filter habitat-layer? visible-layers)
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it

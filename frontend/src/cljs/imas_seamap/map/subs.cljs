@@ -4,7 +4,7 @@
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
             [imas-seamap.utils :refer [map-on-key first-where]]
-            [imas-seamap.map.utils :refer [bbox-intersects? region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers ]]
+            [imas-seamap.map.utils :refer [bbox-intersects? region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
@@ -45,7 +45,7 @@
               0.4)))))       ; Might be nice to make this configurable eventually
 
 (defn map-layers [{:keys [layer-state filters sorting]
-                   {:keys [layers active-layers hidden-layers bounds categories national-layer-timeline keyed-layers]} :map
+                   {:keys [layers active-layers bounds categories national-layer-timeline keyed-layers] :as db-map} :map
                    :as _db} _]
   (let [all-layers      layers
         categories      (map-on-key categories :name)
@@ -61,7 +61,7 @@
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
      :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers
-     :visible-layers  (filter (fn [layer] (not (contains? hidden-layers layer))) active-layers)
+     :visible-layers  (visible-layers db-map)
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
      :filtered-layers filtered-layers
      :sorted-layers   sorted-layers
