@@ -229,9 +229,9 @@
      :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
 
 (defn- main-national-layer-card-header
-  [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [_layer] {:keys [visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
-   (when (and active? visible?)
+   (when visible?
      [layer-status-icons layer-state])
    [layer-header-text props]
    [main-national-layer-card-controls props]])
@@ -313,8 +313,9 @@
 
 (defn main-national-layer-card
   "Wrapper of main-national-layer-card-content in a card for displaying in lists."
-  [{:keys [_layer _layer-state] :as props}]
-  [b/card
+  [{:keys [_layer] :as props}]
+  (let [layer-state @(re-frame/subscribe [:map.national-layer/state])]
+   [b/card
    {:elevation 1
     :class     "layer-card"}
-   [main-national-layer-card-content props]])
+   [main-national-layer-card-content (assoc props :layer-state layer-state)]]))

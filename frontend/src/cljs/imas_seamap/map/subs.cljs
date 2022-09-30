@@ -52,8 +52,7 @@
         layers          (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
         viewport-layers (viewport-layers bounds layers)
         filtered-layers (filter (partial match-layer filter-text categories) layers)
-        sorted-layers   (sort-layers filtered-layers sorting)
-        main-national-layer (main-national-layer db-map)]
+        sorted-layers   (sort-layers filtered-layers sorting)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
@@ -64,7 +63,7 @@
      :filtered-layers filtered-layers
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
-     :main-national-layer main-national-layer}))
+     :main-national-layer (main-national-layer db-map)}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
@@ -86,6 +85,17 @@
    :alternate-views (get-in db [:map :keyed-layers :national-layer-alternate-view])
    :alternate-view  (get-in db [:map :national-layer-alternate-view])
    :displayed-layer (displayed-national-layer (:map db))})
+
+(defn national-layer-state [{:keys [layer-state active-layers] db-map :map :as _db} _]
+  (let [{:keys [loading-state error-count tile-count]} layer-state
+        displayed-national-layer (displayed-national-layer db-map)
+        main-national-layer      (main-national-layer db-map)]
+    {:active?   (some #{main-national-layer} active-layers)
+     :visible?  true
+     :loading?  (= (get loading-state displayed-national-layer) :map.layer/loading) ; this doesn't get its own field in the db because its dependent on the currently displayed layer
+     :errors?   ((make-error-fn error-count tile-count) displayed-national-layer)   ; this doesn't get its own field in the db because its dependent on the currently displayed layer
+     :expanded? true
+     :opacity   100}))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
