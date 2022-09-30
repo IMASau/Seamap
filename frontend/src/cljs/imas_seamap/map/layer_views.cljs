@@ -3,7 +3,6 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b]
             [imas-seamap.components :as components]
-            [imas-seamap.utils :refer [round-to-nearest first-where]]
             [clojure.string :as string]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -203,24 +202,20 @@
 (defn- main-national-layer-time-filter
   "Time filter for main national layer, which filters what layers are displayed on
    the map."
-  [national-layer-timeline]
-  (let [years (mapv :year national-layer-timeline)]
-    (fn [_national-layer-timeline]
-      [components/form-group {:label "Time"}
-       [b/slider
-        {:min             (apply min years)
-         :max             (apply max years)
-         :value           (:year @(re-frame/subscribe [:map/national-layer-timeline-selected]))
-         :label-values    years
-         :on-change       #(let [nearest-year (round-to-nearest % years)  ; there's no "stepValues" prop for the Blueprint slider, so we just round it to the nearest step ourselves
-                                 national-layer-timeline-selected (first-where (fn [{:keys [year]}] (= year nearest-year)) national-layer-timeline)]
-                             (re-frame/dispatch [:map/national-layer-timeline-selected national-layer-timeline-selected]))}]])))
+  [national-layer-years]
+  [components/form-group {:label "Time"}
+   [b/slider
+    {:min          (apply min national-layer-years)
+     :max          (apply max national-layer-years)
+     :value        @(re-frame/subscribe [:map/national-layer-year])
+     :label-values national-layer-years
+     :on-change    #(re-frame/dispatch [:map/national-layer-year %])}]])
 
 (defn- main-national-layer-details
   "Expanded details for main national layer. Differs from regular details by having
    a tabbed view, with a tab for the legend and a tab for filters. The filters
    alter how the main national layer is displayed on the map."
-  [{:keys [_layer national-layer-timeline national-layer-alternate-views] {:keys [_opacity]} :layer-state}]
+  [{:keys [_layer national-layer-years national-layer-alternate-views] {:keys [_opacity]} :layer-state}]
   (let [selected-tab (reagent/atom "legend")]
     (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
       [:div.layer-details
@@ -258,12 +253,12 @@
                :keyfns
                {:id   :id
                 :text :name}}]]
-            [main-national-layer-time-filter national-layer-timeline]])}]]])))
+            [main-national-layer-time-filter national-layer-years]])}]]])))
 
 (defn- main-national-layer-card-content
   "Content of the main national layer card; includes both the header and the main
    national layer details that can be expanded and collapsed."
-  [{:keys [_layer _national-layer-timeline _national-layer-alternate-views] {:keys [active? expanded?]} :layer-state :as props}]
+  [{:keys [_layer _national-layer-years _national-layer-alternate-views] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
    {:class (when active? "active-layer")}
    [layer-card-header props]
@@ -272,7 +267,7 @@
 
 (defn main-national-layer-card
   "Wrapper of main-national-layer-card-content in a card for displaying in lists."
-  [{:keys [_layer _layer-state _national-layer-timeline _national-layer-alternate-views] :as props}]
+  [{:keys [_layer _layer-state _national-layer-years _national-layer-alternate-views] :as props}]
   [b/card
    {:elevation 1
     :class     "layer-card"}

@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params]]
+            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest]]
             [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
@@ -27,8 +27,11 @@
         {:db       db
          :dispatch [:maybe-autosave]}))))
 
-(defn national-layer-timeline-selected [db [_ national-layer-timeline-selected]]
-  (assoc-in db [:map :national-layer-timeline-selected] national-layer-timeline-selected))
+(defn national-layer-year [db [_ national-layer-year]] 
+  (let [national-layer-timeline          (get-in db [:map :national-layer-timeline])
+        nearest-year                     (round-to-nearest national-layer-year (map :year national-layer-timeline))
+        national-layer-timeline-selected (first-where #(= (:year %) nearest-year) national-layer-timeline)]
+   (assoc-in db [:map :national-layer-timeline-selected] national-layer-timeline-selected)))
 
 (defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a

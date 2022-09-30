@@ -67,7 +67,7 @@
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
      :main-national-layer main-national-layer
-     :national-layer-timeline national-layer-timeline
+     :national-layer-years (mapv :year national-layer-timeline)
      :national-layer-alternate-views (:national-layer-alternate-view keyed-layers)}))
 
 (defn map-base-layers [{:keys [map]} _]
@@ -84,10 +84,11 @@
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))
 
-(defn national-layer-timeline-selected [db _]
-  (or ; we use 'or' here instead of having an additional param in 'get-in' because get-in will actually read nil as a success and return that
-   (get-in db [:map :national-layer-timeline-selected])
-   (last (get-in db [:map :national-layer-timeline]))))
+(defn national-layer-year [db _]
+  (:year
+   (or ; we use 'or' here instead of having an additional param in 'get-in' because get-in will actually read nil as a success and return that
+    (get-in db [:map :national-layer-timeline-selected])
+    (last (get-in db [:map :national-layer-timeline])))))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
