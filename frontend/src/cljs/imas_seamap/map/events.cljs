@@ -31,10 +31,14 @@
   (let [national-layer-timeline          (get-in db [:map :national-layer-timeline])
         nearest-year                     (round-to-nearest national-layer-year (map :year national-layer-timeline))
         national-layer-timeline-selected (first-where #(= (:year %) nearest-year) national-layer-timeline)]
-   (assoc-in db [:map :national-layer-timeline-selected] national-layer-timeline-selected)))
+   (-> db
+       (assoc-in [:map :national-layer-alternate-view] nil)
+       (assoc-in [:map :national-layer-timeline-selected] national-layer-timeline-selected))))
 
 (defn national-layer-alternate-view [db [_ national-layer-alternate-view]]
-  (assoc-in db [:map :national-layer-alternate-view] national-layer-alternate-view))
+  (-> db
+      (assoc-in [:map :national-layer-timeline-selected] nil)
+      (assoc-in [:map :national-layer-alternate-view] national-layer-alternate-view)))
 
 (defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a
