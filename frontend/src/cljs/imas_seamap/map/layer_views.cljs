@@ -218,7 +218,7 @@
   [{:keys [_layer national-layer-years national-layer-alternate-views] {:keys [_opacity]} :layer-state}]
   (let [selected-tab (reagent/atom "legend")]
     (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
-      (let [alternate-view @(re-frame/subscribe [:map/national-layer-alternate-view])]
+      (let [displayed-national-layer @(re-frame/subscribe [:map/displayed-national-layer])]
         [:div.layer-details
          [b/slider
           {:label-renderer false :initial-value 0 :max 100 :value opacity
@@ -234,7 +234,7 @@
             :panel
             (reagent/as-element
              [:<>
-              (when (not= alternate-view layer) [:h2.bp3-heading (:name alternate-view)])
+              (when (not= displayed-national-layer layer) [:h2.bp3-heading (:name displayed-national-layer)])
               [legend-display layer]])}]
 
           [b/tab
@@ -246,7 +246,7 @@
               [components/form-group
                {:label "Alternate View"}
                [components/select
-                {:value        alternate-view
+                {:value        @(re-frame/subscribe [:map/national-layer-alternate-view])
                  :options      national-layer-alternate-views
                  :onChange     #(re-frame/dispatch [:map/national-layer-alternate-view %])
                  :isSearchable true

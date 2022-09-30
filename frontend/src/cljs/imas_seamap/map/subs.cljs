@@ -3,8 +3,8 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
-            [imas-seamap.utils :refer [map-on-key first-where]]
-            [imas-seamap.map.utils :refer [bbox-intersects? region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers main-national-layer]]
+            [imas-seamap.utils :refer [map-on-key]]
+            [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers main-national-layer displayed-national-layer]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
@@ -93,6 +93,9 @@
   (or ; we use 'or' here instead of having an additional param in 'get-in' because get-in will actually read nil as a success and return that
    (get-in db [:map :national-layer-alternate-view])
    (main-national-layer (:map db))))
+
+(defn displayed-national-layer [db _]
+  (displayed-national-layer (:map db)))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))

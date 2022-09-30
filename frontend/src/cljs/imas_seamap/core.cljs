@@ -38,6 +38,7 @@
     :map/categories-map                   msubs/categories-map
     :map/national-layer-year              msubs/national-layer-year
     :map/national-layer-alternate-view    msubs/national-layer-alternate-view
+    :map/displayed-national-layer         msubs/displayed-national-layer
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/lookup                    msubs/map-layer-lookup
