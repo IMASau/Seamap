@@ -218,42 +218,43 @@
   [{:keys [_layer national-layer-years national-layer-alternate-views] {:keys [_opacity]} :layer-state}]
   (let [selected-tab (reagent/atom "legend")]
     (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
-      [:div.layer-details
-       [b/slider
-        {:label-renderer false :initial-value 0 :max 100 :value opacity
-         :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
-       
-       [b/tabs
-        {:selected-tab-id @selected-tab
-         :on-change       #(reset! selected-tab %)}
-        
-        [b/tab
-         {:id    "legend"
-          :title "Legend"
-          :panel
-          (reagent/as-element
-           [:<>
-            (when layer [:h2.bp3-heading (:name layer)])
-            [legend-display layer]])}]
-        
-        [b/tab
-         {:id    "filters"
-          :title "Filters"
-          :panel
-          (reagent/as-element
-           [:<>
-            [components/form-group
-             {:label "Alternate View"}
-             [components/select
-              {:value        layer
-               :options      (cons layer national-layer-alternate-views)
-               :onChange     #(js/console.log %)
-               :isSearchable true
-               :isClearable  true
-               :keyfns
-               {:id   :id
-                :text :name}}]]
-            [main-national-layer-time-filter national-layer-years]])}]]])))
+      (let [alternate-view @(re-frame/subscribe [:map/national-layer-alternate-view])]
+        [:div.layer-details
+         [b/slider
+          {:label-renderer false :initial-value 0 :max 100 :value opacity
+           :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
+
+         [b/tabs
+          {:selected-tab-id @selected-tab
+           :on-change       #(reset! selected-tab %)}
+
+          [b/tab
+           {:id    "legend"
+            :title "Legend"
+            :panel
+            (reagent/as-element
+             [:<>
+              (when (not= alternate-view layer) [:h2.bp3-heading (:name alternate-view)])
+              [legend-display layer]])}]
+
+          [b/tab
+           {:id    "filters"
+            :title "Filters"
+            :panel
+            (reagent/as-element
+             [:<>
+              [components/form-group
+               {:label "Alternate View"}
+               [components/select
+                {:value        alternate-view
+                 :options      national-layer-alternate-views
+                 :onChange     #(re-frame/dispatch [:map/national-layer-alternate-view %])
+                 :isSearchable true
+                 :isClearable  true
+                 :keyfns
+                 {:id   :id
+                  :text :name}}]]
+              [main-national-layer-time-filter national-layer-years]])}]]]))))
 
 (defn- main-national-layer-card-content
   "Content of the main national layer card; includes both the header and the main

@@ -68,7 +68,7 @@
      :viewport-layers viewport-layers
      :main-national-layer main-national-layer
      :national-layer-years (mapv :year national-layer-timeline)
-     :national-layer-alternate-views (:national-layer-alternate-view keyed-layers)}))
+     :national-layer-alternate-views (vec (cons main-national-layer (:national-layer-alternate-view keyed-layers)))}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
@@ -89,6 +89,14 @@
    (or ; we use 'or' here instead of having an additional param in 'get-in' because get-in will actually read nil as a success and return that
     (get-in db [:map :national-layer-timeline-selected])
     (last (get-in db [:map :national-layer-timeline])))))
+
+(defn national-layer-alternate-view [db _]
+  (let [{:keys [national-layer-timeline layers]} (:map db)
+        main-national-layer (-> national-layer-timeline last :layer)
+        main-national-layer (first-where #(= (:id %) main-national-layer) layers)]
+    (or ; we use 'or' here instead of having an additional param in 'get-in' because get-in will actually read nil as a success and return that
+     (get-in db [:map :national-layer-alternate-view])
+     main-national-layer)))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))

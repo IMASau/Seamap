@@ -33,6 +33,9 @@
         national-layer-timeline-selected (first-where #(= (:year %) nearest-year) national-layer-timeline)]
    (assoc-in db [:map :national-layer-timeline-selected] national-layer-timeline-selected)))
 
+(defn national-layer-alternate-view [db [_ national-layer-alternate-view]]
+  (assoc-in db [:map :national-layer-alternate-view] national-layer-alternate-view))
+
 (defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a
   geographic point, to translate a click into a feature. The
