@@ -199,17 +199,33 @@
 
 ;; Main national layer
 
+(defn- main-national-layer-alternate-view-select
+  [{:keys [year years alternate-views alternate-view]}]
+  [components/form-group
+   {:label "Alternate View"}
+   [components/select
+    {:value        alternate-view
+     :options      alternate-views
+     :onChange     #(re-frame/dispatch [:map.national-layer/alternate-view %])
+     :isSearchable true
+     :isClearable  true
+     :isDisabled   (and (boolean year) (not= year (apply max years)))
+     :keyfns
+     {:id   :id
+      :text :name}}]])
+
 (defn- main-national-layer-time-filter
   "Time filter for main national layer, which filters what layers are displayed on
    the map."
-  [years year]
+  [{:keys [years year alternate-view]}]
   [components/form-group {:label "Time"}
    [b/slider
     {:min          (apply min years)
      :max          (apply max years)
      :value        (or year (apply max years))
      :label-values years
-     :on-change    #(re-frame/dispatch [:map.national-layer/year %])}]])
+     :on-change    #(re-frame/dispatch [:map.national-layer/year %])
+     :disabled     (boolean alternate-view)}]])
 
 (defn- main-national-layer-details
   "Expanded details for main national layer. Differs from regular details by having
@@ -219,11 +235,7 @@
   (let [selected-tab (reagent/atom "legend")]
     (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
       (let [{:keys
-             [years
-              year
-              alternate-views
-              alternate-view
-              displayed-layer]}
+             [_years _year _alternate-views _alternate-view displayed-layer]:as details}
             @(re-frame/subscribe [:map/national-layer])]
         [:div.layer-details
          [b/slider
@@ -249,18 +261,8 @@
             :panel
             (reagent/as-element
              [:<>
-              [components/form-group
-               {:label "Alternate View"}
-               [components/select
-                {:value        alternate-view
-                 :options      alternate-views
-                 :onChange     #(re-frame/dispatch [:map.national-layer/alternate-view %])
-                 :isSearchable true
-                 :isClearable  true
-                 :keyfns
-                 {:id   :id
-                  :text :name}}]]
-              [main-national-layer-time-filter years year]])}]]]))))
+              [main-national-layer-alternate-view-select details]
+              [main-national-layer-time-filter details]])}]]]))))
 
 (defn- main-national-layer-card-content
   "Content of the main national layer card; includes both the header and the main
