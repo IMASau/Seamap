@@ -27,18 +27,25 @@
         {:db       db
          :dispatch [:maybe-autosave]}))))
 
-(defn national-layer-year [db [_ national-layer-year]] 
-  (let [national-layer-timeline          (get-in db [:map :national-layer-timeline])
+(defn national-layer-year [{:keys [db]} [_ national-layer-year]] 
+  (let [{:keys [national-layer-timeline layers]} (:map db)
         nearest-year                     (round-to-nearest national-layer-year (map :year national-layer-timeline))
-        national-layer-timeline-selected (first-where #(= (:year %) nearest-year) national-layer-timeline)]
-   (-> db
-       (assoc-in [:map :national-layer-alternate-view] nil)
-       (assoc-in [:map :national-layer-timeline-selected] national-layer-timeline-selected))))
+        national-layer-timeline-selected (first-where #(= (:year %) nearest-year) national-layer-timeline)
+        layer                            (first-where #(= (:id %) (:layer national-layer-timeline-selected)) layers)]
+   (merge
+    {:db (-> db
+             (assoc-in [:map :national-layer-alternate-view] nil)
+             (assoc-in [:map :national-layer-timeline-selected] national-layer-timeline-selected))}
+    (when (and layer (not (get-in db [:map :legends (:id layer)])))
+      {:dispatch [:map.layer/get-legend layer]}))))
 
-(defn national-layer-alternate-view [db [_ national-layer-alternate-view]]
-  (-> db
-      (assoc-in [:map :national-layer-timeline-selected] nil)
-      (assoc-in [:map :national-layer-alternate-view] national-layer-alternate-view)))
+(defn national-layer-alternate-view [{:keys [db]} [_ national-layer-alternate-view]]
+  (merge
+   {:db (-> db
+            (assoc-in [:map :national-layer-timeline-selected] nil)
+            (assoc-in [:map :national-layer-alternate-view] national-layer-alternate-view))}
+   (when (and national-layer-alternate-view (not (get-in db [:map :legends (:id national-layer-alternate-view)])))
+     {:dispatch [:map.layer/get-legend national-layer-alternate-view]})))
 
 (defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a

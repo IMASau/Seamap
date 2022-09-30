@@ -47,8 +47,7 @@
 (defn map-layers [{:keys [layer-state filters sorting]
                    {:keys [layers active-layers bounds categories national-layer-timeline keyed-layers] :as db-map} :map
                    :as _db} _]
-  (let [all-layers      layers
-        categories      (map-on-key categories :name)
+  (let [categories      (map-on-key categories :name)
         filter-text     (:layers filters)
         layers          (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
         viewport-layers (viewport-layers bounds layers)
