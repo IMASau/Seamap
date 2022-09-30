@@ -318,7 +318,7 @@
   (let [id (-> national-layer-timeline last :layer)]
     (first-where #(= (:id %) id) layers)))
 
-(defn displayed-national-layer
+(defn displayed-national-layer-util
   "What layer is currently being substituted for the main national layer?"
   [{:keys [national-layer-timeline-selected national-layer-alternate-view layers] :as db-map}]
   (let [main-national-layer    (main-national-layer db-map)
@@ -332,7 +332,7 @@
   "Shows only layers which should be visible from the map."
   [{:keys [hidden-layers active-layers] :as db-map}]
   (let [main-national-layer    (main-national-layer db-map)
-        displayed-national-layer (displayed-national-layer db-map)]
+        displayed-national-layer (displayed-national-layer-util db-map)]
     (->> active-layers
          (remove #(hidden-layers %))
          (replace {main-national-layer displayed-national-layer}))))

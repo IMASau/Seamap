@@ -235,7 +235,7 @@
             (reagent/as-element
              [:<>
               (when (not= displayed-national-layer layer) [:h2.bp3-heading (:name displayed-national-layer)])
-              [legend-display layer]])}]
+              [legend-display displayed-national-layer]])}]
 
           [b/tab
            {:id    "filters"
