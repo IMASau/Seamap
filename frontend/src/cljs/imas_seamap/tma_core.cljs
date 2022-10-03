@@ -72,7 +72,7 @@
 
    :events
    {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
-    :construct-urls                       events/construct-urls
+    :construct-urls                       tmaevents/construct-urls
     :merge-state                          [tmaevents/merge-state]
     :re-boot                              [tmaevents/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
@@ -172,7 +172,7 @@
     :sm/update-featured-maps              smevents/update-featured-maps
     :sm/featured-map                      [smevents/featured-map]
     :sm.featured-map/open                 [smevents/featured-map-open]
-    :ui/show-loading                      events/loading-screen
+    :ui/show-loading                      tmaevents/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]
     :ui.catalogue/toggle-node             [events/catalogue-toggle-node]
