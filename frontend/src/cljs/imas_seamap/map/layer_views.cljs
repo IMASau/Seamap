@@ -86,9 +86,9 @@
   (if (string? legend-info)
     [:img {:src legend-info}] ; if legend-info is a string, we treat it as a url to a legend graphic
     [:<>                      ; else we render the legend as a vector legend
-     (map
-      (fn [{:keys [label] :as entry}]
-        ^{:key label}
+     (map-indexed
+      (fn [i entry]
+        ^{:key (str i)}
         [vector-legend-entry entry])
       legend-info)]))
 
