@@ -26,21 +26,14 @@
   {:first-dispatch [:ui/show-loading]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
-    {:when :seen? :events :construct-urls
-     :dispatch-n [[:initialise-layers]
-                  [:sok/get-habitat-statistics]
-                  [:sok/get-bathymetry-statistics]
-                  [:sok/get-habitat-observations]]}
+    {:when :seen? :events :construct-urls :dispatch [:initialise-layers]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
-                                  :map/update-categories
-                                  :sok/update-amp-boundaries
-                                  :sok/update-imcra-boundaries
-                                  :sok/update-meow-boundaries]
+                                  :map/update-categories]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -53,21 +46,14 @@
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
     {:when :seen? :events :construct-urls :dispatch [:load-hash-state hash-code]}
-    {:when :seen? :events :load-hash-state
-     :dispatch-n [[:initialise-layers]
-                  [:sok/get-habitat-statistics]
-                  [:sok/get-bathymetry-statistics]
-                  [:sok/get-habitat-observations]]}
+    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
-                                  :map/update-categories
-                                  :sok/update-amp-boundaries
-                                  :sok/update-imcra-boundaries
-                                  :sok/update-meow-boundaries]
+                                  :map/update-categories]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -80,21 +66,14 @@
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
     {:when :seen? :events :construct-urls :dispatch [:get-save-state shortcode [:load-hash-state]]}
-    {:when :seen? :events :load-hash-state
-     :dispatch-n [[:initialise-layers]
-                  [:sok/get-habitat-statistics]
-                  [:sok/get-bathymetry-statistics]
-                  [:sok/get-habitat-observations]]}
+    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
-                                  :map/update-categories
-                                  :sok/update-amp-boundaries
-                                  :sok/update-imcra-boundaries
-                                  :sok/update-meow-boundaries]
+                                  :map/update-categories]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -248,9 +227,6 @@
                 descriptor-url
                 category-url
                 keyed-layers-url
-                amp-boundaries-url
-                imcra-boundaries-url
-                meow-boundaries-url
                 story-maps-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
@@ -292,21 +268,6 @@
                    :uri             keyed-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-keyed-layers]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             amp-boundaries-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:sok/update-amp-boundaries]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             imcra-boundaries-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:sok/update-imcra-boundaries]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             meow-boundaries-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:sok/update-meow-boundaries]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             story-maps-url

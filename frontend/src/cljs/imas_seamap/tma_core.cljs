@@ -91,7 +91,7 @@
     :url-base                             subs/url-base}
 
    :events
-   {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
+   {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
     :construct-urls                       events/construct-urls
     :merge-state                          [events/merge-state]
     :re-boot                              [events/re-boot]
@@ -104,7 +104,7 @@
     :get-save-state                       [events/get-save-state]
     :get-save-state-success               [events/get-save-state-success]
     :initialise-db                        [events/initialise-db]
-    :initialise-layers                    [events/initialise-layers]
+    :initialise-layers                    [tmaevents/initialise-layers]
     :loading-failed                       events/loading-failed
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
