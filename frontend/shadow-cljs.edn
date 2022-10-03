@@ -23,7 +23,7 @@
                 :closure-defines  {goog.DEBUG                            true
                                    "re_frame.trace.trace_enabled_QMARK_" true}
                 :modules          {:app {:entries [imas-seamap.core
-                                                   imas-seamap.tma_core]}}
+                                                   imas-seamap.tas-marine-atlas.core]}}
                 :compiler-options {:pretty-print true}
                 :preloads         [devtools.preload
                                    day8.re-frame.trace.preload

@@ -1,7 +1,7 @@
 ;;; Seamap: view and interact with Australian coastal habitat data
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
-(ns imas-seamap.tma-core
+(ns imas-seamap.tas-marine-atlas.core
   (:require [imas-seamap.core :refer [root]]
             [reagent.core :as r]
             [re-frame.core :as re-frame]
