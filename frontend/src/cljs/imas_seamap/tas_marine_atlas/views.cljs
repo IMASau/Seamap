@@ -671,7 +671,7 @@
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper
-      [map-component [floating-pills]]
+      [map-component]
       [plot-component]]
      
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
@@ -699,5 +699,6 @@
      [state-of-knowledge]
      [featured-map-drawer]
      [layers-search-omnibar]
+     [floating-pills]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 
