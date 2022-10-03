@@ -30,9 +30,7 @@
                                   :map/update-categories]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
-    {:when :seen? :events :ui/hide-loading
-     :dispatch [:welcome-layer/open]
-     :halt? true}
+    {:when :seen? :events :ui/hide-loading :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
 (defn- boot-flow-hash-state [hash-code]
@@ -50,9 +48,7 @@
                                   :map/update-categories]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
-    {:when :seen? :events :ui/hide-loading
-     :dispatch [:welcome-layer/open]
-     :halt? true}
+    {:when :seen? :events :ui/hide-loading :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
 (defn- boot-flow-save-state [shortcode]
@@ -70,9 +66,7 @@
                                   :map/update-categories]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
-    {:when :seen? :events :ui/hide-loading
-     :dispatch [:welcome-layer/open]
-     :halt? true}
+    {:when :seen? :events :ui/hide-loading :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
 (defn construct-urls [db _]

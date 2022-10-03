@@ -54,7 +54,6 @@
     :transect/results                     subs/transect-results
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
-    :welcome-layer/open?                  subs/welcome-layer-open?
     :left-drawer/open?                    subs/left-drawer-open?
     :left-drawer/tab                      subs/left-drawer-tab
     :layers-search-omnibar/open?          subs/layers-search-omnibar-open?
@@ -89,8 +88,6 @@
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
-    :welcome-layer/open                   [events/welcome-layer-open (re-frame/inject-cofx :cookie/get [:seen-welcome])]
-    :welcome-layer/close                  [events/welcome-layer-close]
     :create-save-state                    [tmaevents/create-save-state]
     :create-save-state-success            [events/create-save-state-success]
     :create-save-state-failure            [events/create-save-state-failure]
@@ -229,7 +226,6 @@
                               :map/update-map-view
                               :map/initialise-display
                               :transect/maybe-query
-                              :welcome-layer/open
                               :map/update-leaflet-map
                               :maybe-autosave))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])

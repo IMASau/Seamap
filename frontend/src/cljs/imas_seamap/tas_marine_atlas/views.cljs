@@ -50,7 +50,6 @@
       {:id "bathy-group" :helperText "Layers showing bathymetry data"}
       {:id "imagery-group" :helperText "Layers showing photos collected"}
       {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
-     [welcome-dialogue]
      [info-card]
      [loading-display]
      [left-drawer]
