@@ -2,8 +2,7 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.tma-core
-  (:require ["react-dom/client" :refer [createRoot]]
-            [goog.dom :as gdom]
+  (:require [imas-seamap.core :refer [root]]
             [reagent.core :as r]
             [re-frame.core :as re-frame]
             [re-frame.db]
@@ -253,8 +252,6 @@
   (when config/debug?
     (enable-console-print!)
     (println "dev mode")))
-
-(defonce root (createRoot (gdom/getElement "app")))
 
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
