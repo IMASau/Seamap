@@ -15,7 +15,6 @@
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
-            [imas-seamap.db :as db]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
