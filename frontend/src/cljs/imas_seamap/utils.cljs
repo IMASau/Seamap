@@ -124,7 +124,8 @@
                  [:map :viewport-only?]
                  :legend-ids
                  :opacity-ids
-                 :autosave?]))
+                 :autosave?
+                 :config]))
 
 (defn parse-state [hash-str]
   (try
@@ -279,9 +280,10 @@
     [:state-of-knowledge :boundaries :meow :provinces]
     [:state-of-knowledge :boundaries :meow :ecoregions]
     [:story-maps :featured-maps]
-    [:habitat-colours]
-    [:habitat-titles]
-    [:sorting]]))
+    :habitat-colours
+    :habitat-titles
+    :sorting
+    :config]))
 
 (defn decode-html-entities
   "Removes HTML entities from an HTML entity encoded string:
