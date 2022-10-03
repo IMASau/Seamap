@@ -22,7 +22,8 @@
                 :output-dir       "resources/public/js/"
                 :closure-defines  {goog.DEBUG                            true
                                    "re_frame.trace.trace_enabled_QMARK_" true}
-                :modules          {:app {:entries [imas-seamap.core]}}
+                :modules          {:app {:entries [imas-seamap.core
+                                                   imas-seamap.tma_core]}}
                 :compiler-options {:pretty-print true}
                 :preloads         [devtools.preload
                                    day8.re-frame.trace.preload
