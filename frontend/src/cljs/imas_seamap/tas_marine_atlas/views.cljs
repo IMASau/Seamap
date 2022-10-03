@@ -9,7 +9,6 @@
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-content main-national-layer-card]]
-            [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
@@ -449,40 +448,13 @@
                   :on-click   (handler-dispatch [:map.layer/close-info])}]]]]))
 
 (defn- floating-pills []
-  (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
-        state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
-        amp-boundaries           @(re-frame/subscribe [:sok/valid-amp-boundaries])
-        imcra-boundaries         @(re-frame/subscribe [:sok/valid-imcra-boundaries])
-        meow-boundaries          @(re-frame/subscribe [:sok/valid-meow-boundaries])
-        boundaries               @(re-frame/subscribe [:sok/boundaries])
-        active-boundary          @(re-frame/subscribe [:sok/active-boundary])
-        open-pill                @(re-frame/subscribe [:sok/open-pill])]
+  (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
 
      [components/floating-pill-button
       {:icon     "menu"
-       :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
-
-     [floating-state-of-knowledge-pill
-      {:expanded?       (= open-pill "state-of-knowledge")
-       :boundaries      boundaries
-       :active-boundary active-boundary}]
-     
-     (when (and state-of-knowledge-open? active-boundary)
-       [floating-boundaries-pill
-        (merge
-         amp-boundaries
-         imcra-boundaries
-         meow-boundaries
-         {:expanded?       (= open-pill "boundaries")
-          :active-boundary active-boundary})])
-     
-     (when (and state-of-knowledge-open? (= (:id active-boundary) "amp"))
-       [floating-zones-pill
-        (merge
-         amp-boundaries
-         {:expanded? (= open-pill "zones")})])]))
+       :on-click #(re-frame/dispatch [:left-drawer/toggle])}]]))
 
 (defn- layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])
@@ -667,7 +639,7 @@
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
-        right-drawer-open? (or @(re-frame/subscribe [:sok/open?]) @(re-frame/subscribe [:sm.featured-map/open?]))]
+        right-drawer-open? @(re-frame/subscribe [:sm.featured-map/open?])]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper
@@ -696,7 +668,6 @@
      [info-card]
      [loading-display]
      [left-drawer]
-     [state-of-knowledge]
      [featured-map-drawer]
      [layers-search-omnibar]
      [floating-pills]
