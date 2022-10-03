@@ -3,14 +3,52 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.tas-marine-atlas.views
   (:require [re-frame.core :as re-frame]
+            [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay welcome-dialogue info-card loading-display left-drawer layers-search-omnibar layer-preview hotkeys-combos]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers left-drawer-controls layers-search-omnibar layer-preview hotkeys-combos]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.story-maps.views :refer [featured-map-drawer]]
+            [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.components :as components]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
+
+(defn- left-drawer []
+  (let [open? @(re-frame/subscribe [:left-drawer/open?])
+        tab   @(re-frame/subscribe [:left-drawer/tab])]
+    [components/drawer
+     {:title       "Tasmania Marine Atlas"
+      :position    "left"
+      :size        "460px"
+      :isOpen      open?
+      :onClose     #(re-frame/dispatch [:left-drawer/close])
+      :hasBackdrop false}
+     [:div.sidebar-tab.height-managed
+      [b/tabs
+       {:id              "left-drawer-tabs"
+        :class           "left-drawer-tabs"
+        :selected-tab-id tab
+        :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
+
+       [b/tab
+        {:id    "catalogue"
+         :title "Catalogue"
+         :panel (reagent/as-element [left-drawer-catalogue])}]
+
+       [b/tab
+        {:id    "active-layers"
+         :title "Active Layers"
+         :panel (reagent/as-element [left-drawer-active-layers])}]
+
+       [b/tab
+        {:id    "controls"
+         :title "Controls"
+         :panel (reagent/as-element [left-drawer-controls])}]
+
+       [b/tab
+        {:id    "featured-maps"
+         :title "Featured Maps"
+         :panel (reagent/as-element [featured-maps])}]]]]))
 
 (defn- floating-pills []
   (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))]

@@ -506,7 +506,7 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
-(defn- left-drawer-catalogue []
+(defn left-drawer-catalogue []
   (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
@@ -520,7 +520,7 @@
        :expanded-fn    expanded-layers
        :opacity-fn     layer-opacities}]]))
 
-(defn- left-drawer-active-layers []
+(defn left-drawer-active-layers []
   (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])]
     [components/drawer-group
      {:heading (str "Active Layers (" (count active-layers) ")")
@@ -534,7 +534,7 @@
        :expanded-fn    expanded-layers
        :opacity-fn     layer-opacities}]]))
 
-(defn- left-drawer-controls []
+(defn left-drawer-controls []
   [:<>
    [components/drawer-group
     {:heading "Controls"
@@ -552,7 +552,7 @@
       :text     "Reset Interface"
       :on-click   #(re-frame/dispatch [:re-boot])}]]])
 
-(defn left-drawer []
+(defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])]
     [components/drawer
