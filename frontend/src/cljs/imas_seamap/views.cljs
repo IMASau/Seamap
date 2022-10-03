@@ -506,12 +506,55 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
-(defn left-drawer []
-  (let [open? @(re-frame/subscribe [:left-drawer/open?])
-        tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
+(defn- left-drawer-catalogue []
+  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
+    [:<>
+     [layer-search-filter]
+     [layer-catalogue catalogue-layers
+      {:active-layers  active-layers
+       :visible-layers visible-layers
+       :loading-fn     loading-layers
+       :error-fn       error-layers
+       :expanded-fn    expanded-layers
+       :opacity-fn     layer-opacities}]]))
+
+(defn- left-drawer-active-layers []
+  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])]
+    [components/drawer-group
+     {:heading (str "Active Layers (" (count active-layers) ")")
+      :icon    "eye-open"}
+     [active-layer-selection-list
+      {:layers         active-layers
+       :visible-layers visible-layers
+       :main-national-layer main-national-layer
+       :loading-fn     loading-layers
+       :error-fn       error-layers
+       :expanded-fn    expanded-layers
+       :opacity-fn     layer-opacities}]]))
+
+(defn- left-drawer-controls []
+  [:<>
+   [components/drawer-group
+    {:heading "Controls"
+     :icon    "settings"}
+    [transect-toggle]
+    [selection-button]]
+
+   [components/drawer-group
+    {:heading "Settings"
+     :icon    "cog"}
+    [autosave-application-state-toggle]
+    [viewport-only-toggle]
+    [b/button
+     {:icon     "undo"
+      :text     "Reset Interface"
+      :on-click   #(re-frame/dispatch [:re-boot])}]]])
+
+(defn left-drawer []
+  (let [open? @(re-frame/subscribe [:left-drawer/open?])
+        tab   @(re-frame/subscribe [:left-drawer/tab])]
     [components/drawer
      {:title
       [:div.left-drawer-header
@@ -532,60 +575,22 @@
        [b/tab
         {:id    "catalogue"
          :title "Catalogue"
-         :panel (reagent/as-element
-                 [:div
-                  [layer-search-filter]
-                  [layer-catalogue catalogue-layers
-                   {:active-layers  active-layers
-                    :visible-layers visible-layers
-                    :loading-fn     loading-layers
-                    :error-fn       error-layers
-                    :expanded-fn    expanded-layers
-                    :opacity-fn     layer-opacities}]])}]
+         :panel (reagent/as-element [left-drawer-catalogue])}]
 
        [b/tab
         {:id    "active-layers"
          :title "Active Layers"
-         :panel (reagent/as-element
-                 [:div
-                  [components/drawer-group
-                   {:heading (str "Active Layers (" (count active-layers) ")")
-                    :icon    "eye-open"}
-                   [active-layer-selection-list
-                    {:layers         active-layers
-                     :visible-layers visible-layers
-                     :main-national-layer main-national-layer
-                     :loading-fn     loading-layers
-                     :error-fn       error-layers
-                     :expanded-fn    expanded-layers
-                     :opacity-fn     layer-opacities}]]])}]
+         :panel (reagent/as-element [left-drawer-active-layers])}]
 
        [b/tab
         {:id    "controls"
          :title "Controls"
-         :panel (reagent/as-element
-                 [:div
-                  [components/drawer-group
-                   {:heading "Controls"
-                    :icon    "settings"}
-                   [transect-toggle]
-                   [selection-button]]
-
-                  [components/drawer-group
-                   {:heading "Settings"
-                    :icon    "cog"}
-                   [autosave-application-state-toggle]
-                   [viewport-only-toggle]
-                   [b/button
-                    {:icon     "undo"
-                     :text     "Reset Interface"
-                     :on-click   #(re-frame/dispatch [:re-boot])}]]])}]
+         :panel (reagent/as-element [left-drawer-controls])}]
 
        [b/tab
         {:id    "featured-maps"
          :title "Featured Maps"
-         :panel (reagent/as-element
-                 [featured-maps])}]]]]))
+         :panel (reagent/as-element [featured-maps])}]]]]))
 
 (defn layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
