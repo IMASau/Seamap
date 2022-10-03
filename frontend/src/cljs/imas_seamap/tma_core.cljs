@@ -97,6 +97,9 @@
     :re-boot                              [tmaevents/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
+    ;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
+    :cookie-set-no-on-success             identity
+    :cookie-set-no-on-failure             identity
     :load-hash-state                      [tmaevents/load-hash-state]
     :get-save-state                       [tmaevents/get-save-state]
     :get-save-state-success               [tmaevents/get-save-state-success]
