@@ -74,7 +74,7 @@
    {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
     :construct-urls                       events/construct-urls
     :merge-state                          [tmaevents/merge-state]
-    :re-boot                              [events/re-boot]
+    :re-boot                              [tmaevents/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     ;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
