@@ -73,14 +73,14 @@
    :events
    {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
     :construct-urls                       events/construct-urls
-    :merge-state                          [events/merge-state]
+    :merge-state                          [tmaevents/merge-state]
     :re-boot                              [events/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     ;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
     :cookie-set-no-on-success             identity
     :cookie-set-no-on-failure             identity
-    :load-hash-state                      [events/load-hash-state]
+    :load-hash-state                      [tmaevents/load-hash-state]
     :get-save-state                       [events/get-save-state]
     :get-save-state-success               [events/get-save-state-success]
     :initialise-db                        [events/initialise-db]
@@ -91,11 +91,11 @@
     :help-layer/close                     events/help-layer-close
     :welcome-layer/open                   [events/welcome-layer-open (re-frame/inject-cofx :cookie/get [:seen-welcome])]
     :welcome-layer/close                  [events/welcome-layer-close]
-    :create-save-state                    [events/create-save-state]
+    :create-save-state                    [tmaevents/create-save-state]
     :create-save-state-success            [events/create-save-state-success]
     :create-save-state-failure            [events/create-save-state-failure]
     :toggle-autosave                      [events/toggle-autosave]
-    :maybe-autosave                       [events/maybe-autosave]
+    :maybe-autosave                       [tmaevents/maybe-autosave]
     :info/show-message                    [events/show-message]
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]
