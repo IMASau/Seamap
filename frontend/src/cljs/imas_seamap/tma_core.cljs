@@ -19,8 +19,6 @@
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
-            [imas-seamap.state-of-knowledge.events :as sokevents]
-            [imas-seamap.state-of-knowledge.subs :as soksubs]
             [imas-seamap.story-maps.events :as smevents]
             [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
@@ -47,24 +45,7 @@
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
-    :sok/habitat-statistics               soksubs/habitat-statistics
-    :sok/habitat-statistics-download-url  soksubs/habitat-statistics-download-url
-    :sok/bathymetry-statistics            soksubs/bathymetry-statistics
-    :sok/bathymetry-statistics-download-url soksubs/bathymetry-statistics-download-url
-    :sok/habitat-observations             soksubs/habitat-observations
-    :sok/amp-boundaries                   soksubs/amp-boundaries
-    :sok/imcra-boundaries                 soksubs/imcra-boundaries
-    :sok/meow-boundaries                  soksubs/meow-boundaries
-    :sok/valid-amp-boundaries             soksubs/valid-amp-boundaries
-    :sok/valid-imcra-boundaries           soksubs/valid-imcra-boundaries
-    :sok/valid-meow-boundaries            soksubs/valid-meow-boundaries
-    :sok/boundaries                       soksubs/boundaries
-    :sok/active-boundary                  soksubs/active-boundary
-    :sok/active-boundaries?               soksubs/active-boundaries?
-    :sok/active-zones?                    soksubs/active-zones?
-    :sok/open?                            soksubs/open?
-    :sok/open-pill                        soksubs/open-pill
-    :sok/boundary-layer-filter            soksubs/boundary-layer-filter-fn
+    :sok/boundary-layer-filter            (fn [] #(identity nil))
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
     :sm.featured-map/open?                smsubs/featured-map-open?
@@ -189,35 +170,6 @@
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :map/toggle-viewport-only             [mevents/toggle-viewport-only]
     :map/pan-to-popup                     [mevents/pan-to-popup]
-    :sok/update-amp-boundaries            sokevents/update-amp-boundaries
-    :sok/update-imcra-boundaries          sokevents/update-imcra-boundaries
-    :sok/update-meow-boundaries           sokevents/update-meow-boundaries
-    :sok/update-active-boundary-layer     [sokevents/update-active-boundary-layer]
-    :sok/update-active-boundary           [sokevents/update-active-boundary]
-    :sok/update-active-network            [sokevents/update-active-network]
-    :sok/update-active-park               [sokevents/update-active-park]
-    :sok/update-active-zone               [sokevents/update-active-zone]
-    :sok/update-active-zone-iucn          [sokevents/update-active-zone-iucn]
-    :sok/update-active-provincial-bioregion [sokevents/update-active-provincial-bioregion]
-    :sok/update-active-mesoscale-bioregion [sokevents/update-active-mesoscale-bioregion]
-    :sok/update-active-realm              [sokevents/update-active-realm]
-    :sok/update-active-province           [sokevents/update-active-province]
-    :sok/update-active-ecoregion          [sokevents/update-active-ecoregion]
-    :sok/reset-active-boundaries          [sokevents/reset-active-boundaries]
-    :sok/reset-active-zones               [sokevents/reset-active-zones]
-    :sok/get-habitat-statistics           [sokevents/get-habitat-statistics]
-    :sok/got-habitat-statistics           sokevents/got-habitat-statistics
-    :sok/get-bathymetry-statistics        [sokevents/get-bathymetry-statistics]
-    :sok/got-bathymetry-statistics        sokevents/got-bathymetry-statistics
-    :sok/get-habitat-observations         [sokevents/get-habitat-observations]
-    :sok/got-habitat-observations         sokevents/got-habitat-observations
-    :sok/close                            [sokevents/close]
-    :sok/open-pill                        sokevents/open-pill
-    :sok/get-filtered-bounds              [sokevents/get-filtered-bounds]
-    :sok/got-filtered-bounds              [sokevents/got-filtered-bounds]
-    :sok/habitat-toggle-show-layers       [sokevents/habitat-toggle-show-layers]
-    :sok/bathymetry-toggle-show-layers    [sokevents/bathymetry-toggle-show-layers]
-    :sok/habitat-observations-toggle-show-layers [sokevents/habitat-observations-toggle-show-layers]
     :sm/update-featured-maps              smevents/update-featured-maps
     :sm/featured-map                      [smevents/featured-map]
     :sm.featured-map/open                 [smevents/featured-map-open]
@@ -274,15 +226,9 @@
                               :map/update-organisations
                               :map/update-categories
                               :map/update-keyed-layers
-                              :sok/update-amp-boundaries
-                              :sok/update-imcra-boundaries
-                              :sok/update-meow-boundaries
                               :load-hash-state
                               :map/update-map-view
                               :map/initialise-display
-                              :sok/get-habitat-statistics
-                              :sok/get-bathymetry-statistics
-                              :sok/get-habitat-observations
                               :transect/maybe-query
                               :welcome-layer/open
                               :map/update-leaflet-map
