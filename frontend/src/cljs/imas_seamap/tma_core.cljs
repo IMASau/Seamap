@@ -24,7 +24,7 @@
             [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
-            [imas-seamap.views :as views]
+            [imas-seamap.tas-marine-atlas.views :refer [layout-app]]
             [imas-seamap.config :as config]))
 
 
@@ -312,7 +312,7 @@
   (.render
    root
    (r/as-element [hotkeys-provider
-                  [:f> views/layout-app]])))
+                  [:f> layout-app]])))
 
 (defn ^:export show-db []
   @re-frame.db/app-db)
