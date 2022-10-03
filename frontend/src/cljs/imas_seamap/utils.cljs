@@ -88,7 +88,7 @@
                        (assoc :opacity-ids opacities))]
     (b64/encodeString (t/write (t/writer :json) db*))))
 
-(defn filter-state
+(defn- filter-state
   "Given a state map, presumably from the hashed state, filter down to
   only expected/allowed paths to prevent injection attacks."
   [state]

@@ -10,8 +10,9 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.tas-marine-atlas.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers]]
+            [imas-seamap.utils :refer [copy-text geonetwork-force-xml merge-in append-params-from-map ids->layers]]
             [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities]]
+            [imas-seamap.tas-marine-atlas.utils :refer [encode-state parse-state ajax-loaded-info]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
