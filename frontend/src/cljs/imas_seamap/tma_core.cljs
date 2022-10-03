@@ -91,50 +91,50 @@
     :url-base                             subs/url-base}
 
    :events
-   {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
-    :construct-urls                       tmaevents/construct-urls
-    :merge-state                          [tmaevents/merge-state]
-    :re-boot                              [tmaevents/re-boot]
+   {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
+    :construct-urls                       events/construct-urls
+    :merge-state                          [events/merge-state]
+    :re-boot                              [events/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     ;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
     :cookie-set-no-on-success             identity
     :cookie-set-no-on-failure             identity
-    :load-hash-state                      [tmaevents/load-hash-state]
-    :get-save-state                       [tmaevents/get-save-state]
-    :get-save-state-success               [tmaevents/get-save-state-success]
-    :initialise-db                        [tmaevents/initialise-db]
-    :initialise-layers                    [tmaevents/initialise-layers]
-    :loading-failed                       tmaevents/loading-failed
-    :help-layer/toggle                    tmaevents/help-layer-toggle
-    :help-layer/open                      tmaevents/help-layer-open
-    :help-layer/close                     tmaevents/help-layer-close
-    :welcome-layer/open                   [tmaevents/welcome-layer-open (re-frame/inject-cofx :cookie/get [:seen-welcome])]
-    :welcome-layer/close                  [tmaevents/welcome-layer-close]
-    :create-save-state                    [tmaevents/create-save-state]
-    :create-save-state-success            [tmaevents/create-save-state-success]
-    :create-save-state-failure            [tmaevents/create-save-state-failure]
-    :toggle-autosave                      [tmaevents/toggle-autosave]
-    :maybe-autosave                       [tmaevents/maybe-autosave]
-    :info/show-message                    [tmaevents/show-message]
-    :info/clear-message                   tmaevents/clear-message
-    :transect/query                       [tmaevents/transect-query]
-    :transect/maybe-query                 [tmaevents/transect-maybe-query]
-    :transect.query/cancel                tmaevents/transect-query-cancel
-    :transect.query/failure               [tmaevents/transect-query-error]
-    :transect.query/habitat               [tmaevents/transect-query-habitat]
-    :transect.query/bathymetry            [tmaevents/transect-query-bathymetry]
-    :transect.query.bathymetry/success    tmaevents/transect-query-bathymetry-success
-    :transect.query.habitat/success       tmaevents/transect-query-habitat-success
-    :transect.draw/enable                 [tmaevents/transect-drawing-start]
-    :transect.draw/disable                tmaevents/transect-drawing-finish
-    :transect.draw/clear                  tmaevents/transect-drawing-clear
-    :transect.draw/toggle                 [tmaevents/transect-drawing-toggle]
-    :transect.plot/show                   tmaevents/transect-visibility-show
-    :transect.plot/hide                   tmaevents/transect-visibility-hide
-    :transect.plot/mousemove              tmaevents/transect-onmousemove
-    :transect.plot/mouseout               tmaevents/transect-onmouseout
-    :transect.plot/toggle-visibility      tmaevents/transect-visibility-toggle
+    :load-hash-state                      [events/load-hash-state]
+    :get-save-state                       [events/get-save-state]
+    :get-save-state-success               [events/get-save-state-success]
+    :initialise-db                        [events/initialise-db]
+    :initialise-layers                    [events/initialise-layers]
+    :loading-failed                       events/loading-failed
+    :help-layer/toggle                    events/help-layer-toggle
+    :help-layer/open                      events/help-layer-open
+    :help-layer/close                     events/help-layer-close
+    :welcome-layer/open                   [events/welcome-layer-open (re-frame/inject-cofx :cookie/get [:seen-welcome])]
+    :welcome-layer/close                  [events/welcome-layer-close]
+    :create-save-state                    [events/create-save-state]
+    :create-save-state-success            [events/create-save-state-success]
+    :create-save-state-failure            [events/create-save-state-failure]
+    :toggle-autosave                      [events/toggle-autosave]
+    :maybe-autosave                       [events/maybe-autosave]
+    :info/show-message                    [events/show-message]
+    :info/clear-message                   events/clear-message
+    :transect/query                       [events/transect-query]
+    :transect/maybe-query                 [events/transect-maybe-query]
+    :transect.query/cancel                events/transect-query-cancel
+    :transect.query/failure               [events/transect-query-error]
+    :transect.query/habitat               [events/transect-query-habitat]
+    :transect.query/bathymetry            [events/transect-query-bathymetry]
+    :transect.query.bathymetry/success    events/transect-query-bathymetry-success
+    :transect.query.habitat/success       events/transect-query-habitat-success
+    :transect.draw/enable                 [events/transect-drawing-start]
+    :transect.draw/disable                events/transect-drawing-finish
+    :transect.draw/clear                  events/transect-drawing-clear
+    :transect.draw/toggle                 [events/transect-drawing-toggle]
+    :transect.plot/show                   events/transect-visibility-show
+    :transect.plot/hide                   events/transect-visibility-hide
+    :transect.plot/mousemove              events/transect-onmousemove
+    :transect.plot/mouseout               events/transect-onmouseout
+    :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map.feature/show                     mevents/show-popup
     :map/clicked                          [mevents/map-click-dispatcher]
     :map/get-feature-info                 [mevents/get-feature-info]
@@ -150,11 +150,11 @@
     :map.layer/tile-load-start            mevents/layer-tile-started-loading
     :map.layer/load-error                 mevents/layer-loading-error
     :map.layer/load-finished              mevents/layer-finished-loading
-    :map.layer/show-info                  [tmaevents/layer-show-info]
-    :map.layer/close-info                 tmaevents/layer-close-info
-    :map.layer/update-metadata            tmaevents/layer-receive-metadata
-    :map.layer/metadata-error             tmaevents/layer-receive-metadata-err
-    :map.layer/download                   tmaevents/download-show-link
+    :map.layer/show-info                  [events/layer-show-info]
+    :map.layer/close-info                 events/layer-close-info
+    :map.layer/update-metadata            events/layer-receive-metadata
+    :map.layer/metadata-error             events/layer-receive-metadata-err
+    :map.layer/download                   events/download-show-link
     :map.layer/opacity-changed            [mevents/layer-set-opacity]
     :map.layers/filter                    [mevents/map-set-layer-filter]
     :map.layers/others-filter             mevents/map-set-others-layer-filter
@@ -221,27 +221,27 @@
     :sm/update-featured-maps              smevents/update-featured-maps
     :sm/featured-map                      [smevents/featured-map]
     :sm.featured-map/open                 [smevents/featured-map-open]
-    :ui/show-loading                      tmaevents/loading-screen
-    :ui/hide-loading                      tmaevents/application-loaded
-    :ui.catalogue/select-tab              [tmaevents/catalogue-select-tab]
-    :ui.catalogue/toggle-node             [tmaevents/catalogue-toggle-node]
-    :ui.catalogue/add-node                [tmaevents/catalogue-add-node]
-    :ui.catalogue/catalogue-add-nodes-to-layer [tmaevents/catalogue-add-nodes-to-layer]
-    :ui.drawing/cancel                    tmaevents/global-drawing-cancel
-    :ui.download/close-dialogue           tmaevents/close-download-dialogue
-    :ui.search/focus                      [tmaevents/focus-search]
-    :ui.sidebar/open                      [tmaevents/sidebar-open]
-    :ui.sidebar/close                     tmaevents/sidebar-close
-    :ui.sidebar/toggle                    tmaevents/sidebar-toggle
-    :ui/mouse-pos                         tmaevents/mouse-pos
-    :imas-seamap.components/selection-list-reorder [tmaevents/selection-list-reorder]
-    :left-drawer/toggle                   [tmaevents/left-drawer-toggle]
-    :left-drawer/open                     [tmaevents/left-drawer-open]
-    :left-drawer/close                    [tmaevents/left-drawer-close]
-    :left-drawer/tab                      [tmaevents/left-drawer-tab]
-    :layers-search-omnibar/toggle         tmaevents/layers-search-omnibar-toggle
-    :layers-search-omnibar/open           tmaevents/layers-search-omnibar-open
-    :layers-search-omnibar/close          tmaevents/layers-search-omnibar-close}})
+    :ui/show-loading                      events/loading-screen
+    :ui/hide-loading                      events/application-loaded
+    :ui.catalogue/select-tab              [events/catalogue-select-tab]
+    :ui.catalogue/toggle-node             [events/catalogue-toggle-node]
+    :ui.catalogue/add-node                [events/catalogue-add-node]
+    :ui.catalogue/catalogue-add-nodes-to-layer [events/catalogue-add-nodes-to-layer]
+    :ui.drawing/cancel                    events/global-drawing-cancel
+    :ui.download/close-dialogue           events/close-download-dialogue
+    :ui.search/focus                      [events/focus-search]
+    :ui.sidebar/open                      [events/sidebar-open]
+    :ui.sidebar/close                     events/sidebar-close
+    :ui.sidebar/toggle                    events/sidebar-toggle
+    :ui/mouse-pos                         events/mouse-pos
+    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
+    :left-drawer/toggle                   [events/left-drawer-toggle]
+    :left-drawer/open                     [events/left-drawer-open]
+    :left-drawer/close                    [events/left-drawer-close]
+    :left-drawer/tab                      [events/left-drawer-tab]
+    :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
+    :layers-search-omnibar/open           events/layers-search-omnibar-open
+    :layers-search-omnibar/close          events/layers-search-omnibar-close}})
 
 (def events-for-analytics
   [:help-layer/open
