@@ -26,38 +26,6 @@
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}
-   :state-of-knowledge {:boundaries {:active-boundary nil
-                                     :active-boundary-layer nil
-                                     :amp             {:networks         []
-                                                       :parks            []
-                                                       :zones            []
-                                                       :zones-iucn       []
-                                                       :active-network   nil
-                                                       :active-park      nil
-                                                       :active-zone      nil
-                                                       :active-zone-iucn nil}
-                                     :imcra           {:provincial-bioregions       []
-                                                       :mesoscale-bioregions        []
-                                                       :active-provincial-bioregion nil
-                                                       :active-mesoscale-bioregion  nil}
-                                     :meow            {:realms           []
-                                                       :provinces        []
-                                                       :ecoregions       []
-                                                       :active-realm     nil
-                                                       :active-province  nil
-                                                       :active-ecoregion nil}}
-                        :statistics {:habitat              {:results      []
-                                                            :loading?     false
-                                                            :show-layers? false}
-                                     :bathymetry           {:results      []
-                                                            :loading?     false
-                                                            :show-layers? false}
-                                     :habitat-observations {:global-archive nil
-                                                            :sediment       nil
-                                                            :squidle        nil
-                                                            :loading?       false
-                                                            :show-layers?   false}}
-                        :open-pill  nil}
    :story-maps      {:featured-maps []
                      :featured-map  nil
                      :open?         false}
@@ -96,12 +64,6 @@
                                  :save-state            "savestates"
                                  :category              "categories/"
                                  :keyed-layers          "keyedlayers/"
-                                 :amp-boundaries        "habitat/ampboundaries"
-                                 :imcra-boundaries      "habitat/imcraboundaries"
-                                 :meow-boundaries       "habitat/meowboundaries"
-                                 :habitat-statistics    "habitat/habitatstatistics"
-                                 :bathymetry-statistics "habitat/bathymetrystatistics"
-                                 :habitat-observations  "habitat/habitatobservations"
                                  :layer-previews        "layer_previews/"
                                  :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"}
                      :urls      nil

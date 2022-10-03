@@ -94,12 +94,6 @@
           save-state
           category
           keyed-layers
-          amp-boundaries
-          imcra-boundaries
-          meow-boundaries
-          habitat-statistics
-          bathymetry-statistics
-          habitat-observations
           layer-previews
           story-maps]}
         (get-in db [:config :url-paths])
@@ -116,12 +110,6 @@
       :save-state-url            (str api-url-base save-state)
       :category-url              (str api-url-base category)
       :keyed-layers-url          (str api-url-base keyed-layers)
-      :amp-boundaries-url        (str api-url-base amp-boundaries)
-      :imcra-boundaries-url      (str api-url-base imcra-boundaries)
-      :meow-boundaries-url       (str api-url-base meow-boundaries)
-      :habitat-statistics-url    (str api-url-base habitat-statistics)
-      :bathymetry-statistics-url (str api-url-base bathymetry-statistics)
-      :habitat-observations-url  (str api-url-base habitat-observations)
       :layer-previews-url        (str media-url-base layer-previews)
       :story-maps-url            (str wordpress-url-base story-maps)})))
 
