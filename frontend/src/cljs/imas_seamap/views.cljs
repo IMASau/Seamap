@@ -15,7 +15,6 @@
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
-            [imas-seamap.db :as db]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -48,7 +47,7 @@
        (apply concat)))
 
 ;; TODO: Update, replace?
-(defn- helper-overlay [& element-selectors]
+(defn helper-overlay [& element-selectors]
   (let [*line-height* 17.6 *padding* 10 *text-width* 200 ;; hard-code
         *vertical-bar* 50 *horiz-bar* 100
         posn->offsets (fn [posn width height]
@@ -272,7 +271,7 @@
                               (merge child-props
                                      (js->clj % :keywordize-keys true))])]])}))
 
-(defn- plot-component []
+(defn plot-component []
   (let [show-plot (re-frame/subscribe [:transect.plot/show?])
         force-resize #(js/window.dispatchEvent (js/Event. "resize"))
         transect-results (re-frame/subscribe [:transect/results])]
@@ -293,7 +292,7 @@
                                               :on-mouseout
                                               #(re-frame/dispatch [:transect.plot/mouseout]))]])]])))
 
-(defn- loading-display []
+(defn loading-display []
   (let [loading?  @(re-frame/subscribe [:app/loading?])
         main-msg  @(re-frame/subscribe [:app/load-normal-msg])
         error-msg @(re-frame/subscribe [:app/load-error-msg])]
@@ -308,7 +307,7 @@
           {:title  main-msg
            :icon (reagent/as-element [b/spinner {:intent "success"}])}])])))
 
-(defn- welcome-dialogue []
+(defn welcome-dialogue []
   (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
     [b/dialogue {:title      "Welcome to Seamap Australia!"
                  :class "welcome-splash"
@@ -409,7 +408,7 @@
               :disabled   disabled?
               :right-icon "caret-down"}]])
 
-(defn- info-card []
+(defn info-card []
   (let [layer-info       @(re-frame/subscribe [:map.layer/info])
         {:keys [metadata_url category] :as layer} (:layer layer-info)
         title            (or (get-in layer-info [:layer :name]) "Layer Information")
@@ -485,7 +484,7 @@
          amp-boundaries
          {:expanded? (= open-pill "zones")})])]))
 
-(defn- layers-search-omnibar []
+(defn layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])
         open?      @(re-frame/subscribe [:layers-search-omnibar/open?])
         {:keys [sorted-layers]} @(re-frame/subscribe [:map/layers])]
@@ -507,12 +506,55 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
-(defn- left-drawer []
-  (let [open? @(re-frame/subscribe [:left-drawer/open?])
-        tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
+(defn left-drawer-catalogue []
+  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
+    [:<>
+     [layer-search-filter]
+     [layer-catalogue catalogue-layers
+      {:active-layers  active-layers
+       :visible-layers visible-layers
+       :loading-fn     loading-layers
+       :error-fn       error-layers
+       :expanded-fn    expanded-layers
+       :opacity-fn     layer-opacities}]]))
+
+(defn left-drawer-active-layers []
+  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])]
+    [components/drawer-group
+     {:heading (str "Active Layers (" (count active-layers) ")")
+      :icon    "eye-open"}
+     [active-layer-selection-list
+      {:layers         active-layers
+       :visible-layers visible-layers
+       :main-national-layer main-national-layer
+       :loading-fn     loading-layers
+       :error-fn       error-layers
+       :expanded-fn    expanded-layers
+       :opacity-fn     layer-opacities}]]))
+
+(defn left-drawer-controls []
+  [:<>
+   [components/drawer-group
+    {:heading "Controls"
+     :icon    "settings"}
+    [transect-toggle]
+    [selection-button]]
+
+   [components/drawer-group
+    {:heading "Settings"
+     :icon    "cog"}
+    [autosave-application-state-toggle]
+    [viewport-only-toggle]
+    [b/button
+     {:icon     "undo"
+      :text     "Reset Interface"
+      :on-click   #(re-frame/dispatch [:re-boot])}]]])
+
+(defn- left-drawer []
+  (let [open? @(re-frame/subscribe [:left-drawer/open?])
+        tab   @(re-frame/subscribe [:left-drawer/tab])]
     [components/drawer
      {:title
       [:div.left-drawer-header
@@ -533,62 +575,24 @@
        [b/tab
         {:id    "catalogue"
          :title "Catalogue"
-         :panel (reagent/as-element
-                 [:div
-                  [layer-search-filter]
-                  [layer-catalogue catalogue-layers
-                   {:active-layers  active-layers
-                    :visible-layers visible-layers
-                    :loading-fn     loading-layers
-                    :error-fn       error-layers
-                    :expanded-fn    expanded-layers
-                    :opacity-fn     layer-opacities}]])}]
+         :panel (reagent/as-element [left-drawer-catalogue])}]
 
        [b/tab
         {:id    "active-layers"
          :title "Active Layers"
-         :panel (reagent/as-element
-                 [:div
-                  [components/drawer-group
-                   {:heading (str "Active Layers (" (count active-layers) ")")
-                    :icon    "eye-open"}
-                   [active-layer-selection-list
-                    {:layers         active-layers
-                     :visible-layers visible-layers
-                     :main-national-layer main-national-layer
-                     :loading-fn     loading-layers
-                     :error-fn       error-layers
-                     :expanded-fn    expanded-layers
-                     :opacity-fn     layer-opacities}]]])}]
+         :panel (reagent/as-element [left-drawer-active-layers])}]
 
        [b/tab
         {:id    "controls"
          :title "Controls"
-         :panel (reagent/as-element
-                 [:div
-                  [components/drawer-group
-                   {:heading "Controls"
-                    :icon    "settings"}
-                   [transect-toggle]
-                   [selection-button]]
-
-                  [components/drawer-group
-                   {:heading "Settings"
-                    :icon    "cog"}
-                   [autosave-application-state-toggle]
-                   [viewport-only-toggle]
-                   [b/button
-                    {:icon     "undo"
-                     :text     "Reset Interface"
-                     :on-click   #(re-frame/dispatch [:re-boot])}]]])}]
+         :panel (reagent/as-element [left-drawer-controls])}]
 
        [b/tab
         {:id    "featured-maps"
          :title "Featured Maps"
-         :panel (reagent/as-element
-                 [featured-maps])}]]]]))
+         :panel (reagent/as-element [featured-maps])}]]]]))
 
-(defn- layer-preview [_preview-layer-url]
+(defn layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
         error? (reagent/atom false)]    ; keeps track of if previous url had an error in displaying
     (fn [preview-layer-url]
@@ -672,7 +676,7 @@
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper
-      [map-component [floating-pills]]
+      [map-component]
       [plot-component]]
      
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
@@ -700,5 +704,6 @@
      [state-of-knowledge]
      [featured-map-drawer]
      [layers-search-omnibar]
+     [floating-pills]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 

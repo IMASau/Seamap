@@ -7,7 +7,6 @@
             [imas-seamap.utils :refer [merge-in select-values]]
             ["proj4" :as proj4]
             [imas-seamap.interop.leaflet :as leaflet]
-            [imas-seamap.db :as db]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
