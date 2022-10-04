@@ -320,13 +320,16 @@
       :class     "layer-card"}
      [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
 
-(defn- main-national-layer-catalogue-header
-  [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
-  [:div.layer-header
-   (when (and active? visible?)
-     [layer-status-icons layer-state])
-   [layer-header-text props]
-   [layer-catalogue-controls props]])
+(defn- main-national-layer-catalogue-details
+  [{:keys [layer] {:keys [opacity]} :layer-state}]
+  (let [{:keys [displayed-layer]} @(re-frame/subscribe [:map/national-layer])]
+    [:div.layer-details
+     [b/slider
+      {:label-renderer false :initial-value 0 :max 100 :value opacity
+       :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
+
+     (when (not= displayed-layer layer) [:h2.bp3-heading (:name displayed-layer)])
+     [legend-display displayed-layer]]))
 
 (defn main-national-layer-catalogue-content
   [{:keys [_layer] :as props}]
@@ -337,6 +340,6 @@
      {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer displayed-layer])
       :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
       :class         (when active? "active-layer")}
-     [main-national-layer-catalogue-header props]
+     [layer-catalogue-header props]
      [b/collapse {:is-open (and active? expanded?)}
-      [main-national-layer-details props]]]))
+      [main-national-layer-catalogue-details props]]]))
