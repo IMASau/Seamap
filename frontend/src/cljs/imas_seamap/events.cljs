@@ -312,7 +312,7 @@
                    :uri             story-maps-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:sm/update-featured-maps]
-                   :on-failure      [:ajax/default-err-handler]}]}))
+                   :on-failure      [:sm/update-featured-maps []]}]}))
 
 (defn help-layer-toggle [db _]
   (update-in db [:display :help-overlay] not))
