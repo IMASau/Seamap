@@ -84,8 +84,7 @@
    :year            (get-in db [:map :national-layer-timeline-selected :year])
    :alternate-views (get-in db [:map :keyed-layers :national-layer-alternate-view])
    :alternate-view  (get-in db [:map :national-layer-alternate-view])
-   :displayed-layer (displayed-national-layer (:map db))
-   :tooltip         "Hey, listen!"})
+   :displayed-layer (displayed-national-layer (:map db))})
 
 (defn national-layer-state
   "National layer state is based on a mix of fields of the main national layer
