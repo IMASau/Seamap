@@ -8,7 +8,7 @@
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-content main-national-layer-card]]
+            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-content main-national-layer-card main-national-layer-catalogue-content]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
@@ -103,7 +103,7 @@
 (defn- layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   {:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn] :as layer-props} open-all?]
+   {:keys [active-layers visible-layers main-national-layer loading-fn expanded-fn error-fn opacity-fn] :as layer-props} open-all?]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
@@ -125,7 +125,10 @@
                                          :opacity  (opacity-fn layer)}]
                         {:id (str id-str "-" i)
                          :className "catalogue-layer-node"
-                         :label (reagent/as-element [layer-catalogue-content {:layer layer :layer-state layer-state}])}))
+                         :label (reagent/as-element
+                                 (if (= layer main-national-layer)
+                                   [main-national-layer-catalogue-content {:layer layer}]
+                                   [layer-catalogue-content {:layer layer :layer-state layer-state}]))}))
                     layer-subset))}))
 
 (defn- layer-catalogue-tree [_layers _ordering _id _layer-props _open-all?]
@@ -500,7 +503,7 @@
        :keywords    #(layer-search-keywords categories %)}}]))
 
 (defn left-drawer-catalogue []
-  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
     [:<>
@@ -508,6 +511,7 @@
      [layer-catalogue catalogue-layers
       {:active-layers  active-layers
        :visible-layers visible-layers
+       :main-national-layer main-national-layer
        :loading-fn     loading-layers
        :error-fn       error-layers
        :expanded-fn    expanded-layers

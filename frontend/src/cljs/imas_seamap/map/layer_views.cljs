@@ -315,7 +315,31 @@
   "Wrapper of main-national-layer-card-content in a card for displaying in lists."
   [{:keys [_layer] :as props}]
   (let [layer-state @(re-frame/subscribe [:map.national-layer/state])]
-   [b/card
-   {:elevation 1
-    :class     "layer-card"}
-   [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
+    [b/card
+     {:elevation 1
+      :class     "layer-card"}
+     [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
+
+(defn- main-national-layer-catalogue-details
+  [{:keys [layer] {:keys [opacity]} :layer-state}]
+  (let [{:keys [displayed-layer]} @(re-frame/subscribe [:map/national-layer])]
+    [:div.layer-details
+     [b/slider
+      {:label-renderer false :initial-value 0 :max 100 :value opacity
+       :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
+
+     (when (not= displayed-layer layer) [:h2.bp3-heading (:name displayed-layer)])
+     [legend-display displayed-layer]]))
+
+(defn main-national-layer-catalogue-content
+  [{:keys [_layer] :as props}]
+  (let [{:keys [active? expanded?] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
+        {:keys [displayed-layer]} @(re-frame/subscribe [:map.national-layer/state])
+        props (assoc props :layer-state layer-state)]
+    [:div.layer-content
+     {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer displayed-layer])
+      :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
+      :class         (when active? "active-layer")}
+     [layer-catalogue-header props]
+     [b/collapse {:is-open (and active? expanded?)}
+      [main-national-layer-catalogue-details props]]]))
