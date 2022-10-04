@@ -59,7 +59,8 @@
                  [:map :viewport-only?]
                  :legend-ids
                  :opacity-ids
-                 :autosave?]))
+                 :autosave?
+                 :config]))
 
 (defn parse-state [hash-str]
   (try
@@ -85,6 +86,7 @@
     [:map :leaflet-map]
     [:map :legends]
     [:story-maps :featured-maps]
-    [:habitat-colours]
-    [:habitat-titles]
-    [:sorting]]))
+    :habitat-colours
+    :habitat-titles
+    :sorting
+    :config]))
