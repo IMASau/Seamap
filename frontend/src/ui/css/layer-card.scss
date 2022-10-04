@@ -7,6 +7,11 @@
     overflow: hidden;
 }
 
+.has-tooltip .layer-header-text {
+    color: #3681b7;
+    font-style: italic;
+}
+
 .active-layer .layer-header-text {
     color: #0F9960;
     font-style: italic;
