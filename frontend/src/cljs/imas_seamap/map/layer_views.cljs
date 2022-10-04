@@ -17,12 +17,16 @@
 (defn- layer-header-text
   "Layer name, with some other fancy stuff on top. Clicking it will expand the
    layer's details."
-  [{{:keys [name] :as layer} :layer {:keys [expanded? active?]} :layer-state}]
+  [{{:keys [name tooltip] :as layer} :layer {:keys [expanded? active?]} :layer-state}]
   [:div.layer-header-text
    {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
    [b/tooltip
-   {:content (if expanded? "Hide details" "Show details")
-    :disabled (not active?)}
+   {:content
+    (cond
+      (seq tooltip) tooltip
+      expanded?     "Hide details"
+      :else         "Show details")
+    :disabled (not (or active? (seq tooltip)))}
    [b/clipped-text {:ellipsize true}
     name]]])
 
@@ -136,9 +140,9 @@
 (defn- layer-card-content
   "Content of a layer card; includes both the header and the details that can be
    expanded and collapsed."
-  [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
+  [{{:keys [tooltip]} :layer {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
-   {:class (when active? "active-layer")}
+   {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
    [layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [layer-details props]]])
@@ -187,11 +191,11 @@
 (defn layer-catalogue-content
   "Content of a layer catalogue element; includes both the header and the details
    that can be expanded and collapsed."
-  [{:keys [layer] {:keys [active? expanded?]} :layer-state :as props}]
+  [{{:keys [tooltip] :as layer} :layer {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
    {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer layer])
     :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
-    :class         (when active? "active-layer")}
+    :class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
    [layer-catalogue-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [layer-details props]]])
@@ -304,9 +308,9 @@
 (defn- main-national-layer-card-content
   "Content of the main national layer card; includes both the header and the main
    national layer details that can be expanded and collapsed."
-  [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
+  [{{:keys [tooltip]} :layer {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
-   {:class (when active? "active-layer")}
+   {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
    [main-national-layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [main-national-layer-details props]]])
@@ -332,14 +336,14 @@
      [legend-display displayed-layer]]))
 
 (defn main-national-layer-catalogue-content
-  [{:keys [_layer] :as props}]
+  [{{:keys [tooltip]} :layer :as props}]
   (let [{:keys [active? expanded?] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
         {:keys [displayed-layer]} @(re-frame/subscribe [:map.national-layer/state])
         props (assoc props :layer-state layer-state)]
     [:div.layer-content
      {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer displayed-layer])
       :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
-      :class         (when active? "active-layer")}
+      :class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
      [layer-catalogue-header props]
      [b/collapse {:is-open (and active? expanded?)}
       [main-national-layer-catalogue-details props]]]))
