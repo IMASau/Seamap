@@ -4,7 +4,7 @@
 (ns imas-seamap.state-of-knowledge.events
   (:require [clojure.set :refer [rename-keys]]
             [ajax.core :as ajax]
-            [imas-seamap.utils :refer [first-where encode-state]]
+            [imas-seamap.utils :refer [first-where]]
             [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names cql-filter]]
             [imas-seamap.interop.leaflet :as leaflet]))
 

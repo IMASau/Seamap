@@ -332,9 +332,6 @@
   {:db         (assoc-in db [:display :welcome-overlay] false)
    :cookie/set {:name  :seen-welcome
                 :value true}})
-;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
-(re-frame/reg-event-db :cookie-set-no-on-success identity)
-(re-frame/reg-event-db :cookie-set-no-on-failure identity)
 
 (defn layer-show-info [{:keys [db]} [_ {:keys [metadata_url] :as layer}]]
   (if (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-[0-9a-f]{4}\-4[0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}$" metadata_url)
