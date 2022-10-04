@@ -23,7 +23,7 @@
    [b/tooltip
    {:content
     (cond
-      (seq tooltip) tooltip
+      (seq tooltip) (reagent/as-element [:div {:style {:max-width "358px"}} tooltip])
       expanded?     "Hide details"
       :else         "Show details")
     :disabled (not (or active? (seq tooltip)))}
@@ -210,12 +210,11 @@
    [b/tooltip
     {:content
      (cond
-       (seq tooltip) (reagent/as-element tooltip)
+       (seq tooltip) (reagent/as-element [:div {:style {:max-width "358px"}} tooltip])
        expanded?     "Hide details"
        :else         "Show details")
      :disabled (not (or active? (seq tooltip)))}
-    [b/clipped-text {:ellipsize true}
-     name]]])
+    [b/clipped-text {:ellipsize true} name]]])
 
 (defn- main-national-layer-card-controls
   "To the right of the layer name. Basic controls for the layer. Different from
@@ -338,8 +337,8 @@
          :as national-layer-details}
         @(re-frame/subscribe [:map/national-layer])
         tooltip (cond
-                  (and year (not= year (apply max years))) (str "Year: " year)
-                  alternate-view                           (str "Alternate view: " (:name alternate-view))
+                  (and year (not= year (apply max years))) (str "FILTER APPLIED: Year: " year)
+                  alternate-view                           (str "FILTER APPLIED: Alternate view: " (:name alternate-view))
                   :else                                    nil)
         props (assoc props :layer-state layer-state :national-layer-details national-layer-details :tooltip tooltip)]
     [b/card
@@ -374,8 +373,8 @@
          :as national-layer-details}
         @(re-frame/subscribe [:map/national-layer])
         tooltip (cond
-                  (and year (not= year (apply max years))) (str "Year: " year)
-                  alternate-view                           (str "Alternate view: " (:name alternate-view))
+                  (and year (not= year (apply max years))) (str "FILTER APPLIED: Year: " year)
+                  alternate-view                           (str "FILTER APPLIED: Alternate view: " (:name alternate-view))
                   :else                                    nil)
         props (assoc props :layer-state layer-state :national-layer-details national-layer-details :tooltip tooltip)]
     [:div.layer-content
