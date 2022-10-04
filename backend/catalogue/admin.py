@@ -9,12 +9,21 @@ admin.site.register(models.DataClassification)
 admin.site.register(models.ServerType)
 admin.site.register(models.Organisation)
 admin.site.register(models.HabitatDescriptor)
-admin.site.register(models.Layer)
 admin.site.register(models.BaseLayerGroup)
 admin.site.register(models.BaseLayer)
-admin.site.register(models.KeyedLayer)
-admin.site.register(models.NationalLayerTimeline)
+
+class LayerAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+admin.site.register(models.Layer, LayerAdmin)
 
 class SaveStateAdmin(admin.ModelAdmin):
     readonly_fields = ('time_created',)
 admin.site.register(models.SaveState, SaveStateAdmin)
+
+class KeyedLayerAdmin(admin.ModelAdmin):
+    autocomplete_fields = ('layer',)
+admin.site.register(models.KeyedLayer, KeyedLayerAdmin)
+
+class NationalLayerTimelineAdmin(admin.ModelAdmin):
+    autocomplete_fields = ('layer',)
+admin.site.register(models.NationalLayerTimeline, NationalLayerTimelineAdmin)

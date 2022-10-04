@@ -1,30 +1,28 @@
 ;;; Seamap: view and interact with Australian coastal habitat data
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
-(ns imas-seamap.core
-  (:require ["react-dom/client" :refer [createRoot]]
-            [goog.dom :as gdom]
+(ns imas-seamap.tas-marine-atlas.core
+  (:require [imas-seamap.core :refer [root]]
             [reagent.core :as r]
             [re-frame.core :as re-frame]
             [re-frame.db]
             [com.smxemail.re-frame-cookie-fx]
-            [day8.re-frame.async-flow-fx :as async-flow-fx]
+            [day8.re-frame.async-flow-fx]
             [day8.re-frame.http-fx]
             ["@blueprintjs/core" :as Blueprint]
             [imas-seamap.analytics :refer [analytics-for]]
             [imas-seamap.blueprint :refer [hotkeys-provider]]
             [imas-seamap.events :as events]
+            [imas-seamap.tas-marine-atlas.events :as tmaevents]
             [imas-seamap.fx]
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
-            [imas-seamap.state-of-knowledge.events :as sokevents]
-            [imas-seamap.state-of-knowledge.subs :as soksubs]
             [imas-seamap.story-maps.events :as smevents]
             [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
-            [imas-seamap.views :as views]
+            [imas-seamap.tas-marine-atlas.views :refer [layout-app]]
             [imas-seamap.config :as config]))
 
 
@@ -36,6 +34,7 @@
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
+    ;; TODO: Remove national layer functionality?
     :map/national-layer                   msubs/national-layer
     :map.national-layer/state             msubs/national-layer-state
     :map.layers/filter                    msubs/map-layers-filter
@@ -48,24 +47,7 @@
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
-    :sok/habitat-statistics               soksubs/habitat-statistics
-    :sok/habitat-statistics-download-url  soksubs/habitat-statistics-download-url
-    :sok/bathymetry-statistics            soksubs/bathymetry-statistics
-    :sok/bathymetry-statistics-download-url soksubs/bathymetry-statistics-download-url
-    :sok/habitat-observations             soksubs/habitat-observations
-    :sok/amp-boundaries                   soksubs/amp-boundaries
-    :sok/imcra-boundaries                 soksubs/imcra-boundaries
-    :sok/meow-boundaries                  soksubs/meow-boundaries
-    :sok/valid-amp-boundaries             soksubs/valid-amp-boundaries
-    :sok/valid-imcra-boundaries           soksubs/valid-imcra-boundaries
-    :sok/valid-meow-boundaries            soksubs/valid-meow-boundaries
-    :sok/boundaries                       soksubs/boundaries
-    :sok/active-boundary                  soksubs/active-boundary
-    :sok/active-boundaries?               soksubs/active-boundaries?
-    :sok/active-zones?                    soksubs/active-zones?
-    :sok/open?                            soksubs/open?
-    :sok/open-pill                        soksubs/open-pill
-    :sok/boundary-layer-filter            soksubs/boundary-layer-filter-fn
+    :sok/boundary-layer-filter            (fn [] #(identity nil))
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
     :sm.featured-map/open?                smsubs/featured-map-open?
@@ -75,7 +57,6 @@
     :transect/results                     subs/transect-results
     :transect.plot/show?                  subs/transect-show?
     :help-layer/open?                     subs/help-layer-open?
-    :welcome-layer/open?                  subs/welcome-layer-open?
     :left-drawer/open?                    subs/left-drawer-open?
     :left-drawer/tab                      subs/left-drawer-tab
     :layers-search-omnibar/open?          subs/layers-search-omnibar-open?
@@ -92,31 +73,29 @@
     :url-base                             subs/url-base}
 
    :events
-   {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
-    :construct-urls                       events/construct-urls
-    :merge-state                          [events/merge-state]
-    :re-boot                              [events/re-boot]
+   {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
+    :construct-urls                       tmaevents/construct-urls
+    :merge-state                          [tmaevents/merge-state]
+    :re-boot                              [tmaevents/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     ;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
     :cookie-set-no-on-success             identity
     :cookie-set-no-on-failure             identity
-    :load-hash-state                      [events/load-hash-state]
+    :load-hash-state                      [tmaevents/load-hash-state]
     :get-save-state                       [events/get-save-state]
     :get-save-state-success               [events/get-save-state-success]
     :initialise-db                        [events/initialise-db]
-    :initialise-layers                    [events/initialise-layers]
+    :initialise-layers                    [tmaevents/initialise-layers]
     :loading-failed                       events/loading-failed
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
-    :welcome-layer/open                   [events/welcome-layer-open (re-frame/inject-cofx :cookie/get [:seen-welcome])]
-    :welcome-layer/close                  [events/welcome-layer-close]
-    :create-save-state                    [events/create-save-state]
+    :create-save-state                    [tmaevents/create-save-state]
     :create-save-state-success            [events/create-save-state-success]
     :create-save-state-failure            [events/create-save-state-failure]
     :toggle-autosave                      [events/toggle-autosave]
-    :maybe-autosave                       [events/maybe-autosave]
+    :maybe-autosave                       [tmaevents/maybe-autosave]
     :info/show-message                    [events/show-message]
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]
@@ -147,8 +126,6 @@
     :map/remove-layer                     [mevents/remove-layer]
     :map/add-layer-from-omnibar           [mevents/add-layer-from-omnibar]
     :map/base-layer-changed               [mevents/base-layer-changed]
-    :map.national-layer/year              [mevents/national-layer-year]
-    :map.national-layer/alternate-view    [mevents/national-layer-alternate-view]
     :map.layer/load-start                 mevents/layer-started-loading
     :map.layer/tile-load-start            mevents/layer-tile-started-loading
     :map.layer/load-error                 mevents/layer-loading-error
@@ -179,7 +156,6 @@
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
     :map/update-keyed-layers              mevents/update-keyed-layers
-    :map/update-national-layer-timeline   mevents/update-national-layer-timeline
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
@@ -193,39 +169,10 @@
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :map/toggle-viewport-only             [mevents/toggle-viewport-only]
     :map/pan-to-popup                     [mevents/pan-to-popup]
-    :sok/update-amp-boundaries            sokevents/update-amp-boundaries
-    :sok/update-imcra-boundaries          sokevents/update-imcra-boundaries
-    :sok/update-meow-boundaries           sokevents/update-meow-boundaries
-    :sok/update-active-boundary-layer     [sokevents/update-active-boundary-layer]
-    :sok/update-active-boundary           [sokevents/update-active-boundary]
-    :sok/update-active-network            [sokevents/update-active-network]
-    :sok/update-active-park               [sokevents/update-active-park]
-    :sok/update-active-zone               [sokevents/update-active-zone]
-    :sok/update-active-zone-iucn          [sokevents/update-active-zone-iucn]
-    :sok/update-active-provincial-bioregion [sokevents/update-active-provincial-bioregion]
-    :sok/update-active-mesoscale-bioregion [sokevents/update-active-mesoscale-bioregion]
-    :sok/update-active-realm              [sokevents/update-active-realm]
-    :sok/update-active-province           [sokevents/update-active-province]
-    :sok/update-active-ecoregion          [sokevents/update-active-ecoregion]
-    :sok/reset-active-boundaries          [sokevents/reset-active-boundaries]
-    :sok/reset-active-zones               [sokevents/reset-active-zones]
-    :sok/get-habitat-statistics           [sokevents/get-habitat-statistics]
-    :sok/got-habitat-statistics           sokevents/got-habitat-statistics
-    :sok/get-bathymetry-statistics        [sokevents/get-bathymetry-statistics]
-    :sok/got-bathymetry-statistics        sokevents/got-bathymetry-statistics
-    :sok/get-habitat-observations         [sokevents/get-habitat-observations]
-    :sok/got-habitat-observations         sokevents/got-habitat-observations
-    :sok/close                            [sokevents/close]
-    :sok/open-pill                        sokevents/open-pill
-    :sok/get-filtered-bounds              [sokevents/get-filtered-bounds]
-    :sok/got-filtered-bounds              [sokevents/got-filtered-bounds]
-    :sok/habitat-toggle-show-layers       [sokevents/habitat-toggle-show-layers]
-    :sok/bathymetry-toggle-show-layers    [sokevents/bathymetry-toggle-show-layers]
-    :sok/habitat-observations-toggle-show-layers [sokevents/habitat-observations-toggle-show-layers]
     :sm/update-featured-maps              smevents/update-featured-maps
     :sm/featured-map                      [smevents/featured-map]
     :sm.featured-map/open                 [smevents/featured-map-open]
-    :ui/show-loading                      events/loading-screen
+    :ui/show-loading                      tmaevents/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]
     :ui.catalogue/toggle-node             [events/catalogue-toggle-node]
@@ -278,17 +225,10 @@
                               :map/update-organisations
                               :map/update-categories
                               :map/update-keyed-layers
-                              :sok/update-amp-boundaries
-                              :sok/update-imcra-boundaries
-                              :sok/update-meow-boundaries
                               :load-hash-state
                               :map/update-map-view
                               :map/initialise-display
-                              :sok/get-habitat-statistics
-                              :sok/get-bathymetry-statistics
-                              :sok/get-habitat-observations
                               :transect/maybe-query
-                              :welcome-layer/open
                               :map/update-leaflet-map
                               :maybe-autosave))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
@@ -312,15 +252,13 @@
     (enable-console-print!)
     (println "dev mode")))
 
-(defonce root (createRoot (gdom/getElement "app")))
-
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
   (.render
    root
    (r/as-element [hotkeys-provider
-                  [:f> views/layout-app]])))
+                  [:f> layout-app]])))
 
 (defn ^:export show-db []
   @re-frame.db/app-db)

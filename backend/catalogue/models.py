@@ -6,6 +6,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from six import python_2_unicode_compatible
 from uuid import uuid4
+from datetime import datetime
 
 
 @python_2_unicode_compatible
@@ -118,8 +119,8 @@ class BaseLayer(models.Model):
 class SaveState(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     hashstate = models.CharField(max_length = 5000)
-    description = models.TextField(null=True, blank=True)
-    time_created = models.DateTimeField()
+    description = models.TextField(blank=True, null=True)
+    time_created = models.DateTimeField(default=datetime.now())
 
     def __str__(self):
         return '{id} ({time_created})'.format(
