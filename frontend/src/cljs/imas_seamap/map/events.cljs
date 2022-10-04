@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -46,6 +46,15 @@
             (assoc-in [:map :national-layer-alternate-view] national-layer-alternate-view))}
    (when (and national-layer-alternate-view (not (get-in db [:map :legends (:id national-layer-alternate-view)])))
      {:dispatch [:map.layer/get-legend national-layer-alternate-view]})))
+
+(defn national-layer-reset-filters [{:keys [db]} _]
+  (let [main-national-layer (main-national-layer (:map db))]
+    (merge
+   {:db (-> db
+            (assoc-in [:map :national-layer-timeline-selected] nil)
+            (assoc-in [:map :national-layer-alternate-view] nil))}
+   (when-not (get-in db [:map :legends (:id main-national-layer)])
+     {:dispatch [:map.layer/get-legend main-national-layer]}))))
 
 (defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a

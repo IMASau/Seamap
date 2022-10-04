@@ -208,12 +208,23 @@
   [:div.layer-header-text
    {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
    [b/tooltip
-    {:content
-     (cond
-       (seq tooltip) (reagent/as-element [:div {:style {:max-width "358px"}} tooltip])
-       expanded?     "Hide details"
-       :else         "Show details")
-     :disabled (not (or active? (seq tooltip)))}
+    (merge
+     {:content
+      (cond
+        (seq tooltip) (reagent/as-element
+                       [:div {:style {:max-width "358px"}}
+                        tooltip
+                        [b/button
+                         {:icon     "cross"
+                          :minimal  true
+                          :on-click #(do
+                                       (.stopPropagation %)
+                                       (re-frame/dispatch [:map.national-layer/reset-filters]))}]])
+        expanded?     "Hide details"
+        :else         "Show details")
+      :disabled (not (or active? (seq tooltip)))}
+     (when (seq tooltip)
+       {:hover-close-delay 1000}))
     [b/clipped-text {:ellipsize true} name]]])
 
 (defn- main-national-layer-card-controls
