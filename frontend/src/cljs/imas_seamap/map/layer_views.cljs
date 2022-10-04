@@ -204,10 +204,16 @@
 ;; Main national layer
 
 (defn- main-national-layer-header-text
-  [{{:keys [name] :as layer} :layer}]
+  [{{:keys [name] :as layer} :layer {:keys [active? expanded?]} :layer-state {:keys [tooltip]} :national-layer-details :as _props}]
   [:div.layer-header-text
    {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
-   [b/tooltip {:content "Main national layer!"}
+   [b/tooltip
+    {:content
+     (cond
+       (seq tooltip) tooltip
+       expanded?     "Hide details"
+       :else         "Show details")
+     :disabled (not (or active? (seq tooltip)))}
     [b/clipped-text {:ellipsize true}
      name]]])
 
@@ -241,7 +247,7 @@
      :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
 
 (defn- main-national-layer-card-header
-  [{:keys [_layer] {:keys [visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [_layer _national-layer-details] {:keys [visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
    (when visible?
      [layer-status-icons layer-state])
@@ -316,7 +322,7 @@
 (defn- main-national-layer-card-content
   "Content of the main national layer card; includes both the header and the main
    national layer details that can be expanded and collapsed."
-  [{{:keys [tooltip]} :layer {:keys [active? expanded?]} :layer-state :as props}]
+  [{:keys [_layer] {:keys [active? expanded?]} :layer-state {:keys [tooltip]} :national-layer-details :as props}]
   [:div.layer-content
    {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
    [main-national-layer-card-header props]
@@ -326,14 +332,19 @@
 (defn main-national-layer-card
   "Wrapper of main-national-layer-card-content in a card for displaying in lists."
   [{:keys [_layer] :as props}]
-  (let [layer-state @(re-frame/subscribe [:map.national-layer/state])]
+  (let [layer-state @(re-frame/subscribe [:map.national-layer/state])
+        {:keys
+         [_years _year _alternate-views _alternate-view _displayed-layer _tooltip]
+         :as national-layer-details}
+        @(re-frame/subscribe [:map/national-layer])
+        props (assoc props :layer-state layer-state :national-layer-details national-layer-details)]
     [b/card
      {:elevation 1
       :class     "layer-card"}
      [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
 
 (defn- main-national-layer-catalogue-header
-  [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [_layer _national-layer-details] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
    (when (and active? visible?)
      [layer-status-icons layer-state])
@@ -341,7 +352,7 @@
    [layer-catalogue-controls props]])
 
 (defn- main-national-layer-catalogue-details
-  [{:keys [layer] {:keys [opacity]} :layer-state}]
+  [{:keys [layer _national-layer-details] {:keys [opacity]} :layer-state}]
   (let [{:keys [displayed-layer]} @(re-frame/subscribe [:map/national-layer])]
     [:div.layer-details
      [b/slider
@@ -352,10 +363,13 @@
      [legend-display displayed-layer]]))
 
 (defn main-national-layer-catalogue-content
-  [{{:keys [tooltip]} :layer :as props}]
-  (let [{:keys [active? expanded?] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
-        {:keys [displayed-layer]} @(re-frame/subscribe [:map.national-layer/state])
-        props (assoc props :layer-state layer-state)]
+  [{:keys [_layer] :as props}]
+  (let [{:keys [active? expanded? displayed-layer] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
+        {:keys
+         [_years _year _alternate-views _alternate-view _displayed-layer tooltip]
+         :as national-layer-details}
+        @(re-frame/subscribe [:map/national-layer])
+        props (assoc props :layer-state layer-state :national-layer-details national-layer-details)]
     [:div.layer-content
      {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer displayed-layer])
       :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
