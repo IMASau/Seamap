@@ -203,6 +203,14 @@
 
 ;; Main national layer
 
+(defn- main-national-layer-header-text
+  [{{:keys [name] :as layer} :layer}]
+  [:div.layer-header-text
+   {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
+   [b/tooltip {:content "Main national layer!"}
+    [b/clipped-text {:ellipsize true}
+     name]]])
+
 (defn- main-national-layer-card-controls
   "To the right of the layer name. Basic controls for the layer. Different from
    regular layer card controls because the controls are based on the state of the
@@ -237,7 +245,7 @@
   [:div.layer-header
    (when visible?
      [layer-status-icons layer-state])
-   [layer-header-text props]
+   [main-national-layer-header-text props]
    [main-national-layer-card-controls props]])
 
 (defn- main-national-layer-alternate-view-select
@@ -324,6 +332,14 @@
       :class     "layer-card"}
      [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
 
+(defn- main-national-layer-catalogue-header
+  [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [:div.layer-header
+   (when (and active? visible?)
+     [layer-status-icons layer-state])
+   [main-national-layer-header-text props]
+   [layer-catalogue-controls props]])
+
 (defn- main-national-layer-catalogue-details
   [{:keys [layer] {:keys [opacity]} :layer-state}]
   (let [{:keys [displayed-layer]} @(re-frame/subscribe [:map/national-layer])]
@@ -344,6 +360,6 @@
      {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer displayed-layer])
       :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
       :class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
-     [layer-catalogue-header props]
+     [main-national-layer-catalogue-header props]
      [b/collapse {:is-open (and active? expanded?)}
       [main-national-layer-catalogue-details props]]]))
