@@ -232,14 +232,7 @@
        :content
        (if (= layer main-national-layer)
          [main-national-layer-card
-          {:layer layer
-           :layer-state
-           {:active?   true
-            :visible?  (some #{layer} visible-layers)
-            :loading?  (loading-fn layer)
-            :errors?   (error-fn layer)
-            :expanded? (expanded-fn layer)
-            :opacity   (opacity-fn layer)}}]
+          {:layer layer}]
          [layer-card
           {:layer layer
            :layer-state

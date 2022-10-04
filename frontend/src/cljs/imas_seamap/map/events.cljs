@@ -5,8 +5,8 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities]]
+            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -26,6 +26,26 @@
       (let [db (assoc-in db [:map :active-base-layer] selected-base-layer)]
         {:db       db
          :dispatch [:maybe-autosave]}))))
+
+(defn national-layer-year [{:keys [db]} [_ national-layer-year]] 
+  (let [{:keys [national-layer-timeline layers]} (:map db)
+        nearest-year                     (round-to-nearest national-layer-year (map :year national-layer-timeline))
+        national-layer-timeline-selected (first-where #(= (:year %) nearest-year) national-layer-timeline)
+        layer                            (first-where #(= (:id %) (:layer national-layer-timeline-selected)) layers)]
+   (merge
+    {:db (-> db
+             (assoc-in [:map :national-layer-alternate-view] nil)
+             (assoc-in [:map :national-layer-timeline-selected] national-layer-timeline-selected))}
+    (when (and layer (not (get-in db [:map :legends (:id layer)])))
+      {:dispatch [:map.layer/get-legend layer]}))))
+
+(defn national-layer-alternate-view [{:keys [db]} [_ national-layer-alternate-view]]
+  (merge
+   {:db (-> db
+            (assoc-in [:map :national-layer-timeline-selected] nil)
+            (assoc-in [:map :national-layer-alternate-view] national-layer-alternate-view))}
+   (when (and national-layer-alternate-view (not (get-in db [:map :legends (:id national-layer-alternate-view)])))
+     {:dispatch [:map.layer/get-legend national-layer-alternate-view]})))
 
 (defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a
@@ -132,8 +152,7 @@
   {:dispatch [:map/got-featureinfo request-id point nil nil layers]})
 
 (defn feature-info-dispatcher [{:keys [db]} [_ leaflet-props point]]
-  (let [{:keys [hidden-layers active-layers]} (:map db)
-        visible-layers (remove #((set hidden-layers) %) active-layers)
+  (let [visible-layers (visible-layers (:map db))
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         per-request    (group-by (juxt :server_url :info_format_type) secure-layers)
         request-id     (gensym)
@@ -163,8 +182,7 @@
        {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))
 
 (defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
-  (let [{:keys [hidden-layers active-layers]} (:map db)
-        visible-layers (remove #((set hidden-layers) %) active-layers)
+  (let [visible-layers (visible-layers (:map db))
         boundary       (first-where #(= (:category %) :boundaries) visible-layers)
         habitat        (region-stats-habitat-layer db)
         [x y]          (wgs84->epsg3112 ((juxt :lng :lat) point))
@@ -197,8 +215,7 @@
   we're in calculating-region-statistics mode we want to issue a
   different request, and it's cleaner to handle those separately."
   [{:keys [db] :as ctx} event-v]
-  (let [{:keys [hidden-layers active-layers]} (:map db)
-        visible-layers (remove #((set hidden-layers) %) active-layers)]
+  (let [visible-layers (visible-layers (:map db))]
     (cond
       (get-in db [:map :controls :ignore-click])
       {:dispatch [:map/toggle-ignore-click]}
@@ -367,6 +384,10 @@
                       {} keyed-layers) ; remove junk, isolate layer IDs
         db           (assoc-in db [:map :keyed-layers] keyed-layers)]
     (keyed-layers-join db)))
+
+(defn update-national-layer-timeline [db [_ national-layer-timeline]]
+  (let [national-layer-timeline (vec (sort-by :year national-layer-timeline))]
+    (assoc-in db [:map :national-layer-timeline] national-layer-timeline)))
 
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))

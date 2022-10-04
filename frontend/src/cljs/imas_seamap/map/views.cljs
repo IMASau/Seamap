@@ -277,7 +277,9 @@
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
-        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
+        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])
+        {national-layer :displayed-layer}             @(re-frame/subscribe [:map/national-layer])
+        {national-layer-opacity :opacity}             @(re-frame/subscribe [:map.national-layer/state])]
     (into
      [:div.map-wrapper
       [download-component download-info]
@@ -338,7 +340,9 @@
            [layer-component
             {:layer           layer
              :boundary-filter boundary-filter
-             :layer-opacities layer-opacities}]])
+             :layer-opacities
+             (if (= layer national-layer)
+               #(identity national-layer-opacity) layer-opacities)}]])
         visible-layers)
        
        (when query

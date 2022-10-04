@@ -199,72 +199,107 @@
 
 ;; Main national layer
 
+(defn- main-national-layer-card-controls
+  "To the right of the layer name. Basic controls for the layer. Different from
+   regular layer card controls because the controls are based on the state of the
+   main national layer."
+  [{:keys [layer] {:keys [visible?]} :layer-state}]
+  [:div.layer-controls
+
+   [layer-control
+    {:tooltip  "Layer info / Download data"
+     :icon     "info-sign"
+     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
+
+   [layer-control
+    {:tooltip  "Zoom to layer"
+     :icon     "zoom-to-fit"
+     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
+
+   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
+    [b/icon
+     {:icon     (if visible? "eye-on" "eye-off")
+      :size     20
+      :class    "bp3-text-muted layer-control"
+      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]]
+
+   [layer-control
+    {:tooltip  "Deactivate layer"
+     :icon     "remove"
+     :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
+
+(defn- main-national-layer-card-header
+  [{:keys [_layer] {:keys [visible?] :as layer-state} :layer-state :as props}]
+  [:div.layer-header
+   (when visible?
+     [layer-status-icons layer-state])
+   [layer-header-text props]
+   [main-national-layer-card-controls props]])
+
+(defn- main-national-layer-alternate-view-select
+  [{:keys [year years alternate-views alternate-view]}]
+  [components/form-group
+   {:label "Alternate View"}
+   [components/select
+    {:value        alternate-view
+     :options      alternate-views
+     :onChange     #(re-frame/dispatch [:map.national-layer/alternate-view %])
+     :isSearchable true
+     :isClearable  true
+     :isDisabled   (and (boolean year) (not= year (apply max years)))
+     :keyfns
+     {:id   :id
+      :text :name}}]])
+
 (defn- main-national-layer-time-filter
   "Time filter for main national layer, which filters what layers are displayed on
    the map."
-  []
-  (let [value     (reagent/atom 2000)   ; Graduate to event probably at some point to be able to filter displayed layer
-        all-time? (reagent/atom false)] ; Graduate to event probably at some point to be able to filter displayed layer
-    (fn []
-      [components/form-group {:label "Time"}
-       [b/checkbox
-        {:label    "At all points in time"
-         :checked  @all-time?
-         :on-click #(swap! all-time? not)}]
-       [b/slider
-        {:min             2000
-         :max             2022
-         :label-step-size (- 2022 2000)
-         :value           @value
-         :step-size       1
-         :on-change       #(reset! value %)
-         :disabled        @all-time?}]])))
+  [{:keys [years year alternate-view]}]
+  [components/form-group {:label "Time"}
+   [b/slider
+    {:min          (apply min years)
+     :max          (apply max years)
+     :value        (or year (apply max years))
+     :label-values years
+     :on-change    #(re-frame/dispatch [:map.national-layer/year %])
+     :disabled     (boolean alternate-view)}]])
 
 (defn- main-national-layer-details
   "Expanded details for main national layer. Differs from regular details by having
    a tabbed view, with a tab for the legend and a tab for filters. The filters
    alter how the main national layer is displayed on the map."
   [{:keys [_layer] {:keys [_opacity]} :layer-state}]
-  (let [selected-tab (reagent/atom "legend") 
-        alternate-view (reagent/atom nil)]   ; Graduate to event probably at some point to be able to filter displayed layer
+  (let [selected-tab (reagent/atom "legend")]
     (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
-      [:div.layer-details
-       [b/slider
-        {:label-renderer false :initial-value 0 :max 100 :value opacity
-         :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
-       
-       [b/tabs
-        {:selected-tab-id @selected-tab
-         :on-change       #(reset! selected-tab %)}
-        
-        [b/tab
-         {:id    "legend"
-          :title "Legend"
-          :panel
-          (reagent/as-element
-           [:<>
-            (when @alternate-view [:h2.bp3-heading @alternate-view])
-            [legend-display layer]])}]
-        
-        [b/tab
-         {:id    "filters"
-          :title "Filters"
-          :panel
-          (reagent/as-element
-           [:<>
-            [components/form-group
-             {:label "Alternate View"}
-             [components/select
-              {:value        @alternate-view        
-               :options
-               ["CBICS Classified" "Seagrass" "..." ".." "."]
-               :onChange     #(reset! alternate-view %)
-               :isSearchable true
-               :isClearable  true
-               :keyfns
-               {:id   identity
-                :text identity}}]]
-            [main-national-layer-time-filter]])}]]])))
+      (let [{:keys
+             [_years _year _alternate-views _alternate-view displayed-layer]:as details}
+            @(re-frame/subscribe [:map/national-layer])]
+        [:div.layer-details
+         [b/slider
+          {:label-renderer false :initial-value 0 :max 100 :value opacity
+           :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
+
+         [b/tabs
+          {:selected-tab-id @selected-tab
+           :on-change       #(reset! selected-tab %)}
+
+          [b/tab
+           {:id    "legend"
+            :title "Legend"
+            :panel
+            (reagent/as-element
+             [:<>
+              (when (not= displayed-layer layer) [:h2.bp3-heading (:name displayed-layer)])
+              [legend-display displayed-layer]])}]
+
+          [b/tab
+           {:id    "filters"
+            :title "Filters"
+            :panel
+            (reagent/as-element
+             [:<>
+              [main-national-layer-alternate-view-select details]
+              [main-national-layer-time-filter details]])}]]]))))
 
 (defn- main-national-layer-card-content
   "Content of the main national layer card; includes both the header and the main
@@ -272,14 +307,15 @@
   [{:keys [_layer] {:keys [active? expanded?]} :layer-state :as props}]
   [:div.layer-content
    {:class (when active? "active-layer")}
-   [layer-card-header props]
+   [main-national-layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [main-national-layer-details props]]])
 
 (defn main-national-layer-card
   "Wrapper of main-national-layer-card-content in a card for displaying in lists."
-  [{:keys [_layer _layer-state] :as props}]
-  [b/card
+  [{:keys [_layer] :as props}]
+  (let [layer-state @(re-frame/subscribe [:map.national-layer/state])]
+   [b/card
    {:elevation 1
     :class     "layer-card"}
-   [main-national-layer-card-content props]])
+   [main-national-layer-card-content (assoc props :layer-state layer-state)]]))

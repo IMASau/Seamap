@@ -268,6 +268,7 @@
     [:map :organisations]
     [:map :categories]
     [:map :keyed-layers]
+    [:map :national-layer-timeline]
     [:map :leaflet-map]
     [:map :legends]
     [:state-of-knowledge :boundaries :amp :networks]
@@ -292,3 +293,11 @@
   (-> (-> (js/DOMParser.)
           (.parseFromString input "text/html"))
       .-documentElement .-textContent))
+
+(defn round-to-nearest
+  "Rounds val to nearest value in coll."
+  [val coll]
+  (->> coll
+       (map #(vector % (abs (- % val))))
+       (sort-by second)
+       first first))

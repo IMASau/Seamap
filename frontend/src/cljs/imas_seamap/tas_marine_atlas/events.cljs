@@ -27,7 +27,8 @@
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
-                                  :map/update-categories]
+                                  :map/update-categories
+                                  :map/update-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}
@@ -45,7 +46,8 @@
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
-                                  :map/update-categories]
+                                  :map/update-categories
+                                  :map/update-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}
@@ -63,7 +65,8 @@
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
-                                  :map/update-categories]
+                                  :map/update-categories
+                                  :map/update-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}

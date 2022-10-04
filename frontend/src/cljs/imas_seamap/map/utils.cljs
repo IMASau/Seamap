@@ -4,7 +4,7 @@
 (ns imas-seamap.map.utils
   (:require [cemerick.url :as url]
             [clojure.string :as string]
-            [imas-seamap.utils :refer [merge-in select-values]]
+            [imas-seamap.utils :refer [merge-in select-values first-where]]
             ["proj4" :as proj4]
             [imas-seamap.interop.leaflet :as leaflet]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -312,3 +312,26 @@
                    (conj acc [lyr o])
                    acc))
                {})))
+
+(defn main-national-layer [{:keys [national-layer-timeline layers] :as _map}]
+  (let [id (-> national-layer-timeline last :layer)]
+    (first-where #(= (:id %) id) layers)))
+
+(defn displayed-national-layer
+  "What layer is currently being substituted for the main national layer?"
+  [{:keys [national-layer-timeline-selected national-layer-alternate-view layers] :as db-map}]
+  (let [main-national-layer    (main-national-layer db-map)
+        national-layer-timeline-selected (first-where #(= (:id %) (:layer national-layer-timeline-selected)) layers)]
+    (or
+     national-layer-timeline-selected
+     national-layer-alternate-view
+     main-national-layer)))
+
+(defn visible-layers
+  "Shows only layers which should be visible from the map."
+  [{:keys [hidden-layers active-layers] :as db-map}]
+  (let [main-national-layer    (main-national-layer db-map)
+        displayed-national-layer (displayed-national-layer db-map)]
+    (->> active-layers
+         (remove #(hidden-layers %))
+         (replace {main-national-layer displayed-national-layer}))))

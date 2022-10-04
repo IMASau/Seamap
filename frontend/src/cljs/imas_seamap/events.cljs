@@ -11,7 +11,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers]]
-            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities]]
+            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities visible-layers]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -38,6 +38,8 @@
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
+                                  :map/update-keyed-layers
+                                  :map/update-national-layer-timeline
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries]
@@ -65,6 +67,8 @@
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
+                                  :map/update-keyed-layers
+                                  :map/update-national-layer-timeline
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries]
@@ -92,6 +96,8 @@
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
+                                  :map/update-keyed-layers
+                                  :map/update-national-layer-timeline
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries]
@@ -114,6 +120,7 @@
           save-state
           category
           keyed-layers
+          national-layer-timeline
           amp-boundaries
           imcra-boundaries
           meow-boundaries
@@ -126,24 +133,25 @@
         {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
      db [:config :urls]
-     {:layer-url                 (str api-url-base layer)
-      :base-layer-url            (str api-url-base base-layer)
-      :base-layer-group-url      (str api-url-base base-layer-group)
-      :organisation-url          (str api-url-base organisation)
-      :classification-url        (str api-url-base classification)
-      :region-stats-url          (str api-url-base region-stats)
-      :descriptor-url            (str api-url-base descriptor)
-      :save-state-url            (str api-url-base save-state)
-      :category-url              (str api-url-base category)
-      :keyed-layers-url          (str api-url-base keyed-layers)
-      :amp-boundaries-url        (str api-url-base amp-boundaries)
-      :imcra-boundaries-url      (str api-url-base imcra-boundaries)
-      :meow-boundaries-url       (str api-url-base meow-boundaries)
-      :habitat-statistics-url    (str api-url-base habitat-statistics)
-      :bathymetry-statistics-url (str api-url-base bathymetry-statistics)
-      :habitat-observations-url  (str api-url-base habitat-observations)
-      :layer-previews-url        (str media-url-base layer-previews)
-      :story-maps-url            (str wordpress-url-base story-maps)})))
+     {:layer-url                   (str api-url-base layer)
+      :base-layer-url              (str api-url-base base-layer)
+      :base-layer-group-url        (str api-url-base base-layer-group)
+      :organisation-url            (str api-url-base organisation)
+      :classification-url          (str api-url-base classification)
+      :region-stats-url            (str api-url-base region-stats)
+      :descriptor-url              (str api-url-base descriptor)
+      :save-state-url              (str api-url-base save-state)
+      :category-url                (str api-url-base category)
+      :keyed-layers-url            (str api-url-base keyed-layers)
+      :national-layer-timeline-url (str api-url-base national-layer-timeline)
+      :amp-boundaries-url          (str api-url-base amp-boundaries)
+      :imcra-boundaries-url        (str api-url-base imcra-boundaries)
+      :meow-boundaries-url         (str api-url-base meow-boundaries)
+      :habitat-statistics-url      (str api-url-base habitat-statistics)
+      :bathymetry-statistics-url   (str api-url-base bathymetry-statistics)
+      :habitat-observations-url    (str api-url-base habitat-observations)
+      :layer-previews-url          (str media-url-base layer-previews)
+      :story-maps-url              (str wordpress-url-base story-maps)})))
 
 (defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (assoc-in
@@ -248,6 +256,7 @@
                 descriptor-url
                 category-url
                 keyed-layers-url
+                national-layer-timeline-url
                 amp-boundaries-url
                 imcra-boundaries-url
                 meow-boundaries-url
@@ -292,6 +301,11 @@
                    :uri             keyed-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-keyed-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             national-layer-timeline-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-national-layer-timeline]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             amp-boundaries-url
@@ -434,7 +448,7 @@
     {:distance 0 :prev-latlng (first linestring)}
     (rest linestring))))
 
-(defn transect-query [{{{:keys [active-layers hidden-layers]} :map :as db} :db} [_ geojson]]
+(defn transect-query [{{db-map :map :as db} :db} [_ geojson]]
   ;; Reset the transect before querying (and paranoia to avoid
   ;; unlikely race conditions; do this before dispatching)
   (let [query-id (gensym)
@@ -444,7 +458,7 @@
                                 :distance (linestring->distance linestring)
                                 :habitat :loading
                                 :bathymetry :loading})
-        visible-layers (filter #(not (hidden-layers %)) active-layers)
+        visible-layers (visible-layers db-map)
         habitat-layers (filter habitat-layer? visible-layers)]
     (merge
      {:db         db
@@ -482,8 +496,8 @@
       {:db      (assoc-in db [:transect type] status-text)
        :message [status-text b/INTENT-DANGER]})))
 
-(defn transect-query-habitat [{{{:keys [active-layers hidden-layers]} :map :as db} :db} [_ query-id linestring]]
-  (let [visible-layers (filter #(not (hidden-layers %)) active-layers)
+(defn transect-query-habitat [{{db-map :map :as db} :db} [_ query-id linestring]]
+  (let [visible-layers (visible-layers db-map)
         habitat-layers (filter habitat-layer? visible-layers)
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it

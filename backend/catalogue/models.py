@@ -132,7 +132,7 @@ class SaveState(models.Model):
 class KeyedLayer(models.Model):
     keyword = models.CharField(max_length = 200)
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.keyword

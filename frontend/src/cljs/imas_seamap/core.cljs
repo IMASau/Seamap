@@ -36,6 +36,8 @@
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
+    :map/national-layer                   msubs/national-layer
+    :map.national-layer/state             msubs/national-layer-state
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/lookup                    msubs/map-layer-lookup
@@ -145,6 +147,8 @@
     :map/remove-layer                     [mevents/remove-layer]
     :map/add-layer-from-omnibar           [mevents/add-layer-from-omnibar]
     :map/base-layer-changed               [mevents/base-layer-changed]
+    :map.national-layer/year              [mevents/national-layer-year]
+    :map.national-layer/alternate-view    [mevents/national-layer-alternate-view]
     :map.layer/load-start                 mevents/layer-started-loading
     :map.layer/tile-load-start            mevents/layer-tile-started-loading
     :map.layer/load-error                 mevents/layer-loading-error
@@ -175,6 +179,7 @@
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
     :map/update-keyed-layers              mevents/update-keyed-layers
+    :map/update-national-layer-timeline   mevents/update-national-layer-timeline
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]
