@@ -386,11 +386,11 @@
         (assoc-in [:sorting :category] (->sort-map categories)))))
 
 (defn update-keyed-layers [db [_ keyed-layers]]
-  (let [keyed-layers (map #(update % :keyword (comp keyword string/lower-case)) keyed-layers) ; keywordize
-        keyed-layers (group-by :keyword keyed-layers) ; to map
-        keyed-layers (reduce-kv
-                      (fn [m k v] (assoc m k (mapv :layer v)))
-                      {} keyed-layers) ; remove junk, isolate layer IDs
+  (let [keyed-layers (->> keyed-layers
+                          (map #(update % :keyword (comp keyword string/lower-case)))
+                          sort-by-sort-key
+                          (group-by :keyword)
+                          (reduce-kv (fn [m k v] (assoc m k (mapv :layer v))) {}))
         db           (assoc-in db [:map :keyed-layers] keyed-layers)]
     (keyed-layers-join db)))
 

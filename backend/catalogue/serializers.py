@@ -80,7 +80,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class KeyedLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.KeyedLayer
-        fields = ('keyword', 'layer')
+        fields = ('keyword', 'layer', 'sort_key')
 
 class NationalLayerTimelineSerializer(serializers.ModelSerializer):
     class Meta:
