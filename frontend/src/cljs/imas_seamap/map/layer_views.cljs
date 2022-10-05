@@ -377,7 +377,7 @@
      [legend-display displayed-layer]]))
 
 (defn main-national-layer-catalogue-content
-  [{:keys [_layer] :as props}]
+  [{:keys [layer] :as props}]
   (let [{:keys [active? expanded? displayed-layer] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
         {:keys
          [years year _alternate-views alternate-view _displayed-layer]
@@ -389,7 +389,7 @@
                   :else                                    nil)
         props (assoc props :layer-state layer-state :national-layer-details national-layer-details :tooltip tooltip)]
     [:div.layer-content
-     {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer displayed-layer])
+     {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer (or displayed-layer layer)])
       :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
       :class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
      [main-national-layer-catalogue-header props]
