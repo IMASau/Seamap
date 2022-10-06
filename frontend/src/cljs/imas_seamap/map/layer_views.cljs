@@ -378,9 +378,9 @@
 
 (defn main-national-layer-catalogue-content
   [{:keys [layer] :as props}]
-  (let [{:keys [active? expanded? displayed-layer] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
+  (let [{:keys [active? expanded?] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
         {:keys
-         [years year _alternate-views alternate-view _displayed-layer]
+         [years year _alternate-views alternate-view displayed-layer]
          :as national-layer-details}
         @(re-frame/subscribe [:map/national-layer])
         tooltip (cond
