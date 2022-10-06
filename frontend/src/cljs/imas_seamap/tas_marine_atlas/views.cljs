@@ -19,7 +19,7 @@
     [components/drawer
      {:title       "Tasmania Marine Atlas"
       :position    "left"
-      :size        "460px"
+      :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
       :hasBackdrop false}
