@@ -1,0 +1,7 @@
+.region_report > * {
+    max-width: var(--responsive--alignwide-width);
+}
+
+.region_report .entry-content > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+    max-width: 100%;
+}
