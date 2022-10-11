@@ -4,15 +4,17 @@
     $network_name = "South-east";
     $park_name = NULL;
     $region_name = is_null($park_name) ? $network_name . " network" : $park_name . " park";
-
-    $classified = 0.2;
-    $classified_habitat = "Shelf";
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
     <script src="https://unpkg.com/vega@5.22.1/build/vega.js"></script>
     <script src="https://unpkg.com/vega-lite@5.2.0/build/vega-lite.js"></script>
     <script src="https://www.unpkg.com/vega-embed@6.21.0/build/vega-embed.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
     <script>
         let postId = "<?php the_ID(); ?>";
         let postElement = document.getElementById(`post-${postId}`);
@@ -32,48 +34,91 @@
 
             <div class="region-report-breakdowns">
                 <div class="region-report-classified">
-                    <div><?php echo round($classified * 100) . '%' ?></div>
-                    <div><?php $classified_habitat ?> habitat classified</div>
+                    <!-- TODO: Determine how this is calculated from habitat statistics -->
+                    <div>20%</div>
+                    <div>Shelf habitat classified</div>
                     <div>Top 10 coverage in Aus networks</div>
                 </div>
                 
-                <div class="region-report-habitat-breakdown" id="region-report-habitat-breakdown-<?php echo the_ID(); ?>"></div>
-                <script>
-                    postElement.addEventListener(
-                        "habitatStatistics",
-                        e => {
-                            const values = e.detail;
-                            vegaEmbed(
-                                `#region-report-habitat-breakdown-${postId}`,
-                                {
-                                    background: "transparent",
-                                    description: "A simple donut chart with embedded data.",
-                                    width: "container",
-                                    data: { values: values },
-                                    mark: { type: "arc" },
-                                    encoding: {
-                                        theta: {
-                                            field: "area",
-                                            type: "quantitative"
-                                        },
-                                        color: {
-                                            field: "habitat",
-                                            type: "nominal",
-                                            legend: { title: "Habitat" },
-                                            sort: values.map(e => e.habitat),
-                                            scale: { range: values.map(e => e.color) }
-                                        }
-                                    }
-                                },
-                                { actions: false }
-                            );
-                        }
-                    );
-                </script>
+                <div class="region-report-habitat-breakdown">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#region-report-habitat-breakdown-<?php echo the_ID(); ?>-1">Chart</a></li>
+                        <li><a data-toggle="tab" href="#region-report-habitat-breakdown-<?php echo the_ID(); ?>-2">Breakdown</a></li>
+                    </ul>
 
-                <div class="region-report-other-breakdowns">
-                    
+                    <div class="tab-content">
+                        <div id="region-report-habitat-breakdown-<?php echo the_ID(); ?>-1" class="tab-pane fade in active">
+                            <div class="region-report-habitat-breakdown-chart" id="region-report-habitat-breakdown-chart-<?php echo the_ID(); ?>"></div>
+                            <script>
+                                postElement.addEventListener(
+                                    "habitatStatistics",
+                                    e => {
+                                        const values = e.detail;
+                                        vegaEmbed(
+                                            `#region-report-habitat-breakdown-chart-${postId}`,
+                                            {
+                                                background: "transparent",
+                                                description: "A simple donut chart with embedded data.",
+                                                width: "container",
+                                                data: { values: values },
+                                                mark: { type: "arc" },
+                                                encoding: {
+                                                    theta: {
+                                                        field: "area",
+                                                        type: "quantitative"
+                                                    },
+                                                    color: {
+                                                        field: "habitat",
+                                                        type: "nominal",
+                                                        legend: { title: "Habitat" },
+                                                        sort: values.map(e => e.habitat),
+                                                        scale: { range: values.map(e => e.color) }
+                                                    }
+                                                }
+                                            },
+                                            { actions: false }
+                                        );
+                                    }
+                                );
+                            </script>
+                        </div>
+                        
+                        <div id="region-report-habitat-breakdown-<?php echo the_ID(); ?>-2" class="tab-pane fade">
+                            <table class="region-report-habitat-breakdown-table">
+                                <thead>
+                                    <tr>
+                                        <th>Habitat</th>
+                                        <th>Area (km²)</th>
+                                        <th>Mapped (%)</th>
+                                        <th>Total (%)</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="region-report-habitat-breakdown-table-<?php echo the_ID(); ?>"></tbody>
+                            </table>
+                            <script>
+                                postElement.addEventListener(
+                                    "habitatStatistics",
+                                    e => {
+                                        const values = e.detail;
+                                        const table = document.getElementById(`region-report-habitat-breakdown-table-${postId}`);
+
+                                        values.forEach( habitat => {
+                                            const row = table.insertRow();
+
+                                            row.insertCell().innerHTML = habitat.habitat;
+                                            row.insertCell().innerHTML = habitat.area.toFixed(1);
+                                            row.insertCell().innerHTML = habitat.mapped_percentage.toFixed(1);
+                                            row.insertCell().innerHTML = habitat.total_percentage.toFixed(1);
+                                        });
+                                    }
+                                );
+                            </script>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="region-report-other-breakdowns"></div>
             </div>
         </section>
 
@@ -103,6 +148,7 @@
     </div>
 
     <script>
+        // TODO: Retrieve habitat statistics using AJAX
         const habitatStatistics = [
             {
                 habitat: "Consolidated Hard Substrata",

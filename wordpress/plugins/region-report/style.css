@@ -1,8 +1,24 @@
-.region_report > * {
+.region_report td,
+.region_report th {
+    font-size: 11px;
+    padding: 3px 4px 3px 0;
+    text-align: left;
+    border: 0;
+}
+
+.region_report td {
+    border-top: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.region_report th {
+    text-transform: uppercase;
+}
+
+.region_report>* {
     max-width: var(--responsive--alignwide-width);
 }
 
-.region_report .entry-content > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+.region_report .entry-content>*:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
     max-width: 100%;
 }
 
@@ -12,12 +28,23 @@
     gap: 24px;
 }
 
-.region-report-outline > * {
+.region-report-outline>* {
     flex: 1;
     min-width: 0;
     overflow-x: hidden;
 }
 
-.region-report-habitat-breakdown {
+.region-report-habitat-breakdown-chart {
     width: 400px;
+}
+
+.region-report-breakdowns {
+    gap: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.region-report-habitat-breakdown .tab-content {
+    height: 240px;
+    overflow-y: auto;
 }
