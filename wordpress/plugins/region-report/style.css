@@ -48,17 +48,17 @@
     flex-direction: column;
 }
 
-.region-report-classified>*:nth-child(0) {
+.region-report-classified>*:nth-child(1) {
     font-size: 40px;
     font-weight: bold;
 }
 
-.region-report-classified>*:nth-child(1) {
+.region-report-classified>*:nth-child(2) {
     font-size: 24px;
     font-weight: bold;
 }
 
-.region-report-classified>*:nth-child(2) {
+.region-report-classified>*:nth-child(3) {
     font-size: 18px;
 }
 
