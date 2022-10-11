@@ -6,6 +6,14 @@
     border: 0;
 }
 
+.region_report img {
+    width: 100%
+}
+
+.region_report table {
+    border-bottom: 1px solid #ededed;
+}
+
 .region_report td {
     border-top: 1px solid rgba(0, 0, 0, 0.07);
 }
@@ -25,7 +33,7 @@
 .region-report-outline {
     display: flex;
     flex-direction: row;
-    gap: 24px;
+    gap: 32px;
 }
 
 .region-report-outline>* {
@@ -34,17 +42,74 @@
     overflow-x: hidden;
 }
 
-.region-report-habitat-breakdown-chart {
-    width: 400px;
-}
-
-.region-report-breakdowns {
+.region-report-outline>* {
     gap: 16px;
     display: flex;
     flex-direction: column;
+}
+
+.region-report-classified>*:nth-child(0) {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.region-report-classified>*:nth-child(1) {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.region-report-classified>*:nth-child(2) {
+    font-size: 18px;
 }
 
 .region-report-habitat-breakdown .tab-content {
     height: 240px;
     overflow-y: auto;
 }
+
+.region-report-habitat-observations-breakdown>ul {
+    margin: 0;
+    padding: 0;
+}
+
+.region-report-habitat-breakdown-chart {
+    width: 400px;
+}
+
+/* Tree view start (https://www.w3schools.com/howto/howto_js_treeview.asp) */
+.tree-caret {
+    list-style-type: none;
+}
+
+.tree-caret>*:first-child {
+    cursor: pointer;
+    -webkit-user-select: none;
+    /* Safari 3.1+ */
+    -moz-user-select: none;
+    /* Firefox 2+ */
+    -ms-user-select: none;
+    /* IE 10+ */
+    user-select: none;
+}
+
+.tree-caret>*:first-child::before {
+    content: "\25B6";
+    color: black;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+.tree-caret-down::before {
+    -ms-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+
+.tree-caret .tree-nested {
+    display: none;
+}
+
+.tree-caret .tree-active {
+    display: block;
+}
+/* Tree view end */
