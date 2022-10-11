@@ -5,3 +5,19 @@
 .region_report .entry-content > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
     max-width: 100%;
 }
+
+.region-report-outline {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+}
+
+.region-report-outline > * {
+    flex: 1;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+.region-report-habitat-breakdown {
+    width: 400px;
+}
