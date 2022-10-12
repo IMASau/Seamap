@@ -26,39 +26,42 @@
     max-width: var(--responsive--alignwide-width);
 }
 
+.region_report .entry-content>*:not(:first-child) {
+    margin-top: 48px;
+}
+
 .region_report .entry-content>*:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
     max-width: 100%;
 }
 
-.region-report-outline {
+.region-report-outline,
+.region-report-known>*:nth-child(2) {
     display: flex;
     flex-direction: row;
     gap: 32px;
 }
 
-.region-report-outline>* {
+.region-report-outline>*,
+.region-report-known>*:nth-child(2)>* {
     flex: 1;
     min-width: 0;
     overflow-x: hidden;
-}
-
-.region-report-outline>* {
     gap: 16px;
     display: flex;
     flex-direction: column;
 }
 
-.region-report-classified>*:nth-child(1) {
+.region-report-outline-classified>*:nth-child(1) {
     font-size: 40px;
     font-weight: bold;
 }
 
-.region-report-classified>*:nth-child(2) {
+.region-report-outline-classified>*:nth-child(2) {
     font-size: 24px;
     font-weight: bold;
 }
 
-.region-report-classified>*:nth-child(3) {
+.region-report-outline-classified>*:nth-child(3) {
     font-size: 18px;
 }
 
@@ -74,6 +77,30 @@
 
 .region-report-habitat-breakdown-chart {
     width: 400px;
+}
+
+.region-report-known-classified {
+    background-color: #ebebeb;
+    border: 3px solid black;
+    border-radius: 32px;
+    padding: 12px 24px;
+    gap: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.region-report-known-classified>*:nth-child(1)>*:nth-child(1) {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.region-report-known-classified>*:nth-child(1)>*:nth-child(2) {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.region-report-known-classified>*:nth-child(3) {
+    font-size: 26px;
 }
 
 /* Tree view start (https://www.w3schools.com/howto/howto_js_treeview.asp) */

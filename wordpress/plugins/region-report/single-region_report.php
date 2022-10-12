@@ -35,7 +35,7 @@
             </div>
 
             <div>
-                <div class="region-report-classified">
+                <div class="region-report-outline-classified">
                     <!-- TODO: Determine how this is calculated from habitat statistics -->
                     <div>20%</div>
                     <div>Shelf habitat classified</div>
@@ -121,6 +121,7 @@
                 </div>
 
                 <!-- TODO: Use habitat observations data -->
+                <!-- TODO: Confirm with Emma the exact content of these dropdowns -->
                 <div class="region-report-habitat-observations-breakdown">
                     <ul>
                         <li class="tree-caret">
@@ -156,6 +157,72 @@
 
         <section class="region-report-known">
             <h2>What's known about the <?php echo $region_name; ?>?</h2>
+            <div>
+                <div>
+                    <div class="region-report-heatmap">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/681px-Placeholder_view_vector.svg.png">
+                    </div>
+
+                    <div class="region-report-research-effort">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/681px-Placeholder_view_vector.svg.png">
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="region-report-known-classified">
+                        <div>
+                            <!-- TODO: Determine how this is calculated from habitat statistics -->
+                            <div>20%</div>
+                            <div>Shelf habitat classified</div>
+                        </div>
+                        
+                        <!-- TODO: Star ratings -->
+                        <div id="region-report-star-ratings-<?php echo the_ID(); ?>">
+                            <div><!-- State of bathymetry mapping --></div>
+                            <div><!-- State of habitat observations --></div>
+                            <div><!-- State of habitat maps --></div>
+                        </div>
+
+                        <div>
+                            "You have good imagery and bathymetry coverage. Invest in modelling"
+                            <br>– SA Team
+                        </div>
+                    </div>
+
+                    <!-- TODO: Use habitat observations data -->
+                    <!-- TODO: Confirm with Emma the exact content of these dropdowns -->
+                    <div class="region-report-habitat-observations-breakdown">
+                        <ul>
+                            <li class="tree-caret">
+                                <span>1690 imagery deployments (73 campaigns)</span>
+                                <ul>
+                                    <li>Date range: 2009-02-01 to 2022-04-17</li>
+                                    <li>Methods of collection: ACFR AUV Holt, CSIRO O&A MRITC Towed Stereo Camera, GlobalArchive Stereo-BRUVs, IMOS AUV Nimbus, IMOS AUV Sirius, NESP Towed Camera, RLS DIVER Photos, SOI ROV Subastian</li>
+                                    <li>1907422 images collected</li>
+                                    <li>766824 image annotations (508833 public)</li>
+                                </ul>
+                            </li>
+
+                            <li class="tree-caret">
+                                <span>2549 video deployments (48 campaigns)</span>
+                                <ul>
+                                    <li>Date range: 1976-07-29 to 2021-03-11</li>
+                                    <li>Methods of collection: BRUVs, stereo-BOSS, stereo-BRUVs</li>
+                                    <li>982 hours of video</li>
+                                </ul>
+                            </li>
+
+                            <li class="tree-caret">
+                                <span>9084 sediment samples (3725 analysed) from 157 surveys</span>
+                                <ul>
+                                    <li>Date range: 1905-05-21 to 2020-12-03,</li>
+                                    <li>Methods of collection: core, seabed sample</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section class="region-report-contains">
