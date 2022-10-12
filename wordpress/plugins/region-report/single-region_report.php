@@ -7,12 +7,51 @@
 ?>
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <script src="https://unpkg.com/vega@5.22.1/build/vega.js"></script>
 <script src="https://unpkg.com/vega-lite@5.2.0/build/vega-lite.js"></script>
 <script src="https://www.unpkg.com/vega-embed@6.21.0/build/vega-embed.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<script>
+    function starRating(element, value, total, text) {
+        element.classList.add("region-report-star-rating")
+
+        // Stars
+        const stars = document.createElement("div");
+
+        const fullStars = Math.floor(value / 2);
+        const halfStars = value % 2;
+        const emptyStars = Math.floor((total - value) / 2);
+
+        for (let i = 0; i < fullStars; i++) {
+            const star = document.createElement("i");
+            star.className = "fa fa-star";
+            stars.appendChild(star);
+        }
+
+        for (let i = 0; i < halfStars; i++) {
+            const star = document.createElement("i");
+            star.className = "fa fa-star-half-o";
+            stars.appendChild(star);
+        }
+
+        for (let i = 0; i < emptyStars; i++) {
+            const star = document.createElement("i");
+            star.className = "fa fa-star-o";
+            stars.appendChild(star);
+        }
+
+        element.appendChild(stars);
+
+        // Label
+        const label = document.createElement("div");
+        label.innerText = text;
+        element.appendChild(label);
+    }
+</script>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
     <script>
@@ -182,6 +221,12 @@
                             <div><!-- State of habitat observations --></div>
                             <div><!-- State of habitat maps --></div>
                         </div>
+                        <script>
+                            let starRatings = document.getElementById(`region-report-star-ratings-${postId}`)
+                            starRating(starRatings.children[0], 6, 6, "State of bathymetry mapping");
+                            starRating(starRatings.children[1], 3, 6, "State of habitat observations");
+                            starRating(starRatings.children[2], 2, 6, "State of habitat maps");
+                        </script>
 
                         <div>
                             "You have good imagery and bathymetry coverage. Invest in modelling"

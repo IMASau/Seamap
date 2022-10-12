@@ -89,19 +89,39 @@
     flex-direction: column;
 }
 
-.region-report-known-classified>*:nth-child(1)>*:nth-child(1) {
+.region-report-known-classified>div:nth-of-type(1)>*:nth-child(1) {
     font-size: 40px;
     font-weight: bold;
 }
 
-.region-report-known-classified>*:nth-child(1)>*:nth-child(2) {
+.region-report-known-classified>div:nth-of-type(1)>*:nth-child(2) {
     font-size: 24px;
     font-weight: bold;
 }
 
-.region-report-known-classified>*:nth-child(3) {
+.region-report-known-classified>div:nth-of-type(3) {
     font-size: 26px;
 }
+
+/* Star rating start */
+.region-report-star-rating {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.region-report-star-rating>*:nth-child(1) {
+    font-size: 44px;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    margin-right: 12px;
+}
+
+.region-report-star-rating>*:nth-child(2) {
+    font-size: 20px;
+}
+/* Star rating end */
 
 /* Tree view start (https://www.w3schools.com/howto/howto_js_treeview.asp) */
 .tree-caret {
