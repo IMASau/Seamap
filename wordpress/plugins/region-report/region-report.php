@@ -42,6 +42,14 @@ function region_report_setup_post_type() {
             'rewrite'      => [
                 'slug' => 'region-reports'
             ],
+            'supports'     => [
+                'title',
+                'editor',
+                'excerpt',
+                'thumbnail',
+                'custom-fields',
+                'revisions',
+            ],
         ]
     );
 }
@@ -67,10 +75,7 @@ function region_report_deactivate() {
 }
 register_deactivation_hook(__FILE__, 'region_report_deactivate');
 
-/* Filter the single_template with our custom function*/
-add_filter('single_template', 'my_custom_template');
-
-function my_custom_template($single) {
+function region_report_template($single) {
     global $post;
 
     /* Checks for single template by post type */
@@ -82,3 +87,6 @@ function my_custom_template($single) {
 
     return $single;
 }
+add_filter('single_template', 'region_report_template');
+
+add_filter('acf/settings/remove_wp_meta_box', '__return_false');
