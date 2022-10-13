@@ -11,7 +11,7 @@
 }
 
 .region_report table {
-    border-bottom: 1px solid #ededed;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07);
 }
 
 .region_report td {
@@ -34,35 +34,19 @@
     max-width: 100%;
 }
 
-.region-report-outline,
-.region-report-known>*:nth-child(2) {
+.region-report-chart-table {
     display: flex;
     flex-direction: row;
     gap: 32px;
 }
 
-.region-report-outline>*,
-.region-report-known>*:nth-child(2)>* {
+.region-report-chart-table>* {
     flex: 1;
     min-width: 0;
     overflow-x: hidden;
     gap: 16px;
     display: flex;
     flex-direction: column;
-}
-
-.region-report-outline-classified>*:nth-child(1) {
-    font-size: 40px;
-    font-weight: bold;
-}
-
-.region-report-outline-classified>*:nth-child(2) {
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.region-report-outline-classified>*:nth-child(3) {
-    font-size: 18px;
 }
 
 .region-report-habitat-breakdown .tab-content {
@@ -75,7 +59,7 @@
     padding: 0;
 }
 
-.region-report-habitat-breakdown-chart {
+.region-report-chart {
     width: 400px;
 }
 
