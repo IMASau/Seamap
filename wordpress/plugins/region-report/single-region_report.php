@@ -4,6 +4,10 @@
     $network_name = "South-east";
     $park_name = NULL;
     $region_name = is_null($park_name) ? $network_name . " network" : $park_name . " park";
+    
+    $habitat_statistics_url = get_post_meta(get_the_ID(), 'habitat_statistics_url', true);
+    $bathymetry_statistics_url = get_post_meta(get_the_ID(), 'bathymetry_statistics_url', true);
+    $habitat_observations_url = get_post_meta(get_the_ID(), 'habitat_observations_url', true);
 ?>
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
@@ -57,6 +61,10 @@
     <script>
         let postId = "<?php the_ID(); ?>";
         let postElement = document.getElementById(`post-${postId}`);
+
+        let habitatStatisticsUrl = "<?php echo $habitat_statistics_url; ?>";
+        let bathymetryStatisticsUrl = "<?php echo $bathymetry_statistics_url; ?>";
+        let habitatObservationsUrl = "<?php echo $habitat_observations_url; ?>";
     </script>
 
     <header class="entry-header">
