@@ -300,127 +300,41 @@
     </div>
 
     <script>
-        // TODO: Retrieve habitat statistics using AJAX
-        const habitatStatistics = [
-            {
-                habitat: "Consolidated Hard Substrata",
-                area: 1235.8150275754394,
-                mapped_percentage: 18.38023961629475,
-                total_percentage: 0.034265818335294004,
-                color: "#640000"
-            },
-            {
-                habitat: "Coral Biota",
-                area: 88.92393920043945,
-                mapped_percentage: 1.3225630645838133,
-                total_percentage: 0.0024656210503274383,
-                color: "#f166ff"
-            },
-            {
-                habitat: "Hard Substrata",
-                area: 10.152846682128907,
-                mapped_percentage: 0.15100298235663012,
-                total_percentage: 0.000281511061310253,
-                color: "#8a5c5c"
-            },
-            {
-                habitat: "Invertebrates",
-                area: 106.06767944702149,
-                mapped_percentage: 1.5775413959849975,
-                total_percentage: 0.002940970739211998,
-                color: "#ff0e48"
-            },
-            {
-                habitat: "Macroalgae",
-                area: 181.3878893095703,
-                mapped_percentage: 2.697776604598161,
-                total_percentage: 0.005029397057501583,
-                color: "#2d9624"
-            },
-            {
-                habitat: "Macrophytes",
-                area: 85.10082499267578,
-                mapped_percentage: 1.2657020023283883,
-                total_percentage: 0.002359616402386455,
-                color: "#00e6b4"
-            },
-            {
-                habitat: "Mixed Biota",
-                area: 91.86948494140626,
-                mapped_percentage: 1.3663720775118597,
-                total_percentage: 0.0025472930910504636,
-                color: "#0099ff"
-            },
-            {
-                habitat: "Mixed Filter Feeder Community",
-                area: 108.54156908508301,
-                mapped_percentage: 1.6143354819260376,
-                total_percentage: 0.0030095650280237253,
-                color: "#ff99e6"
-            },
-            {
-                habitat: "Mixed Hard/Soft Substrata",
-                area: 9.745303597167968,
-                mapped_percentage: 0.14494160635099748,
-                total_percentage: 0.00027021099050558375,
-                color: "#cc6600"
-            },
-            {
-                habitat: "Mixed Invertebrate Community",
-                area: 12.257090540039062,
-                mapped_percentage: 0.18229933776297688,
-                total_percentage: 0.00033985606938947066,
-                color: "#7300e6"
-            },
-            {
-                habitat: "Pavement",
-                area: 201.4696749716797,
-                mapped_percentage: 2.996452396813441,
-                total_percentage: 0.0055862108233093845,
-                color: "#cccc00"
-            },
-            {
-                habitat: "Sand",
-                area: 474.52206928344725,
-                mapped_percentage: 7.0575524184725635,
-                total_percentage: 0.01315721743087626,
-                color: "#FFF9A5"
-            },
-            {
-                habitat: "Seagrass",
-                area: 3996.9879088410034,
-                mapped_percentage: 59.447080565174524,
-                total_percentage: 0.11082569682083905,
-                color: "#02DC00"
-            },
-            {
-                habitat: "Soft Substrata",
-                area: 118.92278854333496,
-                mapped_percentage: 1.7687350456911453,
-                total_percentage: 0.003297408250607912,
-                color: "#ffd480"
-            },
-            {
-                habitat: "Sponges",
-                area: 0.2259760517578125,
-                mapped_percentage: 0.0033609349993110288,
-                total_percentage: 0.0000062657065700615275,
-                color: "#FCFAE2"
-            },
-            {
-                habitat: "Unknown",
-                area: 1.6166555456542968,
-                mapped_percentage: 0.024044469150399463,
-                total_percentage: 0.000044825498963884484,
-                color: null
+        $.ajax(habitatStatisticsUrl, {
+            dataType : "json",
+            success: response => {
+                postElement.dispatchEvent(
+                    new CustomEvent(
+                        "habitatStatistics",
+                        { detail: response }
+                    )
+                );
             }
-        ];
-        postElement.dispatchEvent(
-            new CustomEvent(
-                "habitatStatistics",
-                { detail: habitatStatistics }
-            )
-        );
+        });
+
+        $.ajax(bathymetryStatisticsUrl, {
+            dataType : "json",
+            success: response => {
+                postElement.dispatchEvent(
+                    new CustomEvent(
+                        "bathymetryStatistics",
+                        { detail: response }
+                    )
+                );
+            }
+        });
+
+        $.ajax(habitatObservationsUrl, {
+            dataType : "json",
+            success: response => {
+                postElement.dispatchEvent(
+                    new CustomEvent(
+                        "habitatObservations",
+                        { detail: response }
+                    )
+                );
+            }
+        });
     </script>
 </article>
 
