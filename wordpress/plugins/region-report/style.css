@@ -49,11 +49,6 @@
     flex-direction: column;
 }
 
-.region-report-habitat-breakdown .tab-content {
-    height: 240px;
-    overflow-y: auto;
-}
-
 .region-report-habitat-observations-breakdown>ul {
     margin: 0;
     padding: 0;

@@ -119,7 +119,7 @@
                         </script>
                     </div>
                     <div>
-                        <table class="region-report-habitat-breakdown-table">
+                        <table>
                             <thead>
                                 <tr>
                                     <th>Habitat</th>
@@ -129,14 +129,14 @@
                                 </tr>
                             </thead>
 
-                            <tbody id="region-report-habitat-breakdown-table-<?php echo the_ID(); ?>"></tbody>
+                            <tbody id="region-report-habitat-table-<?php echo the_ID(); ?>"></tbody>
                         </table>
                         <script>
                             postElement.addEventListener(
                                 "habitatStatistics",
                                 e => {
                                     const values = e.detail;
-                                    const table = document.getElementById(`region-report-habitat-breakdown-table-${postId}`);
+                                    const table = document.getElementById(`region-report-habitat-table-${postId}`);
 
                                     values.forEach( habitat => {
                                         const row = table.insertRow();
