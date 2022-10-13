@@ -38,8 +38,8 @@
       <documentation>Hosts application data and spatial data</documentation>
       <property key="Technology" value="SQL Server"/>
     </element>
-    <element xsi:type="archimate:ApplicationComponent" name="ETL jobs" id="id-845649f74ee64771b1d17062e8f11292">
-      <documentation>Scripts to extract, transform and load data from 3rd party sources</documentation>
+    <element xsi:type="archimate:ApplicationComponent" name="Batch processing" id="id-845649f74ee64771b1d17062e8f11292">
+      <documentation>Scripts to extract, transform and load data from 3rd party sources.  Batch processing for summary stats, image thumbnails.</documentation>
       <property key="Technology" value="Cron Jobs, Python, Stored procedures"/>
     </element>
     <element xsi:type="archimate:ApplicationComponent" name="SQUIDLE+" id="id-cb786a7e577f445c9362f009ef3dc42f">
@@ -148,7 +148,7 @@
           <sourceConnection xsi:type="archimate:Connection" id="id-d079da4855f0437d8cd98b6060ac2d0a" source="id-6c21b22d4d7645609f046acac9a3f2b4" target="id-87316f140392480ba4a76701ad427a30" archimateRelationship="id-1aa758d03f2042848dede8b73c82b77d"/>
         </child>
         <child xsi:type="archimate:DiagramObject" id="id-c725f54f94ca4a9482149ac76ad9b85f" targetConnections="id-d651b0bb13544639975660e432021746" archimateElement="id-845649f74ee64771b1d17062e8f11292">
-          <bounds x="924" y="504" width="204" height="121"/>
+          <bounds x="924" y="492" width="204" height="145"/>
           <feature name="labelExpression" value="${name}&#xD;&#xA;[Container: ${property:Technology}]&#xD;&#xA;&#xD;&#xA;${documentation}"/>
           <sourceConnection xsi:type="archimate:Connection" id="id-6b62a2f937674acaab5f6d402e9c8a53" source="id-c725f54f94ca4a9482149ac76ad9b85f" target="id-87316f140392480ba4a76701ad427a30" archimateRelationship="id-0ac88c2b7e9d4ee983ad83892a7233dd"/>
           <sourceConnection xsi:type="archimate:Connection" id="id-c25faa33d7e34bf5890ad7ac7ecdd038" textPosition="2" source="id-c725f54f94ca4a9482149ac76ad9b85f" target="id-2ce5f513dc074a64a19c959dab574358" archimateRelationship="id-f01830b0a8ea496f8a913c8c5e2e5527">
