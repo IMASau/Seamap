@@ -95,7 +95,6 @@
                                         `#region-report-habitat-chart-${postId}`,
                                         {
                                             background: "transparent",
-                                            width: "container",
                                             data: { values: values },
                                             mark: { type: "arc" },
                                             encoding: {
@@ -155,6 +154,73 @@
 
             <section>
                 <h3>Bathymetry</h3>
+                <div class="region-report-chart-table">
+                    <div>
+                        <div class="region-report-chart" id="region-report-bathymetry-chart-<?php echo the_ID(); ?>"></div>
+                        <script>
+                            postElement.addEventListener(
+                                "bathymetryStatistics",
+                                e => {
+                                    const values = e.detail;
+                                    vegaEmbed(
+                                        `#region-report-bathymetry-chart-${postId}`,
+                                        {
+                                            background: "transparent",
+                                            data: { values: values },
+                                            mark: { type: "arc" },
+                                            encoding: {
+                                                theta: {
+                                                    field: "area",
+                                                    type: "quantitative"
+                                                },
+                                                color: {
+                                                    field: "resolution",
+                                                    type: "nominal",
+                                                    legend: { title: "Resolution" },
+                                                    sort: values.map(e => e.resolution),
+                                                    scale: { range: values.map(e => e.color) }
+                                                }
+                                            }
+                                        },
+                                        { actions: false }
+                                    );
+                                }
+                            );
+                        </script>
+                    </div>
+                    <div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Resolution</th>
+                                    <th>Area (km²)</th>
+                                    <th>Mapped (%)</th>
+                                    <th>Total (%)</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="region-report-bathymetry-table-<?php echo the_ID(); ?>"></tbody>
+                        </table>
+                        <script>
+                            postElement.addEventListener(
+                                "bathymetryStatistics",
+                                e => {
+                                    const values = e.detail;
+                                    const table = document.getElementById(`region-report-bathymetry-table-${postId}`);
+
+                                    values.forEach( bathymetry => {
+                                        const row = table.insertRow();
+
+                                        row.insertCell().innerHTML = bathymetry.resolution;
+                                        row.insertCell().innerHTML = bathymetry.area.toFixed(1);
+                                        row.insertCell().innerHTML = bathymetry.mapped_percentage.toFixed(1);
+                                        row.insertCell().innerHTML = bathymetry.total_percentage.toFixed(1);
+                                    });
+                                }
+                            );
+                        </script>
+                    </div>
+                </div>
             </section>
 
             <section>

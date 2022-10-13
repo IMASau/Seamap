@@ -1,7 +1,7 @@
 .region_report td,
 .region_report th {
-    font-size: 11px;
-    padding: 3px 4px 3px 0;
+    font-size: 12px;
+    padding: 6px 6px 6px 0;
     text-align: left;
     border: 0;
 }
@@ -49,13 +49,22 @@
     flex-direction: column;
 }
 
+.region-report-chart-table>*:nth-child(2) {
+    position: relative;
+}
+
+.region-report-chart-table>*:nth-child(2)>* {
+    position: absolute;
+}
+
 .region-report-habitat-observations-breakdown>ul {
     margin: 0;
     padding: 0;
 }
 
 .region-report-chart {
-    width: 400px;
+    width: 75%;
+    margin: auto;
 }
 
 .region-report-known-classified {
