@@ -57,11 +57,6 @@
     position: absolute;
 }
 
-.region-report-habitat-observations-breakdown>ul {
-    margin: 0;
-    padding: 0;
-}
-
 .region-report-chart {
     width: 75%;
     margin: auto;
@@ -110,41 +105,3 @@
     font-size: 20px;
 }
 /* Star rating end */
-
-/* Tree view start (https://www.w3schools.com/howto/howto_js_treeview.asp) */
-.tree-caret {
-    list-style-type: none;
-}
-
-.tree-caret>*:first-child {
-    cursor: pointer;
-    -webkit-user-select: none;
-    /* Safari 3.1+ */
-    -moz-user-select: none;
-    /* Firefox 2+ */
-    -ms-user-select: none;
-    /* IE 10+ */
-    user-select: none;
-}
-
-.tree-caret>*:first-child::before {
-    content: "\25B6";
-    color: black;
-    display: inline-block;
-    margin-right: 6px;
-}
-
-.tree-caret-down::before {
-    -ms-transform: rotate(90deg);
-    -webkit-transform: rotate(90deg);
-    transform: rotate(90deg);
-}
-
-.tree-caret .tree-nested {
-    display: none;
-}
-
-.tree-caret .tree-active {
-    display: block;
-}
-/* Tree view end */

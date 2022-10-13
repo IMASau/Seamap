@@ -226,10 +226,9 @@
             <section>
                 <h3>Observations</h3>
                 <!-- TODO: Use habitat observations data -->
-                <!-- TODO: Confirm with Emma the exact content of these dropdowns -->
-                <div class="region-report-habitat-observations-breakdown">
+                <div>
                     <ul>
-                        <li class="tree-caret">
+                        <li>
                             <span>1690 imagery deployments (73 campaigns)</span>
                             <ul>
                                 <li>Date range: 2009-02-01 to 2022-04-17</li>
@@ -239,7 +238,7 @@
                             </ul>
                         </li>
 
-                        <li class="tree-caret">
+                        <li>
                             <span>2549 video deployments (48 campaigns)</span>
                             <ul>
                                 <li>Date range: 1976-07-29 to 2021-03-11</li>
@@ -248,7 +247,7 @@
                             </ul>
                         </li>
 
-                        <li class="tree-caret">
+                        <li>
                             <span>9084 sediment samples (3725 analysed) from 157 surveys</span>
                             <ul>
                                 <li>Date range: 1905-05-21 to 2020-12-03,</li>
@@ -348,18 +347,5 @@
         });
     </script>
 </article>
-
-<script>
-    let toggler = document.getElementsByClassName("tree-caret");
-
-    for (let i = 0; i < toggler.length; i++) {
-        toggler[i].children[1].classList.add("tree-nested");
-
-        toggler[i].children[0].addEventListener("click", function () {
-            this.parentElement.querySelector(".tree-nested").classList.toggle("tree-active");
-            this.classList.toggle("tree-caret-down");
-        });
-    }
-</script>
 
 <?php get_footer(); ?>
