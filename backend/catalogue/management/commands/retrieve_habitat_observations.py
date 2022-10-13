@@ -65,8 +65,8 @@ DECLARE @method NVARCHAR(MAX) = (
 );
 
 SELECT
-  COUNT(DISTINCT deployment_id) AS deployment_id,
-  COUNT(DISTINCT campaign_name) AS campaign_name,
+  COUNT(DISTINCT deployment_id) AS deployments,
+  COUNT(DISTINCT campaign_name) AS campaigns,
   MIN(date) AS start_date,
   MAX(date) AS end_date,
   @method AS method,
@@ -119,7 +119,7 @@ DECLARE @method NVARCHAR(MAX) = (
 );
 
 SELECT
-  COUNT(DISTINCT sample_id) AS sample_id,
+  COUNT(DISTINCT sample_id) AS samples,
   SUM(CASE WHEN analysed='YES' THEN 1 END) AS analysed,
   COUNT(DISTINCT survey) AS survey,
   MIN(date) AS start_date,
@@ -177,8 +177,8 @@ DECLARE @method NVARCHAR(MAX) = (
 );
 
 SELECT
-  COUNT(DISTINCT deployment_id) AS deployment_id,
-  COUNT(DISTINCT campaign_name) AS campaign_name,
+  COUNT(DISTINCT deployment_id) AS deployments,
+  COUNT(DISTINCT campaign_name) AS campaigns,
   MIN(date) AS start_date,
   MAX(date) AS end_date,
   @method AS method,

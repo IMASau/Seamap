@@ -226,36 +226,70 @@
             <section>
                 <h3>Observations</h3>
                 <!-- TODO: Use habitat observations data -->
-                <div>
-                    <ul>
-                        <li>
-                            <span>1690 imagery deployments (73 campaigns)</span>
-                            <ul>
-                                <li>Date range: 2009-02-01 to 2022-04-17</li>
-                                <li>Methods of collection: ACFR AUV Holt, CSIRO O&A MRITC Towed Stereo Camera, GlobalArchive Stereo-BRUVs, IMOS AUV Nimbus, IMOS AUV Sirius, NESP Towed Camera, RLS DIVER Photos, SOI ROV Subastian</li>
-                                <li>1907422 images collected</li>
-                                <li>766824 image annotations (508833 public)</li>
-                            </ul>
-                        </li>
+                <ul id="region-report-habitat-observations-<?php echo the_ID(); ?>">
+                    <li>
+                        <span>1690 imagery deployments (73 campaigns)</span>
+                        <ul>
+                            <li>Date range: 2009-02-01 to 2022-04-17</li>
+                            <li>Methods of collection: ACFR AUV Holt, CSIRO O&A MRITC Towed Stereo Camera, GlobalArchive Stereo-BRUVs, IMOS AUV Nimbus, IMOS AUV Sirius, NESP Towed Camera, RLS DIVER Photos, SOI ROV Subastian</li>
+                            <li>1907422 images collected</li>
+                            <li>766824 image annotations (508833 public)</li>
+                        </ul>
+                    </li>
 
-                        <li>
-                            <span>2549 video deployments (48 campaigns)</span>
-                            <ul>
-                                <li>Date range: 1976-07-29 to 2021-03-11</li>
-                                <li>Methods of collection: BRUVs, stereo-BOSS, stereo-BRUVs</li>
-                                <li>982 hours of video</li>
-                            </ul>
-                        </li>
+                    <li>
+                        <span>2549 video deployments (48 campaigns)</span>
+                        <ul>
+                            <li>Date range: 1976-07-29 to 2021-03-11</li>
+                            <li>Methods of collection: BRUVs, stereo-BOSS, stereo-BRUVs</li>
+                            <li>982 hours of video</li>
+                        </ul>
+                    </li>
 
-                        <li>
-                            <span>9084 sediment samples (3725 analysed) from 157 surveys</span>
-                            <ul>
-                                <li>Date range: 1905-05-21 to 2020-12-03,</li>
-                                <li>Methods of collection: core, seabed sample</li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
+                    <li>
+                        <span>9084 sediment samples (3725 analysed) from 157 surveys</span>
+                        <ul>
+                            <li>Date range: 1905-05-21 to 2020-12-03,</li>
+                            <li>Methods of collection: core, seabed sample</li>
+                        </ul>
+                    </li>
+                </ul>
+                <script>
+                    postElement.addEventListener(
+                        "habitatObservations",
+                        e => {
+                            function addToList(list, text) {
+                                const item = document.createElement("li");
+                                item.innerText = text;
+                                list.appendChild(item);
+                            }
+
+                            const squidle = e.detail.squidle;
+                            const globalArchive = e.detail.global_archive;
+                            const sediment = e.detail.sediment;
+
+                            const habitatObservationsList = document.getElementById(`region-report-habitat-observations-${postId}`);
+                            
+                            // squidle item
+                            const squidleHead = document.createElement("span");
+                            squidleHead.innerText = `${squidle.deployments} imagery deployments (${squidle.campaigns})`;
+
+                            const squidleList = document.createElement("ul");
+                            addToList(squidleList, `Date range: ${squidle.start_date ?? "unknown"} to ${squidle.end_date ?? "unknown"}`);
+                            addToList(squidleList, `Methods of collection:  ${squidle.method ?? "N/A"}`);
+                            addToList(squidleList, `${squidle.images ?? 0} images collected`);
+                            addToList(squidleList, `${squidle.total_annotations ?? 0} images annotations (${squidle.public_annotations ?? 0} public)`);
+                            
+                            const squidleItem = document.createElement("li");
+                            squidleItem.appendChild(squidleHead);
+                            squidleItem.appendChild(squidleList);
+
+                            // populate habitat observations list
+                            habitatObservationsList.innerHTML = "";
+                            habitatObservationsList.appendChild(squidleItem);
+                        }
+                    );
+                </script>
             </section>
 
             <section>
