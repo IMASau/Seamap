@@ -79,6 +79,150 @@
             </div>
         </section>
 
+        <section class="region-report-known">
+            <h2>What's known about the <?php echo $region_name; ?>?</h2>
+            <section>
+                <h3>Habitat</h3>
+                <div class="region-report-chart-table">
+                    <div>
+                        <div class="region-report-chart" id="region-report-habitat-chart-<?php echo the_ID(); ?>"></div>
+                        <script>
+                            postElement.addEventListener(
+                                "habitatStatistics",
+                                e => {
+                                    const values = e.detail;
+                                    vegaEmbed(
+                                        `#region-report-habitat-chart-${postId}`,
+                                        {
+                                            background: "transparent",
+                                            width: "container",
+                                            data: { values: values },
+                                            mark: { type: "arc" },
+                                            encoding: {
+                                                theta: {
+                                                    field: "area",
+                                                    type: "quantitative"
+                                                },
+                                                color: {
+                                                    field: "habitat",
+                                                    type: "nominal",
+                                                    legend: { title: "Habitat" },
+                                                    sort: values.map(e => e.habitat),
+                                                    scale: { range: values.map(e => e.color) }
+                                                }
+                                            }
+                                        },
+                                        { actions: false }
+                                    );
+                                }
+                            );
+                        </script>
+                    </div>
+                    <div>
+                        <table class="region-report-habitat-breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th>Habitat</th>
+                                    <th>Area (km²)</th>
+                                    <th>Mapped (%)</th>
+                                    <th>Total (%)</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="region-report-habitat-breakdown-table-<?php echo the_ID(); ?>"></tbody>
+                        </table>
+                        <script>
+                            postElement.addEventListener(
+                                "habitatStatistics",
+                                e => {
+                                    const values = e.detail;
+                                    const table = document.getElementById(`region-report-habitat-breakdown-table-${postId}`);
+
+                                    values.forEach( habitat => {
+                                        const row = table.insertRow();
+
+                                        row.insertCell().innerHTML = habitat.habitat;
+                                        row.insertCell().innerHTML = habitat.area.toFixed(1);
+                                        row.insertCell().innerHTML = habitat.mapped_percentage.toFixed(1);
+                                        row.insertCell().innerHTML = habitat.total_percentage.toFixed(1);
+                                    });
+                                }
+                            );
+                        </script>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h3>Bathymetry</h3>
+            </section>
+
+            <section>
+                <h3>Observations</h3>
+                <!-- TODO: Use habitat observations data -->
+                <!-- TODO: Confirm with Emma the exact content of these dropdowns -->
+                <div class="region-report-habitat-observations-breakdown">
+                    <ul>
+                        <li class="tree-caret">
+                            <span>1690 imagery deployments (73 campaigns)</span>
+                            <ul>
+                                <li>Date range: 2009-02-01 to 2022-04-17</li>
+                                <li>Methods of collection: ACFR AUV Holt, CSIRO O&A MRITC Towed Stereo Camera, GlobalArchive Stereo-BRUVs, IMOS AUV Nimbus, IMOS AUV Sirius, NESP Towed Camera, RLS DIVER Photos, SOI ROV Subastian</li>
+                                <li>1907422 images collected</li>
+                                <li>766824 image annotations (508833 public)</li>
+                            </ul>
+                        </li>
+
+                        <li class="tree-caret">
+                            <span>2549 video deployments (48 campaigns)</span>
+                            <ul>
+                                <li>Date range: 1976-07-29 to 2021-03-11</li>
+                                <li>Methods of collection: BRUVs, stereo-BOSS, stereo-BRUVs</li>
+                                <li>982 hours of video</li>
+                            </ul>
+                        </li>
+
+                        <li class="tree-caret">
+                            <span>9084 sediment samples (3725 analysed) from 157 surveys</span>
+                            <ul>
+                                <li>Date range: 1905-05-21 to 2020-12-03,</li>
+                                <li>Methods of collection: core, seabed sample</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <section>
+                <h3>Research Effort</h3>
+                <div class="region-report-known-classified">
+                    <div>
+                        <!-- TODO: Determine how this is calculated from habitat statistics -->
+                        <div>20%</div>
+                        <div>Shelf habitat classified</div>
+                    </div>
+                    
+                    <!-- TODO: Star ratings -->
+                    <div id="region-report-star-ratings-<?php echo the_ID(); ?>">
+                        <div><!-- State of bathymetry mapping --></div>
+                        <div><!-- State of habitat observations --></div>
+                        <div><!-- State of habitat maps --></div>
+                    </div>
+                    <script>
+                        let starRatings = document.getElementById(`region-report-star-ratings-${postId}`)
+                        starRating(starRatings.children[0], 6, 6, "State of bathymetry mapping");
+                        starRating(starRatings.children[1], 3, 6, "State of habitat observations");
+                        starRating(starRatings.children[2], 2, 6, "State of habitat maps");
+                    </script>
+
+                    <div>
+                        "You have good imagery and bathymetry coverage. Invest in modelling"
+                        <br>– SA Team
+                    </div>
+                </div>
+            </section>
+        </section>
+
         <section class="region-report-contains">
             <h2>What's in the <?php echo $region_name; ?>?</h2>
             
@@ -89,10 +233,10 @@
             <section class="region-report-reserves">
                 <h3>Reserves</h3>
             </section>
+        </section>
 
-            <section class="region-report-imagery">
-                <h3>Imagery</h3>
-            </section>
+        <section class="region-report-imagery">
+            <h2>Imagery</h3>
         </section>
 
         <section class="region-report-pressures">
