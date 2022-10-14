@@ -62,7 +62,7 @@
     margin: auto;
 }
 
-.region-report-known-classified {
+.region-report-research-effort {
     background-color: #ebebeb;
     border: 3px solid black;
     border-radius: 32px;
@@ -72,17 +72,7 @@
     flex-direction: column;
 }
 
-.region-report-known-classified>div:nth-of-type(1)>*:nth-child(1) {
-    font-size: 40px;
-    font-weight: bold;
-}
-
-.region-report-known-classified>div:nth-of-type(1)>*:nth-child(2) {
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.region-report-known-classified>div:nth-of-type(3) {
+.region-report-research-effort-quote {
     font-size: 26px;
 }
 

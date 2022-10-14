@@ -8,6 +8,7 @@
     $habitat_statistics_url = get_post_meta(get_the_ID(), 'habitat_statistics_url', true);
     $bathymetry_statistics_url = get_post_meta(get_the_ID(), 'bathymetry_statistics_url', true);
     $habitat_observations_url = get_post_meta(get_the_ID(), 'habitat_observations_url', true);
+    $region_report_data_url = get_post_meta(get_the_ID(), 'region_report_data_url', true);
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -64,6 +65,7 @@
         let habitatStatisticsUrl = "<?php echo $habitat_statistics_url; ?>";
         let bathymetryStatisticsUrl = "<?php echo $bathymetry_statistics_url; ?>";
         let habitatObservationsUrl = "<?php echo $habitat_observations_url; ?>";
+        let regionReportDataUrl = "<?php echo $region_report_data_url; ?>";
     </script>
 
     <header class="entry-header">
@@ -305,30 +307,49 @@
 
             <section>
                 <h3>Research Effort</h3>
-                <div class="region-report-known-classified">
-                    <div>
-                        <!-- TODO: Determine how this is calculated from habitat statistics -->
-                        <div>20%</div>
-                        <div>Shelf habitat classified</div>
-                    </div>
-                    
-                    <!-- TODO: Star ratings -->
+                <div class="region-report-research-effort">
                     <div id="region-report-star-ratings-<?php echo the_ID(); ?>">
                         <div><!-- State of bathymetry mapping --></div>
                         <div><!-- State of habitat observations --></div>
                         <div><!-- State of habitat maps --></div>
                     </div>
                     <script>
-                        let starRatings = document.getElementById(`region-report-star-ratings-${postId}`)
-                        starRating(starRatings.children[0], 6, 6, "State of bathymetry mapping");
-                        starRating(starRatings.children[1], 3, 6, "State of habitat observations");
-                        starRating(starRatings.children[2], 2, 6, "State of habitat maps");
+                        postElement.addEventListener(
+                            "regionReportData",
+                            e => {
+                                let starRatings = document.getElementById(`region-report-star-ratings-${postId}`)
+                                starRating(
+                                    starRatings.children[0],
+                                    Math.round(e.detail.bathymetry_state * 2),
+                                    6,
+                                    "State of bathymetry mapping"
+                                );
+                                starRating(
+                                    starRatings.children[1],
+                                    Math.round(e.detail.habitat_observations_state * 2),
+                                    6,
+                                    "State of habitat observations"
+                                );
+                                starRating(
+                                    starRatings.children[2],
+                                    Math.round(e.detail.habitat_state * 2),
+                                    6,
+                                    "State of habitat maps"
+                                );
+                            }
+                        );
                     </script>
 
-                    <div>
-                        "You have good imagery and bathymetry coverage. Invest in modelling"
-                        <br>– SA Team
-                    </div>
+                    <div class="region-report-research-effort-quote" id="region-report-research-effort-quote-<?php echo the_ID(); ?>"></div>
+                    <script>
+                        postElement.addEventListener(
+                            "regionReportData",
+                            e => {
+                                let quote = document.getElementById(`region-report-research-effort-quote-${postId}`)
+                                quote.innerText = e.detail.state_summary;
+                            }
+                        );
+                    </script>
                 </div>
             </section>
         </section>
@@ -385,6 +406,18 @@
                 postElement.dispatchEvent(
                     new CustomEvent(
                         "habitatObservations",
+                        { detail: response }
+                    )
+                );
+            }
+        });
+
+        $.ajax(regionReportDataUrl, {
+            dataType : "json",
+            success: response => {
+                postElement.dispatchEvent(
+                    new CustomEvent(
+                        "regionReportData",
                         { detail: response }
                     )
                 );
