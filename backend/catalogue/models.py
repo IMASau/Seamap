@@ -146,3 +146,22 @@ class NationalLayerTimeline(models.Model):
 
     def __str__(self):
         return f'{self.layer} ({self.year})'
+
+
+class EmptyStringToNoneField(models.CharField):
+    def get_prep_value(self, value):
+        if value == '':
+            return None  
+        return value
+
+@python_2_unicode_compatible
+class RegionReport(models.Model):
+    network = models.CharField(max_length=254, null=False, blank=False)
+    park = EmptyStringToNoneField(max_length=254, null=True, blank=True)
+    habitat_state = models.FloatField(default=0)
+    bathymetry_state = models.FloatField(default=0)
+    habitat_observations_state = models.FloatField(default=0)
+    state_summary = models.TextField()
+
+    def __str__(self):
+        return self.network + (f' > {self.park}' if self.park else '')
