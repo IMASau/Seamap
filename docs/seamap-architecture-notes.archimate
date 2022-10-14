@@ -337,6 +337,33 @@ Intended audience: &#xD;
 Software architects and developers.&#xD;
 </documentation>
     </element>
+    <element xsi:type="archimate:ArchimateDiagramModel" name="L3) Component diagram - Web Application" id="id-3133163572b14fbabcadadc9b838eae9">
+      <child xsi:type="archimate:DiagramObject" id="id-d0242a6ffa6c43e290dc7d2a4b03af79" archimateElement="id-204e46dcbc2e4ae28c7b6fcf7ed3c0ee">
+        <bounds x="324" y="108" width="181" height="115"/>
+        <feature name="labelExpression" value="${name}&#xD;&#xA;[person]&#xD;&#xA;&#xD;&#xA;${documentation}"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-5ebfb6e191a24d00b339d6c5a6ead0ef" textPosition="2" source="id-d0242a6ffa6c43e290dc7d2a4b03af79" target="id-0d8d135503e745329117ff8c7a68c2be" archimateRelationship="id-0636faa939864d5ab4c9738e3bb17497"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-0d8d135503e745329117ff8c7a68c2be" targetConnections="id-5ebfb6e191a24d00b339d6c5a6ead0ef id-1c9d53ed944c43d98af3a40878890757 id-8dedea044114469ebfb636f4d5a8a167 id-6c3107f784c2458aa42246390216ebb3" textAlignment="1" fillColor="#b5ffff" textPosition="2" archimateElement="id-6b381b1c328a4d4a9c5471774cb59ccd">
+        <bounds x="288" y="276" width="613" height="493"/>
+        <feature name="labelExpression" value="${name}&#xD;&#xA;[Container: ${property:Technology}]&#xD;&#xA;&#xD;&#xA;${documentation}"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-56778c40db8943a595639e863b55fc5b" source="id-0d8d135503e745329117ff8c7a68c2be" target="id-40b38dcebd1d4abe94554bc6e0ff4d8a" archimateRelationship="id-1aa758d03f2042848dede8b73c82b77d"/>
+        <child xsi:type="archimate:Note" id="id-f6bf400ac48f4f33b509b540e954a33f" textAlignment="1">
+          <bounds x="105" y="132" width="185" height="80"/>
+          <content>TODO: summarise DJango functionality</content>
+        </child>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-40b38dcebd1d4abe94554bc6e0ff4d8a" targetConnections="id-56778c40db8943a595639e863b55fc5b" archimateElement="id-a0c8b980312f44998473705a52616978">
+        <bounds x="420" y="816" width="216" height="109"/>
+        <feature name="labelExpression" value="${name}&#xD;&#xA;[Container: ${property:Technology}]&#xD;&#xA;&#xD;&#xA;${documentation}"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-9dc4e34cf9004ce39d6461fb5477c116" archimateElement="id-6866f0ab616740d1ac88186d48e461d2">
+        <bounds x="1104" y="276" width="216" height="193"/>
+        <feature name="labelExpression" value="${name}&#xD;&#xA;[Container: ${property:Technology}]&#xD;&#xA;&#xD;&#xA;${documentation}"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-1c9d53ed944c43d98af3a40878890757" source="id-9dc4e34cf9004ce39d6461fb5477c116" target="id-0d8d135503e745329117ff8c7a68c2be" archimateRelationship="id-96e79bf2f0344defa5404bc81b214488"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-8dedea044114469ebfb636f4d5a8a167" source="id-9dc4e34cf9004ce39d6461fb5477c116" target="id-0d8d135503e745329117ff8c7a68c2be" archimateRelationship="id-1c05c3ed09884e378ec97ec4dbfdb4a6"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-6c3107f784c2458aa42246390216ebb3" source="id-9dc4e34cf9004ce39d6461fb5477c116" target="id-0d8d135503e745329117ff8c7a68c2be" archimateRelationship="id-843a57d241ea42cab12860682a821ad1"/>
+      </child>
+    </element>
   </folder>
   <purpose>Diagrams showing key aspects of the Seamap Australia application&#xD;
 &#xD;
