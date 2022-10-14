@@ -225,33 +225,17 @@
 
             <section>
                 <h3>Observations</h3>
-                <!-- TODO: Use habitat observations data -->
                 <ul id="region-report-habitat-observations-<?php echo the_ID(); ?>">
                     <li>
-                        <span>1690 imagery deployments (73 campaigns)</span>
-                        <ul>
-                            <li>Date range: 2009-02-01 to 2022-04-17</li>
-                            <li>Methods of collection: ACFR AUV Holt, CSIRO O&A MRITC Towed Stereo Camera, GlobalArchive Stereo-BRUVs, IMOS AUV Nimbus, IMOS AUV Sirius, NESP Towed Camera, RLS DIVER Photos, SOI ROV Subastian</li>
-                            <li>1907422 images collected</li>
-                            <li>766824 image annotations (508833 public)</li>
-                        </ul>
+                        <span>0 imagery deployments (0 campaigns)</span>
                     </li>
 
                     <li>
-                        <span>2549 video deployments (48 campaigns)</span>
-                        <ul>
-                            <li>Date range: 1976-07-29 to 2021-03-11</li>
-                            <li>Methods of collection: BRUVs, stereo-BOSS, stereo-BRUVs</li>
-                            <li>982 hours of video</li>
-                        </ul>
+                        <span>0 video deployments (0 campaigns)</span>
                     </li>
 
                     <li>
-                        <span>9084 sediment samples (3725 analysed) from 157 surveys</span>
-                        <ul>
-                            <li>Date range: 1905-05-21 to 2020-12-03,</li>
-                            <li>Methods of collection: core, seabed sample</li>
-                        </ul>
+                        <span>0 sediment samples (0 analysed) from 0 surveys</span>
                     </li>
                 </ul>
                 <script>
@@ -272,7 +256,7 @@
                             
                             // squidle item
                             const squidleHead = document.createElement("span");
-                            squidleHead.innerText = `${squidle.deployments} imagery deployments (${squidle.campaigns})`;
+                            squidleHead.innerText = `${squidle.deployments} imagery deployments (${squidle.campaigns} campaigns)`;
 
                             const squidleList = document.createElement("ul");
                             addToList(squidleList, `Date range: ${squidle.start_date ?? "unknown"} to ${squidle.end_date ?? "unknown"}`);
@@ -284,9 +268,36 @@
                             squidleItem.appendChild(squidleHead);
                             squidleItem.appendChild(squidleList);
 
+                            // global archive item
+                            const globalArchiveHead = document.createElement("span");
+                            globalArchiveHead.innerText = `${globalArchive.deployments} video deployments (${globalArchive.campaigns})`;
+
+                            const globalArchiveList = document.createElement("ul");
+                            addToList(globalArchiveList, `Date range: ${globalArchive.start_date ?? "unknown"} to ${globalArchive.end_date ?? "unknown"}`);
+                            addToList(globalArchiveList, `Methods of collection: ${globalArchive.method ?? "N/A"}`);
+                            addToList(globalArchiveList, `${globalArchive.video_time ?? 0} hours of video`);
+
+                            const globalArchiveItem = document.createElement("li");
+                            globalArchiveItem.appendChild(globalArchiveHead);
+                            globalArchiveItem.appendChild(globalArchiveList);
+
+                            // sediment item
+                            const sedimentHead = document.createElement("span");
+                            sedimentHead.innerText = `${sediment.samples} sediment samples (${sediment.analysed} analysed) from ${sediment.survey} surveys`;
+
+                            const sedimentList = document.createElement("ul");
+                            addToList(sedimentList, `Date range: ${sediment.start_date ?? "unknown"} to ${sediment.end_date ?? "unknown"}`);
+                            addToList(sedimentList, `Methods of collection:  ${sediment.method ?? "N/A"}`);
+                            
+                            const sedimentItem = document.createElement("li");
+                            sedimentItem.appendChild(sedimentHead);
+                            sedimentItem.appendChild(sedimentList);
+
                             // populate habitat observations list
                             habitatObservationsList.innerHTML = "";
                             habitatObservationsList.appendChild(squidleItem);
+                            habitatObservationsList.appendChild(globalArchiveItem);
+                            habitatObservationsList.appendChild(sedimentItem);
                         }
                     );
                 </script>
