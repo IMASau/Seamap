@@ -66,6 +66,8 @@
         let bathymetryStatisticsUrl = "<?php echo $bathymetry_statistics_url; ?>";
         let habitatObservationsUrl = "<?php echo $habitat_observations_url; ?>";
         let regionReportDataUrl = "<?php echo $region_report_data_url; ?>";
+
+        let pageLink = "<?php echo get_page_link(); ?>"
     </script>
 
     <header class="entry-header">
@@ -73,11 +75,42 @@
     </header>
 
     <div class="entry-content">
-        <section class="region-report-outline">
+        <section>
             <h3><?php echo $network_name . (is_null($park_name) ? "" : " > " . $park_name); ?></h3>
-            <?php the_content(); ?>
-            <div class="region-report-outline-maps">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/681px-Placeholder_view_vector.svg.png">
+
+            <div class="region-report-outline">
+                <div>
+                    <?php the_content(); ?>
+                    <div class="region-report-outline-maps">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/681px-Placeholder_view_vector.svg.png">
+                    </div>
+                </div>
+                <?php if (is_null($park_name)): ?>
+                    <div>
+                        <ul id="region-report-parks-<?php the_ID(); ?>"></ul>
+                        <script>
+                            postElement.addEventListener(
+                                "regionReportData",
+                                e => {
+                                    const parks = document.getElementById(`region-report-parks-${postId}`)
+                                    
+                                    if (e.detail.parks) {
+                                        e.detail.parks.forEach(
+                                            e => {
+                                                const listItem = document.createElement("li");
+                                                const hyperlink = document.createElement("a");
+                                                hyperlink.innerText = e.park;
+                                                hyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.slug}/`);
+                                                listItem.appendChild(hyperlink);
+                                                parks.appendChild(listItem);
+                                            }
+                                        );
+                                    }
+                                }
+                            );
+                        </script>
+                    </div>
+                <?php endif; ?>
             </div>
         </section>
 
@@ -87,7 +120,7 @@
                 <h3>Habitat</h3>
                 <div class="region-report-chart-table">
                     <div>
-                        <div class="region-report-chart" id="region-report-habitat-chart-<?php echo the_ID(); ?>"></div>
+                        <div class="region-report-chart" id="region-report-habitat-chart-<?php the_ID(); ?>"></div>
                         <script>
                             postElement.addEventListener(
                                 "habitatStatistics",
@@ -130,7 +163,7 @@
                                 </tr>
                             </thead>
 
-                            <tbody id="region-report-habitat-table-<?php echo the_ID(); ?>"></tbody>
+                            <tbody id="region-report-habitat-table-<?php the_ID(); ?>"></tbody>
                         </table>
                         <script>
                             postElement.addEventListener(
@@ -158,7 +191,7 @@
                 <h3>Bathymetry</h3>
                 <div class="region-report-chart-table">
                     <div>
-                        <div class="region-report-chart" id="region-report-bathymetry-chart-<?php echo the_ID(); ?>"></div>
+                        <div class="region-report-chart" id="region-report-bathymetry-chart-<?php the_ID(); ?>"></div>
                         <script>
                             postElement.addEventListener(
                                 "bathymetryStatistics",
@@ -201,7 +234,7 @@
                                 </tr>
                             </thead>
 
-                            <tbody id="region-report-bathymetry-table-<?php echo the_ID(); ?>"></tbody>
+                            <tbody id="region-report-bathymetry-table-<?php the_ID(); ?>"></tbody>
                         </table>
                         <script>
                             postElement.addEventListener(
@@ -227,7 +260,7 @@
 
             <section>
                 <h3>Observations</h3>
-                <ul id="region-report-habitat-observations-<?php echo the_ID(); ?>">
+                <ul id="region-report-habitat-observations-<?php the_ID(); ?>">
                     <li>
                         <span>0 imagery deployments (0 campaigns)</span>
                     </li>
@@ -308,7 +341,7 @@
             <section>
                 <h3>Research Effort</h3>
                 <div class="region-report-research-effort">
-                    <div id="region-report-star-ratings-<?php echo the_ID(); ?>">
+                    <div id="region-report-star-ratings-<?php the_ID(); ?>">
                         <div><!-- State of bathymetry mapping --></div>
                         <div><!-- State of habitat observations --></div>
                         <div><!-- State of habitat maps --></div>
@@ -340,7 +373,7 @@
                         );
                     </script>
 
-                    <div class="region-report-research-effort-quote" id="region-report-research-effort-quote-<?php echo the_ID(); ?>"></div>
+                    <div class="region-report-research-effort-quote" id="region-report-research-effort-quote-<?php the_ID(); ?>"></div>
                     <script>
                         postElement.addEventListener(
                             "regionReportData",

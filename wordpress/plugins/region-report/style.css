@@ -34,13 +34,15 @@
     max-width: 100%;
 }
 
-.region-report-chart-table {
+.region-report-chart-table,
+.region-report-outline {
     display: flex;
     flex-direction: row;
     gap: 32px;
 }
 
-.region-report-chart-table>* {
+.region-report-chart-table>*,
+.region-report-outline>* {
     flex: 1;
     min-width: 0;
     overflow-x: hidden;
