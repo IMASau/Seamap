@@ -86,3 +86,8 @@ class NationalLayerTimelineSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.NationalLayerTimeline
         fields = '__all__'
+
+class RegionReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.RegionReport
+        fields = '__all__'
