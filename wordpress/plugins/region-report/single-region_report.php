@@ -1,14 +1,15 @@
 <?php get_header(); ?>
 
 <?php
-    $network_name = "South-east";
-    $park_name = NULL;
-    $region_name = is_null($park_name) ? $network_name . " network" : $park_name . " park";
+    $network_name = get_post_meta(get_the_ID(), 'network_name', true);
+    $park_name = get_post_meta(get_the_ID(), 'park_name', true);
     
     $habitat_statistics_url = get_post_meta(get_the_ID(), 'habitat_statistics_url', true);
     $bathymetry_statistics_url = get_post_meta(get_the_ID(), 'bathymetry_statistics_url', true);
     $habitat_observations_url = get_post_meta(get_the_ID(), 'habitat_observations_url', true);
     $region_report_data_url = get_post_meta(get_the_ID(), 'region_report_data_url', true);
+
+    $region_name = empty($park_name) ? $network_name . " network" : $park_name . " park";
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -17,7 +18,6 @@
 <script src="https://unpkg.com/vega-lite@5.2.0/build/vega-lite.js"></script>
 <script src="https://www.unpkg.com/vega-embed@6.21.0/build/vega-embed.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
 <script>
     function starRating(element, value, total, text) {
@@ -70,13 +70,34 @@
         let pageLink = "<?php echo get_page_link(); ?>"
     </script>
 
-    <header class="entry-header">
+    <!-- <header class="entry-header">
         <?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
-    </header>
+    </header> -->
 
     <div class="entry-content">
         <section>
-            <h3><?php echo $network_name . (is_null($park_name) ? "" : " > " . $park_name); ?></h3>
+            <h3 id="region-report-region-heading-<?php the_ID(); ?>">
+            </h3>
+            <script>
+                postElement.addEventListener(
+                    "regionReportData",
+                    e => {
+                        const regionHeading = document.getElementById(`region-report-region-heading-${postId}`);
+
+                        regionHeading.innerText = e.detail.network.network + (e.detail.park ? ' ' : '');
+
+                        if (e.detail.park) {
+                            const caret = document.createElement("i");
+                            caret.className = "fa fa-caret-right";
+
+                            const park = document.createTextNode(` ${e.detail.park}`);
+
+                            regionHeading.appendChild(caret);
+                            regionHeading.appendChild(park);
+                        }
+                    }
+                );
+            </script>
 
             <div class="region-report-outline">
                 <div>
@@ -85,7 +106,7 @@
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/681px-Placeholder_view_vector.svg.png">
                     </div>
                 </div>
-                <?php if (is_null($park_name)): ?>
+                <?php if (empty($park_name)): ?>
                     <div>
                         <ul id="region-report-parks-<?php the_ID(); ?>"></ul>
                         <script>

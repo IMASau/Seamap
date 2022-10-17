@@ -89,9 +89,14 @@ class NationalLayerTimelineSerializer(serializers.ModelSerializer):
 
 class RegionReportSerializer(serializers.ModelSerializer):
     parks = serializers.SerializerMethodField()
+    network = serializers.SerializerMethodField()
 
     def get_parks(self, obj):
         return [{'park': v.park, 'slug': v.slug} for v in models.RegionReport.objects.filter(network=obj.network) if v.park] if obj.park == None else None
+
+    def get_network(self, obj):
+        v = models.RegionReport.objects.get(network=obj.network, park=None)
+        return {'network': v.network, 'slug': v.slug}
 
     class Meta:
         model = models.RegionReport
