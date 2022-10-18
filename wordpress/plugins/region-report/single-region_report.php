@@ -1,15 +1,10 @@
 <?php get_header(); ?>
 
 <?php
-    $network_name = get_post_meta(get_the_ID(), 'network_name', true);
-    $park_name = get_post_meta(get_the_ID(), 'park_name', true);
-    
     $habitat_statistics_url = get_post_meta(get_the_ID(), 'habitat_statistics_url', true);
     $bathymetry_statistics_url = get_post_meta(get_the_ID(), 'bathymetry_statistics_url', true);
     $habitat_observations_url = get_post_meta(get_the_ID(), 'habitat_observations_url', true);
     $region_report_data_url = get_post_meta(get_the_ID(), 'region_report_data_url', true);
-
-    $region_name = empty($park_name) ? $network_name . " network" : $park_name . " park";
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -111,37 +106,44 @@
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/681px-Placeholder_view_vector.svg.png">
                     </div>
                 </div>
-                <?php if (empty($park_name)): ?>
-                    <div>
-                        <ul id="region-report-parks-<?php the_ID(); ?>"></ul>
-                        <script>
-                            postElement.addEventListener(
-                                "regionReportData",
-                                e => {
-                                    const parks = document.getElementById(`region-report-parks-${postId}`)
-                                    
-                                    if (e.detail.parks) {
-                                        e.detail.parks.forEach(
-                                            e => {
-                                                const listItem = document.createElement("li");
-                                                const hyperlink = document.createElement("a");
-                                                hyperlink.innerText = e.park;
-                                                hyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.slug}/`);
-                                                listItem.appendChild(hyperlink);
-                                                parks.appendChild(listItem);
-                                            }
-                                        );
-                                    }
-                                }
-                            );
-                        </script>
-                    </div>
-                <?php endif; ?>
+
+                <div id="region-report-parks-<?php the_ID(); ?>"></div>
             </div>
+            <script>
+                    postElement.addEventListener(
+                        "regionReportData",
+                        e => {
+                            const parks = document.getElementById(`region-report-parks-${postId}`);
+                            
+                            if (e.detail.parks) {
+                                const parkList = document.createElement("ul");
+                                e.detail.parks.forEach(
+                                    e => {
+                                        const listItem = document.createElement("li");
+                                        const hyperlink = document.createElement("a");
+                                        hyperlink.innerText = e.park;
+                                        hyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.slug}/`);
+                                        listItem.appendChild(hyperlink);
+                                        parkList.appendChild(listItem);
+                                    }
+                                );
+                                parks.appendChild(parkList);
+                            } else {
+                                parks.remove();
+                            }
+                        }
+                    );
+                </script>
         </section>
 
         <section class="region-report-known">
-            <h2>What's known about the <?php echo $region_name; ?>?</h2>
+            <h2 id="region-report-known-heading-<?php the_ID(); ?>">What's known about this region?</h2>
+            <script>
+                postElement.addEventListener(
+                    "regionReportData",
+                    e => { document.getElementById(`region-report-known-heading-${postId}`).innerText = `What's known about the ${e.detail.park ? e.detail.park + " park" : e.detail.network.network + " network"}?`; }
+                );
+            </script>
             <section>
                 <h3>Habitat</h3>
                 <div class="region-report-chart-table">
@@ -414,7 +416,13 @@
         </section>
 
         <section class="region-report-contains">
-            <h2>What's in the <?php echo $region_name; ?>?</h2>
+            <h2 id="region-report-contains-heading-<?php the_ID(); ?>">What's in this region?</h2>
+            <script>
+                postElement.addEventListener(
+                    "regionReportData",
+                    e => { document.getElementById(`region-report-contains-heading-${postId}`).innerText = `What's in the ${e.detail.park ? e.detail.park + " park" : e.detail.network.network + " network"}?`; }
+                );
+            </script>
             
             <section class="region-report-mapped-habitat">
                 <h3>Mapped Habitat</h3>
@@ -430,7 +438,13 @@
         </section>
 
         <section class="region-report-pressures">
-            <h2>What's happening in the <?php echo $region_name; ?>?</h2>
+            <h2 id="region-report-pressures-heading-<?php the_ID(); ?>">What's happening in this region?</h2>
+            <script>
+                postElement.addEventListener(
+                    "regionReportData",
+                    e => { document.getElementById(`region-report-pressures-heading-${postId}`).innerText = `What's happening in the ${e.detail.park ? e.detail.park + " park" : e.detail.network.network + " network"}?`; }
+                );
+            </script>
         </section>
     </div>
 
