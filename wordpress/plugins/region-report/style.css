@@ -1,3 +1,28 @@
+/**
+ * Region report root media query variables
+ */
+ .region_report {
+    --responsive--spacing-horizontal: calc(2 * 25px * 0.6);
+    --responsive--alignwide-width: calc(100vw - var(--responsive--spacing-horizontal));
+}
+
+@media only screen and (min-width: 482px) {
+    .region_report {
+        --responsive--alignwide-width: calc(100vw - 4 * 25px);
+    }
+}
+
+@media only screen and (min-width: 822px) {
+    .region_report {
+        --responsive--alignwide-width: min(calc(100vw - 8 * 25px), 1240px);
+    }
+}
+
+.region_report h2,
+.region_report h3 {
+    margin-bottom: 12px;
+}
+
 .region_report td,
 .region_report th {
     font-size: 12px;
@@ -22,8 +47,15 @@
     text-transform: uppercase;
 }
 
+.region_report section {
+    padding: 0;
+    margin: 0;
+    margin-bottom: 20px;
+}
+
 .region_report>* {
     max-width: var(--responsive--alignwide-width);
+    margin: auto;
 }
 
 .region_report .entry-content>*:not(:first-child) {
