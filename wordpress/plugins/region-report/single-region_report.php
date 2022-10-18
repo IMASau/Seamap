@@ -67,7 +67,7 @@
         let habitatObservationsUrl = "<?php echo $habitat_observations_url; ?>";
         let regionReportDataUrl = "<?php echo $region_report_data_url; ?>";
 
-        let pageLink = "<?php echo get_page_link(); ?>"
+        let pageLink = "<?php echo get_page_link(); ?>";
     </script>
 
     <!-- <header class="entry-header">
@@ -76,7 +76,7 @@
 
     <div class="entry-content">
         <section>
-            <h3 id="region-report-region-heading-<?php the_ID(); ?>">
+            <h3 class="region-report-region-heading" id="region-report-region-heading-<?php the_ID(); ?>">
             </h3>
             <script>
                 postElement.addEventListener(
@@ -84,16 +84,21 @@
                     e => {
                         const regionHeading = document.getElementById(`region-report-region-heading-${postId}`);
 
-                        regionHeading.innerText = e.detail.network.network + (e.detail.park ? ' ' : '');
+                        const networkHyperlink = document.createElement("a");
+                        networkHyperlink.innerText = e.detail.network.network;
+                        networkHyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.detail.network.slug}/`);
+                        regionHeading.appendChild(networkHyperlink);
 
                         if (e.detail.park) {
                             const caret = document.createElement("i");
                             caret.className = "fa fa-caret-right";
 
-                            const park = document.createTextNode(` ${e.detail.park}`);
+                            const parkHyperlink = document.createElement("a");
+                            parkHyperlink.innerText = e.detail.park;
+                            parkHyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.detail.slug}/`);
 
                             regionHeading.appendChild(caret);
-                            regionHeading.appendChild(park);
+                            regionHeading.appendChild(parkHyperlink);
                         }
                     }
                 );
