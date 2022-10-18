@@ -153,7 +153,7 @@
                             postElement.addEventListener(
                                 "habitatStatistics",
                                 e => {
-                                    const values = e.detail;
+                                    const values = e.detail.filter(e => e.habitat);
                                     vegaEmbed(
                                         `#region-report-habitat-chart-${postId}`,
                                         {
@@ -203,9 +203,9 @@
                                     values.forEach( habitat => {
                                         const row = table.insertRow();
 
-                                        row.insertCell().innerHTML = habitat.habitat;
+                                        row.insertCell().innerHTML = habitat.habitat ?? "Total Mapped";
                                         row.insertCell().innerHTML = habitat.area.toFixed(1);
-                                        row.insertCell().innerHTML = habitat.mapped_percentage.toFixed(1);
+                                        row.insertCell().innerHTML = habitat.mapped_percentage?.toFixed(1) ?? "N/A";
                                         row.insertCell().innerHTML = habitat.total_percentage.toFixed(1);
                                     });
                                 }
@@ -224,7 +224,7 @@
                             postElement.addEventListener(
                                 "bathymetryStatistics",
                                 e => {
-                                    const values = e.detail;
+                                    const values = e.detail.filter(e => e.resolution);
                                     vegaEmbed(
                                         `#region-report-bathymetry-chart-${postId}`,
                                         {
@@ -274,9 +274,9 @@
                                     values.forEach( bathymetry => {
                                         const row = table.insertRow();
 
-                                        row.insertCell().innerHTML = bathymetry.resolution;
+                                        row.insertCell().innerHTML = bathymetry.resolution ?? "Total Mapped";
                                         row.insertCell().innerHTML = bathymetry.area.toFixed(1);
-                                        row.insertCell().innerHTML = bathymetry.mapped_percentage.toFixed(1);
+                                        row.insertCell().innerHTML = bathymetry.mapped_percentage?.toFixed(1) ?? "N/A";
                                         row.insertCell().innerHTML = bathymetry.total_percentage.toFixed(1);
                                     });
                                 }
