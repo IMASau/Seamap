@@ -74,6 +74,12 @@
     flex-direction: column;
 }
 
+.region-report-region-heading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .region-report-research-effort-quote {
     font-size: 26px;
 }

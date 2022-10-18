@@ -52,7 +52,8 @@ FROM (
   GROUP BY habitat
 ) AS boundary
 JOIN catalogue_habitatdescriptor AS descriptor
-ON boundary.habitat = descriptor.name;
+ON boundary.habitat = descriptor.name
+ORDER BY boundary.habitat;
 """
 
 def generate_habitat_statistics(cursor, network=None, park=None):
@@ -69,6 +70,10 @@ def generate_habitat_statistics(cursor, network=None, park=None):
     namedrow = namedtuple('Result', columns)
     results = [namedrow(*row) for row in cursor.fetchall()]
     habitat_statistics = [row._asdict() for row in results]
+
+    mapped_area = float(sum(v['area'] for v in habitat_statistics))
+    mapped_percentage = 100 * mapped_area / boundary_area
+    habitat_statistics.append({'habitat': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
 
     # saving
     logging.info(f'Saving habitat statistics for {network} - {park}' if park else f'Saving habitat statistics for {network}')

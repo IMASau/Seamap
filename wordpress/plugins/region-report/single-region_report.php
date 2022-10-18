@@ -1,15 +1,10 @@
 <?php get_header(); ?>
 
 <?php
-    $network_name = get_post_meta(get_the_ID(), 'network_name', true);
-    $park_name = get_post_meta(get_the_ID(), 'park_name', true);
-    
     $habitat_statistics_url = get_post_meta(get_the_ID(), 'habitat_statistics_url', true);
     $bathymetry_statistics_url = get_post_meta(get_the_ID(), 'bathymetry_statistics_url', true);
     $habitat_observations_url = get_post_meta(get_the_ID(), 'habitat_observations_url', true);
     $region_report_data_url = get_post_meta(get_the_ID(), 'region_report_data_url', true);
-
-    $region_name = empty($park_name) ? $network_name . " network" : $park_name . " park";
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -67,7 +62,7 @@
         let habitatObservationsUrl = "<?php echo $habitat_observations_url; ?>";
         let regionReportDataUrl = "<?php echo $region_report_data_url; ?>";
 
-        let pageLink = "<?php echo get_page_link(); ?>"
+        let pageLink = "<?php echo get_page_link(); ?>";
     </script>
 
     <!-- <header class="entry-header">
@@ -76,7 +71,7 @@
 
     <div class="entry-content">
         <section>
-            <h3 id="region-report-region-heading-<?php the_ID(); ?>">
+            <h3 class="region-report-region-heading" id="region-report-region-heading-<?php the_ID(); ?>">
             </h3>
             <script>
                 postElement.addEventListener(
@@ -84,16 +79,21 @@
                     e => {
                         const regionHeading = document.getElementById(`region-report-region-heading-${postId}`);
 
-                        regionHeading.innerText = e.detail.network.network + (e.detail.park ? ' ' : '');
+                        const networkHyperlink = document.createElement("a");
+                        networkHyperlink.innerText = e.detail.network.network;
+                        networkHyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.detail.network.slug}/`);
+                        regionHeading.appendChild(networkHyperlink);
 
                         if (e.detail.park) {
                             const caret = document.createElement("i");
                             caret.className = "fa fa-caret-right";
 
-                            const park = document.createTextNode(` ${e.detail.park}`);
+                            const parkHyperlink = document.createElement("a");
+                            parkHyperlink.innerText = e.detail.park;
+                            parkHyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.detail.slug}/`);
 
                             regionHeading.appendChild(caret);
-                            regionHeading.appendChild(park);
+                            regionHeading.appendChild(parkHyperlink);
                         }
                     }
                 );
@@ -106,37 +106,44 @@
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/681px-Placeholder_view_vector.svg.png">
                     </div>
                 </div>
-                <?php if (empty($park_name)): ?>
-                    <div>
-                        <ul id="region-report-parks-<?php the_ID(); ?>"></ul>
-                        <script>
-                            postElement.addEventListener(
-                                "regionReportData",
-                                e => {
-                                    const parks = document.getElementById(`region-report-parks-${postId}`)
-                                    
-                                    if (e.detail.parks) {
-                                        e.detail.parks.forEach(
-                                            e => {
-                                                const listItem = document.createElement("li");
-                                                const hyperlink = document.createElement("a");
-                                                hyperlink.innerText = e.park;
-                                                hyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.slug}/`);
-                                                listItem.appendChild(hyperlink);
-                                                parks.appendChild(listItem);
-                                            }
-                                        );
-                                    }
-                                }
-                            );
-                        </script>
-                    </div>
-                <?php endif; ?>
+
+                <div id="region-report-parks-<?php the_ID(); ?>"></div>
             </div>
+            <script>
+                    postElement.addEventListener(
+                        "regionReportData",
+                        e => {
+                            const parks = document.getElementById(`region-report-parks-${postId}`);
+                            
+                            if (e.detail.parks) {
+                                const parkList = document.createElement("ul");
+                                e.detail.parks.forEach(
+                                    e => {
+                                        const listItem = document.createElement("li");
+                                        const hyperlink = document.createElement("a");
+                                        hyperlink.innerText = e.park;
+                                        hyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.slug}/`);
+                                        listItem.appendChild(hyperlink);
+                                        parkList.appendChild(listItem);
+                                    }
+                                );
+                                parks.appendChild(parkList);
+                            } else {
+                                parks.remove();
+                            }
+                        }
+                    );
+                </script>
         </section>
 
         <section class="region-report-known">
-            <h2>What's known about the <?php echo $region_name; ?>?</h2>
+            <h2 id="region-report-known-heading-<?php the_ID(); ?>">What's known about this region?</h2>
+            <script>
+                postElement.addEventListener(
+                    "regionReportData",
+                    e => { document.getElementById(`region-report-known-heading-${postId}`).innerText = `What's known about the ${e.detail.park ? e.detail.park + " park" : e.detail.network.network + " network"}?`; }
+                );
+            </script>
             <section>
                 <h3>Habitat</h3>
                 <div class="region-report-chart-table">
@@ -146,7 +153,7 @@
                             postElement.addEventListener(
                                 "habitatStatistics",
                                 e => {
-                                    const values = e.detail;
+                                    const values = e.detail.filter(e => e.habitat);
                                     vegaEmbed(
                                         `#region-report-habitat-chart-${postId}`,
                                         {
@@ -196,9 +203,9 @@
                                     values.forEach( habitat => {
                                         const row = table.insertRow();
 
-                                        row.insertCell().innerHTML = habitat.habitat;
+                                        row.insertCell().innerHTML = habitat.habitat ?? "Total Mapped";
                                         row.insertCell().innerHTML = habitat.area.toFixed(1);
-                                        row.insertCell().innerHTML = habitat.mapped_percentage.toFixed(1);
+                                        row.insertCell().innerHTML = habitat.mapped_percentage?.toFixed(1) ?? "N/A";
                                         row.insertCell().innerHTML = habitat.total_percentage.toFixed(1);
                                     });
                                 }
@@ -217,7 +224,7 @@
                             postElement.addEventListener(
                                 "bathymetryStatistics",
                                 e => {
-                                    const values = e.detail;
+                                    const values = e.detail.filter(e => e.resolution);
                                     vegaEmbed(
                                         `#region-report-bathymetry-chart-${postId}`,
                                         {
@@ -267,9 +274,9 @@
                                     values.forEach( bathymetry => {
                                         const row = table.insertRow();
 
-                                        row.insertCell().innerHTML = bathymetry.resolution;
+                                        row.insertCell().innerHTML = bathymetry.resolution ?? "Total Mapped";
                                         row.insertCell().innerHTML = bathymetry.area.toFixed(1);
-                                        row.insertCell().innerHTML = bathymetry.mapped_percentage.toFixed(1);
+                                        row.insertCell().innerHTML = bathymetry.mapped_percentage?.toFixed(1) ?? "N/A";
                                         row.insertCell().innerHTML = bathymetry.total_percentage.toFixed(1);
                                     });
                                 }
@@ -409,7 +416,13 @@
         </section>
 
         <section class="region-report-contains">
-            <h2>What's in the <?php echo $region_name; ?>?</h2>
+            <h2 id="region-report-contains-heading-<?php the_ID(); ?>">What's in this region?</h2>
+            <script>
+                postElement.addEventListener(
+                    "regionReportData",
+                    e => { document.getElementById(`region-report-contains-heading-${postId}`).innerText = `What's in the ${e.detail.park ? e.detail.park + " park" : e.detail.network.network + " network"}?`; }
+                );
+            </script>
             
             <section class="region-report-mapped-habitat">
                 <h3>Mapped Habitat</h3>
@@ -425,7 +438,13 @@
         </section>
 
         <section class="region-report-pressures">
-            <h2>What's happening in the <?php echo $region_name; ?>?</h2>
+            <h2 id="region-report-pressures-heading-<?php the_ID(); ?>">What's happening in this region?</h2>
+            <script>
+                postElement.addEventListener(
+                    "regionReportData",
+                    e => { document.getElementById(`region-report-pressures-heading-${postId}`).innerText = `What's happening in the ${e.detail.park ? e.detail.park + " park" : e.detail.network.network + " network"}?`; }
+                );
+            </script>
         </section>
     </div>
 

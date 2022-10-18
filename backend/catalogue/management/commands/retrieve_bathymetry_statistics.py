@@ -54,7 +54,8 @@ FROM (
   GROUP BY bathymetry_resolution, bathymetry_rank
 ) AS boundary
 JOIN catalogue_habitatdescriptor AS descriptor
-ON boundary.resolution = descriptor.name;
+ON boundary.resolution = descriptor.name
+ORDER BY boundary.rank;
 """
 
 def generate_bathymetry_statistics(cursor, network=None, park=None):
@@ -71,6 +72,10 @@ def generate_bathymetry_statistics(cursor, network=None, park=None):
     namedrow = namedtuple('Result', columns)
     results = [namedrow(*row) for row in cursor.fetchall()]
     bathymetry_statistics = [row._asdict() for row in results]
+
+    mapped_area = float(sum(v['area'] for v in bathymetry_statistics))
+    mapped_percentage = 100 * mapped_area / boundary_area
+    bathymetry_statistics.append({'resolution': None, 'rank': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
 
     # saving
     logging.info(f'Saving bathymetry statistics for {network} - {park}' if park else f'Saving bathymetry statistics for {network}')
