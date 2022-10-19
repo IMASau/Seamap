@@ -4,6 +4,7 @@
     $habitat_statistics_url = get_post_meta(get_the_ID(), 'habitat_statistics_url', true);
     $bathymetry_statistics_url = get_post_meta(get_the_ID(), 'bathymetry_statistics_url', true);
     $habitat_observations_url = get_post_meta(get_the_ID(), 'habitat_observations_url', true);
+    $research_effort_url = get_post_meta(get_the_ID(), 'research_effort_url', true);
     $region_report_data_url = get_post_meta(get_the_ID(), 'region_report_data_url', true);
 ?>
 
@@ -60,6 +61,7 @@
         let habitatStatisticsUrl = "<?php echo $habitat_statistics_url; ?>";
         let bathymetryStatisticsUrl = "<?php echo $bathymetry_statistics_url; ?>";
         let habitatObservationsUrl = "<?php echo $habitat_observations_url; ?>";
+        let ressearchEffortUrl = "<?php echo $research_effort_url; ?>";
         let regionReportDataUrl = "<?php echo $region_report_data_url; ?>";
 
         let pageLink = "<?php echo get_page_link(); ?>";
@@ -479,6 +481,18 @@
                 postElement.dispatchEvent(
                     new CustomEvent(
                         "habitatObservations",
+                        { detail: response }
+                    )
+                );
+            }
+        });
+
+        $.ajax(ressearchEffortUrl, {
+            dataType : "json",
+            success: response => {
+                postElement.dispatchEvent(
+                    new CustomEvent(
+                        "researchEffort",
                         { detail: response }
                     )
                 );
