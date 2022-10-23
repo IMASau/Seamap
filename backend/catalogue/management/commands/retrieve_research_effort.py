@@ -1,12 +1,10 @@
 from django.core.management.base import BaseCommand
 from django.core.files.storage import default_storage
-from django.core.files import File
+from django.core.files.base import ContentFile
 from django.db import connections
 from collections import namedtuple
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
-from io import BytesIO
 import logging
+import json
 
 # groups the list of data by network
 def group_networks(data):
@@ -30,57 +28,6 @@ def summarise_by_year(data):
         'sediment_count': sum(v.get('sediment_count') for v in data if v.get('YEAR') == year),
         'bathymetry_count': sum(v.get('bathymetry_count') for v in data if v.get('YEAR') == year)
     } for year in years]
-
-
-def generate_graph(data, title, directory, exclude_old_data):
-    filepath = f'{directory}/{title}.png'
-
-    if exclude_old_data:
-        title = title + ' (2000 onwards)'
-        data = [v for v in data if v.get('year') >= 2000]
-
-    fig = plt.figure()
-
-    bar_width = 0.25
-    plt.bar(
-        [v.get('year') for v in data],
-        [v.get('imagery_count') for v in data],
-        color='#3C67BC', width=bar_width, label='Imagery (campaigns)'
-    )
-    plt.bar(
-        [v.get('year') + bar_width for v in data],
-        [v.get('video_count') for v in data],
-        color='#EA722B', width=bar_width, label='Video (campaigns)'
-    )
-    plt.bar(
-        [v.get('year') + 2 * bar_width for v in data],
-        [v.get('sediment_count') for v in data],
-        color='#9B9B9B', width=bar_width, label='Sediment (surveys)'
-    )
-    plt.bar(
-        [v.get('year') + 3 * bar_width for v in data],
-        [v.get('bathymetry_count') for v in data],
-        color='#FFB800', width=bar_width, label='Bathymetry (surveys)'
-    )
-
-    plt.legend()
-    plt.xlabel('Year')
-    plt.ylabel('Survey Effort')
-    plt.title(title)
-
-    # only allow integer ticks
-    ax = fig.gca()
-    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-
-    # saving
-    bytes_io = BytesIO()
-
-    fig.savefig(bytes_io, format='png')
-    default_storage.delete(filepath)
-    default_storage.save(filepath, File(bytes_io, ''))
-
-    bytes_io.close()
 
 
 SQL_GET_NETWORK_STATS = """
@@ -110,6 +57,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         with connections['default'].cursor() as cursor:
             # networks
+            logging.info(f'Retrieving networks research effort statistics')
             cursor.execute(SQL_GET_NETWORK_STATS)
 
             columns = [col[0] for col in cursor.description]
@@ -125,13 +73,14 @@ class Command(BaseCommand):
             ]
 
             for network in networks_summary:
-                title = network.get('network')
-                logging.info(f'Generating network graph \"{title}\" (all years)')
-                generate_graph(network.get('value'), title, 'survey_graphs/networks/all_data', False)
-                logging.info(f'Generating network graph \"{title}\" (post-2000)')
-                generate_graph(network.get('value'), title, 'survey_graphs/networks/post_2000', True)
+                network_name = network['network']
+                filepath = f'research_effort/{network_name}.json'
+                logging.info(f'Saving habitat statistics for {network_name}')
+                default_storage.delete(filepath)
+                default_storage.save(filepath, ContentFile(json.dumps(network['value'])))
 
             # parks
+            logging.info(f'Retrieving parks research effort statistics')
             cursor.execute(SQL_GET_PARK_STATS)
 
             columns = [col[0] for col in cursor.description]
@@ -150,11 +99,10 @@ class Command(BaseCommand):
             ]
 
             for network in parks_summary:
-                network_name = network.get('network')
+                network_name = network['network']
                 for park in network.get('value'):
-                    park_name = park.get('park')
-                    title = f'{network_name} - {park_name}'
-                    logging.info(f'Generating park graph \"{title}\" (all years)')
-                    generate_graph(park.get('value'), title, 'survey_graphs/parks/all_data', False)
-                    logging.info(f'Generating park graph \"{title}\" (post-2000)')
-                    generate_graph(park.get('value'), title, 'survey_graphs/parks/all_data', True)
+                    park_name = park['park']
+                    filepath = f'research_effort/{network_name}/{park_name}.json'
+                    logging.info(f'Saving habitat statistics for {network_name} - {park_name}')
+                    default_storage.delete(filepath)
+                    default_storage.save(filepath, ContentFile(json.dumps(park['value'])))

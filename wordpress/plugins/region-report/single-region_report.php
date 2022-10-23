@@ -4,6 +4,7 @@
     $habitat_statistics_url = get_post_meta(get_the_ID(), 'habitat_statistics_url', true);
     $bathymetry_statistics_url = get_post_meta(get_the_ID(), 'bathymetry_statistics_url', true);
     $habitat_observations_url = get_post_meta(get_the_ID(), 'habitat_observations_url', true);
+    $research_effort_url = get_post_meta(get_the_ID(), 'research_effort_url', true);
     $region_report_data_url = get_post_meta(get_the_ID(), 'region_report_data_url', true);
 ?>
 
@@ -60,6 +61,7 @@
         let habitatStatisticsUrl = "<?php echo $habitat_statistics_url; ?>";
         let bathymetryStatisticsUrl = "<?php echo $bathymetry_statistics_url; ?>";
         let habitatObservationsUrl = "<?php echo $habitat_observations_url; ?>";
+        let ressearchEffortUrl = "<?php echo $research_effort_url; ?>";
         let regionReportDataUrl = "<?php echo $region_report_data_url; ?>";
 
         let pageLink = "<?php echo get_page_link(); ?>";
@@ -368,7 +370,137 @@
 
             <section>
                 <h3>Research Effort</h3>
+                
                 <div class="region-report-research-effort">
+                    <div id="region-report-research-effort-<?php the_ID(); ?>-1"></div>
+                    <div id="region-report-research-effort-<?php the_ID(); ?>-2"></div>
+                </div>
+                <script>
+                     postElement.addEventListener(
+                        "researchEffort",
+                        e => {
+                            const values = [];
+                            e.detail.forEach(e => {
+                                values.push({
+                                    year: e.year,
+                                    end: e.year + 0.25,
+                                    count: e.imagery_count,
+                                    group: "Imagery (campaigns)",
+                                    color: "#3C67BC"
+                                });
+                                values.push({
+                                    year: e.year + 0.25,
+                                    end: e.year + 0.5,
+                                    count: e.video_count,
+                                    group: "Video (campaigns)",
+                                    color: "#EA722B"
+                                });
+                                values.push({
+                                    year: e.year + 0.5,
+                                    end: e.year + 0.75,
+                                    count: e.sediment_count,
+                                    group: "Sediment (surveys)",
+                                    color: "#9B9B9B"
+                                });
+                                values.push({
+                                    year: e.year + 0.75,
+                                    end: e.year + 1,
+                                    count: e.bathymetry_count,
+                                    group: "Bathymetry (surveys)",
+                                    color: "#FFB800"
+                                });
+                            });
+
+                            const filteredValues = values.filter(e => e.year >= 2000);
+
+                            vegaEmbed(
+                                `#region-report-research-effort-${postId}-1`,
+                                {
+                                    title: "Full",
+                                    background: "transparent",
+                                    data: { values: values },
+                                    width: "container",
+                                    mark: "bar",
+                                    encoding: {
+                                        x: {
+                                            field: "year",
+                                            type: "quantitative",
+                                            axis: {
+                                                tickMinStep: 1,
+                                                format: "r"
+                                            },
+                                            scale: {
+                                                domain: [
+                                                    Math.floor(Math.min(...values.map(e => e.year))),
+                                                    new Date().getFullYear() + 1
+                                                ]
+                                            },
+                                            title: "Year"
+                                        },
+                                        x2: { field: "end" },
+                                        y: {
+                                            field: "count",
+                                            type: "quantitative",
+                                            title: "Survey Effort"
+                                        },
+                                        color: {
+                                            field: "group",
+                                            type: "nominal",
+                                            legend: { title: null },
+                                            sort: values.map(e => e.group),
+                                            scale: { range: values.map(e => e.color) }
+                                        }
+                                    }
+                                },
+                                { actions: false }
+                            );
+
+                            vegaEmbed(
+                                `#region-report-research-effort-${postId}-2`,
+                                {
+                                    title: "2000 Onwards",
+                                    background: "transparent",
+                                    data: { values: filteredValues },
+                                    width: "container",
+                                    mark: "bar",
+                                    encoding: {
+                                        x: {
+                                            field: "year",
+                                            type: "quantitative",
+                                            axis: {
+                                                tickMinStep: 1,
+                                                format: "r"
+                                            },
+                                            scale: {
+                                                domain: [
+                                                    2000,
+                                                    new Date().getFullYear() + 1
+                                                ]
+                                            },
+                                            title: "Year"
+                                        },
+                                        x2: { field: "end" },
+                                        y: {
+                                            field: "count",
+                                            type: "quantitative",
+                                            title: "Survey Effort"
+                                        },
+                                        color: {
+                                            field: "group",
+                                            type: "nominal",
+                                            legend: { title: null },
+                                            sort: filteredValues.map(e => e.group),
+                                            scale: { range: filteredValues.map(e => e.color) }
+                                        }
+                                    }
+                                },
+                                { actions: false }
+                            );
+                        }
+                    );
+                </script>
+
+                <div class="region-report-research-rating">
                     <div id="region-report-star-ratings-<?php the_ID(); ?>">
                         <div><!-- State of bathymetry mapping --></div>
                         <div><!-- State of habitat observations --></div>
@@ -401,12 +533,12 @@
                         );
                     </script>
 
-                    <div class="region-report-research-effort-quote" id="region-report-research-effort-quote-<?php the_ID(); ?>"></div>
+                    <div class="region-report-research-rating-quote" id="region-report-research-rating-quote-<?php the_ID(); ?>"></div>
                     <script>
                         postElement.addEventListener(
                             "regionReportData",
                             e => {
-                                let quote = document.getElementById(`region-report-research-effort-quote-${postId}`)
+                                let quote = document.getElementById(`region-report-research-rating-quote-${postId}`)
                                 quote.innerText = e.detail.state_summary;
                             }
                         );
@@ -479,6 +611,18 @@
                 postElement.dispatchEvent(
                     new CustomEvent(
                         "habitatObservations",
+                        { detail: response }
+                    )
+                );
+            }
+        });
+
+        $.ajax(ressearchEffortUrl, {
+            dataType : "json",
+            success: response => {
+                postElement.dispatchEvent(
+                    new CustomEvent(
+                        "researchEffort",
                         { detail: response }
                     )
                 );
