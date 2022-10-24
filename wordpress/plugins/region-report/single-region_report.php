@@ -121,13 +121,13 @@
                             const publicLayers = L.layerGroup();
                             let publicLayersBoundary;
 
+                            let overviewMapBounds;
+
                             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
                             postElement.addEventListener(
                                 "regionReportData",
                                 e => {
-                                    console.log(e.detail);
-
                                     // all layers
                                     e.detail.all_layers.forEach(
                                         layer => {
@@ -205,7 +205,13 @@
                                             cql_filter: `NETNAME='${e.detail.network.network}'` + (e.detail.park ? ` AND RESNAME='${e.detail.park}'` : "")
                                         },
                                         success: response => {
-                                            map.fitBounds(L.geoJson(response).getBounds());
+                                            overviewMapBounds = L.geoJson(response).getBounds();
+                                            map.fitBounds(overviewMapBounds);
+
+                                            window.addEventListener(
+                                                "resize",
+                                                e => { map.fitBounds(overviewMapBounds); }
+                                            );
                                         }
                                     });
                                 }
