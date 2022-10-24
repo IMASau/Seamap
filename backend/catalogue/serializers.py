@@ -91,7 +91,9 @@ class RegionReportSerializer(serializers.ModelSerializer):
     parks = serializers.SerializerMethodField()
     network = serializers.SerializerMethodField()
     all_layers = serializers.SerializerMethodField()
+    all_layers_boundary = serializers.SerializerMethodField()
     public_layers = serializers.SerializerMethodField()
+    public_layers_boundary = serializers.SerializerMethodField()
 
     def get_parks(self, obj):
         return [{'park': v.park, 'slug': v.slug} for v in models.RegionReport.objects.filter(network=obj.network) if v.park] if obj.park == None else None
@@ -101,10 +103,16 @@ class RegionReportSerializer(serializers.ModelSerializer):
         return {'network': v.network, 'slug': v.slug}
 
     def get_all_layers(self, obj):
-        return [LayerSerializer(v.layer).data for v in models.KeyedLayer.objects.filter(keyword='data-report-minimap-panel1').order_by('sort_key')]
+        return [LayerSerializer(v.layer).data for v in models.KeyedLayer.objects.filter(keyword='data-report-minimap-panel1').order_by('-sort_key')]
+
+    def get_all_layers_boundary(self, obj):
+        return LayerSerializer(models.KeyedLayer.objects.get(keyword='data-report-minimap-panel1-boundary').layer).data
 
     def get_public_layers(self, obj):
-        return [LayerSerializer(v.layer).data for v in models.KeyedLayer.objects.filter(keyword='data-report-minimap-panel2').order_by('sort_key')]
+        return [LayerSerializer(v.layer).data for v in models.KeyedLayer.objects.filter(keyword='data-report-minimap-panel2').order_by('-sort_key')]
+
+    def get_public_layers_boundary(self, obj):
+        return LayerSerializer(models.KeyedLayer.objects.get(keyword='data-report-minimap-panel2-boundary').layer).data
 
     class Meta:
         model = models.RegionReport
