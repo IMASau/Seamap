@@ -6,6 +6,10 @@
     $habitat_observations_url = get_post_meta(get_the_ID(), 'habitat_observations_url', true);
     $research_effort_url = get_post_meta(get_the_ID(), 'research_effort_url', true);
     $region_report_data_url = get_post_meta(get_the_ID(), 'region_report_data_url', true);
+
+    $network_name = get_post_meta(get_the_ID(), 'network_name', true);
+    $park_name = get_post_meta(get_the_ID(), 'park_name', true);
+    $region_name = empty($park_name) ? "$park_name park" : "$network_name network";
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -65,6 +69,9 @@
         let habitatObservationsUrl = "<?php echo $habitat_observations_url; ?>";
         let ressearchEffortUrl = "<?php echo $research_effort_url; ?>";
         let regionReportDataUrl = "<?php echo $region_report_data_url; ?>";
+
+        let networkName = "<?php echo $network_name; ?>";
+        let parkName = <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>;
 
         let pageLink = "<?php echo get_page_link(); ?>";
     </script>
@@ -262,13 +269,8 @@
         </section>
 
         <section class="region-report-known">
-            <h2 id="region-report-known-heading-<?php the_ID(); ?>">What's known about this region?</h2>
-            <script>
-                postElement.addEventListener(
-                    "regionReportData",
-                    e => { document.getElementById(`region-report-known-heading-${postId}`).innerText = `What's known about the ${e.detail.park ? e.detail.park + " park" : e.detail.network.network + " network"}?`; }
-                );
-            </script>
+            <h2>What's known about the <?php echo $region_name; ?>?</h2>
+
             <section>
                 <h3>Habitat</h3>
                 <div class="region-report-chart-table">
@@ -671,13 +673,7 @@
         </section>
 
         <section class="region-report-contains">
-            <h2 id="region-report-contains-heading-<?php the_ID(); ?>">What's in this region?</h2>
-            <script>
-                postElement.addEventListener(
-                    "regionReportData",
-                    e => { document.getElementById(`region-report-contains-heading-${postId}`).innerText = `What's in the ${e.detail.park ? e.detail.park + " park" : e.detail.network.network + " network"}?`; }
-                );
-            </script>
+            <h2>What's in the <?php echo $region_name; ?>?</h2>
             
             <section class="region-report-mapped-habitat">
                 <h3>Mapped Habitat</h3>
@@ -693,13 +689,7 @@
         </section>
 
         <section class="region-report-pressures">
-            <h2 id="region-report-pressures-heading-<?php the_ID(); ?>">What's happening in this region?</h2>
-            <script>
-                postElement.addEventListener(
-                    "regionReportData",
-                    e => { document.getElementById(`region-report-pressures-heading-${postId}`).innerText = `What's happening in the ${e.detail.park ? e.detail.park + " park" : e.detail.network.network + " network"}?`; }
-                );
-            </script>
+            <h2>What's happening in the <?php echo $region_name; ?>?</h2>
         </section>
     </div>
 
