@@ -118,6 +118,37 @@
     font-size: 26px;
 }
 
+.region-report-overview-map {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.region-report-overview-map>* {
+    margin: auto;
+}
+
+.region-report-overview-map-map {
+    width: 75%;
+    height: 300px;
+}
+
+.region-report-overview-map-toggle {
+    --slider-width: 50px;
+    --slider-height: 20px;
+    --slider-transition: .2s;
+    --switch-size: 14px;
+    --switch-gap: calc((var(--slider-height) - var(--switch-size)) / 2);
+    display: flex;
+    flex-direction: row;
+    text-transform: uppercase;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
 /* Star rating start */
 .region-report-star-rating {
     display: flex;
@@ -137,3 +168,54 @@
     font-size: 20px;
 }
 /* Star rating end */
+
+/* Toggle switch start */
+.region-report-switch {
+    position: relative;
+    display: inline-block;
+    width: var(--slider-width);
+    height: var(--slider-height);
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.region-report-switch input {
+    display: none;
+}
+
+.region-report-slider {
+    border-radius: var(--slider-height);
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: var(--slider-transition);
+    transition: var(--slider-transition);
+}
+
+.region-report-slider:before {
+    border-radius: 50%;
+    position: absolute;
+    content: "";
+    height: var(--switch-size);
+    width: var(--switch-size);
+    left: var(--switch-gap);
+    bottom: var(--switch-gap);
+    background-color: white;
+    -webkit-transition: var(--slider-transition);
+    transition: var(--slider-transition);
+}
+
+input:checked+.region-report-slider {
+    background-color: #2196F3;
+}
+
+input:checked+.region-report-slider:before {
+    -webkit-transform: translateX(calc(var(--slider-width) - var(--switch-size) - 2 * var(--switch-gap)));
+    -ms-transform: translateX(calc(var(--slider-width) - var(--switch-size) - 2 * var(--switch-gap)));
+    transform: translateX(calc(var(--slider-width) - var(--switch-size) - 2 * var(--switch-gap)));
+}
+/* Toggle switch end */

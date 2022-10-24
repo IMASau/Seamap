@@ -9,11 +9,13 @@
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" />
 
 <script src="https://unpkg.com/vega@5.22.1/build/vega.js"></script>
 <script src="https://unpkg.com/vega-lite@5.2.0/build/vega-lite.js"></script>
 <script src="https://www.unpkg.com/vega-embed@6.21.0/build/vega-embed.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
 
 <script>
     function starRating(element, value, total, text) {
@@ -73,8 +75,7 @@
 
     <div class="entry-content">
         <section>
-            <h3 class="region-report-region-heading" id="region-report-region-heading-<?php the_ID(); ?>">
-            </h3>
+            <h3 class="region-report-region-heading" id="region-report-region-heading-<?php the_ID(); ?>"></h3>
             <script>
                 postElement.addEventListener(
                     "regionReportData",
@@ -104,8 +105,130 @@
             <div class="region-report-outline">
                 <div>
                     <?php the_content(); ?>
-                    <div class="region-report-outline-maps">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/681px-Placeholder_view_vector.svg.png">
+                    <div class="region-report-overview-map">
+                        <div class="region-report-overview-map-toggle">
+                            <div>All data</div>
+                            <label class="region-report-switch">
+                                <input type="checkbox" onclick="toggleMinimap(this.checked)">
+                                <span class="region-report-slider"></span>
+                            </label>
+                            <div>Public/analysed data</div>
+                        </div>
+                        <div class="region-report-overview-map-map" id="region-report-overview-map-map-<?php the_ID(); ?>"></div>
+                        <script>
+                            const map = L.map(`region-report-overview-map-map-${postId}`, { maxZoom: 19, zoomControl: false });
+
+                            const allLayers = L.layerGroup();
+                            let allLayersBoundary;
+                            const publicLayers = L.layerGroup();
+                            let publicLayersBoundary;
+
+                            let overviewMapBounds;
+
+                            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+                            postElement.addEventListener(
+                                "regionReportData",
+                                e => {
+                                    // all layers
+                                    e.detail.all_layers.forEach(
+                                        layer => {
+                                            L.tileLayer.wms(
+                                                layer.server_url,
+                                                {
+                                                    layers: layer.layer_name,
+                                                    transparent: true,
+                                                    tiled: true,
+                                                    format: "image/png",
+                                                    styles: layer.style,
+                                                    cql_filter: `Network='${e.detail.network.network}'` + (e.detail.park ? ` AND Park='${e.detail.park}'` : "")
+                                                }
+                                            ).addTo(allLayers);
+                                        }
+                                    );
+
+                                    // all layers boundary
+                                    allLayersBoundary = L.tileLayer.wms(
+                                        e.detail.all_layers_boundary.server_url,
+                                        {
+                                            layers: e.detail.all_layers_boundary.layer_name,
+                                            transparent: true,
+                                            tiled: true,
+                                            format: "image/png",
+                                            styles: e.detail.all_layers_boundary.style,
+                                            cql_filter: `NETNAME='${e.detail.network.network}'` + (e.detail.park ? ` AND RESNAME='${e.detail.park}'` : "")
+                                        }
+                                    );
+
+                                    // public layers
+                                    e.detail.public_layers.forEach(
+                                        layer => {
+                                            L.tileLayer.wms(
+                                                layer.server_url,
+                                                {
+                                                    layers: layer.layer_name,
+                                                    transparent: true,
+                                                    tiled: true,
+                                                    format: "image/png",
+                                                    styles: layer.style,
+                                                    cql_filter: `Network='${e.detail.network.network}'` + (e.detail.park ? ` AND Park='${e.detail.park}'` : "")
+                                                }
+                                            ).addTo(publicLayers);
+                                        }
+                                    );
+
+                                    // public layers boundary
+                                    publicLayersBoundary = L.tileLayer.wms(
+                                        e.detail.public_layers_boundary.server_url,
+                                        {
+                                            layers: e.detail.public_layers_boundary.layer_name,
+                                            transparent: true,
+                                            tiled: true,
+                                            format: "image/png",
+                                            styles: e.detail.public_layers_boundary.style,
+                                            cql_filter: `NETNAME='${e.detail.network.network}'` + (e.detail.park ? ` AND RESNAME='${e.detail.park}'` : "")
+                                        }
+                                    );
+
+                                    // set up map
+                                    map.addLayer(allLayersBoundary);
+                                    map.addLayer(allLayers);
+                                    map._handlers.forEach(function (handler) {
+                                        handler.disable();
+                                    });
+                                    $.ajax(e.detail.all_layers_boundary.server_url, {
+                                        dataType: "json",
+                                        data: {
+                                            request: "GetFeature",
+                                            service: "WFS",
+                                            version: "2.0.0",
+                                            outputFormat: "application/json",
+                                            typeNames: e.detail.all_layers_boundary.layer_name,
+                                            cql_filter: `NETNAME='${e.detail.network.network}'` + (e.detail.park ? ` AND RESNAME='${e.detail.park}'` : "")
+                                        },
+                                        success: response => {
+                                            overviewMapBounds = L.geoJson(response).getBounds();
+                                            map.fitBounds(overviewMapBounds);
+
+                                            window.addEventListener(
+                                                "resize",
+                                                e => { map.fitBounds(overviewMapBounds); }
+                                            );
+                                        }
+                                    });
+                                }
+                            );
+
+                            function toggleMinimap(publicOnly) {
+                                map.removeLayer(allLayers);
+                                map.addLayer(allLayersBoundary);
+                                map.removeLayer(publicLayers);
+                                map.addLayer(publicLayersBoundary);
+
+                                map.addLayer(publicOnly ? publicLayersBoundary : allLayersBoundary);
+                                map.addLayer(publicOnly ? publicLayers : allLayers);
+                            }
+                        </script>
                     </div>
                 </div>
 
