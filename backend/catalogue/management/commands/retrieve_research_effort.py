@@ -68,7 +68,7 @@ class Command(BaseCommand):
 
             networks = group_networks(networks_data)
             networks_summary = [
-                v | {'value': summarise_by_year(v.get('value'))}
+                {**v, **{'value': summarise_by_year(v.get('value'))}}
                 for v in networks
             ]
 
@@ -90,12 +90,12 @@ class Command(BaseCommand):
             parks_data = [row._asdict() for row in results]
 
             networks = group_networks(parks_data)
-            parks = [v | {'value': group_parks(v.get('value'))} for v in networks]
+            parks = [{**v, **{'value': group_parks(v.get('value'))}} for v in networks]
             parks_summary = [
-                v | {'value': [
-                    w | {'value': summarise_by_year(w.get('value'))}
+                {**v, **{'value': [
+                    {**w, **{'value': summarise_by_year(w.get('value'))}}
                     for w in v.get('value')
-                ]} for v in parks
+                ]}} for v in parks
             ]
 
             for network in parks_summary:
