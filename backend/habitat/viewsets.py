@@ -10,7 +10,8 @@ import subprocess
 import tempfile
 import zipfile
 
-from catalogue.models import Layer
+from catalogue.models import Layer, RegionReport
+from catalogue.serializers import RegionReportSerializer
 from collections import defaultdict, namedtuple
 
 from django.conf import settings
@@ -1349,3 +1350,12 @@ def habitat_observations(request):
             return Response({'global_archive': None, 'sediment': None, 'squidle': None})
         else:
             return Response({'global_archive': global_archive, 'sediment': sediment, 'squidle': squidle})
+
+@action(detail=False)
+@api_view()
+def region_report_data(request):
+    params = {k: v or None for k, v in request.query_params.items()}
+    network = params.get('network')
+    park    = params.get('park')
+
+    return Response(RegionReportSerializer(RegionReport.objects.get(network=network, park=park)).data)

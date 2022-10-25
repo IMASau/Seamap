@@ -11,8 +11,7 @@ from django.conf.urls.static import static
 import catalogue.viewsets as viewsets
 
 from catalogue.views import SaveStateView
-from habitat.viewsets import regions, subset, transect, amp_boundaries, imcra_boundaries, meow_boundaries, habitat_statistics, bathymetry_statistics, habitat_observations
-
+import habitat.viewsets as habitat_viewsets
 
 router = DefaultRouter()
 router.register(r'classifications', viewsets.ClassificationViewset)
@@ -26,15 +25,16 @@ router.register(r'keyedlayers', viewsets.KeyedLayerViewset)
 router.register(r'nationallayertimeline', viewsets.NationalLayerTimelineViewset)
 
 urlpatterns = [
-    re_path(r'^api/habitat/transect', transect),
-    re_path(r'^api/habitat/regions', regions, name='habitat-regions'),
-    re_path(r'^api/habitat/subset', subset),
-    re_path(r'^api/habitat/ampboundaries', amp_boundaries),
-    re_path(r'^api/habitat/imcraboundaries', imcra_boundaries),
-    re_path(r'^api/habitat/meowboundaries', meow_boundaries),
-    re_path(r'^api/habitat/habitatstatistics', habitat_statistics),
-    re_path(r'^api/habitat/bathymetrystatistics', bathymetry_statistics),
-    re_path(r'^api/habitat/habitatobservations', habitat_observations),
+    re_path(r'^api/habitat/transect', habitat_viewsets.transect),
+    re_path(r'^api/habitat/regions', habitat_viewsets.regions, name='habitat-regions'),
+    re_path(r'^api/habitat/subset', habitat_viewsets.subset),
+    re_path(r'^api/habitat/ampboundaries', habitat_viewsets.amp_boundaries),
+    re_path(r'^api/habitat/imcraboundaries', habitat_viewsets.imcra_boundaries),
+    re_path(r'^api/habitat/meowboundaries', habitat_viewsets.meow_boundaries),
+    re_path(r'^api/habitat/habitatstatistics', habitat_viewsets.habitat_statistics),
+    re_path(r'^api/habitat/bathymetrystatistics', habitat_viewsets.bathymetry_statistics),
+    re_path(r'^api/habitat/habitatobservations', habitat_viewsets.habitat_observations),
+    re_path(r'^api/habitat/regionreportdata', habitat_viewsets.region_report_data),
     re_path(r'^api/savestates', SaveStateView.as_view()),
     re_path(r'^api/', include(router.urls)),
     re_path(r'^admin/', admin.site.urls),
