@@ -149,15 +149,16 @@ SQL_GET_MEOW_BOUNDARY_AREA = "SELECT dbo.MEOW_BOUNDARY_geom(%s, %s, %s).STArea()
 SQL_GEOM_BINARY_COL = ", geometry::UnionAggregate(geom).STAsBinary() as geom" # Only include if we need to because faster queries without geometry aggregation
 
 SQL_GET_AMP_HABITAT_STATS = """
-DECLARE @netname  NVARCHAR(254) = %s;
-DECLARE @resname  NVARCHAR(254) = %s;
-DECLARE @zonename NVARCHAR(254) = %s;
-DECLARE @zoneiucn NVARCHAR(5)   = %s;
+DECLARE @netname       NVARCHAR(254) = %s;
+DECLARE @resname       NVARCHAR(254) = %s;
+DECLARE @zonename      NVARCHAR(254) = %s;
+DECLARE @zoneiucn      NVARCHAR(5)   = %s;
+DECLARE @boundary_area FLOAT         = %s;
 
 SELECT
-  habitat,
-  SUM(area) / 1000000 AS area,
-  100 * SUM(area) / (
+  boundary.habitat,
+  SUM(boundary.area) / 1000000 AS area,
+  100 * SUM(boundary.area) / (
     SELECT SUM(area)
     FROM BOUNDARY_AMP_HABITAT
     WHERE
@@ -166,15 +167,18 @@ SELECT
       (Zone_Category = @zonename OR @zonename IS NULL) AND
       (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
   ) AS mapped_percentage,
-  100 * (SUM(area) / 1000000) / %s AS total_percentage
+  100 * (SUM(boundary.area) / 1000000) / @boundary_area AS total_percentage,
+  descriptor.colour AS color
   {}
-FROM BOUNDARY_AMP_HABITAT
+FROM BOUNDARY_AMP_HABITAT AS boundary
+JOIN catalogue_habitatdescriptor AS descriptor
+ON boundary.habitat = descriptor.name
 WHERE
   (Network = @netname OR @netname IS NULL) AND
   (Park = @resname OR @resname IS NULL) AND
   (Zone_Category = @zonename OR @zonename IS NULL) AND
   (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
-GROUP BY habitat;
+GROUP BY boundary.habitat, descriptor.colour;
 """
 
 SQL_GET_IMCRA_HABITAT_STATS = """
@@ -227,16 +231,17 @@ GROUP BY habitat;
 """
 
 SQL_GET_AMP_BATHYMETRY_STATS = """
-DECLARE @netname  NVARCHAR(254) = %s;
-DECLARE @resname  NVARCHAR(254) = %s;
-DECLARE @zonename NVARCHAR(254) = %s;
-DECLARE @zoneiucn NVARCHAR(5)   = %s;
+DECLARE @netname       NVARCHAR(254) = %s;
+DECLARE @resname       NVARCHAR(254) = %s;
+DECLARE @zonename      NVARCHAR(254) = %s;
+DECLARE @zoneiucn      NVARCHAR(5)   = %s;
+DECLARE @boundary_area FLOAT         = %s;
 
 SELECT
-  bathymetry_resolution as resolution,
-  bathymetry_rank as rank,
-  SUM(area) / 1000000 AS area,
-  100 * SUM(area) / (
+  boundary.bathymetry_resolution as resolution,
+  boundary.bathymetry_rank as rank,
+  SUM(boundary.area) / 1000000 AS area,
+  100 * SUM(boundary.area) / (
     SELECT SUM(area)
     FROM BOUNDARY_AMP_BATHYMETRY
     WHERE
@@ -245,15 +250,19 @@ SELECT
       (Zone_Category = @zonename OR @zonename IS NULL) AND
       (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
   ) AS mapped_percentage,
-  100 * (SUM(area) / 1000000) / %s AS total_percentage
+  100 * (SUM(boundary.area) / 1000000) / @boundary_area AS total_percentage,
+  descriptor.colour AS color
   {}
-FROM BOUNDARY_AMP_BATHYMETRY
+FROM BOUNDARY_AMP_BATHYMETRY AS boundary
+JOIN catalogue_habitatdescriptor AS descriptor
+ON boundary.bathymetry_resolution = descriptor.name
 WHERE
   (Network = @netname OR @netname IS NULL) AND
   (Park = @resname OR @resname IS NULL) AND
   (Zone_Category = @zonename OR @zonename IS NULL) AND
   (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
-GROUP BY bathymetry_resolution, bathymetry_rank;
+GROUP BY boundary.bathymetry_resolution, boundary.bathymetry_rank, descriptor.colour
+ORDER BY boundary.bathymetry_rank;
 """
 
 SQL_GET_IMCRA_BATHYMETRY_STATS = """
@@ -648,8 +657,8 @@ FROM (
 ) AS methods);
 
 SELECT
-  COUNT(DISTINCT deployment_id) AS deployment_id,
-  COUNT(DISTINCT campaign_name) AS campaign_name,
+  COUNT(DISTINCT deployment_id) AS deployments,
+  COUNT(DISTINCT campaign_name) AS campaigns,
   MIN(date) AS start_date,
   MAX(date) AS end_date,
   @method AS method,
@@ -669,7 +678,7 @@ FROM (
 ) AS methods);
 
 SELECT
-  COUNT(DISTINCT sample_id) AS sample_id,
+  COUNT(DISTINCT sample_id) AS samples,
   SUM(CASE WHEN analysed='YES' THEN 1 END) AS analysed,
   COUNT(DISTINCT survey) AS survey,
   MIN(date) AS start_date,
@@ -690,8 +699,8 @@ FROM (
 ) AS methods);
 
 SELECT
-  COUNT(DISTINCT deployment_id) AS deployment_id,
-  COUNT(DISTINCT campaign_name) AS campaign_name,
+  COUNT(DISTINCT deployment_id) AS deployments,
+  COUNT(DISTINCT campaign_name) AS campaigns,
   MIN(date) AS start_date,
   MAX(date) AS end_date,
   @method AS method,

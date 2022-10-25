@@ -169,11 +169,11 @@
                  [:div "No bathymetry information"]))}]])]))))
 
 (defn squidle-stats
-  [{:keys [deployment_id campaign_name start_date end_date method images total_annotations public_annotations]}]
+  [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
   (let [collapsed? (reagent/atom true)]
-    (fn [{:keys [deployment_id campaign_name start_date end_date method images total_annotations public_annotations]}]
-      (let [deployment_id      (or deployment_id 0)
-            campaign_name      (or campaign_name 0)
+    (fn [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
+      (let [deployments      (or deployments 0)
+            campaigns      (or campaigns 0)
             start_date         (or start_date "unknown")
             end_date           (or end_date "unknown")
             method             (or method "N/A")
@@ -181,11 +181,11 @@
             total_annotations  (or total_annotations 0)
             public_annotations (or public_annotations 0)]
         [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? deployment_id) " disabled"))}
+         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? deployments) " disabled"))}
          [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? (not (pos? deployment_id))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
+          {:class (str "bp3-heading" (if (or @collapsed? (not (pos? deployments))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
            :on-click #(swap! collapsed? not)}
-          (str deployment_id " imagery deployments (" campaign_name " campaigns)")]
+          (str deployments " imagery deployments (" campaigns " campaigns)")]
          [:ul
           [:li (str "Date range: " start_date " to " end_date)]
           [:li (str "Methods of collection: " method)]
@@ -193,42 +193,42 @@
           [:li (str total_annotations " image annotations (" public_annotations " public)")]]]))))
 
 (defn global-archive-stats
-  [{:keys [deployment_id campaign_name start_date end_date method video_time]}]
+  [{:keys [deployments campaigns start_date end_date method video_time]}]
   (let [collapsed? (reagent/atom true)]
-    (fn [{:keys [deployment_id campaign_name start_date end_date method video_time]}]
-      (let [deployment_id (or deployment_id 0)
-            campaign_name (or campaign_name 0)
+    (fn [{:keys [deployments campaigns start_date end_date method video_time]}]
+      (let [deployments (or deployments 0)
+            campaigns (or campaigns 0)
             start_date    (or start_date "unknown")
             end_date      (or end_date "unknown")
             method        (or method "N/A")
             video_time    (or video_time 0)]
         [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? deployment_id) " disabled"))}
+         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? deployments) " disabled"))}
          [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? (not (pos? deployment_id))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
+          {:class (str "bp3-heading" (if (or @collapsed? (not (pos? deployments))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
            :on-click #(swap! collapsed? not)}
-          (str deployment_id " video deployments (" campaign_name " campaigns)")]
+          (str deployments " video deployments (" campaigns " campaigns)")]
          [:ul
           [:li (str "Date range: " start_date " to " end_date)]
           [:li (str "Methods of collection: " method)]
           [:li (str video_time " hours of video")]]]))))
 
 (defn sediment-stats
-  [{:keys [sample_id analysed survey start_date end_date method]}]
+  [{:keys [samples analysed survey start_date end_date method]}]
   (let [collapsed? (reagent/atom true)]
-    (fn [{:keys [sample_id analysed survey start_date end_date method]}]
-      (let [sample_id  (or sample_id 0)
+    (fn [{:keys [samples analysed survey start_date end_date method]}]
+      (let [samples  (or samples 0)
             analysed   (or analysed 0)
             survey     (or survey 0)
             start_date (or start_date "unknown")
             end_date   (or end_date "unknown")
             method     (or method "N/A")]
         [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? sample_id) " disabled"))}
+         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? samples) " disabled"))}
          [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? (not (pos? sample_id))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
+          {:class (str "bp3-heading" (if (or @collapsed? (not (pos? samples))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
            :on-click #(swap! collapsed? not)}
-          (str sample_id " sediment samples (" analysed " analysed) from " survey " surveys")]
+          (str samples " sediment samples (" analysed " analysed) from " survey " surveys")]
          [:ul
           [:li (str "Date range: " start_date " to " end_date)]
           [:li (str "Methods of collection: " method)]]]))))

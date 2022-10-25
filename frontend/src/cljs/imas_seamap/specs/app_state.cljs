@@ -422,22 +422,22 @@
                    :state-of-knowledge.statistics.bathymetry/show-layers?]))
 
 
-(s/def :state-of-knowledge.statistics.habitat-observations.global-archive/deployment_id integer?)
-(s/def :state-of-knowledge.statistics.habitat-observations.global-archive/campaign_name integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.global-archive/deployments integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.global-archive/campaigns integer?)
 (s/def :state-of-knowledge.statistics.habitat-observations.global-archive/start_date string?)
 (s/def :state-of-knowledge.statistics.habitat-observations.global-archive/end_date string?)
 (s/def :state-of-knowledge.statistics.habitat-observations.global-archive/method string?)
 (s/def :state-of-knowledge.statistics.habitat-observations.global-archive/video_time integer?)
 
-(s/def :state-of-knowledge.statistics.habitat-observations.sediment/sample_id integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.sediment/samples integer?)
 (s/def :state-of-knowledge.statistics.habitat-observations.sediment/analysed integer?)
 (s/def :state-of-knowledge.statistics.habitat-observations.sediment/survey integer?)
 (s/def :state-of-knowledge.statistics.habitat-observations.sediment/start_date string?)
 (s/def :state-of-knowledge.statistics.habitat-observations.sediment/end_date string?)
 (s/def :state-of-knowledge.statistics.habitat-observations.sediment/method string?)
 
-(s/def :state-of-knowledge.statistics.habitat-observations.squidle/deployment_id integer?)
-(s/def :state-of-knowledge.statistics.habitat-observations.squidle/campaign_name integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.squidle/deployments integer?)
+(s/def :state-of-knowledge.statistics.habitat-observations.squidle/campaigns integer?)
 (s/def :state-of-knowledge.statistics.habitat-observations.squidle/start_date string?)
 (s/def :state-of-knowledge.statistics.habitat-observations.squidle/end_date string?)
 (s/def :state-of-knowledge.statistics.habitat-observations.squidle/method string?)
@@ -447,15 +447,15 @@
 
 (s/def :state-of-knowledge.statistics.habitat-observations/global-archive
   (s/nilable
-   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations.global-archive/deployment_id
-                    :state-of-knowledge.statistics.habitat-observations.global-archive/campaign_name
+   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations.global-archive/deployments
+                    :state-of-knowledge.statistics.habitat-observations.global-archive/campaigns
                     :state-of-knowledge.statistics.habitat-observations.global-archive/start_date
                     :state-of-knowledge.statistics.habitat-observations.global-archive/end_date
                     :state-of-knowledge.statistics.habitat-observations.global-archive/method
                     :state-of-knowledge.statistics.habitat-observations.global-archive/video_time])))
 (s/def :state-of-knowledge.statistics.habitat-observations/sediment
   (s/nilable
-   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations.sediment/sample_id
+   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations.sediment/samples
                     :state-of-knowledge.statistics.habitat-observations.sediment/analysed
                     :state-of-knowledge.statistics.habitat-observations.sediment/survey
                     :state-of-knowledge.statistics.habitat-observations.sediment/start_date
@@ -463,8 +463,8 @@
                     :state-of-knowledge.statistics.habitat-observations.sediment/method])))
 (s/def :state-of-knowledge.statistics.habitat-observations/squidle
   (s/nilable
-   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations.squidle/deployment_id
-                    :state-of-knowledge.statistics.habitat-observations.squidle/campaign_name
+   (s/keys :req-un [:state-of-knowledge.statistics.habitat-observations.squidle/deployments
+                    :state-of-knowledge.statistics.habitat-observations.squidle/campaigns
                     :state-of-knowledge.statistics.habitat-observations.squidle/start_date
                     :state-of-knowledge.statistics.habitat-observations.squidle/end_date
                     :state-of-knowledge.statistics.habitat-observations.squidle/method

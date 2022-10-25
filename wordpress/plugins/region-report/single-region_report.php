@@ -9,7 +9,7 @@
 
     $network_name = get_post_meta(get_the_ID(), 'network_name', true);
     $park_name = get_post_meta(get_the_ID(), 'park_name', true);
-    $region_name = empty($park_name) ? "$park_name park" : "$network_name network";
+    $region_name = empty($park_name) ? "$network_name network" : "$park_name park";
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
