@@ -115,7 +115,8 @@
 }
 
 .region-report-research-rating-quote {
-    font-size: 26px;
+    font-size: 23px;
+    font-style: italic;
 }
 
 .region-report-overview-map {
@@ -150,6 +151,10 @@
 }
 
 /* Star rating start */
+.fa {
+    color: #182026;
+}
+
 .region-report-star-rating {
     display: flex;
     flex-direction: row;

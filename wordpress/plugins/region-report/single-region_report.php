@@ -645,19 +645,19 @@
                                 starRating(
                                     starRatings.children[0],
                                     Math.round(e.detail.bathymetry_state * 2),
-                                    6,
+                                    10,
                                     "State of bathymetry mapping"
                                 );
                                 starRating(
                                     starRatings.children[1],
                                     Math.round(e.detail.habitat_observations_state * 2),
-                                    6,
+                                    10,
                                     "State of habitat observations"
                                 );
                                 starRating(
                                     starRatings.children[2],
                                     Math.round(e.detail.habitat_state * 2),
-                                    6,
+                                    10,
                                     "State of habitat maps"
                                 );
                             }
