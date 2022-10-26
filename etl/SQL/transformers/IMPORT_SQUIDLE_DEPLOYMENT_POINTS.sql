@@ -80,6 +80,8 @@ BEGIN
             SET @destMEDIA_COUNT = CONVERT(INT, @MEDIA_COUNT)
             SET @destTOTAL_ANNOTATION_COUNT = CONVERT(INT, @TOTAL_ANNOTATION_COUNT)
             SET @destPUBLIC_ANNOTATION_COUNT = CONVERT(INT, @PUBLIC_ANNOTATION_COUNT)
+            IF @GEOM IS NOT NULL
+                SET @GEOM.STSrid = 3112
 
         INSERT INTO TRANSFORM_SQUIDLE_DEPLOYMENT_POINTS
                (ID,geom,[key],name,campaign_name,campaign_key,campaign_id,color,platform_name,platform_key,platform_id,url,[date],media_count,total_annotation_count,public_annotation_count)
