@@ -67,9 +67,9 @@ BEGIN
         BEGIN
 
 
-            SET @destCAMPAIGN_ID = CONVERT(INT, @CAMPAIGN_ID)
-            SET @destDEPLOYMENT_TIME = CONVERT(DATETIME, @DEPLOYMENT_TIME)
-            SET @destDEPTH = CONVERT(FLOAT, @DEPTH)
+            SET @destCAMPAIGN_ID = TRY_PARSE(@CAMPAIGN_ID as INT)
+            SET @destDEPLOYMENT_TIME = TRY_PARSE(@DEPLOYMENT_TIME as DATETIME)
+            SET @destDEPTH = TRY_PARSE(@DEPTH as FLOAT)
             IF @GEOM IS NOT NULL
                 SET @GEOM.STSrid = 3112
 
