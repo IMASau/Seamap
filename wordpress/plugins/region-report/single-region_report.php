@@ -690,8 +690,162 @@
             </section>
         </section>
 
-        <section class="region-report-imagery">
+        <section>
             <h2>Imagery</h3>
+            <div class="region-report-imagery" id="region-report-imagery-<?php the_ID(); ?>">Loading imagery deployment data...</div>
+            <script>
+                // declarations
+                let imageryMap;
+                let imageryMapBounds;
+                let imageryMarkers = [];
+                let squidleUrl;
+                let imageryGrid;
+
+                function refreshImagery() {
+                    if (squidleUrl == null) return;
+                    if (imageryMap == null) return;
+
+                    $.ajax(squidleUrl, {
+                        dataType: "json",
+                        success: media => {
+
+                            $.ajax("https://squidle.org/api/pose", {
+                                dataType: "json",
+                                data: {
+                                    q: JSON.stringify({
+                                        filters: [{
+                                            name: "media_id",
+                                            op: "in",
+                                            val: media.objects.map(e => e.id)
+                                        }]
+                                    })
+                                },
+                                success: pose => {
+                                    // clear
+                                    imageryMarkers.forEach(marker => imageryMap.removeLayer(marker));
+                                    imageryMarkers = [];
+                                    imageryGrid.innerHTML = "";
+
+                                    // populate
+                                    media.objects.forEach((image, index) => {
+                                        Object.assign(image, pose.objects.filter(e => e.media.id == image.id)[0]);
+
+                                        // grid items
+                                        const gridElement = document.createElement("div");
+
+                                        const imageElement = document.createElement("img");
+                                        imageElement.src = image.path_best_thm;
+                                        gridElement.appendChild(imageElement);
+
+                                        const numberElement = document.createElement("div");
+                                        numberElement.className = "region-report-imagery-grid-number";
+                                        numberElement.innerText = index + 1;
+                                        gridElement.appendChild(numberElement);
+
+                                        imageryGrid.appendChild(gridElement);
+
+                                        // marker
+                                        imageryMarkers.push(
+                                            new L.Marker(
+                                                [image.lat, image.lon],
+                                                {
+                                                    icon: L.divIcon({
+                                                        html: `
+                                                            <svg width=25 height=41>
+                                                                <polygon
+                                                                    points="0,0 25,0, 25,28 20,28 12.5,41 5,28 0,28"
+                                                                    fill="rgb(0, 147, 36)"
+                                                                    stroke="white"
+                                                                    stroke-width=1.5
+                                                                />
+                                                                <text
+                                                                    fill="white"
+                                                                    x="50%"
+                                                                    y=14
+                                                                    dominant-baseline="middle"
+                                                                    text-anchor="middle"
+                                                                    font-family="sans-serif"
+                                                                    font-weight="bold"
+                                                                >${index + 1}</text>
+                                                            </svg>`,
+                                                        iconSize: [25, 41],
+                                                        iconAnchor: [12.5, 41]
+                                                    })
+                                                }
+                                            )
+                                        );
+                                        imageryMarkers[imageryMarkers.length - 1].addTo(imageryMap);
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+
+                postElement.addEventListener(
+                    "regionReportData",
+                    e => {
+                        squidleUrl = e.detail.squidle_url;
+                        const imageryElement = document.getElementById(`region-report-imagery-${postId}`);
+
+                        if (squidleUrl) {
+                            imageryElement.innerHTML = `
+                                <div class="region-report-imagery-map" id="region-report-imagery-map-${postId}"></div>
+                                <div class="region-report-imagery-images">
+                                    <div class="region-report-imagery-grid" id="region-report-imagery-grid-${postId}"></div>
+                                    <a href="#!" onclick="refreshImagery()">Refresh images</a>
+                                </div>`;
+
+
+                            imageryGrid = document.getElementById(`region-report-imagery-grid-${postId}`);
+
+                            // set-up map
+                            imageryMap = L.map(`region-report-imagery-map-${postId}`, { maxZoom: 19, zoomControl: false });
+                            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(imageryMap);
+                            imageryMap._handlers.forEach(e => e.disable());
+
+                            refreshImagery();
+
+                            // map boundary layer
+                            L.tileLayer.wms(
+                                e.detail.all_layers_boundary.server_url,
+                                {
+                                    layers: e.detail.all_layers_boundary.layer_name,
+                                    transparent: true,
+                                    tiled: true,
+                                    format: "image/png",
+                                    styles: e.detail.all_layers_boundary.style,
+                                    cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
+                                }
+                            ).addTo(imageryMap);
+
+                            // zoom to map extent
+                            $.ajax(e.detail.all_layers_boundary.server_url, {
+                                dataType: "json",
+                                data: {
+                                    request: "GetFeature",
+                                    service: "WFS",
+                                    version: "2.0.0",
+                                    outputFormat: "application/json",
+                                    typeNames: e.detail.all_layers_boundary.layer_name,
+                                    cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
+                                },
+                                success: response => {
+                                    imageryMapBounds = L.geoJson(response).getBounds();
+                                    imageryMap.fitBounds(imageryMapBounds);
+
+                                    window.addEventListener(
+                                        "resize",
+                                        e => { imageryMap.fitBounds(imageryMapBounds); }
+                                    );
+                                }
+                            });
+                        } else {
+                            imageryElement.innerText = "No imagery deployments found in this region";
+                        }
+                    }
+                );
+            </script>
         </section>
 
         <section class="region-report-pressures">
