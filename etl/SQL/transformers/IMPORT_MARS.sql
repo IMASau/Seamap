@@ -10,6 +10,8 @@ BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
+        SET XACT_ABORT ON;
+
     BEGIN TRANSACTION
     BEGIN TRY
         DECLARE @DECREASE_THRESHOLD FLOAT = 0.05
@@ -20,10 +22,7 @@ BEGIN
         SELECT @PREVIOUS_TRANSFORMED_COUNT = COUNT(*) FROM TRANSFORM_MARS;
         IF @CURRENT_EXTRACTED_COUNT < @PREVIOUS_TRANSFORMED_COUNT * (1 - @DECREASE_THRESHOLD)
         BEGIN
-            SELECT
-            -1 AS Status,
-            'EXTRACT_MARS records count decreases more than 5% compared to TRANSFORM_MARS' AS ErrorMessage
-            RETURN
+            RAISERROR('EXTRACT_MARS records count decreases more than 5%% compared to TRANSFORM_MARS', 16, 1)
         END
         TRUNCATE TABLE TRANSFORM_MARS
 
@@ -141,7 +140,7 @@ BEGIN
         DEALLOCATE cMARSDATA
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
         SELECT
             -1 AS Status,
             ERROR_NUMBER() AS ErrorNumber,

@@ -9,6 +9,8 @@ BEGIN
     -- SET NOCOUNT ON added to prevent extra result sets from
     -- interfering with SELECT statements.
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
     BEGIN TRANSACTION
     BEGIN TRY
         DECLARE @DECREASE_THRESHOLD FLOAT = 0.05
@@ -19,10 +21,7 @@ BEGIN
         SELECT @PREVIOUS_TRANSFORMED_COUNT = COUNT(*) FROM TRANSFORM_SQUIDLE_DEPLOYMENT_POINTS;
         IF @CURRENT_EXTRACTED_COUNT < @PREVIOUS_TRANSFORMED_COUNT * (1 - @DECREASE_THRESHOLD)
         BEGIN
-            SELECT
-            -1 AS Status,
-            'EXTRACT_SQUIDLE_DEPLOYMENT_POINTS records count decreases more than 5% compared to TRANSFORM_SQUIDLE_DEPLOYMENT_POINTS' AS ErrorMessage
-            RETURN
+          RAISERROR('EXTRACT_SQUIDLE_DEPLOYMENT_POINTS records count decreases more than 5%% compared to TRANSFORM_SQUIDLE_DEPLOYMENT_POINTS', 16, 1)
         END
         TRUNCATE TABLE TRANSFORM_SQUIDLE_DEPLOYMENT_POINTS
 
@@ -96,7 +95,7 @@ BEGIN
         DEALLOCATE cSQUIDLEDATA
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
          SELECT
             -1 AS Status,
             ERROR_NUMBER() AS ErrorNumber,
@@ -106,7 +105,7 @@ BEGIN
             ERROR_MESSAGE() AS ErrorMessage,
             ERROR_LINE() AS ErrorLine;
         RETURN
-    end catch
+    END catch
     COMMIT TRANSACTION
 
     SELECT 0 as Status
