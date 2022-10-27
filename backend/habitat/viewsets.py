@@ -654,7 +654,7 @@ DECLARE @method NVARCHAR(MAX) = (SELECT
   )
 FROM (
   SELECT DISTINCT method
-  FROM @observations
+  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL )
 ) AS methods);
 
 SELECT
@@ -664,7 +664,7 @@ SELECT
   MAX(date) AS end_date,
   @method AS method,
   SUM(video_time) / 60 AS video_time
-FROM @observations;
+FROM ( SELECT * FROM @observations WHERE date IS NOT NULL );
 """
 
 SQL_GET_SEDIMENT_STATS = """
@@ -675,7 +675,7 @@ DECLARE @method NVARCHAR(MAX) = (SELECT
   )
 FROM (
   SELECT DISTINCT method
-  FROM @observations
+  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL )
 ) AS methods);
 
 SELECT
@@ -685,7 +685,7 @@ SELECT
   MIN(date) AS start_date,
   MAX(date) AS end_date,
   @method AS method
-FROM @observations;
+FROM ( SELECT * FROM @observations WHERE date IS NOT NULL );
 """
 
 SQL_GET_SQUIDLE_STATS = """
@@ -696,7 +696,7 @@ DECLARE @method NVARCHAR(MAX) = (SELECT
   )
 FROM (
   SELECT DISTINCT method
-  FROM @observations
+  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL )
 ) AS methods);
 
 SELECT
@@ -714,7 +714,7 @@ SELECT
   CAST(
     SUM(public_annotations) AS INT
   ) AS public_annotations
-FROM @observations;
+FROM ( SELECT * FROM @observations WHERE date IS NOT NULL );
 """
 
 def parse_bounds(bounds_str):
