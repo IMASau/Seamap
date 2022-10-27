@@ -654,7 +654,7 @@ DECLARE @method NVARCHAR(MAX) = (SELECT
   )
 FROM (
   SELECT DISTINCT method
-  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL )
+  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL ) AS T1
 ) AS methods);
 
 SELECT
@@ -664,7 +664,7 @@ SELECT
   MAX(date) AS end_date,
   @method AS method,
   SUM(video_time) / 60 AS video_time
-FROM ( SELECT * FROM @observations WHERE date IS NOT NULL );
+FROM ( SELECT * FROM @observations WHERE date IS NOT NULL ) AS T1;
 """
 
 SQL_GET_SEDIMENT_STATS = """
@@ -675,7 +675,7 @@ DECLARE @method NVARCHAR(MAX) = (SELECT
   )
 FROM (
   SELECT DISTINCT method
-  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL )
+  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL ) AS T1
 ) AS methods);
 
 SELECT
@@ -685,7 +685,7 @@ SELECT
   MIN(date) AS start_date,
   MAX(date) AS end_date,
   @method AS method
-FROM ( SELECT * FROM @observations WHERE date IS NOT NULL );
+FROM ( SELECT * FROM @observations WHERE date IS NOT NULL ) AS T1;
 """
 
 SQL_GET_SQUIDLE_STATS = """
@@ -696,7 +696,7 @@ DECLARE @method NVARCHAR(MAX) = (SELECT
   )
 FROM (
   SELECT DISTINCT method
-  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL )
+  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL ) AS T1
 ) AS methods);
 
 SELECT
