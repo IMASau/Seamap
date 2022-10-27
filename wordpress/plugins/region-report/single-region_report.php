@@ -163,7 +163,7 @@
                                             tiled: true,
                                             format: "image/png",
                                             styles: e.detail.all_layers_boundary.style,
-                                            cql_filter: `NETNAME='${e.detail.network.network}'` + (e.detail.park ? ` AND RESNAME='${e.detail.park}'` : "")
+                                            cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
                                         }
                                     );
 
@@ -193,7 +193,7 @@
                                             tiled: true,
                                             format: "image/png",
                                             styles: e.detail.public_layers_boundary.style,
-                                            cql_filter: `NETNAME='${e.detail.network.network}'` + (e.detail.park ? ` AND RESNAME='${e.detail.park}'` : "")
+                                            cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
                                         }
                                     );
 
@@ -211,7 +211,7 @@
                                             version: "2.0.0",
                                             outputFormat: "application/json",
                                             typeNames: e.detail.all_layers_boundary.layer_name,
-                                            cql_filter: `NETNAME='${e.detail.network.network}'` + (e.detail.park ? ` AND RESNAME='${e.detail.park}'` : "")
+                                            cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
                                         },
                                         success: response => {
                                             overviewMapBounds = L.geoJson(response).getBounds();
