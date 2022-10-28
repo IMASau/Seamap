@@ -1,11 +1,11 @@
 <?php get_header(); ?>
 
 <?php
-    $habitat_statistics_url = get_post_meta(get_the_ID(), 'habitat_statistics_url', true);
-    $bathymetry_statistics_url = get_post_meta(get_the_ID(), 'bathymetry_statistics_url', true);
-    $habitat_observations_url = get_post_meta(get_the_ID(), 'habitat_observations_url', true);
-    $research_effort_url = get_post_meta(get_the_ID(), 'research_effort_url', true);
-    $region_report_data_url = get_post_meta(get_the_ID(), 'region_report_data_url', true);
+    $habitat_statistics_url_base = get_post_meta(get_the_ID(), 'habitat_statistics_url_base', true);
+    $bathymetry_statistics_url_base = get_post_meta(get_the_ID(), 'bathymetry_statistics_url_base', true);
+    $habitat_observations_url_base = get_post_meta(get_the_ID(), 'habitat_observations_url_base', true);
+    $research_effort_url_base = get_post_meta(get_the_ID(), 'research_effort_url_base', true);
+    $region_report_data_url_base = get_post_meta(get_the_ID(), 'region_report_data_url_base', true);
 
     $network_name = get_post_meta(get_the_ID(), 'network_name', true);
     $park_name = get_post_meta(get_the_ID(), 'park_name', true);
@@ -64,14 +64,20 @@
         let postId = "<?php the_ID(); ?>";
         let postElement = document.getElementById(`post-${postId}`);
 
-        let habitatStatisticsUrl = "<?php echo $habitat_statistics_url; ?>";
-        let bathymetryStatisticsUrl = "<?php echo $bathymetry_statistics_url; ?>";
-        let habitatObservationsUrl = "<?php echo $habitat_observations_url; ?>";
-        let ressearchEffortUrl = "<?php echo $research_effort_url; ?>";
-        let regionReportDataUrl = "<?php echo $region_report_data_url; ?>";
+        let habitatStatisticsUrlBase = "<?php echo $habitat_statistics_url_base; ?>";
+        let bathymetryStatisticsUrlBase = "<?php echo $bathymetry_statistics_url_base; ?>";
+        let habitatObservationsUrlBase = "<?php echo $habitat_observations_url_base; ?>";
+        let researchEffortUrlBase = "<?php echo $research_effort_url_base; ?>";
+        let regionReportDataUrlBase = "<?php echo $region_report_data_url_base; ?>";
 
         let networkName = "<?php echo $network_name; ?>";
         let parkName = <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>;
+
+        let habitatStatisticsUrl = `${habitatStatisticsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
+        let bathymetryStatisticsUrl = `${bathymetryStatisticsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
+        let habitatObservationsUrl = `${habitatObservationsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
+        let researchEffortUrl = `${researchEffortUrlBase}/${networkName}` + (parkName ? `/${parkName}` : "") + ".json";
+        let regionReportDataUrl = `${regionReportDataUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
 
         let pageLink = "<?php echo get_page_link(); ?>";
     </script>
@@ -890,7 +896,7 @@
             }
         });
 
-        $.ajax(ressearchEffortUrl, {
+        $.ajax(researchEffortUrl, {
             dataType : "json",
             success: response => {
                 postElement.dispatchEvent(
