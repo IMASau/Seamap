@@ -1,7 +1,5 @@
-/**
- * Region report root media query variables
- */
- .region_report {
+/* Region report root media query variables */
+.region_report {
     --responsive--spacing-horizontal: calc(2 * 25px * 0.6);
     --responsive--alignwide-width: calc(100vw - var(--responsive--spacing-horizontal));
 }
@@ -68,7 +66,7 @@
 
 .region-report-chart-table,
 .region-report-outline,
-.region-report-research-effort {
+.region-report-research-effort-graphs {
     display: flex;
     flex-direction: row;
     gap: 32px;
@@ -76,7 +74,7 @@
 
 .region-report-chart-table>*,
 .region-report-outline>*,
-.region-report-research-effort>* {
+.region-report-research-effort-graphs>* {
     flex: 1;
     min-width: 0;
     overflow-x: hidden;
@@ -120,22 +118,18 @@
 }
 
 .region-report-overview-map {
-    width: 100%;
+    width: 75%;
+    margin: auto;
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.region-report-overview-map>* {
-    margin: auto;
-}
-
 .region-report-overview-map-map {
-    width: 75%;
     height: 300px;
 }
 
-.region-report-overview-map-toggle {
+.region-report-labeled-toggle {
     --slider-width: 50px;
     --slider-height: 20px;
     --slider-transition: .2s;
@@ -146,7 +140,7 @@
     text-transform: uppercase;
     gap: 8px;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     font-size: 16px;
 }
 

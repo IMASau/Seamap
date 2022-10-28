@@ -76,7 +76,8 @@
         let habitatStatisticsUrl = `${habitatStatisticsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
         let bathymetryStatisticsUrl = `${bathymetryStatisticsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
         let habitatObservationsUrl = `${habitatObservationsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
-        let researchEffortUrl = `${researchEffortUrlBase}/${networkName}` + (parkName ? `/${parkName}` : "") + ".json";
+        let networkResearchEffortUrl = `${researchEffortUrlBase}/${networkName}.json`;
+        let parkResearchEffortUrl = parkName ? `${researchEffortUrlBase}/${networkName}/${parkName}.json` : null;
         let regionReportDataUrl = `${regionReportDataUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
 
         let pageLink = "<?php echo get_page_link(); ?>";
@@ -119,7 +120,7 @@
                 <div>
                     <?php the_content(); ?>
                     <div class="region-report-overview-map">
-                        <div class="region-report-overview-map-toggle">
+                        <div class="region-report-labeled-toggle">
                             <div>All data</div>
                             <label class="region-report-switch">
                                 <input type="checkbox" onclick="toggleMinimap(this.checked)">
@@ -508,131 +509,168 @@
             <section>
                 <h3>Research Effort</h3>
                 
-                <div class="region-report-research-effort">
-                    <div id="region-report-research-effort-<?php the_ID(); ?>-1"></div>
-                    <div id="region-report-research-effort-<?php the_ID(); ?>-2"></div>
-                </div>
+                <div id="region-report-research-effort-<?php the_ID(); ?>"></div>
                 <script>
-                     postElement.addEventListener(
-                        "researchEffort",
-                        e => {
-                            const values = [];
-                            e.detail.forEach(e => {
-                                values.push({
-                                    year: e.year,
-                                    end: e.year + 0.25,
-                                    count: e.imagery_count,
-                                    group: "Imagery (campaigns)",
-                                    color: "#3C67BC"
-                                });
-                                values.push({
-                                    year: e.year + 0.25,
-                                    end: e.year + 0.5,
-                                    count: e.video_count,
-                                    group: "Video (campaigns)",
-                                    color: "#EA722B"
-                                });
-                                values.push({
-                                    year: e.year + 0.5,
-                                    end: e.year + 0.75,
-                                    count: e.sediment_count,
-                                    group: "Sediment (surveys)",
-                                    color: "#9B9B9B"
-                                });
-                                values.push({
-                                    year: e.year + 0.75,
-                                    end: e.year + 1,
-                                    count: e.bathymetry_count,
-                                    group: "Bathymetry (surveys)",
-                                    color: "#FFB800"
-                                });
+                    // declarations
+                    let networkResearchEffort;
+                    let parkResearchEffort;
+
+                    function toggleResearchEffort(showNetwork) {
+                        // build values
+                        const values = [];
+                        (showNetwork ? networkResearchEffort : parkResearchEffort).forEach(e => {
+                            values.push({
+                                year: e.year,
+                                end: e.year + 0.25,
+                                count: e.imagery_count,
+                                group: "Imagery (campaigns)",
+                                color: "#3C67BC"
                             });
+                            values.push({
+                                year: e.year + 0.25,
+                                end: e.year + 0.5,
+                                count: e.video_count,
+                                group: "Video (campaigns)",
+                                color: "#EA722B"
+                            });
+                            values.push({
+                                year: e.year + 0.5,
+                                end: e.year + 0.75,
+                                count: e.sediment_count,
+                                group: "Sediment (surveys)",
+                                color: "#9B9B9B"
+                            });
+                            values.push({
+                                year: e.year + 0.75,
+                                end: e.year + 1,
+                                count: e.bathymetry_count,
+                                group: "Bathymetry (surveys)",
+                                color: "#FFB800"
+                            });
+                        });
+                        const filteredValues = values.filter(e => e.year >= 2000);
 
-                            const filteredValues = values.filter(e => e.year >= 2000);
-
-                            vegaEmbed(
-                                `#region-report-research-effort-${postId}-1`,
-                                {
-                                    title: "Full",
-                                    background: "transparent",
-                                    data: { values: values },
-                                    width: "container",
-                                    mark: "bar",
-                                    encoding: {
-                                        x: {
-                                            field: "year",
-                                            type: "quantitative",
-                                            axis: {
-                                                tickMinStep: 1,
-                                                format: "r"
-                                            },
-                                            scale: {
-                                                domain: [
-                                                    Math.floor(Math.min(...values.map(e => e.year))),
-                                                    new Date().getFullYear() + 1
-                                                ]
-                                            },
-                                            title: "Year"
+                        // generate graphs
+                        vegaEmbed(
+                            `#region-report-research-effort-1-${postId}`,
+                            {
+                                title: "Full Timeseries",
+                                background: "transparent",
+                                data: { values: values },
+                                width: "container",
+                                mark: "bar",
+                                encoding: {
+                                    x: {
+                                        field: "year",
+                                        type: "quantitative",
+                                        axis: {
+                                            tickMinStep: 1,
+                                            format: "r"
                                         },
-                                        x2: { field: "end" },
-                                        y: {
-                                            field: "count",
-                                            type: "quantitative",
-                                            title: "Survey Effort"
+                                        scale: {
+                                            domain: [
+                                                Math.floor(Math.min(...values.map(e => e.year))),
+                                                new Date().getFullYear() + 1
+                                            ]
                                         },
-                                        color: {
-                                            field: "group",
-                                            type: "nominal",
-                                            legend: { title: null },
-                                            sort: values.map(e => e.group),
-                                            scale: { range: values.map(e => e.color) }
-                                        }
+                                        title: "Year"
+                                    },
+                                    x2: { field: "end" },
+                                    y: {
+                                        field: "count",
+                                        type: "quantitative",
+                                        title: "Survey Effort",
+                                        axis: { tickMinStep: 1 }
+                                    },
+                                    color: {
+                                        field: "group",
+                                        type: "nominal",
+                                        legend: { title: null },
+                                        sort: values.map(e => e.group),
+                                        scale: { range: values.map(e => e.color) }
                                     }
-                                },
-                                { actions: false }
-                            );
-
-                            vegaEmbed(
-                                `#region-report-research-effort-${postId}-2`,
-                                {
-                                    title: "2000 Onwards",
-                                    background: "transparent",
-                                    data: { values: filteredValues },
-                                    width: "container",
-                                    mark: "bar",
-                                    encoding: {
-                                        x: {
-                                            field: "year",
-                                            type: "quantitative",
-                                            axis: {
-                                                tickMinStep: 1,
-                                                format: "r"
-                                            },
-                                            scale: {
-                                                domain: [
-                                                    2000,
-                                                    new Date().getFullYear() + 1
-                                                ]
-                                            },
-                                            title: "Year"
+                                }
+                            },
+                            { actions: false }
+                        );
+                        
+                        vegaEmbed(
+                            `#region-report-research-effort-2-${postId}`,
+                            {
+                                title: "2000 to Present",
+                                background: "transparent",
+                                data: { values: filteredValues },
+                                width: "container",
+                                mark: "bar",
+                                encoding: {
+                                    x: {
+                                        field: "year",
+                                        type: "quantitative",
+                                        axis: {
+                                            tickMinStep: 1,
+                                            format: "r"
                                         },
-                                        x2: { field: "end" },
-                                        y: {
-                                            field: "count",
-                                            type: "quantitative",
-                                            title: "Survey Effort"
+                                        scale: {
+                                            domain: [
+                                                2000,
+                                                new Date().getFullYear() + 1
+                                            ]
                                         },
-                                        color: {
-                                            field: "group",
-                                            type: "nominal",
-                                            legend: { title: null },
-                                            sort: filteredValues.map(e => e.group),
-                                            scale: { range: filteredValues.map(e => e.color) }
-                                        }
+                                        title: "Year"
+                                    },
+                                    x2: { field: "end" },
+                                    y: {
+                                        field: "count",
+                                        type: "quantitative",
+                                        title: "Survey Effort",
+                                        axis: { tickMinStep: 1 }
+                                    },
+                                    color: {
+                                        field: "group",
+                                        type: "nominal",
+                                        legend: { title: null },
+                                        sort: filteredValues.map(e => e.group),
+                                        scale: { range: filteredValues.map(e => e.color) }
                                     }
-                                },
-                                { actions: false }
-                            );
+                                }
+                            },
+                            { actions: false }
+                        );
+                    }
+
+                    // setup
+                    const researchEffortElement = document.getElementById(`region-report-research-effort-${postId}`);
+
+                    if (parkName) {
+                        researchEffortElement.innerHTML = `
+                            <div class="region-report-labeled-toggle">
+                                <div>${parkName}</div>
+                                <label class="region-report-switch">
+                                    <input type="checkbox" onclick="toggleResearchEffort(this.checked)">
+                                    <span class="region-report-slider"></span>
+                                </label>
+                                <div>${networkName}</div>
+                            </div>`;
+                    }
+                    researchEffortElement.innerHTML += `
+                        <div class="region-report-research-effort-graphs" id="region-report-research-effort-graphs-${postId}">
+                            <div id="region-report-research-effort-1-${postId}"></div>
+                            <div id="region-report-research-effort-2-${postId}"></div>
+                        </div>`;
+
+                    postElement.addEventListener(
+                        "networkResearchEffort",
+                        e => {
+                            networkResearchEffort = e.detail;
+                            if (!parkName) toggleResearchEffort(true);
+                        }
+                    );
+
+                    postElement.addEventListener(
+                        "parkResearchEffort",
+                        e => {
+                            parkResearchEffort = e.detail;
+                            toggleResearchEffort(false);
                         }
                     );
                 </script>
@@ -896,17 +934,31 @@
             }
         });
 
-        $.ajax(researchEffortUrl, {
-            dataType : "json",
+        $.ajax(networkResearchEffortUrl, {
+            dataType: "json",
             success: response => {
                 postElement.dispatchEvent(
                     new CustomEvent(
-                        "researchEffort",
+                        "networkResearchEffort",
                         { detail: response }
                     )
                 );
             }
         });
+
+        if (parkResearchEffortUrl) {
+            $.ajax(parkResearchEffortUrl, {
+                dataType: "json",
+                success: response => {
+                    postElement.dispatchEvent(
+                        new CustomEvent(
+                            "parkResearchEffort",
+                            { detail: response }
+                        )
+                    );
+                }
+            });
+        }
 
         $.ajax(regionReportDataUrl, {
             dataType : "json",
