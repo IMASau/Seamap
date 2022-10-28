@@ -49,6 +49,7 @@ def subdivide_requests(layer, horizontal_subdivisions=1, vertical_subdivisions=1
     }
 
     x_delta = (bbox['east'] - bbox['west'] + 360) % 360
+    x_delta = x_delta if x_delta != 0 else 360
     y_delta = bbox['north'] - bbox['south']
     aspect_ratio = x_delta / y_delta
     width = 386
@@ -111,6 +112,7 @@ def retrieve_image(layer, horizontal_subdivisions=None, vertical_subdivisions=No
     }
 
     x_delta = (bbox['east'] - bbox['west'] + 360) % 360
+    x_delta = x_delta if x_delta != 0 else 360
     y_delta = bbox['north'] - bbox['south']
     aspect_ratio = x_delta / y_delta
     width = 386
@@ -151,11 +153,13 @@ def generate_layer_preview(layer, only_generate_missing, horizontal_subdivisions
             else:
                 try:
                     layer_image = retrieve_image(layer)
-                except Exception:
+                except Exception as e:
+                    logging.error('Error at %s', 'division', exc_info=e)
                     logging.warn(f'Failed to retrieve {layer.layer_name} ({layer.id}) in a single request; attempting retrieval in chunks (40x40)')
                     try:
                         layer_image = retrieve_image(layer, 40, 40)
-                    except Exception:
+                    except Exception as e:
+                        logging.error('Error at %s', 'division', exc_info=e)
                         logging.warn(f'Failed to retrieve {layer.layer_name} ({layer.id})')
 
             if layer_image:
