@@ -163,6 +163,10 @@ class RegionReport(models.Model):
     habitat_observations_state = models.FloatField(default=0)
     state_summary = models.TextField()
     slug = models.CharField(max_length=255, null=False, blank=False)
+    minx = models.FloatField("Max X", null=False)
+    miny = models.FloatField("Max Y", null=False)
+    maxx = models.FloatField("Min X", null=False)
+    maxy = models.FloatField("Min Y", null=False)
 
     def __str__(self):
         return self.network + (f' > {self.park}' if self.park else '')

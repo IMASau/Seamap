@@ -735,7 +735,7 @@
         </section>
 
         <section>
-            <h2>Imagery</h3>
+            <h2>Imagery</h2>
             <div class="region-report-imagery" id="region-report-imagery-<?php the_ID(); ?>">Loading imagery deployment data...</div>
             <script>
                 // declarations

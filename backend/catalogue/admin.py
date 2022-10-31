@@ -35,4 +35,12 @@ class PressureAdminInline(admin.TabularInline):
 
 class RegionReportAdmin(admin.ModelAdmin):
     inlines = (PressureAdminInline,)
+    fields = (
+        'network',
+        'park',
+        ('habitat_state','bathymetry_state','habitat_observations_state',),
+        'state_summary',
+        'slug',
+        ('minx','maxx','miny','maxy',),
+    )
 admin.site.register(models.RegionReport, RegionReportAdmin)
