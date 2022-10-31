@@ -745,6 +745,13 @@
                 let squidleUrl;
                 let imageryGrid;
 
+                function focusMarker(focusIndex) {
+                    imageryMarkers.forEach((marker, index) => {
+                        imageryMap.removeLayer(marker);
+                        if (index == focusIndex || focusIndex == null) imageryMap.addLayer(marker);
+                    });
+                }
+
                 function refreshImagery() {
                     if (squidleUrl == null) return;
                     if (imageryMap == null) return;
@@ -775,18 +782,16 @@
                                         Object.assign(image, pose.objects.filter(e => e.media.id == image.id)[0]);
 
                                         // grid items
-                                        const gridElement = document.createElement("div");
-
-                                        const imageElement = document.createElement("img");
-                                        imageElement.src = image.path_best_thm;
-                                        gridElement.appendChild(imageElement);
-
-                                        const numberElement = document.createElement("div");
-                                        numberElement.className = "region-report-imagery-grid-number";
-                                        numberElement.innerText = index + 1;
-                                        gridElement.appendChild(numberElement);
-
-                                        imageryGrid.appendChild(gridElement);
+                                        imageryGrid.innerHTML += `
+                                            <a
+                                                href="https://squidle.org/api/media/${image.media.id}?template=models/media/preview_single.html"
+                                                target="_blank"
+                                                onmouseenter="focusMarker(${index})"
+                                                onmouseleave="focusMarker()"
+                                            >
+                                                <img src="${image.path_best_thm}">
+                                                <div class="region-report-imagery-grid-number">${index + 1}</div>
+                                            </a>`;
 
                                         // marker
                                         imageryMarkers.push(

@@ -166,6 +166,7 @@
 }
 
 .region-report-imagery-grid>* {
+    user-select: none;
     aspect-ratio: 5 / 4;
     overflow: hidden;
     position: relative;
@@ -174,7 +175,7 @@
 .region-report-imagery-grid>*>img {
     object-fit: cover;
     width: 100%;
-    height: 100%;
+    height: 100% !important;
 }
 
 .region-report-imagery-grid-number {
@@ -195,10 +196,6 @@
     background: none;
     border: none;
     cursor: default;
-}
-
-.region-report-imagery-map .leaflet-div-icon:hover {
-    z-index: 10000 !important;
 }
 
 .region-report-imagery-map .leaflet-div-icon>svg {
