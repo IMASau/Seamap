@@ -137,8 +137,6 @@
                             const publicLayers = L.layerGroup();
                             let publicLayersBoundary;
 
-                            let overviewMapBounds;
-
                             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
                             postElement.addEventListener(
@@ -210,26 +208,14 @@
                                     map._handlers.forEach(function (handler) {
                                         handler.disable();
                                     });
-                                    $.ajax(e.detail.all_layers_boundary.server_url, {
-                                        dataType: "json",
-                                        data: {
-                                            request: "GetFeature",
-                                            service: "WFS",
-                                            version: "2.0.0",
-                                            outputFormat: "application/json",
-                                            typeNames: e.detail.all_layers_boundary.layer_name,
-                                            cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
-                                        },
-                                        success: response => {
-                                            overviewMapBounds = L.geoJson(response).getBounds();
-                                            map.fitBounds(overviewMapBounds);
 
-                                            window.addEventListener(
-                                                "resize",
-                                                e => { map.fitBounds(overviewMapBounds); }
-                                            );
-                                        }
-                                    });
+                                    // zoom to map extent
+                                    let bounds = [[e.detail.bounding_box.north, e.detail.bounding_box.east], [e.detail.bounding_box.south, e.detail.bounding_box.west]];
+                                    map.fitBounds(bounds);
+                                    window.addEventListener(
+                                        "resize",
+                                        e => { map.fitBounds(bounds); }
+                                    );
                                 }
                             );
 
@@ -740,7 +726,6 @@
             <script>
                 // declarations
                 let imageryMap;
-                let imageryMapBounds;
                 let imageryMarkers = [];
                 let squidleUrl;
                 let imageryGrid;
@@ -869,26 +854,12 @@
                             ).addTo(imageryMap);
 
                             // zoom to map extent
-                            $.ajax(e.detail.all_layers_boundary.server_url, {
-                                dataType: "json",
-                                data: {
-                                    request: "GetFeature",
-                                    service: "WFS",
-                                    version: "2.0.0",
-                                    outputFormat: "application/json",
-                                    typeNames: e.detail.all_layers_boundary.layer_name,
-                                    cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
-                                },
-                                success: response => {
-                                    imageryMapBounds = L.geoJson(response).getBounds();
-                                    imageryMap.fitBounds(imageryMapBounds);
-
-                                    window.addEventListener(
-                                        "resize",
-                                        e => { imageryMap.fitBounds(imageryMapBounds); }
-                                    );
-                                }
-                            });
+                            let bounds = [[e.detail.bounding_box.north, e.detail.bounding_box.east], [e.detail.bounding_box.south, e.detail.bounding_box.west]];
+                            imageryMap.fitBounds(bounds);
+                            window.addEventListener(
+                                "resize",
+                                e => { imageryMap.fitBounds(bounds); }
+                            );
                         } else {
                             imageryElement.innerText = "No imagery deployments found in this region";
                         }
