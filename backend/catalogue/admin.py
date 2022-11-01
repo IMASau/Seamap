@@ -11,7 +11,6 @@ admin.site.register(models.Organisation)
 admin.site.register(models.HabitatDescriptor)
 admin.site.register(models.BaseLayerGroup)
 admin.site.register(models.BaseLayer)
-admin.site.register(models.RegionReport)
 
 class LayerAdmin(admin.ModelAdmin):
     search_fields = ('name',)
@@ -28,3 +27,20 @@ admin.site.register(models.KeyedLayer, KeyedLayerAdmin)
 class NationalLayerTimelineAdmin(admin.ModelAdmin):
     autocomplete_fields = ('layer',)
 admin.site.register(models.NationalLayerTimeline, NationalLayerTimelineAdmin)
+
+class PressureAdminInline(admin.TabularInline):
+    autocomplete_fields = ('layer',)
+    model = models.Pressure
+    extra = 0
+
+class RegionReportAdmin(admin.ModelAdmin):
+    inlines = (PressureAdminInline,)
+    fields = (
+        'network',
+        'park',
+        ('habitat_state','bathymetry_state','habitat_observations_state',),
+        'state_summary',
+        'slug',
+        ('minx','maxx','miny','maxy',),
+    )
+admin.site.register(models.RegionReport, RegionReportAdmin)

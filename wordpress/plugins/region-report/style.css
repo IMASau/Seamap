@@ -1,7 +1,5 @@
-/**
- * Region report root media query variables
- */
- .region_report {
+/* Region report root media query variables */
+.region_report {
     --responsive--spacing-horizontal: calc(2 * 25px * 0.6);
     --responsive--alignwide-width: calc(100vw - var(--responsive--spacing-horizontal));
 }
@@ -68,7 +66,7 @@
 
 .region-report-chart-table,
 .region-report-outline,
-.region-report-research-effort {
+.region-report-research-effort-graphs {
     display: flex;
     flex-direction: row;
     gap: 32px;
@@ -76,7 +74,7 @@
 
 .region-report-chart-table>*,
 .region-report-outline>*,
-.region-report-research-effort>* {
+.region-report-research-effort-graphs>* {
     flex: 1;
     min-width: 0;
     overflow-x: hidden;
@@ -115,26 +113,23 @@
 }
 
 .region-report-research-rating-quote {
-    font-size: 26px;
+    font-size: 23px;
+    font-style: italic;
 }
 
 .region-report-overview-map {
-    width: 100%;
+    width: 75%;
+    margin: auto;
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.region-report-overview-map>* {
-    margin: auto;
-}
-
 .region-report-overview-map-map {
-    width: 75%;
     height: 300px;
 }
 
-.region-report-overview-map-toggle {
+.region-report-labeled-toggle {
     --slider-width: 50px;
     --slider-height: 20px;
     --slider-transition: .2s;
@@ -145,11 +140,73 @@
     text-transform: uppercase;
     gap: 8px;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     font-size: 16px;
 }
 
+.region-report-imagery {
+    height: 300px;
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+}
+
+.region-report-imagery-map {
+    flex: 2;
+}
+
+.region-report-imagery-images {
+    flex: 3;
+}
+
+.region-report-imagery-grid {
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    gap: 8px;
+}
+
+.region-report-imagery-grid>* {
+    user-select: none;
+    aspect-ratio: 5 / 4;
+    overflow: hidden;
+    position: relative;
+}
+
+.region-report-imagery-grid>*>img {
+    object-fit: cover;
+    width: 100%;
+    height: 100% !important;
+}
+
+.region-report-imagery-grid-number {
+    background-color: rgb(0, 147, 36);
+    color: white;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 20px;
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.region-report-imagery-map .leaflet-div-icon {
+    background: none;
+    border: none;
+    cursor: default;
+}
+
+.region-report-imagery-map .leaflet-div-icon>svg {
+    overflow: visible;
+}
+
 /* Star rating start */
+.fa {
+    color: #182026;
+}
+
 .region-report-star-rating {
     display: flex;
     flex-direction: row;

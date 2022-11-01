@@ -1,11 +1,11 @@
 <?php get_header(); ?>
 
 <?php
-    $habitat_statistics_url = get_post_meta(get_the_ID(), 'habitat_statistics_url', true);
-    $bathymetry_statistics_url = get_post_meta(get_the_ID(), 'bathymetry_statistics_url', true);
-    $habitat_observations_url = get_post_meta(get_the_ID(), 'habitat_observations_url', true);
-    $research_effort_url = get_post_meta(get_the_ID(), 'research_effort_url', true);
-    $region_report_data_url = get_post_meta(get_the_ID(), 'region_report_data_url', true);
+    $habitat_statistics_url_base = get_post_meta(get_the_ID(), 'habitat_statistics_url_base', true);
+    $bathymetry_statistics_url_base = get_post_meta(get_the_ID(), 'bathymetry_statistics_url_base', true);
+    $habitat_observations_url_base = get_post_meta(get_the_ID(), 'habitat_observations_url_base', true);
+    $research_effort_url_base = get_post_meta(get_the_ID(), 'research_effort_url_base', true);
+    $region_report_data_url_base = get_post_meta(get_the_ID(), 'region_report_data_url_base', true);
 
     $network_name = get_post_meta(get_the_ID(), 'network_name', true);
     $park_name = get_post_meta(get_the_ID(), 'park_name', true);
@@ -64,14 +64,21 @@
         let postId = "<?php the_ID(); ?>";
         let postElement = document.getElementById(`post-${postId}`);
 
-        let habitatStatisticsUrl = "<?php echo $habitat_statistics_url; ?>";
-        let bathymetryStatisticsUrl = "<?php echo $bathymetry_statistics_url; ?>";
-        let habitatObservationsUrl = "<?php echo $habitat_observations_url; ?>";
-        let ressearchEffortUrl = "<?php echo $research_effort_url; ?>";
-        let regionReportDataUrl = "<?php echo $region_report_data_url; ?>";
+        let habitatStatisticsUrlBase = "<?php echo $habitat_statistics_url_base; ?>";
+        let bathymetryStatisticsUrlBase = "<?php echo $bathymetry_statistics_url_base; ?>";
+        let habitatObservationsUrlBase = "<?php echo $habitat_observations_url_base; ?>";
+        let researchEffortUrlBase = "<?php echo $research_effort_url_base; ?>";
+        let regionReportDataUrlBase = "<?php echo $region_report_data_url_base; ?>";
 
         let networkName = "<?php echo $network_name; ?>";
         let parkName = <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>;
+
+        let habitatStatisticsUrl = `${habitatStatisticsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
+        let bathymetryStatisticsUrl = `${bathymetryStatisticsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
+        let habitatObservationsUrl = `${habitatObservationsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
+        let networkResearchEffortUrl = `${researchEffortUrlBase}/${networkName}.json`;
+        let parkResearchEffortUrl = parkName ? `${researchEffortUrlBase}/${networkName}/${parkName}.json` : null;
+        let regionReportDataUrl = `${regionReportDataUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
 
         let pageLink = "<?php echo get_page_link(); ?>";
     </script>
@@ -113,7 +120,7 @@
                 <div>
                     <?php the_content(); ?>
                     <div class="region-report-overview-map">
-                        <div class="region-report-overview-map-toggle">
+                        <div class="region-report-labeled-toggle">
                             <div>All data</div>
                             <label class="region-report-switch">
                                 <input type="checkbox" onclick="toggleMinimap(this.checked)">
@@ -129,8 +136,6 @@
                             let allLayersBoundary;
                             const publicLayers = L.layerGroup();
                             let publicLayersBoundary;
-
-                            let overviewMapBounds;
 
                             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
@@ -163,7 +168,7 @@
                                             tiled: true,
                                             format: "image/png",
                                             styles: e.detail.all_layers_boundary.style,
-                                            cql_filter: `NETNAME='${e.detail.network.network}'` + (e.detail.park ? ` AND RESNAME='${e.detail.park}'` : "")
+                                            cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
                                         }
                                     );
 
@@ -193,7 +198,7 @@
                                             tiled: true,
                                             format: "image/png",
                                             styles: e.detail.public_layers_boundary.style,
-                                            cql_filter: `NETNAME='${e.detail.network.network}'` + (e.detail.park ? ` AND RESNAME='${e.detail.park}'` : "")
+                                            cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
                                         }
                                     );
 
@@ -203,26 +208,14 @@
                                     map._handlers.forEach(function (handler) {
                                         handler.disable();
                                     });
-                                    $.ajax(e.detail.all_layers_boundary.server_url, {
-                                        dataType: "json",
-                                        data: {
-                                            request: "GetFeature",
-                                            service: "WFS",
-                                            version: "2.0.0",
-                                            outputFormat: "application/json",
-                                            typeNames: e.detail.all_layers_boundary.layer_name,
-                                            cql_filter: `NETNAME='${e.detail.network.network}'` + (e.detail.park ? ` AND RESNAME='${e.detail.park}'` : "")
-                                        },
-                                        success: response => {
-                                            overviewMapBounds = L.geoJson(response).getBounds();
-                                            map.fitBounds(overviewMapBounds);
 
-                                            window.addEventListener(
-                                                "resize",
-                                                e => { map.fitBounds(overviewMapBounds); }
-                                            );
-                                        }
-                                    });
+                                    // zoom to map extent
+                                    let bounds = [[e.detail.bounding_box.north, e.detail.bounding_box.east], [e.detail.bounding_box.south, e.detail.bounding_box.west]];
+                                    map.fitBounds(bounds);
+                                    window.addEventListener(
+                                        "resize",
+                                        e => { map.fitBounds(bounds); }
+                                    );
                                 }
                             );
 
@@ -502,131 +495,168 @@
             <section>
                 <h3>Research Effort</h3>
                 
-                <div class="region-report-research-effort">
-                    <div id="region-report-research-effort-<?php the_ID(); ?>-1"></div>
-                    <div id="region-report-research-effort-<?php the_ID(); ?>-2"></div>
-                </div>
+                <div id="region-report-research-effort-<?php the_ID(); ?>"></div>
                 <script>
-                     postElement.addEventListener(
-                        "researchEffort",
-                        e => {
-                            const values = [];
-                            e.detail.forEach(e => {
-                                values.push({
-                                    year: e.year,
-                                    end: e.year + 0.25,
-                                    count: e.imagery_count,
-                                    group: "Imagery (campaigns)",
-                                    color: "#3C67BC"
-                                });
-                                values.push({
-                                    year: e.year + 0.25,
-                                    end: e.year + 0.5,
-                                    count: e.video_count,
-                                    group: "Video (campaigns)",
-                                    color: "#EA722B"
-                                });
-                                values.push({
-                                    year: e.year + 0.5,
-                                    end: e.year + 0.75,
-                                    count: e.sediment_count,
-                                    group: "Sediment (surveys)",
-                                    color: "#9B9B9B"
-                                });
-                                values.push({
-                                    year: e.year + 0.75,
-                                    end: e.year + 1,
-                                    count: e.bathymetry_count,
-                                    group: "Bathymetry (surveys)",
-                                    color: "#FFB800"
-                                });
+                    // declarations
+                    let networkResearchEffort;
+                    let parkResearchEffort;
+
+                    function toggleResearchEffort(showNetwork) {
+                        // build values
+                        const values = [];
+                        (showNetwork ? networkResearchEffort : parkResearchEffort).forEach(e => {
+                            values.push({
+                                year: e.year,
+                                end: e.year + 0.25,
+                                count: e.imagery_count,
+                                group: "Imagery (campaigns)",
+                                color: "#3C67BC"
                             });
+                            values.push({
+                                year: e.year + 0.25,
+                                end: e.year + 0.5,
+                                count: e.video_count,
+                                group: "Video (campaigns)",
+                                color: "#EA722B"
+                            });
+                            values.push({
+                                year: e.year + 0.5,
+                                end: e.year + 0.75,
+                                count: e.sediment_count,
+                                group: "Sediment (surveys)",
+                                color: "#9B9B9B"
+                            });
+                            values.push({
+                                year: e.year + 0.75,
+                                end: e.year + 1,
+                                count: e.bathymetry_count,
+                                group: "Bathymetry (surveys)",
+                                color: "#FFB800"
+                            });
+                        });
+                        const filteredValues = values.filter(e => e.year >= 2000);
 
-                            const filteredValues = values.filter(e => e.year >= 2000);
-
-                            vegaEmbed(
-                                `#region-report-research-effort-${postId}-1`,
-                                {
-                                    title: "Full",
-                                    background: "transparent",
-                                    data: { values: values },
-                                    width: "container",
-                                    mark: "bar",
-                                    encoding: {
-                                        x: {
-                                            field: "year",
-                                            type: "quantitative",
-                                            axis: {
-                                                tickMinStep: 1,
-                                                format: "r"
-                                            },
-                                            scale: {
-                                                domain: [
-                                                    Math.floor(Math.min(...values.map(e => e.year))),
-                                                    new Date().getFullYear() + 1
-                                                ]
-                                            },
-                                            title: "Year"
+                        // generate graphs
+                        vegaEmbed(
+                            `#region-report-research-effort-1-${postId}`,
+                            {
+                                title: "Full Timeseries",
+                                background: "transparent",
+                                data: { values: values },
+                                width: "container",
+                                mark: "bar",
+                                encoding: {
+                                    x: {
+                                        field: "year",
+                                        type: "quantitative",
+                                        axis: {
+                                            tickMinStep: 1,
+                                            format: "r"
                                         },
-                                        x2: { field: "end" },
-                                        y: {
-                                            field: "count",
-                                            type: "quantitative",
-                                            title: "Survey Effort"
+                                        scale: {
+                                            domain: [
+                                                Math.floor(Math.min(...values.map(e => e.year))),
+                                                new Date().getFullYear() + 1
+                                            ]
                                         },
-                                        color: {
-                                            field: "group",
-                                            type: "nominal",
-                                            legend: { title: null },
-                                            sort: values.map(e => e.group),
-                                            scale: { range: values.map(e => e.color) }
-                                        }
+                                        title: "Year"
+                                    },
+                                    x2: { field: "end" },
+                                    y: {
+                                        field: "count",
+                                        type: "quantitative",
+                                        title: "Survey Effort",
+                                        axis: { tickMinStep: 1 }
+                                    },
+                                    color: {
+                                        field: "group",
+                                        type: "nominal",
+                                        legend: { title: null },
+                                        sort: values.map(e => e.group),
+                                        scale: { range: values.map(e => e.color) }
                                     }
-                                },
-                                { actions: false }
-                            );
-
-                            vegaEmbed(
-                                `#region-report-research-effort-${postId}-2`,
-                                {
-                                    title: "2000 Onwards",
-                                    background: "transparent",
-                                    data: { values: filteredValues },
-                                    width: "container",
-                                    mark: "bar",
-                                    encoding: {
-                                        x: {
-                                            field: "year",
-                                            type: "quantitative",
-                                            axis: {
-                                                tickMinStep: 1,
-                                                format: "r"
-                                            },
-                                            scale: {
-                                                domain: [
-                                                    2000,
-                                                    new Date().getFullYear() + 1
-                                                ]
-                                            },
-                                            title: "Year"
+                                }
+                            },
+                            { actions: false }
+                        );
+                        
+                        vegaEmbed(
+                            `#region-report-research-effort-2-${postId}`,
+                            {
+                                title: "2000 to Present",
+                                background: "transparent",
+                                data: { values: filteredValues },
+                                width: "container",
+                                mark: "bar",
+                                encoding: {
+                                    x: {
+                                        field: "year",
+                                        type: "quantitative",
+                                        axis: {
+                                            tickMinStep: 1,
+                                            format: "r"
                                         },
-                                        x2: { field: "end" },
-                                        y: {
-                                            field: "count",
-                                            type: "quantitative",
-                                            title: "Survey Effort"
+                                        scale: {
+                                            domain: [
+                                                2000,
+                                                new Date().getFullYear() + 1
+                                            ]
                                         },
-                                        color: {
-                                            field: "group",
-                                            type: "nominal",
-                                            legend: { title: null },
-                                            sort: filteredValues.map(e => e.group),
-                                            scale: { range: filteredValues.map(e => e.color) }
-                                        }
+                                        title: "Year"
+                                    },
+                                    x2: { field: "end" },
+                                    y: {
+                                        field: "count",
+                                        type: "quantitative",
+                                        title: "Survey Effort",
+                                        axis: { tickMinStep: 1 }
+                                    },
+                                    color: {
+                                        field: "group",
+                                        type: "nominal",
+                                        legend: { title: null },
+                                        sort: filteredValues.map(e => e.group),
+                                        scale: { range: filteredValues.map(e => e.color) }
                                     }
-                                },
-                                { actions: false }
-                            );
+                                }
+                            },
+                            { actions: false }
+                        );
+                    }
+
+                    // setup
+                    const researchEffortElement = document.getElementById(`region-report-research-effort-${postId}`);
+
+                    if (parkName) {
+                        researchEffortElement.innerHTML = `
+                            <div class="region-report-labeled-toggle">
+                                <div>${parkName}</div>
+                                <label class="region-report-switch">
+                                    <input type="checkbox" onclick="toggleResearchEffort(this.checked)">
+                                    <span class="region-report-slider"></span>
+                                </label>
+                                <div>${networkName}</div>
+                            </div>`;
+                    }
+                    researchEffortElement.innerHTML += `
+                        <div class="region-report-research-effort-graphs" id="region-report-research-effort-graphs-${postId}">
+                            <div id="region-report-research-effort-1-${postId}"></div>
+                            <div id="region-report-research-effort-2-${postId}"></div>
+                        </div>`;
+
+                    postElement.addEventListener(
+                        "networkResearchEffort",
+                        e => {
+                            networkResearchEffort = e.detail;
+                            if (!parkName) toggleResearchEffort(true);
+                        }
+                    );
+
+                    postElement.addEventListener(
+                        "parkResearchEffort",
+                        e => {
+                            parkResearchEffort = e.detail;
+                            toggleResearchEffort(false);
                         }
                     );
                 </script>
@@ -645,19 +675,19 @@
                                 starRating(
                                     starRatings.children[0],
                                     Math.round(e.detail.bathymetry_state * 2),
-                                    6,
+                                    10,
                                     "State of bathymetry mapping"
                                 );
                                 starRating(
                                     starRatings.children[1],
                                     Math.round(e.detail.habitat_observations_state * 2),
-                                    6,
+                                    10,
                                     "State of habitat observations"
                                 );
                                 starRating(
                                     starRatings.children[2],
                                     Math.round(e.detail.habitat_state * 2),
-                                    6,
+                                    10,
                                     "State of habitat maps"
                                 );
                             }
@@ -690,8 +720,152 @@
             </section>
         </section>
 
-        <section class="region-report-imagery">
-            <h2>Imagery</h3>
+        <section>
+            <h2>Imagery</h2>
+            <div class="region-report-imagery" id="region-report-imagery-<?php the_ID(); ?>">Loading imagery deployment data...</div>
+            <script>
+                // declarations
+                let imageryMap;
+                let imageryMarkers = [];
+                let squidleUrl;
+                let imageryGrid;
+
+                function focusMarker(focusIndex) {
+                    imageryMarkers.forEach((marker, index) => {
+                        imageryMap.removeLayer(marker);
+                        if (index == focusIndex || focusIndex == null) imageryMap.addLayer(marker);
+                    });
+                }
+
+                function refreshImagery() {
+                    if (squidleUrl == null) return;
+                    if (imageryMap == null) return;
+
+                    $.ajax(squidleUrl, {
+                        dataType: "json",
+                        success: media => {
+
+                            $.ajax("https://squidle.org/api/pose", {
+                                dataType: "json",
+                                data: {
+                                    q: JSON.stringify({
+                                        filters: [{
+                                            name: "media_id",
+                                            op: "in",
+                                            val: media.objects.map(e => e.id)
+                                        }]
+                                    })
+                                },
+                                success: pose => {
+                                    // clear
+                                    imageryMarkers.forEach(marker => imageryMap.removeLayer(marker));
+                                    imageryMarkers = [];
+                                    imageryGrid.innerHTML = "";
+
+                                    // populate
+                                    media.objects.forEach((image, index) => {
+                                        Object.assign(image, pose.objects.filter(e => e.media.id == image.id)[0]);
+
+                                        // grid items
+                                        imageryGrid.innerHTML += `
+                                            <a
+                                                href="https://squidle.org/api/media/${image.media.id}?template=models/media/preview_single.html"
+                                                target="_blank"
+                                                onmouseenter="focusMarker(${index})"
+                                                onmouseleave="focusMarker()"
+                                            >
+                                                <img src="${image.path_best_thm}">
+                                                <div class="region-report-imagery-grid-number">${index + 1}</div>
+                                            </a>`;
+
+                                        // marker
+                                        imageryMarkers.push(
+                                            new L.Marker(
+                                                [image.lat, image.lon],
+                                                {
+                                                    icon: L.divIcon({
+                                                        html: `
+                                                            <svg width=25 height=41>
+                                                                <polygon
+                                                                    points="0,0 25,0, 25,28 20,28 12.5,41 5,28 0,28"
+                                                                    fill="rgb(0, 147, 36)"
+                                                                    stroke="white"
+                                                                    stroke-width=1.5
+                                                                />
+                                                                <text
+                                                                    fill="white"
+                                                                    x="50%"
+                                                                    y=14
+                                                                    dominant-baseline="middle"
+                                                                    text-anchor="middle"
+                                                                    font-family="sans-serif"
+                                                                    font-weight="bold"
+                                                                >${index + 1}</text>
+                                                            </svg>`,
+                                                        iconSize: [25, 41],
+                                                        iconAnchor: [12.5, 41]
+                                                    })
+                                                }
+                                            )
+                                        );
+                                        imageryMarkers[imageryMarkers.length - 1].addTo(imageryMap);
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+
+                postElement.addEventListener(
+                    "regionReportData",
+                    e => {
+                        squidleUrl = e.detail.squidle_url;
+                        const imageryElement = document.getElementById(`region-report-imagery-${postId}`);
+
+                        if (squidleUrl) {
+                            imageryElement.innerHTML = `
+                                <div class="region-report-imagery-map" id="region-report-imagery-map-${postId}"></div>
+                                <div class="region-report-imagery-images">
+                                    <div class="region-report-imagery-grid" id="region-report-imagery-grid-${postId}"></div>
+                                    <a href="#!" onclick="refreshImagery()">Refresh images</a>
+                                </div>`;
+
+
+                            imageryGrid = document.getElementById(`region-report-imagery-grid-${postId}`);
+
+                            // set-up map
+                            imageryMap = L.map(`region-report-imagery-map-${postId}`, { maxZoom: 19, zoomControl: false });
+                            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(imageryMap);
+                            imageryMap._handlers.forEach(e => e.disable());
+
+                            refreshImagery();
+
+                            // map boundary layer
+                            L.tileLayer.wms(
+                                e.detail.all_layers_boundary.server_url,
+                                {
+                                    layers: e.detail.all_layers_boundary.layer_name,
+                                    transparent: true,
+                                    tiled: true,
+                                    format: "image/png",
+                                    styles: e.detail.all_layers_boundary.style,
+                                    cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
+                                }
+                            ).addTo(imageryMap);
+
+                            // zoom to map extent
+                            let bounds = [[e.detail.bounding_box.north, e.detail.bounding_box.east], [e.detail.bounding_box.south, e.detail.bounding_box.west]];
+                            imageryMap.fitBounds(bounds);
+                            window.addEventListener(
+                                "resize",
+                                e => { imageryMap.fitBounds(bounds); }
+                            );
+                        } else {
+                            imageryElement.innerText = "No imagery deployments found in this region";
+                        }
+                    }
+                );
+            </script>
         </section>
 
         <section class="region-report-pressures">
@@ -736,17 +910,31 @@
             }
         });
 
-        $.ajax(ressearchEffortUrl, {
-            dataType : "json",
+        $.ajax(networkResearchEffortUrl, {
+            dataType: "json",
             success: response => {
                 postElement.dispatchEvent(
                     new CustomEvent(
-                        "researchEffort",
+                        "networkResearchEffort",
                         { detail: response }
                     )
                 );
             }
         });
+
+        if (parkResearchEffortUrl) {
+            $.ajax(parkResearchEffortUrl, {
+                dataType: "json",
+                success: response => {
+                    postElement.dispatchEvent(
+                        new CustomEvent(
+                            "parkResearchEffort",
+                            { detail: response }
+                        )
+                    );
+                }
+            });
+        }
 
         $.ajax(regionReportDataUrl, {
             dataType : "json",

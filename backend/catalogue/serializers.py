@@ -94,6 +94,8 @@ class RegionReportSerializer(serializers.ModelSerializer):
     all_layers_boundary = serializers.SerializerMethodField()
     public_layers = serializers.SerializerMethodField()
     public_layers_boundary = serializers.SerializerMethodField()
+    pressures = serializers.SerializerMethodField()
+    bounding_box = serializers.SerializerMethodField()
 
     def get_parks(self, obj):
         return [{'park': v.park, 'slug': v.slug} for v in models.RegionReport.objects.filter(network=obj.network) if v.park] if obj.park == None else None
@@ -114,6 +116,22 @@ class RegionReportSerializer(serializers.ModelSerializer):
     def get_public_layers_boundary(self, obj):
         return LayerSerializer(models.KeyedLayer.objects.get(keyword='data-report-minimap-panel2-boundary').layer).data
 
+    def get_pressures(self, obj):
+        return [PressureSerializer(v).data for v in models.Pressure.objects.filter(region_report=obj.id)]
+
+    def get_bounding_box(self, obj):
+        return {
+            'west': float(obj.minx),
+            'south': float(obj.miny),
+            'east': float(obj.maxx),
+            'north': float(obj.maxy)
+        }
+
     class Meta:
         model = models.RegionReport
-        exclude = ('id',)
+        exclude = ('id','minx', 'miny', 'maxx', 'maxy',)
+
+class PressureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Pressure
+        exclude = ('region_report',)

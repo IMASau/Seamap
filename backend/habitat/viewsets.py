@@ -654,7 +654,7 @@ DECLARE @method NVARCHAR(MAX) = (SELECT
   )
 FROM (
   SELECT DISTINCT method
-  FROM @observations
+  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL ) AS T1
 ) AS methods);
 
 SELECT
@@ -664,7 +664,7 @@ SELECT
   MAX(date) AS end_date,
   @method AS method,
   SUM(video_time) / 60 AS video_time
-FROM @observations;
+FROM ( SELECT * FROM @observations WHERE date IS NOT NULL ) AS T1;
 """
 
 SQL_GET_SEDIMENT_STATS = """
@@ -675,7 +675,7 @@ DECLARE @method NVARCHAR(MAX) = (SELECT
   )
 FROM (
   SELECT DISTINCT method
-  FROM @observations
+  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL ) AS T1
 ) AS methods);
 
 SELECT
@@ -685,7 +685,7 @@ SELECT
   MIN(date) AS start_date,
   MAX(date) AS end_date,
   @method AS method
-FROM @observations;
+FROM ( SELECT * FROM @observations WHERE date IS NOT NULL ) AS T1;
 """
 
 SQL_GET_SQUIDLE_STATS = """
@@ -696,7 +696,7 @@ DECLARE @method NVARCHAR(MAX) = (SELECT
   )
 FROM (
   SELECT DISTINCT method
-  FROM @observations
+  FROM ( SELECT * FROM @observations WHERE date IS NOT NULL ) AS T1
 ) AS methods);
 
 SELECT
@@ -714,8 +714,11 @@ SELECT
   CAST(
     SUM(public_annotations) AS INT
   ) AS public_annotations
-FROM @observations;
+FROM ( SELECT * FROM @observations WHERE date IS NOT NULL ) AS T1;
 """
+
+SQL_GET_NETWORK_SQUIDLE_URL = "SELECT NRandImage_URL FROM VW_IMAGERY_SQUIDLE_AMP_NETWORK WHERE NETWORK = %s;"
+SQL_GET_PARK_SQUIDLE_URL = "SELECT NRandImage_URL FROM VW_IMAGERY_SQUIDLE_AMP_PARK WHERE PARK = %s;"
 
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
@@ -1358,4 +1361,13 @@ def region_report_data(request):
     network = params.get('network')
     park    = params.get('park')
 
-    return Response(RegionReportSerializer(RegionReport.objects.get(network=network, park=park)).data)
+    data = RegionReportSerializer(RegionReport.objects.get(network=network, park=park)).data
+
+    with connections['transects'].cursor() as cursor:
+        try:
+            cursor.execute(SQL_GET_PARK_SQUIDLE_URL if park else SQL_GET_NETWORK_SQUIDLE_URL, [park or network])
+            data["squidle_url"] = cursor.fetchone()[0]
+        except:
+            pass
+
+    return Response(data)

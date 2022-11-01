@@ -124,7 +124,7 @@ class SaveState(models.Model):
     time_created = models.DateTimeField(default=datetime.now())
 
     def __str__(self):
-        return '{id} ({time_created})'.format(
+        return self.description or '{id} ({time_created})'.format(
             id=self.id,
             time_created=self.time_created.strftime('%Y/%m/%d, %H:%M:%S')
         )
@@ -163,6 +163,21 @@ class RegionReport(models.Model):
     habitat_observations_state = models.FloatField(default=0)
     state_summary = models.TextField()
     slug = models.CharField(max_length=255, null=False, blank=False)
+    minx = models.FloatField("Max X", null=False)
+    miny = models.FloatField("Max Y", null=False)
+    maxx = models.FloatField("Min X", null=False)
+    maxy = models.FloatField("Min Y", null=False)
 
     def __str__(self):
         return self.network + (f' > {self.park}' if self.park else '')
+
+
+@python_2_unicode_compatible
+class Pressure(models.Model):
+    region_report = models.ForeignKey(RegionReport, on_delete=models.CASCADE)
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    category = models.CharField(max_length=200, null=False, blank=False)
+    save_state = models.ForeignKey(SaveState, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return f'{self.region_report}: {self.layer}'
