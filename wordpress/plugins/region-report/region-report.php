@@ -90,3 +90,45 @@ function region_report_template($single) {
 add_filter('single_template', 'region_report_template');
 
 add_filter('acf/settings/remove_wp_meta_box', '__return_false');
+
+// Add config page
+add_action( 'admin_init', function () {
+} );
+
+add_action( 'admin_menu', function () {
+    add_menu_page(
+        'Region Report Config',
+        'Region Report Config',
+        'manage_options',
+        'region_report',
+        function () {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+            }
+
+            if ( isset( $_GET['settings-updated'] ) ) {
+                add_settings_error(
+                    'region_report_messages',
+                    'region_report_message',
+                    __( 'Settings Saved', 'region_report' ),
+                    'updated'
+                );
+            }
+
+            settings_errors( 'region_report_messages' );
+
+            ?>
+            <div class="wrap">
+                <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+                <form action="options.php" method="post">
+                    <?php
+                    settings_fields( 'region_report' );
+                    do_settings_sections( 'region_report' );
+                    submit_button( 'Save Settings' );
+                    ?>
+                </form>
+            </div>
+            <?php
+        }
+    );
+} );
