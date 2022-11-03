@@ -1,17 +1,17 @@
 <?php get_header(); ?>
 
 <?php
-    // TODO: convert url bases into site-wide settings
-    $habitat_statistics_url_base = get_post_meta(get_the_ID(), 'habitat_statistics_url_base', true);
-    $bathymetry_statistics_url_base = get_post_meta(get_the_ID(), 'bathymetry_statistics_url_base', true);
-    $habitat_observations_url_base = get_post_meta(get_the_ID(), 'habitat_observations_url_base', true);
-    $research_effort_url_base = get_post_meta(get_the_ID(), 'research_effort_url_base', true);
-    $region_report_data_url_base = get_post_meta(get_the_ID(), 'region_report_data_url_base', true);
-    $pressure_preview_url_base = get_post_meta(get_the_ID(), 'pressure_preview_url_base', true);
-    $map_url_base = get_post_meta(get_the_ID(), 'map_url_base', true);
+    $habitat_statistics_url_base = get_option('region_report_habitat_statistics_url_base');
+    $bathymetry_statistics_url_base = get_option('region_report_bathymetry_statistics_url_base');
+    $habitat_observations_url_base = get_option('region_report_habitat_observations_url_base');
+    $research_effort_url_base = get_option('region_report_research_effort_url_base');
+    $region_report_data_url_base = get_option('region_report_region_report_data_url_base');
+    $pressure_preview_url_base = get_option('region_report_pressure_preview_url_base');
+    $map_url_base = get_option('region_report_map_url_base');
 
     $network_name = get_post_meta(get_the_ID(), 'network_name', true);
     $park_name = get_post_meta(get_the_ID(), 'park_name', true);
+    
     $region_name = empty($park_name) ? "$network_name network" : "$park_name park";
 ?>
 
@@ -25,6 +25,14 @@
 <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
 
 <script>
+    const habitatStatisticsUrlBase = <?php echo json_encode($habitat_statistics_url_base); ?>;
+    const bathymetryStatisticsUrlBase = <?php echo json_encode($bathymetry_statistics_url_base); ?>;
+    const habitatObservationsUrlBase = <?php echo json_encode($habitat_observations_url_base); ?>;
+    const researchEffortUrlBase = <?php echo json_encode($research_effort_url_base); ?>;
+    const regionReportDataUrlBase = <?php echo json_encode($region_report_data_url_base); ?>;
+    const pressurePreviewUrlBase = <?php echo json_encode($pressure_preview_url_base); ?>;
+    const mapUrlBase = <?php echo json_encode($map_url_base); ?>;
+
     function starRating(element, value, total, text) {
         element.classList.add("region-report-star-rating")
 
@@ -79,15 +87,6 @@
     <script>
         let postId = "<?php the_ID(); ?>";
         let postElement = document.getElementById(`post-${postId}`);
-
-        // TODO: convert url bases into site-wide settings
-        let habitatStatisticsUrlBase = "<?php echo $habitat_statistics_url_base; ?>";
-        let bathymetryStatisticsUrlBase = "<?php echo $bathymetry_statistics_url_base; ?>";
-        let habitatObservationsUrlBase = "<?php echo $habitat_observations_url_base; ?>";
-        let researchEffortUrlBase = "<?php echo $research_effort_url_base; ?>";
-        let regionReportDataUrlBase = "<?php echo $region_report_data_url_base; ?>";
-        let pressurePreviewUrlBase = "<?php echo $pressure_preview_url_base; ?>";
-        let mapUrlBase = "<?php echo $map_url_base; ?>";
 
         let networkName = "<?php echo $network_name; ?>";
         let parkName = <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>;
