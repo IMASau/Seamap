@@ -692,6 +692,21 @@
                 :on-success      [:map.layer/get-legend-success layer]
                 :on-failure      [:map.layer/get-legend-error layer]}})
 
+(defmethod get-layer-legend :wms-non-tiled
+  [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
+  {:db         (assoc-in db [:map :legends id] :map.legend/loading)
+   :http-xhrio {:method          :get
+                :uri             server_url
+                :params          {:REQUEST     "GetLegendGraphic"
+                                  :LAYER       layer_name
+                                  :TRANSPARENT true
+                                  :SERVICE     "WMS"
+                                  :VERSION     "1.1.1"
+                                  :FORMAT      "application/json"}
+                :response-format (ajax/json-response-format {:keywords? true})
+                :on-success      [:map.layer/get-legend-success layer]
+                :on-failure      [:map.layer/get-legend-error layer]}})
+
 (defmethod get-layer-legend :default
   [{:keys [db]} [_ {:keys [id] :as _layer}]]
   {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)})
