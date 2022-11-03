@@ -1,14 +1,17 @@
 <?php get_header(); ?>
 
 <?php
-    $habitat_statistics_url_base = get_post_meta(get_the_ID(), 'habitat_statistics_url_base', true);
-    $bathymetry_statistics_url_base = get_post_meta(get_the_ID(), 'bathymetry_statistics_url_base', true);
-    $habitat_observations_url_base = get_post_meta(get_the_ID(), 'habitat_observations_url_base', true);
-    $research_effort_url_base = get_post_meta(get_the_ID(), 'research_effort_url_base', true);
-    $region_report_data_url_base = get_post_meta(get_the_ID(), 'region_report_data_url_base', true);
+    $habitat_statistics_url_base = get_option('region_report_habitat_statistics_url_base');
+    $bathymetry_statistics_url_base = get_option('region_report_bathymetry_statistics_url_base');
+    $habitat_observations_url_base = get_option('region_report_habitat_observations_url_base');
+    $research_effort_url_base = get_option('region_report_research_effort_url_base');
+    $region_report_data_url_base = get_option('region_report_region_report_data_url_base');
+    $pressure_preview_url_base = get_option('region_report_pressure_preview_url_base');
+    $map_url_base = get_option('region_report_map_url_base');
 
     $network_name = get_post_meta(get_the_ID(), 'network_name', true);
     $park_name = get_post_meta(get_the_ID(), 'park_name', true);
+    
     $region_name = empty($park_name) ? "$network_name network" : "$park_name park";
 ?>
 
@@ -22,6 +25,14 @@
 <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
 
 <script>
+    const habitatStatisticsUrlBase = <?php echo json_encode($habitat_statistics_url_base); ?>;
+    const bathymetryStatisticsUrlBase = <?php echo json_encode($bathymetry_statistics_url_base); ?>;
+    const habitatObservationsUrlBase = <?php echo json_encode($habitat_observations_url_base); ?>;
+    const researchEffortUrlBase = <?php echo json_encode($research_effort_url_base); ?>;
+    const regionReportDataUrlBase = <?php echo json_encode($region_report_data_url_base); ?>;
+    const pressurePreviewUrlBase = <?php echo json_encode($pressure_preview_url_base); ?>;
+    const mapUrlBase = <?php echo json_encode($map_url_base); ?>;
+
     function starRating(element, value, total, text) {
         element.classList.add("region-report-star-rating")
 
@@ -57,18 +68,25 @@
         label.innerText = text;
         element.appendChild(label);
     }
+
+    function regionReportToggleTab(tab) {
+        const tabs = Array.prototype.slice.call(tab.parentElement.children);
+        const tabContent = document.getElementById(tab.parentElement.dataset.tabContent);
+        const tabPanes = Array.prototype.slice.call(tabContent.children);
+        const tabPane = tabPanes.filter(tabPane => tabPane.dataset.tab == tab.dataset.tab)[0];
+
+        tabs.forEach(tab => tab.classList.remove("region-report-selected"));
+        tab.classList.add("region-report-selected");
+
+        tabPanes.forEach(tabPane => tabPane.classList.remove("region-report-selected"));
+        tabPane.classList.add("region-report-selected");
+    }
 </script>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
     <script>
         let postId = "<?php the_ID(); ?>";
         let postElement = document.getElementById(`post-${postId}`);
-
-        let habitatStatisticsUrlBase = "<?php echo $habitat_statistics_url_base; ?>";
-        let bathymetryStatisticsUrlBase = "<?php echo $bathymetry_statistics_url_base; ?>";
-        let habitatObservationsUrlBase = "<?php echo $habitat_observations_url_base; ?>";
-        let researchEffortUrlBase = "<?php echo $research_effort_url_base; ?>";
-        let regionReportDataUrlBase = "<?php echo $region_report_data_url_base; ?>";
 
         let networkName = "<?php echo $network_name; ?>";
         let parkName = <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>;
@@ -868,8 +886,82 @@
             </script>
         </section>
 
-        <section class="region-report-pressures">
-            <h2>What's happening in the <?php echo $region_name; ?>?</h2>
+        <section>
+            <h2>Pressures</h2>
+            <div class="region-report-pressures">
+                <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+                <div class="region-report-tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+            </div>
+            <script>
+                const pressuresTabs = document.getElementById(`region-report-pressures-categories-${postId}`);
+                const pressuresTabContent = document.getElementById(pressuresTabs.dataset.tabContent);
+
+                postElement.addEventListener(
+                    "regionReportData",
+                    e => {
+                        const pressures = e.detail.pressures;
+                        const groupedPressures = pressures.reduce(
+                            (acc, curr) => {
+                                if (!acc[curr.category]) acc[curr.category] = [];
+                                acc[curr.category].push(curr);
+                                return acc;
+                            }, {}
+                        );
+
+                        // All pressures tab
+                        pressuresTabs.innerHTML += `
+                            <div
+                                class="region-report-tab region-report-selected"
+                                data-tab="All"
+                                onclick="regionReportToggleTab(this)"
+                            >
+                                All (${pressures.length})
+                            </div>`;
+
+                        // Create tab pane
+                        const tabPane = document.createElement("div");
+                        tabPane.className = "region-report-tab-pane region-report-pressures-grid region-report-selected";
+                        tabPane.dataset.tab = "All";
+                        pressures.forEach(pressure => {
+                            tabPane.innerHTML += `
+                                <a
+                                    href="${mapUrlBase}#${pressure.save_state}"
+                                    target="_blank"
+                                >
+                                    <img src="${pressurePreviewUrlBase}/${pressure.id}.png">
+                                </a>`;
+                        });
+                        pressuresTabContent.appendChild(tabPane);
+
+                        // Pressure category tabs
+                        Object.entries(groupedPressures).forEach(([category, pressures]) => {
+                            pressuresTabs.innerHTML += `
+                                <div
+                                    class="region-report-tab"
+                                    data-tab="${category}"
+                                    onclick="regionReportToggleTab(this)"
+                                >
+                                    ${category} (${pressures.length})
+                                </div>`;
+
+                            // Create tab pane
+                            const tabPane = document.createElement("div");
+                            tabPane.className = "region-report-tab-pane region-report-pressures-grid";
+                            tabPane.dataset.tab = category;
+                            pressures.forEach(pressure => {
+                                tabPane.innerHTML += `
+                                    <a
+                                        href="${mapUrlBase}/#${pressure.save_state}"
+                                        target="_blank"
+                                    >
+                                        <img src="${pressurePreviewUrlBase}/${pressure.id}.png">
+                                    </a>`;
+                            });
+                            pressuresTabContent.appendChild(tabPane);
+                        })
+                    }
+                );
+            </script>
         </section>
     </div>
 

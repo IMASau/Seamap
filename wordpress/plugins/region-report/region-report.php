@@ -90,3 +90,244 @@ function region_report_template($single) {
 add_filter('single_template', 'region_report_template');
 
 add_filter('acf/settings/remove_wp_meta_box', '__return_false');
+
+// Add config page
+add_action( 'admin_init', function () {
+    // Register base URL settings
+    register_setting(
+        'region_report',
+        'region_report_habitat_statistics_url_base',
+        [
+            'type'              => 'string',
+            'description'       => 'Habitat statistics URL base',
+            'sanitize_callback' => 'sanitize_text_field',
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_bathymetry_statistics_url_base',
+        [
+            'type'              => 'string',
+            'description'       => 'Bathymetry statistics URL base',
+            'sanitize_callback' => 'sanitize_text_field',
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_habitat_observations_url_base',
+        [
+            'type'              => 'string',
+            'description'       => 'Habitat observations URL base',
+            'sanitize_callback' => 'sanitize_text_field',
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_research_effort_url_base',
+        [
+            'type'              => 'string',
+            'description'       => 'Research effort URL base',
+            'sanitize_callback' => 'sanitize_text_field',
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_region_report_data_url_base',
+        [
+            'type'              => 'string',
+            'description'       => 'Region report data URL base',
+            'sanitize_callback' => 'sanitize_text_field',
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_pressure_preview_url_base',
+        [
+            'type'              => 'string',
+            'description'       => 'Pressure previews URL base',
+            'sanitize_callback' => 'sanitize_text_field',
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_map_url_base',
+        [
+            'type'              => 'string',
+            'description'       => 'Map URL base',
+            'sanitize_callback' => 'sanitize_text_field',
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+
+    add_settings_section(
+        'region_report_url_bases',
+        'Region Report URL bases',
+        null,
+        'region_report'
+    );
+
+    // Register base URL settings fields
+    add_settings_field(
+        'region_report_habitat_statistics_url_base_field',
+        'Habitat statistics URL base',
+        function () {
+            $setting = get_option('region_report_habitat_statistics_url_base');
+            ?>
+            <input
+                type="text"
+                name="region_report_habitat_statistics_url_base"
+                value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>"
+            >
+            <?php
+        },
+        'region_report',
+        'region_report_url_bases'
+    );
+    add_settings_field(
+        'region_report_bathymetry_statistics_url_base_field',
+        'Bathymetry statistics URL base',
+        function () {
+            $setting = get_option('region_report_bathymetry_statistics_url_base');
+            ?>
+            <input
+                type="text"
+                name="region_report_bathymetry_statistics_url_base"
+                value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>"
+            >
+            <?php
+        },
+        'region_report',
+        'region_report_url_bases'
+    );
+    add_settings_field(
+        'region_report_habitat_observations_url_base_field',
+        'Habitat observations URL base',
+        function () {
+            $setting = get_option('region_report_habitat_observations_url_base');
+            ?>
+            <input
+                type="text"
+                name="region_report_habitat_observations_url_base"
+                value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>"
+            >
+            <?php
+        },
+        'region_report',
+        'region_report_url_bases'
+    );
+    add_settings_field(
+        'region_report_research_effort_url_base_field',
+        'Research effort URL base',
+        function () {
+            $setting = get_option('region_report_research_effort_url_base');
+            ?>
+            <input
+                type="text"
+                name="region_report_research_effort_url_base"
+                value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>"
+            >
+            <?php
+        },
+        'region_report',
+        'region_report_url_bases'
+    );
+    add_settings_field(
+        'region_report_region_report_data_url_base_field',
+        'Region report data URL base',
+        function () {
+            $setting = get_option('region_report_region_report_data_url_base');
+            ?>
+            <input
+                type="text"
+                name="region_report_region_report_data_url_base"
+                value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>"
+            >
+            <?php
+        },
+        'region_report',
+        'region_report_url_bases'
+    );
+    add_settings_field(
+        'region_report_pressure_preview_url_base_field',
+        'Pressure previews URL base',
+        function () {
+            $setting = get_option('region_report_pressure_preview_url_base');
+            ?>
+            <input
+                type="text"
+                name="region_report_pressure_preview_url_base"
+                value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>"
+            >
+            <?php
+        },
+        'region_report',
+        'region_report_url_bases'
+    );
+    add_settings_field(
+        'region_report_map_url_base_field',
+        'Map URL base',
+        function () {
+            $setting = get_option('region_report_map_url_base');
+            ?>
+            <input
+                type="text"
+                name="region_report_map_url_base"
+                value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>"
+            >
+            <?php
+        },
+        'region_report',
+        'region_report_url_bases'
+    );
+} );
+
+add_action( 'admin_menu', function () {
+    add_menu_page(
+        'Region Report Config',
+        'Region Report Config',
+        'manage_options',
+        'region_report',
+        function () {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+            }
+
+            if ( isset( $_GET['settings-updated'] ) ) {
+                add_settings_error(
+                    'region_report_messages',
+                    'region_report_message',
+                    __( 'Settings Saved', 'region_report' ),
+                    'updated'
+                );
+            }
+
+            settings_errors( 'region_report_messages' );
+
+            ?>
+            <div class="wrap">
+                <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+                <form action="options.php" method="post">
+                    <?php
+                    settings_fields( 'region_report' );
+                    do_settings_sections( 'region_report' );
+                    submit_button( 'Save Settings' );
+                    ?>
+                </form>
+            </div>
+            <?php
+        }
+    );
+} );
