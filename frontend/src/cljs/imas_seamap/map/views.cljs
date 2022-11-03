@@ -258,6 +258,24 @@
      :tileerror     on-tile-error
      :load          on-load-end}}]) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
 
+(defmethod layer-component :wms-non-tiled
+  [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style] :as layer} :layer}]
+  [leaflet/non-tiled-layer
+   (merge
+    {:url              server_url
+     :layers           layer_name
+     :eventHandlers
+     {:loading       on-load-start
+      :tileloadstart on-tile-load-start
+      :tileerror     on-tile-error
+      :load          on-load-end} ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
+     :transparent      true
+     :opacity          (/ (layer-opacities layer) 100)
+     :tiled            true
+     :format           "image/png"}
+    (when style {:styles style})
+    (boundary-filter layer))])
+
 (defmulti basemap-layer-component :layer_type)
 
 (defmethod basemap-layer-component :tile

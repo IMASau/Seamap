@@ -291,7 +291,9 @@
                               :transect/maybe-query
                               :welcome-layer/open
                               :map/update-leaflet-map
-                              :maybe-autosave))
+                              :maybe-autosave
+                              :cookie-set-no-on-success
+                              :map/view-updated))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
 (defn register-handlers! [{:keys [subs events]}]

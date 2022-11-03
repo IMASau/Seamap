@@ -12,6 +12,7 @@
     "esri-leaflet": "3.0.8",
     "esri-leaflet-vector": "3.1.5",
     "esri-leaflet-renderers": "3.0.0",
+    "leaflet.nontiledlayer": "1.0.9",
     "leaflet-draw": "^1.0.4",
     "leaflet-easyprint": "2.1.9",
     "proj4": "^2.7.5",

@@ -13,6 +13,7 @@
             ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
             ["react-esri-leaflet" :as ReactEsriLeaflet]
             ["react-esri-leaflet/plugins/VectorTileLayer" :as VectorTileLayer]
+            ["leaflet.nontiledlayer"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (def crs-epsg4326        L/CRS.EPSG4326)
@@ -22,6 +23,12 @@
 (def geojson-layer       (r/adapt-react-class ReactLeaflet/GeoJSON))
 (def feature-layer       (r/adapt-react-class ReactEsriLeaflet/FeatureLayer))
 (def vector-tile-layer   (r/adapt-react-class VectorTileLayer/default))
+(def non-tiled-layer     (r/adapt-react-class
+                          (ReactLeafletCore/createLayerComponent
+                           (fn [props context]
+                             (let [instance ((-> L .-nonTiledLayer .-wms) (.-url props) (clj->js props))]
+                               #js{:instance instance :context context}))
+                           nil)))
 (def map-container       (r/adapt-react-class ReactLeaflet/MapContainer))
 (def pane                (r/adapt-react-class ReactLeaflet/Pane))
 (def marker              (r/adapt-react-class ReactLeaflet/Marker))
@@ -32,7 +39,7 @@
 (def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L %))))
 (def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def custom-control      (r/adapt-react-class ReactLeafletControl/default))
-(def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.coordinates (.-control L) %))))
+(def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L .-control .-coordinates) %))))
 (def geojson-feature     L/geoJson)
 (def latlng              L/LatLng)
 (def esri-query          #(.query esri (clj->js %)))
