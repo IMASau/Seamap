@@ -292,6 +292,125 @@ add_action( 'admin_init', function () {
         'region_report',
         'region_report_url_bases'
     );
+
+    // Register configurable text settings
+    register_setting(
+        'region_report',
+        'region_report_overview_map_caption',
+        [
+            'type'              => 'string',
+            'description'       => 'Overview map caption',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_known_caption',
+        [
+            'type'              => 'string',
+            'description'       => 'Known caption',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_imagery_caption',
+        [
+            'type'              => 'string',
+            'description'       => 'Imagery caption',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_pressures_caption',
+        [
+            'type'              => 'string',
+            'description'       => 'Pressures caption',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+
+    add_settings_section(
+        'region_report_configurable_text',
+        'Region Report Configurable Text',
+        null,
+        'region_report'
+    );
+
+    // Register configurable text settings fields
+    add_settings_field(
+        'region_report_overview_map_caption_field',
+        'Overview map caption',
+        function () {
+            $setting = get_option('region_report_overview_map_caption');
+            ?>
+            <textarea
+                name="region_report_overview_map_caption"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_configurable_text'
+    );
+    add_settings_field(
+        'region_report_known_caption_field',
+        'Known caption',
+        function () {
+            $setting = get_option('region_report_known_caption');
+            ?>
+            <textarea
+                name="region_report_known_caption"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_configurable_text'
+    );
+    add_settings_field(
+        'region_report_imagery_caption_field',
+        'Imagery caption',
+        function () {
+            $setting = get_option('region_report_imagery_caption');
+            ?>
+            <textarea
+                name="region_report_imagery_caption"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_configurable_text'
+    );
+    add_settings_field(
+        'region_report_pressures_caption_field',
+        'Pressures caption',
+        function () {
+            $setting = get_option('region_report_pressures_caption');
+            ?>
+            <textarea
+                name="region_report_pressures_caption"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_configurable_text'
+    );
 } );
 
 add_action( 'admin_menu', function () {

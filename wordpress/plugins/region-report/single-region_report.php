@@ -9,6 +9,11 @@
     $pressure_preview_url_base = get_option('region_report_pressure_preview_url_base');
     $map_url_base = get_option('region_report_map_url_base');
 
+    $overview_map_caption = get_option('region_report_overview_map_caption');
+    $known_caption = get_option('region_report_known_caption');
+    $imagery_caption = get_option('region_report_imagery_caption');
+    $pressures_caption = get_option('region_report_pressures_caption');
+
     $network_name = get_post_meta(get_the_ID(), 'network_name', true);
     $park_name = get_post_meta(get_the_ID(), 'park_name', true);
     
@@ -101,10 +106,6 @@
         let pageLink = "<?php echo get_page_link(); ?>";
     </script>
 
-    <!-- <header class="entry-header">
-        <?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
-    </header> -->
-
     <div class="entry-content">
         <section>
             <h3 class="region-report-region-heading" id="region-report-region-heading-<?php the_ID(); ?>"></h3>
@@ -147,6 +148,7 @@
                             <div>Public/analysed data</div>
                         </div>
                         <div class="region-report-overview-map-map" id="region-report-overview-map-map-<?php the_ID(); ?>"></div>
+                        <div class="region-report-caption"><?php echo $overview_map_caption; ?></div>
                         <script>
                             const map = L.map(`region-report-overview-map-map-${postId}`, { maxZoom: 19, zoomControl: false });
 
@@ -281,6 +283,7 @@
 
         <section class="region-report-known">
             <h2>What's known about the <?php echo $region_name; ?>?</h2>
+            <div class="region-report-caption"><?php echo $known_caption; ?></div>
 
             <section>
                 <h3>Habitat</h3>
@@ -726,242 +729,236 @@
             </section>
         </section>
 
-        <section class="region-report-contains">
+        <section>
             <h2>What's in the <?php echo $region_name; ?>?</h2>
-            
-            <section class="region-report-mapped-habitat">
-                <h3>Mapped Habitat</h3>
-            </section>
+            <div class="region-report-caption"><?php echo $pressures_caption; ?></div>
+        
+            <section>
+                <h3>Imagery</h3>
+                <div class="region-report-imagery" id="region-report-imagery-<?php the_ID(); ?>">Loading imagery deployment data...</div>
+                <script>
+                    // declarations
+                    let imageryMap;
+                    let imageryMarkers = [];
+                    let squidleUrl;
+                    let imageryGrid;
 
-            <section class="region-report-reserves">
-                <h3>Reserves</h3>
-            </section>
-        </section>
-
-        <section>
-            <h2>Imagery</h2>
-            <div class="region-report-imagery" id="region-report-imagery-<?php the_ID(); ?>">Loading imagery deployment data...</div>
-            <script>
-                // declarations
-                let imageryMap;
-                let imageryMarkers = [];
-                let squidleUrl;
-                let imageryGrid;
-
-                function focusMarker(focusIndex) {
-                    imageryMarkers.forEach((marker, index) => {
-                        imageryMap.removeLayer(marker);
-                        if (index == focusIndex || focusIndex == null) imageryMap.addLayer(marker);
-                    });
-                }
-
-                function refreshImagery() {
-                    if (squidleUrl == null) return;
-                    if (imageryMap == null) return;
-
-                    $.ajax(squidleUrl, {
-                        dataType: "json",
-                        success: media => {
-
-                            $.ajax("https://squidle.org/api/pose", {
-                                dataType: "json",
-                                data: {
-                                    q: JSON.stringify({
-                                        filters: [{
-                                            name: "media_id",
-                                            op: "in",
-                                            val: media.objects.map(e => e.id)
-                                        }]
-                                    })
-                                },
-                                success: pose => {
-                                    // clear
-                                    imageryMarkers.forEach(marker => imageryMap.removeLayer(marker));
-                                    imageryMarkers = [];
-                                    imageryGrid.innerHTML = "";
-
-                                    // populate
-                                    media.objects.forEach((image, index) => {
-                                        Object.assign(image, pose.objects.filter(e => e.media.id == image.id)[0]);
-
-                                        // grid items
-                                        imageryGrid.innerHTML += `
-                                            <a
-                                                href="https://squidle.org/api/media/${image.media.id}?template=models/media/preview_single.html"
-                                                target="_blank"
-                                                onmouseenter="focusMarker(${index})"
-                                                onmouseleave="focusMarker()"
-                                            >
-                                                <img src="${image.path_best_thm}">
-                                                <div class="region-report-imagery-grid-number">${index + 1}</div>
-                                            </a>`;
-
-                                        // marker
-                                        imageryMarkers.push(
-                                            new L.Marker(
-                                                [image.lat, image.lon],
-                                                {
-                                                    icon: L.divIcon({
-                                                        html: `
-                                                            <svg width=25 height=41>
-                                                                <polygon
-                                                                    points="0,0 25,0, 25,28 20,28 12.5,41 5,28 0,28"
-                                                                    fill="rgb(0, 147, 36)"
-                                                                    stroke="white"
-                                                                    stroke-width=1.5
-                                                                />
-                                                                <text
-                                                                    fill="white"
-                                                                    x="50%"
-                                                                    y=14
-                                                                    dominant-baseline="middle"
-                                                                    text-anchor="middle"
-                                                                    font-family="sans-serif"
-                                                                    font-weight="bold"
-                                                                >${index + 1}</text>
-                                                            </svg>`,
-                                                        iconSize: [25, 41],
-                                                        iconAnchor: [12.5, 41]
-                                                    })
-                                                }
-                                            )
-                                        );
-                                        imageryMarkers[imageryMarkers.length - 1].addTo(imageryMap);
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-
-                postElement.addEventListener(
-                    "regionReportData",
-                    e => {
-                        squidleUrl = e.detail.squidle_url;
-                        const imageryElement = document.getElementById(`region-report-imagery-${postId}`);
-
-                        if (squidleUrl) {
-                            imageryElement.innerHTML = `
-                                <div class="region-report-imagery-map" id="region-report-imagery-map-${postId}"></div>
-                                <div class="region-report-imagery-images">
-                                    <div class="region-report-imagery-grid" id="region-report-imagery-grid-${postId}"></div>
-                                    <a href="#!" onclick="refreshImagery()">Refresh images</a>
-                                </div>`;
-
-
-                            imageryGrid = document.getElementById(`region-report-imagery-grid-${postId}`);
-
-                            // set-up map
-                            imageryMap = L.map(`region-report-imagery-map-${postId}`, { maxZoom: 19, zoomControl: false });
-                            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(imageryMap);
-                            imageryMap._handlers.forEach(e => e.disable());
-
-                            refreshImagery();
-
-                            // map boundary layer
-                            L.tileLayer.wms(
-                                e.detail.all_layers_boundary.server_url,
-                                {
-                                    layers: e.detail.all_layers_boundary.layer_name,
-                                    transparent: true,
-                                    tiled: true,
-                                    format: "image/png",
-                                    styles: e.detail.all_layers_boundary.style,
-                                    cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
-                                }
-                            ).addTo(imageryMap);
-
-                            // zoom to map extent
-                            let bounds = [[e.detail.bounding_box.north, e.detail.bounding_box.east], [e.detail.bounding_box.south, e.detail.bounding_box.west]];
-                            imageryMap.fitBounds(bounds);
-                            window.addEventListener(
-                                "resize",
-                                e => { imageryMap.fitBounds(bounds); }
-                            );
-                        } else {
-                            imageryElement.innerText = "No imagery deployments found in this region";
-                        }
-                    }
-                );
-            </script>
-        </section>
-
-        <section>
-            <h2>Pressures</h2>
-            <div class="region-report-pressures">
-                <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
-                <div class="region-report-tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
-            </div>
-            <script>
-                const pressuresTabs = document.getElementById(`region-report-pressures-categories-${postId}`);
-                const pressuresTabContent = document.getElementById(pressuresTabs.dataset.tabContent);
-
-                postElement.addEventListener(
-                    "regionReportData",
-                    e => {
-                        const pressures = e.detail.pressures;
-                        const groupedPressures = pressures.reduce(
-                            (acc, curr) => {
-                                if (!acc[curr.category]) acc[curr.category] = [];
-                                acc[curr.category].push(curr);
-                                return acc;
-                            }, {}
-                        );
-
-                        // All pressures tab
-                        pressuresTabs.innerHTML += `
-                            <div
-                                class="region-report-tab region-report-selected"
-                                data-tab="All"
-                                onclick="regionReportToggleTab(this)"
-                            >
-                                All (${pressures.length})
-                            </div>`;
-
-                        // Create tab pane
-                        const tabPane = document.createElement("div");
-                        tabPane.className = "region-report-tab-pane region-report-pressures-grid region-report-selected";
-                        tabPane.dataset.tab = "All";
-                        pressures.forEach(pressure => {
-                            tabPane.innerHTML += `
-                                <a
-                                    href="${mapUrlBase}#${pressure.save_state}"
-                                    target="_blank"
-                                >
-                                    <img src="${pressurePreviewUrlBase}/${pressure.id}.png">
-                                </a>`;
+                    function focusMarker(focusIndex) {
+                        imageryMarkers.forEach((marker, index) => {
+                            imageryMap.removeLayer(marker);
+                            if (index == focusIndex || focusIndex == null) imageryMap.addLayer(marker);
                         });
-                        pressuresTabContent.appendChild(tabPane);
+                    }
 
-                        // Pressure category tabs
-                        Object.entries(groupedPressures).forEach(([category, pressures]) => {
+                    function refreshImagery() {
+                        if (squidleUrl == null) return;
+                        if (imageryMap == null) return;
+
+                        $.ajax(squidleUrl, {
+                            dataType: "json",
+                            success: media => {
+
+                                $.ajax("https://squidle.org/api/pose", {
+                                    dataType: "json",
+                                    data: {
+                                        q: JSON.stringify({
+                                            filters: [{
+                                                name: "media_id",
+                                                op: "in",
+                                                val: media.objects.map(e => e.id)
+                                            }]
+                                        })
+                                    },
+                                    success: pose => {
+                                        // clear
+                                        imageryMarkers.forEach(marker => imageryMap.removeLayer(marker));
+                                        imageryMarkers = [];
+                                        imageryGrid.innerHTML = "";
+
+                                        // populate
+                                        media.objects.forEach((image, index) => {
+                                            Object.assign(image, pose.objects.filter(e => e.media.id == image.id)[0]);
+
+                                            // grid items
+                                            imageryGrid.innerHTML += `
+                                                <a
+                                                    href="https://squidle.org/api/media/${image.media.id}?template=models/media/preview_single.html"
+                                                    target="_blank"
+                                                    onmouseenter="focusMarker(${index})"
+                                                    onmouseleave="focusMarker()"
+                                                >
+                                                    <img src="${image.path_best_thm}">
+                                                    <div class="region-report-imagery-grid-number">${index + 1}</div>
+                                                </a>`;
+
+                                            // marker
+                                            imageryMarkers.push(
+                                                new L.Marker(
+                                                    [image.lat, image.lon],
+                                                    {
+                                                        icon: L.divIcon({
+                                                            html: `
+                                                                <svg width=25 height=41>
+                                                                    <polygon
+                                                                        points="0,0 25,0, 25,28 20,28 12.5,41 5,28 0,28"
+                                                                        fill="rgb(0, 147, 36)"
+                                                                        stroke="white"
+                                                                        stroke-width=1.5
+                                                                    />
+                                                                    <text
+                                                                        fill="white"
+                                                                        x="50%"
+                                                                        y=14
+                                                                        dominant-baseline="middle"
+                                                                        text-anchor="middle"
+                                                                        font-family="sans-serif"
+                                                                        font-weight="bold"
+                                                                    >${index + 1}</text>
+                                                                </svg>`,
+                                                            iconSize: [25, 41],
+                                                            iconAnchor: [12.5, 41]
+                                                        })
+                                                    }
+                                                )
+                                            );
+                                            imageryMarkers[imageryMarkers.length - 1].addTo(imageryMap);
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    postElement.addEventListener(
+                        "regionReportData",
+                        e => {
+                            squidleUrl = e.detail.squidle_url;
+                            const imageryElement = document.getElementById(`region-report-imagery-${postId}`);
+
+                            if (squidleUrl) {
+                                imageryElement.innerHTML = `
+                                    <div class="region-report-imagery-map" id="region-report-imagery-map-${postId}"></div>
+                                    <div class="region-report-imagery-images">
+                                        <div class="region-report-imagery-grid" id="region-report-imagery-grid-${postId}"></div>
+                                        <div class="region-report-caption"><?php echo $imagery_caption; ?></div>
+                                        <a href="#!" onclick="refreshImagery()">Refresh images</a>
+                                    </div>`;
+
+
+                                imageryGrid = document.getElementById(`region-report-imagery-grid-${postId}`);
+
+                                // set-up map
+                                imageryMap = L.map(`region-report-imagery-map-${postId}`, { maxZoom: 19, zoomControl: false });
+                                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(imageryMap);
+                                imageryMap._handlers.forEach(e => e.disable());
+
+                                refreshImagery();
+
+                                // map boundary layer
+                                L.tileLayer.wms(
+                                    e.detail.all_layers_boundary.server_url,
+                                    {
+                                        layers: e.detail.all_layers_boundary.layer_name,
+                                        transparent: true,
+                                        tiled: true,
+                                        format: "image/png",
+                                        styles: e.detail.all_layers_boundary.style,
+                                        cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
+                                    }
+                                ).addTo(imageryMap);
+
+                                // zoom to map extent
+                                let bounds = [[e.detail.bounding_box.north, e.detail.bounding_box.east], [e.detail.bounding_box.south, e.detail.bounding_box.west]];
+                                imageryMap.fitBounds(bounds);
+                                window.addEventListener(
+                                    "resize",
+                                    e => { imageryMap.fitBounds(bounds); }
+                                );
+                            } else {
+                                imageryElement.innerText = "No imagery deployments found in this region";
+                            }
+                        }
+                    );
+                </script>
+            </section>
+
+            <section>
+                <h3>Pressures</h3>
+                <div class="region-report-pressures">
+                    <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+                    <div class="region-report-tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+                </div>
+                <script>
+                    const pressuresTabs = document.getElementById(`region-report-pressures-categories-${postId}`);
+                    const pressuresTabContent = document.getElementById(pressuresTabs.dataset.tabContent);
+
+                    postElement.addEventListener(
+                        "regionReportData",
+                        e => {
+                            const pressures = e.detail.pressures;
+                            const groupedPressures = pressures.reduce(
+                                (acc, curr) => {
+                                    if (!acc[curr.category]) acc[curr.category] = [];
+                                    acc[curr.category].push(curr);
+                                    return acc;
+                                }, {}
+                            );
+
+                            // All pressures tab
                             pressuresTabs.innerHTML += `
                                 <div
-                                    class="region-report-tab"
-                                    data-tab="${category}"
+                                    class="region-report-tab region-report-selected"
+                                    data-tab="All"
                                     onclick="regionReportToggleTab(this)"
                                 >
-                                    ${category} (${pressures.length})
+                                    All (${pressures.length})
                                 </div>`;
 
                             // Create tab pane
                             const tabPane = document.createElement("div");
-                            tabPane.className = "region-report-tab-pane region-report-pressures-grid";
-                            tabPane.dataset.tab = category;
+                            tabPane.className = "region-report-tab-pane region-report-pressures-grid region-report-selected";
+                            tabPane.dataset.tab = "All";
                             pressures.forEach(pressure => {
                                 tabPane.innerHTML += `
                                     <a
-                                        href="${mapUrlBase}/#${pressure.save_state}"
+                                        href="${mapUrlBase}#${pressure.save_state}"
                                         target="_blank"
                                     >
                                         <img src="${pressurePreviewUrlBase}/${pressure.id}.png">
                                     </a>`;
                             });
                             pressuresTabContent.appendChild(tabPane);
-                        })
-                    }
-                );
-            </script>
+
+                            // Pressure category tabs
+                            Object.entries(groupedPressures).forEach(([category, pressures]) => {
+                                pressuresTabs.innerHTML += `
+                                    <div
+                                        class="region-report-tab"
+                                        data-tab="${category}"
+                                        onclick="regionReportToggleTab(this)"
+                                    >
+                                        ${category} (${pressures.length})
+                                    </div>`;
+
+                                // Create tab pane
+                                const tabPane = document.createElement("div");
+                                tabPane.className = "region-report-tab-pane region-report-pressures-grid";
+                                tabPane.dataset.tab = category;
+                                pressures.forEach(pressure => {
+                                    tabPane.innerHTML += `
+                                        <a
+                                            href="${mapUrlBase}/#${pressure.save_state}"
+                                            target="_blank"
+                                        >
+                                            <img src="${pressurePreviewUrlBase}/${pressure.id}.png">
+                                        </a>`;
+                                });
+                                pressuresTabContent.appendChild(tabPane);
+                            })
+                        }
+                    );
+                </script>
+            </section>
         </section>
     </div>
 

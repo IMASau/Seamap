@@ -216,6 +216,10 @@
     gap: 12px;
 }
 
+.region-report-caption {
+    font-size: 12px;
+}
+
 /* Star rating start */
 .fa {
     color: #182026;
