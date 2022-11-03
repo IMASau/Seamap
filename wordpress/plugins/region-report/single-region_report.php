@@ -883,7 +883,7 @@
             </section>
 
             <section>
-                <h3>Pressures</h3>
+                <h3>Pressures and Activities</h3>
                 <div class="region-report-pressures">
                     <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
                     <div class="region-report-tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
