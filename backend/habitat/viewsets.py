@@ -148,7 +148,7 @@ SELECT DISTINCT
 FROM VW_BOUNDARY_MEOW;
 """
 
-SQL_GET_AMP_BOUNDARY_AREA = "SELECT dbo.AMP_BOUNDARY_geom(%s, %s, %s, %s).STArea() / 1000000"
+SQL_GET_AMP_BOUNDARY_AREA = "SELECT dbo.AMP_BOUNDARY_geom(%s, %s, %s, %s, %s).STArea() / 1000000"
 SQL_GET_IMCRA_BOUNDARY_AREA = "SELECT dbo.IMCRA_BOUNDARY_geom(%s, %s).STArea() / 1000000"
 SQL_GET_MEOW_BOUNDARY_AREA = "SELECT dbo.MEOW_BOUNDARY_geom(%s, %s, %s).STArea() / 1000000"
 
@@ -159,6 +159,7 @@ DECLARE @netname       NVARCHAR(254) = %s;
 DECLARE @resname       NVARCHAR(254) = %s;
 DECLARE @zonename      NVARCHAR(254) = %s;
 DECLARE @zoneiucn      NVARCHAR(5)   = %s;
+DECLARE @zone_id       NVARCHAR(10)  = %s;
 DECLARE @boundary_area FLOAT         = %s;
 
 SELECT
@@ -171,7 +172,8 @@ SELECT
       (Network = @netname OR @netname IS NULL) AND
       (Park = @resname OR @resname IS NULL) AND
       (Zone_Category = @zonename OR @zonename IS NULL) AND
-      (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
+      (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL) AND
+      (Zone_ID = @zone_id OR @zone_id IS NULL)
   ) AS mapped_percentage,
   100 * (SUM(boundary.area) / 1000000) / @boundary_area AS total_percentage,
   descriptor.colour AS color
@@ -183,7 +185,8 @@ WHERE
   (Network = @netname OR @netname IS NULL) AND
   (Park = @resname OR @resname IS NULL) AND
   (Zone_Category = @zonename OR @zonename IS NULL) AND
-  (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
+  (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL) AND
+  (Zone_ID = @zone_id OR @zone_id IS NULL)
 GROUP BY boundary.habitat, descriptor.colour;
 """
 
@@ -241,6 +244,7 @@ DECLARE @netname       NVARCHAR(254) = %s;
 DECLARE @resname       NVARCHAR(254) = %s;
 DECLARE @zonename      NVARCHAR(254) = %s;
 DECLARE @zoneiucn      NVARCHAR(5)   = %s;
+DECLARE @zone_id       NVARCHAR(10)  = %s;
 DECLARE @boundary_area FLOAT         = %s;
 
 SELECT
@@ -254,7 +258,8 @@ SELECT
       (Network = @netname OR @netname IS NULL) AND
       (Park = @resname OR @resname IS NULL) AND
       (Zone_Category = @zonename OR @zonename IS NULL) AND
-      (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
+      (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL) AND
+      (Zone_ID = @zone_id OR @zone_id IS NULL)
   ) AS mapped_percentage,
   100 * (SUM(boundary.area) / 1000000) / @boundary_area AS total_percentage,
   descriptor.colour AS color
@@ -266,7 +271,8 @@ WHERE
   (Network = @netname OR @netname IS NULL) AND
   (Park = @resname OR @resname IS NULL) AND
   (Zone_Category = @zonename OR @zonename IS NULL) AND
-  (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
+  (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL) AND
+  (Zone_ID = @zone_id OR @zone_id IS NULL)
 GROUP BY boundary.bathymetry_resolution, boundary.bathymetry_rank, descriptor.colour
 ORDER BY boundary.bathymetry_rank;
 """
@@ -329,6 +335,7 @@ DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
+DECLARE @zone_id  NVARCHAR(10)  = %s;
 
 DECLARE @observations TABLE
 (
@@ -353,7 +360,8 @@ FROM (
     (Network = @netname OR @netname IS NULL) AND
     (Park = @resname OR @resname IS NULL) AND
     (Zone_Category = @zonename OR @zonename IS NULL) AND
-    (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
+    (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL) AND
+    (Zone_ID = @zone_id OR @zone_id IS NULL)
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_GLOBALARCHIVE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
@@ -434,6 +442,7 @@ DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
+DECLARE @zone_id  NVARCHAR(10)  = %s;
 
 DECLARE @observations TABLE
 (
@@ -458,7 +467,8 @@ FROM (
     (Network = @netname OR @netname IS NULL) AND
     (Park = @resname OR @resname IS NULL) AND
     (Zone_Category = @zonename OR @zonename IS NULL) AND
-    (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
+    (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL) AND
+    (Zone_ID = @zone_id OR @zone_id IS NULL)
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SEDIMENT AS observation
 ON observation.SAMPLE_ID = boundary_observation.observation;
@@ -539,6 +549,7 @@ DECLARE @netname  NVARCHAR(254) = %s;
 DECLARE @resname  NVARCHAR(254) = %s;
 DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
+DECLARE @zone_id  NVARCHAR(10)  = %s;
 
 DECLARE @observations TABLE
 (
@@ -567,7 +578,8 @@ FROM (
     (Network = @netname OR @netname IS NULL) AND
     (Park = @resname OR @resname IS NULL) AND
     (Zone_Category = @zonename OR @zonename IS NULL) AND
-    (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL)
+    (IUCN_Category = @zoneiucn OR @zoneiucn IS NULL) AND
+    (Zone_ID = @zone_id OR @zone_id IS NULL)
 ) AS boundary_observation
 JOIN VW_HABITAT_OBS_SQUIDLE AS observation
 ON observation.DEPLOYMENT_ID = boundary_observation.observation;
@@ -1166,6 +1178,7 @@ def habitat_statistics(request):
     park                 = params.get('park')
     zone                 = params.get('zone')
     zone_iucn            = params.get('zone-iucn')
+    zone_id              = params.get('zone-id')
     provincial_bioregion = params.get('provincial-bioregion')
     mesoscale_bioregion  = params.get('mesoscale-bioregion ')
     realm                = params.get('realm')
@@ -1177,7 +1190,7 @@ def habitat_statistics(request):
 
     with connections['transects'].cursor() as cursor:
         if boundary_type == 'amp':
-            cursor.execute(SQL_GET_AMP_BOUNDARY_AREA, [network, park, zone, zone_iucn])
+            cursor.execute(SQL_GET_AMP_BOUNDARY_AREA, [network, park, zone, zone_iucn, zone_id])
         elif boundary_type == 'imcra':
             cursor.execute(SQL_GET_IMCRA_BOUNDARY_AREA, [provincial_bioregion, mesoscale_bioregion])
         elif boundary_type == 'meow':
@@ -1189,7 +1202,7 @@ def habitat_statistics(request):
             boundary_area = float(cursor.fetchone()[0])
 
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [network, park, zone, zone_iucn, boundary_area])
+                cursor.execute(SQL_GET_AMP_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [network, park, zone, zone_iucn, zone_id, boundary_area])
             elif boundary_type == 'imcra':
                 cursor.execute(SQL_GET_IMCRA_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [provincial_bioregion, mesoscale_bioregion, boundary_area])
             elif boundary_type == 'meow':
@@ -1204,7 +1217,7 @@ def habitat_statistics(request):
             if is_download:
                 boundary_name = ''
                 if boundary_type == 'amp':
-                    boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn] if v])
+                    boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn, zone_id] if v])
                 elif boundary_type == 'imcra':
                     boundary_name = ' - '.join([v for v in [provincial_bioregion, mesoscale_bioregion] if v])
                 elif boundary_type == 'meow':
@@ -1237,6 +1250,7 @@ def bathymetry_statistics(request):
     park                 = params.get('park')
     zone                 = params.get('zone')
     zone_iucn            = params.get('zone-iucn')
+    zone_id              = params.get('zone-id')
     provincial_bioregion = params.get('provincial-bioregion')
     mesoscale_bioregion  = params.get('mesoscale-bioregion ')
     realm                = params.get('realm')
@@ -1248,7 +1262,7 @@ def bathymetry_statistics(request):
 
     with connections['transects'].cursor() as cursor:
         if boundary_type == 'amp':
-            cursor.execute(SQL_GET_AMP_BOUNDARY_AREA, [network, park, zone, zone_iucn])
+            cursor.execute(SQL_GET_AMP_BOUNDARY_AREA, [network, park, zone, zone_iucn, zone_id])
         elif boundary_type == 'imcra':
             cursor.execute(SQL_GET_IMCRA_BOUNDARY_AREA, [provincial_bioregion, mesoscale_bioregion])
         elif boundary_type == 'meow':
@@ -1260,7 +1274,7 @@ def bathymetry_statistics(request):
             boundary_area = float(cursor.fetchone()[0])
 
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [network, park, zone, zone_iucn, boundary_area])
+                cursor.execute(SQL_GET_AMP_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [network, park, zone, zone_iucn, zone_id, boundary_area])
             elif boundary_type == 'imcra':
                 cursor.execute(SQL_GET_IMCRA_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [provincial_bioregion, mesoscale_bioregion, boundary_area])
             elif boundary_type == 'meow':
@@ -1275,7 +1289,7 @@ def bathymetry_statistics(request):
             if is_download:
                 boundary_name = ''
                 if boundary_type == 'amp':
-                    boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn] if v])
+                    boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn, zone_id] if v])
                 elif boundary_type == 'imcra':
                     boundary_name = ' - '.join([v for v in [provincial_bioregion, mesoscale_bioregion] if v])
                 elif boundary_type == 'meow':
@@ -1307,6 +1321,7 @@ def habitat_observations(request):
     park                 = params.get('park')
     zone                 = params.get('zone')
     zone_iucn            = params.get('zone-iucn')
+    zone_id              = params.get('zone-id')
     provincial_bioregion = params.get('provincial-bioregion')
     mesoscale_bioregion  = params.get('mesoscale-bioregion ')
     realm                = params.get('realm')
@@ -1321,7 +1336,7 @@ def habitat_observations(request):
         try:
             # Global Archives stats
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [network, park, zone, zone_iucn])
+                cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [network, park, zone, zone_iucn, zone_id])
             elif boundary_type == 'imcra':
                 cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [provincial_bioregion, mesoscale_bioregion])
             elif boundary_type == 'meow':
@@ -1336,7 +1351,7 @@ def habitat_observations(request):
 
             # Marine Sediments stats
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [network, park, zone, zone_iucn])
+                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [network, park, zone, zone_iucn, zone_id])
             elif boundary_type == 'imcra':
                 cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [provincial_bioregion, mesoscale_bioregion])
             elif boundary_type == 'meow':
@@ -1351,7 +1366,7 @@ def habitat_observations(request):
 
             # SQUIDLE observations
             if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [network, park, zone, zone_iucn])
+                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [network, park, zone, zone_iucn, zone_id])
             elif boundary_type == 'imcra':
                 cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [provincial_bioregion, mesoscale_bioregion])
             elif boundary_type == 'meow':
