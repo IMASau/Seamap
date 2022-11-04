@@ -132,9 +132,9 @@
       active-mesoscale-bioregion active-realm active-province active-ecoregion))))
 
 (defn active-zones? [db _]
-  (let [amp                                    (get-in db [:state-of-knowledge :boundaries :amp])
-        {:keys [active-zone active-zone-iucn]} amp]
-    (boolean (or active-zone active-zone-iucn)))) ; coerce to boolean to hide implementation
+  (let [amp (get-in db [:state-of-knowledge :boundaries :amp])
+        {:keys [active-zone active-zone-iucn active-zone-id]} amp]
+    (boolean (or active-zone active-zone-iucn active-zone-id)))) ; coerce to boolean to hide implementation
 
 (defn open? [db _]
   (boolean (get-in db [:state-of-knowledge :boundaries :active-boundary])))

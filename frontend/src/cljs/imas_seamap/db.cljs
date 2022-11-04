@@ -35,10 +35,12 @@
                                                        :parks            []
                                                        :zones            []
                                                        :zones-iucn       []
+                                                       :zone-ids         []
                                                        :active-network   nil
                                                        :active-park      nil
                                                        :active-zone      nil
-                                                       :active-zone-iucn nil}
+                                                       :active-zone-iucn nil
+                                                       :active-zone-id   nil}
                                      :imcra           {:provincial-bioregions       []
                                                        :mesoscale-bioregions        []
                                                        :active-provincial-bioregion nil

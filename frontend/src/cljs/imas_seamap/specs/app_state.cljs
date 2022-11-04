@@ -287,6 +287,7 @@
 (s/def :state-of-knowledge.boundaries.amp.park/network :state-of-knowledge.boundaries.amp.network/name)
 (s/def :state-of-knowledge.boundaries.amp.zone/name string?)
 (s/def :state-of-knowledge.boundaries.amp.zone-iucn/name string?)
+(s/def :state-of-knowledge.boundaries.amp.zone-id/name string?)
 
 (s/def :state-of-knowledge.boundaries.amp/network
   (s/keys :req-un [:state-of-knowledge.boundaries.amp.network/name]))
@@ -297,6 +298,8 @@
   (s/keys :req-un [:state-of-knowledge.boundaries.amp.zone/name]))
 (s/def :state-of-knowledge.boundaries.amp/zone-iucn
   (s/keys :req-un [:state-of-knowledge.boundaries.amp.zone-iucn/name]))
+(s/def :state-of-knowledge.boundaries.amp/zone-id
+  (s/keys :req-un [:state-of-knowledge.boundaries.amp.zone-id/name]))
 (s/def :state-of-knowledge.boundaries.amp/networks (s/coll-of :state-of-knowledge.boundaries.amp/network
                                                :kind vector?))
 (s/def :state-of-knowledge.boundaries.amp/parks (s/coll-of :state-of-knowledge.boundaries.amp/park
@@ -305,20 +308,25 @@
                                             :kind vector?))
 (s/def :state-of-knowledge.boundaries.amp/zones-iucn (s/coll-of :state-of-knowledge.boundaries.amp/zone-iucn
                                                  :kind vector?))
+(s/def :state-of-knowledge.boundaries.amp/zone-ids (s/coll-of :state-of-knowledge.boundaries.amp/zone-id
+                                                                :kind vector?))
 (s/def :state-of-knowledge.boundaries.amp/active-network :state-of-knowledge.boundaries.amp/network)
 (s/def :state-of-knowledge.boundaries.amp/active-park :state-of-knowledge.boundaries.amp/park)
 (s/def :state-of-knowledge.boundaries.amp/active-zone :state-of-knowledge.boundaries.amp/zone)
 (s/def :state-of-knowledge.boundaries.amp/active-zone-iucn :state-of-knowledge.boundaries.amp/zone-iucn)
+(s/def :state-of-knowledge.boundaries.amp/active-zone-id :state-of-knowledge.boundaries.amp/zone-id)
 
 (s/def :state-of-knowledge.boundaries/amp
   (s/keys :req-un [:state-of-knowledge.boundaries.amp/networks
                    :state-of-knowledge.boundaries.amp/parks
                    :state-of-knowledge.boundaries.amp/zones
                    :state-of-knowledge.boundaries.amp/zones-iucn
+                   :state-of-knowledge.boundaries.amp/zone-ids
                    :state-of-knowledge.boundaries.amp/active-network
                    :state-of-knowledge.boundaries.amp/active-park
                    :state-of-knowledge.boundaries.amp/active-zone
-                   :state-of-knowledge.boundaries.amp/active-zone-iucn]))
+                   :state-of-knowledge.boundaries.amp/active-zone-iucn
+                   :state-of-knowledge.boundaries.amp/active-zone-id]))
 
 (s/def :state-of-knowledge.boundaries.imcra.provincial-bioregion/name string?)
 (s/def :state-of-knowledge.boundaries.imcra.mesoscale-bioregion/name string?)

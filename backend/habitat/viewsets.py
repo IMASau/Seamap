@@ -110,6 +110,11 @@ SELECT DISTINCT IUCN_Category AS name
 FROM VW_BOUNDARY_AMP;
 """
 
+SQL_GET_AMP_ZONE_IDS = """
+SELECT DISTINCT Zone_ID AS name
+FROM VW_BOUNDARY_AMP;
+"""
+
 SQL_GET_IMCRA_PROVINCIAL_BIOREGIONS = """
 SELECT DISTINCT Provincial_Bioregion AS name
 FROM VW_BOUNDARY_IMCRA;
@@ -1040,6 +1045,7 @@ def amp_boundaries(request):
     parks = []
     zones = []
     zones_iucn = []
+    zone_ids = []
 
     with connections['transects'].cursor() as cursor:
         # Networks
@@ -1076,9 +1082,17 @@ def amp_boundaries(request):
         namedrow = namedtuple('Result', columns)
         results = [namedrow(*row) for row in cursor.fetchall()]
 
-        zones_iucn = [row._asdict() for row in results]   
+        zones_iucn = [row._asdict() for row in results]
+        
+        # Zone IDs
+        cursor.execute(SQL_GET_AMP_ZONE_IDS)
 
-    return Response({'networks': networks, 'parks': parks, 'zones': zones, 'zones_iucn': zones_iucn})
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        zone_ids = [row._asdict() for row in results]
+    return Response({'networks': networks, 'parks': parks, 'zones': zones, 'zones_iucn': zones_iucn, 'zone_ids': zone_ids})
 
 @action(detail=False)
 @api_view()
