@@ -203,6 +203,7 @@
     :sok/update-active-park               [sokevents/update-active-park]
     :sok/update-active-zone               [sokevents/update-active-zone]
     :sok/update-active-zone-iucn          [sokevents/update-active-zone-iucn]
+    :sok/update-active-zone-id            [sokevents/update-active-zone-id]
     :sok/update-active-provincial-bioregion [sokevents/update-active-provincial-bioregion]
     :sok/update-active-mesoscale-bioregion [sokevents/update-active-mesoscale-bioregion]
     :sok/update-active-realm              [sokevents/update-active-realm]

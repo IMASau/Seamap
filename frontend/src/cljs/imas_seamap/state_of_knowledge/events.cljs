@@ -32,13 +32,14 @@
   "Based on the currently active boundary and boundary filters, select an
    appropriate boundary layer."
   [keyed-layers {boundary-id :id} {:keys [amp imcra meow] :as _boundaries}]
-  (let [{:keys [active-park active-zone active-zone-iucn]} amp
+  (let [{:keys [active-park active-zone active-zone-iucn active-zone-id]} amp
         {:keys [active-mesoscale-bioregion]} imcra
         {:keys [active-province active-ecoregion]} meow
 
         layer-key (case boundary-id
 
                     "amp"   (cond
+                              active-zone-id   :amp-zone-id
                               active-zone-iucn :amp-zone-iucn
                               active-zone      :amp-zone
                               active-park      :amp-park
@@ -149,6 +150,16 @@
                   [:sok/get-habitat-observations]
                   (when zone-iucn [:sok/open-pill nil])]}))
 
+(defn update-active-zone-id [{:keys [db]} [_ zone-id]]
+  (let [db (-> db
+               (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-id] zone-id))]
+    {:db db
+     :dispatch-n [[:sok/update-active-boundary-layer]
+                  [:sok/get-habitat-statistics]
+                  [:sok/get-bathymetry-statistics]
+                  [:sok/get-habitat-observations]
+                  (when zone-id [:sok/open-pill nil])]}))
+
 (defn update-active-provincial-bioregion [{:keys [db]} [_ provincial-bioregion]]
   (let [db (cond-> db
              (not= provincial-bioregion (get-in db [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion]))
@@ -253,7 +264,8 @@
 (defn reset-active-zones [{:keys [db]} _]
   (let [db (-> db
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil)
-               (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil))]
+               (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil)
+               (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-id] nil))]
     {:db db
      :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
