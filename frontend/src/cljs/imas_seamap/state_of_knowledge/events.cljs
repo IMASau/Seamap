@@ -8,13 +8,8 @@
             [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names cql-filter]]
             [imas-seamap.interop.leaflet :as leaflet]))
 
-(defn update-amp-boundaries [db [_ {:keys [networks parks zones zones_iucn zone_ids]}]]
-  (-> db
-      (assoc-in [:state-of-knowledge :boundaries :amp :networks] networks)
-      (assoc-in [:state-of-knowledge :boundaries :amp :parks] parks)
-      (assoc-in [:state-of-knowledge :boundaries :amp :zones] zones)
-      (assoc-in [:state-of-knowledge :boundaries :amp :zones-iucn] zones_iucn)
-      (assoc-in [:state-of-knowledge :boundaries :amp :zone-ids] zone_ids)))
+(defn update-amp-boundaries [db [_ {:keys [boundaries]}]]
+  (assoc-in db [:state-of-knowledge :boundaries :amp :boundaries] (mapv #(rename-keys % {:zone_iucn :zone-iucn :zone_id :zone-id}) boundaries)))
 
 (defn update-imcra-boundaries [db [_ {:keys [provincial_bioregions mesoscale_bioregions]}]]
   (let [mesoscale_bioregions (mapv #(rename-keys % {:provincial_bioregion :provincial-bioregion}) mesoscale_bioregions)]

@@ -371,8 +371,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id   :name
-            :text :name}}]])
+           {:id   :network
+            :text :network}}]])
 
       (when amp?
         [components/form-group
@@ -384,8 +384,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id          :name
-            :text        :name
+           {:id          :park
+            :text        :park
             :breadcrumbs (comp vector :network)}}]])
 
       (when imcra?
@@ -398,8 +398,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id   :name
-            :text :name}}]])
+           {:id   :provincial-bioregion
+            :text :provincial-bioregion}}]])
 
       (when imcra?
         [components/form-group
@@ -411,8 +411,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id          :name
-            :text        :name
+           {:id          :mesoscale-bioregion
+            :text        :mesoscale-bioregion
             :breadcrumbs (comp vector :provincial-bioregion)}}]])
 
       (when meow?
@@ -425,8 +425,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id   :name
-            :text :name}}]])
+           {:id   :realm
+            :text :realm}}]])
 
       (when meow?
         [components/form-group
@@ -438,8 +438,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id          :name
-            :text        :name
+           {:id          :province
+            :text        :province
             :breadcrumbs (comp vector :realm)}}]])
 
       (when meow?
@@ -452,8 +452,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id          :name
-            :text        :name
+           {:id          :ecoregion
+            :text        :ecoregion
             :breadcrumbs (fn [{:keys [realm province]}] [realm province])}}]])]]))
 
 (defn floating-zones-pill
@@ -480,8 +480,8 @@
          :isClearable  true
          :isDisabled   (boolean active-zone-iucn)
          :keyfns
-         {:id   :name
-          :text :name}}]]
+         {:id   :zone
+          :text :zone}}]]
 
       [components/form-group
        {:label "IUCN Category"}
@@ -493,8 +493,8 @@
          :isClearable  true
          :isDisabled   (boolean active-zone)
          :keyfns
-         {:id   :name
-          :text :name}}]]
+         {:id   :zone-iucn
+          :text :zone-iucn}}]]
       
       [components/form-group
        {:label "Zone ID"}
@@ -506,5 +506,6 @@
          :isClearable  true
          :isDisabled   false
          :keyfns
-         {:id   :name
-          :text :name}}]]]]))
+         {:id   :zone-id
+          :text :zone-id
+          :breadcrumbs (fn [{:keys [network park]}] [network park])}}]]]]))

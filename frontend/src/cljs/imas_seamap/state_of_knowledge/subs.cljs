@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.state-of-knowledge.subs
   (:require [imas-seamap.utils :refer [append-query-params]]
-            [imas-seamap.state-of-knowledge.utils :as utils :refer [boundary-filter-names cql-filter]]))
+            [imas-seamap.state-of-knowledge.utils :as utils :refer [boundary-filter-names cql-filter all-boundaries valid-boundaries]]))
 
 (defn habitat-statistics [db _]
   (let [{:keys [results loading? show-layers?]} (get-in db [:state-of-knowledge :statistics :habitat])
@@ -86,12 +86,19 @@
   (get-in db [:state-of-knowledge :boundaries :meow]))
 
 (defn valid-amp-boundaries [db _]
-  (let [{:keys [active-network]
+  (let [{:keys [active-network active-park active-zone active-zone-iucn active-zone-id]
          :as   boundaries}      (get-in db [:state-of-knowledge :boundaries :amp])
         active-network          (:name active-network)]
-    (cond-> boundaries
+    #_(cond-> boundaries
       (not (nil? active-network))
-      (update :parks #(filter (fn [{:keys [network]}] (= network active-network)) %))))) ; only show parks within the selected network (if the selected network is not nil)
+      (update :parks #(filter (fn [{:keys [network]}] (= network active-network)) %))) ; only show parks within the selected network (if the selected network is not nil)
+    (merge
+     (:amp (all-boundaries (get-in db [:state-of-knowledge :boundaries])))
+     {:active-network   active-network
+      :active-park      active-park
+      :active-zone      active-zone
+      :active-zone-iucn active-zone-iucn
+      :active-zone-id   active-zone-id})))
 
 (defn valid-imcra-boundaries [db _]
   (let [{:keys [active-provincial-bioregion]
