@@ -7,5 +7,7 @@ SELECT
   [RESNAME] AS [Park],
   [ZONENAME] AS [Zone_Category],
   [ZONEIUCN] AS [IUCN_Category],
+  [POLYGONID] AS [Zone_ID],
   [geom]
-FROM [dbo].[SeamapAus_BOUNDARIES_AMP2022];
+FROM [dbo].[SeamapAus_BOUNDARIES_AMP2022]
+WHERE [NETNAME] <> 'HIMI'
