@@ -3,18 +3,19 @@
 -- BOUNDARY_MEOW_HABITAT tables (can also be used to add a new habitat to the
 -- tables).
 
-CREATE PROCEDURE UpdateHabitat
+CREATE PROCEDURE [dbo].[UpdateHabitat]
   @habitat NVARCHAR(30)
 AS
 BEGIN
   -- Update BOUNDARY_AMP_HABITAT
   DELETE FROM [dbo].[BOUNDARY_AMP_HABITAT] WHERE [habitat] = @habitat;
-  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Category], [habitat], [geom], [area])
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT] ([Network], [Park], [Zone_Category], [IUCN_Category], [Zone_ID], [habitat], [geom], [area])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
     [boundary].[IUCN_Category],
+    [boundary].[Zone_ID],
     [habitat].[CATEGORY] AS [habitat],
     [habitat].[geom],
     [habitat].[geom].STArea() AS [area]

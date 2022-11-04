@@ -12,7 +12,7 @@
 -- operations automatically (i.e. starting with @batch of 3 will execute 3 as well
 -- as all the @batch=4 stuff, @batch=4 executes 4 and @batch=5 stuff, and so on).
 
-CREATE PROCEDURE UpdateBathymetry
+CREATE PROCEDURE [dbo].[UpdateBathymetry]
   @resolution VARCHAR(10),
   @batch      INT         = NULL
 AS
@@ -142,12 +142,13 @@ BEGIN
     -- Update BOUNDARY_AMP_BATHYMETRY
     BEGIN TRANSACTION;
       DELETE FROM [dbo].[BOUNDARY_AMP_BATHYMETRY] WHERE [bathymetry_rank] >= @rank;
-      INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Category], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
+      INSERT INTO [dbo].[BOUNDARY_AMP_BATHYMETRY] ([Network], [Park], [Zone_Category], [IUCN_Category], [Zone_ID], [bathymetry_resolution], [bathymetry_rank], [geom], [area])
       SELECT
         [boundary].[Network],
         [boundary].[Park],
         [boundary].[Zone_Category],
         [boundary].[IUCN_Category],
+        [boundary].[Zone_ID],
         [bathymetry].[RESOLUTION] AS [bathymetry_resolution],
         [bathymetry].[RANK] AS [bathymetry_rank],
         [bathymetry].[geom],
