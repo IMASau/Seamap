@@ -63,33 +63,63 @@
         amp-boundaries         (:boundaries amp)
         imcra-boundaries       (:boundaries imcra)
         meow-boundaries        (:boundaries meow)]
-    {:amp   {:networks   (vec (sort-by
-                               :network
-                               (distinct (map #(select-keys % [:network]) (filterv #(and (:network %) (valid-boundary? % boundary-filter-names [:zone :zone-iucn])) amp-boundaries)))))
-             :parks      (vec (sort-by
-                               (juxt :network :park)
-                               (distinct (map #(select-keys % [:network :park]) (filterv #(and (:park %) (valid-boundary? % boundary-filter-names [:network :zone :zone-iucn])) amp-boundaries)))))
-             :zones      (vec (sort-by
-                               :zone
-                               (distinct (map #(select-keys % [:zone]) (filterv #(and (:zone %) (valid-boundary? % boundary-filter-names [:network :park])) amp-boundaries)))))
-             :zones-iucn (vec (sort-by
-                               :zone-iucn
-                               (distinct (map #(select-keys % [:zone-iucn]) (filterv #(and (:zone-iucn %) (valid-boundary? % boundary-filter-names [:network :park])) amp-boundaries)))))
-             :zone-ids   (vec (sort-by
-                               (juxt :network :park :zone-id)
-                               (distinct (map #(select-keys % [:network :park :zone-id]) (filterv #(and (:zone-id %) (valid-boundary? % boundary-filter-names [:network :park])) amp-boundaries)))))}
-     :imcra {:provincial-bioregions (vec (sort-by
-                                          :provincial-bioregion
-                                          (distinct (map #(select-keys % [:provincial-bioregion]) (filterv #(:provincial-bioregion %) imcra-boundaries)))))
-             :mesoscale-bioregions  (vec (sort-by
-                                          (juxt :provincial-bioregion :mesoscale-bioregion)
-                                          (distinct (map #(select-keys % [:provincial-bioregion :mesoscale-bioregion]) (filterv #(and (:mesoscale-bioregion %) (valid-boundary? % boundary-filter-names [:mesoscale-bioregion])) imcra-boundaries)))))}
-     :meow  {:realms     (vec (sort-by
-                               :realm
-                               (distinct (map #(select-keys % [:realm]) (filterv #(:realm %) meow-boundaries)))))
-             :provinces  (vec (sort-by
-                               (juxt :realm :province)
-                               (distinct (map #(select-keys % [:realm :province]) (filterv #(and (:province %) (valid-boundary? % boundary-filter-names [:realm])) meow-boundaries)))))
-             :ecoregions (vec (sort-by
-                               (juxt :realm :province :ecoregion)
-                               (distinct (map #(select-keys % [:realm :province :ecoregion]) (filterv #(and (:ecoregion %) (valid-boundary? % boundary-filter-names [:realm :province])) meow-boundaries)))))}}))
+    {:amp   {:networks   (->> amp-boundaries
+                              (filter #(and (:network %) (valid-boundary? % boundary-filter-names [:zone :zone-iucn])))
+                              (map #(select-keys % [:network]))
+                              distinct
+                              (sort-by :network)
+                              vec)
+             :parks      (->> amp-boundaries
+                              (filter #(and (:zone %) (valid-boundary? % boundary-filter-names [:network :zone :zone-iucn])))
+                              (map #(select-keys % [:network :park]))
+                              distinct
+                              (sort-by (juxt :network :park))
+                              vec)
+             :zones      (->> amp-boundaries
+                              (filter #(and (:zone %) (valid-boundary? % boundary-filter-names [:network :park])))
+                              (map #(select-keys % [:zone]))
+                              distinct
+                              (sort-by :zone)
+                              vec)
+             :zones-iucn (->> amp-boundaries
+                              (filter #(and (:zone-iucn %) (valid-boundary? % boundary-filter-names [:network :park])))
+                              (map #(select-keys % [:zone-iucn]))
+                              distinct
+                              (sort-by :zone-iucn)
+                              vec)
+             :zone-ids   (->> amp-boundaries
+                              (filter #(and (:zone-id %) (valid-boundary? % boundary-filter-names [:network :park])))
+                              (map #(select-keys % [:network :park :zone-id]))
+                              distinct
+                              (sort-by (juxt :network :park :zone-id))
+                              vec)}
+     :imcra {:provincial-bioregions (->> imcra-boundaries
+                                         (filter #(:provincial-bioregion %))
+                                         (map #(select-keys % [:provincial-bioregion]))
+                                         distinct
+                                         (sort-by :provincial-bioregion)
+                                         vec)
+             :mesoscale-bioregions  (->> imcra-boundaries
+                                         (filter #(and (:mesoscale-bioregion %) (valid-boundary? % boundary-filter-names [:mesoscale-bioregion])))
+                                         (map #(select-keys % [:provincial-bioregion :mesoscale-bioregion]))
+                                         distinct
+                                         (sort-by (juxt :provincial-bioregion :mesoscale-bioregion))
+                                         vec)}
+     :meow  {:realms     (->> meow-boundaries
+                              (filter #(:realm %))
+                              (map #(select-keys % [:realm]))
+                              distinct
+                              (sort-by :realm)
+                              vec)
+             :provinces  (->> meow-boundaries
+                              (filter #(and (:province %) (valid-boundary? % boundary-filter-names [:realm])))
+                              (map #(select-keys % [:realm :province]))
+                              distinct
+                              (sort-by (juxt :realm :province))
+                              vec)
+             :ecoregions (->> meow-boundaries
+                              (filter #(and (:ecoregion %) (valid-boundary? % boundary-filter-names [:realm :province])))
+                              (map #(select-keys % [:realm :province :ecoregion]))
+                              distinct
+                              (sort-by (juxt :realm :province :ecoregion))
+                              vec)}}))
