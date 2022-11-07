@@ -12,32 +12,13 @@
 
 (defn habitat-statistics-download-url [db _]
   (let [habitat-statistics-url (get-in db [:config :urls :habitat-statistics-url])
-        {:keys [active-boundary amp imcra meow]} (get-in db [:state-of-knowledge :boundaries])
-        {:keys [active-network active-park active-zone active-zone-iucn]} amp
-        {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
-        {:keys [active-realm active-province active-ecoregion]} meow
-        active-boundary (:id active-boundary)
-        [active-network active-park active-zone active-zone-iucn
-         active-provincial-bioregion active-mesoscale-bioregion active-realm
-         active-province active-ecoregion]
-        (map
-         :name
-         [active-network active-park active-zone active-zone-iucn
-          active-provincial-bioregion active-mesoscale-bioregion active-realm
-          active-province active-ecoregion])]
+        {:keys [active-boundary] :as boundaries} (get-in db [:state-of-knowledge :boundaries])]
     (append-query-params
      habitat-statistics-url
-     {:boundary-type        active-boundary
-      :network              active-network
-      :park                 active-park
-      :zone                 active-zone
-      :zone-iucn            active-zone-iucn
-      :provincial-bioregion active-provincial-bioregion
-      :mesoscale-bioregion  active-mesoscale-bioregion
-      :realm                active-realm
-      :province             active-province
-      :ecoregion            active-ecoregion
-      :format               "raw"})))
+     (merge
+      (boundary-filter-names boundaries)
+      {:boundary-type        (:id active-boundary)
+       :format               "raw"}))))
 
 (defn bathymetry-statistics [db _]
   (let [{:keys [results loading? show-layers?]} (get-in db [:state-of-knowledge :statistics :bathymetry])
@@ -46,32 +27,13 @@
 
 (defn bathymetry-statistics-download-url [db _]
   (let [bathymetry-statistics-url (get-in db [:config :urls :bathymetry-statistics-url])
-        {:keys [active-boundary amp imcra meow]} (get-in db [:state-of-knowledge :boundaries])
-        {:keys [active-network active-park active-zone active-zone-iucn]} amp
-        {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
-        {:keys [active-realm active-province active-ecoregion]} meow
-        active-boundary (:id active-boundary)
-        [active-network active-park active-zone active-zone-iucn
-         active-provincial-bioregion active-mesoscale-bioregion active-realm
-         active-province active-ecoregion]
-        (map
-         :name
-         [active-network active-park active-zone active-zone-iucn
-          active-provincial-bioregion active-mesoscale-bioregion active-realm
-          active-province active-ecoregion])]
+        {:keys [active-boundary] :as boundaries} (get-in db [:state-of-knowledge :boundaries])]
     (append-query-params
      bathymetry-statistics-url
-     {:boundary-type        active-boundary
-      :network              active-network
-      :park                 active-park
-      :zone                 active-zone
-      :zone-iucn            active-zone-iucn
-      :provincial-bioregion active-provincial-bioregion
-      :mesoscale-bioregion  active-mesoscale-bioregion
-      :realm                active-realm
-      :province             active-province
-      :ecoregion            active-ecoregion
-      :format               "raw"})))
+     (merge
+      (boundary-filter-names boundaries)
+      {:boundary-type        (:id active-boundary)
+       :format               "raw"}))))
 
 (defn habitat-observations [db _]
   (get-in db [:state-of-knowledge :statistics :habitat-observations]))
@@ -86,14 +48,12 @@
   (get-in db [:state-of-knowledge :boundaries :meow]))
 
 (defn valid-amp-boundaries [db _]
-  (let [{:keys [active-network active-park active-zone active-zone-iucn active-zone-id]
-         :as   boundaries}      (get-in db [:state-of-knowledge :boundaries :amp])
-        active-network          (:name active-network)]
+  (let [{:keys [active-network active-park active-zone active-zone-iucn active-zone-id]} (get-in db [:state-of-knowledge :boundaries :amp])]
     #_(cond-> boundaries
       (not (nil? active-network))
       (update :parks #(filter (fn [{:keys [network]}] (= network active-network)) %))) ; only show parks within the selected network (if the selected network is not nil)
     (merge
-     (:amp (all-boundaries (get-in db [:state-of-knowledge :boundaries])))
+     (:amp (valid-boundaries (get-in db [:state-of-knowledge :boundaries])))
      {:active-network   active-network
       :active-park      active-park
       :active-zone      active-zone
