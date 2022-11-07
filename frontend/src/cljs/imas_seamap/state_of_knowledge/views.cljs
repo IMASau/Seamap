@@ -253,32 +253,34 @@
 
 (defn selected-boundaries []
   (let [active-boundary @(re-frame/subscribe [:sok/active-boundary])
-        {:keys [active-network active-park active-zone active-zone-iucn]} @(re-frame/subscribe [:sok/valid-amp-boundaries])
-        {:keys [active-provincial-bioregion active-mesoscale-bioregion]}  @(re-frame/subscribe [:sok/valid-imcra-boundaries])
-        {:keys [active-realm active-province active-ecoregion]}           @(re-frame/subscribe [:sok/valid-meow-boundaries])
+        {:keys [active-network active-park active-zone active-zone-iucn active-zone-id
+                active-provincial-bioregion active-mesoscale-bioregion
+                active-realm active-province active-ecoregion]} @(re-frame/subscribe [:sok/valid-boundaries])
         breadcrumbs (case (:id active-boundary)
                       "amp"   (concat
                                (when active-network
                                  [[:a
                                    {:href   "https://blueprintjs.com/" ; Placeholder URL
                                     :target "_blank"}
-                                   (:name active-network)]])
+                                   (:network active-network)]])
                                (when active-park
                                  [[:a
                                    {:href   "https://blueprintjs.com/" ; Placeholder URL
                                     :target "_blank"}
-                                   (:name active-park)]])
+                                   (:park active-park)]])
                                (when active-zone
-                                 [(:name active-zone)])
+                                 [(:zone active-zone)])
                                (when active-zone-iucn
-                                 [(:name active-zone-iucn)]))
+                                 [(:zone-iucn active-zone-iucn)])
+                               (when active-zone-id
+                                 [(:zone-id active-zone-id)]))
                       "imcra" (concat
-                               (when active-provincial-bioregion [(:name active-provincial-bioregion)])
-                               (when active-mesoscale-bioregion [(:name active-mesoscale-bioregion)]))
+                               (when active-provincial-bioregion [(:provincial-bioregion active-provincial-bioregion)])
+                               (when active-mesoscale-bioregion [(:mesoscale-bioregion active-mesoscale-bioregion)]))
                       "meow"  (concat
-                               (when active-realm [(:name active-realm)])
-                               (when active-province [(:name active-province)])
-                               (when active-ecoregion [(:name active-ecoregion)]))
+                               (when active-realm [(:realm active-realm)])
+                               (when active-province [(:province active-province)])
+                               (when active-ecoregion [(:ecoregion active-ecoregion)]))
                       nil)]
     [:div.selected-boundaries
      [:h2.bp3-heading (:name active-boundary)]
@@ -338,19 +340,19 @@
         active-boundaries? @(re-frame/subscribe [:sok/active-boundaries?])
         text (case (:id active-boundary)
                "amp" (str
-                      (or (:name active-network) "All networks")
+                      (or (:network active-network) "All networks")
                       " / "
-                      (or (:name active-park) "All parks"))
+                      (or (:park active-park) "All parks"))
                "imcra" (str
-                        (or (:name active-provincial-bioregion) "All provincial bioregions")
+                        (or (:provincial-bioregion active-provincial-bioregion) "All provincial bioregions")
                         " / "
-                        (or (:name active-mesoscale-bioregion) "All mesoscale bioregions"))
+                        (or (:mesoscale-bioregion active-mesoscale-bioregion) "All mesoscale bioregions"))
                "meow" (str
-                       (or (:name active-realm) "All realms")
+                       (or (:realm active-realm) "All realms")
                        " / "
-                       (or (:name active-province) "All provinces")
+                       (or (:province active-province) "All provinces")
                        " / "
-                       (or (:name active-ecoregion) "All ecoregions")))]
+                       (or (:ecoregion active-ecoregion) "All ecoregions")))]
     [components/floating-pill-control-menu
      (merge
       {:text           text
@@ -371,8 +373,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id   :name
-            :text :name}}]])
+           {:id   :network
+            :text :network}}]])
 
       (when amp?
         [components/form-group
@@ -384,8 +386,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id          :name
-            :text        :name
+           {:id          :park
+            :text        :park
             :breadcrumbs (comp vector :network)}}]])
 
       (when imcra?
@@ -398,8 +400,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id   :name
-            :text :name}}]])
+           {:id   :provincial-bioregion
+            :text :provincial-bioregion}}]])
 
       (when imcra?
         [components/form-group
@@ -411,8 +413,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id          :name
-            :text        :name
+           {:id          :mesoscale-bioregion
+            :text        :mesoscale-bioregion
             :breadcrumbs (comp vector :provincial-bioregion)}}]])
 
       (when meow?
@@ -425,8 +427,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id   :name
-            :text :name}}]])
+           {:id   :realm
+            :text :realm}}]])
 
       (when meow?
         [components/form-group
@@ -438,8 +440,8 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id          :name
-            :text        :name
+           {:id          :province
+            :text        :province
             :breadcrumbs (comp vector :realm)}}]])
 
       (when meow?
@@ -452,14 +454,14 @@
            :isSearchable true
            :isClearable  true
            :keyfns
-           {:id          :name
-            :text        :name
+           {:id          :ecoregion
+            :text        :ecoregion
             :breadcrumbs (fn [{:keys [realm province]}] [realm province])}}]])]]))
 
 (defn floating-zones-pill
   [{:keys [expanded? zones zones-iucn zone-ids active-zone active-zone-iucn active-zone-id]}]
   (let [active-zones? @(re-frame/subscribe [:sok/active-zones?])
-        text (or (:name active-zone-id) (:name active-zone) (:name active-zone-iucn) "All zones")]
+        text (or (:zone-id active-zone-id) (:zone active-zone) (:zone-iucn active-zone-iucn) "All zones")]
     [components/floating-pill-control-menu
      (merge
       {:text           text
@@ -478,10 +480,10 @@
          :onChange     #(re-frame/dispatch [:sok/update-active-zone %])
          :isSearchable true
          :isClearable  true
-         :isDisabled   (boolean active-zone-iucn)
+         :isDisabled   (boolean (or active-zone-iucn active-zone-id))
          :keyfns
-         {:id   :name
-          :text :name}}]]
+         {:id   :zone
+          :text :zone}}]]
 
       [components/form-group
        {:label "IUCN Category"}
@@ -491,10 +493,10 @@
          :onChange     #(re-frame/dispatch [:sok/update-active-zone-iucn %])
          :isSearchable true
          :isClearable  true
-         :isDisabled   (boolean active-zone)
+         :isDisabled   (boolean (or active-zone active-zone-id))
          :keyfns
-         {:id   :name
-          :text :name}}]]
+         {:id   :zone-iucn
+          :text :zone-iucn}}]]
       
       [components/form-group
        {:label "Zone ID"}
@@ -506,5 +508,6 @@
          :isClearable  true
          :isDisabled   false
          :keyfns
-         {:id   :name
-          :text :name}}]]]]))
+         {:id   :zone-id
+          :text :zone-id
+          :breadcrumbs (fn [{:keys [network park]}] [network park])}}]]]]))
