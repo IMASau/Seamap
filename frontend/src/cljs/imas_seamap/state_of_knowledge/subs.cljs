@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.state-of-knowledge.subs
   (:require [imas-seamap.utils :refer [append-query-params]]
-            [imas-seamap.state-of-knowledge.utils :as utils :refer [boundary-filter-names cql-filter all-boundaries valid-boundaries]]))
+            [imas-seamap.state-of-knowledge.utils :as utils :refer [boundary-filter-names cql-filter valid-boundaries]]))
 
 (defn habitat-statistics [db _]
   (let [{:keys [results loading? show-layers?]} (get-in db [:state-of-knowledge :statistics :habitat])
