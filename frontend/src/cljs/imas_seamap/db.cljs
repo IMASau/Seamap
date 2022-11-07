@@ -31,24 +31,14 @@
                                        :download nil}}
    :state-of-knowledge {:boundaries {:active-boundary nil
                                      :active-boundary-layer nil
-                                     :amp             {:networks         []
-                                                       :parks            []
-                                                       :zones            []
-                                                       :zones-iucn       []
-                                                       :zone-ids         []
-                                                       :active-network   nil
+                                     :amp             {:active-network   nil
                                                        :active-park      nil
                                                        :active-zone      nil
                                                        :active-zone-iucn nil
                                                        :active-zone-id   nil}
-                                     :imcra           {:provincial-bioregions       []
-                                                       :mesoscale-bioregions        []
-                                                       :active-provincial-bioregion nil
+                                     :imcra           {:active-provincial-bioregion nil
                                                        :active-mesoscale-bioregion  nil}
-                                     :meow            {:realms           []
-                                                       :provinces        []
-                                                       :ecoregions       []
-                                                       :active-realm     nil
+                                     :meow            {:active-realm     nil
                                                        :active-province  nil
                                                        :active-ecoregion nil}}
                         :statistics {:habitat              {:results      []
