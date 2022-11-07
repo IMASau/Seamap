@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers left-drawer-controls layers-search-omnibar layer-preview hotkeys-combos]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers left-drawer-settings layers-search-omnibar layer-preview hotkeys-combos]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.components :as components]
@@ -43,7 +43,7 @@
        [b/tab
         {:id    "controls"
          :title "Controls"
-         :panel (reagent/as-element [left-drawer-controls])}]
+         :panel (reagent/as-element [left-drawer-settings])}]
 
        [b/tab
         {:id    "featured-maps"

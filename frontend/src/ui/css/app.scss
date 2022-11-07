@@ -131,6 +131,10 @@ footer {
     flex: 0 0 auto;
 }
 
+.bp3-tab>*::before {
+    margin-right: 2px;
+}
+
 .catalogue-layer-node .bp3-tree-node-content {
     padding: 0;
     height: auto;
@@ -525,7 +529,8 @@ input.leaflet-control-layers-selector[type="radio"] {
     align-items: center;
 }
 
-.drawer-group-content {
+.drawer-group-content,
+.left-drawer-settings {
     margin: 0px 12px;
     flex: 1;
     display: flex;
@@ -537,12 +542,14 @@ input.leaflet-control-layers-selector[type="radio"] {
     flex-grow: 0;
 }
 
-.drawer-group-content > * {
+.drawer-group-content > *,
+.left-drawer-settings>* {
     margin-bottom: 8px;
 }
 /* Drawer group component end */
 
-.drawer-group-content .bp3-button {
+.drawer-group-content .bp3-button,
+.left-drawer-settings .bp3-button {
     justify-content: flex-start;
     padding: 12px;
 }

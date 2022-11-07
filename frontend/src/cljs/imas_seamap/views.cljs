@@ -531,23 +531,14 @@
        :expanded-fn    expanded-layers
        :opacity-fn     layer-opacities}]]))
 
-(defn left-drawer-controls []
-  [:<>
-   [components/drawer-group
-    {:heading "Controls"
-     :icon    "settings"}
-    [transect-toggle]
-    [selection-button]]
-
-   [components/drawer-group
-    {:heading "Settings"
-     :icon    "cog"}
-    [autosave-application-state-toggle]
-    [viewport-only-toggle]
-    [b/button
-     {:icon     "undo"
-      :text     "Reset Interface"
-      :on-click   #(re-frame/dispatch [:re-boot])}]]])
+(defn left-drawer-settings []
+  [:div.left-drawer-settings
+   [autosave-application-state-toggle]
+   [viewport-only-toggle]
+   [b/button
+    {:icon     "undo"
+     :text     "Reset Interface"
+     :on-click   #(re-frame/dispatch [:re-boot])}]])
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
@@ -580,14 +571,14 @@
          :panel (reagent/as-element [left-drawer-active-layers])}]
 
        [b/tab
-        {:id    "controls"
-         :title "Controls"
-         :panel (reagent/as-element [left-drawer-controls])}]
-
-       [b/tab
         {:id    "featured-maps"
          :title "Featured Maps"
-         :panel (reagent/as-element [featured-maps])}]]]]))
+         :panel (reagent/as-element [featured-maps])}]
+       
+       [b/tab
+        {:id    "settings"
+         :title (reagent/as-element [:div.bp3-icon-cog "Settings"])
+         :panel (reagent/as-element [left-drawer-settings])}]]]]))
 
 (defn layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
