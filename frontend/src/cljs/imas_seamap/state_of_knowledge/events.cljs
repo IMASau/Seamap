@@ -8,12 +8,13 @@
             [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names cql-filter]]
             [imas-seamap.interop.leaflet :as leaflet]))
 
-(defn update-amp-boundaries [db [_ {:keys [networks parks zones zones_iucn]}]]
+(defn update-amp-boundaries [db [_ {:keys [networks parks zones zones_iucn zone_ids]}]]
   (-> db
       (assoc-in [:state-of-knowledge :boundaries :amp :networks] networks)
       (assoc-in [:state-of-knowledge :boundaries :amp :parks] parks)
       (assoc-in [:state-of-knowledge :boundaries :amp :zones] zones)
-      (assoc-in [:state-of-knowledge :boundaries :amp :zones-iucn] zones_iucn)))
+      (assoc-in [:state-of-knowledge :boundaries :amp :zones-iucn] zones_iucn)
+      (assoc-in [:state-of-knowledge :boundaries :amp :zone-ids] zone_ids)))
 
 (defn update-imcra-boundaries [db [_ {:keys [provincial_bioregions mesoscale_bioregions]}]]
   (let [mesoscale_bioregions (mapv #(rename-keys % {:provincial_bioregion :provincial-bioregion}) mesoscale_bioregions)]
@@ -31,13 +32,14 @@
   "Based on the currently active boundary and boundary filters, select an
    appropriate boundary layer."
   [keyed-layers {boundary-id :id} {:keys [amp imcra meow] :as _boundaries}]
-  (let [{:keys [active-park active-zone active-zone-iucn]} amp
+  (let [{:keys [active-park active-zone active-zone-iucn active-zone-id]} amp
         {:keys [active-mesoscale-bioregion]} imcra
         {:keys [active-province active-ecoregion]} meow
 
         layer-key (case boundary-id
 
                     "amp"   (cond
+                              active-zone-id   :amp-zone-id
                               active-zone-iucn :amp-zone-iucn
                               active-zone      :amp-zone
                               active-park      :amp-park
@@ -148,6 +150,16 @@
                   [:sok/get-habitat-observations]
                   (when zone-iucn [:sok/open-pill nil])]}))
 
+(defn update-active-zone-id [{:keys [db]} [_ zone-id]]
+  (let [db (-> db
+               (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-id] zone-id))]
+    {:db db
+     :dispatch-n [[:sok/update-active-boundary-layer]
+                  [:sok/get-habitat-statistics]
+                  [:sok/get-bathymetry-statistics]
+                  [:sok/get-habitat-observations]
+                  (when zone-id [:sok/open-pill nil])]}))
+
 (defn update-active-provincial-bioregion [{:keys [db]} [_ provincial-bioregion]]
   (let [db (cond-> db
              (not= provincial-bioregion (get-in db [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion]))
@@ -252,7 +264,8 @@
 (defn reset-active-zones [{:keys [db]} _]
   (let [db (-> db
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil)
-               (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil))]
+               (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil)
+               (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-id] nil))]
     {:db db
      :dispatch-n [[:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]

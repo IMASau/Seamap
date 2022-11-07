@@ -6,18 +6,19 @@
 -- BOUNDARY_MEOW_HABITAT_OBS_SEDIMENT, and BOUNDARY_MEOW_HABITAT_OBS_SQUIDLE tables
 -- (can also be used to add a new habitat observation to the tables).
 
-CREATE PROCEDURE Update_HABITAT_OBS
+CREATE PROCEDURE [dbo].[Update_HABITAT_OBS]
   @observation NVARCHAR(MAX)
 AS
 BEGIN
   -- Update BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE
   DELETE FROM [dbo].[BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE] WHERE [observation] = @observation;
-  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE] ([Network], [Park], [Zone_Category], [IUCN_Category], [observation])
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE] ([Network], [Park], [Zone_Category], [IUCN_Category], [Zone_ID], [observation])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
     [boundary].[IUCN_Category],
+    [boundary].[Zone_ID],
     [observation].[DEPLOYMENT_ID] AS [observation]
   FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].HABITAT_OBS_GLOBALARCHIVE_intersections([boundary].[geom]) AS [observation]
@@ -25,12 +26,13 @@ BEGIN
 
   -- Update BOUNDARY_AMP_HABITAT_OBS_SEDIMENT
   DELETE FROM [dbo].[BOUNDARY_AMP_HABITAT_OBS_SEDIMENT] WHERE [observation] = @observation;
-  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_SEDIMENT] ([Network], [Park], [Zone_Category], [IUCN_Category], [observation])
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_SEDIMENT] ([Network], [Park], [Zone_Category], [IUCN_Category], [Zone_ID], [observation])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
     [boundary].[IUCN_Category],
+    [boundary].[Zone_ID],
     [observation].[SAMPLE_ID] AS [observation]
   FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].HABITAT_OBS_SEDIMENT_intersections([boundary].[geom]) AS [observation]
@@ -38,12 +40,13 @@ BEGIN
 
   -- Update BOUNDARY_AMP_HABITAT_OBS_SQUIDLE
   DELETE FROM [dbo].[BOUNDARY_AMP_HABITAT_OBS_SQUIDLE] WHERE [observation] = @observation;
-  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_SQUIDLE] ([Network], [Park], [Zone_Category], [IUCN_Category], [observation])
+  INSERT INTO [dbo].[BOUNDARY_AMP_HABITAT_OBS_SQUIDLE] ([Network], [Park], [Zone_Category], [IUCN_Category], [Zone_ID], [observation])
   SELECT
     [boundary].[Network],
     [boundary].[Park],
     [boundary].[Zone_Category],
     [boundary].[IUCN_Category],
+    [boundary].[Zone_ID],
     [observation].[DEPLOYMENT_ID] AS [observation]
   FROM [dbo].[VW_BOUNDARY_AMP] AS [boundary]
   CROSS APPLY [dbo].HABITAT_OBS_SQUIDLE_intersections([boundary].[geom]) AS [observation]

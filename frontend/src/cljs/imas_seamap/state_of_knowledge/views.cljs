@@ -457,9 +457,9 @@
             :breadcrumbs (fn [{:keys [realm province]}] [realm province])}}]])]]))
 
 (defn floating-zones-pill
-  [{:keys [expanded? zones zones-iucn active-zone active-zone-iucn]}]
+  [{:keys [expanded? zones zones-iucn zone-ids active-zone active-zone-iucn active-zone-id]}]
   (let [active-zones? @(re-frame/subscribe [:sok/active-zones?])
-        text (or (:name active-zone) (:name active-zone-iucn) "All zones")]
+        text (or (:name active-zone-id) (:name active-zone) (:name active-zone-iucn) "All zones")]
     [components/floating-pill-control-menu
      (merge
       {:text           text
@@ -492,6 +492,19 @@
          :isSearchable true
          :isClearable  true
          :isDisabled   (boolean active-zone)
+         :keyfns
+         {:id   :name
+          :text :name}}]]
+      
+      [components/form-group
+       {:label "Zone ID"}
+       [components/select
+        {:value        active-zone-id
+         :options      zone-ids
+         :onChange     #(re-frame/dispatch [:sok/update-active-zone-id %])
+         :isSearchable true
+         :isClearable  true
+         :isDisabled   false
          :keyfns
          {:id   :name
           :text :name}}]]]]))

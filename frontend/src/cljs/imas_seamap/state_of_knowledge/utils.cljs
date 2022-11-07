@@ -14,13 +14,14 @@
     :name  "Marine Ecoregions of the World"}])
 
 (defn boundary-filter-names [{:keys [amp imcra meow] :as _boundaries}]
-  (let [{:keys [active-network active-park active-zone active-zone-iucn]} amp
+  (let [{:keys [active-network active-park active-zone active-zone-iucn active-zone-id]} amp
         {:keys [active-provincial-bioregion active-mesoscale-bioregion]} imcra
         {:keys [active-realm active-province active-ecoregion]} meow]
     {:network              (:name active-network)
      :park                 (:name active-park)
      :zone                 (:name active-zone)
      :zone-iucn            (:name active-zone-iucn)
+     :zone-id              (:name active-zone-id)
      :provincial-bioregion (:name active-provincial-bioregion)
      :mesoscale-bioregion  (:name active-mesoscale-bioregion)
      :realm                (:name active-realm)
@@ -29,7 +30,7 @@
 
 (defn cql-filter [boundaries]
   (let [{:keys
-         [network park zone zone-iucn
+         [network park zone zone-iucn zone-id
           provincial-bioregion mesoscale-bioregion
           realm province ecoregion]} (boundary-filter-names boundaries)
         filters (remove
@@ -38,6 +39,7 @@
                   (when park (str "RESNAME='" park "'"))
                   (when zone (str "ZONENAME='" zone "'"))
                   (when zone-iucn (str "ZONEIUCN='" zone-iucn "'"))
+                  (when zone-id   (str "POLYGONID='" zone-id "'"))
                   (when provincial-bioregion (str "PB_NAME='" provincial-bioregion "'"))
                   (when mesoscale-bioregion (str "MESO_NAME='" mesoscale-bioregion "'"))
                   (when realm (str "REALM='" realm "'"))
