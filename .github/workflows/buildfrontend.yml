@@ -87,7 +87,7 @@ jobs:
 
       - name: Create timestamp for release tag-name
         id: tag_name
-        run: echo "{tag_name}={$(date +%Y%m%d%H%M%S)}" >> $GITHUB_OUTPUT
+        run: echo "tag_name=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
       - name: Cut a release, for download by Ansible
         id: create_release
