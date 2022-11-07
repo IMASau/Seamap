@@ -645,3 +645,19 @@ input.leaflet-control-layers-selector[type="radio"] {
 .bp3-checkbox {
     margin: 0;
 }
+
+.leaflet-control-block {
+    background-color: #fff;
+}
+
+.leaflet-control-block>* {
+    display: block;
+}
+
+.leaflet-control-block>*:not(:last-child) {
+    border-bottom: 1px solid #ccc;
+}
+
+.leaflet-control-easyPrint {
+    display: none;
+}

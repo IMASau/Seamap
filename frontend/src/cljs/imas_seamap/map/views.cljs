@@ -79,22 +79,6 @@
     [b/tooltip {:content "Create Shareable URL" :position b/RIGHT}
      [b/icon {:icon "share"}]]]])
 
-(defn omnisearch-control [_props]
-  [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
-   [:a {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])}
-    [b/tooltip {:content "Search all layers" :position b/RIGHT}
-     [b/icon {:icon "search"}]]]])
-
-(defn transect-control [{:keys [drawing? query] :as _transect-info}]
-  (let [[text icon dispatch] (cond
-                               drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
-                               query    ["Clear Measurement"  "eraser" :transect.draw/clear]
-                               :else    ["Transect/Measure"   "edit"   :transect.draw/enable])]
-    [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
-     [:a {:on-click #(re-frame/dispatch  [dispatch])}
-      [b/tooltip {:content text :position b/RIGHT}
-       [b/icon {:icon icon}]]]]))
-
 (defn draw-transect-control []
   [leaflet/feature-group
    [leaflet/edit-control
@@ -122,16 +106,6 @@
                   (catch :default _ nil)))
               100))}]])
 
-(defn region-control [{:keys [selecting? region] :as _region-info}]
-  (let [[text icon dispatch] (cond
-                               selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
-                               region     ["Clear Selection"  "eraser" :map.layer.selection/clear]
-                               :else      ["Select Region"    "widget" :map.layer.selection/enable])]
-    [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
-     [:a {:on-click #(re-frame/dispatch  [dispatch])}
-      [b/tooltip {:content text :position b/RIGHT}
-       [b/icon {:icon icon}]]]]))
-
 (defn draw-region-control []
   [leaflet/feature-group
    [leaflet/edit-control
@@ -157,6 +131,54 @@
                   (.. e -_map (once "draw:created" #(re-frame/dispatch [:map.layer.selection/finalise (-> % (.. -layer getBounds) bounds->map)])))
                   (catch :default _ nil)))
               100))}]])
+
+(defn- control-block-child [{:keys [on-click tooltip icon]}]
+  [b/tooltip {:content tooltip :position b/RIGHT}
+   [:a {:on-click on-click}
+    [b/icon {:icon icon :size 18}]]])
+
+(defn- transect-control [{:keys [drawing? query] :as _transect-info}]
+  (let [[tooltip icon dispatch]
+        (cond
+          drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
+          query    ["Clear Measurement"  "eraser" :transect.draw/clear]
+          :else    ["Transect/Measure"   "edit"   :transect.draw/enable])]
+    [control-block-child
+     {:on-click #(re-frame/dispatch [dispatch])
+      :tooltip  tooltip
+      :icon     icon}]))
+
+(defn- region-control [{:keys [selecting? region] :as _region-info}]
+  (let [[tooltip icon dispatch]
+        (cond
+          selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
+          region     ["Clear Selection"  "eraser" :map.layer.selection/clear]
+          :else      ["Select Region"    "widget" :map.layer.selection/enable])]
+    [control-block-child
+     {:on-click #(re-frame/dispatch [dispatch])
+      :tooltip  tooltip
+      :icon     icon}]))
+
+(defn- control-block [{:keys [transect-info region-info]}]
+  [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar leaflet-control-block"}}
+
+   [control-block-child
+    {:on-click #(-> "CurrentSize" js/document.getElementsByClassName first .click)
+     :tooltip  "Export as PNG"
+     :icon     "media"}]
+
+   [control-block-child
+    {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
+     :tooltip  "Search all layers"
+     :icon     "search"}]
+
+   [transect-control transect-info]
+   [region-control region-info]
+
+   [control-block-child
+    {:on-click #(re-frame/dispatch [:create-save-state])
+     :tooltip  "Create Shareable URL"
+     :icon     "share"}]])
 
 (defn- element-dimensions [element]
   {:x (.-offsetWidth element) :y (.-offsetHeight element)})
@@ -375,40 +397,19 @@
                                  :opacity     1
                                  :fillOpacity 1}])
 
-       ;; Top-left controls have a key that changes based on state for an important
-       ;; reason: when new controls are added to the list they are added to the bottom of
-       ;; the controls list.
-       ;; New controls being added to the bottom is an issue in our case because we want
-       ;; to be able to swap out the buttons that start drawing a transect/region with
-       ;; the leaflet draw controls; when the controls are swapped out, they are added to
-       ;; the bottom of the list rather than the location of the control we are replacing.
-       ;; To get around this issue we give every control in the list a key that changes
-       ;; with state, to force React Leaflet to recognise these as new controls and
-       ;; rerender them all, preserving their order!
-       ;; TL;DR: having controls show up in the correct order is a pain and this fixes
-       ;; that.
-       ^{:key (str "omnisearch-control" transect-info region-info)}
-       [omnisearch-control]
+       (when (:drawing? transect-info)
+         [draw-transect-control])
+       (when (:selecting? region-info)
+         [draw-region-control]) 
+       
+       ;; This control needs to exist so we can trigger its functions programmatically in
+       ;; the control-block element.
+       [leaflet/print-control
+        {:position   "topleft" :title "Export as PNG"
+         :export-only true
+         :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
 
-       (if (:drawing? transect-info)
-         ^{:key (str "transect-control" transect-info region-info)}
-         [draw-transect-control]
-         ^{:key (str "transect-control" transect-info region-info)}
-         [transect-control transect-info])
-
-       (if (:selecting? region-info)
-         ^{:key (str "region-control" transect-info region-info)}
-         [draw-region-control]
-         ^{:key (str "region-control" transect-info region-info)}
-         [region-control region-info])
-
-       ^{:key (str "share-control" transect-info region-info)}
-       [share-control]
-
-       ^{:key (str "print-control" transect-info region-info)}
-       [leaflet/print-control {:position   "topleft" :title "Export as PNG"
-                               :export-only true
-                               :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
+       [control-block {:transect-info transect-info :region-info region-info}]
 
        [leaflet/scale-control]
 
