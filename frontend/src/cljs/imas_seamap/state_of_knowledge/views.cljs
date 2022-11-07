@@ -253,9 +253,9 @@
 
 (defn selected-boundaries []
   (let [active-boundary @(re-frame/subscribe [:sok/active-boundary])
-        {:keys [active-network active-park active-zone active-zone-iucn active-zone-id]} @(re-frame/subscribe [:sok/valid-amp-boundaries])
-        {:keys [active-provincial-bioregion active-mesoscale-bioregion]}  @(re-frame/subscribe [:sok/valid-imcra-boundaries])
-        {:keys [active-realm active-province active-ecoregion]}           @(re-frame/subscribe [:sok/valid-meow-boundaries])
+        {:keys [active-network active-park active-zone active-zone-iucn active-zone-id
+                active-provincial-bioregion active-mesoscale-bioregion
+                active-realm active-province active-ecoregion]} @(re-frame/subscribe [:sok/valid-boundaries])
         breadcrumbs (case (:id active-boundary)
                       "amp"   (concat
                                (when active-network

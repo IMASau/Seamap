@@ -8,20 +8,18 @@
             [imas-seamap.state-of-knowledge.utils :refer [boundary-filter-names cql-filter]]
             [imas-seamap.interop.leaflet :as leaflet]))
 
-(defn update-amp-boundaries [db [_ {:keys [boundaries]}]]
-  (assoc-in db [:state-of-knowledge :boundaries :amp :boundaries] (mapv #(rename-keys % {:zone_iucn :zone-iucn :zone_id :zone-id}) boundaries)))
+(defn update-amp-boundaries [db [_ boundaries]]
+  (assoc-in
+   db [:state-of-knowledge :boundaries :amp :boundaries]
+   (mapv #(rename-keys % {:zone_iucn :zone-iucn :zone_id :zone-id}) boundaries)))
 
-(defn update-imcra-boundaries [db [_ {:keys [provincial_bioregions mesoscale_bioregions]}]]
-  (let [mesoscale_bioregions (mapv #(rename-keys % {:provincial_bioregion :provincial-bioregion}) mesoscale_bioregions)]
-    (-> db
-        (assoc-in [:state-of-knowledge :boundaries :imcra :provincial-bioregions] provincial_bioregions)
-        (assoc-in [:state-of-knowledge :boundaries :imcra :mesoscale-bioregions] mesoscale_bioregions))))
+(defn update-imcra-boundaries [db [_ boundaries]]
+  (assoc-in
+   db [:state-of-knowledge :boundaries :imcra :boundaries]
+   (mapv #(rename-keys % {:mesoscale_bioregion :mesoscale-bioregion :provincial_bioregion :provincial-bioregion}) boundaries)))
 
-(defn update-meow-boundaries [db [_ {:keys [realms provinces ecoregions]}]]
-  (-> db
-      (assoc-in [:state-of-knowledge :boundaries :meow :realms] realms)
-      (assoc-in [:state-of-knowledge :boundaries :meow :provinces] provinces)
-      (assoc-in [:state-of-knowledge :boundaries :meow :ecoregions] ecoregions)))
+(defn update-meow-boundaries [db [_ boundaries]]
+  (assoc-in db [:state-of-knowledge :boundaries :meow :boundaries] boundaries))
 
 (defn- select-boundary-layer
   "Based on the currently active boundary and boundary filters, select an

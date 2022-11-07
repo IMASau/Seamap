@@ -447,9 +447,7 @@
 (defn- floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
-        amp-boundaries           @(re-frame/subscribe [:sok/valid-amp-boundaries])
-        imcra-boundaries         @(re-frame/subscribe [:sok/valid-imcra-boundaries])
-        meow-boundaries          @(re-frame/subscribe [:sok/valid-meow-boundaries])
+        valid-boundaries         @(re-frame/subscribe [:sok/valid-boundaries])
         boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])
         open-pill                @(re-frame/subscribe [:sok/open-pill])]
@@ -468,16 +466,14 @@
      (when (and state-of-knowledge-open? active-boundary)
        [floating-boundaries-pill
         (merge
-         amp-boundaries
-         imcra-boundaries
-         meow-boundaries
+         valid-boundaries
          {:expanded?       (= open-pill "boundaries")
           :active-boundary active-boundary})])
      
      (when (and state-of-knowledge-open? (= (:id active-boundary) "amp"))
        [floating-zones-pill
         (merge
-         amp-boundaries
+         valid-boundaries
          {:expanded? (= open-pill "zones")})])]))
 
 (defn layers-search-omnibar []
