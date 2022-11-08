@@ -10,7 +10,6 @@
 (defn- featured-map [{:keys [title content image] :as story-map}]
   [b/card
    {:elevation   1
-    :interactive true
     :class       "featured-map"
     :on-click    #(re-frame/dispatch [:sm/featured-map story-map])}
    (when (seq image)

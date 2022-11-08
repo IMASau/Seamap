@@ -152,6 +152,7 @@
   [{:keys [_layer _layer-state] :as props}]
   [b/card
    {:elevation 1
+    :interactive true
     :class     "layer-card"}
    [layer-card-content props]])
 
@@ -354,6 +355,7 @@
         props (assoc props :layer-state layer-state :national-layer-details national-layer-details :tooltip tooltip)]
     [b/card
      {:elevation 1
+      :interactive true
       :class     "layer-card"}
      [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
 
