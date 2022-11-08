@@ -5,9 +5,11 @@ $floating-pill-height: 36px;
 	z-index: 2000;
 	top: $floating-menu-padding;
 	left: calc($floating-menu-padding * 2 + $leaflet-control-width);
+	right: calc($floating-menu-padding * 2 + 44px);
 	display: flex;
+	flex-wrap: wrap;
 	gap: 6px;
-	transition: left 150ms;
+	transition: left 150ms, right 150ms;
 }
 
 .floating-pill {
@@ -60,7 +62,7 @@ $floating-pill-height: 36px;
 
 .floating-pill-control-menu-content {
 	position: absolute;
-	margin-top: $floating-menu-padding;
+	margin-top: 6px;
 	background-color: white;
 	padding: 12px;
 	border-radius: 14px;

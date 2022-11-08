@@ -2,6 +2,10 @@
     right: 460px;
 }
 
+.right-drawer-open .floating-pills {
+    right: calc(460px + $floating-menu-padding * 2 + 44px);
+}
+
 .state-of-knowledge-drawer > .drawer-children {
     display: flex;
     flex-direction: column;
