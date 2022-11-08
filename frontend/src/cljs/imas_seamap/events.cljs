@@ -766,3 +766,6 @@
     {:cookie/set {:name  :cookie-state
                   :value (encode-state db)}
      :put-hash   ""}))
+
+(defn settings-overlay [db [_ open?]]
+  (assoc-in db [:display :settings-overlay] open?))

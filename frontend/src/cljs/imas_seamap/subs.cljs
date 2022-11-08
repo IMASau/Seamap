@@ -149,3 +149,6 @@
 
 (defn url-base [db _]
   (get-in db [:config :url-base]))
+
+(defn settings-overlay [db _]
+  (get-in db [:display :settings-overlay]))
