@@ -333,6 +333,7 @@
          :zoomControl          false
          :zoominfoControl      true
          :scaleFactor          true
+         :minZoom              2
          :keyboard             false ; handled externally
          :close-popup-on-click false} ; We'll handle that ourselves
         (when (seq bounds) {:bounds (map->bounds bounds)}))
