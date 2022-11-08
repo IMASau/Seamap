@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers left-drawer-settings layers-search-omnibar layer-preview hotkeys-combos]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers left-drawer-settings menu-button layers-search-omnibar layer-preview hotkeys-combos]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.components :as components]
@@ -50,15 +50,6 @@
          :title "Featured Maps"
          :panel (reagent/as-element [featured-maps])}]]]]))
 
-(defn- floating-pills []
-  (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))]
-    [:div
-     {:class (str "floating-pills" (when collapsed " collapsed"))}
-
-     [components/floating-pill-button
-      {:icon     "menu"
-       :on-click #(re-frame/dispatch [:left-drawer/toggle])}]]))
-
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         _                  (use-hotkeys hot-keys) ; We don't need the results of this, just need to ensure it's called!
@@ -93,6 +84,6 @@
      [left-drawer]
      [featured-map-drawer]
      [layers-search-omnibar]
-     [floating-pills]
+     [menu-button]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 

@@ -444,6 +444,11 @@
                   :intent     b/INTENT-PRIMARY
                   :on-click   (handler-dispatch [:map.layer/close-info])}]]]]))
 
+(defn menu-button []
+  [:div.leaflet-bar.menu-button
+   [:a {:on-click #(re-frame/dispatch [:left-drawer/toggle])}
+    [b/icon {:icon "menu" :size 18}]]])
+
 (defn- floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
@@ -453,10 +458,6 @@
         open-pill                @(re-frame/subscribe [:sok/open-pill])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
-
-     [components/floating-pill-button
-      {:icon     "menu"
-       :on-click #(re-frame/dispatch [:left-drawer/toggle])}]
 
      [floating-state-of-knowledge-pill
       {:expanded?       (= open-pill "state-of-knowledge")
@@ -688,6 +689,7 @@
      [state-of-knowledge]
      [featured-map-drawer]
      [layers-search-omnibar]
+     [menu-button]
      [floating-pills]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 
