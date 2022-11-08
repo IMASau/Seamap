@@ -71,3 +71,7 @@
 .SelectionListItemColoured .SelectionListAddedItem {
     background-color: #d9822b24;
 }
+
+[data-rbd-drag-handle-context-id="0"].DragHandleWrapperLabel {
+    cursor: default;
+}

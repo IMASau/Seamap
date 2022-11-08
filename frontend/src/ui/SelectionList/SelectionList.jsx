@@ -68,7 +68,7 @@ if (!document.body) {
     document.body.appendChild(portal);
 }
 
-function PortalAwareItem({ provided, snapshot, itemLabel, removeButton, className, isDragDisabled, zIndex }) {
+function PortalAwareItem({ provided, snapshot, itemLabel, removeButton, className, isDragDisabled, zIndex, hasHandle }) {
 
     const usePortal = snapshot.isDragging;
 
@@ -82,13 +82,27 @@ function PortalAwareItem({ provided, snapshot, itemLabel, removeButton, classNam
             )}
             className={"DragHandleWrapper " + className}
         >
-            <div className="DragHandleWrapperHandle"
-                {...provided.dragHandleProps}>
-                { isDragDisabled ? <span/> : <DragHandle /> }
-            </div>
-            <div className="DragHandleWrapperLabel" style={{"zIndex": zIndex}}>
-                {itemLabel}
-            </div>
+            {hasHandle ?
+                <>
+                    <div className="DragHandleWrapperHandle"
+                        {...provided.dragHandleProps}>
+                        { isDragDisabled ? <span/> : <DragHandle /> }
+                    </div>
+                    <div
+                        className="DragHandleWrapperLabel"
+                        style={{"zIndex": zIndex}}
+                    >
+                        {itemLabel}
+                    </div>
+                </> :
+                <div
+                    {...provided.dragHandleProps}
+                    className="DragHandleWrapperLabel"
+                    style={{"zIndex": zIndex}}
+                >
+                    {itemLabel}
+                </div>
+            }
             {
                 removeButton
                 ? <div className="DragHandleWrapperRemoveButton">
@@ -119,7 +133,7 @@ function getSelectionListItemClass({ item, getAdded, onItemClick }) {
 
 // NOTE: Attempts to workaround glitch on recorder by caching state
 // NOTE: Component should change key to flush invalid state if necessary
-export function SelectionList({ items, itemProps, getValue, getAdded, onReorder, onItemClick, onRemoveClick, disabled, renderItem }) {
+export function SelectionList({ items, itemProps, getValue, getAdded, onReorder, onItemClick, onRemoveClick, disabled, renderItem, hasHandle }) {
 
     const [stateValue, setStateValue] = useCachedState(items);
     const isDragDisabled = disabled || !onReorder;
@@ -161,6 +175,7 @@ export function SelectionList({ items, itemProps, getValue, getAdded, onReorder,
                                         itemLabel={ItemLabel({ itemProps, item, index, onItemClick, renderItem })}
                                         removeButton={RemoveButton({ disabled, onRemoveClick, index })}
                                         isDragDisabled={isDragDisabled}
+                                        hasHandle={hasHandle}
                                     />
                                 )}
                             </Draggable>
@@ -293,7 +308,7 @@ SimpleSelectionList.propTypes = {
     disabled: PropTypes.bool,
 }
 
-export function ItemsSelectionList({ items, onReorder, disabled }) {
+export function ItemsSelectionList({ items, onReorder, disabled, hasHandle }) {
 
     const [stateValue, setStateValue] = useCachedState(items);
     const isDragDisabled = disabled || !onReorder;
