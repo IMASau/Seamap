@@ -178,7 +178,12 @@
    [control-block-child
     {:on-click #(re-frame/dispatch [:create-save-state])
      :tooltip  "Create Shareable URL"
-     :icon     "share"}]])
+     :icon     "share"}]
+   
+   [control-block-child
+    {:on-click #(re-frame/dispatch [:ui/settings-overlay true])
+     :tooltip  "Settings"
+     :icon     "cog"}]])
 
 (defn- element-dimensions [element]
   {:x (.-offsetWidth element) :y (.-offsetHeight element)})

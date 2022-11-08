@@ -135,6 +135,10 @@ footer {
     margin-right: 2px;
 }
 
+.bp3-heading>*::before {
+    margin-right: 4px;
+}
+
 .catalogue-layer-node .bp3-tree-node-content {
     padding: 0;
     height: auto;
@@ -531,26 +535,25 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 .drawer-group-content,
-.left-drawer-settings {
+.settings-overlay {
     margin: 0px 12px;
     flex: 1;
     display: flex;
     flex-direction: column;
     transition: flex-grow 500ms;
+    gap: 8px;
+}
+.settings-overlay {
+    margin: 12px;
 }
 
 .collapsed .drawer-group-content {
     flex-grow: 0;
 }
-
-.drawer-group-content > *,
-.left-drawer-settings>* {
-    margin-bottom: 8px;
-}
 /* Drawer group component end */
 
 .drawer-group-content .bp3-button,
-.left-drawer-settings .bp3-button {
+.settings-overlay .bp3-button {
     justify-content: flex-start;
     padding: 12px;
 }
@@ -709,3 +712,8 @@ input.leaflet-control-layers-selector[type="radio"] {
     font-size: 15px;
 }
 /* Chunkier leaflet controls end */
+
+.settings-overlay-dialogue {
+    padding: 0;
+    width: 368px;
+}

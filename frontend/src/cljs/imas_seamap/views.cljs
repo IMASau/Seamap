@@ -335,6 +335,19 @@
                   :intent     b/INTENT-PRIMARY
                   :auto-focus true
                   :on-click   (handler-dispatch [:welcome-layer/close])}]]]]))
+(defn settings-overlay []
+  [b/dialogue
+   {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])
+    :class      "settings-overlay-dialogue"
+    :is-open    @(re-frame/subscribe [:ui/settings-overlay])
+    :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
+   [:div.settings-overlay
+    [autosave-application-state-toggle]
+    [viewport-only-toggle]
+    [b/button
+     {:icon     "undo"
+      :text     "Reset Interface"
+      :on-click   #(re-frame/dispatch [:re-boot])}]]])
 
 (defn- metadata-record [_props]
   (let [expanded (reagent/atom false)
@@ -528,15 +541,6 @@
        :expanded-fn    expanded-layers
        :opacity-fn     layer-opacities}]]))
 
-(defn left-drawer-settings []
-  [:div.left-drawer-settings
-   [autosave-application-state-toggle]
-   [viewport-only-toggle]
-   [b/button
-    {:icon     "undo"
-     :text     "Reset Interface"
-     :on-click   #(re-frame/dispatch [:re-boot])}]])
-
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])]
@@ -570,12 +574,7 @@
        [b/tab
         {:id    "featured-maps"
          :title "Featured Maps"
-         :panel (reagent/as-element [featured-maps])}]
-       
-       [b/tab
-        {:id    "settings"
-         :title (reagent/as-element [:div.bp3-icon-cog "Settings"])
-         :panel (reagent/as-element [left-drawer-settings])}]]]]))
+         :panel (reagent/as-element [featured-maps])}]]]]))
 
 (defn layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
@@ -683,6 +682,7 @@
       {:id "imagery-group" :helperText "Layers showing photos collected"}
       {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
      [welcome-dialogue]
+     [settings-overlay]
      [info-card]
      [loading-display]
      [left-drawer]

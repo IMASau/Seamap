@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers left-drawer-settings menu-button layers-search-omnibar layer-preview hotkeys-combos]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button layers-search-omnibar layer-preview hotkeys-combos]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.components :as components]
@@ -39,11 +39,6 @@
         {:id    "active-layers"
          :title "Active Layers"
          :panel (reagent/as-element [left-drawer-active-layers])}]
-
-       [b/tab
-        {:id    "controls"
-         :title "Controls"
-         :panel (reagent/as-element [left-drawer-settings])}]
 
        [b/tab
         {:id    "featured-maps"
@@ -80,6 +75,7 @@
       {:id "imagery-group" :helperText "Layers showing photos collected"}
       {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
      [info-card]
+     [settings-overlay]
      [loading-display]
      [left-drawer]
      [featured-map-drawer]
