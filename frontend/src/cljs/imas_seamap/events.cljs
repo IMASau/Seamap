@@ -178,10 +178,11 @@
                            (update :display dissoc :left-drawer-tab)))
         db           (merge-in db parsed-state)
         {:keys [active active-base zoom center]} (:map db)
+        startup-layers (get-in db [:map :keyed-layers :startup] [])
 
         active-layers (if active
                         (vec (ids->layers active (get-in db [:map :layers])))
-                        (get-in db [:map :keyed-layers :startup] []))
+                        startup-layers)
         active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
@@ -195,18 +196,19 @@
     {:db         db
      :dispatch-n (conj
                   (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))
-                  [:map/update-map-view {:zoom zoom :center center}]
+                  [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center})]
                   [:map/popup-closed])}))
 
 (defn re-boot [{:keys [db]} _]
   (let [db (merge-in db/default-db (ajax-loaded-info db))
+        startup-layers (get-in db [:map :keyed-layers :startup] [])
         db (-> db
-               (assoc-in [:map :active-layers] (get-in db [:map :keyed-layers :startup] []))
+               (assoc-in [:map :active-layers] startup-layers)
                (assoc-in [:map :active-base-layer] (first (get-in db [:map :grouped-base-layers])))
                (assoc :initialised true))
         {:keys [zoom center]} (:map db)]
     {:db         db
-     :dispatch   [:map/update-map-view {:zoom zoom :center center}]
+     :dispatch   [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center})]
      :cookie/set {:name  :cookie-state
                   :value nil}}))
 

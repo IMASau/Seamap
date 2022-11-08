@@ -494,9 +494,10 @@
   ;; :active-base-layer
   [{:keys [db]} _]
   (let [{:keys [active active-base _legend-ids]} (:map db)
+        startup-layers (get-in db [:map :keyed-layers :startup] [])
         active-layers (if active
                         (vec (ids->layers active (get-in db [:map :layers])))
-                        (get-in db [:map :keyed-layers :startup] []))
+                        startup-layers)
         active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         active-base   (or active-base   ; If no base is set (eg no existing hash-state), use the first candidate
                           (first (get-in db [:map :grouped-base-layers])))
@@ -510,6 +511,8 @@
                           (assoc :initialised true))]
     {:db         db
      :dispatch-n [[:ui/hide-loading]
+                  (when (seq startup-layers)
+                    [:map/update-map-view {:bounds (:bounding_box (first startup-layers)) :instant? true}])
                   [:maybe-autosave]]}))
 
 (defn update-leaflet-map [db [_ leaflet-map]]
