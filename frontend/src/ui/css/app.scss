@@ -38,6 +38,7 @@ body {
 h1, h2, h3, h4, h5, .bp3-heading {
     font-family: "Oswald", "system-ui", sans-serif;
     text-transform: uppercase;
+    font-weight: 500;
 }
 
 // Icons support
@@ -769,4 +770,17 @@ input.leaflet-control-layers-selector[type="radio"] {
 .settings-overlay-dialogue {
     padding: 0;
     width: 368px;
+}
+
+// Right drawer headers
+.state-of-knowledge-drawer .bp3-drawer-header,
+.featured-map-drawer .bp3-drawer-header {
+    background-color: $seamap-color-darker;
+    color: $seamap-color-lightest;
+    font-size: 34px;
+}
+
+.state-of-knowledge-drawer .bp3-drawer-header .bp3-icon,
+.featured-map-drawer .bp3-drawer-header .bp3-icon {
+    color: $seamap-color-lightest;
 }

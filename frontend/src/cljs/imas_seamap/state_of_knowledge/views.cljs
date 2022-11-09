@@ -287,7 +287,7 @@
                                (when active-ecoregion [(:ecoregion active-ecoregion)]))
                       nil)]
     [:div.selected-boundaries
-     [:h2.bp3-heading (:name active-boundary)]
+     [:h2 (:name active-boundary)]
      (when (seq breadcrumbs)
        [components/breadcrumbs
         {:content breadcrumbs}])]))
