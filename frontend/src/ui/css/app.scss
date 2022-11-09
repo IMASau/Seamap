@@ -401,7 +401,7 @@ rect#background {
     flex-direction: column;
     align-items: flex-start;
 }
-.metadata-record .section {
+.metadata-record .section:not(:last-child) {
     margin-bottom: 15px;
 }
 .metadata-record .more-info {
