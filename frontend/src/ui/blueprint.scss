@@ -1,0 +1,14 @@
+$pt-grid-size: 10px !default;
+
+// $pt-font-size: 14px;
+// $pt-font-size-small: 12px;
+// $pt-font-size-large: 16px;
+// $pt-line-height: 4;
+
+
+@import "~@blueprintjs/core/lib/scss/variables";
+@import "~@blueprintjs/core/src/common/colors";
+@import "~@blueprintjs/core/src/reset";
+@import "~@blueprintjs/icons/src/icons";
+@import "~@blueprintjs/core/src/accessibility/focus-states";
+@import "~@blueprintjs/core/src/components/index";
