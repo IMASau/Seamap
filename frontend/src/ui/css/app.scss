@@ -32,11 +32,17 @@
 
 body {
     margin: 0;
-    font-family: "PTSans", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+    font-family: "PTSans", "system-ui", "Icons16", sans-serif;
 }
 
-h1, h2, h3, h5 {
-	font-family: "Oswald", "PTSans", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+h1, h2, h3, h4, h5, .bp3-heading {
+    font-family: "Oswald", "system-ui", sans-serif;
+    text-transform: uppercase;
+}
+
+// Icons support
+*::before {
+    font-family: "PTSans", "system-ui", "Icons16", sans-serif;
 }
 
 a {
