@@ -2,6 +2,13 @@ $catalogue-drawer-width: 460px;
 $floating-menu-padding: 10px;
 $leaflet-control-width: 38px;
 
+$seamap-color-medium: rgb(81, 142, 197);
+$seamap-color-light: rgb(126, 186, 231);
+$seamap-color-lighter: rgb(200, 220, 240);
+$seamap-color-lightest: white;
+$seamap-color-dark: rgb(45, 101, 154);
+$seamap-color-darker: rgb(17, 60, 108);
+
 @import 'ui/css/wordpress';
 @import 'ui/css/floating-pills';
 @import 'ui/css/left-drawer';
