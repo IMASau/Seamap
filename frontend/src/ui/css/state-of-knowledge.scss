@@ -77,19 +77,18 @@
 
 .selected-boundaries {
     margin-bottom: 20px;
+    background-color: $seamap-color-dark;
+    color: $seamap-color-lightest;
+    padding: 18px 20px;
+    font-weight: bold;
 }
 
-.selected-boundaries h2.bp3-heading {
-    font-size: 16px;
-    margin: 0 0 0 12px;
+.selected-boundaries h2 {
+    font-size: 26px;
 }
 
-.selected-boundaries .breadcrumbs {
-    margin: 0 12px;
-}
-
-.selected-boundaries .breadcrumbs {
-    margin: 0 12px;
+.selected-boundaries a {
+    color: $seamap-color-lightest;
 }
 
 .selected-boundaries .breadcrumbs a {

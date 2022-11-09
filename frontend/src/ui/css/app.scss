@@ -35,7 +35,12 @@ body {
     font-family: "PTSans", "system-ui", "Icons16", sans-serif;
 }
 
-h1, h2, h3, h4, h5, .bp3-heading {
+h1, h2, h3, h4, h5 {
+    font-weight: inherit;
+}
+
+.state-of-knowledge-drawer .bp3-drawer-header,
+.featured-map-drawer .bp3-drawer-header {
     font-family: "Oswald", "system-ui", sans-serif;
     text-transform: uppercase;
     font-weight: 500;
