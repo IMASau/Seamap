@@ -1,5 +1,50 @@
+@font-face {
+    font-family: "PTSans";
+    src: url("../font/PT_Sans/PTSans-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: "PTSans";
+    src: url("../font/PT_Sans/PTSans-Italic.ttf") format("truetype");
+    font-weight: normal;
+    font-style: italic;
+}
+@font-face {
+    font-family: "PTSans";
+    src: url("../font/PT_Sans/PTSans-Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+@font-face {
+    font-family: "PTSans";
+    src: url("../font/PT_Sans/PTSans-BoldItalic.ttf") format("truetype");
+    font-weight: bold;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Oswald";
+    src: url("../font/Oswald/static/Oswald-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+}
+
 body {
     margin: 0;
+    font-family: "PTSans", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+}
+
+h1, h2, h3, h5 {
+	font-family: "Oswald", "PTSans", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+}
+
+a {
+	color: #106ba3;
+}
+
+a:hover {
+	text-transform: underline;
 }
 
 #app {
@@ -352,8 +397,11 @@ rect#background {
     -moz-user-select: text;
     -ms-user-select: text;
     user-select: text;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
-.metadata-record .section {
+.metadata-record .section:not(:last-child) {
     margin-bottom: 15px;
 }
 .metadata-record .more-info {

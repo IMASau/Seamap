@@ -6,7 +6,8 @@
             [reagent.core :as reagent]
             [goog.string :as gstring]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.components :as components]))
+            [imas-seamap.components :as components]
+            [imas-seamap.utils :refer [format-number format-date-month]]))
 
 (defn habitat-statistics-table
   [{:keys [habitat-statistics]}]
@@ -23,9 +24,9 @@
         [:tr
          {:key (or habitat "Total Mapped")}
          [:td (or habitat "Total Mapped")]
-         [:td (gstring/format "%.1f" area)]
-         [:td (if mapped_percentage (gstring/format "%.1f" mapped_percentage) "N/A")]
-         [:td (gstring/format "%.1f" total_percentage)]])
+         [:td (format-number area)]
+         [:td (or (format-number mapped_percentage) "N/A")]
+         [:td (format-number total_percentage)]])
       [:tr
        [:td
         {:colSpan 4}
@@ -103,9 +104,9 @@
         [:tr
          {:key (or resolution "Total Mapped")}
          [:td (or resolution "Total Mapped")]
-         [:td (gstring/format "%.1f" area)]
-         [:td (if mapped_percentage (gstring/format "%.1f" mapped_percentage) "N/A")]
-         [:td (gstring/format "%.1f" total_percentage)]])
+         [:td (format-number area)]
+         [:td (or (format-number mapped_percentage) "N/A")]
+         [:td (format-number total_percentage)]])
       [:tr
        [:td
         {:colSpan 4}
@@ -172,18 +173,19 @@
   [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
   (let [collapsed? (reagent/atom true)]
     (fn [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
-      (let [deployments      (or deployments 0)
-            campaigns      (or campaigns 0)
-            start_date         (or start_date "unknown")
-            end_date           (or end_date "unknown")
+      (let [disabled?          (not (pos? (or deployments 0)))
+            deployments        (format-number (or deployments 0) 0)
+            campaigns          (format-number (or campaigns 0) 0)
+            start_date         (or (format-date-month start_date) "unknown")
+            end_date           (or (format-date-month end_date) "unknown")
             method             (or method "N/A")
-            images             (or images 0)
-            total_annotations  (or total_annotations 0)
-            public_annotations (or public_annotations 0)]
+            images             (format-number (or images 0) 0)
+            total_annotations  (format-number (or total_annotations 0) 0)
+            public_annotations (format-number (or public_annotations 0) 0)]
         [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? deployments) " disabled"))}
+         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when disabled? " disabled"))}
          [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? (not (pos? deployments))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
+          {:class (str "bp3-heading" (if (or @collapsed? disabled?) " bp3-icon-caret-right" " bp3-icon-caret-down"))
            :on-click #(swap! collapsed? not)}
           (str deployments " imagery deployments (" campaigns " campaigns)")]
          [:ul
@@ -196,16 +198,17 @@
   [{:keys [deployments campaigns start_date end_date method video_time]}]
   (let [collapsed? (reagent/atom true)]
     (fn [{:keys [deployments campaigns start_date end_date method video_time]}]
-      (let [deployments (or deployments 0)
-            campaigns (or campaigns 0)
-            start_date    (or start_date "unknown")
-            end_date      (or end_date "unknown")
+      (let [disabled?     (not (pos? (or deployments 0)))
+            deployments   (format-number (or deployments 0) 0)
+            campaigns     (format-number (or campaigns 0) 0)
+            start_date    (or (format-date-month start_date) "unknown")
+            end_date      (or (format-date-month end_date) "unknown")
             method        (or method "N/A")
-            video_time    (or video_time 0)]
+            video_time    (format-number (or video_time 0) 0)]
         [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? deployments) " disabled"))}
+         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when disabled? " disabled"))}
          [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? (not (pos? deployments))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
+          {:class (str "bp3-heading" (if (or @collapsed? disabled?) " bp3-icon-caret-right" " bp3-icon-caret-down"))
            :on-click #(swap! collapsed? not)}
           (str deployments " video deployments (" campaigns " campaigns)")]
          [:ul
@@ -217,16 +220,17 @@
   [{:keys [samples analysed survey start_date end_date method]}]
   (let [collapsed? (reagent/atom true)]
     (fn [{:keys [samples analysed survey start_date end_date method]}]
-      (let [samples  (or samples 0)
-            analysed   (or analysed 0)
-            survey     (or survey 0)
-            start_date (or start_date "unknown")
-            end_date   (or end_date "unknown")
+      (let [disabled?  (not (pos? (or samples 0)))
+            samples    (format-number (or samples 0) 0)
+            analysed   (format-number (or analysed 0) 0)
+            survey     (format-number (or survey 0) 0)
+            start_date (or (format-date-month start_date) "unknown")
+            end_date   (or (format-date-month end_date) "unknown")
             method     (or method "N/A")]
         [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when-not (pos? samples) " disabled"))}
+         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when disabled? " disabled"))}
          [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? (not (pos? samples))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
+          {:class (str "bp3-heading" (if (or @collapsed? disabled?) " bp3-icon-caret-right" " bp3-icon-caret-down"))
            :on-click #(swap! collapsed? not)}
           (str samples " sediment samples (" analysed " analysed) from " survey " surveys")]
          [:ul

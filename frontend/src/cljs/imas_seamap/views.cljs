@@ -353,14 +353,13 @@
   (let [expanded (reagent/atom false)
         {:keys [img-url-base]} @(re-frame/subscribe [:url-base])]
     (fn  [{:keys [license-name license-link license-img constraints other]
-           {:keys [category organisation name metadata_url server_url layer_name]} :layer
+           {:keys [category organisation metadata_url server_url layer_name]} :layer
            :as _layer-info}]
       [:div.metadata-record {:class (clojure.core/name category)}
-       [:div.metadata-header.clearfix.section
-        (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
-          [:img.metadata-img.org-logo {:class (string/replace logo #"\..+$" "")
-                                       :src   (str img-url-base logo)}])
-        [:h3.bp3-heading name]]
+       (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
+         [:img.metadata-img.org-logo.section
+          {:class (string/replace logo #"\..+$" "")
+           :src   (str img-url-base logo)}])
        [:h6.bp3-heading.metadata-subheader "Citation Information:"]
        [:div.section
         [:p.citation  constraints]]

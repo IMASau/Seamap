@@ -301,3 +301,24 @@
        (map #(vector % (abs (- % val))))
        (sort-by second)
        first first))
+
+(defn format-number
+  "Formats a number with comma thousands separator and dot decimal separator. One
+   decimal place is the default, because that's the normal case in Seamap."
+  ([number fraction-digits]
+   (when number
+     (.toLocaleString
+      number "en-US"
+      #js{:maximumFractionDigits fraction-digits
+          :minimumFractionDigits fraction-digits})))
+  ([number] (format-number number 1)))
+
+(defn format-date-month
+  "Formats a date string to MMM YYYY."
+  [date-string]
+  (when date-string
+    (-> date-string
+        js/Date.
+        (.toLocaleString
+         "en-AU"
+         #js{:month "short" :year "numeric"}))))
