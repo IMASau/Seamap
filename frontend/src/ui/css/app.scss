@@ -397,6 +397,9 @@ rect#background {
     -moz-user-select: text;
     -ms-user-select: text;
     user-select: text;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 .metadata-record .section {
     margin-bottom: 15px;
