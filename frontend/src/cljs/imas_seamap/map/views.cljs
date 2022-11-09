@@ -238,8 +238,8 @@
             :transform  (str "translate3d(" x "px, " y "px, 0px)")
             :z-index    700}}
    (if (> distance 1000)
-     (str (format-number (/ distance 1000) 2) " km")
-     (str (format-number distance 0) " m"))])
+     (str (format-number (/ distance 1000) 2) "km")
+     (str (format-number distance 0) "m"))])
 
 (defmulti layer-component (comp :layer_type :layer))
 
