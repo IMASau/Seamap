@@ -6,7 +6,8 @@
             [reagent.core :as reagent]
             [goog.string :as gstring]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.components :as components]))
+            [imas-seamap.components :as components]
+            [imas-seamap.utils :refer [format-number]]))
 
 (defn habitat-statistics-table
   [{:keys [habitat-statistics]}]
@@ -23,9 +24,9 @@
         [:tr
          {:key (or habitat "Total Mapped")}
          [:td (or habitat "Total Mapped")]
-         [:td (gstring/format "%.1f" area)]
-         [:td (if mapped_percentage (gstring/format "%.1f" mapped_percentage) "N/A")]
-         [:td (gstring/format "%.1f" total_percentage)]])
+         [:td (format-number area)]
+         [:td (or (format-number mapped_percentage) "N/A")]
+         [:td (format-number total_percentage)]])
       [:tr
        [:td
         {:colSpan 4}
@@ -103,9 +104,9 @@
         [:tr
          {:key (or resolution "Total Mapped")}
          [:td (or resolution "Total Mapped")]
-         [:td (gstring/format "%.1f" area)]
-         [:td (if mapped_percentage (gstring/format "%.1f" mapped_percentage) "N/A")]
-         [:td (gstring/format "%.1f" total_percentage)]])
+         [:td (format-number area)]
+         [:td (or (format-number mapped_percentage) "N/A")]
+         [:td (format-number total_percentage)]])
       [:tr
        [:td
         {:colSpan 4}
@@ -172,8 +173,8 @@
   [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
   (let [collapsed? (reagent/atom true)]
     (fn [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
-      (let [deployments      (or deployments 0)
-            campaigns      (or campaigns 0)
+      (let [deployments        (or deployments 0)
+            campaigns          (or campaigns 0)
             start_date         (or start_date "unknown")
             end_date           (or end_date "unknown")
             method             (or method "N/A")
@@ -185,12 +186,12 @@
          [:h2
           {:class (str "bp3-heading" (if (or @collapsed? (not (pos? deployments))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
            :on-click #(swap! collapsed? not)}
-          (str deployments " imagery deployments (" campaigns " campaigns)")]
+          (str (format-number deployments 0) " imagery deployments (" (format-number campaigns 0) " campaigns)")]
          [:ul
           [:li (str "Date range: " start_date " to " end_date)]
           [:li (str "Methods of collection: " method)]
-          [:li (str images " images collected")]
-          [:li (str total_annotations " image annotations (" public_annotations " public)")]]]))))
+          [:li (str (format-number images 0) " images collected")]
+          [:li (str (format-number total_annotations 0) " image annotations (" (format-number public_annotations 0) " public)")]]]))))
 
 (defn global-archive-stats
   [{:keys [deployments campaigns start_date end_date method video_time]}]
@@ -207,11 +208,11 @@
          [:h2
           {:class (str "bp3-heading" (if (or @collapsed? (not (pos? deployments))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
            :on-click #(swap! collapsed? not)}
-          (str deployments " video deployments (" campaigns " campaigns)")]
+          (str (format-number deployments 0) " video deployments (" (format-number campaigns 0) " campaigns)")]
          [:ul
           [:li (str "Date range: " start_date " to " end_date)]
           [:li (str "Methods of collection: " method)]
-          [:li (str video_time " hours of video")]]]))))
+          [:li (str (format-number video_time 0) " hours of video")]]]))))
 
 (defn sediment-stats
   [{:keys [samples analysed survey start_date end_date method]}]
@@ -228,7 +229,7 @@
          [:h2
           {:class (str "bp3-heading" (if (or @collapsed? (not (pos? samples))) " bp3-icon-caret-right" " bp3-icon-caret-down"))
            :on-click #(swap! collapsed? not)}
-          (str samples " sediment samples (" analysed " analysed) from " survey " surveys")]
+          (str (format-number samples 0) " sediment samples (" (format-number analysed 0) " analysed) from " (format-number survey 0) " surveys")]
          [:ul
           [:li (str "Date range: " start_date " to " end_date)]
           [:li (str "Methods of collection: " method)]]]))))

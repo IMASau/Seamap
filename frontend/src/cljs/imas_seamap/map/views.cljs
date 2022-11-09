@@ -5,7 +5,7 @@
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.utils :refer [copy-text handler-dispatch create-shadow-dom-element] :include-macros true]
+            [imas-seamap.utils :refer [copy-text handler-dispatch create-shadow-dom-element format-number] :include-macros true]
             [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds bounds->map]]
             [imas-seamap.interop.leaflet :as leaflet]
             [goog.string :as gstring]
@@ -238,8 +238,8 @@
             :transform  (str "translate3d(" x "px, " y "px, 0px)")
             :z-index    700}}
    (if (> distance 1000)
-     (gstring/format "%.2f km" (/ distance 1000))
-     (gstring/format "%.0f m" distance))])
+     (str (format-number (/ distance 1000) 2) " km")
+     (str (format-number distance 0) " m"))])
 
 (defmulti layer-component (comp :layer_type :layer))
 
