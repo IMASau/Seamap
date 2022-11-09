@@ -357,9 +357,10 @@
            :as _layer-info}]
       [:div.metadata-record {:class (clojure.core/name category)}
        (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
-         [:img.metadata-img.org-logo.section
-          {:class (string/replace logo #"\..+$" "")
-           :src   (str img-url-base logo)}])
+         [:div.section
+          [:img.metadata-img.org-logo
+           {:class (string/replace logo #"\..+$" "")
+            :src   (str img-url-base logo)}]])
        [:h6.bp3-heading.metadata-subheader "Citation Information:"]
        [:div.section
         [:p.citation  constraints]]
