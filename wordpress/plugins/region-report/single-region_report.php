@@ -344,10 +344,10 @@
                                     values.forEach( habitat => {
                                         const row = table.insertRow();
 
-                                        row.insertCell().innerHTML = habitat.habitat ?? "Total Mapped";
-                                        row.insertCell().innerHTML = habitat.area.toFixed(1);
-                                        row.insertCell().innerHTML = habitat.mapped_percentage?.toFixed(1) ?? "N/A";
-                                        row.insertCell().innerHTML = habitat.total_percentage.toFixed(1);
+                                        row.insertCell().innerText = habitat.habitat ?? "Total Mapped";
+                                        row.insertCell().innerText = habitat.area.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1});
+                                        row.insertCell().innerText = habitat.mapped_percentage?.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1}) ?? "N/A";
+                                        row.insertCell().innerText = habitat.total_percentage.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1});
                                     });
                                 }
                             );
@@ -415,10 +415,10 @@
                                     values.forEach( bathymetry => {
                                         const row = table.insertRow();
 
-                                        row.insertCell().innerHTML = bathymetry.resolution ?? "Total Mapped";
-                                        row.insertCell().innerHTML = bathymetry.area.toFixed(1);
-                                        row.insertCell().innerHTML = bathymetry.mapped_percentage?.toFixed(1) ?? "N/A";
-                                        row.insertCell().innerHTML = bathymetry.total_percentage.toFixed(1);
+                                        row.insertCell().innerText = bathymetry.resolution ?? "Total Mapped";
+                                        row.insertCell().innerText = bathymetry.area.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1});
+                                        row.insertCell().innerText = bathymetry.mapped_percentage?.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1}) ?? "N/A";
+                                        row.insertCell().innerText = bathymetry.total_percentage.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1});
                                     });
                                 }
                             );
@@ -462,15 +462,15 @@
                             const squidleItem = document.createElement("li");
 
                             const squidleHead = document.createElement("span");
-                            squidleHead.innerText = `${squidle.deployments ?? 0} imagery deployments (${squidle.campaigns ?? 0} campaigns)`;
+                            squidleHead.innerText = `${squidle.deployments?.toLocaleString("en-US") ?? 0} imagery deployments (${squidle.campaigns?.toLocaleString("en-US") ?? 0} campaigns)`;
                             squidleItem.appendChild(squidleHead);
 
                             if ((squidle.deployments ?? 0) > 0) {
                                 const squidleList = document.createElement("ul");
                                 addToList(squidleList, `Date range: ${squidle.start_date ?? "unknown"} to ${squidle.end_date ?? "unknown"}`);
                                 addToList(squidleList, `Methods of collection:  ${squidle.method ?? "N/A"}`);
-                                addToList(squidleList, `${squidle.images ?? 0} images collected`);
-                                addToList(squidleList, `${squidle.total_annotations ?? 0} images annotations (${squidle.public_annotations ?? 0} public)`);
+                                addToList(squidleList, `${squidle.images?.toLocaleString("en-US") ?? 0} images collected`);
+                                addToList(squidleList, `${squidle.total_annotations?.toLocaleString("en-US") ?? 0} images annotations (${squidle.public_annotations?.toLocaleString("en-US") ?? 0} public)`);
                                 squidleItem.appendChild(squidleList);
                             }
 
@@ -478,14 +478,14 @@
                             const globalArchiveItem = document.createElement("li");
 
                             const globalArchiveHead = document.createElement("span");
-                            globalArchiveHead.innerText = `${globalArchive.deployments ?? 0} video deployments (${globalArchive.campaigns ?? 0} campaigns)`;
+                            globalArchiveHead.innerText = `${globalArchive.deployments?.toLocaleString("en-US") ?? 0} video deployments (${globalArchive.campaigns?.toLocaleString("en-US") ?? 0} campaigns)`;
                             globalArchiveItem.appendChild(globalArchiveHead);
 
                             if ((globalArchive.deployments ?? 0) > 0) {
                                 const globalArchiveList = document.createElement("ul");
                                 addToList(globalArchiveList, `Date range: ${globalArchive.start_date ?? "unknown"} to ${globalArchive.end_date ?? "unknown"}`);
                                 addToList(globalArchiveList, `Methods of collection: ${globalArchive.method ?? "N/A"}`);
-                                addToList(globalArchiveList, `${globalArchive.video_time ?? 0} hours of video`);
+                                addToList(globalArchiveList, `${globalArchive.video_time?.toLocaleString("en-US") ?? 0} hours of video`);
                                 globalArchiveItem.appendChild(globalArchiveList);
                             }
 
@@ -493,7 +493,7 @@
                             const sedimentItem = document.createElement("li");
 
                             const sedimentHead = document.createElement("span");
-                            sedimentHead.innerText = `${sediment.samples ?? 0} sediment samples (${sediment.analysed ?? 0} analysed) from ${sediment.survey ?? 0} surveys`;
+                            sedimentHead.innerText = `${sediment.samples?.toLocaleString("en-US") ?? 0} sediment samples (${sediment.analysed?.toLocaleString("en-US") ?? 0} analysed) from ${sediment.survey?.toLocaleString("en-US") ?? 0} surveys`;
                             sedimentItem.appendChild(sedimentHead);
                             
                             if ((sediment.samples ?? 0) > 0) {
