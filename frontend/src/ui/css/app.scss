@@ -561,13 +561,17 @@ input.leaflet-control-layers-selector[type="radio"] {
 .drawer-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 20px;
 }
 
 .drawer-group-heading {
     display: flex;
     flex: 0 0;
     align-items: center;
+    background-color: $seamap-color-light;
+    color: $seamap-color-darker;
+    padding: 10px 6px 14px 6px;
+    gap: 4px;
+    border-top: 1.5px solid $seamap-color-dark;
 }
 
 .drawer-group.collapsible > .drawer-group-heading {
@@ -578,7 +582,9 @@ input.leaflet-control-layers-selector[type="radio"] {
 .drawer-group-heading > h1 {
     flex: 1;
     font-size: 16px;
-    margin: 0 0 0 12px;
+    font-size: 20px;
+    font-weight: bold;
+    color: inherit;
 }
 
 .drawer-group-heading > h1::before {
@@ -591,6 +597,14 @@ input.leaflet-control-layers-selector[type="radio"] {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.drawer-group-heading > .bp3-icon:first-child {
+    color: $seamap-color-medium;
+}
+
+.drawer-group-heading > .bp3-icon:last-child {
+    color: inherit
 }
 
 .drawer-group-content,
