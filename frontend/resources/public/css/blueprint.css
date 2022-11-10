@@ -2765,9 +2765,9 @@ Switches and slider handles both use these variables.
     .bp3-control.bp3-switch input:disabled ~ .bp3-control-indicator::before {
       background: rgba(255, 255, 255, 0.8); }
   .bp3-control.bp3-switch input:checked ~ .bp3-control-indicator {
-    background: #137cbd; }
+    background: #113c6c; }
   .bp3-control.bp3-switch:hover input:checked ~ .bp3-control-indicator {
-    background: #106ba3; }
+    background: #0d3057; }
   .bp3-control.bp3-switch input:checked:not(:disabled):active ~ .bp3-control-indicator {
     background: #0e5a8a; }
   .bp3-control.bp3-switch input:checked:disabled ~ .bp3-control-indicator {
