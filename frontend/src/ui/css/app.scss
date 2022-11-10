@@ -188,8 +188,30 @@ footer {
     flex: 0 0 auto;
 }
 
+.bp3-tab {
+    color: $seamap-color-darker;
+    font-size: 14px;
+}
+
+.bp3-tab[aria-selected="true"], .bp3-tab:not([aria-disabled="true"]):hover {
+    font-weight: bold;
+}
+
 .bp3-tab>*::before {
     margin-right: 2px;
+}
+
+.bp3-tab-list {
+    align-items: center;
+    height: 40px;
+}
+
+.bp3-tab-indicator-wrapper .bp3-tab-indicator {
+    height: 1.5px;
+}
+
+.bp3-tab-panel {
+    margin: 0;
 }
 
 .bp3-heading>*::before {
@@ -635,10 +657,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-right: 7px;
     width: 15px;
     height: 15px;
-}
-
-.drawer-group .bp3-tab-panel {
-    margin-top: 8px;
 }
 
 .drawer-group .download {

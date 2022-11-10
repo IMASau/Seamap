@@ -7676,9 +7676,9 @@ Styleguide tabs
     cursor: not-allowed; }
   .bp3-tab[aria-selected="true"] {
     border-radius: 0;
-    box-shadow: inset 0 -3px 0 #106ba3; }
+    box-shadow: inset 0 -3px 0 #113c6c; }
   .bp3-tab[aria-selected="true"], .bp3-tab:not([aria-disabled="true"]):hover {
-    color: #106ba3; }
+    color: #113c6c; }
   .bp3-tab:focus {
     -moz-outline-radius: 0; }
   .bp3-large > .bp3-tab {
@@ -7700,7 +7700,7 @@ Styleguide tabs
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 1, 0.75, 0.9); }
   .bp3-tab-indicator-wrapper .bp3-tab-indicator {
-    background-color: #106ba3;
+    background-color: #113c6c;
     bottom: 0;
     height: 3px;
     left: 0;
