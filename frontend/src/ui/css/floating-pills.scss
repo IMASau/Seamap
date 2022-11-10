@@ -29,7 +29,7 @@ $floating-pill-height: 36px;
 }
 
 .catalogue-open .floating-pills {
-	left: calc($catalogue-drawer-width + $floating-menu-padding * 2 + $leaflet-control-width);
+	left: calc($drawer-width + $floating-menu-padding * 2 + $leaflet-control-width);
 }
 
 .floating-pill-control-menu-button,

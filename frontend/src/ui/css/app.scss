@@ -535,7 +535,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .catalogue-open .leaflet-left,
 .catalogue-open .menu-button {
-    left: $catalogue-drawer-width;
+    left: $drawer-width;
 }
 
 /* Allow interactivity with underneath elements while drawer is open */
@@ -645,7 +645,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 .layer-preview {
     position: absolute;
     top: calc($floating-pill-height + 2 * $floating-menu-padding);
-    left: calc($catalogue-drawer-width + 2 * $floating-menu-padding + 34px);
+    left: calc($drawer-width + 2 * $floating-menu-padding + 34px);
     z-index: 2000;
     background-color: white;
     border-radius: 14px;

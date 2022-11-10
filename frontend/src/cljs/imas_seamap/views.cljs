@@ -550,7 +550,7 @@
        [:img
         {:src "img/Seamap2_V2_RGB.png"}]]
       :position    "left"
-      :size        "460px"
+      :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
       :hasBackdrop false}

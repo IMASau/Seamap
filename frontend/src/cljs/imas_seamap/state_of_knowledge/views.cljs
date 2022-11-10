@@ -296,7 +296,7 @@
   [components/drawer
    {:title       "State of Knowledge"
     :position    "right"
-    :size        "460px"
+    :size        "368px"
     :isOpen      (and
                   @(re-frame/subscribe [:sok/open?])
                   (not @(re-frame/subscribe [:sm.featured-map/open?])))
