@@ -66,6 +66,12 @@ thead tr th {
 
 table {
     border-collapse: separate;
+    font-size: 11px;
+}
+
+td, th {
+    font-size: inherit;
+    padding: 6px 6px 6px 0;
 }
 
 #app {
@@ -653,6 +659,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .collapsed .drawer-group-content {
     flex-grow: 0;
+    overflow: hidden;
 }
 /* Drawer group component end */
 

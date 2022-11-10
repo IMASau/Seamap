@@ -44,6 +44,7 @@
 
 .state-of-knowledge-drawer .bp3-tab-panel {
     overflow-y: auto;
+    margin-bottom: 20px;
 }
 
 .state-of-knowledge-drawer thead {
@@ -51,7 +52,7 @@
     top: 0;
     background-color: $seamap-color-lightest;
 }
-// /* scrollable table body */
+/* scrollable table body */
 
 .habitat-statistics .bp3-tab-list .bp3-switch,
 .bathymetry-statistics .bp3-tab-list .bp3-switch,
@@ -62,11 +63,6 @@
     display: flex;
 }
 
-.state-of-knowledge-drawer td,
-.state-of-knowledge-drawer th {
-    font-size: 12px;
-    padding: 6px 6px 6px 0;
-}
 
 .state-of-knowledge-drawer td {
     vertical-align: top;
