@@ -15,7 +15,7 @@ html {
   box-sizing: inherit; }
 
 body {
-  font-size: 14px;
+  font-size: 11.2px;
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1.28581;
@@ -24,11 +24,11 @@ body {
   font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif; }
 
 p {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   margin-top: 0; }
 
 small {
-  font-size: 12px; }
+  font-size: 9.6px; }
 
 strong {
   font-weight: 600; }
@@ -59,14 +59,14 @@ strong {
 /* stylelint-disable @blueprintjs/no-color-literal */
 /* stylelint-disable @blueprintjs/no-color-literal */
 .bp3-alert {
-  max-width: 400px;
-  padding: 20px; }
+  max-width: 320px;
+  padding: 16px; }
 
 .bp3-alert-body {
   display: flex; }
   .bp3-alert-body .bp3-icon {
     font-size: 40px;
-    margin-right: 20px;
+    margin-right: 16px;
     margin-top: 0; }
 
 .bp3-alert-contents {
@@ -75,9 +75,9 @@ strong {
 .bp3-alert-footer {
   display: flex;
   flex-direction: row-reverse;
-  margin-top: 10px; }
+  margin-top: 8px; }
   .bp3-alert-footer .bp3-button {
-    margin-left: 10px; }
+    margin-left: 8px; }
 
 /*
  * Copyright 2021 Palantir Technologies, Inc. All rights reserved.
@@ -109,7 +109,7 @@ Styleguide breadcrumbs
   cursor: default;
   display: flex;
   flex-wrap: wrap;
-  height: 30px;
+  height: 24px;
   list-style: none;
   margin: 0;
   padding: 0; }
@@ -121,7 +121,7 @@ Styleguide breadcrumbs
       content: "";
       display: block;
       height: 16px;
-      margin: 0 5px;
+      margin: 0 4px;
       width: 16px; }
     .bp3-breadcrumbs > li:last-of-type::after {
       display: none; }
@@ -131,7 +131,7 @@ Styleguide breadcrumbs
 .bp3-breadcrumbs-collapsed {
   align-items: center;
   display: inline-flex;
-  font-size: 16px; }
+  font-size: 12.8px; }
 
 .bp3-breadcrumb,
 .bp3-breadcrumbs-collapsed {
@@ -145,7 +145,7 @@ Styleguide breadcrumbs
   cursor: not-allowed; }
 
 .bp3-breadcrumb .bp3-icon {
-  margin-right: 5px; }
+  margin-right: 4px; }
 
 .bp3-breadcrumb-current {
   color: inherit;
@@ -158,10 +158,10 @@ Styleguide breadcrumbs
 .bp3-breadcrumbs-collapsed {
   background: #ced9e0;
   border: none;
-  border-radius: 3px;
+  border-radius: 2px;
   cursor: pointer;
   margin-right: 2px;
-  padding: 1px 5px;
+  padding: 1px 4px;
   vertical-align: text-bottom; }
   .bp3-breadcrumbs-collapsed::before {
     background: svg-icon("16px/more.svg", (circle: (fill: #5c7080))) center no-repeat;
@@ -242,15 +242,15 @@ Styleguide button
   flex-direction: row;
   align-items: center;
   border: none;
-  border-radius: 3px;
+  border-radius: 2px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 11.2px;
   justify-content: center;
-  padding: 5px 10px;
+  padding: 4px 8px;
   text-align: left;
   vertical-align: middle;
-  min-height: 30px;
-  min-width: 30px; }
+  min-height: 24px;
+  min-width: 24px; }
   .bp3-button > * {
     flex-grow: 0;
     flex-shrink: 0; }
@@ -259,7 +259,7 @@ Styleguide button
     flex-shrink: 1; }
   .bp3-button::before,
   .bp3-button > * {
-    margin-right: 7px; }
+    margin-right: 4px; }
   .bp3-button:empty::before,
   .bp3-button > :last-child {
     margin-right: 0; }
@@ -383,15 +383,15 @@ Styleguide button
     stroke: #ffffff; }
   .bp3-button.bp3-large,
   .bp3-large .bp3-button {
-    min-height: 40px;
-    min-width: 40px;
-    font-size: 16px;
-    padding: 5px 15px; }
+    min-height: 32px;
+    min-width: 32px;
+    font-size: 12.8px;
+    padding: 4px 12px; }
     .bp3-button.bp3-large::before,
     .bp3-button.bp3-large > *,
     .bp3-large .bp3-button::before,
     .bp3-large .bp3-button > * {
-      margin-right: 10px; }
+      margin-right: 6px; }
     .bp3-button.bp3-large:empty::before,
     .bp3-button.bp3-large > :last-child,
     .bp3-large .bp3-button:empty::before,
@@ -399,9 +399,9 @@ Styleguide button
       margin-right: 0; }
   .bp3-button.bp3-small,
   .bp3-small .bp3-button {
-    min-height: 24px;
-    min-width: 24px;
-    padding: 0 7px; }
+    min-height: 19.2px;
+    min-width: 19.2px;
+    padding: 0 5.6px; }
   .bp3-button.bp3-loading {
     position: relative; }
     .bp3-button.bp3-loading[class*="bp3-icon-"]::before {
@@ -423,10 +423,10 @@ Styleguide button
   .bp3-button .bp3-icon, .bp3-button .bp3-icon-standard, .bp3-button .bp3-icon-large {
     color: #5c7080; }
     .bp3-button .bp3-icon.bp3-align-right, .bp3-button .bp3-icon-standard.bp3-align-right, .bp3-button .bp3-icon-large.bp3-align-right {
-      margin-left: 7px; }
+      margin-left: 4px; }
   .bp3-button .bp3-icon:first-child:last-child,
   .bp3-button .bp3-spinner + .bp3-icon:last-child {
-    margin: 0 -7px; }
+    margin: 0 -4px; }
   .bp3-dark .bp3-button:not([class*="bp3-intent-"]) {
     background-color: #394b59;
     background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
@@ -1210,10 +1210,10 @@ Styleguide button-group
       width: 100%; }
     .bp3-button-group.bp3-vertical:not(.bp3-minimal) > .bp3-popover-wrapper:first-child .bp3-button,
     .bp3-button-group.bp3-vertical:not(.bp3-minimal) > .bp3-button:first-child {
-      border-radius: 3px 3px 0 0; }
+      border-radius: 2px 2px 0 0; }
     .bp3-button-group.bp3-vertical:not(.bp3-minimal) > .bp3-popover-wrapper:last-child .bp3-button,
     .bp3-button-group.bp3-vertical:not(.bp3-minimal) > .bp3-button:last-child {
-      border-radius: 0 0 3px 3px; }
+      border-radius: 0 0 2px 2px; }
     .bp3-button-group.bp3-vertical:not(.bp3-minimal) > .bp3-popover-wrapper:not(:last-child) .bp3-button,
     .bp3-button-group.bp3-vertical:not(.bp3-minimal) > .bp3-button:not(:last-child) {
       margin-bottom: -1px; }
@@ -1246,15 +1246,15 @@ Markup:
 Styleguide callout
 */
 .bp3-callout {
-  font-size: 14px;
+  font-size: 11.2px;
   line-height: 1.5;
   background-color: rgba(138, 155, 168, 0.15);
-  border-radius: 3px;
-  padding: 10px 12px 9px;
+  border-radius: 2px;
+  padding: 8px 9.6px 7.2px;
   position: relative;
   width: 100%; }
   .bp3-callout[class*="bp3-icon-"] {
-    padding-left: 40px; }
+    padding-left: 36px; }
     .bp3-callout[class*="bp3-icon-"]::before {
       font-family: "Icons20", sans-serif;
       font-size: 20px;
@@ -1264,19 +1264,19 @@ Styleguide callout
       -moz-osx-font-smoothing: grayscale;
       -webkit-font-smoothing: antialiased;
       color: #5c7080;
-      left: 10px;
+      left: 8px;
       position: absolute;
-      top: 10px; }
+      top: 8px; }
   .bp3-callout.bp3-callout-icon {
-    padding-left: 40px; }
+    padding-left: 36px; }
     .bp3-callout.bp3-callout-icon > .bp3-icon:first-child {
       color: #5c7080;
-      left: 10px;
+      left: 8px;
       position: absolute;
-      top: 10px; }
+      top: 8px; }
   .bp3-callout .bp3-heading {
     line-height: 20px;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     margin-top: 0; }
     .bp3-callout .bp3-heading:last-child {
       margin-bottom: 0; }
@@ -1333,7 +1333,7 @@ Styleguide callout
       .bp3-dark .bp3-callout.bp3-intent-danger .bp3-heading {
         color: #ff7373; }
   .bp3-running-text .bp3-callout {
-    margin: 20px 0; }
+    margin: 16px 0; }
 
 /* stylelint-disable @blueprintjs/no-color-literal */
 /* stylelint-disable @blueprintjs/no-color-literal */
@@ -1356,9 +1356,9 @@ Styleguide card
 */
 .bp3-card {
   background-color: #ffffff;
-  border-radius: 3px;
+  border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.15), 0 0 0 rgba(16, 22, 26, 0), 0 0 0 rgba(16, 22, 26, 0);
-  padding: 20px;
+  padding: 16px;
   transition: transform 200ms cubic-bezier(0.4, 1, 0.75, 0.9), box-shadow 200ms cubic-bezier(0.4, 1, 0.75, 0.9); }
   .bp3-card.bp3-dark,
   .bp3-dark .bp3-card {
@@ -1432,7 +1432,7 @@ Styleguide card
 .bp3-divider {
   border-bottom: 1px solid rgba(16, 22, 26, 0.15);
   border-right: 1px solid rgba(16, 22, 26, 0.15);
-  margin: 5px; }
+  margin: 4px; }
   .bp3-dark .bp3-divider {
     border-color: rgba(16, 22, 26, 0.4); }
 
@@ -1550,15 +1550,15 @@ Styleguide dialog
 
 .bp3-dialog {
   background: #ebf1f5;
-  border-radius: 6px;
+  border-radius: 4px;
   box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 4px 8px rgba(16, 22, 26, 0.2), 0 18px 46px 6px rgba(16, 22, 26, 0.2);
   display: flex;
   flex-direction: column;
-  margin: 30px 0;
-  padding-bottom: 20px;
+  margin: 24px 0;
+  padding-bottom: 16px;
   pointer-events: all;
   user-select: text;
-  width: 500px; }
+  width: 400px; }
   .bp3-dialog:focus {
     outline: 0; }
   .bp3-dialog.bp3-dark,
@@ -1570,19 +1570,19 @@ Styleguide dialog
 .bp3-dialog-header {
   align-items: center;
   background: #ffffff;
-  border-radius: 6px 6px 0 0;
+  border-radius: 4px 4px 0 0;
   box-shadow: 0 1px 0 rgba(16, 22, 26, 0.15);
   display: flex;
   flex: 0 0 auto;
-  min-height: 40px;
-  padding-left: 20px;
-  padding-right: 5px;
+  min-height: 36px;
+  padding-left: 16px;
+  padding-right: 4px;
   z-index: 0; }
   .bp3-dialog-header .bp3-icon-large,
   .bp3-dialog-header .bp3-icon {
     color: #5c7080;
     flex: 0 0 auto;
-    margin-right: 10px; }
+    margin-right: 8px; }
   .bp3-dialog-header .bp3-heading {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1592,7 +1592,7 @@ Styleguide dialog
     line-height: inherit;
     margin: 0; }
     .bp3-dialog-header .bp3-heading:last-child {
-      margin-right: 20px; }
+      margin-right: 16px; }
   .bp3-dark .bp3-dialog-header {
     background: #30404d;
     box-shadow: 0 1px 0 rgba(16, 22, 26, 0.4); }
@@ -1602,18 +1602,18 @@ Styleguide dialog
 
 .bp3-dialog-body {
   flex: 1 1 auto;
-  line-height: 18px;
-  margin: 20px; }
+  line-height: 14.4px;
+  margin: 16px; }
 
 .bp3-dialog-footer {
   flex: 0 0 auto;
-  margin: 0 20px; }
+  margin: 0 16px; }
 
 .bp3-dialog-footer-actions {
   display: flex;
   justify-content: flex-end; }
   .bp3-dialog-footer-actions .bp3-button {
-    margin-left: 10px; }
+    margin-left: 8px; }
 
 /*
  * Copyright 2021 Palantir Technologies, Inc. All rights reserved.
@@ -1672,9 +1672,9 @@ Format transition class name with all the bits.
 .bp3-multistep-dialog-panels {
   display: flex; }
   .bp3-multistep-dialog-panels:first-child .bp3-dialog-step-container:first-child {
-    border-radius: 6px 0 0 0; }
+    border-radius: 4px 0 0 0; }
   .bp3-multistep-dialog-panels:first-child .bp3-multistep-dialog-right-panel {
-    border-top-right-radius: 6px; }
+    border-top-right-radius: 4px; }
 
 .bp3-multistep-dialog-left-panel {
   display: flex;
@@ -1686,7 +1686,7 @@ Format transition class name with all the bits.
 .bp3-multistep-dialog-right-panel {
   background-color: #f5f8fa;
   border-left: 1px solid rgba(16, 22, 26, 0.15);
-  border-radius: 0 0 6px 0;
+  border-radius: 0 0 4px 0;
   flex: 3;
   min-width: 0; }
   .bp3-dark .bp3-multistep-dialog-right-panel {
@@ -1695,7 +1695,7 @@ Format transition class name with all the bits.
 
 .bp3-multistep-dialog-footer {
   background-color: #ffffff;
-  border-radius: 0 0 6px 0;
+  border-radius: 0 0 4px 0;
   border-top: 1px solid rgba(16, 22, 26, 0.15);
   display: flex;
   justify-content: space-between;
@@ -1720,7 +1720,7 @@ Format transition class name with all the bits.
 .bp3-dialog-step {
   align-items: center;
   background-color: #f5f8fa;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: not-allowed;
   display: flex;
   margin: 4px;
@@ -1981,15 +1981,15 @@ Format transition class name with all the bits.
   box-shadow: 0 1px 0 rgba(16, 22, 26, 0.15);
   display: flex;
   flex: 0 0 auto;
-  min-height: 40px;
-  padding: 5px;
-  padding-left: 20px;
+  min-height: 36px;
+  padding: 4px;
+  padding-left: 16px;
   position: relative; }
   .bp3-drawer-header .bp3-icon-large,
   .bp3-drawer-header .bp3-icon {
     color: #5c7080;
     flex: 0 0 auto;
-    margin-right: 10px; }
+    margin-right: 8px; }
   .bp3-drawer-header .bp3-heading {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1999,7 +1999,7 @@ Format transition class name with all the bits.
     line-height: inherit;
     margin: 0; }
     .bp3-drawer-header .bp3-heading:last-child {
-      margin-right: 20px; }
+      margin-right: 16px; }
   .bp3-dark .bp3-drawer-header {
     box-shadow: 0 1px 0 rgba(16, 22, 26, 0.4); }
     .bp3-dark .bp3-drawer-header .bp3-icon-large,
@@ -2008,13 +2008,13 @@ Format transition class name with all the bits.
 
 .bp3-drawer-body {
   flex: 1 1 auto;
-  line-height: 18px;
+  line-height: 14.4px;
   overflow: auto; }
 
 .bp3-drawer-footer {
   box-shadow: inset 0 1px 0 rgba(16, 22, 26, 0.15);
   flex: 0 0 auto;
-  padding: 10px 20px;
+  padding: 8px 16px;
   position: relative; }
   .bp3-dark .bp3-drawer-footer {
     box-shadow: inset 0 1px 0 rgba(16, 22, 26, 0.4); }
@@ -2060,12 +2060,12 @@ Switches and slider handles both use these variables.
   vertical-align: top;
   white-space: nowrap; }
   .bp3-editable-text::before {
-    bottom: -3px;
-    left: -3px;
+    bottom: -2px;
+    left: -2px;
     position: absolute;
-    right: -3px;
-    top: -3px;
-    border-radius: 3px;
+    right: -2px;
+    top: -2px;
+    border-radius: 2px;
     content: "";
     transition: background-color 100ms cubic-bezier(0.4, 1, 0.75, 0.9), box-shadow 100ms cubic-bezier(0.4, 1, 0.75, 0.9); }
   .bp3-editable-text:hover::before {
@@ -2273,7 +2273,7 @@ Switches and slider handles both use these variables.
 .bp3-divider {
   border-bottom: 1px solid rgba(16, 22, 26, 0.15);
   border-right: 1px solid rgba(16, 22, 26, 0.15);
-  margin: 5px; }
+  margin: 4px; }
   .bp3-dark .bp3-divider {
     border-color: rgba(16, 22, 26, 0.4); }
 
@@ -2396,7 +2396,7 @@ Styleguide control-group
     border-radius: inherit;
     z-index: 2; }
     .bp3-control-group .bp3-input:focus {
-      border-radius: 3px;
+      border-radius: 2px;
       z-index: 14; }
     .bp3-control-group .bp3-input[class*="bp3-intent"] {
       z-index: 13; }
@@ -2473,7 +2473,7 @@ Styleguide control-group
   .bp3-control-group:not(.bp3-vertical) > *:not(.bp3-divider) {
     margin-right: -1px; }
   .bp3-control-group:not(.bp3-vertical) > .bp3-divider:not(:first-child) {
-    margin-left: 6px; }
+    margin-left: 5px; }
   .bp3-dark .bp3-control-group:not(.bp3-vertical) > *:not(.bp3-divider) {
     margin-right: 0; }
   .bp3-dark .bp3-control-group:not(.bp3-vertical) > .bp3-button + .bp3-button {
@@ -2482,15 +2482,15 @@ Styleguide control-group
   .bp3-control-group .bp3-popover-target {
     border-radius: inherit; }
   .bp3-control-group > :first-child {
-    border-radius: 3px 0 0 3px; }
+    border-radius: 2px 0 0 2px; }
   .bp3-control-group > :last-child {
-    border-radius: 0 3px 3px 0;
+    border-radius: 0 2px 2px 0;
     margin-right: 0; }
   .bp3-control-group > :only-child {
-    border-radius: 3px;
+    border-radius: 2px;
     margin-right: 0; }
   .bp3-control-group .bp3-input-group .bp3-button {
-    border-radius: 3px; }
+    border-radius: 2px; }
   .bp3-control-group .bp3-numeric-input:not(:first-child) .bp3-input-group {
     border-bottom-left-radius: 0;
     border-top-left-radius: 0; }
@@ -2505,10 +2505,10 @@ Styleguide control-group
     .bp3-control-group.bp3-vertical > * {
       margin-top: -1px; }
     .bp3-control-group.bp3-vertical > :first-child {
-      border-radius: 3px 3px 0 0;
+      border-radius: 2px 2px 0 0;
       margin-top: 0; }
     .bp3-control-group.bp3-vertical > :last-child {
-      border-radius: 0 0 3px 3px; }
+      border-radius: 0 0 2px 2px; }
 
 /* stylelint-disable @blueprintjs/no-color-literal */
 /* stylelint-disable @blueprintjs/no-color-literal */
@@ -2536,7 +2536,7 @@ Switches and slider handles both use these variables.
 .bp3-control {
   cursor: pointer;
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   position: relative;
   text-transform: none;
   /*
@@ -2644,19 +2644,19 @@ Switches and slider handles both use these variables.
     background: rgba(14, 90, 138, 0.5);
     box-shadow: none; }
   .bp3-control:not(.bp3-align-right) {
-    padding-left: 26px; }
+    padding-left: 24px; }
     .bp3-control:not(.bp3-align-right) .bp3-control-indicator {
-      margin-left: -26px; }
+      margin-left: -24px; }
   .bp3-control.bp3-align-right {
-    padding-right: 26px; }
+    padding-right: 24px; }
     .bp3-control.bp3-align-right .bp3-control-indicator {
-      margin-right: -26px; }
+      margin-right: -24px; }
   .bp3-control.bp3-disabled {
     color: rgba(92, 112, 128, 0.6);
     cursor: not-allowed; }
   .bp3-control.bp3-inline {
     display: inline-block;
-    margin-right: 20px; }
+    margin-right: 16px; }
   .bp3-control input {
     left: 0;
     opacity: 0;
@@ -2673,7 +2673,7 @@ Switches and slider handles both use these variables.
     display: inline-block;
     font-size: 16px;
     height: 1em;
-    margin-right: 10px;
+    margin-right: 8px;
     margin-top: -3px;
     position: relative;
     user-select: none;
@@ -2699,18 +2699,18 @@ Switches and slider handles both use these variables.
     -moz-outline-radius: 6px; }
   .bp3-control.bp3-align-right .bp3-control-indicator {
     float: right;
-    margin-left: 10px;
+    margin-left: 8px;
     margin-top: 1px; }
   .bp3-control.bp3-large {
-    font-size: 16px; }
+    font-size: 12.8px; }
     .bp3-control.bp3-large:not(.bp3-align-right) {
-      padding-left: 30px; }
+      padding-left: 28px; }
       .bp3-control.bp3-large:not(.bp3-align-right) .bp3-control-indicator {
-        margin-left: -30px; }
+        margin-left: -28px; }
     .bp3-control.bp3-large.bp3-align-right {
-      padding-right: 30px; }
+      padding-right: 28px; }
       .bp3-control.bp3-large.bp3-align-right .bp3-control-indicator {
-        margin-right: -30px; }
+        margin-right: -28px; }
     .bp3-control.bp3-large .bp3-control-indicator {
       font-size: 20px; }
     .bp3-control.bp3-large.bp3-align-right .bp3-control-indicator {
@@ -2741,7 +2741,7 @@ Switches and slider handles both use these variables.
     background: rgba(14, 90, 138, 0.5);
     box-shadow: none; }
   .bp3-control.bp3-checkbox .bp3-control-indicator {
-    border-radius: 3px; }
+    border-radius: 2px; }
   .bp3-control.bp3-checkbox input:checked ~ .bp3-control-indicator::before {
     background-image: svg-icon("16px/small-tick.svg", (path: (fill: #ffffff))); }
   .bp3-control.bp3-checkbox input:indeterminate ~ .bp3-control-indicator::before {
@@ -2775,13 +2775,13 @@ Switches and slider handles both use these variables.
     .bp3-control.bp3-switch input:checked:disabled ~ .bp3-control-indicator::before {
       background: rgba(255, 255, 255, 0.8); }
   .bp3-control.bp3-switch:not(.bp3-align-right) {
-    padding-left: 38px; }
+    padding-left: 36px; }
     .bp3-control.bp3-switch:not(.bp3-align-right) .bp3-control-indicator {
-      margin-left: -38px; }
+      margin-left: -36px; }
   .bp3-control.bp3-switch.bp3-align-right {
-    padding-right: 38px; }
+    padding-right: 36px; }
     .bp3-control.bp3-switch.bp3-align-right .bp3-control-indicator {
-      margin-right: -38px; }
+      margin-right: -36px; }
   .bp3-control.bp3-switch .bp3-control-indicator {
     border: none;
     border-radius: 1.75em;
@@ -2803,13 +2803,13 @@ Switches and slider handles both use these variables.
   .bp3-control.bp3-switch input:checked ~ .bp3-control-indicator::before {
     left: calc(100% - 1em); }
   .bp3-control.bp3-switch.bp3-large:not(.bp3-align-right) {
-    padding-left: 45px; }
+    padding-left: 43px; }
     .bp3-control.bp3-switch.bp3-large:not(.bp3-align-right) .bp3-control-indicator {
-      margin-left: -45px; }
+      margin-left: -43px; }
   .bp3-control.bp3-switch.bp3-large.bp3-align-right {
-    padding-right: 45px; }
+    padding-right: 43px; }
     .bp3-control.bp3-switch.bp3-large.bp3-align-right .bp3-control-indicator {
-      margin-right: -45px; }
+      margin-right: -43px; }
   .bp3-dark .bp3-control.bp3-switch input ~ .bp3-control-indicator {
     background: rgba(16, 22, 26, 0.5); }
   .bp3-dark .bp3-control.bp3-switch:hover input ~ .bp3-control-indicator {
@@ -2916,11 +2916,11 @@ Styleguide file-input
 .bp3-file-input {
   cursor: pointer;
   display: inline-block;
-  height: 30px;
+  height: 24px;
   position: relative; }
   .bp3-file-input input {
     margin: 0;
-    min-width: 200px;
+    min-width: 160px;
     opacity: 0; }
     .bp3-file-input input:disabled + .bp3-file-upload-input,
     .bp3-file-input input.bp3-disabled + .bp3-file-upload-input {
@@ -2963,7 +2963,7 @@ Styleguide file-input
     width: 100%; }
   .bp3-file-input.bp3-large,
   .bp3-large .bp3-file-input {
-    height: 40px; }
+    height: 32px; }
   .bp3-file-input .bp3-file-upload-input-custom-text::after {
     content: attr(bp3-button-text); }
 
@@ -2971,15 +2971,15 @@ Styleguide file-input
   appearance: none;
   background: #ffffff;
   border: none;
-  border-radius: 3px;
+  border-radius: 2px;
   box-shadow: 0 0 0 0 rgba(19, 124, 189, 0), 0 0 0 0 rgba(19, 124, 189, 0), inset 0 0 0 1px rgba(16, 22, 26, 0.15), inset 0 1px 1px rgba(16, 22, 26, 0.2);
   color: #182026;
-  font-size: 14px;
+  font-size: 11.2px;
   font-weight: 400;
-  height: 30px;
-  line-height: 30px;
+  height: 24px;
+  line-height: 24px;
   outline: none;
-  padding: 0 10px;
+  padding: 0 8px;
   transition: box-shadow 100ms cubic-bezier(0.4, 1, 0.75, 0.9);
   vertical-align: middle;
   overflow: hidden;
@@ -2988,7 +2988,7 @@ Styleguide file-input
   word-wrap: normal;
   color: rgba(92, 112, 128, 0.6);
   left: 0;
-  padding-right: 80px;
+  padding-right: 64px;
   position: absolute;
   right: 0;
   top: 0;
@@ -2999,9 +2999,9 @@ Styleguide file-input
   .bp3-file-upload-input:focus, .bp3-file-upload-input.bp3-active {
     box-shadow: 0 0 0 1px #137cbd, 0 0 0 3px rgba(19, 124, 189, 0.3), inset 0 1px 1px rgba(16, 22, 26, 0.2); }
   .bp3-file-upload-input[type="search"], .bp3-file-upload-input.bp3-round {
-    border-radius: 30px;
+    border-radius: 24px;
     box-sizing: border-box;
-    padding-left: 10px; }
+    padding-left: 8px; }
   .bp3-file-upload-input[readonly] {
     box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.15); }
   .bp3-file-upload-input:disabled, .bp3-file-upload-input.bp3-disabled {
@@ -3015,21 +3015,21 @@ Styleguide file-input
     background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
     box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2), inset 0 -1px 0 rgba(16, 22, 26, 0.1);
     color: #182026;
-    min-height: 24px;
-    min-width: 24px;
+    min-height: 19.2px;
+    min-width: 19.2px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     word-wrap: normal;
-    border-radius: 3px;
+    border-radius: 2px;
     content: "Browse";
-    line-height: 24px;
-    margin: 3px;
+    line-height: 19.2px;
+    margin: 2.4px;
     position: absolute;
     right: 0;
     text-align: center;
     top: 0;
-    width: 70px; }
+    width: 56px; }
     .bp3-file-upload-input::after:hover {
       background-clip: padding-box;
       background-color: #ebf1f5;
@@ -3056,18 +3056,18 @@ Styleguide file-input
     background-image: none;
     box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2), inset 0 1px 2px rgba(16, 22, 26, 0.2); }
   .bp3-large .bp3-file-upload-input {
-    font-size: 16px;
-    height: 40px;
-    line-height: 40px;
-    padding-right: 95px; }
+    font-size: 12.8px;
+    height: 32px;
+    line-height: 32px;
+    padding-right: 76px; }
     .bp3-large .bp3-file-upload-input[type="search"], .bp3-large .bp3-file-upload-input.bp3-round {
-      padding: 0 15px; }
+      padding: 0 12px; }
     .bp3-large .bp3-file-upload-input::after {
-      min-height: 30px;
-      min-width: 30px;
-      line-height: 30px;
-      margin: 5px;
-      width: 85px; }
+      min-height: 24px;
+      min-width: 24px;
+      line-height: 24px;
+      margin: 4px;
+      width: 68px; }
   .bp3-dark .bp3-file-upload-input {
     background: rgba(16, 22, 26, 0.3);
     box-shadow: 0 0 0 0 rgba(19, 124, 189, 0), 0 0 0 0 rgba(19, 124, 189, 0), 0 0 0 0 rgba(19, 124, 189, 0), inset 0 0 0 1px rgba(16, 22, 26, 0.3), inset 0 1px 1px rgba(16, 22, 26, 0.4);
@@ -3182,20 +3182,20 @@ Styleguide form-group
 .bp3-form-group {
   display: flex;
   flex-direction: column;
-  margin: 0 0 15px;
+  margin: 0 0 12px;
   /* stylelint-disable-next-line order/declaration-block-order */ }
   .bp3-form-group label.bp3-label {
-    margin-bottom: 5px; }
+    margin-bottom: 4px; }
   .bp3-form-group .bp3-control {
-    margin-top: 7px; }
+    margin-top: 4px; }
   .bp3-form-group .bp3-form-group-sub-label,
   .bp3-form-group .bp3-form-helper-text {
     color: #5c7080;
-    font-size: 12px; }
+    font-size: 9.6px; }
   .bp3-form-group .bp3-form-group-sub-label {
-    margin-bottom: 5px; }
+    margin-bottom: 4px; }
   .bp3-form-group .bp3-form-helper-text {
-    margin-top: 5px; }
+    margin-top: 4px; }
   .bp3-form-group.bp3-intent-primary .bp3-form-group-sub-label,
   .bp3-form-group.bp3-intent-primary .bp3-form-helper-text {
     color: #106ba3; }
@@ -3212,11 +3212,11 @@ Styleguide form-group
     align-items: flex-start;
     flex-direction: row; }
     .bp3-form-group.bp3-inline.bp3-large label.bp3-label {
-      line-height: 40px;
-      margin: 0 10px 0 0; }
+      line-height: 32px;
+      margin: 0 8px 0 0; }
     .bp3-form-group.bp3-inline label.bp3-label {
-      line-height: 30px;
-      margin: 0 10px 0 0; }
+      line-height: 24px;
+      margin: 0 8px 0 0; }
   .bp3-form-group.bp3-disabled .bp3-label,
   .bp3-form-group.bp3-disabled .bp3-text-muted,
   .bp3-form-group.bp3-disabled .bp3-form-group-sub-label,
@@ -3300,9 +3300,9 @@ Styleguide input-group
     position: relative;
     width: 100%; }
     .bp3-input-group .bp3-input:not(:first-child) {
-      padding-left: 30px; }
+      padding-left: 24px; }
     .bp3-input-group .bp3-input:not(:last-child) {
-      padding-right: 30px; }
+      padding-right: 24px; }
   .bp3-input-group .bp3-input-action,
   .bp3-input-group > .bp3-input-left-container,
   .bp3-input-group > .bp3-button,
@@ -3320,10 +3320,10 @@ Styleguide input-group
     .bp3-input-group > .bp3-icon:last-child {
       right: 0; }
   .bp3-input-group .bp3-button {
-    min-height: 24px;
-    min-width: 24px;
-    margin: 3px;
-    padding: 0 7px; }
+    min-height: 19.2px;
+    min-width: 19.2px;
+    margin: 2.4px;
+    padding: 0 5.6px; }
     .bp3-input-group .bp3-button:empty {
       padding: 0; }
   .bp3-input-group > .bp3-input-left-container,
@@ -3344,9 +3344,9 @@ Styleguide input-group
   .bp3-input-group > .bp3-input-left-container > .bp3-icon,
   .bp3-input-group > .bp3-icon,
   .bp3-input-group .bp3-input-action > .bp3-spinner {
-    margin: 7px; }
+    margin: 4px; }
   .bp3-input-group .bp3-tag {
-    margin: 5px; }
+    margin: 4px; }
   .bp3-input-group .bp3-input:not(:focus) + .bp3-button.bp3-minimal:not(:hover):not(:focus),
   .bp3-input-group .bp3-input:not(:focus) + .bp3-input-action .bp3-button.bp3-minimal:not(:hover):not(:focus) {
     color: #5c7080;
@@ -3373,54 +3373,54 @@ Styleguide input-group
     .bp3-input-group.bp3-disabled .bp3-icon {
       color: rgba(92, 112, 128, 0.6); }
   .bp3-input-group.bp3-large .bp3-button {
-    min-height: 30px;
-    min-width: 30px;
-    margin: 5px; }
+    min-height: 24px;
+    min-width: 24px;
+    margin: 4px; }
   .bp3-input-group.bp3-large > .bp3-input-left-container > .bp3-icon,
   .bp3-input-group.bp3-large > .bp3-icon,
   .bp3-input-group.bp3-large .bp3-input-action > .bp3-spinner {
-    margin: 12px; }
+    margin: 8px; }
   .bp3-input-group.bp3-large .bp3-input {
-    font-size: 16px;
-    height: 40px;
-    line-height: 40px; }
+    font-size: 12.8px;
+    height: 32px;
+    line-height: 32px; }
     .bp3-input-group.bp3-large .bp3-input[type="search"], .bp3-input-group.bp3-large .bp3-input.bp3-round {
-      padding: 0 15px; }
+      padding: 0 12px; }
     .bp3-input-group.bp3-large .bp3-input:not(:first-child) {
-      padding-left: 40px; }
+      padding-left: 32px; }
     .bp3-input-group.bp3-large .bp3-input:not(:last-child) {
-      padding-right: 40px; }
+      padding-right: 32px; }
   .bp3-input-group.bp3-small .bp3-button {
-    min-height: 20px;
-    min-width: 20px;
-    margin: 2px; }
+    min-height: 16px;
+    min-width: 16px;
+    margin: 1.6px; }
   .bp3-input-group.bp3-small .bp3-tag {
-    min-height: 20px;
-    min-width: 20px;
-    margin: 2px; }
+    min-height: 16px;
+    min-width: 16px;
+    margin: 1.6px; }
   .bp3-input-group.bp3-small > .bp3-input-left-container > .bp3-icon,
   .bp3-input-group.bp3-small > .bp3-icon,
   .bp3-input-group.bp3-small .bp3-input-action > .bp3-spinner {
-    margin: 4px; }
+    margin: 1.6px; }
   .bp3-input-group.bp3-small .bp3-input {
-    font-size: 12px;
-    height: 24px;
-    line-height: 24px;
-    padding-left: 8px;
-    padding-right: 8px; }
+    font-size: 9.6px;
+    height: 19.2px;
+    line-height: 19.2px;
+    padding-left: 3.2px;
+    padding-right: 3.2px; }
     .bp3-input-group.bp3-small .bp3-input[type="search"], .bp3-input-group.bp3-small .bp3-input.bp3-round {
-      padding: 0 12px; }
+      padding: 0 4.8px; }
     .bp3-input-group.bp3-small .bp3-input:not(:first-child) {
-      padding-left: 24px; }
+      padding-left: 19.2px; }
     .bp3-input-group.bp3-small .bp3-input:not(:last-child) {
-      padding-right: 24px; }
+      padding-right: 19.2px; }
   .bp3-input-group.bp3-fill {
     flex: 1 1 auto;
     width: 100%; }
   .bp3-input-group.bp3-round .bp3-button,
   .bp3-input-group.bp3-round .bp3-input,
   .bp3-input-group.bp3-round .bp3-tag {
-    border-radius: 30px; }
+    border-radius: 24px; }
   .bp3-dark .bp3-input-group .bp3-icon {
     color: #a7b6c2; }
   .bp3-dark .bp3-input-group.bp3-disabled .bp3-icon {
@@ -3499,15 +3499,15 @@ Styleguide input
   appearance: none;
   background: #ffffff;
   border: none;
-  border-radius: 3px;
+  border-radius: 2px;
   box-shadow: 0 0 0 0 rgba(19, 124, 189, 0), 0 0 0 0 rgba(19, 124, 189, 0), inset 0 0 0 1px rgba(16, 22, 26, 0.15), inset 0 1px 1px rgba(16, 22, 26, 0.2);
   color: #182026;
-  font-size: 14px;
+  font-size: 11.2px;
   font-weight: 400;
-  height: 30px;
-  line-height: 30px;
+  height: 24px;
+  line-height: 24px;
   outline: none;
-  padding: 0 10px;
+  padding: 0 8px;
   transition: box-shadow 100ms cubic-bezier(0.4, 1, 0.75, 0.9);
   vertical-align: middle; }
   .bp3-input::placeholder {
@@ -3516,9 +3516,9 @@ Styleguide input
   .bp3-input:focus, .bp3-input.bp3-active {
     box-shadow: 0 0 0 1px #137cbd, 0 0 0 3px rgba(19, 124, 189, 0.3), inset 0 1px 1px rgba(16, 22, 26, 0.2); }
   .bp3-input[type="search"], .bp3-input.bp3-round {
-    border-radius: 30px;
+    border-radius: 24px;
     box-sizing: border-box;
-    padding-left: 10px; }
+    padding-left: 8px; }
   .bp3-input[readonly] {
     box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.15); }
   .bp3-input:disabled, .bp3-input.bp3-disabled {
@@ -3528,19 +3528,19 @@ Styleguide input
     cursor: not-allowed;
     resize: none; }
   .bp3-input.bp3-large {
-    font-size: 16px;
-    height: 40px;
-    line-height: 40px; }
+    font-size: 12.8px;
+    height: 32px;
+    line-height: 32px; }
     .bp3-input.bp3-large[type="search"], .bp3-input.bp3-large.bp3-round {
-      padding: 0 15px; }
-  .bp3-input.bp3-small {
-    font-size: 12px;
-    height: 24px;
-    line-height: 24px;
-    padding-left: 8px;
-    padding-right: 8px; }
-    .bp3-input.bp3-small[type="search"], .bp3-input.bp3-small.bp3-round {
       padding: 0 12px; }
+  .bp3-input.bp3-small {
+    font-size: 9.6px;
+    height: 19.2px;
+    line-height: 19.2px;
+    padding-left: 3.2px;
+    padding-right: 3.2px; }
+    .bp3-input.bp3-small[type="search"], .bp3-input.bp3-small.bp3-round {
+      padding: 0 4.8px; }
   .bp3-input.bp3-fill {
     flex: 1 1 auto;
     width: 100%; }
@@ -3659,12 +3659,12 @@ Styleguide textarea
 /* stylelint-disable-next-line selector-no-qualifying-type */
 textarea.bp3-input {
   max-width: 100%;
-  padding: 10px; }
+  padding: 8px; }
   textarea.bp3-input, textarea.bp3-input.bp3-large, textarea.bp3-input.bp3-small {
     height: auto;
     line-height: inherit; }
   textarea.bp3-input.bp3-small {
-    padding: 8px; }
+    padding: 3.2px; }
   .bp3-dark textarea.bp3-input {
     background: rgba(16, 22, 26, 0.3);
     box-shadow: 0 0 0 0 rgba(19, 124, 189, 0), 0 0 0 0 rgba(19, 124, 189, 0), 0 0 0 0 rgba(19, 124, 189, 0), inset 0 0 0 1px rgba(16, 22, 26, 0.3), inset 0 1px 1px rgba(16, 22, 26, 0.4);
@@ -3718,7 +3718,7 @@ Styleguide label
 */
 label.bp3-label {
   display: block;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   margin-top: 0; }
   label.bp3-label .bp3-html-select,
   label.bp3-label .bp3-input,
@@ -3726,10 +3726,10 @@ label.bp3-label {
   label.bp3-label .bp3-slider,
   label.bp3-label .bp3-popover-wrapper {
     display: block;
-    margin-top: 5px;
+    margin-top: 4px;
     text-transform: none; }
   label.bp3-label .bp3-button-group {
-    margin-top: 5px; }
+    margin-top: 4px; }
   label.bp3-label .bp3-select select,
   label.bp3-label .bp3-html-select select {
     font-weight: 400;
@@ -3739,21 +3739,21 @@ label.bp3-label {
   label.bp3-label.bp3-disabled .bp3-text-muted {
     color: rgba(92, 112, 128, 0.6); }
   label.bp3-label.bp3-inline {
-    line-height: 30px; }
+    line-height: 24px; }
     label.bp3-label.bp3-inline .bp3-html-select,
     label.bp3-label.bp3-inline .bp3-input,
     label.bp3-label.bp3-inline .bp3-input-group,
     label.bp3-label.bp3-inline .bp3-select,
     label.bp3-label.bp3-inline .bp3-popover-wrapper {
       display: inline-block;
-      margin: 0 0 0 5px;
+      margin: 0 0 0 4px;
       vertical-align: top; }
     label.bp3-label.bp3-inline .bp3-button-group {
-      margin: 0 0 0 5px; }
+      margin: 0 0 0 4px; }
     label.bp3-label.bp3-inline .bp3-input-group .bp3-input {
       margin-left: 0; }
     label.bp3-label.bp3-inline.bp3-large {
-      line-height: 40px; }
+      line-height: 32px; }
   label.bp3-label:not(.bp3-inline) .bp3-popover-target {
     display: block; }
   .bp3-dark label.bp3-label {
@@ -3796,23 +3796,23 @@ shadows blend with the colors beneath it.
 Switches and slider handles both use these variables.
 */
 .bp3-numeric-input .bp3-button-group.bp3-vertical > .bp3-button {
-  flex: 1 1 14px;
+  flex: 1 1 11px;
   min-height: 0;
   padding: 0;
-  width: 30px; }
+  width: 24px; }
   .bp3-numeric-input .bp3-button-group.bp3-vertical > .bp3-button:first-child {
-    border-radius: 0 3px 0 0; }
+    border-radius: 0 2px 0 0; }
   .bp3-numeric-input .bp3-button-group.bp3-vertical > .bp3-button:last-child {
-    border-radius: 0 0 3px 0; }
+    border-radius: 0 0 2px 0; }
 
 .bp3-numeric-input .bp3-button-group.bp3-vertical:first-child > .bp3-button:first-child {
-  border-radius: 3px 0 0 0; }
+  border-radius: 2px 0 0 0; }
 
 .bp3-numeric-input .bp3-button-group.bp3-vertical:first-child > .bp3-button:last-child {
-  border-radius: 0 0 0 3px; }
+  border-radius: 0 0 0 2px; }
 
 .bp3-numeric-input.bp3-large .bp3-button-group.bp3-vertical > .bp3-button {
-  width: 40px; }
+  width: 32px; }
 
 form {
   display: block; }
@@ -3900,11 +3900,11 @@ Switches and slider handles both use these variables.
   flex-direction: row;
   align-items: center;
   border: none;
-  border-radius: 3px;
+  border-radius: 2px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 11.2px;
   justify-content: center;
-  padding: 5px 10px;
+  padding: 4px 8px;
   text-align: left;
   vertical-align: middle;
   background-color: #f5f8fa;
@@ -3914,9 +3914,9 @@ Switches and slider handles both use these variables.
   /* stylelint-disable property-no-vendor-prefix */
   -moz-appearance: none;
   -webkit-appearance: none;
-  border-radius: 3px;
-  height: 30px;
-  padding: 0 25px 0 10px;
+  border-radius: 2px;
+  height: 24px;
+  padding: 0 20px 0 8px;
   width: 100%;
   /* stylelint-enable property-no-vendor-prefix */ }
   .bp3-html-select select > *, .bp3-select select > * {
@@ -3927,7 +3927,7 @@ Switches and slider handles both use these variables.
     flex-shrink: 1; }
   .bp3-html-select select::before,
   .bp3-select select::before, .bp3-html-select select > *, .bp3-select select > * {
-    margin-right: 7px; }
+    margin-right: 4px; }
   .bp3-html-select select:empty::before,
   .bp3-select select:empty::before,
   .bp3-html-select select > :last-child,
@@ -4230,9 +4230,9 @@ Switches and slider handles both use these variables.
 
 .bp3-html-select.bp3-large select,
 .bp3-select.bp3-large select {
-  font-size: 16px;
-  height: 40px;
-  padding-right: 35px; }
+  font-size: 12.8px;
+  height: 32px;
+  padding-right: 28px; }
 
 .bp3-dark .bp3-html-select select, .bp3-dark .bp3-select select {
   background-color: #394b59;
@@ -4271,8 +4271,8 @@ Switches and slider handles both use these variables.
   color: #5c7080;
   pointer-events: none;
   position: absolute;
-  right: 7px;
-  top: 7px; }
+  right: 5.6px;
+  top: 4px; }
   .bp3-html-select .bp3-disabled.bp3-icon,
   .bp3-select .bp3-disabled.bp3-icon, .bp3-disabled.bp3-select::after {
     color: rgba(92, 112, 128, 0.6); }
@@ -4324,8 +4324,8 @@ Styleguide select
   .bp3-html-select.bp3-large .bp3-icon,
   .bp3-select.bp3-large::after,
   .bp3-select.bp3-large .bp3-icon {
-    right: 12px;
-    top: 12px; }
+    right: 9.6px;
+    top: 8px; }
   .bp3-html-select.bp3-fill,
   .bp3-html-select.bp3-fill select,
   .bp3-select.bp3-fill,
@@ -4405,12 +4405,12 @@ Styleguide html-table
 */
 table.bp3-html-table {
   border-spacing: 0;
-  font-size: 14px;
+  font-size: 11.2px;
   /* stylelint-disable selector-max-compound-selectors */
   /* stylelint-enable selector-max-compound-selectors */ }
   table.bp3-html-table th,
   table.bp3-html-table td {
-    padding: 11px;
+    padding: 9px;
     text-align: left;
     vertical-align: top; }
   table.bp3-html-table th {
@@ -4437,8 +4437,8 @@ table.bp3-html-table {
 table.bp3-html-table.bp3-html-table-condensed th,
 table.bp3-html-table.bp3-html-table-condensed td, table.bp3-html-table.bp3-small th,
 table.bp3-html-table.bp3-small td {
-  padding-bottom: 6px;
-  padding-top: 6px; }
+  padding-bottom: 5px;
+  padding-top: 5px; }
 
 table.bp3-html-table.bp3-html-table-striped tbody tr:nth-child(odd) td {
   background: rgba(191, 204, 214, 0.15); }
@@ -4504,14 +4504,14 @@ table.bp3-html-table.bp3-interactive tbody tr:active td {
     flex-shrink: 1; }
   .bp3-key-combo::before,
   .bp3-key-combo > * {
-    margin-right: 5px; }
+    margin-right: 4px; }
   .bp3-key-combo:empty::before,
   .bp3-key-combo > :last-child {
     margin-right: 0; }
 
 .bp3-hotkey-dialog {
   padding-bottom: 0;
-  top: 40px; }
+  top: 32px; }
   .bp3-hotkey-dialog .bp3-dialog-body {
     margin: 0;
     padding: 0; }
@@ -4522,11 +4522,11 @@ table.bp3-html-table.bp3-interactive tbody tr:active td {
   margin: auto;
   max-height: 80vh;
   overflow-y: auto;
-  padding: 30px; }
+  padding: 24px; }
   .bp3-hotkey-column .bp3-heading {
-    margin-bottom: 20px; }
+    margin-bottom: 16px; }
     .bp3-hotkey-column .bp3-heading:not(:first-child) {
-      margin-top: 40px; }
+      margin-top: 32px; }
 
 .bp3-hotkey {
   align-items: center;
@@ -4535,7 +4535,7 @@ table.bp3-html-table.bp3-interactive tbody tr:active td {
   margin-left: 0;
   margin-right: 0; }
   .bp3-hotkey:not(:last-child) {
-    margin-bottom: 10px; }
+    margin-bottom: 8px; }
 
 /*
  * Copyright 2021 Palantir Technologies, Inc. All rights reserved.
@@ -6101,7 +6101,7 @@ span.bp3-icon:empty {
 
 .bp3-submenu.bp3-popover {
   box-shadow: none;
-  padding: 0 5px; }
+  padding: 0 4px; }
   .bp3-submenu.bp3-popover > .bp3-popover-content {
     box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 2px 4px rgba(16, 22, 26, 0.2), 0 8px 24px rgba(16, 22, 26, 0.2); }
   .bp3-dark .bp3-submenu.bp3-popover, .bp3-submenu.bp3-popover.bp3-dark {
@@ -6135,18 +6135,18 @@ Styleguide menu
 */
 .bp3-menu {
   background: #ffffff;
-  border-radius: 3px;
+  border-radius: 2px;
   color: #182026;
   list-style: none;
   margin: 0;
-  min-width: 180px;
-  padding: 5px;
+  min-width: 144px;
+  padding: 4px;
   text-align: left; }
 
 .bp3-menu-divider {
   border-top: 1px solid rgba(16, 22, 26, 0.15);
   display: block;
-  margin: 5px; }
+  margin: 4px; }
   .bp3-dark .bp3-menu-divider {
     border-top-color: rgba(255, 255, 255, 0.15); }
 
@@ -6154,10 +6154,10 @@ Styleguide menu
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  border-radius: 2px;
+  border-radius: 1px;
   color: inherit;
-  line-height: 20px;
-  padding: 5px 7px;
+  line-height: 16px;
+  padding: 4px 4px;
   text-decoration: none;
   user-select: none;
   /* stylelint-disable declaration-no-important */
@@ -6170,7 +6170,7 @@ Styleguide menu
     flex-shrink: 1; }
   .bp3-menu-item::before,
   .bp3-menu-item > * {
-    margin-right: 7px; }
+    margin-right: 4px; }
   .bp3-menu-item:empty::before,
   .bp3-menu-item > :last-child {
     margin-right: 0; }
@@ -6268,11 +6268,11 @@ Styleguide menu
     line-height: 1;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
-    margin-right: 7px; }
+    margin-right: 4px; }
   .bp3-menu-item::before,
   .bp3-menu-item > .bp3-icon {
     color: #5c7080;
-    margin-top: 2px; }
+    margin-top: 0px; }
   .bp3-menu-item .bp3-menu-item-label {
     color: #5c7080; }
   .bp3-menu-item:hover, .bp3-submenu .bp3-popover-target.bp3-popover-open > .bp3-menu-item {
@@ -6289,11 +6289,11 @@ Styleguide menu
     .bp3-menu-item.bp3-disabled .bp3-menu-item-label {
       color: rgba(92, 112, 128, 0.6) !important; }
   .bp3-large .bp3-menu-item {
-    font-size: 16px;
-    line-height: 22px;
-    padding: 9px 7px; }
+    font-size: 12.8px;
+    line-height: 18px;
+    padding: 7px 4px; }
     .bp3-large .bp3-menu-item .bp3-icon {
-      margin-top: 3px; }
+      margin-top: 1px; }
     .bp3-large .bp3-menu-item::before {
       font-family: "Icons20", sans-serif;
       font-size: 20px;
@@ -6302,8 +6302,8 @@ Styleguide menu
       line-height: 1;
       -moz-osx-font-smoothing: grayscale;
       -webkit-font-smoothing: antialiased;
-      margin-right: 10px;
-      margin-top: 1px; }
+      margin-right: 6px;
+      margin-top: -1px; }
 
 button.bp3-menu-item {
   background: none;
@@ -6331,9 +6331,9 @@ Styleguide menu-header
 .bp3-menu-header {
   border-top: 1px solid rgba(16, 22, 26, 0.15);
   display: block;
-  margin: 5px;
+  margin: 4px;
   cursor: default;
-  padding-left: 2px; }
+  padding-left: 0px; }
   .bp3-dark .bp3-menu-header {
     border-top-color: rgba(255, 255, 255, 0.15); }
   .bp3-menu-header:first-of-type {
@@ -6347,15 +6347,15 @@ Styleguide menu-header
     word-wrap: normal;
     line-height: 17px;
     margin: 0;
-    padding: 10px 7px 0 1px; }
+    padding: 8px 4px 0 1px; }
     .bp3-dark .bp3-menu-header > h6 {
       color: #f5f8fa; }
   .bp3-menu-header:first-of-type > h6 {
     padding-top: 0; }
   .bp3-large .bp3-menu-header > h6 {
-    font-size: 18px;
-    padding-bottom: 5px;
-    padding-top: 15px; }
+    font-size: 14.4px;
+    padding-bottom: 4px;
+    padding-top: 12px; }
   .bp3-large .bp3-menu-header:first-of-type > h6 {
     padding-top: 0; }
 
@@ -6460,7 +6460,7 @@ Styleguide menu-header
   color: #f5f8fa; }
 
 .bp3-label .bp3-menu {
-  margin-top: 5px; }
+  margin-top: 4px; }
 
 /* stylelint-disable @blueprintjs/no-color-literal */
 /* stylelint-disable @blueprintjs/no-color-literal */
@@ -6490,8 +6490,8 @@ Styleguide navbar
 .bp3-navbar {
   background-color: #ffffff;
   box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 0 0 rgba(16, 22, 26, 0), 0 1px 1px rgba(16, 22, 26, 0.2);
-  height: 50px;
-  padding: 0 15px;
+  height: 40px;
+  padding: 0 12px;
   position: relative;
   width: 100%;
   z-index: 10; }
@@ -6509,13 +6509,13 @@ Styleguide navbar
     top: 0; }
 
 .bp3-navbar-heading {
-  font-size: 16px;
-  margin-right: 15px; }
+  font-size: 12.8px;
+  margin-right: 12px; }
 
 .bp3-navbar-group {
   align-items: center;
   display: flex;
-  height: 50px; }
+  height: 40px; }
   .bp3-navbar-group.bp3-align-left {
     float: left; }
   .bp3-navbar-group.bp3-align-right {
@@ -6523,8 +6523,8 @@ Styleguide navbar
 
 .bp3-navbar-divider {
   border-left: 1px solid rgba(16, 22, 26, 0.15);
-  height: 20px;
-  margin: 0 10px; }
+  height: 16px;
+  margin: 0 8px; }
   .bp3-dark .bp3-navbar-divider {
     border-left-color: rgba(255, 255, 255, 0.15); }
 
@@ -6584,12 +6584,12 @@ Styleguide non-ideal-state
     flex-shrink: 1; }
   .bp3-non-ideal-state::before,
   .bp3-non-ideal-state > * {
-    margin-bottom: 20px; }
+    margin-bottom: 16px; }
   .bp3-non-ideal-state:empty::before,
   .bp3-non-ideal-state > :last-child {
     margin-bottom: 0; }
   .bp3-non-ideal-state > * {
-    max-width: 400px; }
+    max-width: 320px; }
 
 .bp3-non-ideal-state-visual {
   color: rgba(92, 112, 128, 0.6);
@@ -6726,7 +6726,7 @@ Format transition class name with all the bits.
   box-shadow: 0 1px rgba(16, 22, 26, 0.15);
   display: flex;
   flex-shrink: 0;
-  height: 30px;
+  height: 24px;
   z-index: 1; }
   .bp3-dark .bp3-panel-stack-header {
     box-shadow: 0 1px rgba(255, 255, 255, 0.15); }
@@ -6735,10 +6735,10 @@ Format transition class name with all the bits.
     display: flex;
     flex: 1; }
   .bp3-panel-stack-header .bp3-heading {
-    margin: 0 5px; }
+    margin: 0 4px; }
 
 .bp3-button.bp3-panel-stack-header-back {
-  margin-left: 5px;
+  margin-left: 4px;
   padding-left: 0;
   white-space: nowrap; }
   .bp3-button.bp3-panel-stack-header-back .bp3-icon {
@@ -6863,7 +6863,7 @@ Format transition class name with all the bits.
   box-shadow: 0 1px rgba(16, 22, 26, 0.15);
   display: flex;
   flex-shrink: 0;
-  height: 30px;
+  height: 24px;
   z-index: 1; }
   .bp3-dark .bp3-panel-stack2-header {
     box-shadow: 0 1px rgba(255, 255, 255, 0.15); }
@@ -6872,10 +6872,10 @@ Format transition class name with all the bits.
     display: flex;
     flex: 1; }
   .bp3-panel-stack2-header .bp3-heading {
-    margin: 0 5px; }
+    margin: 0 4px; }
 
 .bp3-button.bp3-panel-stack2-header-back {
-  margin-left: 5px;
+  margin-left: 4px;
   padding-left: 0;
   white-space: nowrap; }
   .bp3-button.bp3-panel-stack2-header-back .bp3-icon {
@@ -6998,7 +6998,7 @@ Format transition class name with all the bits.
   /* stylelint-disable-next-line max-line-length */
   box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 2px 4px rgba(16, 22, 26, 0.2), 0 8px 24px rgba(16, 22, 26, 0.2);
   transform: scale(1);
-  border-radius: 3px;
+  border-radius: 2px;
   display: inline-block;
   z-index: 20; }
   .bp3-popover .bp3-popover-arrow {
@@ -7096,13 +7096,13 @@ Format transition class name with all the bits.
     transition-property: transform;
     transition-timing-function: cubic-bezier(0.54, 1.12, 0.38, 1.11); }
   .bp3-popover .bp3-popover-content {
-    border-radius: 3px;
+    border-radius: 2px;
     position: relative; }
   .bp3-popover.bp3-popover-content-sizing .bp3-popover-content {
-    max-width: 350px;
-    padding: 20px; }
+    max-width: 280px;
+    padding: 16px; }
   .bp3-popover-target + .bp3-overlay .bp3-popover.bp3-popover-content-sizing {
-    width: 350px; }
+    width: 280px; }
   .bp3-popover.bp3-minimal {
     margin: 0 !important;
     /* stylelint-disable-line declaration-no-important */ }
@@ -7149,7 +7149,7 @@ Format transition class name with all the bits.
       fill: #30404d; }
 
 .bp3-popover-arrow::before {
-  border-radius: 2px;
+  border-radius: 1px;
   content: "";
   display: block;
   position: absolute;
@@ -7230,21 +7230,21 @@ Styleguide progress-bar
   from {
     background-position: 0 0; }
   to {
-    background-position: 30px 0; } }
+    background-position: 24px 0; } }
 
 .bp3-progress-bar {
   background: rgba(92, 112, 128, 0.2);
-  border-radius: 40px;
+  border-radius: 32px;
   display: block;
-  height: 8px;
+  height: 6px;
   overflow: hidden;
   position: relative;
   width: 100%; }
   .bp3-progress-bar .bp3-progress-meter {
     background: linear-gradient(-45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%);
     background-color: rgba(92, 112, 128, 0.8);
-    background-size: 30px 30px;
-    border-radius: 40px;
+    background-size: 24px 24px;
+    border-radius: 32px;
     height: 100%;
     position: absolute;
     transition: width 200ms cubic-bezier(0.4, 1, 0.75, 0.9);
@@ -7348,8 +7348,8 @@ shadows blend with the colors beneath it.
 Switches and slider handles both use these variables.
 */
 .bp3-slider {
-  height: 40px;
-  min-width: 150px;
+  height: 32px;
+  min-width: 120px;
   width: 100%;
   cursor: default;
   outline: none;
@@ -7367,14 +7367,14 @@ Switches and slider handles both use these variables.
 
 .bp3-slider-track,
 .bp3-slider-progress {
-  height: 6px;
+  height: 8px;
   left: 0;
   right: 0;
-  top: 5px;
+  top: 4px;
   position: absolute; }
 
 .bp3-slider-track {
-  border-radius: 3px;
+  border-radius: 2px;
   overflow: hidden; }
 
 .bp3-slider-progress {
@@ -7395,7 +7395,7 @@ Switches and slider handles both use these variables.
   background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
   box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2), inset 0 -1px 0 rgba(16, 22, 26, 0.1);
   color: #182026;
-  border-radius: 3px;
+  border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.2), 0 1px 1px rgba(16, 22, 26, 0.2);
   cursor: pointer;
   height: 16px;
@@ -7473,7 +7473,7 @@ Switches and slider handles both use these variables.
     box-shadow: none; }
   .bp3-slider-handle .bp3-slider-label {
     background: #394b59;
-    border-radius: 3px;
+    border-radius: 2px;
     box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 2px 4px rgba(16, 22, 26, 0.2), 0 8px 24px rgba(16, 22, 26, 0.2);
     color: #f5f8fa;
     margin-left: 8px; }
@@ -7498,23 +7498,23 @@ Switches and slider handles both use these variables.
 .bp3-slider-label {
   transform: translate(-50%, 20px);
   display: inline-block;
-  font-size: 12px;
+  font-size: 9.6px;
   line-height: 1;
-  padding: 2px 5px;
+  padding: 1.6px 4px;
   position: absolute;
   vertical-align: top; }
 
 .bp3-slider.bp3-vertical {
-  height: 150px;
-  min-width: 40px;
-  width: 40px; }
+  height: 120px;
+  min-width: 32px;
+  width: 32px; }
   .bp3-slider.bp3-vertical .bp3-slider-track,
   .bp3-slider.bp3-vertical .bp3-slider-progress {
     bottom: 0;
     height: auto;
-    left: 5px;
+    left: 4px;
     top: 0;
-    width: 6px; }
+    width: 8px; }
   .bp3-slider.bp3-vertical .bp3-slider-progress {
     top: auto; }
   .bp3-slider.bp3-vertical .bp3-slider-label {
@@ -7529,14 +7529,14 @@ Switches and slider handles both use these variables.
       margin-left: 0;
       width: 16px; }
     .bp3-slider.bp3-vertical .bp3-slider-handle.bp3-start {
-      border-bottom-right-radius: 3px;
+      border-bottom-right-radius: 2px;
       border-top-left-radius: 0; }
       .bp3-slider.bp3-vertical .bp3-slider-handle.bp3-start .bp3-slider-label {
         transform: translate(20px); }
     .bp3-slider.bp3-vertical .bp3-slider-handle.bp3-end {
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
-      border-top-left-radius: 3px;
+      border-top-left-radius: 2px;
       margin-bottom: 8px; }
 
 /* stylelint-disable @blueprintjs/no-color-literal */
@@ -7618,15 +7618,15 @@ Styleguide tabs
     align-items: flex-start;
     flex-direction: column; }
     .bp3-tabs.bp3-vertical > .bp3-tab-list .bp3-tab {
-      border-radius: 3px;
-      padding: 0 10px;
+      border-radius: 2px;
+      padding: 0 8px;
       width: 100%; }
       .bp3-tabs.bp3-vertical > .bp3-tab-list .bp3-tab[aria-selected="true"] {
         background-color: rgba(19, 124, 189, 0.2);
         box-shadow: none; }
     .bp3-tabs.bp3-vertical > .bp3-tab-list .bp3-tab-indicator-wrapper .bp3-tab-indicator {
       background-color: rgba(19, 124, 189, 0.2);
-      border-radius: 3px;
+      border-radius: 2px;
       bottom: 0;
       height: auto;
       left: 0;
@@ -7634,7 +7634,7 @@ Styleguide tabs
       top: 0; }
   .bp3-tabs.bp3-vertical > .bp3-tab-panel {
     margin-top: 0;
-    padding-left: 20px; }
+    padding-left: 16px; }
 
 .bp3-tab-list {
   align-items: flex-end;
@@ -7647,7 +7647,7 @@ Styleguide tabs
   position: relative;
   /* stylelint-disable-next-line selector-no-universal */ }
   .bp3-tab-list > *:not(:last-child) {
-    margin-right: 20px; }
+    margin-right: 16px; }
 
 .bp3-tab {
   overflow: hidden;
@@ -7657,8 +7657,8 @@ Styleguide tabs
   color: #182026;
   cursor: pointer;
   flex: 0 0 auto;
-  font-size: 14px;
-  line-height: 30px;
+  font-size: 11.2px;
+  line-height: 24px;
   max-width: 100%;
   position: relative;
   vertical-align: top; }
@@ -7682,11 +7682,11 @@ Styleguide tabs
   .bp3-tab:focus {
     -moz-outline-radius: 0; }
   .bp3-large > .bp3-tab {
-    font-size: 16px;
-    line-height: 40px; }
+    font-size: 12.8px;
+    line-height: 32px; }
 
 .bp3-tab-panel {
-  margin-top: 20px; }
+  margin-top: 16px; }
   .bp3-tab-panel[aria-hidden="true"] {
     display: none; }
 
@@ -7763,15 +7763,15 @@ Styleguide tag
   align-items: center;
   background-color: #5c7080;
   border: none;
-  border-radius: 3px;
+  border-radius: 2px;
   box-shadow: none;
   color: #f5f8fa;
-  font-size: 12px;
+  font-size: 9.6px;
   line-height: 16px;
   max-width: 100%;
-  min-height: 20px;
-  min-width: 20px;
-  padding: 2px 6px;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 0px 0px;
   position: relative; }
   .bp3-tag.bp3-interactive {
     cursor: pointer; }
@@ -7787,7 +7787,7 @@ Styleguide tag
     flex-shrink: 1; }
   .bp3-tag::before,
   .bp3-tag > * {
-    margin-right: 4px; }
+    margin-right: 2px; }
   .bp3-tag:empty::before,
   .bp3-tag > :last-child {
     margin-right: 0; }
@@ -7796,9 +7796,9 @@ Styleguide tag
     outline-offset: 0;
     -moz-outline-radius: 6px; }
   .bp3-tag.bp3-round {
-    border-radius: 30px;
-    padding-left: 8px;
-    padding-right: 8px; }
+    border-radius: 24px;
+    padding-left: 2px;
+    padding-right: 2px; }
   .bp3-dark .bp3-tag {
     background-color: #bfccd6;
     color: #182026; }
@@ -7814,16 +7814,16 @@ Styleguide tag
     fill: #ffffff; }
   .bp3-tag.bp3-large,
   .bp3-large .bp3-tag {
-    font-size: 14px;
+    font-size: 11.2px;
     line-height: 20px;
-    min-height: 30px;
-    min-width: 30px;
-    padding: 5px 10px; }
+    min-height: 24px;
+    min-width: 24px;
+    padding: 2px 4px; }
     .bp3-tag.bp3-large::before,
     .bp3-tag.bp3-large > *,
     .bp3-large .bp3-tag::before,
     .bp3-large .bp3-tag > * {
-      margin-right: 7px; }
+      margin-right: 4px; }
     .bp3-tag.bp3-large:empty::before,
     .bp3-tag.bp3-large > :last-child,
     .bp3-large .bp3-tag:empty::before,
@@ -7831,8 +7831,8 @@ Styleguide tag
       margin-right: 0; }
     .bp3-tag.bp3-large.bp3-round,
     .bp3-large .bp3-tag.bp3-round {
-      padding-left: 12px;
-      padding-right: 12px; }
+      padding-left: 6px;
+      padding-right: 6px; }
   .bp3-tag.bp3-intent-primary {
     background: #137cbd;
     color: #ffffff; }
@@ -7980,12 +7980,12 @@ Styleguide tag
   color: inherit;
   cursor: pointer;
   display: flex;
-  margin-bottom: -2px;
+  margin-bottom: 0px;
   /* stylelint-disable-next-line declaration-no-important */
-  margin-right: -6px !important;
-  margin-top: -2px;
+  margin-right: 0px !important;
+  margin-top: 0px;
   opacity: 0.5;
-  padding: 2px;
+  padding: 0px;
   padding-left: 0; }
   .bp3-tag-remove:hover {
     background: none;
@@ -8004,8 +8004,8 @@ Styleguide tag
     content: ""; }
   .bp3-large .bp3-tag-remove {
     /* stylelint-disable-next-line declaration-no-important */
-    margin-right: -10px !important;
-    padding: 0 5px 0 0; }
+    margin-right: -4px !important;
+    padding: 0 2px 0 0; }
     .bp3-large .bp3-tag-remove:empty::before {
       font-family: "Icons20", sans-serif;
       font-size: 20px;
@@ -8053,8 +8053,8 @@ Switches and slider handles both use these variables.
   cursor: text;
   height: auto;
   line-height: inherit;
-  min-height: 30px;
-  padding-left: 5px;
+  min-height: 24px;
+  padding-left: 4px;
   padding-right: 0; }
   .bp3-tag-input > * {
     flex-grow: 0;
@@ -8064,17 +8064,17 @@ Switches and slider handles both use these variables.
     flex-shrink: 1; }
   .bp3-tag-input .bp3-tag-input-icon {
     color: #5c7080;
-    margin-left: 2px;
-    margin-right: 7px;
-    margin-top: 7px; }
+    margin-left: 0px;
+    margin-right: 4px;
+    margin-top: 4px; }
   .bp3-tag-input .bp3-tag-input-values {
     display: flex;
     flex-direction: row;
     align-items: center;
     align-self: stretch;
     flex-wrap: wrap;
-    margin-right: 7px;
-    margin-top: 5px;
+    margin-right: 4px;
+    margin-top: 4px;
     min-width: 0; }
     .bp3-tag-input .bp3-tag-input-values > * {
       flex-grow: 0;
@@ -8084,14 +8084,14 @@ Switches and slider handles both use these variables.
       flex-shrink: 1; }
     .bp3-tag-input .bp3-tag-input-values::before,
     .bp3-tag-input .bp3-tag-input-values > * {
-      margin-right: 5px; }
+      margin-right: 4px; }
     .bp3-tag-input .bp3-tag-input-values:empty::before,
     .bp3-tag-input .bp3-tag-input-values > :last-child {
       margin-right: 0; }
     .bp3-tag-input .bp3-tag-input-values:first-child .bp3-input-ghost:first-child {
-      padding-left: 5px; }
+      padding-left: 4px; }
     .bp3-tag-input .bp3-tag-input-values > * {
-      margin-bottom: 5px; }
+      margin-bottom: 4px; }
   .bp3-tag-input .bp3-tag {
     overflow-wrap: break-word; }
     .bp3-tag-input .bp3-tag.bp3-active {
@@ -8100,40 +8100,40 @@ Switches and slider handles both use these variables.
       -moz-outline-radius: 6px; }
   .bp3-tag-input .bp3-input-ghost {
     flex: 1 1 auto;
-    line-height: 20px;
-    width: 80px; }
+    line-height: 16px;
+    width: 64px; }
     .bp3-tag-input .bp3-input-ghost:disabled, .bp3-tag-input .bp3-input-ghost.bp3-disabled {
       cursor: not-allowed; }
   .bp3-tag-input .bp3-button,
   .bp3-tag-input .bp3-spinner {
-    margin: 3px;
+    margin: 2.4px;
     margin-left: 0; }
   .bp3-tag-input .bp3-button {
-    min-height: 24px;
-    min-width: 24px;
-    padding: 0 7px; }
+    min-height: 19.2px;
+    min-width: 19.2px;
+    padding: 0 5.6px; }
   .bp3-tag-input.bp3-large {
     height: auto;
-    min-height: 40px; }
+    min-height: 32px; }
     .bp3-tag-input.bp3-large::before,
     .bp3-tag-input.bp3-large > * {
-      margin-right: 10px; }
+      margin-right: 6px; }
     .bp3-tag-input.bp3-large:empty::before,
     .bp3-tag-input.bp3-large > :last-child {
       margin-right: 0; }
     .bp3-tag-input.bp3-large .bp3-tag-input-icon {
-      margin-left: 5px;
-      margin-top: 10px; }
+      margin-left: 2px;
+      margin-top: 6px; }
     .bp3-tag-input.bp3-large .bp3-input-ghost {
-      line-height: 30px; }
+      line-height: 24px; }
     .bp3-tag-input.bp3-large .bp3-button {
-      min-height: 30px;
-      min-width: 30px;
-      padding: 5px 10px;
-      margin: 5px;
+      min-height: 24px;
+      min-width: 24px;
+      padding: 4px 8px;
+      margin: 4px;
       margin-left: 0; }
     .bp3-tag-input.bp3-large .bp3-spinner {
-      margin: 8px;
+      margin: 6.4px;
       margin-left: 0; }
   .bp3-tag-input.bp3-active {
     background-color: #ffffff;
@@ -8223,19 +8223,19 @@ Format transition class name with all the bits.
 .bp3-toast {
   align-items: flex-start;
   background-color: #ffffff;
-  border-radius: 3px;
+  border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 2px 4px rgba(16, 22, 26, 0.2), 0 8px 24px rgba(16, 22, 26, 0.2);
   display: flex;
-  margin: 20px 0 0;
-  max-width: 500px;
-  min-width: 300px;
+  margin: 16px 0 0;
+  max-width: 400px;
+  min-width: 240px;
   pointer-events: all;
   /* stylelint-disable-next-line declaration-no-important */
   position: relative !important;
   /* stylelint-disable declaration-no-important */
   /* stylelint-enable declaration-no-important */ }
   .bp3-toast.bp3-toast-enter, .bp3-toast.bp3-toast-appear {
-    transform: translateY(-40px); }
+    transform: translateY(-32px); }
   .bp3-toast.bp3-toast-enter-active, .bp3-toast.bp3-toast-appear-active {
     transform: translateY(0);
     transition-delay: 0;
@@ -8243,7 +8243,7 @@ Format transition class name with all the bits.
     transition-property: transform;
     transition-timing-function: cubic-bezier(0.54, 1.12, 0.38, 1.11); }
   .bp3-toast.bp3-toast-enter ~ .bp3-toast, .bp3-toast.bp3-toast-appear ~ .bp3-toast {
-    transform: translateY(-40px); }
+    transform: translateY(-32px); }
   .bp3-toast.bp3-toast-enter-active ~ .bp3-toast, .bp3-toast.bp3-toast-appear-active ~ .bp3-toast {
     transform: translateY(0);
     transition-delay: 0;
@@ -8255,7 +8255,7 @@ Format transition class name with all the bits.
     filter: blur(0); }
   .bp3-toast.bp3-toast-exit-active {
     opacity: 0;
-    filter: blur(10px);
+    filter: blur(8px);
     transition-delay: 0;
     transition-duration: 300ms;
     transition-property: opacity, filter;
@@ -8263,18 +8263,18 @@ Format transition class name with all the bits.
   .bp3-toast.bp3-toast-exit ~ .bp3-toast {
     transform: translateY(0); }
   .bp3-toast.bp3-toast-exit-active ~ .bp3-toast {
-    transform: translateY(-40px);
+    transform: translateY(-32px);
     transition-delay: 50ms;
     transition-duration: 100ms;
     transition-property: transform;
     transition-timing-function: cubic-bezier(0.4, 1, 0.75, 0.9); }
   .bp3-toast .bp3-button-group {
     flex: 0 0 auto;
-    padding: 5px;
+    padding: 4px;
     padding-left: 0; }
   .bp3-toast > .bp3-icon {
     color: #5c7080;
-    margin: 12px;
+    margin: 8px;
     margin-right: 0; }
   .bp3-toast.bp3-dark,
   .bp3-dark .bp3-toast {
@@ -8317,7 +8317,7 @@ Format transition class name with all the bits.
 
 .bp3-toast-message {
   flex: 1 1 auto;
-  padding: 11px;
+  padding: 9px;
   word-break: break-word; }
 
 .bp3-toast-container {
@@ -8327,7 +8327,7 @@ Format transition class name with all the bits.
   flex-direction: column;
   left: 0;
   overflow: hidden;
-  padding: 0 20px 20px;
+  padding: 0 16px 16px;
   pointer-events: none;
   right: 0;
   z-index: 40; }
@@ -8351,7 +8351,7 @@ Format transition class name with all the bits.
 .bp3-toast-container-bottom .bp3-toast.bp3-toast-appear:not(.bp3-toast-appear-active) ~ .bp3-toast,
 .bp3-toast-container-bottom .bp3-toast.bp3-toast-exit-active ~ .bp3-toast,
 .bp3-toast-container-bottom .bp3-toast.bp3-toast-leave-active ~ .bp3-toast {
-  transform: translateY(60px); }
+  transform: translateY(48px); }
 
 /* stylelint-disable @blueprintjs/no-color-literal */
 /* stylelint-disable @blueprintjs/no-color-literal */
@@ -8501,7 +8501,7 @@ Format transition class name with all the bits.
     transition-property: transform;
     transition-timing-function: cubic-bezier(0.4, 1, 0.75, 0.9); }
   .bp3-tooltip .bp3-popover-content {
-    padding: 10px 12px; }
+    padding: 8px 9.6px; }
   .bp3-tooltip.bp3-dark,
   .bp3-dark .bp3-tooltip {
     box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.2), 0 2px 4px rgba(16, 22, 26, 0.4), 0 8px 24px rgba(16, 22, 26, 0.4); }
@@ -8621,82 +8621,82 @@ Styleguide tree
   padding-left: 0px; }
 
 .bp3-tree-node-content-1 {
-  padding-left: 23px; }
+  padding-left: 20px; }
 
 .bp3-tree-node-content-2 {
-  padding-left: 46px; }
+  padding-left: 40px; }
 
 .bp3-tree-node-content-3 {
-  padding-left: 69px; }
+  padding-left: 60px; }
 
 .bp3-tree-node-content-4 {
-  padding-left: 92px; }
+  padding-left: 80px; }
 
 .bp3-tree-node-content-5 {
-  padding-left: 115px; }
+  padding-left: 100px; }
 
 .bp3-tree-node-content-6 {
-  padding-left: 138px; }
+  padding-left: 120px; }
 
 .bp3-tree-node-content-7 {
-  padding-left: 161px; }
+  padding-left: 140px; }
 
 .bp3-tree-node-content-8 {
-  padding-left: 184px; }
+  padding-left: 160px; }
 
 .bp3-tree-node-content-9 {
-  padding-left: 207px; }
+  padding-left: 180px; }
 
 .bp3-tree-node-content-10 {
-  padding-left: 230px; }
+  padding-left: 200px; }
 
 .bp3-tree-node-content-11 {
-  padding-left: 253px; }
+  padding-left: 220px; }
 
 .bp3-tree-node-content-12 {
-  padding-left: 276px; }
+  padding-left: 240px; }
 
 .bp3-tree-node-content-13 {
-  padding-left: 299px; }
+  padding-left: 260px; }
 
 .bp3-tree-node-content-14 {
-  padding-left: 322px; }
+  padding-left: 280px; }
 
 .bp3-tree-node-content-15 {
-  padding-left: 345px; }
+  padding-left: 300px; }
 
 .bp3-tree-node-content-16 {
-  padding-left: 368px; }
+  padding-left: 320px; }
 
 .bp3-tree-node-content-17 {
-  padding-left: 391px; }
+  padding-left: 340px; }
 
 .bp3-tree-node-content-18 {
-  padding-left: 414px; }
+  padding-left: 360px; }
 
 .bp3-tree-node-content-19 {
-  padding-left: 437px; }
+  padding-left: 380px; }
 
 .bp3-tree-node-content-20 {
-  padding-left: 460px; }
+  padding-left: 400px; }
 
 .bp3-tree-node-content {
   align-items: center;
   display: flex;
-  height: 30px;
-  padding-right: 5px;
+  height: 24px;
+  padding-right: 4px;
   width: 100%; }
   .bp3-tree-node-content:hover {
     background-color: rgba(191, 204, 214, 0.4); }
 
 .bp3-tree-node-caret,
 .bp3-tree-node-caret-none {
-  min-width: 30px; }
+  min-width: 24px; }
 
 .bp3-tree-node-caret {
   color: #5c7080;
   cursor: pointer;
-  padding: 7px;
+  padding: 4px;
   transform: rotate(0deg);
   transition: transform 200ms cubic-bezier(0.4, 1, 0.75, 0.9); }
   .bp3-tree-node-caret:hover {
@@ -8711,7 +8711,7 @@ Styleguide tree
     content: ""; }
 
 .bp3-tree-node-icon {
-  margin-right: 7px;
+  margin-right: 4px;
   position: relative; }
 
 .bp3-tree-node-label {
@@ -8726,7 +8726,7 @@ Styleguide tree
     display: inline; }
 
 .bp3-tree-node-secondary-label {
-  padding: 0 5px;
+  padding: 0 4px;
   user-select: none; }
   .bp3-tree-node-secondary-label .bp3-popover-wrapper,
   .bp3-tree-node-secondary-label .bp3-popover-target {
@@ -8769,3 +8769,6 @@ Styleguide tree
 
 .bp3-dark .bp3-tree-node.bp3-tree-node-selected > .bp3-tree-node-content {
   background-color: #137cbd; }
+
+.bp3-control.bp3-checkbox input:checked ~ .bp3-control-indicator::before {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill-rule='evenodd' clip-rule='evenodd' d='M12 5c-.28 0-.53.11-.71.29L7 9.59l-2.29-2.3a1.003 1.003 0 00-1.42 1.42l3 3c.18.18.43.29.71.29s.53-.11.71-.29l5-5A1.003 1.003 0 0012 5z' fill='white'/%3e%3c/svg%3e"); }
