@@ -25,14 +25,11 @@
     min-height: 51.2px;
 }
 
-// https://stackoverflow.com/a/23989771
 /* scrollable table body */
 .habitat-statistics .drawer-group-content,
 .habitat-statistics  .drawer-group-content>*,
 .bathymetry-statistics .drawer-group-content,
-.bathymetry-statistics  .drawer-group-content>*,
-.state-of-knowledge-drawer table,
-.state-of-knowledge-drawer .bp3-tab-panel:not([aria-hidden="true"]) {
+.bathymetry-statistics  .drawer-group-content>* {
     display: flex;
     flex-direction: column;
     overflow-y: hidden;
@@ -41,29 +38,20 @@
 .habitat-statistics .drawer-group-content>*,
 .habitat-statistics  .drawer-group-content>*>*,
 .bathymetry-statistics .drawer-group-content>*,
-.bathymetry-statistics  .drawer-group-content>*>*,
-.state-of-knowledge-drawer table>*,
-.state-of-knowledge-drawer .bp3-tab-panel:not([aria-hidden="true"])>* {
+.bathymetry-statistics  .drawer-group-content>*>* {
     min-height: 0;
 }
 
-.state-of-knowledge-drawer tbody,
-.state-of-knowledge-drawer thead,
-.state-of-knowledge-drawer tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
+.state-of-knowledge-drawer .bp3-tab-panel {
+    overflow-y: auto;
 }
 
 .state-of-knowledge-drawer thead {
-    width: calc(100% - 1em) // scrollbar is average 1em/16px width, remove it from thead width
+    position: sticky;
+    top: 0;
+    background-color: $seamap-color-lightest;
 }
-
-.state-of-knowledge-drawer tbody {
-    display: block;
-    overflow-y: scroll;
-}
-/* scrollable table body */
+// /* scrollable table body */
 
 .habitat-statistics .bp3-tab-list .bp3-switch,
 .bathymetry-statistics .bp3-tab-list .bp3-switch,

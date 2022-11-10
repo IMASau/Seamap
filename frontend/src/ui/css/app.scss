@@ -59,6 +59,15 @@ a:hover {
 	text-transform: underline;
 }
 
+tbody tr:not(:last-child) td,
+thead tr th {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+table {
+    border-collapse: separate;
+}
+
 #app {
     position: absolute;
     width: 100%;
