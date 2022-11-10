@@ -25,9 +25,45 @@
     min-height: 51.2px;
 }
 
-.state-of-knowledge-drawer .drawer-group > .drawer-group-content {
-    overflow-y: auto;
+// https://stackoverflow.com/a/23989771
+/* scrollable table body */
+.habitat-statistics .drawer-group-content,
+.habitat-statistics  .drawer-group-content>*,
+.bathymetry-statistics .drawer-group-content,
+.bathymetry-statistics  .drawer-group-content>*,
+.state-of-knowledge-drawer table,
+.state-of-knowledge-drawer .bp3-tab-panel:not([aria-hidden="true"]) {
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
 }
+
+.habitat-statistics .drawer-group-content>*,
+.habitat-statistics  .drawer-group-content>*>*,
+.bathymetry-statistics .drawer-group-content>*,
+.bathymetry-statistics  .drawer-group-content>*>*,
+.state-of-knowledge-drawer table>*,
+.state-of-knowledge-drawer .bp3-tab-panel:not([aria-hidden="true"])>* {
+    min-height: 0;
+}
+
+.state-of-knowledge-drawer tbody,
+.state-of-knowledge-drawer thead,
+.state-of-knowledge-drawer tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.state-of-knowledge-drawer thead {
+    width: calc(100% - 1em) // scrollbar is average 1em/16px width, remove it from thead width
+}
+
+.state-of-knowledge-drawer tbody {
+    display: block;
+    overflow-y: scroll;
+}
+/* scrollable table body */
 
 .habitat-statistics .bp3-tab-list,
 .bathymetry-statistics .bp3-tab-list {
