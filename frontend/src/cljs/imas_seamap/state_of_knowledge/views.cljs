@@ -40,13 +40,12 @@
       (let [{:keys [loading? results show-layers?]} @(re-frame/subscribe [:sok/habitat-statistics])
             download-url @(re-frame/subscribe [:sok/habitat-statistics-download-url])
             without-unmapped   (filter :habitat results)]
-        [components/state-of-knowledge-drawer-group
+        [components/drawer-group
          {:heading         "Habitat Statistics"
           :icon            "home"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
-          :show-layers?    show-layers?
-          :toggle-layers   #(re-frame/dispatch [:sok/habitat-toggle-show-layers])}
+          :class           "habitat-statistics"}
          (if loading?
            [b/spinner]
            [b/tabs
@@ -87,7 +86,12 @@
                  [:a.download
                   {:href download-url}
                   "Download as Shapefile"]
-                 [:div "No habitat information"]))}]])]))))
+                 [:div "No habitat information"]))}]
+            
+            [b/switch
+             {:checked   show-layers?
+              :on-change #(re-frame/dispatch [:sok/habitat-toggle-show-layers])
+              :label     "Layers"}]])]))))
 
 (defn bathymetry-statistics-table
   [{:keys [bathymetry-statistics]}]
@@ -120,13 +124,12 @@
       (let [{:keys [loading? results show-layers?]} @(re-frame/subscribe [:sok/bathymetry-statistics])
             download-url @(re-frame/subscribe [:sok/bathymetry-statistics-download-url])
             without-unmapped      (filter :resolution results)]
-        [components/state-of-knowledge-drawer-group
+        [components/drawer-group
          {:heading         "Bathymetry Statistics"
           :icon            "timeline-area-chart"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
-          :show-layers?    show-layers?
-          :toggle-layers   #(re-frame/dispatch [:sok/bathymetry-toggle-show-layers])}
+          :class           "bathymetry-statistics"}
          (if loading?
            [b/spinner]
            [b/tabs
@@ -167,7 +170,12 @@
                  [:a.download
                   {:href download-url}
                   "Download as Shapefile"]
-                 [:div "No bathymetry information"]))}]])]))))
+                 [:div "No bathymetry information"]))}]
+            
+            [b/switch
+             {:checked   show-layers?
+              :on-change #(re-frame/dispatch [:sok/bathymetry-toggle-show-layers])
+              :label     "Layers"}]])]))))
 
 (defn squidle-stats
   [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
@@ -241,16 +249,19 @@
   (let [collapsed?   (reagent/atom false)]
     (fn []
       (let [{:keys [squidle global-archive sediment loading? show-layers?]} @(re-frame/subscribe [:sok/habitat-observations])]
-        [components/state-of-knowledge-drawer-group
+        [components/drawer-group
          {:heading         "Habitat Observations"
           :icon            "media"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
-          :show-layers?    show-layers?
-          :toggle-layers   #(re-frame/dispatch [:sok/habitat-observations-toggle-show-layers])}
+          :class           "habitat-observations"}
          (if loading?
            [b/spinner]
-           [:div
+           [:<>
+            [b/switch
+             {:checked   show-layers?
+              :on-change #(re-frame/dispatch [:sok/habitat-observations-toggle-show-layers])
+              :label     "Layers"}]
             [squidle-stats squidle]
             [global-archive-stats global-archive]
             [sediment-stats sediment]])]))))

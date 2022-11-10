@@ -29,6 +29,17 @@
     overflow-y: auto;
 }
 
+.habitat-statistics .bp3-tab-list,
+.bathymetry-statistics .bp3-tab-list {
+    align-items: center;
+}
+
+.habitat-statistics .bp3-tab-list .bp3-switch,
+.bathymetry-statistics .bp3-tab-list .bp3-switch,
+.habitat-observations .bp3-switch {
+    margin-left: auto;
+}
+
 .state-of-knowledge-drawer td,
 .state-of-knowledge-drawer th {
     font-size: 12px;
@@ -76,7 +87,6 @@
 }
 
 .selected-boundaries {
-    margin-bottom: 20px;
     background-color: $seamap-color-dark;
     color: $seamap-color-lightest;
     padding: 12px;
@@ -93,8 +103,4 @@
 
 .selected-boundaries .breadcrumbs a {
     text-decoration: underline;
-}
-
-.drawer-group-heading .bp3-switch {
-    margin: 0;
 }
