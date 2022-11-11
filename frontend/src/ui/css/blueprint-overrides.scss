@@ -88,6 +88,15 @@
             color: $seamap-color-lightest;
         }
     }
+
+    .bp3-dialog-body {
+        background-color: $seamap-color-light;
+        color: $seamap-color-darker;
+        margin: initial;
+        padding: 11px 14px;
+        line-height: initial;
+        font-size: 16px;
+    }
 }
 
 /* Another chrome-only hack (otherwise we get an extra 0.4px on the close-button) */

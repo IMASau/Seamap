@@ -305,10 +305,13 @@
 
 (defn welcome-dialogue []
   (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
-    [b/dialogue {:title      "Welcome to Seamap Australia!"
-                 :class "welcome-splash"
-                 :is-open    open?
-                 :on-close   #(re-frame/dispatch [:welcome-layer/close])}
+    [b/dialogue
+     {:title
+      (reagent/as-element
+       [:<> "Welcome to" [:br] "Seamap Australia!"])
+      :class    "welcome-splash"
+      :is-open  open?
+      :on-close #(re-frame/dispatch [:welcome-layer/close])}
      [:div.bp3-dialog-body
       [:div.overview
        "Seamap Australia is a nationally synthesised product of

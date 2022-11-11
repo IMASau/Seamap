@@ -90,6 +90,22 @@ body.page-template-default.admin-bar #app {
 
 .welcome-splash {
     width: 360px;
+
+
+    .bp3-dialog-body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+
+        .overview {
+            width: 240px;
+        }
+
+        .bp3-button {
+            margin-left: auto;
+        }
+    }
 }
 
 #main-wrapper {
