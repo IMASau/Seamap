@@ -218,7 +218,7 @@
         total_annotations  (format-number (or total_annotations 0) 0)
         public_annotations (format-number (or public_annotations 0) 0)]
     [habitat-observations-group
-     {:title     (str deployments " imagery deployments (" campaigns " campaigns)")
+     {:title     (str deployments " Imagery Deployments (" campaigns " Campaigns)")
       :disabled? disabled?
       :stats
       [{:label "Date Range" :text (str start_date " to " end_date)}
@@ -236,7 +236,7 @@
         method        (or method "N/A")
         video_time    (format-number (or video_time 0) 0)]
     [habitat-observations-group
-     {:title     (str deployments " video deployments (" campaigns " campaigns)")
+     {:title     (str deployments " Video Deployments (" campaigns " Campaigns)")
       :disabled? disabled?
       :stats
       [{:label "Date Range" :text (str start_date " to " end_date)}
