@@ -310,31 +310,34 @@
                  :is-open    open?
                  :on-close   #(re-frame/dispatch [:welcome-layer/close])}
      [:div.bp3-dialog-body
-      [:p "Seamap Australia is a nationally synthesised product of
-      seafloor habitat data collected from various stakeholders around
-      Australia. Source datasets were reclassified according to a
-      newly-developed national marine benthic habitat classification
-      scheme, and synthesised to produce a single standardised GIS
-      data layer of Australian benthic marine habitats."]
-
-      [:p [:i "Seamap Australia would not have been possible without the
-      collaboration of its stakeholders, including (but not limited
-      to): The University of Queensland, The University of Western
-      Australia, The University of Tasmania, James Cook University,
-      Griffith University, Deakin University, CSIRO, Geoscience
-      Australia, Great Barrier Reef Marine Park Authority (GBRMPA),
-      the National Environmental Science Program (NESP), and all State
-      Governments."]]
-
-      [:p "Please cite as Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
-       [:i "Seamap Australia - a national seafloor habitat classification scheme."]
-       " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]]
+      [:div.overview
+       "Seamap Australia is a nationally synthesised product of
+        seafloor habitat data collected from various stakeholders around
+        Australia. Source datasets were reclassified according to a
+        newly-developed national marine benthic habitat classification
+        scheme, and synthesised to produce a single standardised GIS
+        data layer of Australian benthic marine habitats."]
+      [b/button
+       {:text       "Get Started!"
+        :intent     b/INTENT-PRIMARY
+        :auto-focus true
+        :on-click   #(re-frame/dispatch [:welcome-layer/close])}]]
      [:div.bp3-dialog-footer
-      [:div.bp3-dialog-footer-actions
-       [b/button {:text       "Get Started!"
-                  :intent     b/INTENT-PRIMARY
-                  :auto-focus true
-                  :on-click   (handler-dispatch [:welcome-layer/close])}]]]]))
+      [:h3 "Citations"]
+      [:p
+       "Please cite as Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
+       [:i "Seamap Australia - a national seafloor habitat classification scheme."]
+       " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]
+      [:h3 "Acknowledgements"]
+      [:p
+       "Seamap Australia would not have been possible without the
+        collaboration of its stakeholders, including (but not limited
+        to): The University of Queensland, The University of Western
+        Australia, The University of Tasmania, James Cook University,
+        Griffith University, Deakin University, CSIRO, Geoscience
+        Australia, Great Barrier Reef Marine Park Authority (GBRMPA),
+        the National Environmental Science Program (NESP), and all State
+        Governments."]]]))
 (defn settings-overlay []
   [b/dialogue
    {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])
