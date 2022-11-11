@@ -149,36 +149,12 @@ footer {
     opacity: 1;
 }
 
-.bp3-collapse>.bp3-collapse-body,
-.height-managed {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 0;
-    flex-shrink: 1;
-    min-height: 0;              /* http://stackoverflow.com/a/36247448 */
-}
-
 .drag-handle {
     display: flex;
     justify-content: center;
 }
 .drag-handle:hover {
     background-color: #F5F8FA;
-}
-
-.bp3-portal {
-    z-index: 2000;              /* Must be greater than leaflet */
-}
-
-.bp3-overlay-backdrop {
-    z-index: 2000;              /* Must be greater than leaflet */
-}
-.bp3-overlay-content {
-    z-index: 2001;
-}
-
-.bp3-toast-container {
-    z-index: 2001;
 }
 
 #transect-btn-wrapper {
@@ -198,39 +174,6 @@ footer {
 
 .catalogue-add {
     margin-bottom: 5px;
-}
-.bp3-tree-node-secondary-label {
-    flex: 0 0 auto;
-}
-
-.bp3-tab {
-    color: $seamap-color-darker;
-    font-size: 14px;
-}
-
-.bp3-tab[aria-selected="true"], .bp3-tab:not([aria-disabled="true"]):hover {
-    font-weight: bold;
-}
-
-.bp3-tab>*::before {
-    margin-right: 2px;
-}
-
-.bp3-tab-list {
-    align-items: center;
-    height: 40px;
-}
-
-.bp3-tab-indicator-wrapper .bp3-tab-indicator {
-    height: 1.5px;
-}
-
-.bp3-tab-panel {
-    margin: 0;
-}
-
-.bp3-heading>*::before {
-    margin-right: 4px;
 }
 
 .catalogue-layer-node .bp3-tree-node-content {
@@ -436,10 +379,6 @@ rect#background {
 .sidebar-tabs>li, .sidebar-tabs>ul>li {
     list-style-type: none;
 }
-/* Another chrome-only hack (otherwise we get an extra 0.4px on the close-button) */
-.bp3-dialog-footer-actions .bp3-popover-target {
-    vertical-align: unset;
-}
 
 .metadata-record {
     -webkit-user-select: text;
@@ -549,19 +488,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     height: 36px;
 }
 
-.bp3-drawer .bp3-panel-stack {
-    height: 100%;
-}
-
-.bp3-drawer {
-    display: flex;
-    flex-direction: column;
-}
-
-.bp3-drawer > :last-child {
-    flex: 1;
-}
-
 .leaflet-left, .menu-button {
     transition: left 150ms;
 }
@@ -573,12 +499,6 @@ input.leaflet-control-layers-selector[type="radio"] {
 .catalogue-open .leaflet-left,
 .catalogue-open .menu-button {
     left: $drawer-width;
-}
-
-/* Allow interactivity with underneath elements while drawer is open */
-.bp3-overlay.bp3-overlay-open.bp3-overlay-container {
-    width: 0;
-    height: 0;
 }
 
 .form-group > :first-child {
@@ -708,11 +628,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     border-radius: 4px;
 }
 
-.drawer-group h2.bp3-heading {
-    font-size: 14px;
-    line-height: 16px;
-}
-
 .drawer-group h2::before {
     margin-right: 5px;
 }
@@ -723,11 +638,6 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .leaflet-popup-content table {
     white-space: normal;
-}
-
-/* Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line */
-.bp3-dialog {
-    overflow-wrap: break-word;
 }
 
 .drawer-children {
@@ -751,50 +661,6 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .leaflet-popup.waiting .leaflet-popup-close-button {
     display: none;
-}
-
-.bp3-checkbox,
-.bp3-switch {
-    margin: 0;
-    color: $seamap-color-darker;
-}
-
-.bp3-button:not(.bp3-minimal) {
-    border-radius: 0;
-    font-size: 14px;
-    font-weight: bold;
-    padding: 7px 12px;
-
-    >.bp3-icon {
-        color: inherit;
-    }
-
-    &:not([class*="bp3-intent-"]) {
-        background-color: $seamap-color-dark;
-        color: $seamap-color-lightest;
-        &:hover {
-            background-color: $seamap-color-dark-darker;
-        }
-    }
-
-    &.bp3-intent-primary,
-    &:not([class*="bp3-intent-"]) {
-        background-image: none;
-        box-shadow: none;
-        &:hover {
-            background-image: none;
-            box-shadow: none;
-        }
-    }
-
-    &.bp3-large {
-        font-size: 15px;
-        padding: 9px 13px;
-        .bp3-icon svg {
-            height: 20px;
-            width: 20px;
-        }
-    }
 }
 
 .leaflet-control-block {

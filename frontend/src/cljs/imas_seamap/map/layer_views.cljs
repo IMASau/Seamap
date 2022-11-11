@@ -318,7 +318,7 @@
             :panel
             (reagent/as-element
              [:<>
-              (when (not= displayed-layer layer) [:h2.bp3-heading (:name displayed-layer)])
+              (when (not= displayed-layer layer) [:h2 (:name displayed-layer)])
               [legend-display displayed-layer]])}]
 
           [b/tab
@@ -375,7 +375,7 @@
       {:label-renderer false :initial-value 0 :max 100 :value opacity
        :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
 
-     (when (not= displayed-layer layer) [:h2.bp3-heading (:name displayed-layer)])
+     (when (not= displayed-layer layer) [:h2 (:name displayed-layer)])
      [legend-display displayed-layer]]))
 
 (defn main-national-layer-catalogue-content
