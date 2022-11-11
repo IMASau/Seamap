@@ -177,75 +177,88 @@
               :on-change #(re-frame/dispatch [:sok/bathymetry-toggle-show-layers])
               :label     "Layers"}]])]))))
 
-(defn squidle-stats
+(defn- habitat-observations-group-stat
+  [{:keys [label text] :as _stat}]
+  [:div.habitat-observations-group-stat
+   [:b (str label ": ")]
+   text])
+
+(defn- habitat-observations-group
+  [_props]
+  (let [expanded? (reagent/atom false)]
+    (fn [{:keys [title disabled? stats]}]
+      [:div.habitat-observations-group
+       {:class
+        (str
+         (when (and @expanded? (not disabled?)) " expanded")
+         (when disabled? " disabled"))}
+       [:div.habitat-observations-group-heading
+        {:on-click #(when-not disabled? (swap! expanded? not))}
+        [b/icon
+         {:icon (if (and @expanded? (not disabled?)) "double-chevron-up" "double-chevron-down")
+          :icon-size 20}]
+        title]
+       [b/collapse
+        {:is-open               (and @expanded? (not disabled?))
+         :keep-children-mounted true}
+        (for [{:keys [label] :as stat} stats]
+          ^{:key label}
+          [habitat-observations-group-stat stat])]])))
+
+(defn- squidle-stats
   [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
-  (let [collapsed? (reagent/atom true)]
-    (fn [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
-      (let [disabled?          (not (pos? (or deployments 0)))
-            deployments        (format-number (or deployments 0) 0)
-            campaigns          (format-number (or campaigns 0) 0)
-            start_date         (or (format-date-month start_date) "unknown")
-            end_date           (or (format-date-month end_date) "unknown")
-            method             (or method "N/A")
-            images             (format-number (or images 0) 0)
-            total_annotations  (format-number (or total_annotations 0) 0)
-            public_annotations (format-number (or public_annotations 0) 0)]
-        [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when disabled? " disabled"))}
-         [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? disabled?) " bp3-icon-caret-right" " bp3-icon-caret-down"))
-           :on-click #(swap! collapsed? not)}
-          (str deployments " imagery deployments (" campaigns " campaigns)")]
-         [:ul
-          [:li (str "Date range: " start_date " to " end_date)]
-          [:li (str "Methods of collection: " method)]
-          [:li (str images " images collected")]
-          [:li (str total_annotations " image annotations (" public_annotations " public)")]]]))))
+  (let [disabled?          (not (pos? (or deployments 0)))
+        deployments        (format-number (or deployments 0) 0)
+        campaigns          (format-number (or campaigns 0) 0)
+        start_date         (or (format-date-month start_date) "unknown")
+        end_date           (or (format-date-month end_date) "unknown")
+        method             (or method "N/A")
+        images             (format-number (or images 0) 0)
+        total_annotations  (format-number (or total_annotations 0) 0)
+        public_annotations (format-number (or public_annotations 0) 0)]
+    [habitat-observations-group
+     {:title     (str deployments " imagery deployments (" campaigns " campaigns)")
+      :disabled? disabled?
+      :stats
+      [{:label "Date Range" :text (str start_date " to " end_date)}
+       {:label "Methods of Collection" :text method}
+       {:label "Images Collected" :text images}
+       {:label "Image Annotations" :text (str total_annotations " (" public_annotations " public)")}]}]))
 
-(defn global-archive-stats
+(defn- global-archive-stats
   [{:keys [deployments campaigns start_date end_date method video_time]}]
-  (let [collapsed? (reagent/atom true)]
-    (fn [{:keys [deployments campaigns start_date end_date method video_time]}]
-      (let [disabled?     (not (pos? (or deployments 0)))
-            deployments   (format-number (or deployments 0) 0)
-            campaigns     (format-number (or campaigns 0) 0)
-            start_date    (or (format-date-month start_date) "unknown")
-            end_date      (or (format-date-month end_date) "unknown")
-            method        (or method "N/A")
-            video_time    (format-number (or video_time 0) 0)]
-        [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when disabled? " disabled"))}
-         [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? disabled?) " bp3-icon-caret-right" " bp3-icon-caret-down"))
-           :on-click #(swap! collapsed? not)}
-          (str deployments " video deployments (" campaigns " campaigns)")]
-         [:ul
-          [:li (str "Date range: " start_date " to " end_date)]
-          [:li (str "Methods of collection: " method)]
-          [:li (str video_time " hours of video")]]]))))
+  (let [disabled?     (not (pos? (or deployments 0)))
+        deployments   (format-number (or deployments 0) 0)
+        campaigns     (format-number (or campaigns 0) 0)
+        start_date    (or (format-date-month start_date) "unknown")
+        end_date      (or (format-date-month end_date) "unknown")
+        method        (or method "N/A")
+        video_time    (format-number (or video_time 0) 0)]
+    [habitat-observations-group
+     {:title     (str deployments " video deployments (" campaigns " campaigns)")
+      :disabled? disabled?
+      :stats
+      [{:label "Date Range" :text (str start_date " to " end_date)}
+       {:label "Methods of Collection" :text method}
+       {:label "Hours of Video" :text video_time}]}]))
 
-(defn sediment-stats
+(defn- sediment-stats
   [{:keys [samples analysed survey start_date end_date method]}]
-  (let [collapsed? (reagent/atom true)]
-    (fn [{:keys [samples analysed survey start_date end_date method]}]
-      (let [disabled?  (not (pos? (or samples 0)))
-            samples    (format-number (or samples 0) 0)
-            analysed   (format-number (or analysed 0) 0)
-            survey     (format-number (or survey 0) 0)
-            start_date (or (format-date-month start_date) "unknown")
-            end_date   (or (format-date-month end_date) "unknown")
-            method     (or method "N/A")]
-        [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when disabled? " disabled"))}
-         [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? disabled?) " bp3-icon-caret-right" " bp3-icon-caret-down"))
-           :on-click #(swap! collapsed? not)}
-          (str samples " sediment samples (" analysed " analysed) from " survey " surveys")]
-         [:ul
-          [:li (str "Date range: " start_date " to " end_date)]
-          [:li (str "Methods of collection: " method)]]]))))
+  (let [disabled?  (not (pos? (or samples 0)))
+        samples    (format-number (or samples 0) 0)
+        analysed   (format-number (or analysed 0) 0)
+        survey     (format-number (or survey 0) 0)
+        start_date (or (format-date-month start_date) "unknown")
+        end_date   (or (format-date-month end_date) "unknown")
+        method     (or method "N/A")]
+    [habitat-observations-group
+     {:title     (str samples " Sediment Samples (" analysed " Analysed) from " survey " Surveys")
+      :disabled? disabled?
+      :stats
+      [{:label "Date Range" :text (str start_date " to " end_date)}
+       {:label "Methods of Collection" :text method}]}]))
 
-(defn habitat-observations []
+(defn- habitat-observations []
   (let [collapsed?   (reagent/atom false)]
     (fn []
       (let [{:keys [squidle global-archive sediment loading? show-layers?]} @(re-frame/subscribe [:sok/habitat-observations])]
@@ -262,9 +275,10 @@
              {:checked   show-layers?
               :on-change #(re-frame/dispatch [:sok/habitat-observations-toggle-show-layers])
               :label     "Layers"}]
-            [squidle-stats squidle]
-            [global-archive-stats global-archive]
-            [sediment-stats sediment]])]))))
+            [:div.habitat-observations-groups
+             [squidle-stats squidle]
+             [global-archive-stats global-archive]
+             [sediment-stats sediment]]])]))))
 
 (defn selected-boundaries []
   (let [active-boundary @(re-frame/subscribe [:sok/active-boundary])
