@@ -41,6 +41,22 @@
     font-size: 26px;
 }
 
+.featured-map-drawer .drawer-children {
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+    >* {
+        min-height: 0;
+        &:last-child {
+            flex: 1;
+        }
+    }
+}
+
+.map-links {
+    overflow-y: auto;
+}
+
 .map-link {
     padding: 18px 26px 10px 26px;
     border-bottom: 2px solid $seamap-color-medium;
