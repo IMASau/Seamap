@@ -759,6 +759,18 @@ input.leaflet-control-layers-selector[type="radio"] {
     color: $seamap-color-darker;
 }
 
+.bp3-button {
+    border-radius: 0;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 7px 12px;
+    &.bp3-intent-primary,
+    &.bp3-intent-primary:hover {
+        background-image: none;
+        box-shadow: none;
+    }
+}
+
 .leaflet-control-block {
     background-color: #fff;
 }
