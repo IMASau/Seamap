@@ -33,6 +33,8 @@
     {:icon     "search"
      :text     "Show me"
      :intent   "primary"
+     :class    "show-me"
+     :large    true
      :on-click #(re-frame/dispatch [:get-save-state shortcode [:merge-state]])}]])
 
 (defn featured-map-drawer []
