@@ -26,18 +26,16 @@
 }
 
 /* scrollable table body */
-.habitat-statistics .drawer-group-content,
+.state-of-knowledge-drawer .drawer-group-content,
 .habitat-statistics  .drawer-group-content>*,
-.bathymetry-statistics .drawer-group-content,
 .bathymetry-statistics  .drawer-group-content>* {
     display: flex;
     flex-direction: column;
     overflow-y: hidden;
 }
 
-.habitat-statistics .drawer-group-content>*,
+.state-of-knowledge-drawer .drawer-group-content>*,
 .habitat-statistics  .drawer-group-content>*>*,
-.bathymetry-statistics .drawer-group-content>*,
 .bathymetry-statistics  .drawer-group-content>*>* {
     min-height: 0;
 }
@@ -58,9 +56,13 @@
 .bathymetry-statistics .bp3-tab-list .bp3-switch,
 .habitat-observations .bp3-switch {
     margin-left: auto;
-    height: 30px;
+    height: 40px;
     align-items: center;
     display: flex;
+}
+
+.habitat-observations .bp3-switch {
+    margin-right: 12px;
 }
 
 
@@ -93,6 +95,15 @@
 .habitat-observation-stats.collapsed ul,
 .habitat-observation-stats.disabled ul {
     display: none;
+}
+
+.habitat-observations .drawer-group-content {
+    margin: 0;
+    gap: 0;
+}
+
+.habitat-observations-groups {
+    overflow-y: auto;
 }
 
 .habitat-observations-group-heading {
