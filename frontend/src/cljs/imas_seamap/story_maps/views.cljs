@@ -47,8 +47,8 @@
      :onClose     #(re-frame/dispatch [:sm.featured-map/open false])
      :hasBackdrop false
      :className   "featured-map-drawer"}
-    [:<>
-     [:div.summary content]
+    [:div.summary content]
+    [:div.map-links
      (map-indexed
       (fn [index map-link-val]
         ^{:key index}
