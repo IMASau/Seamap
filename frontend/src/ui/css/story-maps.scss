@@ -42,20 +42,12 @@
 }
 
 .map-link {
-    max-width: 720px;
-    padding: 8px 12px;
-    border: 2px solid black;
-    position: relative;
-    margin: 20px 0;
+    padding: 18px 26px 10px 26px;
+    border-bottom: 2px solid $seamap-color-medium;
 }
 
 .map-link .subtitle {
-    padding: 0 8px;
-    position: absolute;
-    top: -10px;
-    background-color: white;
 }
 
 .map-link .description {
-    margin: 6px 0 8px 0;
 }
