@@ -201,9 +201,10 @@
        [b/collapse
         {:is-open               (and @expanded? (not disabled?))
          :keep-children-mounted true}
-        (for [{:keys [label] :as stat} stats]
-          ^{:key label}
-          [habitat-observations-group-stat stat])]])))
+        [:div.habitat-observations-group-stats
+         (for [{:keys [label] :as stat} stats]
+           ^{:key label}
+           [habitat-observations-group-stat stat])]]])))
 
 (defn- squidle-stats
   [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
