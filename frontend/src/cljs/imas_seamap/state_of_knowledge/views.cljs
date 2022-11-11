@@ -252,7 +252,10 @@
         end_date   (or (format-date-month end_date) "unknown")
         method     (or method "N/A")]
     [habitat-observations-group
-     {:title     (str samples " Sediment Samples (" analysed " Analysed) from " survey " Surveys")
+     {:title
+      [:<>
+       (str samples " Sediment Samples (" analysed " Analysed)") [:br]
+       (str "from " survey " Surveys")]
       :disabled? disabled?
       :stats
       [{:label "Date Range" :text (str start_date " to " end_date)}

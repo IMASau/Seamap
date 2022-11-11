@@ -95,6 +95,36 @@
     display: none;
 }
 
+.habitat-observations-group-heading {
+    display: flex;
+    align-items: center;
+    background-color: $seamap-color-light;
+    color: $seamap-color-darker;
+    padding: 6px;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background-color 200ms;
+}
+
+.habitat-observations-group.expanded .habitat-observations-group-heading {
+    background-color: $seamap-color-lighter;
+}
+
+.habitat-observations-group.disabled .habitat-observations-group-heading {
+    cursor: not-allowed;
+}
+
+.habitat-observations-group-heading>.bp3-icon {
+    aspect-ratio: 1;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .state-of-knowledge-pill-content {
     width: 436px;
 }
