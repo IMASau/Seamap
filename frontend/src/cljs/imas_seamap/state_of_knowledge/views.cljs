@@ -46,27 +46,29 @@
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
           :class           "habitat-statistics"}
-         (if loading?
-           [b/spinner]
-           [b/tabs
-            {:id              "habitat-statistics-tabs"
-             :selected-tab-id @selected-tab
-             :on-change       #(reset! selected-tab %)}
+         [b/tabs
+          {:id              "habitat-statistics-tabs"
+           :selected-tab-id @selected-tab
+           :on-change       #(reset! selected-tab %)}
 
-            [b/tab
-             {:id    "breakdown"
-              :title "Breakdown"
-              :panel
-              (reagent/as-element
+          [b/tab
+           {:id    "breakdown"
+            :title "Breakdown"
+            :panel
+            (reagent/as-element
+             (if loading?
+               [b/spinner]
                [habitat-statistics-table
-                {:habitat-statistics results}])}]
+                {:habitat-statistics results}]))}]
 
-            [b/tab
-             {:id    "chart"
-              :title "Chart"
-              :panel
-              (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
-                (reagent/as-element
+          [b/tab
+           {:id    "chart"
+            :title "Chart"
+            :panel
+            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+              (reagent/as-element
+               (if loading?
+                 [b/spinner]
                  (if (seq without-unmapped)
                    [components/donut-chart
                     {:id              "habitat-statistics-chart"
@@ -75,23 +77,25 @@
                      :dependent-var   :area
                      :color           :color
                      :legend-title    "Habitat"}]
-                   [:div "No habitat information"])))}]
+                   [:div "No habitat information"]))))}]
 
-            [b/tab
-             {:id    "download"
-              :title "Download"
-              :panel
-              (reagent/as-element
+          [b/tab
+           {:id    "download"
+            :title "Download"
+            :panel
+            (reagent/as-element
+             (if loading?
+               [b/spinner]
                (if (seq without-unmapped)
                  [:a.download
                   {:href download-url}
                   "Download as Shapefile"]
-                 [:div "No habitat information"]))}]
-            
-            [b/switch
-             {:checked   show-layers?
-              :on-change #(re-frame/dispatch [:sok/habitat-toggle-show-layers])
-              :label     "Layers"}]])]))))
+                 [:div "No habitat information"])))}]
+
+          [b/switch
+           {:checked   show-layers?
+            :on-change #(re-frame/dispatch [:sok/habitat-toggle-show-layers])
+            :label     "Layers"}]]]))))
 
 (defn bathymetry-statistics-table
   [{:keys [bathymetry-statistics]}]
@@ -130,26 +134,28 @@
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
           :class           "bathymetry-statistics"}
-         (if loading?
-           [b/spinner]
-           [b/tabs
-            {:id              "bathymetry-statistics-tabs"
-             :selected-tab-id @selected-tab
-             :on-change       #(reset! selected-tab %)}
+         [b/tabs
+          {:id              "bathymetry-statistics-tabs"
+           :selected-tab-id @selected-tab
+           :on-change       #(reset! selected-tab %)}
 
-            [b/tab
-             {:id    "breakdown"
-              :title "Breakdown"
-              :panel (reagent/as-element
+          [b/tab
+           {:id    "breakdown"
+            :title "Breakdown"
+            :panel (reagent/as-element
+                    (if loading?
+                      [b/spinner]
                       [bathymetry-statistics-table
-                       {:bathymetry-statistics results}])}]
+                       {:bathymetry-statistics results}]))}]
 
-            [b/tab
-             {:id    "chart"
-              :title "Chart"
-              :panel
-              (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
-                (reagent/as-element
+          [b/tab
+           {:id    "chart"
+            :title "Chart"
+            :panel
+            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+              (reagent/as-element
+               (if loading?
+                 [b/spinner]
                  (if (seq without-unmapped)
                    [components/donut-chart
                     {:id              "bathymetry-statistics-chart"
@@ -159,23 +165,25 @@
                      :color           :color
                      :legend-title    "Resolution"
                      :sort-key        :rank}]
-                   [:div "No bathymetry information"])))}]
+                   [:div "No bathymetry information"]))))}]
 
-            [b/tab
-             {:id    "download"
-              :title "Download"
-              :panel
-              (reagent/as-element
+          [b/tab
+           {:id    "download"
+            :title "Download"
+            :panel
+            (reagent/as-element
+             (if loading?
+               [b/spinner]
                (if (seq without-unmapped)
                  [:a.download
                   {:href download-url}
                   "Download as Shapefile"]
-                 [:div "No bathymetry information"]))}]
-            
-            [b/switch
-             {:checked   show-layers?
-              :on-change #(re-frame/dispatch [:sok/bathymetry-toggle-show-layers])
-              :label     "Layers"}]])]))))
+                 [:div "No bathymetry information"])))}]
+
+          [b/switch
+           {:checked   show-layers?
+            :on-change #(re-frame/dispatch [:sok/bathymetry-toggle-show-layers])
+            :label     "Layers"}]]]))))
 
 (defn- habitat-observations-group-stat
   [{:keys [label text] :as _stat}]
@@ -272,17 +280,16 @@
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
           :class           "habitat-observations"}
+         [b/switch
+          {:checked   show-layers?
+           :on-change #(re-frame/dispatch [:sok/habitat-observations-toggle-show-layers])
+           :label     "Layers"}]
          (if loading?
            [b/spinner]
-           [:<>
-            [b/switch
-             {:checked   show-layers?
-              :on-change #(re-frame/dispatch [:sok/habitat-observations-toggle-show-layers])
-              :label     "Layers"}]
-            [:div.habitat-observations-groups
-             [squidle-stats squidle]
-             [global-archive-stats global-archive]
-             [sediment-stats sediment]]])]))))
+           [:div.habitat-observations-groups
+            [squidle-stats squidle]
+            [global-archive-stats global-archive]
+            [sediment-stats sediment]])]))))
 
 (defn selected-boundaries []
   (let [active-boundary @(re-frame/subscribe [:sok/active-boundary])

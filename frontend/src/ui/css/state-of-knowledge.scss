@@ -40,9 +40,16 @@
     min-height: 0;
 }
 
+.state-of-knowledge-drawer .drawer-group-content>*:last-child,
+.habitat-statistics  .drawer-group-content>*>*:last-child,
+.bathymetry-statistics  .drawer-group-content>*>*:last-child {
+    flex: 1;
+}
+
 .state-of-knowledge-drawer .bp3-tab-panel {
     overflow-y: auto;
     margin-bottom: 20px;
+    flex: 1;
 }
 
 .state-of-knowledge-drawer thead {
