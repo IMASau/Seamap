@@ -309,7 +309,7 @@
                  :class "welcome-splash"
                  :is-open    open?
                  :on-close   #(re-frame/dispatch [:welcome-layer/close])}
-     [:div#welcome-splash.bp3-dialog-body
+     [:div.bp3-dialog-body
       [:p "Seamap Australia is a nationally synthesised product of
       seafloor habitat data collected from various stakeholders around
       Australia. Source datasets were reclassified according to a
