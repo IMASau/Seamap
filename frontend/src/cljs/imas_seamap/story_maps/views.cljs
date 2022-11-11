@@ -46,7 +46,7 @@
      :hasBackdrop false
      :className   "featured-map-drawer"}
     [:<>
-     [:div content]
+     [:div.summary content]
      (for [{:keys [subtitle] :as map-link-val} map-links]
        ^{:key subtitle}
        [map-link map-link-val])]]))
