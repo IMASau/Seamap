@@ -759,6 +759,44 @@ input.leaflet-control-layers-selector[type="radio"] {
     color: $seamap-color-darker;
 }
 
+.bp3-button:not(.bp3-minimal) {
+    border-radius: 0;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 7px 12px;
+
+    >.bp3-icon {
+        color: inherit;
+    }
+
+    &:not([class*="bp3-intent-"]) {
+        background-color: $seamap-color-dark;
+        color: $seamap-color-lightest;
+        &:hover {
+            background-color: $seamap-color-dark-darker;
+        }
+    }
+
+    &.bp3-intent-primary,
+    &:not([class*="bp3-intent-"]) {
+        background-image: none;
+        box-shadow: none;
+        &:hover {
+            background-image: none;
+            box-shadow: none;
+        }
+    }
+
+    &.bp3-large {
+        font-size: 15px;
+        padding: 9px 13px;
+        .bp3-icon svg {
+            height: 20px;
+            width: 20px;
+        }
+    }
+}
+
 .leaflet-control-block {
     background-color: #fff;
 }

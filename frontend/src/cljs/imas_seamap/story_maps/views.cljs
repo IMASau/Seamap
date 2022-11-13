@@ -25,14 +25,16 @@
        ^{:key (str id)}
        [featured-map story-map])]))
 
-(defn- map-link [{:keys [subtitle description shortcode] :as _map-link}]
+(defn- map-link [{:keys [index] {:keys [subtitle description shortcode] :as _map-link} :map-link}]
   [:div.map-link
-   [:div.subtitle subtitle]
+   [:div.subtitle (str index ".) " subtitle)]
    [:div.description description]
    [b/button
     {:icon     "search"
      :text     "Show me"
      :intent   "primary"
+     :class    "show-me"
+     :large    true
      :on-click #(re-frame/dispatch [:get-save-state shortcode [:merge-state]])}]])
 
 (defn featured-map-drawer []
@@ -45,8 +47,10 @@
      :onClose     #(re-frame/dispatch [:sm.featured-map/open false])
      :hasBackdrop false
      :className   "featured-map-drawer"}
-    [:<>
-     [:div content]
-     (for [{:keys [subtitle] :as map-link-val} map-links]
-       ^{:key subtitle}
-       [map-link map-link-val])]]))
+    [:div.summary content]
+    [:div.map-links
+     (map-indexed
+      (fn [index map-link-val]
+        ^{:key index}
+        [map-link {:map-link map-link-val :index (inc index)}])
+      map-links)]]))
