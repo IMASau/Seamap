@@ -88,17 +88,24 @@ body.page-template-default.admin-bar #app {
     height: calc(100% - 90px - 32px);
 }
 
-#welcome-splash {
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
-}
 .welcome-splash {
-    background: white;
-}
-.welcome-splash .bp3-dialog-header {
-    box-shadow: none;
+    width: 360px;
+
+
+    .bp3-dialog-body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+
+        .overview {
+            width: 240px;
+        }
+
+        .bp3-button {
+            margin-left: auto;
+        }
+    }
 }
 
 #main-wrapper {
@@ -738,9 +745,8 @@ input.leaflet-control-layers-selector[type="radio"] {
     color: $seamap-color-lightest;
     font-size: 28px;
     padding: 12px 12px 2px 12px;
-}
 
-.state-of-knowledge-drawer .bp3-drawer-header .bp3-icon,
-.featured-map-drawer .bp3-drawer-header .bp3-icon {
-    color: $seamap-color-lightest;
+    .bp3-icon {
+        color: $seamap-color-lightest;
+    }
 }
