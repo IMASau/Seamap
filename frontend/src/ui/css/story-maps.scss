@@ -35,8 +35,8 @@
 }
 
 .featured-map-drawer .summary {
-    background-color: $seamap-color-dark;
-    color: $seamap-color-lightest;
+    background-color: $seamap-color-2;
+    color: $seamap-color-7;
     padding: 22px 28px;
     font-size: 26px;
 }
@@ -59,15 +59,15 @@
 
 .map-link {
     padding: 18px 26px 10px 26px;
-    border-bottom: 2px solid $seamap-color-medium;
+    border-bottom: 2px solid $seamap-color-5;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+    color: $seamap-color-1;
 }
 
 .map-link .subtitle {
-    color: $seamap-color-dark;
     font-size: 21px;
     font-weight: bold;
 }

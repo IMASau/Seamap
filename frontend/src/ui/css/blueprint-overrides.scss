@@ -32,7 +32,7 @@
 }
 
 .bp3-tab {
-    color: $seamap-color-darker;
+    color: $seamap-color-2;
     font-size: 14px;
 
     &[aria-selected="true"],
@@ -67,11 +67,11 @@
     overflow-wrap: break-word;
     border-radius: initial;
     box-shadow: initial;
-    background-color: $seamap-color-lightest;
+    background-color: $seamap-color-7;
 
     .bp3-dialog-header {
-        background-color: $seamap-color-darker;
-        color: $seamap-color-lightest;
+        background-color: $seamap-color-1;
+        color: $seamap-color-7;
         font-family: "Oswald", "system-ui", sans-serif;
         font-size: 28px;
         font-weight: 500;
@@ -85,13 +85,13 @@
         }
     
         .bp3-icon {
-            color: $seamap-color-lightest;
+            color: $seamap-color-7;
         }
     }
 
     .bp3-dialog-body {
-        background-color: $seamap-color-light;
-        color: $seamap-color-darker;
+        background-color: $seamap-color-2;
+        color: $seamap-color-7;
         margin: initial;
         padding: 11px 14px;
         line-height: initial;
@@ -120,7 +120,7 @@
 .bp3-checkbox,
 .bp3-switch {
     margin: 0;
-    color: $seamap-color-darker;
+    color: $seamap-color-2;
 }
 
 :not(.bp3-popover-target)>.bp3-button:not(.bp3-minimal) {
@@ -133,19 +133,14 @@
         color: inherit;
     }
 
-    &:not([class*="bp3-intent-"]) {
-        background-color: $seamap-color-dark;
-        color: $seamap-color-lightest;
-        &:hover {
-            background-color: $seamap-color-dark-darker;
-        }
-    }
-
     &.bp3-intent-primary,
     &:not([class*="bp3-intent-"]) {
+        background-color: $seamap-color-3;
         background-image: none;
+        color: $seamap-color-7;
         box-shadow: none;
         &:hover {
+            background-color: $seamap-color-3-darker;
             background-image: none;
             box-shadow: none;
         }

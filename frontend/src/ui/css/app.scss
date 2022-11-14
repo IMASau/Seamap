@@ -531,11 +531,11 @@ input.leaflet-control-layers-selector[type="radio"] {
     display: flex;
     flex: 0 0;
     align-items: center;
-    background-color: $seamap-color-light;
-    color: $seamap-color-darker;
+    background-color: $seamap-color-5;
+    color: $seamap-color-2;
     padding: 10px 6px 14px 6px;
     gap: 4px;
-    border-top: 1.5px solid $seamap-color-dark;
+    border-top: 1.5px solid $seamap-color-2;
 }
 
 .drawer-group.collapsible > .drawer-group-heading {
@@ -564,7 +564,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 .drawer-group-heading > .bp3-icon:first-child {
-    color: $seamap-color-medium;
+    color: $seamap-color-3;
 }
 
 .drawer-group-heading > .bp3-icon:last-child {
@@ -741,12 +741,12 @@ input.leaflet-control-layers-selector[type="radio"] {
 // Right drawer headers
 .state-of-knowledge-drawer .bp3-drawer-header,
 .featured-map-drawer .bp3-drawer-header {
-    background-color: $seamap-color-darker;
-    color: $seamap-color-lightest;
+    background-color: $seamap-color-1;
+    color: $seamap-color-7;
     font-size: 28px;
     padding: 12px 12px 2px 12px;
 
     .bp3-icon {
-        color: $seamap-color-lightest;
+        color: $seamap-color-7;
     }
 }

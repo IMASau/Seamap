@@ -55,7 +55,7 @@
 .state-of-knowledge-drawer thead {
     position: sticky;
     top: 0;
-    background-color: $seamap-color-lightest;
+    background-color: $seamap-color-7;
 }
 /* scrollable table body */
 
@@ -95,19 +95,14 @@
 .habitat-observations-group-heading {
     display: flex;
     align-items: center;
-    background-color: $seamap-color-light;
-    color: $seamap-color-darker;
+    background-color: $seamap-color-6;
+    color: $seamap-color-2;
     padding: 6px;
     gap: 4px;
     cursor: pointer;
     user-select: none;
     font-weight: bold;
     font-size: 16px;
-    transition: background-color 200ms;
-}
-
-.habitat-observations-group.expanded .habitat-observations-group-heading {
-    background-color: $seamap-color-lighter;
 }
 
 .habitat-observations-group.disabled .habitat-observations-group-heading {
@@ -141,8 +136,8 @@
 }
 
 .selected-boundaries {
-    background-color: $seamap-color-dark;
-    color: $seamap-color-lightest;
+    background-color: $seamap-color-2;
+    color: $seamap-color-7;
     padding: 12px;
     font-weight: bold;
 }
@@ -152,7 +147,7 @@
 }
 
 .selected-boundaries a {
-    color: $seamap-color-lightest;
+    color: $seamap-color-7;
 }
 
 .selected-boundaries .breadcrumbs a {
