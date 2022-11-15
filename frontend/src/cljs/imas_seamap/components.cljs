@@ -10,11 +10,12 @@
             ["vega-embed" :refer [embed]]))
 
 (defn items-selection-list
-  [{:keys [items disabled data-path is-reversed]}]
+  [{:keys [items disabled data-path is-reversed has-handle]}]
   (let [items (map (fn [{:keys [key content]}] {:key key :content (reagent/as-element content)}) items)]
     [ui-controls/ItemsSelectionList
      {:items (if is-reversed (reverse items) items)
       :disabled disabled
+      :has-handle has-handle
       :onReorder (fn [src-idx dst-idx] (re-frame/dispatch [::selection-list-reorder (if is-reversed (- (count items) src-idx 1) src-idx) (if is-reversed (- (count items) dst-idx 1) dst-idx) data-path]))}]))
 
 (defn panel-stack
