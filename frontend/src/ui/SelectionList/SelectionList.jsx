@@ -352,6 +352,7 @@ export function ItemsSelectionList({ items, onReorder, disabled, hasHandle }) {
                                             className="SelectionListItem"
                                             itemLabel={content}
                                             isDragDisabled={isDragDisabled}
+                                            hasHandle={hasHandle}
                                         />
                                     )}
                                 </Draggable>
