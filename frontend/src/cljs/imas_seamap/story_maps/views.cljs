@@ -40,7 +40,7 @@
    [components/drawer
     {:title       (or title "Featured Map") ; suitable default that shouldn't be seen anyway
      :position    "right"
-     :size        "460px"
+     :size        "368px"
      :isOpen      @(re-frame/subscribe [:sm.featured-map/open?])
      :onClose     #(re-frame/dispatch [:sm.featured-map/open false])
      :hasBackdrop false
