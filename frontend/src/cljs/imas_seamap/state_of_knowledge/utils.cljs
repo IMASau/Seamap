@@ -88,7 +88,7 @@
                               (sort-by :zone-iucn)
                               vec)
              :zone-ids   (->> amp-boundaries
-                              (filter #(and (:zone-id %) (valid-boundary? % boundary-filter-names [:network :park])))
+                              (filter #(and (:zone-id %) (valid-boundary? % boundary-filter-names [:network :park :zone :zone-iucn])))
                               (map #(select-keys % [:network :park :zone-id]))
                               distinct
                               (sort-by (juxt :network :park :zone-id))
