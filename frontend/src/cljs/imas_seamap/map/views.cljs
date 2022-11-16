@@ -276,14 +276,14 @@
     :format           "image/png"}])
 
 (defmethod layer-component :feature
-  [{{:keys [server_url]} :layer}]
+  [{{:keys [server_url] :as layer} :layer}]
   [leaflet/feature-layer
    {:url              server_url
     :eventHandlers
-    {:loading       on-load-start
-     :tileloadstart on-tile-load-start
-     :tileerror     on-tile-error
-     :load          on-load-end}}]) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
+    {:loading       #(re-frame/dispatch [:map.layer/load-start layer])
+     :tileloadstart #(re-frame/dispatch [:map.layer/tile-load-start layer])
+     :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
+     :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}]) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
 
 (defmethod layer-component :wms-non-tiled
   [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style] :as layer} :layer}]
@@ -292,10 +292,10 @@
     {:url              server_url
      :layers           layer_name
      :eventHandlers
-     {:loading       on-load-start
-      :tileloadstart on-tile-load-start
-      :tileerror     on-tile-error
-      :load          on-load-end} ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
+     {:loading       #(re-frame/dispatch [:map.layer/load-start layer])
+      :tileloadstart #(re-frame/dispatch [:map.layer/tile-load-start layer])
+      :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
+      :load          #(re-frame/dispatch [:map.layer/load-finished layer])}
      :transparent      true
      :opacity          (/ (layer-opacities layer) 100)
      :tiled            true
