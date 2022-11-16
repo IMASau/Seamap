@@ -48,7 +48,7 @@
    [b/icon
     {:icon icon
      :icon-size 20}]
-   text])
+   [:div.title text]])
 
 (defn floating-pill-control-menu
   "This component renders a floating pill which the user can click on to display a
@@ -88,7 +88,7 @@
           [b/icon
            {:icon icon
             :icon-size 20}]
-          text
+          [b/clipped-text {:ellipsize true :class "title"} text]
           (if reset-click
             [b/button
              {:icon "cross"
@@ -104,7 +104,7 @@
             [b/icon
              {:icon icon
               :icon-size 20}]]
-           [:div text]
+           [b/clipped-text {:ellipsize true :class "title"} text]
            [:div
             [b/button
              {:icon "cross"
