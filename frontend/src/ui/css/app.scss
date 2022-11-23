@@ -1,38 +1,6 @@
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-Regular.ttf") format("truetype");
-    font-weight: normal;
-    font-style: normal;
-}
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-Italic.ttf") format("truetype");
-    font-weight: normal;
-    font-style: italic;
-}
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-Bold.ttf") format("truetype");
-    font-weight: bold;
-    font-style: normal;
-}
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-BoldItalic.ttf") format("truetype");
-    font-weight: bold;
-    font-style: italic;
-}
-
-@font-face {
-    font-family: "Oswald";
-    src: url("../font/Oswald/static/Oswald-Medium.ttf") format("truetype");
-    font-weight: 500;
-    font-style: normal;
-}
-
 body {
     margin: 0;
-    font-family: "PTSans", "system-ui", "Icons16", sans-serif;
+    font-family: $body-font-family;
 }
 
 h1, h2, h3, h4, h5 {
@@ -41,14 +9,14 @@ h1, h2, h3, h4, h5 {
 
 .state-of-knowledge-drawer .bp3-drawer-header,
 .featured-map-drawer .bp3-drawer-header {
-    font-family: "Oswald", "system-ui", sans-serif;
+    font-family: $headings-font-family;
     text-transform: uppercase;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 // Icons support
 *::before {
-    font-family: "PTSans", "system-ui", "Icons16", sans-serif;
+    font-family: $body-font-family;
 }
 
 a {
@@ -89,10 +57,11 @@ body.page-template-default.admin-bar #app {
 }
 
 .welcome-splash {
-    width: 360px;
+    width: 440px;
     background-color: $seamap-color-7;
     border-radius: initial;
     box-shadow: initial;
+    padding: 0;
 
     .bp3-dialog-body {
         display: flex;
@@ -103,12 +72,12 @@ body.page-template-default.admin-bar #app {
         background-color: $seamap-color-2;
         color: $seamap-color-7;
         margin: initial;
-        padding: 11px 14px;
-        line-height: initial;
+        padding: 16px 24px;
         font-size: 16px;
+        line-height: 1.5;
 
         .overview {
-            width: 240px;
+            margin-right: 40px;
         }
 
         .bp3-button {
@@ -119,20 +88,49 @@ body.page-template-default.admin-bar #app {
     .bp3-dialog-header {
         background-color: $seamap-color-1;
         color: $seamap-color-7;
-        font-family: "Oswald", "system-ui", sans-serif;
+        font-family: $headings-font-family;
         font-size: 28px;
-        font-weight: 500;
-        text-transform: uppercase;
-        padding: 12px 12px 2px 12px;
+        font-weight: 600;
+        padding: 0;
         border-radius: initial;
         align-items: flex-start;
 
         .bp3-heading {
             white-space: initial;
+            margin: 20px 20px 16px 20px;
         }
     
-        .bp3-icon {
-            color: $seamap-color-7;
+        .bp3-dialog-close-button {
+            margin: 4px;
+            
+            .bp3-icon svg {
+                color: $seamap-color-7;
+                width: 30px;
+                height: 30px;
+            }
+        }
+    }
+
+    .bp3-dialog-footer {
+        margin: 0;
+        margin-right: 40px;
+        padding: 16px 24px;
+
+        
+        p {
+            line-height: 1.5;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        h3 {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+
+            &:not(:first-child) {
+                margin-top: 14px;
+            }
         }
     }
 }
