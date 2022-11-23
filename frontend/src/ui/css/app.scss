@@ -57,7 +57,7 @@ body.page-template-default.admin-bar #app {
 }
 
 .welcome-splash {
-    width: 360px;
+    width: 440px;
     background-color: $seamap-color-7;
     border-radius: initial;
     box-shadow: initial;
@@ -71,12 +71,12 @@ body.page-template-default.admin-bar #app {
         background-color: $seamap-color-2;
         color: $seamap-color-7;
         margin: initial;
-        padding: 11px 14px;
-        line-height: initial;
+        padding: 16px 24px;
         font-size: 16px;
+        line-height: 1.5;
 
         .overview {
-            width: 240px;
+            margin-right: 40px;
         }
 
         .bp3-button {
@@ -90,17 +90,19 @@ body.page-template-default.admin-bar #app {
         font-family: $headings-font-family;
         font-size: 28px;
         font-weight: 600;
-        text-transform: uppercase;
-        padding: 12px 12px 2px 12px;
+        padding: 0;
         border-radius: initial;
         align-items: flex-start;
 
         .bp3-heading {
             white-space: initial;
+            margin: 20px 20px 16px 20px;
         }
     
-        .bp3-icon {
+        .bp3-dialog-close-button .bp3-icon svg {
             color: $seamap-color-7;
+            width: 30px;
+            height: 30px;
         }
     }
 }

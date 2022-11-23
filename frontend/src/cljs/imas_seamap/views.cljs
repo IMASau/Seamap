@@ -309,7 +309,7 @@
     [b/dialogue
      {:title
       (reagent/as-element
-       [:<> "Welcome to" [:br] "Seamap Australia!"])
+       [:<> "Welcome to" [:br] "Seamap Australia."])
       :class    "welcome-splash"
       :is-open  open?
       :on-close #(re-frame/dispatch [:welcome-layer/close])}
