@@ -22,10 +22,20 @@ $floating-pill-height: 36px;
 	color: black;
 	font-size: 14px;
 	display: flex;
-	justify-content: center;
 	align-items: center;
 	gap: 7px;
 	white-space: nowrap;
+	width: 280px;
+
+	>.title {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		// text-overflow: ellipsis;
+	}
+	>:not(.title) {
+		flex-shrink: 0;
+	}
 }
 
 .catalogue-open .floating-pills {
@@ -69,6 +79,7 @@ $floating-pill-height: 36px;
 	border: 2px solid rgba(0, 0, 0, 0.2);
 	background-clip: padding-box;
 	color: black;
+	width: 280px;
 }
 
 .floating-pill-control-menu:not(.expanded) .floating-pill-control-menu-content {
