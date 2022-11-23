@@ -89,8 +89,8 @@ $seamap-color-7: white;
 $seamap-color-2-darker: rgb(25, 44, 86);
 $seamap-color-3-darker: rgb(39, 91, 141);
 
-$body-font-family: "OpenSans";
-$headings-font-family: "Poppins";
+$body-font-family: "OpenSans", "system-ui", "Icons16", sans-serif;
+$headings-font-family: "Poppins", "system-ui", sans-serif;
 
 @import 'ui/css/wordpress';
 @import 'ui/css/floating-pills';
