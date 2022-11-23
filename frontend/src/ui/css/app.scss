@@ -61,6 +61,7 @@ body.page-template-default.admin-bar #app {
     background-color: $seamap-color-7;
     border-radius: initial;
     box-shadow: initial;
+    padding: 0;
 
     .bp3-dialog-body {
         display: flex;
@@ -103,6 +104,29 @@ body.page-template-default.admin-bar #app {
             color: $seamap-color-7;
             width: 30px;
             height: 30px;
+        }
+    }
+
+    .bp3-dialog-footer {
+        margin: 0;
+        margin-right: 40px;
+        padding: 16px 24px;
+
+        
+        p {
+            line-height: 1.5;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        h3 {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+
+            &:not(:first-child) {
+                margin-top: 14px;
+            }
         }
     }
 }
