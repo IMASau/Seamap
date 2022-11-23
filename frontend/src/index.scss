@@ -1,3 +1,35 @@
+@font-face {
+    font-family: "PTSans";
+    src: url("../font/PT_Sans/PTSans-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: "PTSans";
+    src: url("../font/PT_Sans/PTSans-Italic.ttf") format("truetype");
+    font-weight: normal;
+    font-style: italic;
+}
+@font-face {
+    font-family: "PTSans";
+    src: url("../font/PT_Sans/PTSans-Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+@font-face {
+    font-family: "PTSans";
+    src: url("../font/PT_Sans/PTSans-BoldItalic.ttf") format("truetype");
+    font-weight: bold;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Oswald";
+    src: url("../font/Oswald/static/Oswald-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+}
+
 $drawer-width: 368px;
 $floating-menu-padding: 10px;
 $leaflet-control-width: 38px;
@@ -14,6 +46,9 @@ $seamap-color-7: white;
 
 $seamap-color-2-darker: rgb(25, 44, 86);
 $seamap-color-3-darker: rgb(39, 91, 141);
+
+$body-font-family: "PTSans", "system-ui", "Icons16", sans-serif;
+$headings-font-family: "Oswald", "system-ui", sans-serif;
 
 @import 'ui/css/wordpress';
 @import 'ui/css/floating-pills';

@@ -1,38 +1,6 @@
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-Regular.ttf") format("truetype");
-    font-weight: normal;
-    font-style: normal;
-}
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-Italic.ttf") format("truetype");
-    font-weight: normal;
-    font-style: italic;
-}
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-Bold.ttf") format("truetype");
-    font-weight: bold;
-    font-style: normal;
-}
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-BoldItalic.ttf") format("truetype");
-    font-weight: bold;
-    font-style: italic;
-}
-
-@font-face {
-    font-family: "Oswald";
-    src: url("../font/Oswald/static/Oswald-Medium.ttf") format("truetype");
-    font-weight: 500;
-    font-style: normal;
-}
-
 body {
     margin: 0;
-    font-family: "PTSans", "system-ui", "Icons16", sans-serif;
+    font-family: $body-font-family;
 }
 
 h1, h2, h3, h4, h5 {
@@ -41,14 +9,14 @@ h1, h2, h3, h4, h5 {
 
 .state-of-knowledge-drawer .bp3-drawer-header,
 .featured-map-drawer .bp3-drawer-header {
-    font-family: "Oswald", "system-ui", sans-serif;
+    font-family: $headings-font-family;
     text-transform: uppercase;
     font-weight: 500;
 }
 
 // Icons support
 *::before {
-    font-family: "PTSans", "system-ui", "Icons16", sans-serif;
+    font-family: $body-font-family;
 }
 
 a {
@@ -119,7 +87,7 @@ body.page-template-default.admin-bar #app {
     .bp3-dialog-header {
         background-color: $seamap-color-1;
         color: $seamap-color-7;
-        font-family: "Oswald", "system-ui", sans-serif;
+        font-family: $headings-font-family;
         font-size: 28px;
         font-weight: 500;
         text-transform: uppercase;
