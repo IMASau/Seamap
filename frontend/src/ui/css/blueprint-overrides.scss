@@ -62,41 +62,9 @@
     margin-right: 4px;
 }
 
-/* Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line */
 .bp3-dialog {
-    overflow-wrap: break-word;
-    border-radius: initial;
-    box-shadow: initial;
-    background-color: $seamap-color-7;
-
-    .bp3-dialog-header {
-        background-color: $seamap-color-1;
-        color: $seamap-color-7;
-        font-family: "Oswald", "system-ui", sans-serif;
-        font-size: 28px;
-        font-weight: 500;
-        text-transform: uppercase;
-        padding: 12px 12px 2px 12px;
-        border-radius: initial;
-        align-items: flex-start;
-
-        .bp3-heading {
-            white-space: initial;
-        }
-    
-        .bp3-icon {
-            color: $seamap-color-7;
-        }
-    }
-
-    .bp3-dialog-body {
-        background-color: $seamap-color-2;
-        color: $seamap-color-7;
-        margin: initial;
-        padding: 11px 14px;
-        line-height: initial;
-        font-size: 16px;
-    }
+    overflow-wrap: break-word; // Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line
+    width: 500px;
 }
 
 /* Another chrome-only hack (otherwise we get an extra 0.4px on the close-button) */

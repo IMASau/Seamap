@@ -90,13 +90,22 @@ body.page-template-default.admin-bar #app {
 
 .welcome-splash {
     width: 360px;
-
+    background-color: $seamap-color-7;
+    border-radius: initial;
+    box-shadow: initial;
 
     .bp3-dialog-body {
         display: flex;
         flex-direction: column;
         gap: 12px;
         align-items: flex-start;
+        
+        background-color: $seamap-color-2;
+        color: $seamap-color-7;
+        margin: initial;
+        padding: 11px 14px;
+        line-height: initial;
+        font-size: 16px;
 
         .overview {
             width: 240px;
@@ -104,6 +113,26 @@ body.page-template-default.admin-bar #app {
 
         .bp3-button {
             margin-left: auto;
+        }
+    }
+
+    .bp3-dialog-header {
+        background-color: $seamap-color-1;
+        color: $seamap-color-7;
+        font-family: "Oswald", "system-ui", sans-serif;
+        font-size: 28px;
+        font-weight: 500;
+        text-transform: uppercase;
+        padding: 12px 12px 2px 12px;
+        border-radius: initial;
+        align-items: flex-start;
+
+        .bp3-heading {
+            white-space: initial;
+        }
+    
+        .bp3-icon {
+            color: $seamap-color-7;
         }
     }
 }
@@ -426,6 +455,12 @@ rect#background {
 .metadata-record .download-instructions {
     font-style: italic;
 }
+
+.metadata-record h3 {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
 .metadata-record.third-party .metadata-subheader,
 .metadata-record.third-party .license-info,
 .metadata-record.third-party .download-instructions,

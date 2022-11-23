@@ -368,14 +368,14 @@
           [:img.metadata-img.org-logo
            {:class (string/replace logo #"\..+$" "")
             :src   (str img-url-base logo)}]])
-       [:h6.metadata-subheader "Citation Information:"]
+       [:h3.metadata-subheader "Citation Information:"]
        [:div.section
         [:p.citation  constraints]]
        (when (seq other)
          [:div.section
-          [:h6.metadata-subheader "Usage:"]
+          [:h3.metadata-subheader "Usage:"]
           (map-indexed (fn [i o] (when o ^{:key i} [:p.other-constraints o])) other)])
-       [:h6.clickable {:on-click (handler-fn (swap! expanded not))}
+       [:h3.clickable {:on-click (handler-fn (swap! expanded not))}
         [:span.bp3-icon-standard {:class (if @expanded "bp3-icon-chevron-down" "bp3-icon-chevron-right")}]
         "API Access"]
        [b/collapse {:is-open               @expanded
@@ -387,7 +387,7 @@
          [:span.server-url [:a {:href server_url} server_url]]
          [:span.server-layer layer_name]]]
        [:div.license-info.clearfix.section
-        [:h6 "License Information:"]
+        [:h3 "License Information:"]
         (when license-img [:img.license.metadata-img {:src license-img}])
         [:a {:href license-link :target "_blank"} license-name]]
        [:div.more-info.section
