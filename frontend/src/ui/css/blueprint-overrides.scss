@@ -86,6 +86,11 @@
     .bp3-panel-stack {
         height: 100%;
     }
+
+    .bp3-drawer-header .bp3-heading {
+        text-overflow: inherit;
+        white-space: inherit;
+    }
 }
 
 .bp3-checkbox,

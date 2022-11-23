@@ -327,7 +327,7 @@
 
 (defn state-of-knowledge []
   [components/drawer
-   {:title       (reagent/as-element [:<> "State of" [:br] "Knowledge"])
+   {:title       "State of Knowledge"
     :position    "right"
     :size        "368px"
     :isOpen      (and
