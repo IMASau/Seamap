@@ -376,7 +376,7 @@
           [:h3.metadata-subheader "Usage:"]
           (map-indexed (fn [i o] (when o ^{:key i} [:p.other-constraints o])) other)])
        [:h3.clickable {:on-click (handler-fn (swap! expanded not))}
-        [:span.bp3-icon-standard {:class (if @expanded "bp3-icon-chevron-down" "bp3-icon-chevron-right")}]
+        [b/icon {:icon (if @expanded "chevron-down" "chevron-right")}]
         "API Access"]
        [b/collapse {:is-open               @expanded
                     :keep-children-mounted true
