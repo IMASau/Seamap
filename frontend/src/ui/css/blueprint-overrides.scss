@@ -65,6 +65,10 @@
 .bp3-dialog {
     overflow-wrap: break-word; // Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line
     width: 500px;
+
+    .bp3-dialog-body {
+        line-height: inherit;
+    }
 }
 
 /* Another chrome-only hack (otherwise we get an extra 0.4px on the close-button) */

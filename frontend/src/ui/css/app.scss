@@ -1,6 +1,7 @@
 body {
     margin: 0;
     font-family: $body-font-family;
+    line-height: 1.5;
 }
 
 h1, h2, h3, h4, h5 {
@@ -74,7 +75,6 @@ body.page-template-default.admin-bar #app {
         margin: initial;
         padding: 16px 24px;
         font-size: 16px;
-        line-height: 1.5;
 
         .overview {
             margin-right: 40px;
@@ -118,7 +118,6 @@ body.page-template-default.admin-bar #app {
 
         
         p {
-            line-height: 1.5;
             font-size: 10px;
             margin-left: 5px;
         }
