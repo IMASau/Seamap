@@ -33,7 +33,11 @@ table {
 
 td, th {
     font-size: inherit;
-    padding: 6px 6px 6px 0;
+    padding: 4px 6px 4px 0;
+}
+
+th {
+    white-space: nowrap;
 }
 
 #app {
@@ -571,7 +575,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     flex: 1;
     font-size: 16px;
     font-size: 20px;
-    font-weight: bold;
     color: inherit;
 }
 
