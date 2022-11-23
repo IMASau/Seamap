@@ -35,8 +35,7 @@
     color: $seamap-color-2;
     font-size: 14px;
 
-    &[aria-selected="true"],
-    &:not([aria-disabled="true"]):hover {
+    &[aria-selected="true"] {
         font-weight: bold;
     }
 
@@ -86,6 +85,11 @@
 
     .bp3-panel-stack {
         height: 100%;
+    }
+
+    .bp3-drawer-header .bp3-heading {
+        text-overflow: inherit;
+        white-space: inherit;
     }
 }
 

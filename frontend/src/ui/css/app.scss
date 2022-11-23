@@ -762,12 +762,17 @@ input.leaflet-control-layers-selector[type="radio"] {
 .state-of-knowledge-drawer,
 .featured-map-drawer {
     .bp3-drawer-header {
+        padding: 0;
         background-color: $seamap-color-1;
         color: $seamap-color-7;
-        font-size: 28px;
+        font-size: 26px;
         font-family: $headings-font-family;
         font-weight: 600;
         align-items: flex-start;
+
+        .bp3-heading {
+            padding: 12px;
+        }
     
         .bp3-dialog-close-button {
             margin: 4px;
