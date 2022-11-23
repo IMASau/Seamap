@@ -135,7 +135,7 @@
                 );
             </script>
 
-            <div class="region-report-outline">
+            <div class="region-report-outline" id="region-report-outline-<?php the_ID(); ?>">
                 <div>
                     <?php the_content(); ?>
                     <div class="region-report-overview-map">
@@ -232,10 +232,7 @@
                                     // zoom to map extent
                                     let bounds = [[e.detail.bounding_box.north, e.detail.bounding_box.east], [e.detail.bounding_box.south, e.detail.bounding_box.west]];
                                     map.fitBounds(bounds);
-                                    window.addEventListener(
-                                        "resize",
-                                        e => { map.fitBounds(bounds); }
-                                    );
+                                    window.addEventListener("resize", map.invalidateSize);
                                 }
                             );
 
@@ -251,30 +248,27 @@
                         </script>
                     </div>
                 </div>
-
-                <div id="region-report-parks-<?php the_ID(); ?>"></div>
             </div>
             <script>
                     postElement.addEventListener(
                         "regionReportData",
                         e => {
-                            const parks = document.getElementById(`region-report-parks-${postId}`);
+                            const outline = document.getElementById(`region-report-outline-${postId}`);
                             
                             if (e.detail.parks) {
                                 const parkList = document.createElement("ul");
                                 e.detail.parks.forEach(
                                     e => {
-                                        const listItem = document.createElement("li");
-                                        const hyperlink = document.createElement("a");
-                                        hyperlink.innerText = e.park;
-                                        hyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.slug}/`);
-                                        listItem.appendChild(hyperlink);
-                                        parkList.appendChild(listItem);
+                                        parkList.innerHTML += `
+                                            <li>
+                                                <a href="${pageLink.split('/').slice(0, -2).join('/')}/${e.slug}/">${e.park}</a>
+                                            </li>`;
                                     }
                                 );
+                                const parks = document.createElement("div");
                                 parks.appendChild(parkList);
-                            } else {
-                                parks.remove();
+                                outline.appendChild(parks);
+                                map.invalidateSize();
                             }
                         }
                     );
