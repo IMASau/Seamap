@@ -30,6 +30,20 @@
     font-style: normal;
 }
 
+@font-face {
+    font-family: "Poppins";
+    src: url("../font/Poppins/Poppins-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Poppins";
+    src: url("../font/Poppins/Poppins-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+}
+
 $drawer-width: 368px;
 $floating-menu-padding: 10px;
 $leaflet-control-width: 38px;
