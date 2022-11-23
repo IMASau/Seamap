@@ -140,11 +140,12 @@
     background-color: $seamap-color-2;
     color: $seamap-color-7;
     padding: 12px;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .selected-boundaries h2 {
     font-size: 22px;
+    font-family: $headings-font-family;
 }
 
 .selected-boundaries a {
