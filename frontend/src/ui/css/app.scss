@@ -100,10 +100,14 @@ body.page-template-default.admin-bar #app {
             margin: 20px 20px 16px 20px;
         }
     
-        .bp3-dialog-close-button .bp3-icon svg {
-            color: $seamap-color-7;
-            width: 30px;
-            height: 30px;
+        .bp3-dialog-close-button {
+            margin: 4px;
+            
+            .bp3-icon svg {
+                color: $seamap-color-7;
+                width: 30px;
+                height: 30px;
+            }
         }
     }
 
