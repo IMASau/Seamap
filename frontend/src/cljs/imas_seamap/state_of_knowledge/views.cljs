@@ -42,7 +42,6 @@
             without-unmapped   (filter :habitat results)]
         [components/drawer-group
          {:heading         "Habitat Statistics"
-          :icon            "home"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
           :class           "habitat-statistics"}
@@ -130,7 +129,6 @@
             without-unmapped      (filter :resolution results)]
         [components/drawer-group
          {:heading         "Bathymetry Statistics"
-          :icon            "timeline-area-chart"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
           :class           "bathymetry-statistics"}
@@ -276,7 +274,6 @@
       (let [{:keys [squidle global-archive sediment loading? show-layers?]} @(re-frame/subscribe [:sok/habitat-observations])]
         [components/drawer-group
          {:heading         "Habitat Observations"
-          :icon            "media"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
           :class           "habitat-observations"}
@@ -330,7 +327,7 @@
 
 (defn state-of-knowledge []
   [components/drawer
-   {:title       "State of Knowledge"
+   {:title       (reagent/as-element [:<> "State of" [:br] "Knowledge"])
     :position    "right"
     :size        "368px"
     :isOpen      (and

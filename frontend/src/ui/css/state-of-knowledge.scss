@@ -14,6 +14,7 @@
 .state-of-knowledge-drawer .drawer-group {
     flex: 1 1 0;
     min-height: 0;
+    border-bottom: 2px solid $seamap-color-4;
 }
 
 .state-of-knowledge-drawer .drawer-group {
@@ -22,7 +23,7 @@
 
 .state-of-knowledge-drawer .drawer-group.collapsed {
     flex: 0 1 0;
-    min-height: 51px;
+    min-height: 56px;
 }
 
 /* scrollable table body */
@@ -101,8 +102,9 @@
     gap: 4px;
     cursor: pointer;
     user-select: none;
-    font-weight: bold;
-    font-size: 16px;
+    font-family: $headings-font-family;
+    font-weight: 600;
+    font-size: 14px;
 }
 
 .habitat-observations-group.disabled .habitat-observations-group-heading {
@@ -123,7 +125,7 @@
 
 .habitat-observations-group-stat {
     border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-    padding: 5px 14px;
+    padding: 4px 14px;
 }
 
 .state-of-knowledge-pill-content {
@@ -139,11 +141,12 @@
     background-color: $seamap-color-2;
     color: $seamap-color-7;
     padding: 12px;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .selected-boundaries h2 {
     font-size: 22px;
+    font-family: $headings-font-family;
 }
 
 .selected-boundaries a {

@@ -1,17 +1,11 @@
 body {
     margin: 0;
     font-family: $body-font-family;
+    line-height: 1.5;
 }
 
 h1, h2, h3, h4, h5 {
     font-weight: inherit;
-}
-
-.state-of-knowledge-drawer .bp3-drawer-header,
-.featured-map-drawer .bp3-drawer-header {
-    font-family: $headings-font-family;
-    text-transform: uppercase;
-    font-weight: 600;
 }
 
 // Icons support
@@ -39,7 +33,11 @@ table {
 
 td, th {
     font-size: inherit;
-    padding: 6px 6px 6px 0;
+    padding: 4px 6px 4px 0;
+}
+
+th {
+    white-space: nowrap;
 }
 
 #app {
@@ -74,7 +72,6 @@ body.page-template-default.admin-bar #app {
         margin: initial;
         padding: 16px 24px;
         font-size: 16px;
-        line-height: 1.5;
 
         .overview {
             margin-right: 40px;
@@ -118,7 +115,6 @@ body.page-template-default.admin-bar #app {
 
         
         p {
-            line-height: 1.5;
             font-size: 10px;
             margin-left: 5px;
         }
@@ -558,50 +554,41 @@ input.leaflet-control-layers-selector[type="radio"] {
 .drawer-group {
     display: flex;
     flex-direction: column;
-}
 
-.drawer-group-heading {
-    display: flex;
-    flex: 0 0;
-    align-items: center;
-    background-color: $seamap-color-5;
-    color: $seamap-color-2;
-    padding: 10px 6px 14px 6px;
-    gap: 4px;
-    border-top: 1.5px solid $seamap-color-2;
-}
-
-.drawer-group.collapsible > .drawer-group-heading {
-    cursor: pointer;
-    user-select: none;
-}
-
-.drawer-group-heading > h1 {
-    flex: 1;
-    font-size: 16px;
-    font-size: 20px;
-    font-weight: bold;
-    color: inherit;
-}
-
-.drawer-group-heading > h1::before {
-    margin-right: 6px;
-}
-
-.drawer-group-heading > .bp3-icon {
-    aspect-ratio: 1;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.drawer-group-heading > .bp3-icon:first-child {
-    color: $seamap-color-3;
-}
-
-.drawer-group-heading > .bp3-icon:last-child {
-    color: inherit
+    .drawer-group-heading {
+        display: flex;
+        flex: 0 0;
+        align-items: center;
+        background-color: $seamap-color-5;
+        color: $seamap-color-2;
+        gap: 4px;
+        min-height: 54px;
+        padding-left: 12px;
+        font-family: $headings-font-family;
+    
+        >h1 {
+            flex: 1;
+            font-size: 20px;
+            color: inherit;
+    
+            &::before {
+                margin-right: 6px;
+            }
+        }
+    
+        >.bp3-icon {
+            aspect-ratio: 1;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+    
+    &.collapsible > .drawer-group-heading {
+        cursor: pointer;
+        user-select: none;
+    }
 }
 
 .drawer-group-content,
@@ -771,15 +758,25 @@ input.leaflet-control-layers-selector[type="radio"] {
     width: 368px;
 }
 
-// Right drawer headers
-.state-of-knowledge-drawer .bp3-drawer-header,
-.featured-map-drawer .bp3-drawer-header {
-    background-color: $seamap-color-1;
-    color: $seamap-color-7;
-    font-size: 28px;
-    padding: 12px 12px 2px 12px;
-
-    .bp3-icon {
+// Right drawer shared
+.state-of-knowledge-drawer,
+.featured-map-drawer {
+    .bp3-drawer-header {
+        background-color: $seamap-color-1;
         color: $seamap-color-7;
+        font-size: 28px;
+        font-family: $headings-font-family;
+        font-weight: 600;
+        align-items: flex-start;
+    
+        .bp3-dialog-close-button {
+            margin: 4px;
+            
+            .bp3-icon svg {
+                color: $seamap-color-7;
+                width: 30px;
+                height: 30px;
+            }
+        }
     }
 }
