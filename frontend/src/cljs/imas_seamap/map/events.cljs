@@ -493,7 +493,7 @@
   ;; re-set.  So we have this two step process.  Ditto :active-base /
   ;; :active-base-layer
   [{:keys [db]} _]
-  (let [{:keys [active active-base _legend-ids]} (:map db)
+  (let [{:keys [active active-base _legend-ids initial-bounds?]} (:map db)
         startup-layers (get-in db [:map :keyed-layers :startup] [])
         active-layers (if active
                         (vec (ids->layers active (get-in db [:map :layers])))
@@ -511,7 +511,7 @@
                           (assoc :initialised true))]
     {:db         db
      :dispatch-n [[:ui/hide-loading]
-                  (when (seq startup-layers)
+                  (when (and (seq startup-layers) initial-bounds?)
                     [:map/update-map-view {:bounds (:bounding_box (first startup-layers)) :instant? true}])
                   [:maybe-autosave]]}))
 
@@ -546,7 +546,8 @@
                    :zoom   zoom
                    :size   size
                    :center center
-                   :bounds bounds)]
+                   :bounds bounds
+                   :initial-bounds? false)]
     {:db       db
      :dispatch [:maybe-autosave]}))
 

@@ -83,7 +83,7 @@
     ;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
     :cookie-set-no-on-success             identity
     :cookie-set-no-on-failure             identity
-    :load-hash-state                      [tmaevents/load-hash-state]
+    :load-hash-state                      [events/load-hash-state]
     :get-save-state                       [events/get-save-state]
     :get-save-state-success               [events/get-save-state-success]
     :initialise-db                        [events/initialise-db]

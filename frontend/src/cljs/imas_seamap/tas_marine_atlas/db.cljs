@@ -6,6 +6,7 @@
 (def default-db
   {:initialised     false               ; Flag to prevent early updates
    :map             {:center          [-42.20157676555315 146.74253188097842]
+                     :initial-bounds? true
                      :size            {}
                      :zoom            7
                      :zoom-cutover    10

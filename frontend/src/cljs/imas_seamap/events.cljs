@@ -230,8 +230,10 @@
 (defn load-hash-state
   [{:keys [db]} [_ hash-code]]
   (let [db (merge-in db (parse-state hash-code))]
-    {:db db
-     :dispatch [:map/update-map-view (assoc (:map db) :instant? true)]}))
+    (merge
+     {:db db}
+     (when (and hash-code (not= hash-code "null"))
+       {:dispatch [:map/update-map-view (assoc (:map db) :instant? true)]}))))
 
 (defn get-save-state
   "Uses a shortcode to retrieve a save-state. On success dispatches an event with
