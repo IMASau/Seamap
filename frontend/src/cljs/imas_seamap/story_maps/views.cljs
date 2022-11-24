@@ -25,9 +25,9 @@
        ^{:key (str id)}
        [featured-map story-map])]))
 
-(defn- map-link [{:keys [index] {:keys [subtitle description shortcode] :as _map-link} :map-link}]
+(defn- map-link [{:keys [subtitle description shortcode] :as _map-link}]
   [:div.map-link
-   [:div.subtitle (str index ".) " subtitle)]
+   [:div.subtitle subtitle]
    [:div.description description]
    [b/button
     {:icon     "search"
@@ -52,5 +52,5 @@
      (map-indexed
       (fn [index map-link-val]
         ^{:key index}
-        [map-link {:map-link map-link-val :index (inc index)}])
+        [map-link map-link-val])
       map-links)]]))
