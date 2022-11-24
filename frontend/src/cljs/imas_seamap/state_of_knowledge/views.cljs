@@ -40,34 +40,34 @@
       (let [{:keys [loading? results show-layers?]} @(re-frame/subscribe [:sok/habitat-statistics])
             download-url @(re-frame/subscribe [:sok/habitat-statistics-download-url])
             without-unmapped   (filter :habitat results)]
-        [components/state-of-knowledge-drawer-group
+        [components/drawer-group
          {:heading         "Habitat Statistics"
-          :icon            "home"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
-          :show-layers?    show-layers?
-          :toggle-layers   #(re-frame/dispatch [:sok/habitat-toggle-show-layers])}
-         (if loading?
-           [b/spinner]
-           [b/tabs
-            {:id              "habitat-statistics-tabs"
-             :selected-tab-id @selected-tab
-             :on-change       #(reset! selected-tab %)}
+          :class           "habitat-statistics"}
+         [b/tabs
+          {:id              "habitat-statistics-tabs"
+           :selected-tab-id @selected-tab
+           :on-change       #(reset! selected-tab %)}
 
-            [b/tab
-             {:id    "breakdown"
-              :title "Breakdown"
-              :panel
-              (reagent/as-element
+          [b/tab
+           {:id    "breakdown"
+            :title "Breakdown"
+            :panel
+            (reagent/as-element
+             (if loading?
+               [b/spinner]
                [habitat-statistics-table
-                {:habitat-statistics results}])}]
+                {:habitat-statistics results}]))}]
 
-            [b/tab
-             {:id    "chart"
-              :title "Chart"
-              :panel
-              (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
-                (reagent/as-element
+          [b/tab
+           {:id    "chart"
+            :title "Chart"
+            :panel
+            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+              (reagent/as-element
+               (if loading?
+                 [b/spinner]
                  (if (seq without-unmapped)
                    [components/donut-chart
                     {:id              "habitat-statistics-chart"
@@ -76,18 +76,25 @@
                      :dependent-var   :area
                      :color           :color
                      :legend-title    "Habitat"}]
-                   [:div "No habitat information"])))}]
+                   [:div "No habitat information"]))))}]
 
-            [b/tab
-             {:id    "download"
-              :title "Download"
-              :panel
-              (reagent/as-element
+          [b/tab
+           {:id    "download"
+            :title "Download"
+            :panel
+            (reagent/as-element
+             (if loading?
+               [b/spinner]
                (if (seq without-unmapped)
                  [:a.download
                   {:href download-url}
                   "Download as Shapefile"]
-                 [:div "No habitat information"]))}]])]))))
+                 [:div "No habitat information"])))}]
+
+          [b/switch
+           {:checked   show-layers?
+            :on-change #(re-frame/dispatch [:sok/habitat-toggle-show-layers])
+            :label     "Layers"}]]]))))
 
 (defn bathymetry-statistics-table
   [{:keys [bathymetry-statistics]}]
@@ -120,33 +127,33 @@
       (let [{:keys [loading? results show-layers?]} @(re-frame/subscribe [:sok/bathymetry-statistics])
             download-url @(re-frame/subscribe [:sok/bathymetry-statistics-download-url])
             without-unmapped      (filter :resolution results)]
-        [components/state-of-knowledge-drawer-group
+        [components/drawer-group
          {:heading         "Bathymetry Statistics"
-          :icon            "timeline-area-chart"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
-          :show-layers?    show-layers?
-          :toggle-layers   #(re-frame/dispatch [:sok/bathymetry-toggle-show-layers])}
-         (if loading?
-           [b/spinner]
-           [b/tabs
-            {:id              "bathymetry-statistics-tabs"
-             :selected-tab-id @selected-tab
-             :on-change       #(reset! selected-tab %)}
+          :class           "bathymetry-statistics"}
+         [b/tabs
+          {:id              "bathymetry-statistics-tabs"
+           :selected-tab-id @selected-tab
+           :on-change       #(reset! selected-tab %)}
 
-            [b/tab
-             {:id    "breakdown"
-              :title "Breakdown"
-              :panel (reagent/as-element
+          [b/tab
+           {:id    "breakdown"
+            :title "Breakdown"
+            :panel (reagent/as-element
+                    (if loading?
+                      [b/spinner]
                       [bathymetry-statistics-table
-                       {:bathymetry-statistics results}])}]
+                       {:bathymetry-statistics results}]))}]
 
-            [b/tab
-             {:id    "chart"
-              :title "Chart"
-              :panel
-              (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
-                (reagent/as-element
+          [b/tab
+           {:id    "chart"
+            :title "Chart"
+            :panel
+            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+              (reagent/as-element
+               (if loading?
+                 [b/spinner]
                  (if (seq without-unmapped)
                    [components/donut-chart
                     {:id              "bathymetry-statistics-chart"
@@ -156,101 +163,127 @@
                      :color           :color
                      :legend-title    "Resolution"
                      :sort-key        :rank}]
-                   [:div "No bathymetry information"])))}]
+                   [:div "No bathymetry information"]))))}]
 
-            [b/tab
-             {:id    "download"
-              :title "Download"
-              :panel
-              (reagent/as-element
+          [b/tab
+           {:id    "download"
+            :title "Download"
+            :panel
+            (reagent/as-element
+             (if loading?
+               [b/spinner]
                (if (seq without-unmapped)
                  [:a.download
                   {:href download-url}
                   "Download as Shapefile"]
-                 [:div "No bathymetry information"]))}]])]))))
+                 [:div "No bathymetry information"])))}]
 
-(defn squidle-stats
+          [b/switch
+           {:checked   show-layers?
+            :on-change #(re-frame/dispatch [:sok/bathymetry-toggle-show-layers])
+            :label     "Layers"}]]]))))
+
+(defn- habitat-observations-group-stat
+  [{:keys [label text] :as _stat}]
+  [:div.habitat-observations-group-stat
+   [:b (str label ": ")]
+   text])
+
+(defn- habitat-observations-group
+  [_props]
+  (let [expanded? (reagent/atom false)]
+    (fn [{:keys [title disabled? stats]}]
+      [:div.habitat-observations-group
+       {:class
+        (str
+         (when (and @expanded? (not disabled?)) " expanded")
+         (when disabled? " disabled"))}
+       [:div.habitat-observations-group-heading
+        {:on-click #(when-not disabled? (swap! expanded? not))}
+        [b/icon
+         {:icon (if (and @expanded? (not disabled?)) "double-chevron-up" "double-chevron-down")
+          :icon-size 20}]
+        title]
+       [b/collapse
+        {:is-open               (and @expanded? (not disabled?))
+         :keep-children-mounted true}
+        [:div.habitat-observations-group-stats
+         (for [{:keys [label] :as stat} stats]
+           ^{:key label}
+           [habitat-observations-group-stat stat])]]])))
+
+(defn- squidle-stats
   [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
-  (let [collapsed? (reagent/atom true)]
-    (fn [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
-      (let [disabled?          (not (pos? (or deployments 0)))
-            deployments        (format-number (or deployments 0) 0)
-            campaigns          (format-number (or campaigns 0) 0)
-            start_date         (or (format-date-month start_date) "unknown")
-            end_date           (or (format-date-month end_date) "unknown")
-            method             (or method "N/A")
-            images             (format-number (or images 0) 0)
-            total_annotations  (format-number (or total_annotations 0) 0)
-            public_annotations (format-number (or public_annotations 0) 0)]
-        [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when disabled? " disabled"))}
-         [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? disabled?) " bp3-icon-caret-right" " bp3-icon-caret-down"))
-           :on-click #(swap! collapsed? not)}
-          (str deployments " imagery deployments (" campaigns " campaigns)")]
-         [:ul
-          [:li (str "Date range: " start_date " to " end_date)]
-          [:li (str "Methods of collection: " method)]
-          [:li (str images " images collected")]
-          [:li (str total_annotations " image annotations (" public_annotations " public)")]]]))))
+  (let [disabled?          (not (pos? (or deployments 0)))
+        deployments        (format-number (or deployments 0) 0)
+        campaigns          (format-number (or campaigns 0) 0)
+        start_date         (or (format-date-month start_date) "unknown")
+        end_date           (or (format-date-month end_date) "unknown")
+        method             (or method "N/A")
+        images             (format-number (or images 0) 0)
+        total_annotations  (format-number (or total_annotations 0) 0)
+        public_annotations (format-number (or public_annotations 0) 0)]
+    [habitat-observations-group
+     {:title     (str deployments " Imagery Deployments (" campaigns " Campaigns)")
+      :disabled? disabled?
+      :stats
+      [{:label "Date Range" :text (str start_date " to " end_date)}
+       {:label "Methods of Collection" :text method}
+       {:label "Images Collected" :text images}
+       {:label "Image Annotations" :text (str total_annotations " (" public_annotations " public)")}]}]))
 
-(defn global-archive-stats
+(defn- global-archive-stats
   [{:keys [deployments campaigns start_date end_date method video_time]}]
-  (let [collapsed? (reagent/atom true)]
-    (fn [{:keys [deployments campaigns start_date end_date method video_time]}]
-      (let [disabled?     (not (pos? (or deployments 0)))
-            deployments   (format-number (or deployments 0) 0)
-            campaigns     (format-number (or campaigns 0) 0)
-            start_date    (or (format-date-month start_date) "unknown")
-            end_date      (or (format-date-month end_date) "unknown")
-            method        (or method "N/A")
-            video_time    (format-number (or video_time 0) 0)]
-        [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when disabled? " disabled"))}
-         [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? disabled?) " bp3-icon-caret-right" " bp3-icon-caret-down"))
-           :on-click #(swap! collapsed? not)}
-          (str deployments " video deployments (" campaigns " campaigns)")]
-         [:ul
-          [:li (str "Date range: " start_date " to " end_date)]
-          [:li (str "Methods of collection: " method)]
-          [:li (str video_time " hours of video")]]]))))
+  (let [disabled?     (not (pos? (or deployments 0)))
+        deployments   (format-number (or deployments 0) 0)
+        campaigns     (format-number (or campaigns 0) 0)
+        start_date    (or (format-date-month start_date) "unknown")
+        end_date      (or (format-date-month end_date) "unknown")
+        method        (or method "N/A")
+        video_time    (format-number (or video_time 0) 0)]
+    [habitat-observations-group
+     {:title     (str deployments " Video Deployments (" campaigns " Campaigns)")
+      :disabled? disabled?
+      :stats
+      [{:label "Date Range" :text (str start_date " to " end_date)}
+       {:label "Methods of Collection" :text method}
+       {:label "Hours of Video" :text video_time}]}]))
 
-(defn sediment-stats
+(defn- sediment-stats
   [{:keys [samples analysed survey start_date end_date method]}]
-  (let [collapsed? (reagent/atom true)]
-    (fn [{:keys [samples analysed survey start_date end_date method]}]
-      (let [disabled?  (not (pos? (or samples 0)))
-            samples    (format-number (or samples 0) 0)
-            analysed   (format-number (or analysed 0) 0)
-            survey     (format-number (or survey 0) 0)
-            start_date (or (format-date-month start_date) "unknown")
-            end_date   (or (format-date-month end_date) "unknown")
-            method     (or method "N/A")]
-        [:div
-         {:class (str "habitat-observation-stats" (when @collapsed? " collapsed") (when disabled? " disabled"))}
-         [:h2
-          {:class (str "bp3-heading" (if (or @collapsed? disabled?) " bp3-icon-caret-right" " bp3-icon-caret-down"))
-           :on-click #(swap! collapsed? not)}
-          (str samples " sediment samples (" analysed " analysed) from " survey " surveys")]
-         [:ul
-          [:li (str "Date range: " start_date " to " end_date)]
-          [:li (str "Methods of collection: " method)]]]))))
+  (let [disabled?  (not (pos? (or samples 0)))
+        samples    (format-number (or samples 0) 0)
+        analysed   (format-number (or analysed 0) 0)
+        survey     (format-number (or survey 0) 0)
+        start_date (or (format-date-month start_date) "unknown")
+        end_date   (or (format-date-month end_date) "unknown")
+        method     (or method "N/A")]
+    [habitat-observations-group
+     {:title
+      [:<>
+       (str samples " Sediment Samples (" analysed " Analysed)") [:br]
+       (str "from " survey " Surveys")]
+      :disabled? disabled?
+      :stats
+      [{:label "Date Range" :text (str start_date " to " end_date)}
+       {:label "Methods of Collection" :text method}]}]))
 
-(defn habitat-observations []
+(defn- habitat-observations []
   (let [collapsed?   (reagent/atom false)]
     (fn []
       (let [{:keys [squidle global-archive sediment loading? show-layers?]} @(re-frame/subscribe [:sok/habitat-observations])]
-        [components/state-of-knowledge-drawer-group
+        [components/drawer-group
          {:heading         "Habitat Observations"
-          :icon            "media"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
-          :show-layers?    show-layers?
-          :toggle-layers   #(re-frame/dispatch [:sok/habitat-observations-toggle-show-layers])}
+          :class           "habitat-observations"}
+         [b/switch
+          {:checked   show-layers?
+           :on-change #(re-frame/dispatch [:sok/habitat-observations-toggle-show-layers])
+           :label     "Layers"}]
          (if loading?
            [b/spinner]
-           [:div
+           [:div.habitat-observations-groups
             [squidle-stats squidle]
             [global-archive-stats global-archive]
             [sediment-stats sediment]])]))))
@@ -287,7 +320,7 @@
                                (when active-ecoregion [(:ecoregion active-ecoregion)]))
                       nil)]
     [:div.selected-boundaries
-     [:h2.bp3-heading (:name active-boundary)]
+     [:h2 (:name active-boundary)]
      (when (seq breadcrumbs)
        [components/breadcrumbs
         {:content breadcrumbs}])]))

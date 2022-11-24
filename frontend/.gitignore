@@ -12,6 +12,7 @@ pom.xml.asc
 /resources/public/js
 /resources/public/css/style.npm-packaged.css
 resources/public/css/style.npm-packaged.css.map
+resources/public/css/blueprint.css
 /out
 /.repl
 /.idea

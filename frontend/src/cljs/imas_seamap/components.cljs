@@ -180,36 +180,19 @@
      {:id id}]))
 
 (defn drawer-group
-  [{:keys [heading icon collapsed? toggle-collapse]} & children]
+  [{:keys [heading icon collapsed? toggle-collapse class]} & children]
   [:div
-   {:class (str "drawer-group" (when collapsed? " collapsed") (when toggle-collapse " collapsible"))}
+   {:class (str "drawer-group" (when collapsed? " collapsed") (when toggle-collapse " collapsible") (when class (str " " class)))}
    [:div.drawer-group-heading
     (when toggle-collapse {:on-click toggle-collapse})
-    [:h1
-     {:class (str "bp3-heading" (when icon (str " bp3-icon-" icon)))}
-     heading]
+    (when icon
+      [b/icon
+       {:icon icon
+        :icon-size 20}])
+    [:h1 heading]
     (when toggle-collapse
       [b/icon
-       {:icon (if collapsed? "plus" "minus")
-        :icon-size 20}])]
-   (into [:div.drawer-group-content] children)])
-
-(defn state-of-knowledge-drawer-group
-  [{:keys [heading icon collapsed? toggle-collapse show-layers? toggle-layers]} & children]
-  [:div
-   {:class (str "drawer-group" (when collapsed? " collapsed") (when toggle-collapse " collapsible"))}
-   [:div.drawer-group-heading
-    (when toggle-collapse {:on-click toggle-collapse})
-    [:h1
-     {:class (str "bp3-heading" (when icon (str " bp3-icon-" icon)))}
-     heading]
-    [b/switch
-     {:checked   show-layers?
-      :on-change toggle-layers
-      :label     "Layers"}]
-    (when toggle-collapse
-      [b/icon
-       {:icon (if collapsed? "plus" "minus")
+       {:icon (if collapsed? "double-chevron-down" "double-chevron-up")
         :icon-size 20}])]
    (into [:div.drawer-group-content] children)])
 

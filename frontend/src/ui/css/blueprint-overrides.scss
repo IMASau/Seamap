@@ -1,0 +1,133 @@
+.bp3-collapse>.bp3-collapse-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 0;
+    flex-shrink: 1;
+    min-height: 0;              /* http://stackoverflow.com/a/36247448 */
+}
+
+.bp3-portal {
+    z-index: 2000;              /* Must be greater than leaflet */
+}
+
+.bp3-overlay-backdrop {
+    z-index: 2000;              /* Must be greater than leaflet */
+}
+.bp3-overlay-content {
+    z-index: 2001;
+}
+
+/* Allow interactivity with underneath elements while drawer is open */
+.bp3-overlay.bp3-overlay-open.bp3-overlay-container {
+    width: 0;
+    height: 0;
+}
+
+.bp3-toast-container {
+    z-index: 2001;
+}
+
+.bp3-tree-node-secondary-label {
+    flex: 0 0 auto;
+}
+
+.bp3-tab {
+    color: $seamap-color-2;
+    font-size: 14px;
+
+    &[aria-selected="true"] {
+        font-weight: bold;
+    }
+
+    >*::before {
+        margin-right: 2px;
+    }
+}
+
+.bp3-tab-list {
+    align-items: center;
+    height: 40px;
+}
+
+.bp3-tab-indicator-wrapper .bp3-tab-indicator {
+    height: 1.5px;
+}
+
+.bp3-tab-panel {
+    margin: 0;
+}
+
+.bp3-heading>*::before {
+    margin-right: 4px;
+}
+
+.bp3-dialog {
+    overflow-wrap: break-word; // Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line
+    width: 500px;
+
+    .bp3-dialog-body {
+        line-height: inherit;
+    }
+}
+
+/* Another chrome-only hack (otherwise we get an extra 0.4px on the close-button) */
+.bp3-dialog-footer-actions .bp3-popover-target {
+    vertical-align: unset;
+}
+
+.bp3-drawer {
+    display: flex;
+    flex-direction: column;
+
+    >:last-child {
+        flex: 1;
+    }
+
+    .bp3-panel-stack {
+        height: 100%;
+    }
+
+    .bp3-drawer-header .bp3-heading {
+        text-overflow: inherit;
+        white-space: inherit;
+    }
+}
+
+.bp3-checkbox,
+.bp3-switch {
+    margin: 0;
+    color: $seamap-color-2;
+}
+
+:not(.bp3-popover-target)>.bp3-button:not(.bp3-minimal) {
+    border-radius: 0;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 7px 12px;
+
+    >.bp3-icon {
+        color: inherit;
+    }
+
+    &.bp3-intent-primary,
+    &:not([class*="bp3-intent-"]) {
+        background-color: $seamap-color-3;
+        background-image: none;
+        color: $seamap-color-7;
+        box-shadow: none;
+        &:hover {
+            background-color: $seamap-color-3-darker;
+            background-image: none;
+            box-shadow: none;
+        }
+    }
+
+    &.bp3-large {
+        font-size: 15px;
+        padding: 9px 13px;
+        .bp3-icon svg {
+            height: 20px;
+            width: 20px;
+        }
+    }
+}

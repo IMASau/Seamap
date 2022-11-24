@@ -196,7 +196,7 @@
     {:db         db
      :dispatch-n (conj
                   (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))
-                  [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center})]
+                  [:map/update-map-view {:zoom zoom :center center}]
                   [:map/popup-closed])}))
 
 (defn re-boot [{:keys [db]} _]

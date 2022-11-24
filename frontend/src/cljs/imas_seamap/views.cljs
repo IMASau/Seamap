@@ -306,36 +306,42 @@
 
 (defn welcome-dialogue []
   (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
-    [b/dialogue {:title      "Welcome to Seamap Australia!"
-                 :class "welcome-splash"
-                 :is-open    open?
-                 :on-close   #(re-frame/dispatch [:welcome-layer/close])}
-     [:div#welcome-splash.bp3-dialog-body
-      [:p "Seamap Australia is a nationally synthesised product of
-      seafloor habitat data collected from various stakeholders around
-      Australia. Source datasets were reclassified according to a
-      newly-developed national marine benthic habitat classification
-      scheme, and synthesised to produce a single standardised GIS
-      data layer of Australian benthic marine habitats."]
-
-      [:p [:i "Seamap Australia would not have been possible without the
-      collaboration of its stakeholders, including (but not limited
-      to): The University of Queensland, The University of Western
-      Australia, The University of Tasmania, James Cook University,
-      Griffith University, Deakin University, CSIRO, Geoscience
-      Australia, Great Barrier Reef Marine Park Authority (GBRMPA),
-      the National Environmental Science Program (NESP), and all State
-      Governments."]]
-
-      [:p "Please cite as Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
-       [:i "Seamap Australia - a national seafloor habitat classification scheme."]
-       " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]]
+    [b/dialogue
+     {:title
+      (reagent/as-element
+       [:<> "Welcome to" [:br] "Seamap Australia."])
+      :class    "welcome-splash"
+      :is-open  open?
+      :on-close #(re-frame/dispatch [:welcome-layer/close])}
+     [:div.bp3-dialog-body
+      [:div.overview
+       "Seamap Australia is a nationally synthesised product of
+        seafloor habitat data collected from various stakeholders around
+        Australia. Source datasets were reclassified according to a
+        newly-developed national marine benthic habitat classification
+        scheme, and synthesised to produce a single standardised GIS
+        data layer of Australian benthic marine habitats."]
+      [b/button
+       {:text       "Get Started!"
+        :intent     b/INTENT-PRIMARY
+        :auto-focus true
+        :on-click   #(re-frame/dispatch [:welcome-layer/close])}]]
      [:div.bp3-dialog-footer
-      [:div.bp3-dialog-footer-actions
-       [b/button {:text       "Get Started!"
-                  :intent     b/INTENT-PRIMARY
-                  :auto-focus true
-                  :on-click   (handler-dispatch [:welcome-layer/close])}]]]]))
+      [:h3 "Citations"]
+      [:p
+       "Please cite as Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
+       [:i "Seamap Australia - a national seafloor habitat classification scheme."]
+       " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]
+      [:h3 "Acknowledgements"]
+      [:p
+       "Seamap Australia would not have been possible without the
+        collaboration of its stakeholders, including (but not limited
+        to): The University of Queensland, The University of Western
+        Australia, The University of Tasmania, James Cook University,
+        Griffith University, Deakin University, CSIRO, Geoscience
+        Australia, Great Barrier Reef Marine Park Authority (GBRMPA),
+        the National Environmental Science Program (NESP), and all State
+        Governments."]]]))
 (defn settings-overlay []
   [b/dialogue
    {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])
@@ -362,15 +368,15 @@
           [:img.metadata-img.org-logo
            {:class (string/replace logo #"\..+$" "")
             :src   (str img-url-base logo)}]])
-       [:h6.bp3-heading.metadata-subheader "Citation Information:"]
+       [:h3.metadata-subheader "Citation Information:"]
        [:div.section
         [:p.citation  constraints]]
        (when (seq other)
          [:div.section
-          [:h6.bp3-heading.metadata-subheader "Usage:"]
+          [:h3.metadata-subheader "Usage:"]
           (map-indexed (fn [i o] (when o ^{:key i} [:p.other-constraints o])) other)])
-       [:h6.bp3-heading.clickable {:on-click (handler-fn (swap! expanded not))}
-        [:span.bp3-icon-standard {:class (if @expanded "bp3-icon-chevron-down" "bp3-icon-chevron-right")}]
+       [:h3.clickable {:on-click (handler-fn (swap! expanded not))}
+        [b/icon {:icon (if @expanded "chevron-down" "chevron-right")}]
         "API Access"]
        [b/collapse {:is-open               @expanded
                     :keep-children-mounted true
@@ -381,7 +387,7 @@
          [:span.server-url [:a {:href server_url} server_url]]
          [:span.server-layer layer_name]]]
        [:div.license-info.clearfix.section
-        [:h6.bp3-heading "License Information:"]
+        [:h3 "License Information:"]
         (when license-img [:img.license.metadata-img {:src license-img}])
         [:a {:href license-link :target "_blank"} license-name]]
        [:div.more-info.section

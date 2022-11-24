@@ -14,6 +14,7 @@
 .state-of-knowledge-drawer .drawer-group {
     flex: 1 1 0;
     min-height: 0;
+    border-bottom: 2px solid $seamap-color-4;
 }
 
 .state-of-knowledge-drawer .drawer-group {
@@ -22,18 +23,57 @@
 
 .state-of-knowledge-drawer .drawer-group.collapsed {
     flex: 0 1 0;
-    min-height: 20px;
+    min-height: 56px;
 }
 
-.state-of-knowledge-drawer .drawer-group > .drawer-group-content {
+/* scrollable table body */
+.state-of-knowledge-drawer .drawer-group-content,
+.habitat-statistics  .drawer-group-content>*,
+.bathymetry-statistics  .drawer-group-content>* {
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+}
+
+.state-of-knowledge-drawer .drawer-group-content>*,
+.habitat-statistics  .drawer-group-content>*>*,
+.bathymetry-statistics  .drawer-group-content>*>* {
+    min-height: 0;
+}
+
+.state-of-knowledge-drawer .drawer-group-content>*:last-child,
+.habitat-statistics  .drawer-group-content>*>*:last-child,
+.bathymetry-statistics  .drawer-group-content>*>*:last-child {
+    flex: 1;
+}
+
+.state-of-knowledge-drawer .bp3-tab-panel {
     overflow-y: auto;
+    margin-bottom: 20px;
+    flex: 1;
 }
 
-.state-of-knowledge-drawer td,
-.state-of-knowledge-drawer th {
-    font-size: 12px;
-    padding: 6px 6px 6px 0;
+.state-of-knowledge-drawer thead {
+    position: sticky;
+    top: 0;
+    background-color: $seamap-color-7;
 }
+/* scrollable table body */
+
+.habitat-statistics .bp3-tab-list .bp3-switch,
+.bathymetry-statistics .bp3-tab-list .bp3-switch,
+.habitat-observations .bp3-switch {
+    margin-left: auto;
+    height: 40px;
+    align-items: center;
+    display: flex;
+}
+
+.habitat-observations .bp3-switch {
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
 
 .state-of-knowledge-drawer td {
     vertical-align: top;
@@ -44,26 +84,48 @@
     vertical-align: bottom;
 }
 
-.habitat-observation-stats {
-    margin-bottom: 16px;
+.habitat-observations .drawer-group-content {
+    margin: 0;
+    gap: 0;
 }
 
-.habitat-observation-stats h2 {
+.habitat-observations-groups {
+    overflow-y: auto;
+}
+
+.habitat-observations-group-heading {
+    display: flex;
+    align-items: center;
+    background-color: $seamap-color-6;
+    color: $seamap-color-2;
+    padding: 6px;
+    gap: 4px;
     cursor: pointer;
     user-select: none;
+    font-family: $headings-font-family;
+    font-weight: 600;
+    font-size: 14px;
 }
 
-.habitat-observation-stats.disabled h2 {
-    cursor: default;
+.habitat-observations-group.disabled .habitat-observations-group-heading {
+    cursor: not-allowed;
 }
 
-.habitat-observation-stats ul {
-    margin: 0;
+.habitat-observations-group-heading>.bp3-icon {
+    aspect-ratio: 1;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.habitat-observation-stats.collapsed ul,
-.habitat-observation-stats.disabled ul {
-    display: none;
+.habitat-observations-group-stats {
+    margin: 0 12px 20px 12px;
+}
+
+.habitat-observations-group-stat {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    padding: 4px 14px;
 }
 
 .state-of-knowledge-pill-content {
@@ -76,26 +138,21 @@
 }
 
 .selected-boundaries {
-    margin-bottom: 20px;
+    background-color: $seamap-color-2;
+    color: $seamap-color-7;
+    padding: 12px;
+    font-weight: 600;
 }
 
-.selected-boundaries h2.bp3-heading {
-    font-size: 16px;
-    margin: 0 0 0 12px;
+.selected-boundaries h2 {
+    font-size: 22px;
+    font-family: $headings-font-family;
 }
 
-.selected-boundaries .breadcrumbs {
-    margin: 0 12px;
-}
-
-.selected-boundaries .breadcrumbs {
-    margin: 0 12px;
+.selected-boundaries a {
+    color: $seamap-color-7;
 }
 
 .selected-boundaries .breadcrumbs a {
     text-decoration: underline;
-}
-
-.drawer-group-heading .bp3-switch {
-    margin: 0;
 }

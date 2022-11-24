@@ -1,42 +1,16 @@
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-Regular.ttf") format("truetype");
-    font-weight: normal;
-    font-style: normal;
-}
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-Italic.ttf") format("truetype");
-    font-weight: normal;
-    font-style: italic;
-}
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-Bold.ttf") format("truetype");
-    font-weight: bold;
-    font-style: normal;
-}
-@font-face {
-    font-family: "PTSans";
-    src: url("../font/PT_Sans/PTSans-BoldItalic.ttf") format("truetype");
-    font-weight: bold;
-    font-style: italic;
-}
-
-@font-face {
-    font-family: "Oswald";
-    src: url("../font/Oswald/static/Oswald-Medium.ttf") format("truetype");
-    font-weight: 500;
-    font-style: normal;
-}
-
 body {
     margin: 0;
-    font-family: "PTSans", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+    font-family: $body-font-family;
+    line-height: 1.5;
 }
 
-h1, h2, h3, h5 {
-	font-family: "Oswald", "PTSans", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+h1, h2, h3, h4, h5 {
+    font-weight: inherit;
+}
+
+// Icons support
+*::before {
+    font-family: $body-font-family;
 }
 
 a {
@@ -45,6 +19,25 @@ a {
 
 a:hover {
 	text-transform: underline;
+}
+
+tbody tr:not(:last-child) td,
+thead tr th {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+table {
+    border-collapse: separate;
+    font-size: 11px;
+}
+
+td, th {
+    font-size: inherit;
+    padding: 4px 6px 4px 0;
+}
+
+th {
+    white-space: nowrap;
 }
 
 #app {
@@ -61,17 +54,81 @@ body.page-template-default.admin-bar #app {
     height: calc(100% - 90px - 32px);
 }
 
-#welcome-splash {
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
-}
 .welcome-splash {
-    background: white;
-}
-.welcome-splash .bp3-dialog-header {
-    box-shadow: none;
+    width: 440px;
+    background-color: $seamap-color-7;
+    border-radius: initial;
+    box-shadow: initial;
+    padding: 0;
+
+    .bp3-dialog-body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+        
+        background-color: $seamap-color-2;
+        color: $seamap-color-7;
+        margin: initial;
+        padding: 16px 24px;
+        font-size: 16px;
+
+        .overview {
+            margin-right: 40px;
+        }
+
+        .bp3-button {
+            margin-left: auto;
+        }
+    }
+
+    .bp3-dialog-header {
+        background-color: $seamap-color-1;
+        color: $seamap-color-7;
+        font-family: $headings-font-family;
+        font-size: 28px;
+        font-weight: 600;
+        padding: 0;
+        border-radius: initial;
+        align-items: flex-start;
+
+        .bp3-heading {
+            white-space: initial;
+            margin: 20px 20px 16px 20px;
+        }
+    
+        .bp3-dialog-close-button {
+            margin: 4px;
+            
+            .bp3-icon svg {
+                color: $seamap-color-7;
+                width: 30px;
+                height: 30px;
+            }
+        }
+    }
+
+    .bp3-dialog-footer {
+        margin: 0;
+        margin-right: 40px;
+        padding: 16px 24px;
+
+        
+        p {
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        h3 {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+
+            &:not(:first-child) {
+                margin-top: 14px;
+            }
+        }
+    }
 }
 
 #main-wrapper {
@@ -122,36 +179,12 @@ footer {
     opacity: 1;
 }
 
-.bp3-collapse>.bp3-collapse-body,
-.height-managed {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 0;
-    flex-shrink: 1;
-    min-height: 0;              /* http://stackoverflow.com/a/36247448 */
-}
-
 .drag-handle {
     display: flex;
     justify-content: center;
 }
 .drag-handle:hover {
     background-color: #F5F8FA;
-}
-
-.bp3-portal {
-    z-index: 2000;              /* Must be greater than leaflet */
-}
-
-.bp3-overlay-backdrop {
-    z-index: 2000;              /* Must be greater than leaflet */
-}
-.bp3-overlay-content {
-    z-index: 2001;
-}
-
-.bp3-toast-container {
-    z-index: 2001;
 }
 
 #transect-btn-wrapper {
@@ -171,17 +204,6 @@ footer {
 
 .catalogue-add {
     margin-bottom: 5px;
-}
-.bp3-tree-node-secondary-label {
-    flex: 0 0 auto;
-}
-
-.bp3-tab>*::before {
-    margin-right: 2px;
-}
-
-.bp3-heading>*::before {
-    margin-right: 4px;
 }
 
 .catalogue-layer-node .bp3-tree-node-content {
@@ -387,10 +409,6 @@ rect#background {
 .sidebar-tabs>li, .sidebar-tabs>ul>li {
     list-style-type: none;
 }
-/* Another chrome-only hack (otherwise we get an extra 0.4px on the close-button) */
-.bp3-dialog-footer-actions .bp3-popover-target {
-    vertical-align: unset;
-}
 
 .metadata-record {
     -webkit-user-select: text;
@@ -431,6 +449,12 @@ rect#background {
 .metadata-record .download-instructions {
     font-style: italic;
 }
+
+.metadata-record h3 {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
 .metadata-record.third-party .metadata-subheader,
 .metadata-record.third-party .license-info,
 .metadata-record.third-party .download-instructions,
@@ -500,19 +524,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     height: 36px;
 }
 
-.bp3-drawer .bp3-panel-stack {
-    height: 100%;
-}
-
-.bp3-drawer {
-    display: flex;
-    flex-direction: column;
-}
-
-.bp3-drawer > :last-child {
-    flex: 1;
-}
-
 .leaflet-left, .menu-button {
     transition: left 150ms;
 }
@@ -524,12 +535,6 @@ input.leaflet-control-layers-selector[type="radio"] {
 .catalogue-open .leaflet-left,
 .catalogue-open .menu-button {
     left: $drawer-width;
-}
-
-/* Allow interactivity with underneath elements while drawer is open */
-.bp3-overlay.bp3-overlay-open.bp3-overlay-container {
-    width: 0;
-    height: 0;
 }
 
 .form-group > :first-child {
@@ -549,36 +554,41 @@ input.leaflet-control-layers-selector[type="radio"] {
 .drawer-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 20px;
-}
 
-.drawer-group-heading {
-    display: flex;
-    flex: 0 0;
-    align-items: center;
-}
-
-.drawer-group.collapsible > .drawer-group-heading {
-    cursor: pointer;
-    user-select: none;
-}
-
-.drawer-group-heading > h1 {
-    flex: 1;
-    font-size: 16px;
-    margin: 0 0 0 12px;
-}
-
-.drawer-group-heading > h1::before {
-    margin-right: 6px;
-}
-
-.drawer-group-heading > .bp3-icon {
-    aspect-ratio: 1;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    .drawer-group-heading {
+        display: flex;
+        flex: 0 0;
+        align-items: center;
+        background-color: $seamap-color-5;
+        color: $seamap-color-2;
+        gap: 4px;
+        min-height: 54px;
+        padding-left: 12px;
+        font-family: $headings-font-family;
+    
+        >h1 {
+            flex: 1;
+            font-size: 20px;
+            color: inherit;
+    
+            &::before {
+                margin-right: 6px;
+            }
+        }
+    
+        >.bp3-icon {
+            aspect-ratio: 1;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+    
+    &.collapsible > .drawer-group-heading {
+        cursor: pointer;
+        user-select: none;
+    }
 }
 
 .drawer-group-content,
@@ -596,6 +606,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .collapsed .drawer-group-content {
     flex-grow: 0;
+    overflow: hidden;
 }
 /* Drawer group component end */
 
@@ -609,10 +620,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     margin-right: 7px;
     width: 15px;
     height: 15px;
-}
-
-.drawer-group .bp3-tab-panel {
-    margin-top: 8px;
 }
 
 .drawer-group .download {
@@ -648,11 +655,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     border-radius: 4px;
 }
 
-.drawer-group h2.bp3-heading {
-    font-size: 14px;
-    line-height: 16px;
-}
-
 .drawer-group h2::before {
     margin-right: 5px;
 }
@@ -663,11 +665,6 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .leaflet-popup-content table {
     white-space: normal;
-}
-
-/* Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line */
-.bp3-dialog {
-    overflow-wrap: break-word;
 }
 
 .drawer-children {
@@ -691,10 +688,6 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .leaflet-popup.waiting .leaflet-popup-close-button {
     display: none;
-}
-
-.bp3-checkbox {
-    margin: 0;
 }
 
 .leaflet-control-block {
@@ -763,4 +756,32 @@ input.leaflet-control-layers-selector[type="radio"] {
 .settings-overlay-dialogue {
     padding: 0;
     width: 368px;
+}
+
+// Right drawer shared
+.state-of-knowledge-drawer,
+.featured-map-drawer {
+    .bp3-drawer-header {
+        padding: 0;
+        background-color: $seamap-color-1;
+        color: $seamap-color-7;
+        font-size: 26px;
+        font-family: $headings-font-family;
+        font-weight: 600;
+        align-items: flex-start;
+
+        .bp3-heading {
+            padding: 12px;
+        }
+    
+        .bp3-dialog-close-button {
+            margin: 4px;
+            
+            .bp3-icon svg {
+                color: $seamap-color-7;
+                width: 30px;
+                height: 30px;
+            }
+        }
+    }
 }
