@@ -524,7 +524,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     height: 36px;
 }
 
-.leaflet-left, .menu-button {
+.leaflet-left, .pre-leaflet-controls {
     transition: left 150ms;
 }
 
@@ -533,7 +533,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 .catalogue-open .leaflet-left,
-.catalogue-open .menu-button {
+.catalogue-open .pre-leaflet-controls {
     left: $drawer-width;
 }
 
@@ -706,6 +706,27 @@ input.leaflet-control-layers-selector[type="radio"] {
     display: none;
 }
 
+.print-control {
+    .options {
+        display: none;
+        position: absolute;
+        top: -2px;
+        left: $leaflet-control-width;
+        flex-direction: row;
+        border: 2px solid rgba(0,0,0,0.2);
+        border-left: 0;
+
+        >*, >*:hover {
+            border: 0;
+            border-left: 1px solid #ccc;
+        }
+    }
+
+    &:hover .options {
+        display: inline-flex;
+    }
+}
+
 .pre-leaflet-controls {
     position: absolute;
     z-index: 2000;
@@ -723,11 +744,11 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 /* Chunkier leaflet controls start */
 .leaflet-touch .leaflet-bar a,
-.leaflet-bar a:hover,
-.menu-button a {
+.leaflet-bar a:hover {
     width: 38px;
     height: 38px;
     line-height: 38px;
+    cursor: pointer;
 }
 
 .leaflet-control-zoominfo-info {

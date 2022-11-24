@@ -137,6 +137,22 @@
    [:a {:on-click on-click}
     [b/icon {:icon icon :size 18}]]])
 
+(defn- print-control []
+  [:div.print-control
+   [:a
+    {:on-click #(-> "CurrentSize" js/document.getElementsByClassName first .click)
+     :title    "Current Size"}
+    [b/icon {:icon "media" :size 18}]]
+   [:div.options
+    [:a
+     {:on-click #(-> "A4Landscape page" js/document.getElementsByClassName first .click)
+      :title    "A4 Landscape"}
+     [b/icon {:icon "document" :size 18 :style {:transform "rotate(-90deg)"}}]]
+    [:a
+     {:on-click #(-> "A4Portrait page" js/document.getElementsByClassName first .click)
+      :title    "A4 Portrait"}
+     [b/icon {:icon "document" :size 18}]]]])
+
 (defn- transect-control [{:keys [drawing? query] :as _transect-info}]
   (let [[tooltip icon dispatch]
         (cond
@@ -161,11 +177,8 @@
 
 (defn- control-block [{:keys [transect-info region-info]}]
   [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar leaflet-control-block"}}
-
-   [control-block-child
-    {:on-click #(-> "CurrentSize" js/document.getElementsByClassName first .click)
-     :tooltip  "Export as PNG"
-     :icon     "media"}]
+   
+   [print-control]
 
    [control-block-child
     {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
