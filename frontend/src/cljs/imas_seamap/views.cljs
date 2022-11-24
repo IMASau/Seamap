@@ -464,10 +464,29 @@
                   :intent     b/INTENT-PRIMARY
                   :on-click   (handler-dispatch [:map.layer/close-info])}]]]]))
 
+(defn pre-leaflet-controls [& controls]
+  (into [:div.pre-leaflet-controls.leaflet-touch] controls))
+
+(defn- leaflet-control-button [{:keys [on-click tooltip icon]}]
+  [:div.leaflet-bar.leaflet-control
+   (if tooltip
+     [b/tooltip
+      {:content tooltip :position b/RIGHT}
+      [:a {:on-click on-click}
+       [b/icon {:icon icon :size 18}]]]
+     [:a {:on-click on-click}
+      [b/icon {:icon icon :size 18}]])])
+
 (defn menu-button []
-  [:div.leaflet-bar.menu-button
-   [:a {:on-click #(re-frame/dispatch [:left-drawer/toggle])}
-    [b/icon {:icon "menu" :size 18}]]])
+  [leaflet-control-button
+   {:on-click #(re-frame/dispatch [:left-drawer/toggle])
+    :icon     "menu"}])
+
+(defn settings-button []
+  [leaflet-control-button
+   {:on-click #(re-frame/dispatch [:ui/settings-overlay true])
+    :tooltip  "Settings"
+    :icon     "cog"}])
 
 (defn- floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
@@ -696,7 +715,9 @@
      [state-of-knowledge]
      [featured-map-drawer]
      [layers-search-omnibar]
-     [menu-button]
+     [pre-leaflet-controls
+      [menu-button]
+      [settings-button]]
      [floating-pills]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 

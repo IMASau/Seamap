@@ -706,20 +706,19 @@ input.leaflet-control-layers-selector[type="radio"] {
     display: none;
 }
 
-.menu-button {
+.pre-leaflet-controls {
     position: absolute;
     z-index: 2000;
-    margin-top: 10px;
-    margin-left: 10px;
-    border: 2px solid rgba(0,0,0,0.2);
-    background-clip: padding-box;
-    box-shadow: none;
-    border-radius: 4px;
     left: 0;
+
+    .leaflet-control {
+        margin-top: 10px;
+        margin-left: 10px;
+    }
 }
 
 .leaflet-top.leaflet-left {
-    top: calc($floating-menu-padding + $leaflet-control-width)
+    top: calc(($floating-menu-padding + $leaflet-control-width + 2 * 2px) * 2) // 2 * 2px is control border size, 2 is number of controls
 }
 
 /* Chunkier leaflet controls start */
