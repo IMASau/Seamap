@@ -805,3 +805,11 @@ input.leaflet-control-layers-selector[type="radio"] {
         }
     }
 }
+
+.custom-icon {
+    height: 16px;
+    width: 16px;
+    background-color: black;
+    mask-size: contain;
+    -webkit-mask-size: contain;
+}

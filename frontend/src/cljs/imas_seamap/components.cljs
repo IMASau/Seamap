@@ -201,3 +201,11 @@
   (let [content (map #(vector :span %) content)
         content (interpose [b/icon {:icon "caret-right"}] content)]
     (into [:div.breadcrumbs] content)))
+
+(defn custom-icon [{:keys [icon size]}]
+  [:div.custom-icon
+   {:style
+    (merge
+     {:mask-image (str "url(icons/" icon ".svg)")
+      :-webkit-mask-image (str "url(icons/" icon ".svg)")}
+     (when size {:height size :width size}))}])
