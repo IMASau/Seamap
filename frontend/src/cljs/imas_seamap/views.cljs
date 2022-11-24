@@ -327,21 +327,37 @@
         :auto-focus true
         :on-click   #(re-frame/dispatch [:welcome-layer/close])}]]
      [:div.bp3-dialog-footer
-      [:h3 "Citations"]
-      [:p
-       "Please cite as Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
-       [:i "Seamap Australia - a national seafloor habitat classification scheme."]
-       " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]
-      [:h3 "Acknowledgements"]
-      [:p
-       "Seamap Australia would not have been possible without the
+      [:div.text-section
+       [:h3 "Citations"]
+       [:p
+        "Please cite as "
+        [:span {:id "citation"} "Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
+        [:i "Seamap Australia - a national seafloor habitat classification scheme."]
+         " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]]
+       [:h3 "Acknowledgements"]
+       [:p
+        "Seamap Australia would not have been possible without the
         collaboration of its stakeholders, including (but not limited
         to): The University of Queensland, The University of Western
         Australia, The University of Tasmania, James Cook University,
         Griffith University, Deakin University, CSIRO, Geoscience
         Australia, Great Barrier Reef Marine Park Authority (GBRMPA),
         the National Environmental Science Program (NESP), and all State
-        Governments."]]]))
+        Governments."]]
+      [:div.citation-section
+       [:div.citation-button
+        {:on-click
+         ;; this code will copy the citation as rich text (with the italics for the citation), instead of as plaintext like with 'copy-text'
+         ;; https://stackoverflow.com/a/34192073
+         #(do
+            (.removeAllRanges (js/window.getSelection))
+            (let [range (js/document.createRange())]
+              (.selectNode range (js/document.getElementById "citation"))
+              (.addRange (js/window.getSelection) range)
+              (js/document.execCommand "copy")
+              (.removeAllRanges (js/window.getSelection))))}
+        [components/custom-icon {:icon "export" :size "27px"}]
+        [:div "Copy Citation"]]]]]))
 (defn settings-overlay []
   [b/dialogue
    {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])

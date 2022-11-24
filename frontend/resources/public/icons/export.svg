@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="24.555626"
+   height="24.054001"
+   viewBox="0 0 6.4970093 6.3642877"
+   version="1.1"
+   id="svg7623"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs7620" />
+  <g
+     id="layer1"
+     transform="translate(4.4218198e-6,-1.1074052e-5)">
+    <polyline
+       class="st15"
+       points="263.6,1114.7 252.5,1114.7 252.5,1099.4 267.5,1099.4 267.5,1110.7 "
+       id="polyline4558"
+       style="fill:none;stroke:#ffffff;stroke-width:1.0544;stroke-miterlimit:10;stroke-opacity:1"
+       transform="matrix(0.26459655,0,0,0.26457854,-66.671138,-290.73815)" />
+    <polyline
+       class="st15"
+       points="269.5,1107 276,1107 276,1122.4 261,1122.4 261,1116.7 "
+       id="polyline4560"
+       style="fill:none;stroke:#ffffff;stroke-width:1.0544;stroke-miterlimit:10;stroke-opacity:1"
+       transform="matrix(0.26459655,0,0,0.26457854,-66.671138,-290.73815)" />
+    <g
+       id="g4568"
+       transform="matrix(0.26459655,0,0,0.26457854,-66.671138,-290.73815)"
+       style="stroke:#ffffff;stroke-opacity:1">
+      <g
+         id="g4564"
+         style="stroke:#ffffff;stroke-opacity:1">
+        <polyline
+           class="st16"
+           points="269.6,1112.1 269.6,1116.7 265.1,1116.7   "
+           id="polyline4562"
+           style="fill:none;stroke:#ffffff;stroke-width:1.0544;stroke-miterlimit:10;stroke-opacity:1" />
+      </g>
+      <line
+         class="st16"
+         x1="262.79999"
+         y1="1109.8"
+         x2="269.60001"
+         y2="1116.7"
+         id="line4566"
+         style="fill:none;stroke:#ffffff;stroke-width:1.0544;stroke-miterlimit:10;stroke-opacity:1" />
+    </g>
+  </g>
+</svg>

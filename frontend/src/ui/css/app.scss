@@ -110,22 +110,52 @@ body.page-template-default.admin-bar #app {
 
     .bp3-dialog-footer {
         margin: 0;
-        margin-right: 40px;
         padding: 16px 24px;
-
+        display: flex;
+        flex-direction: row;
         
-        p {
-            font-size: 10px;
-            margin-left: 5px;
+        .text-section {
+            flex: 1;
+
+            p {
+                font-size: 10px;
+                margin-left: 5px;
+            }
+
+            h3 {
+                font-weight: 600;
+                margin-bottom: 4px;
+                font-size: 14px;
+
+                &:not(:first-child) {
+                    margin-top: 14px;
+                }
+            }
         }
 
-        h3 {
-            font-weight: 600;
-            margin-bottom: 4px;
-            font-size: 14px;
+        .citation-section {
+            width: 80px;
+            margin: auto;
+            margin-top: 21px;
 
-            &:not(:first-child) {
-                margin-top: 14px;
+            .citation-button {
+                text-align: center;
+                font-size: 9px;
+                font-weight: bold;
+                color: $seamap-color-2;
+                width: 40px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                cursor: pointer;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+
+                .custom-icon {
+                    background-color: $seamap-color-3;;
+                }
             }
         }
     }
@@ -811,5 +841,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     width: 16px;
     background-color: black;
     mask-size: contain;
+    mask-repeat: no-repeat;
     -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
 }
