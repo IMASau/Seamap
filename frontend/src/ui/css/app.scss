@@ -8,7 +8,7 @@ h1, h2, h3, h4, h5 {
     font-weight: inherit;
 }
 
-:focus:not(:focus-visible) { outline: none }
+:focus, :focus-visible { outline: none }
 
 // Icons support
 *::before {
