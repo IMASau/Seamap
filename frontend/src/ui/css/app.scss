@@ -111,34 +111,33 @@ body.page-template-default.admin-bar #app {
     .bp3-dialog-footer {
         margin: 0;
         padding: 16px 24px;
-        display: flex;
-        flex-direction: row;
-        
-        .text-section {
-            flex: 1;
 
-            p {
-                font-size: 10px;
-                margin-left: 5px;
-            }
+        p {
+            font-size: 10px;
+            margin-left: 5px;
+        }
 
-            h3 {
-                font-weight: 600;
-                margin-bottom: 4px;
-                font-size: 14px;
+        h3 {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
 
-                &:not(:first-child) {
-                    margin-top: 14px;
-                }
+            &:not(:first-child) {
+                margin-top: 14px;
             }
         }
 
         .citation-section {
-            width: 80px;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+
+            p {
+                flex: 1;
+            }
 
             .citation-button {
-                margin: auto;
-                margin-top: 21px;
+                margin: 0 10px;
                 text-align: center;
                 font-size: 9px;
                 font-weight: bold;
