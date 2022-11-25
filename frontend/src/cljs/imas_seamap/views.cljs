@@ -351,12 +351,12 @@
       [:p
        "Seamap Australia would not have been possible without the
         collaboration of its stakeholders, including (but not limited
-        to): The University of Queensland, The University of Western
-        Australia, The University of Tasmania, James Cook University,
-        Griffith University, Deakin University, CSIRO, Geoscience
-        Australia, Great Barrier Reef Marine Park Authority (GBRMPA),
-        the National Environmental Science Program (NESP), and all State
-        Governments."]]]))
+        to): Parks Australia, The University of Queensland, The
+        University of Western Australia, The University of Tasmania,
+        James Cook University, Griffith University, Deakin University,
+        CSIRO, IMOS, Geoscience Australia, Great Barrier Reef Marine
+        Park Authority (GBRMPA), the National Environmental Science
+        Program (NESP), and all State Governments."]]]))
 (defn settings-overlay []
   [b/dialogue
    {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])
