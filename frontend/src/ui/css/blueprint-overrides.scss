@@ -99,35 +99,38 @@
     color: $seamap-color-2;
 }
 
-:not(.bp3-popover-target)>.bp3-button:not(.bp3-minimal) {
-    border-radius: 0;
-    font-size: 14px;
-    font-weight: bold;
-    padding: 7px 12px;
-
-    >.bp3-icon {
-        color: inherit;
-    }
-
-    &.bp3-intent-primary,
-    &:not([class*="bp3-intent-"]) {
-        background-color: $seamap-color-3;
-        background-image: none;
-        color: $seamap-color-7;
-        box-shadow: none;
-        &:hover {
-            background-color: $seamap-color-3-darker;
-            background-image: none;
-            box-shadow: none;
+:not(.bp3-popover-target):not(.bp3-toast>*)
+{
+    >.bp3-button:not(.bp3-minimal) {
+        border-radius: 0;
+        font-size: 14px;
+        font-weight: bold;
+        padding: 7px 12px;
+    
+        >.bp3-icon {
+            color: inherit;
         }
-    }
-
-    &.bp3-large {
-        font-size: 15px;
-        padding: 9px 13px;
-        .bp3-icon svg {
-            height: 20px;
-            width: 20px;
+    
+        &.bp3-intent-primary,
+        &:not([class*="bp3-intent-"]) {
+            background-color: $seamap-color-3;
+            background-image: none;
+            color: $seamap-color-7;
+            box-shadow: none;
+            &:hover {
+                background-color: $seamap-color-3-darker;
+                background-image: none;
+                box-shadow: none;
+            }
+        }
+    
+        &.bp3-large {
+            font-size: 15px;
+            padding: 9px 13px;
+            .bp3-icon svg {
+                height: 20px;
+                width: 20px;
+            }
         }
     }
 }

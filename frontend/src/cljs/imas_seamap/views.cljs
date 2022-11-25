@@ -15,6 +15,7 @@
             [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
+            [imas-seamap.fx :refer [show-message]]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -344,7 +345,10 @@
               (.selectNode range (js/document.getElementById "citation"))
               (.addRange (js/window.getSelection) range)
               (js/document.execCommand "copy")
-              (.removeAllRanges (js/window.getSelection))))}
+              (.removeAllRanges (js/window.getSelection))
+              (show-message
+               ["Citation copied to clipboard!"
+                {:intent b/INTENT-SUCCESS :icon "clipboard"}])))}
         [components/custom-icon {:icon "export" :size "27px"}]
         [:div "Copy Citation"]]]
       [:h3 "Acknowledgements"]
