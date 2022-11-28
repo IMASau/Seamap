@@ -29,6 +29,8 @@
 function region_report_setup_post_type() {
     wp_register_style('region_report', plugins_url('style.css', __FILE__ ));
     wp_enqueue_style('region_report');
+    wp_register_script('region_report', plugins_url('region-report.js', __FILE__ ));
+    wp_enqueue_script('region_report');
     register_post_type(
         'region_report',
         [
