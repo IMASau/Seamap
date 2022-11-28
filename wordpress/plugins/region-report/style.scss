@@ -39,29 +39,36 @@ $headings-font-family: "Poppins", sans-serif;
         margin: 0;
         font-family: $headings-font-family;
         color: $seamap-color-2;
-    }
-
-    h2 {
         font-weight: 600;
     }
 
-    table {
-        border-bottom: 1px solid rgba(0, 0, 0, 0.07);
-    }
-    
-    td, th {
-        font-size: 12px;
-        padding: 6px 6px 6px 0;
-        text-align: left;
-        border: 0;
+    h2 {
+        font-size: 28px;
+        margin-bottom: 12px;
     }
 
-    td {
-        border-top: 1px solid rgba(0, 0, 0, 0.07);
+    h3 {
+        font-size: 20px;
+        margin-bottom: 20px;
     }
-    
-    th {
-        text-transform: uppercase;
+
+    table {
+        font-size: 11px;
+        border: 0;
+
+        tbody tr:not(:last-child),
+        thead tr {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+        }
+
+        td, th {
+            font-size: inherit;
+            padding: 4px 6px 4px 0;
+            text-align: left;
+            border: 0;
+        }
+        
+        th { white-space: nowrap; }
     }
     
     img {
@@ -116,14 +123,16 @@ $headings-font-family: "Poppins", sans-serif;
                     text-transform: uppercase;
                     font-size: 14px;
                     color: inherit;
+                    font-weight: normal;
+                    margin: 0;
                 }
 
                 h2 {
                     display: inline-flex;
                     align-items: center;
                     gap: 8px;
-                    font-size: 28px;
                     color: inherit;
+                    margin: 0;
                     a { color: inherit; }
                 }
             }
@@ -145,6 +154,7 @@ $headings-font-family: "Poppins", sans-serif;
 
                 h2 {
                     font-size: 28px;
+                    margin: 0;
                 }
             }
 
@@ -168,6 +178,70 @@ $headings-font-family: "Poppins", sans-serif;
         
     }
 
+    .known {
+        display: flex;
+        flex-direction: column;
+        
+        .caption {
+            margin-bottom: 32px;
+        }
+
+        .statistics {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .observations-and-research {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            >* {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .habitat-observations {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+
+                >li {
+                    >span {
+                        background-color: $seamap-color-6;
+                        color: $seamap-color-2;
+                        padding: 6px 30px;
+                        font-size: 15px;
+                        font-family: $headings-font-family;
+                        font-weight: 600;
+                        display: block;
+                        white-space: nowrap;
+                    }
+
+                    >ul {
+                        list-style: none;
+                        padding: 0;
+                        margin: 0;
+                        margin-bottom: 22px;
+
+                        >li {
+                            font-size: 11px;
+                            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+                            padding: 4px 14px;
+                        }
+                    }
+                }
+            }
+        }
+
+        .research-effort-graphs {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+    }
+
     .caption {
         font-size: 12px;
         padding: 6px 10px;
@@ -177,22 +251,6 @@ $headings-font-family: "Poppins", sans-serif;
         max-width: 100%;
 
         a { color: inherit; }
-    }
-    
-    .region-report-chart-table
-    .region-report-research-effort-graphs {
-        display: flex;
-        flex-direction: row;
-        gap: 32px;
-
-        >* {
-            flex: 1;
-            min-width: 0;
-            overflow-x: hidden;
-            gap: 16px;
-            display: flex;
-            flex-direction: column;
-        }
     }
 
     .region-report-pressures {
@@ -204,17 +262,29 @@ $headings-font-family: "Poppins", sans-serif;
         flex-direction: column;
     }
     
-    .region-report-chart-table>*:nth-child(2) {
-        position: relative;
+    .chart-table {
+        display: flex;
+        flex-direction: row;
+        gap: 16px;
 
-        >* {
-            position: absolute;
+        .chart-container {
+            flex: 3;
         }
-    }
-    
-    .region-report-chart {
-        width: 75%;
-        margin: auto;
+
+        .table-container {
+            flex: 4;
+            position: relative;
+
+            >* {
+                position: absolute;
+                
+                thead {
+                    position: sticky;
+                    top: 0;
+                    background-color: $seamap-color-7;
+                }
+            }
+        }
     }
     
     .region-report-research-rating {

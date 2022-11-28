@@ -55,84 +55,89 @@
             <div><div class="caption"><?php echo $overview_map_caption; ?></div></div>
         </section>
 
-        <section class="region-report-known">
+        <section class="known">
             <h2>What's known about the <?php echo $region_name; ?>?</h2>
             <div class="caption"><?php echo $known_caption; ?></div>
 
-            <section>
-                <h3>Habitat</h3>
-                <div class="region-report-chart-table">
-                    <div>
-                        <div class="region-report-chart" id="region-report-habitat-chart-<?php the_ID(); ?>"></div>
-                    </div>
-                    <div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Habitat</th>
-                                    <th>Area (km²)</th>
-                                    <th>Mapped (%)</th>
-                                    <th>Total (%)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="region-report-habitat-table-<?php the_ID(); ?>"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <section>
-                <h3>Bathymetry</h3>
-                <div class="region-report-chart-table">
-                    <div>
-                        <div class="region-report-chart" id="region-report-bathymetry-chart-<?php the_ID(); ?>"></div>
-                    </div>
-                    <div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Resolution</th>
-                                    <th>Area (km²)</th>
-                                    <th>Mapped (%)</th>
-                                    <th>Total (%)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="region-report-bathymetry-table-<?php the_ID(); ?>"></tbody>
-                        </table>
+            <div class="statistics">
+                <div>
+                    <h3>Habitat</h3>
+                    <div class="chart-table">
+                        <div class="chart-container">
+                            <div id="region-report-habitat-chart-<?php the_ID(); ?>"></div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Habitat</th>
+                                        <th>Area (km²)</th>
+                                        <th>Mapped (%)</th>
+                                        <th>Total (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="region-report-habitat-table-<?php the_ID(); ?>"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </section>
 
-            <section>
-                <h3>Habitat Observations</h3>
-                <ul id="region-report-habitat-observations-<?php the_ID(); ?>">
-                    <li>
-                        <span>0 imagery deployments (0 campaigns)</span>
-                    </li>
-
-                    <li>
-                        <span>0 video deployments (0 campaigns)</span>
-                    </li>
-
-                    <li>
-                        <span>0 sediment samples (0 analysed) from 0 surveys</span>
-                    </li>
-                </ul>
-            </section>
-
-            <section>
-                <h3>Research Effort</h3>
-                
-                <div id="region-report-research-effort-<?php the_ID(); ?>"></div>
-                <div class="region-report-research-rating">
-                    <div id="region-report-star-ratings-<?php the_ID(); ?>">
-                        <div><!-- State of bathymetry mapping --></div>
-                        <div><!-- State of habitat observations --></div>
-                        <div><!-- State of habitat maps --></div>
+                <div>
+                    <h3>Bathymetry</h3>
+                    <div class="chart-table">
+                        <div class="chart-container">
+                            <div class="chart" id="region-report-bathymetry-chart-<?php the_ID(); ?>"></div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Resolution</th>
+                                        <th>Area (km²)</th>
+                                        <th>Mapped (%)</th>
+                                        <th>Total (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="region-report-bathymetry-table-<?php the_ID(); ?>"></tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="region-report-research-rating-quote" id="region-report-research-rating-quote-<?php the_ID(); ?>"></div>
                 </div>
-            </section>
+            </div>
+
+            <div class="observations-and-research">
+                <div>
+                    <h3>Habitat Observations</h3>
+                    <ul class="habitat-observations" id="region-report-habitat-observations-<?php the_ID(); ?>">
+                        <li>
+                            <span>0 imagery deployments<wbr>(0 campaigns)</span>
+                        </li>
+
+                        <li>
+                            <span>0 video deployments<wbr>(0 campaigns)</span>
+                        </li>
+
+                        <li>
+                            <span>0 sediment samples<wbr>(0 analysed) from 0 surveys</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3>Research Effort</h3>
+                    
+                    <div id="region-report-research-effort-<?php the_ID(); ?>"></div>
+                </div>
+            </div>
+
+            <div class="region-report-research-rating">
+                <div id="region-report-star-ratings-<?php the_ID(); ?>">
+                    <div><!-- State of bathymetry mapping --></div>
+                    <div><!-- State of habitat observations --></div>
+                    <div><!-- State of habitat maps --></div>
+                </div>
+                <div class="region-report-research-rating-quote" id="region-report-research-rating-quote-<?php the_ID(); ?>"></div>
+            </div>
         </section>
 
         <section>

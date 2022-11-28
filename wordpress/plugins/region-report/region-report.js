@@ -240,7 +240,7 @@ class RegionReport {
         let squidlePublicAnnotations = squidle.public_annotations?.toLocaleString("en-US") ?? 0;
 
         const squidleItem = document.createElement("li");
-        squidleItem.innerHTML = `<span>${squidleDeployments} imagery deployments (${squidleCampaigns} campaigns)</span>`;
+        squidleItem.innerHTML = `<span>${squidleDeployments} imagery deployments<wbr>(${squidleCampaigns} campaigns)</span>`;
 
         if (squidleDeployments > 0)
             squidleItem.innerHTML += `
@@ -260,7 +260,7 @@ class RegionReport {
         let globalArchiveVideoTime = globalArchive.video_time ?? 0;
 
         const globalArchiveItem = document.createElement("li");
-        globalArchiveItem.innerHTML = `<span>${globalArchiveDeployments} video deployments (${globalArchiveCampaigns} campaigns)</span>`;
+        globalArchiveItem.innerHTML = `<span>${globalArchiveDeployments} video deployments<wbr>(${globalArchiveCampaigns} campaigns)</span>`;
         if (globalArchiveDeployments > 0)
             globalArchiveItem.innerHTML += `
                 <ul>
@@ -278,7 +278,7 @@ class RegionReport {
         let sedimentMethod = sediment.method ?? "N/A";
 
         const sedimentItem = document.createElement("li");
-        sedimentItem.innerHTML = `<span>${sedimentSamples} sediment samples (${sedimentAnalysed} analysed) from ${sedimentSurvey} surveys</span>`;
+        sedimentItem.innerHTML = `<span>${sedimentSamples} sediment samples<wbr>(${sedimentAnalysed} analysed) from ${sedimentSurvey} surveys</span>`;
 
         if (sedimentSamples > 0)
             sedimentItem.innerHTML += `
@@ -309,7 +309,7 @@ class RegionReport {
                         <div>${network}</div>
                     </div>`;
         researchEffortElement.innerHTML += `
-             <div class="region-report-research-effort-graphs" id="region-report-research-effort-graphs-${this.postId}">
+             <div class="research-effort-graphs" id="research-effort-graphs-${this.postId}">
                  <div id="region-report-research-effort-1-${this.postId}"></div>
                  <div id="region-report-research-effort-2-${this.postId}"></div>
              </div>`;
@@ -385,7 +385,11 @@ class RegionReport {
                     color: {
                         field: "group",
                         type: "nominal",
-                        legend: { title: null },
+                        legend: {
+                            title: "Legend",
+                            orient: "bottom",
+                            direction: "vertical"
+                        },
                         sort: values.map(e => e.group),
                         scale: { range: values.map(e => e.color) }
                     }
@@ -428,7 +432,7 @@ class RegionReport {
                     color: {
                         field: "group",
                         type: "nominal",
-                        legend: { title: null },
+                        legend: { title: "Legend", orient: "bottom" },
                         sort: filteredValues.map(e => e.group),
                         scale: { range: filteredValues.map(e => e.color) }
                     }
