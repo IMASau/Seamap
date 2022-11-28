@@ -686,7 +686,7 @@ class RegionReport {
                 <div class="region-report-imagery-map" id="region-report-imagery-map-${this.postId}"></div>
                 <div class="region-report-imagery-images">
                     <div class="region-report-imagery-grid" id="region-report-imagery-grid-${this.postId}"></div>
-                    <div class="region-report-caption"><?php echo $imagery_caption; ?></div>
+                    <div class="caption"><?php echo $imagery_caption; ?></div>
                     <a href="#!" onclick="regionReport.refreshImagery()">Refresh images</a>
                 </div>`;
 

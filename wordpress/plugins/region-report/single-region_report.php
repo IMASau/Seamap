@@ -42,22 +42,22 @@
             </div>
         </section>
 
-        <section class="region-report-overview-map">
-            <div class="region-report-labeled-toggle">
+        <section class="overview-map">
+            <div class="labeled-toggle">
                 <div>All data</div>
-                <label class="region-report-switch">
+                <label class="switch">
                     <input type="checkbox" onclick="regionReport.toggleMinimap(this.checked)">
-                    <span class="region-report-slider"></span>
+                    <span class="switch-slider"></span>
                 </label>
                 <div>Public/analysed data</div>
             </div>
-            <div class="region-report-overview-map-map" id="region-report-overview-map-map-<?php the_ID(); ?>"></div>
-            <div class="region-report-caption"><?php echo $overview_map_caption; ?></div>
+            <div class="map" id="region-report-overview-map-map-<?php the_ID(); ?>"></div>
+            <div><div class="caption"><?php echo $overview_map_caption; ?></div></div>
         </section>
 
         <section class="region-report-known">
             <h2>What's known about the <?php echo $region_name; ?>?</h2>
-            <div class="region-report-caption"><?php echo $known_caption; ?></div>
+            <div class="caption"><?php echo $known_caption; ?></div>
 
             <section>
                 <h3>Habitat</h3>
@@ -137,7 +137,7 @@
 
         <section>
             <h2>What's in the <?php echo $region_name; ?>?</h2>
-            <div class="region-report-caption"><?php echo $pressures_caption; ?></div>
+            <div class="caption"><?php echo $pressures_caption; ?></div>
         
             <section>
                 <h3>Imagery</h3>
