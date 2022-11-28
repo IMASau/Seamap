@@ -1,5 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Poppins:wght@400;600&display=swap');
+
+$seamap-color-1: rgb(14, 14, 25);
+$seamap-color-2: rgb(28, 50, 98);
+$seamap-color-3: rgb(45, 101, 154);
+$seamap-color-4: rgb(84, 142, 196);
+$seamap-color-5: rgb(126, 186, 231);
+$seamap-color-6: rgb(200, 220, 240);
+$seamap-color-7: white;
+
+$seamap-color-2-darker: rgb(25, 44, 86);
+$seamap-color-3-darker: rgb(39, 91, 141);
+
+$body-font-family: "Open Sans", sans-serif;
+$headings-font-family: "Poppins", sans-serif;
+
 /* plugin namespaced */
 .region_report {
+    font-family: $body-font-family;
+
     --responsive--spacing-horizontal: calc(2 * 25px * 0.6);
     --responsive--alignwide-width: calc(100vw - var(--responsive--spacing-horizontal));
 
