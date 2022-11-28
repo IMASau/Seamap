@@ -31,26 +31,28 @@
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
     <div class="entry-content">
-        <section>
-            <h3 class="region-report-region-heading" id="region-report-region-heading-<?php the_ID(); ?>"></h3>
+        <section class="overview" id="overview-<?php the_ID(); ?>">
 
-            <div class="region-report-outline" id="region-report-outline-<?php the_ID(); ?>">
-                <div>
-                    <?php the_content(); ?>
-                    <div class="region-report-overview-map">
-                        <div class="region-report-labeled-toggle">
-                            <div>All data</div>
-                            <label class="region-report-switch">
-                                <input type="checkbox" onclick="regionReport.toggleMinimap(this.checked)">
-                                <span class="region-report-slider"></span>
-                            </label>
-                            <div>Public/analysed data</div>
-                        </div>
-                        <div class="region-report-overview-map-map" id="region-report-overview-map-map-<?php the_ID(); ?>"></div>
-                        <div class="region-report-caption"><?php echo $overview_map_caption; ?></div>
-                    </div>
+            <div class="region-summary">
+                <div class="heading">
+                    <h3>Report</h3>
+                    <h2 id="region-report-region-heading-<?php the_ID(); ?>"></h2>
                 </div>
+                <div class="content"><?php the_content(); ?></div>
             </div>
+        </section>
+
+        <section class="region-report-overview-map">
+            <div class="region-report-labeled-toggle">
+                <div>All data</div>
+                <label class="region-report-switch">
+                    <input type="checkbox" onclick="regionReport.toggleMinimap(this.checked)">
+                    <span class="region-report-slider"></span>
+                </label>
+                <div>Public/analysed data</div>
+            </div>
+            <div class="region-report-overview-map-map" id="region-report-overview-map-map-<?php the_ID(); ?>"></div>
+            <div class="region-report-caption"><?php echo $overview_map_caption; ?></div>
         </section>
 
         <section class="region-report-known">

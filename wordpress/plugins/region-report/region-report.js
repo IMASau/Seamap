@@ -543,7 +543,7 @@ class RegionReport {
     }
 
     populateParksList({ parks: parks }) {
-        const outline = document.getElementById(`region-report-outline-${this.postId}`);
+        const outline = document.getElementById(`overview-${this.postId}`);
 
         if (parks) {
             const parkList = document.createElement("ul");
@@ -556,7 +556,9 @@ class RegionReport {
                 }
             );
             const parksParent = document.createElement("div");
+            parksParent.innerHTML = `<div class="heading"><h2>Parks</h2></div>`;
             parksParent.appendChild(parkList);
+            parksParent.className = "parks";
             outline.appendChild(parksParent);
             this.overviewMap.invalidateSize();
         }
