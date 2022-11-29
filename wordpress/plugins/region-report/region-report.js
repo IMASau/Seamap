@@ -2,6 +2,7 @@ class RegionReport {
     postId = null;
     pressurePreviewUrlBase = null;
     mapUrlBase = null;
+    imageryCaption = null;
 
     networkResearchEffort = null;
     parkResearchEffort = null;
@@ -29,11 +30,13 @@ class RegionReport {
         pressurePreviewUrlBase: pressurePreviewUrlBase,
         mapUrlBase: mapUrlBase,
         networkName: networkName,
-        parkName: parkName
+        parkName: parkName,
+        imageryCaption: imageryCaption
     }) {
         this.postId = postId;
         this.pressurePreviewUrlBase = pressurePreviewUrlBase;
         this.mapUrlBase = mapUrlBase;
+        this.imageryCaption = imageryCaption;
 
         this.setupOverviewMap();
         this.setupResearchEffort(networkName, parkName);
@@ -640,7 +643,7 @@ class RegionReport {
                                     onmouseleave="regionReport.focusMarker()"
                                 >
                                     <img src="${image.path_best_thm}">
-                                    <div class="region-report-imagery-grid-number">${index + 1}</div>
+                                    <div class="grid-number">${index + 1}</div>
                                 </a>`;
 
                             // marker
@@ -687,10 +690,10 @@ class RegionReport {
 
         if (this.squidleUrl) {
             imageryElement.innerHTML = `
-                <div class="region-report-imagery-map" id="region-report-imagery-map-${this.postId}"></div>
-                <div class="region-report-imagery-images">
-                    <div class="region-report-imagery-grid" id="region-report-imagery-grid-${this.postId}"></div>
-                    <div class="caption"><?php echo $imagery_caption; ?></div>
+                <div class="map" id="region-report-imagery-map-${this.postId}"></div>
+                <div class="images">
+                    <div class="image-grid" id="region-report-imagery-grid-${this.postId}"></div>
+                    <div class="caption">${this.imageryCaption}</div>
                     <a href="#!" onclick="regionReport.refreshImagery()">Refresh images</a>
                 </div>`;
 

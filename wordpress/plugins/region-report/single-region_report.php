@@ -147,18 +147,18 @@
             </div>
         </section>
 
-        <section>
+        <section class="imagery-and-pressures">
             <h2>What's in the <?php echo $region_name; ?>?</h2>
             <div class="caption"><?php echo $pressures_caption; ?></div>
         
-            <section>
+            <section class="imagery">
                 <h3>Imagery</h3>
-                <div class="region-report-imagery" id="region-report-imagery-<?php the_ID(); ?>">Loading imagery deployment data...</div>
+                <div id="region-report-imagery-<?php the_ID(); ?>">Loading imagery deployment data...</div>
             </section>
 
-            <section>
-                <h3>Pressures and Activities</h3>
-                <div class="region-report-pressures">
+            <section class="pressures">
+                <h3>Pressures & Activities</h3>
+                <div>
                     <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
                     <div class="region-report-tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
                 </div>
@@ -177,7 +177,8 @@
         pressurePreviewUrlBase: <?php echo json_encode($pressure_preview_url_base); ?>,
         mapUrlBase: <?php echo json_encode($map_url_base); ?>,
         networkName: "<?php echo $network_name; ?>",
-        parkName: <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>
+        parkName: <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>,
+        imageryCaption: "<?php echo $pressures_caption; ?>"
     });
 </script>
 
