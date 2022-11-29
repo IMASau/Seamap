@@ -160,7 +160,7 @@
                 <h3>Pressures & Activities</h3>
                 <div>
                     <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
-                    <div class="region-report-tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+                    <div class="tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
                 </div>
             </section>
         </section>
@@ -178,7 +178,7 @@
         mapUrlBase: <?php echo json_encode($map_url_base); ?>,
         networkName: "<?php echo $network_name; ?>",
         parkName: <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>,
-        imageryCaption: "<?php echo $pressures_caption; ?>"
+        imageryCaption: <?php echo json_encode($pressures_caption); ?>
     });
 </script>
 

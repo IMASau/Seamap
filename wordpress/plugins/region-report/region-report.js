@@ -144,11 +144,11 @@ class RegionReport {
         const tabPanes = Array.prototype.slice.call(tabContent.children);
         const tabPane = tabPanes.filter(tabPane => tabPane.dataset.tab == tab.dataset.tab)[0];
 
-        tabs.forEach(tab => tab.classList.remove("region-report-selected"));
-        tab.classList.add("region-report-selected");
+        tabs.forEach(tab => tab.classList.remove("selected"));
+        tab.classList.add("selected");
 
-        tabPanes.forEach(tabPane => tabPane.classList.remove("region-report-selected"));
-        tabPane.classList.add("region-report-selected");
+        tabPanes.forEach(tabPane => tabPane.classList.remove("selected"));
+        tabPane.classList.add("selected");
     }
 
     populateHabitatChart(habitatStatistics) {
@@ -743,7 +743,7 @@ class RegionReport {
         // All pressures tab
         pressuresTabs.innerHTML += `
             <div
-                class="region-report-tab region-report-selected"
+                class="region-report-tab selected"
                 data-tab="All"
                 onclick="regionReport.toggleTab(this)"
             >
@@ -752,7 +752,7 @@ class RegionReport {
 
         // Create tab pane
         const tabPane = document.createElement("div");
-        tabPane.className = "region-report-tab-pane region-report-pressures-grid region-report-selected";
+        tabPane.className = "region-report-tab-pane pressures-grid selected";
         tabPane.dataset.tab = "All";
         pressures.forEach(pressure => {
             tabPane.innerHTML += `
@@ -778,7 +778,7 @@ class RegionReport {
 
             // Create tab pane
             const tabPane = document.createElement("div");
-            tabPane.className = "region-report-tab-pane region-report-pressures-grid";
+            tabPane.className = "region-report-tab-pane pressures-grid";
             tabPane.dataset.tab = category;
             pressures.forEach(pressure => {
                 tabPane.innerHTML += `

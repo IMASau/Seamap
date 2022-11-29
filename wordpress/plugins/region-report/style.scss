@@ -423,28 +423,30 @@ $headings-font-family: "Poppins", sans-serif;
         color: $seamap-color-2;
     }
     
-    .pressures .region-report-tab-content {
-        height: 390px;
-        overflow: auto;
-    }
-    
-    .region-report-pressures-grid>* {
-        user-select: none;
-        aspect-ratio: 5 / 4;
-        overflow: hidden;
-        position: relative;
+    .pressures {
+        .tab-content {
+            height: 390px;
+            overflow: auto;
 
-        img {
-            object-fit: cover;
-            width: 100%;
-            height: 100% !important;
+            .pressures-grid.selected {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+
+                >* {
+                    user-select: none;
+                    aspect-ratio: 5 / 4;
+                    overflow: hidden;
+                    position: relative;
+            
+                    img {
+                        object-fit: cover;
+                        width: 100%;
+                        height: 100% !important;
+                    }
+                }
+            }
         }
-    }
-    
-    .region-report-pressures-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
     }
     
     .region-report-star-rating {
@@ -462,31 +464,24 @@ $headings-font-family: "Poppins", sans-serif;
             margin-right: 12px;
         }
     }
-    
-    /* Tabs start */
+
     .region-report-tabs {
         display: flex;
         flex-direction: row;
         gap: 16px;
+
+        .region-report-tab {
+            cursor: pointer;
+            &:hover { color: $seamap-color-2-darker; }
+    
+            &.selected {
+                font-weight: bold;
+                color: $seamap-color-2;
+            }
+        }
     }
     
-    .region-report-tab {
-        cursor: pointer;
-    }
-    
-    .region-report-tab.region-report-selected {
-        text-decoration: underline;
-        color: #282828;
-    }
-    
-    .region-report-tab:hover {
-        text-decoration: underline;
-    }
-    
-    .region-report-tab-pane:not(.region-report-selected) {
-        display: none;
-    }
-    /* Tabs end */
+    .region-report-tab-pane:not(.selected) { display: none; }
     
     .switch {
         position: relative;
