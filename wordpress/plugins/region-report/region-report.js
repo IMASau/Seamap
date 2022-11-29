@@ -240,15 +240,15 @@ class RegionReport {
         let squidlePublicAnnotations = squidle.public_annotations?.toLocaleString("en-US") ?? 0;
 
         const squidleItem = document.createElement("li");
-        squidleItem.innerHTML = `<span>${squidleDeployments} imagery deployments<wbr>(${squidleCampaigns} campaigns)</span>`;
+        squidleItem.innerHTML = `<span>${squidleDeployments} imagery deployments <wbr>(${squidleCampaigns} campaigns)</span>`;
 
         if (squidleDeployments > 0)
             squidleItem.innerHTML += `
                 <ul>
-                    <li>Date range: ${squidleStartDate} to ${squidleEndDate}</li>
-                    <li>Methods of collection:  ${squidleMethod}</li>
-                    <li>${squidleImages} images collected</li>
-                    <li>${squidleTotalAnnotations} images annotations (${squidlePublicAnnotations} public)</li>
+                    <li><b>Date Range: </b>${squidleStartDate} to ${squidleEndDate}</li>
+                    <li><b>Methods of Collection: </b>${squidleMethod}</li>
+                    <li><b>Images Collected: </b>${squidleImages}</li>
+                    <li><b>Images Annotations: </b>${squidleTotalAnnotations} (${squidlePublicAnnotations} public)</li>
                 </ul>`;
 
         // global archive item
@@ -260,13 +260,13 @@ class RegionReport {
         let globalArchiveVideoTime = globalArchive.video_time ?? 0;
 
         const globalArchiveItem = document.createElement("li");
-        globalArchiveItem.innerHTML = `<span>${globalArchiveDeployments} video deployments<wbr>(${globalArchiveCampaigns} campaigns)</span>`;
+        globalArchiveItem.innerHTML = `<span>${globalArchiveDeployments} video deployments <wbr>(${globalArchiveCampaigns} campaigns)</span>`;
         if (globalArchiveDeployments > 0)
             globalArchiveItem.innerHTML += `
                 <ul>
-                    <li>Date range: ${globalArchiveStartDate} to ${globalArchiveEndDate}</li>
-                    <li>Methods of collection: ${globalArchiveMethod}</li>
-                    <li>${globalArchiveVideoTime} hours of video</li>
+                    <li><b>Date Range: </b>${globalArchiveStartDate} to ${globalArchiveEndDate}</li>
+                    <li><b>Methods of Collection: </b>${globalArchiveMethod}</li>
+                    <li><b>Hours of Video: </b>${globalArchiveVideoTime}</li>
                 </ul>`;
 
         // sediment item
@@ -278,13 +278,13 @@ class RegionReport {
         let sedimentMethod = sediment.method ?? "N/A";
 
         const sedimentItem = document.createElement("li");
-        sedimentItem.innerHTML = `<span>${sedimentSamples} sediment samples<wbr>(${sedimentAnalysed} analysed) from ${sedimentSurvey} surveys</span>`;
+        sedimentItem.innerHTML = `<span>${sedimentSamples} sediment samples <wbr>(${sedimentAnalysed} analysed) from ${sedimentSurvey} surveys</span>`;
 
         if (sedimentSamples > 0)
             sedimentItem.innerHTML += `
                 <ul>
-                    <li>Date range: ${sedimentStartDate} to ${sedimentEndDate}</li>
-                    <li>Methods of collection:  ${sedimentMethod}</li>
+                    <li><b>Date Range: </b>${sedimentStartDate} to ${sedimentEndDate}</li>
+                    <li><b>Methods of Collection: </b>${sedimentMethod}</li>
                 </ul>`;
 
         // populate habitat observations list

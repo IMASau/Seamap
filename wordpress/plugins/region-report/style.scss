@@ -197,6 +197,8 @@ $headings-font-family: "Poppins", sans-serif;
             display: flex;
             flex-direction: row;
             gap: 16px;
+            margin-bottom: 32px;
+
             >* {
                 flex: 1;
                 min-width: 0;
@@ -233,12 +235,65 @@ $headings-font-family: "Poppins", sans-serif;
                     }
                 }
             }
+
+            .research-effort-graphs {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
         }
 
-        .research-effort-graphs {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+        .research-rating {
+            background-color: $seamap-color-2;
+            color: $seamap-color-7;
+            padding: 28px 52px;
+    
+            h2, h3 { color: inherit; }
+    
+            >:nth-child(2) {
+                display: flex;
+                flex-direction: row;
+                gap: 16px;
+                align-items: flex-end;
+                >* { flex: 1; }
+    
+                .star-ratings {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                }
+    
+                .feedback {
+                    position: relative;
+    
+                    h2 {
+                        color: $seamap-color-5;
+                        font-style: italic;
+                        position: absolute;
+                        font-size: 140px;
+                        top: -32px;
+                        left: -6px;
+                    }
+        
+                    h3 {
+                        text-transform: uppercase;
+                        font-weight: normal;
+                        font-size: 14px;
+                        position: absolute;
+                        top: -6px;
+                        left: 84px;
+                    }
+        
+                    .quote {
+                        background-color: $seamap-color-7;
+                        color: $seamap-color-2;
+                        font-size: 14px;
+                        padding: 18px 18px 24px 18px;
+                        font-style: italic;
+                        margin-top: 16px;
+                    }
+                }
+            }
         }
     }
 
@@ -285,21 +340,6 @@ $headings-font-family: "Poppins", sans-serif;
                 }
             }
         }
-    }
-    
-    .region-report-research-rating {
-        background-color: #ebebeb;
-        border: 3px solid black;
-        border-radius: 32px;
-        padding: 12px 24px;
-        gap: 12px;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .region-report-research-rating-quote {
-        font-size: 23px;
-        font-style: italic;
     }
     
     .labeled-toggle {
@@ -388,29 +428,21 @@ $headings-font-family: "Poppins", sans-serif;
         gap: 12px;
     }
     
-    /* Star rating start */
-    .fa {
-        color: #182026;
-    }
-    
     .region-report-star-rating {
         display: flex;
         flex-direction: row;
         align-items: center;
+
+        >:nth-child(2) { font-size: 16px; }
+
+        >:nth-child(1) {
+            font-size: 32px;
+            display: flex;
+            flex-direction: row;
+            gap: 6px;
+            margin-right: 12px;
+        }
     }
-    
-    .region-report-star-rating>*:nth-child(1) {
-        font-size: 44px;
-        display: flex;
-        flex-direction: row;
-        gap: 4px;
-        margin-right: 12px;
-    }
-    
-    .region-report-star-rating>*:nth-child(2) {
-        font-size: 20px;
-    }
-    /* Star rating end */
     
     /* Tabs start */
     .region-report-tabs {

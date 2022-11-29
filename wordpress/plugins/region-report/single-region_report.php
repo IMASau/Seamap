@@ -110,15 +110,15 @@
                     <h3>Habitat Observations</h3>
                     <ul class="habitat-observations" id="region-report-habitat-observations-<?php the_ID(); ?>">
                         <li>
-                            <span>0 imagery deployments<wbr>(0 campaigns)</span>
+                            <span>0 imagery deployments <wbr>(0 campaigns)</span>
                         </li>
 
                         <li>
-                            <span>0 video deployments<wbr>(0 campaigns)</span>
+                            <span>0 video deployments <wbr>(0 campaigns)</span>
                         </li>
 
                         <li>
-                            <span>0 sediment samples<wbr>(0 analysed) from 0 surveys</span>
+                            <span>0 sediment samples <wbr>(0 analysed) from 0 surveys</span>
                         </li>
                     </ul>
                 </div>
@@ -130,13 +130,20 @@
                 </div>
             </div>
 
-            <div class="region-report-research-rating">
-                <div id="region-report-star-ratings-<?php the_ID(); ?>">
-                    <div><!-- State of bathymetry mapping --></div>
-                    <div><!-- State of habitat observations --></div>
-                    <div><!-- State of habitat maps --></div>
+            <div class="research-rating">
+                <h2>Data Quality</h2>
+                <div>
+                    <div class="star-ratings" id="region-report-star-ratings-<?php the_ID(); ?>">
+                        <div><!-- State of bathymetry mapping --></div>
+                        <div><!-- State of habitat observations --></div>
+                        <div><!-- State of habitat maps --></div>
+                    </div>
+                    <div class="feedback">
+                        <h2>"</h2>
+                        <h3>Feedback</h3>
+                        <div class="quote" id="region-report-research-rating-quote-<?php the_ID(); ?>"></div>
+                    </div>
                 </div>
-                <div class="region-report-research-rating-quote" id="region-report-research-rating-quote-<?php the_ID(); ?>"></div>
             </div>
         </section>
 
