@@ -29,1031 +29,157 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
 
-<script>
-    const habitatStatisticsUrlBase = <?php echo json_encode($habitat_statistics_url_base); ?>;
-    const bathymetryStatisticsUrlBase = <?php echo json_encode($bathymetry_statistics_url_base); ?>;
-    const habitatObservationsUrlBase = <?php echo json_encode($habitat_observations_url_base); ?>;
-    const researchEffortUrlBase = <?php echo json_encode($research_effort_url_base); ?>;
-    const regionReportDataUrlBase = <?php echo json_encode($region_report_data_url_base); ?>;
-    const pressurePreviewUrlBase = <?php echo json_encode($pressure_preview_url_base); ?>;
-    const mapUrlBase = <?php echo json_encode($map_url_base); ?>;
-
-    function starRating(element, value, total, text) {
-        element.classList.add("region-report-star-rating")
-
-        // Stars
-        const stars = document.createElement("div");
-
-        const fullStars = Math.floor(value / 2);
-        const halfStars = value % 2;
-        const emptyStars = Math.floor((total - value) / 2);
-
-        for (let i = 0; i < fullStars; i++) {
-            const star = document.createElement("i");
-            star.className = "fa fa-star";
-            stars.appendChild(star);
-        }
-
-        for (let i = 0; i < halfStars; i++) {
-            const star = document.createElement("i");
-            star.className = "fa fa-star-half-o";
-            stars.appendChild(star);
-        }
-
-        for (let i = 0; i < emptyStars; i++) {
-            const star = document.createElement("i");
-            star.className = "fa fa-star-o";
-            stars.appendChild(star);
-        }
-
-        element.appendChild(stars);
-
-        // Label
-        const label = document.createElement("div");
-        label.innerText = text;
-        element.appendChild(label);
-    }
-
-    function regionReportToggleTab(tab) {
-        const tabs = Array.prototype.slice.call(tab.parentElement.children);
-        const tabContent = document.getElementById(tab.parentElement.dataset.tabContent);
-        const tabPanes = Array.prototype.slice.call(tabContent.children);
-        const tabPane = tabPanes.filter(tabPane => tabPane.dataset.tab == tab.dataset.tab)[0];
-
-        tabs.forEach(tab => tab.classList.remove("region-report-selected"));
-        tab.classList.add("region-report-selected");
-
-        tabPanes.forEach(tabPane => tabPane.classList.remove("region-report-selected"));
-        tabPane.classList.add("region-report-selected");
-    }
-</script>
-
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
-    <script>
-        let postId = "<?php the_ID(); ?>";
-        let postElement = document.getElementById(`post-${postId}`);
-
-        let networkName = "<?php echo $network_name; ?>";
-        let parkName = <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>;
-
-        let habitatStatisticsUrl = `${habitatStatisticsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
-        let bathymetryStatisticsUrl = `${bathymetryStatisticsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
-        let habitatObservationsUrl = `${habitatObservationsUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
-        let networkResearchEffortUrl = `${researchEffortUrlBase}/${networkName}.json`;
-        let parkResearchEffortUrl = parkName ? `${researchEffortUrlBase}/${networkName}/${parkName}.json` : null;
-        let regionReportDataUrl = `${regionReportDataUrlBase}?boundary-type=amp&network=${networkName}&park=${parkName ?? ""}`;
-
-        let pageLink = "<?php echo get_page_link(); ?>";
-    </script>
-
     <div class="entry-content">
-        <section>
-            <h3 class="region-report-region-heading" id="region-report-region-heading-<?php the_ID(); ?>"></h3>
-            <script>
-                postElement.addEventListener(
-                    "regionReportData",
-                    e => {
-                        const regionHeading = document.getElementById(`region-report-region-heading-${postId}`);
+        <section class="overview" id="overview-<?php the_ID(); ?>">
 
-                        const networkHyperlink = document.createElement("a");
-                        networkHyperlink.innerText = e.detail.network.network;
-                        networkHyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.detail.network.slug}/`);
-                        regionHeading.appendChild(networkHyperlink);
+            <div class="region-summary">
+                <div class="heading">
+                    <h3>Report</h3>
+                    <h2 id="region-report-region-heading-<?php the_ID(); ?>"></h2>
+                </div>
+                <div class="content"><?php the_content(); ?></div>
+            </div>
+        </section>
 
-                        if (e.detail.park) {
-                            const caret = document.createElement("i");
-                            caret.className = "fa fa-caret-right";
+        <section class="overview-map">
+            <div class="labeled-toggle">
+                <div>All data</div>
+                <label class="switch">
+                    <input type="checkbox" onclick="regionReport.toggleMinimap(this.checked)">
+                    <span class="switch-slider"></span>
+                </label>
+                <div>Public/analysed data</div>
+            </div>
+            <div class="map" id="region-report-overview-map-map-<?php the_ID(); ?>"></div>
+            <div><div class="caption"><?php echo $overview_map_caption; ?></div></div>
+        </section>
 
-                            const parkHyperlink = document.createElement("a");
-                            parkHyperlink.innerText = e.detail.park;
-                            parkHyperlink.setAttribute("href", `${pageLink.split('/').slice(0, -2).join('/')}/${e.detail.slug}/`);
+        <section class="known">
+            <h2>What's known about the <?php echo $region_name; ?>?</h2>
+            <div class="caption"><?php echo $known_caption; ?></div>
 
-                            regionHeading.appendChild(caret);
-                            regionHeading.appendChild(parkHyperlink);
-                        }
-                    }
-                );
-            </script>
-
-            <div class="region-report-outline" id="region-report-outline-<?php the_ID(); ?>">
+            <div class="statistics">
                 <div>
-                    <?php the_content(); ?>
-                    <div class="region-report-overview-map">
-                        <div class="region-report-labeled-toggle">
-                            <div>All data</div>
-                            <label class="region-report-switch">
-                                <input type="checkbox" onclick="toggleMinimap(this.checked)">
-                                <span class="region-report-slider"></span>
-                            </label>
-                            <div>Public/analysed data</div>
+                    <h3>Habitat</h3>
+                    <div class="chart-table">
+                        <div class="chart-container">
+                            <div id="region-report-habitat-chart-<?php the_ID(); ?>"></div>
                         </div>
-                        <div class="region-report-overview-map-map" id="region-report-overview-map-map-<?php the_ID(); ?>"></div>
-                        <div class="region-report-caption"><?php echo $overview_map_caption; ?></div>
-                        <script>
-                            const map = L.map(`region-report-overview-map-map-${postId}`, { maxZoom: 19, zoomControl: false });
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Habitat</th>
+                                        <th>Area (km²)</th>
+                                        <th>Mapped (%)</th>
+                                        <th>Total (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="region-report-habitat-table-<?php the_ID(); ?>"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-                            const allLayers = L.layerGroup();
-                            let allLayersBoundary;
-                            const publicLayers = L.layerGroup();
-                            let publicLayersBoundary;
-
-                            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-
-                            postElement.addEventListener(
-                                "regionReportData",
-                                e => {
-                                    // all layers
-                                    e.detail.all_layers.forEach(
-                                        layer => {
-                                            L.tileLayer.wms(
-                                                layer.server_url,
-                                                {
-                                                    layers: layer.layer_name,
-                                                    transparent: true,
-                                                    tiled: true,
-                                                    format: "image/png",
-                                                    styles: layer.style,
-                                                    cql_filter: `Network='${e.detail.network.network}'` + (e.detail.park ? ` AND Park='${e.detail.park}'` : "")
-                                                }
-                                            ).addTo(allLayers);
-                                        }
-                                    );
-
-                                    // all layers boundary
-                                    allLayersBoundary = L.tileLayer.wms(
-                                        e.detail.all_layers_boundary.server_url,
-                                        {
-                                            layers: e.detail.all_layers_boundary.layer_name,
-                                            transparent: true,
-                                            tiled: true,
-                                            format: "image/png",
-                                            styles: e.detail.all_layers_boundary.style,
-                                            cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
-                                        }
-                                    );
-
-                                    // public layers
-                                    e.detail.public_layers.forEach(
-                                        layer => {
-                                            L.tileLayer.wms(
-                                                layer.server_url,
-                                                {
-                                                    layers: layer.layer_name,
-                                                    transparent: true,
-                                                    tiled: true,
-                                                    format: "image/png",
-                                                    styles: layer.style,
-                                                    cql_filter: `Network='${e.detail.network.network}'` + (e.detail.park ? ` AND Park='${e.detail.park}'` : "")
-                                                }
-                                            ).addTo(publicLayers);
-                                        }
-                                    );
-
-                                    // public layers boundary
-                                    publicLayersBoundary = L.tileLayer.wms(
-                                        e.detail.public_layers_boundary.server_url,
-                                        {
-                                            layers: e.detail.public_layers_boundary.layer_name,
-                                            transparent: true,
-                                            tiled: true,
-                                            format: "image/png",
-                                            styles: e.detail.public_layers_boundary.style,
-                                            cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
-                                        }
-                                    );
-
-                                    // set up map
-                                    map.addLayer(allLayersBoundary);
-                                    map.addLayer(allLayers);
-                                    map._handlers.forEach(function (handler) {
-                                        handler.disable();
-                                    });
-
-                                    // zoom to map extent
-                                    let bounds = [[e.detail.bounding_box.north, e.detail.bounding_box.east], [e.detail.bounding_box.south, e.detail.bounding_box.west]];
-                                    map.fitBounds(bounds);
-                                    window.addEventListener("resize", map.invalidateSize);
-                                }
-                            );
-
-                            function toggleMinimap(publicOnly) {
-                                map.removeLayer(allLayers);
-                                map.addLayer(allLayersBoundary);
-                                map.removeLayer(publicLayers);
-                                map.addLayer(publicLayersBoundary);
-
-                                map.addLayer(publicOnly ? publicLayersBoundary : allLayersBoundary);
-                                map.addLayer(publicOnly ? publicLayers : allLayers);
-                            }
-                        </script>
+                <div>
+                    <h3>Bathymetry</h3>
+                    <div class="chart-table">
+                        <div class="chart-container">
+                            <div id="region-report-bathymetry-chart-<?php the_ID(); ?>"></div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Resolution</th>
+                                        <th>Area (km²)</th>
+                                        <th>Mapped (%)</th>
+                                        <th>Total (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="region-report-bathymetry-table-<?php the_ID(); ?>"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            <script>
-                    postElement.addEventListener(
-                        "regionReportData",
-                        e => {
-                            const outline = document.getElementById(`region-report-outline-${postId}`);
-                            
-                            if (e.detail.parks) {
-                                const parkList = document.createElement("ul");
-                                e.detail.parks.forEach(
-                                    e => {
-                                        parkList.innerHTML += `
-                                            <li>
-                                                <a href="${pageLink.split('/').slice(0, -2).join('/')}/${e.slug}/">${e.park}</a>
-                                            </li>`;
-                                    }
-                                );
-                                const parks = document.createElement("div");
-                                parks.appendChild(parkList);
-                                outline.appendChild(parks);
-                                map.invalidateSize();
-                            }
-                        }
-                    );
-                </script>
-        </section>
 
-        <section class="region-report-known">
-            <h2>What's known about the <?php echo $region_name; ?>?</h2>
-            <div class="region-report-caption"><?php echo $known_caption; ?></div>
+            <div class="observations-and-research">
+                <div>
+                    <h3>Habitat Observations</h3>
+                    <ul class="habitat-observations" id="region-report-habitat-observations-<?php the_ID(); ?>">
+                        <li>
+                            <span>0 imagery deployments <wbr>(0 campaigns)</span>
+                        </li>
 
-            <section>
-                <h3>Habitat</h3>
-                <div class="region-report-chart-table">
-                    <div>
-                        <div class="region-report-chart" id="region-report-habitat-chart-<?php the_ID(); ?>"></div>
-                        <script>
-                            postElement.addEventListener(
-                                "habitatStatistics",
-                                e => {
-                                    const values = e.detail.filter(e => e.habitat);
-                                    vegaEmbed(
-                                        `#region-report-habitat-chart-${postId}`,
-                                        {
-                                            background: "transparent",
-                                            data: { values: values },
-                                            mark: { type: "arc" },
-                                            encoding: {
-                                                theta: {
-                                                    field: "area",
-                                                    type: "quantitative"
-                                                },
-                                                color: {
-                                                    field: "habitat",
-                                                    type: "nominal",
-                                                    legend: { title: "Habitat" },
-                                                    sort: values.map(e => e.habitat),
-                                                    scale: { range: values.map(e => e.color) }
-                                                }
-                                            }
-                                        },
-                                        { actions: false }
-                                    );
-                                }
-                            );
-                        </script>
-                    </div>
-                    <div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Habitat</th>
-                                    <th>Area (km²)</th>
-                                    <th>Mapped (%)</th>
-                                    <th>Total (%)</th>
-                                </tr>
-                            </thead>
+                        <li>
+                            <span>0 video deployments <wbr>(0 campaigns)</span>
+                        </li>
 
-                            <tbody id="region-report-habitat-table-<?php the_ID(); ?>"></tbody>
-                        </table>
-                        <script>
-                            postElement.addEventListener(
-                                "habitatStatistics",
-                                e => {
-                                    const values = e.detail;
-                                    const table = document.getElementById(`region-report-habitat-table-${postId}`);
-
-                                    values.forEach( habitat => {
-                                        const row = table.insertRow();
-
-                                        row.insertCell().innerText = habitat.habitat ?? "Total Mapped";
-                                        row.insertCell().innerText = habitat.area.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1});
-                                        row.insertCell().innerText = habitat.mapped_percentage?.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1}) ?? "N/A";
-                                        row.insertCell().innerText = habitat.total_percentage.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1});
-                                    });
-                                }
-                            );
-                        </script>
-                    </div>
+                        <li>
+                            <span>0 sediment samples <wbr>(0 analysed) from 0 surveys</span>
+                        </li>
+                    </ul>
                 </div>
-            </section>
 
-            <section>
-                <h3>Bathymetry</h3>
-                <div class="region-report-chart-table">
-                    <div>
-                        <div class="region-report-chart" id="region-report-bathymetry-chart-<?php the_ID(); ?>"></div>
-                        <script>
-                            postElement.addEventListener(
-                                "bathymetryStatistics",
-                                e => {
-                                    const values = e.detail.filter(e => e.resolution);
-                                    vegaEmbed(
-                                        `#region-report-bathymetry-chart-${postId}`,
-                                        {
-                                            background: "transparent",
-                                            data: { values: values },
-                                            mark: { type: "arc" },
-                                            encoding: {
-                                                theta: {
-                                                    field: "area",
-                                                    type: "quantitative"
-                                                },
-                                                color: {
-                                                    field: "resolution",
-                                                    type: "nominal",
-                                                    legend: { title: "Resolution" },
-                                                    sort: values.map(e => e.resolution),
-                                                    scale: { range: values.map(e => e.color) }
-                                                }
-                                            }
-                                        },
-                                        { actions: false }
-                                    );
-                                }
-                            );
-                        </script>
-                    </div>
-                    <div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Resolution</th>
-                                    <th>Area (km²)</th>
-                                    <th>Mapped (%)</th>
-                                    <th>Total (%)</th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="region-report-bathymetry-table-<?php the_ID(); ?>"></tbody>
-                        </table>
-                        <script>
-                            postElement.addEventListener(
-                                "bathymetryStatistics",
-                                e => {
-                                    const values = e.detail;
-                                    const table = document.getElementById(`region-report-bathymetry-table-${postId}`);
-
-                                    values.forEach( bathymetry => {
-                                        const row = table.insertRow();
-
-                                        row.insertCell().innerText = bathymetry.resolution ?? "Total Mapped";
-                                        row.insertCell().innerText = bathymetry.area.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1});
-                                        row.insertCell().innerText = bathymetry.mapped_percentage?.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1}) ?? "N/A";
-                                        row.insertCell().innerText = bathymetry.total_percentage.toLocaleString("en-US", {maximumFractionDigits: 1, minimumFractionDigits: 1});
-                                    });
-                                }
-                            );
-                        </script>
-                    </div>
+                <div>
+                    <h3>Research Effort</h3>
+                    
+                    <div id="region-report-research-effort-<?php the_ID(); ?>"></div>
                 </div>
-            </section>
+            </div>
 
-            <section>
-                <h3>Habitat Observations</h3>
-                <ul id="region-report-habitat-observations-<?php the_ID(); ?>">
-                    <li>
-                        <span>0 imagery deployments (0 campaigns)</span>
-                    </li>
-
-                    <li>
-                        <span>0 video deployments (0 campaigns)</span>
-                    </li>
-
-                    <li>
-                        <span>0 sediment samples (0 analysed) from 0 surveys</span>
-                    </li>
-                </ul>
-                <script>
-                    postElement.addEventListener(
-                        "habitatObservations",
-                        e => {
-                            function addToList(list, text) {
-                                const item = document.createElement("li");
-                                item.innerText = text;
-                                list.appendChild(item);
-                            }
-
-                            const squidle = e.detail.squidle;
-                            const globalArchive = e.detail.global_archive;
-                            const sediment = e.detail.sediment;
-
-                            const habitatObservationsList = document.getElementById(`region-report-habitat-observations-${postId}`);
-                            
-                            // squidle item
-                            let squidleDeployments = squidle.deployments?.toLocaleString("en-US") ?? 0;
-                            let squidleCampaigns = squidle.campaigns?.toLocaleString("en-US") ?? 0;
-                            let squidleStartDate = squidle.start_date ? (new Date(squidle.start_date)).toLocaleString("en-AU", {month: "short", year: "numeric"}) : "unknown";
-                            let squidleEndDate = squidle.end_date ? (new Date(squidle.end_date)).toLocaleString("en-AU", {month: "short", year: "numeric"}) : "unknown";
-                            let squidleMethod = squidle.method ?? "N/A";
-                            let squidleImages = squidle.images?.toLocaleString("en-US") ?? 0;
-                            let squidleTotalAnnotations = squidle.total_annotations?.toLocaleString("en-US") ?? 0;
-                            let squidlePublicAnnotations = squidle.public_annotations?.toLocaleString("en-US") ?? 0;
-
-                            const squidleItem = document.createElement("li");
-
-                            const squidleHead = document.createElement("span");
-                            squidleHead.innerText = `${squidleDeployments} imagery deployments (${squidleCampaigns} campaigns)`;
-                            squidleItem.appendChild(squidleHead);
-
-                            if (squidleDeployments > 0) {
-                                const squidleList = document.createElement("ul");
-                                addToList(squidleList, `Date range: ${squidleStartDate} to ${squidleEndDate}`);
-                                addToList(squidleList, `Methods of collection:  ${squidleMethod}`);
-                                addToList(squidleList, `${squidleImages} images collected`);
-                                addToList(squidleList, `${squidleTotalAnnotations} images annotations (${squidlePublicAnnotations} public)`);
-                                squidleItem.appendChild(squidleList);
-                            }
-
-                            // global archive item
-                            let globalArchiveDeployments = globalArchive.deployments?.toLocaleString("en-US") ?? 0;
-                            let globalArchiveCampaigns = globalArchive.campaigns?.toLocaleString("en-US") ?? 0;
-                            let globalArchiveStartDate = globalArchive.start_date ? (new Date(globalArchive.start_date)).toLocaleString("en-AU", {month: "short", year: "numeric"}) : "unknown";
-                            let globalArchiveEndDate = globalArchive.end_date ? (new Date(globalArchive.end_date)).toLocaleString("en-AU", {month: "short", year: "numeric"}) : "unknown";
-                            let globalArchiveMethod = globalArchive.method ?? "N/A";
-                            let globalArchiveVideoTime = globalArchive.video_time ?? 0;
-
-                            const globalArchiveItem = document.createElement("li");
-
-                            const globalArchiveHead = document.createElement("span");
-                            globalArchiveHead.innerText = `${globalArchiveDeployments} video deployments (${globalArchiveCampaigns} campaigns)`;
-                            globalArchiveItem.appendChild(globalArchiveHead);
-
-                            if (globalArchiveDeployments > 0) {
-                                const globalArchiveList = document.createElement("ul");
-                                addToList(globalArchiveList, `Date range: ${globalArchiveStartDate} to ${globalArchiveEndDate}`);
-                                addToList(globalArchiveList, `Methods of collection: ${globalArchiveMethod}`);
-                                addToList(globalArchiveList, `${globalArchiveVideoTime} hours of video`);
-                                globalArchiveItem.appendChild(globalArchiveList);
-                            }
-
-                            // sediment item
-                            let sedimentSamples = sediment.samples?.toLocaleString("en-US") ?? 0;
-                            let sedimentAnalysed = sediment.analysed?.toLocaleString("en-US") ?? 0;
-                            let sedimentSurvey = sediment.survey?.toLocaleString("en-US") ?? 0;
-                            let sedimentStartDate = sediment.start_date ? (new Date(sediment.start_date)).toLocaleString("en-AU", {month: "short", year: "numeric"}) : "unknown";
-                            let sedimentEndDate = sediment.end_date ? (new Date(sediment.end_date)).toLocaleString("en-AU", {month: "short", year: "numeric"}) : "unknown";
-                            let sedimentMethod = sediment.method ?? "N/A";
-
-                            const sedimentItem = document.createElement("li");
-
-                            const sedimentHead = document.createElement("span");
-                            sedimentHead.innerText = `${sedimentSamples} sediment samples (${sedimentAnalysed} analysed) from ${sedimentSurvey} surveys`;
-                            sedimentItem.appendChild(sedimentHead);
-                            
-                            if (sedimentSamples > 0) {
-                                const sedimentList = document.createElement("ul");
-                                addToList(sedimentList, `Date range: ${sedimentStartDate} to ${sedimentEndDate}`);
-                                addToList(sedimentList, `Methods of collection:  ${sedimentMethod}`);
-                                sedimentItem.appendChild(sedimentList);
-                            }
-
-                            // populate habitat observations list
-                            habitatObservationsList.innerHTML = "";
-                            habitatObservationsList.appendChild(squidleItem);
-                            habitatObservationsList.appendChild(globalArchiveItem);
-                            habitatObservationsList.appendChild(sedimentItem);
-                        }
-                    );
-                </script>
-            </section>
-
-            <section>
-                <h3>Research Effort</h3>
-                
-                <div id="region-report-research-effort-<?php the_ID(); ?>"></div>
-                <script>
-                    // declarations
-                    let networkResearchEffort;
-                    let parkResearchEffort;
-
-                    function toggleResearchEffort(showNetwork) {
-                        // build values
-                        const values = [];
-                        (showNetwork ? networkResearchEffort : parkResearchEffort).forEach(e => {
-                            values.push({
-                                year: e.year,
-                                end: e.year + 0.25,
-                                count: e.imagery_count,
-                                group: "Imagery (campaigns)",
-                                color: "#3C67BC"
-                            });
-                            values.push({
-                                year: e.year + 0.25,
-                                end: e.year + 0.5,
-                                count: e.video_count,
-                                group: "Video (campaigns)",
-                                color: "#EA722B"
-                            });
-                            values.push({
-                                year: e.year + 0.5,
-                                end: e.year + 0.75,
-                                count: e.sediment_count,
-                                group: "Sediment (surveys)",
-                                color: "#9B9B9B"
-                            });
-                            values.push({
-                                year: e.year + 0.75,
-                                end: e.year + 1,
-                                count: e.bathymetry_count,
-                                group: "Bathymetry (surveys)",
-                                color: "#FFB800"
-                            });
-                        });
-                        const filteredValues = values.filter(e => e.year >= 2000);
-
-                        // generate graphs
-                        vegaEmbed(
-                            `#region-report-research-effort-1-${postId}`,
-                            {
-                                title: "Full Timeseries",
-                                background: "transparent",
-                                data: { values: values },
-                                width: "container",
-                                mark: "bar",
-                                encoding: {
-                                    x: {
-                                        field: "year",
-                                        type: "quantitative",
-                                        axis: {
-                                            tickMinStep: 1,
-                                            format: "r"
-                                        },
-                                        scale: {
-                                            domain: [
-                                                Math.floor(Math.min(...values.map(e => e.year))),
-                                                new Date().getFullYear() + 1
-                                            ]
-                                        },
-                                        title: "Year"
-                                    },
-                                    x2: { field: "end" },
-                                    y: {
-                                        field: "count",
-                                        type: "quantitative",
-                                        title: "Survey Effort",
-                                        axis: { tickMinStep: 1 }
-                                    },
-                                    color: {
-                                        field: "group",
-                                        type: "nominal",
-                                        legend: { title: null },
-                                        sort: values.map(e => e.group),
-                                        scale: { range: values.map(e => e.color) }
-                                    }
-                                }
-                            },
-                            { actions: false }
-                        );
-                        
-                        vegaEmbed(
-                            `#region-report-research-effort-2-${postId}`,
-                            {
-                                title: "2000 to Present",
-                                background: "transparent",
-                                data: { values: filteredValues },
-                                width: "container",
-                                mark: "bar",
-                                encoding: {
-                                    x: {
-                                        field: "year",
-                                        type: "quantitative",
-                                        axis: {
-                                            tickMinStep: 1,
-                                            format: "r"
-                                        },
-                                        scale: {
-                                            domain: [
-                                                2000,
-                                                new Date().getFullYear() + 1
-                                            ]
-                                        },
-                                        title: "Year"
-                                    },
-                                    x2: { field: "end" },
-                                    y: {
-                                        field: "count",
-                                        type: "quantitative",
-                                        title: "Survey Effort",
-                                        axis: { tickMinStep: 1 }
-                                    },
-                                    color: {
-                                        field: "group",
-                                        type: "nominal",
-                                        legend: { title: null },
-                                        sort: filteredValues.map(e => e.group),
-                                        scale: { range: filteredValues.map(e => e.color) }
-                                    }
-                                }
-                            },
-                            { actions: false }
-                        );
-                    }
-
-                    // setup
-                    const researchEffortElement = document.getElementById(`region-report-research-effort-${postId}`);
-
-                    if (parkName) {
-                        researchEffortElement.innerHTML = `
-                            <div class="region-report-labeled-toggle">
-                                <div>${parkName}</div>
-                                <label class="region-report-switch">
-                                    <input type="checkbox" onclick="toggleResearchEffort(this.checked)">
-                                    <span class="region-report-slider"></span>
-                                </label>
-                                <div>${networkName}</div>
-                            </div>`;
-                    }
-                    researchEffortElement.innerHTML += `
-                        <div class="region-report-research-effort-graphs" id="region-report-research-effort-graphs-${postId}">
-                            <div id="region-report-research-effort-1-${postId}"></div>
-                            <div id="region-report-research-effort-2-${postId}"></div>
-                        </div>`;
-
-                    postElement.addEventListener(
-                        "networkResearchEffort",
-                        e => {
-                            networkResearchEffort = e.detail;
-                            if (!parkName) toggleResearchEffort(true);
-                        }
-                    );
-
-                    postElement.addEventListener(
-                        "parkResearchEffort",
-                        e => {
-                            parkResearchEffort = e.detail;
-                            toggleResearchEffort(false);
-                        }
-                    );
-                </script>
-
-                <div class="region-report-research-rating">
-                    <div id="region-report-star-ratings-<?php the_ID(); ?>">
+            <div class="research-rating">
+                <h2>Data Quality</h2>
+                <div>
+                    <div class="star-ratings" id="region-report-star-ratings-<?php the_ID(); ?>">
                         <div><!-- State of bathymetry mapping --></div>
                         <div><!-- State of habitat observations --></div>
                         <div><!-- State of habitat maps --></div>
                     </div>
-                    <script>
-                        postElement.addEventListener(
-                            "regionReportData",
-                            e => {
-                                let starRatings = document.getElementById(`region-report-star-ratings-${postId}`)
-                                starRating(
-                                    starRatings.children[0],
-                                    Math.round(e.detail.bathymetry_state * 2),
-                                    10,
-                                    "State of bathymetry mapping"
-                                );
-                                starRating(
-                                    starRatings.children[1],
-                                    Math.round(e.detail.habitat_observations_state * 2),
-                                    10,
-                                    "State of habitat observations"
-                                );
-                                starRating(
-                                    starRatings.children[2],
-                                    Math.round(e.detail.habitat_state * 2),
-                                    10,
-                                    "State of habitat maps"
-                                );
-                            }
-                        );
-                    </script>
-
-                    <div class="region-report-research-rating-quote" id="region-report-research-rating-quote-<?php the_ID(); ?>"></div>
-                    <script>
-                        postElement.addEventListener(
-                            "regionReportData",
-                            e => {
-                                let quote = document.getElementById(`region-report-research-rating-quote-${postId}`)
-                                quote.innerText = e.detail.state_summary;
-                            }
-                        );
-                    </script>
+                    <div class="feedback">
+                        <h2>"</h2>
+                        <h3>Feedback</h3>
+                        <div class="quote" id="region-report-research-rating-quote-<?php the_ID(); ?>"></div>
+                    </div>
                 </div>
-            </section>
+            </div>
         </section>
 
-        <section>
+        <section class="imagery-and-pressures">
             <h2>What's in the <?php echo $region_name; ?>?</h2>
-            <div class="region-report-caption"><?php echo $pressures_caption; ?></div>
+            <div class="caption"><?php echo $pressures_caption; ?></div>
         
-            <section>
+            <section class="imagery">
                 <h3>Imagery</h3>
-                <div class="region-report-imagery" id="region-report-imagery-<?php the_ID(); ?>">Loading imagery deployment data...</div>
-                <script>
-                    // declarations
-                    let imageryMap;
-                    let imageryMarkers = [];
-                    let squidleUrl;
-                    let imageryGrid;
-
-                    function focusMarker(focusIndex) {
-                        imageryMarkers.forEach((marker, index) => {
-                            imageryMap.removeLayer(marker);
-                            if (index == focusIndex || focusIndex == null) imageryMap.addLayer(marker);
-                        });
-                    }
-
-                    function refreshImagery() {
-                        if (squidleUrl == null) return;
-                        if (imageryMap == null) return;
-
-                        $.ajax(squidleUrl, {
-                            dataType: "json",
-                            success: media => {
-
-                                $.ajax("https://squidle.org/api/pose", {
-                                    dataType: "json",
-                                    data: {
-                                        q: JSON.stringify({
-                                            filters: [{
-                                                name: "media_id",
-                                                op: "in",
-                                                val: media.objects.map(e => e.id)
-                                            }]
-                                        })
-                                    },
-                                    success: pose => {
-                                        // clear
-                                        imageryMarkers.forEach(marker => imageryMap.removeLayer(marker));
-                                        imageryMarkers = [];
-                                        imageryGrid.innerHTML = "";
-
-                                        // populate
-                                        media.objects.forEach((image, index) => {
-                                            Object.assign(image, pose.objects.filter(e => e.media.id == image.id)[0]);
-
-                                            // grid items
-                                            imageryGrid.innerHTML += `
-                                                <a
-                                                    href="https://squidle.org/api/media/${image.media.id}?template=models/media/preview_single.html"
-                                                    target="_blank"
-                                                    onmouseenter="focusMarker(${index})"
-                                                    onmouseleave="focusMarker()"
-                                                >
-                                                    <img src="${image.path_best_thm}">
-                                                    <div class="region-report-imagery-grid-number">${index + 1}</div>
-                                                </a>`;
-
-                                            // marker
-                                            imageryMarkers.push(
-                                                new L.Marker(
-                                                    [image.lat, image.lon],
-                                                    {
-                                                        icon: L.divIcon({
-                                                            html: `
-                                                                <svg width=25 height=41>
-                                                                    <polygon
-                                                                        points="0,0 25,0, 25,28 20,28 12.5,41 5,28 0,28"
-                                                                        fill="rgb(0, 147, 36)"
-                                                                        stroke="white"
-                                                                        stroke-width=1.5
-                                                                    />
-                                                                    <text
-                                                                        fill="white"
-                                                                        x="50%"
-                                                                        y=14
-                                                                        dominant-baseline="middle"
-                                                                        text-anchor="middle"
-                                                                        font-family="sans-serif"
-                                                                        font-weight="bold"
-                                                                    >${index + 1}</text>
-                                                                </svg>`,
-                                                            iconSize: [25, 41],
-                                                            iconAnchor: [12.5, 41]
-                                                        })
-                                                    }
-                                                )
-                                            );
-                                            imageryMarkers[imageryMarkers.length - 1].addTo(imageryMap);
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }
-
-                    postElement.addEventListener(
-                        "regionReportData",
-                        e => {
-                            squidleUrl = e.detail.squidle_url;
-                            const imageryElement = document.getElementById(`region-report-imagery-${postId}`);
-
-                            if (squidleUrl) {
-                                imageryElement.innerHTML = `
-                                    <div class="region-report-imagery-map" id="region-report-imagery-map-${postId}"></div>
-                                    <div class="region-report-imagery-images">
-                                        <div class="region-report-imagery-grid" id="region-report-imagery-grid-${postId}"></div>
-                                        <div class="region-report-caption"><?php echo $imagery_caption; ?></div>
-                                        <a href="#!" onclick="refreshImagery()">Refresh images</a>
-                                    </div>`;
-
-
-                                imageryGrid = document.getElementById(`region-report-imagery-grid-${postId}`);
-
-                                // set-up map
-                                imageryMap = L.map(`region-report-imagery-map-${postId}`, { maxZoom: 19, zoomControl: false });
-                                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(imageryMap);
-                                imageryMap._handlers.forEach(e => e.disable());
-
-                                refreshImagery();
-
-                                // map boundary layer
-                                L.tileLayer.wms(
-                                    e.detail.all_layers_boundary.server_url,
-                                    {
-                                        layers: e.detail.all_layers_boundary.layer_name,
-                                        transparent: true,
-                                        tiled: true,
-                                        format: "image/png",
-                                        styles: e.detail.all_layers_boundary.style,
-                                        cql_filter: e.detail.park ? `RESNAME='${e.detail.park}'` : `NETNAME='${e.detail.network.network}'`
-                                    }
-                                ).addTo(imageryMap);
-
-                                // zoom to map extent
-                                let bounds = [[e.detail.bounding_box.north, e.detail.bounding_box.east], [e.detail.bounding_box.south, e.detail.bounding_box.west]];
-                                imageryMap.fitBounds(bounds);
-                                window.addEventListener(
-                                    "resize",
-                                    e => { imageryMap.fitBounds(bounds); }
-                                );
-                            } else {
-                                imageryElement.innerText = "No imagery deployments found in this region";
-                            }
-                        }
-                    );
-                </script>
+                <div id="region-report-imagery-<?php the_ID(); ?>">Loading imagery deployment data...</div>
             </section>
 
-            <section>
-                <h3>Pressures and Activities</h3>
-                <div class="region-report-pressures">
+            <section class="pressures">
+                <h3>Pressures & Activities</h3>
+                <div>
                     <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
-                    <div class="region-report-tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+                    <div class="tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
                 </div>
-                <script>
-                    const pressuresTabs = document.getElementById(`region-report-pressures-categories-${postId}`);
-                    const pressuresTabContent = document.getElementById(pressuresTabs.dataset.tabContent);
-
-                    postElement.addEventListener(
-                        "regionReportData",
-                        e => {
-                            const pressures = e.detail.pressures;
-                            const groupedPressures = pressures.reduce(
-                                (acc, curr) => {
-                                    if (!acc[curr.category]) acc[curr.category] = [];
-                                    acc[curr.category].push(curr);
-                                    return acc;
-                                }, {}
-                            );
-
-                            // All pressures tab
-                            pressuresTabs.innerHTML += `
-                                <div
-                                    class="region-report-tab region-report-selected"
-                                    data-tab="All"
-                                    onclick="regionReportToggleTab(this)"
-                                >
-                                    All (${pressures.length})
-                                </div>`;
-
-                            // Create tab pane
-                            const tabPane = document.createElement("div");
-                            tabPane.className = "region-report-tab-pane region-report-pressures-grid region-report-selected";
-                            tabPane.dataset.tab = "All";
-                            pressures.forEach(pressure => {
-                                tabPane.innerHTML += `
-                                    <a
-                                        href="${mapUrlBase}#${pressure.save_state}"
-                                        target="_blank"
-                                    >
-                                        <img src="${pressurePreviewUrlBase}/${pressure.id}.png">
-                                    </a>`;
-                            });
-                            pressuresTabContent.appendChild(tabPane);
-
-                            // Pressure category tabs
-                            Object.entries(groupedPressures).forEach(([category, pressures]) => {
-                                pressuresTabs.innerHTML += `
-                                    <div
-                                        class="region-report-tab"
-                                        data-tab="${category}"
-                                        onclick="regionReportToggleTab(this)"
-                                    >
-                                        ${category} (${pressures.length})
-                                    </div>`;
-
-                                // Create tab pane
-                                const tabPane = document.createElement("div");
-                                tabPane.className = "region-report-tab-pane region-report-pressures-grid";
-                                tabPane.dataset.tab = category;
-                                pressures.forEach(pressure => {
-                                    tabPane.innerHTML += `
-                                        <a
-                                            href="${mapUrlBase}/#${pressure.save_state}"
-                                            target="_blank"
-                                        >
-                                            <img src="${pressurePreviewUrlBase}/${pressure.id}.png">
-                                        </a>`;
-                                });
-                                pressuresTabContent.appendChild(tabPane);
-                            })
-                        }
-                    );
-                </script>
             </section>
         </section>
     </div>
-
-    <script>
-        $.ajax(habitatStatisticsUrl, {
-            dataType : "json",
-            success: response => {
-                postElement.dispatchEvent(
-                    new CustomEvent(
-                        "habitatStatistics",
-                        { detail: response }
-                    )
-                );
-            }
-        });
-
-        $.ajax(bathymetryStatisticsUrl, {
-            dataType : "json",
-            success: response => {
-                postElement.dispatchEvent(
-                    new CustomEvent(
-                        "bathymetryStatistics",
-                        { detail: response }
-                    )
-                );
-            }
-        });
-
-        $.ajax(habitatObservationsUrl, {
-            dataType : "json",
-            success: response => {
-                postElement.dispatchEvent(
-                    new CustomEvent(
-                        "habitatObservations",
-                        { detail: response }
-                    )
-                );
-            }
-        });
-
-        $.ajax(networkResearchEffortUrl, {
-            dataType: "json",
-            success: response => {
-                postElement.dispatchEvent(
-                    new CustomEvent(
-                        "networkResearchEffort",
-                        { detail: response }
-                    )
-                );
-            }
-        });
-
-        if (parkResearchEffortUrl) {
-            $.ajax(parkResearchEffortUrl, {
-                dataType: "json",
-                success: response => {
-                    postElement.dispatchEvent(
-                        new CustomEvent(
-                            "parkResearchEffort",
-                            { detail: response }
-                        )
-                    );
-                }
-            });
-        }
-
-        $.ajax(regionReportDataUrl, {
-            dataType : "json",
-            success: response => {
-                postElement.dispatchEvent(
-                    new CustomEvent(
-                        "regionReportData",
-                        { detail: response }
-                    )
-                );
-            }
-        });
-    </script>
 </article>
+<script>
+    const regionReport = new RegionReport({
+        postId: "<?php the_ID(); ?>",
+        habitatStatisticsUrlBase: <?php echo json_encode($habitat_statistics_url_base); ?>,
+        bathymetryStatisticsUrlBase: <?php echo json_encode($bathymetry_statistics_url_base); ?>,
+        habitatObservationsUrlBase: <?php echo json_encode($habitat_observations_url_base); ?>,
+        researchEffortUrlBase: <?php echo json_encode($research_effort_url_base); ?>,
+        regionReportDataUrlBase: <?php echo json_encode($region_report_data_url_base); ?>,
+        pressurePreviewUrlBase: <?php echo json_encode($pressure_preview_url_base); ?>,
+        mapUrlBase: <?php echo json_encode($map_url_base); ?>,
+        networkName: "<?php echo $network_name; ?>",
+        parkName: <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>,
+        imageryCaption: <?php echo json_encode($imagery_caption); ?>
+    });
+</script>
 
 <?php get_footer(); ?>
