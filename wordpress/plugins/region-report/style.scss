@@ -73,18 +73,8 @@ $headings-font-family: "Poppins", sans-serif;
         th { white-space: nowrap; }
     }
     
-    img {
-        width: 100%
-    }
-
-    a {
-        text-decoration: none;
-        color: $seamap-color-2;
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
+    img { width: 100% }
+    a { color: $seamap-color-2; }
 
     section {
         padding: 0;
