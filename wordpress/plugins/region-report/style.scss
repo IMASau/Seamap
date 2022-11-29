@@ -40,6 +40,8 @@ $headings-font-family: "Poppins", sans-serif;
         font-family: $headings-font-family;
         color: $seamap-color-2;
         font-weight: 600;
+        line-height: 1.3;
+        text-transform: initial;
     }
 
     h2 {
@@ -139,6 +141,7 @@ $headings-font-family: "Poppins", sans-serif;
 
             .content {
                 padding: 12px 20px 30px 20px;
+                * { color: inherit; }
             }
         }
 
@@ -531,4 +534,6 @@ $headings-font-family: "Poppins", sans-serif;
             }
         }
     }
+
+    .fa { color: inherit; }
 }

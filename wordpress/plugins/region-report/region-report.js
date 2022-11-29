@@ -303,11 +303,11 @@ class RegionReport {
 
         if (park)
             researchEffortElement.innerHTML = `
-                    <div class="region-report-labeled-toggle">
+                    <div class="labeled-toggle">
                         <div>${park}</div>
-                        <label class="region-report-switch">
+                        <label class="switch">
                             <input type="checkbox" onclick="regionReport.toggleResearchEffort(this.checked)">
-                            <span class="region-report-slider"></span>
+                            <span class="switch-slider"></span>
                         </label>
                         <div>${network}</div>
                     </div>`;
@@ -435,7 +435,11 @@ class RegionReport {
                     color: {
                         field: "group",
                         type: "nominal",
-                        legend: { title: "Legend", orient: "bottom" },
+                        legend: {
+                            title: "Legend",
+                            orient: "bottom",
+                            direction: "vertical"
+                        },
                         sort: filteredValues.map(e => e.group),
                         scale: { range: filteredValues.map(e => e.color) }
                     }

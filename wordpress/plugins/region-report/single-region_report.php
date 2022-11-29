@@ -86,7 +86,7 @@
                     <h3>Bathymetry</h3>
                     <div class="chart-table">
                         <div class="chart-container">
-                            <div class="chart" id="region-report-bathymetry-chart-<?php the_ID(); ?>"></div>
+                            <div id="region-report-bathymetry-chart-<?php the_ID(); ?>"></div>
                         </div>
                         <div class="table-container">
                             <table>
@@ -178,7 +178,7 @@
         mapUrlBase: <?php echo json_encode($map_url_base); ?>,
         networkName: "<?php echo $network_name; ?>",
         parkName: <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>,
-        imageryCaption: <?php echo json_encode($pressures_caption); ?>
+        imageryCaption: <?php echo json_encode($imagery_caption); ?>
     });
 </script>
 
