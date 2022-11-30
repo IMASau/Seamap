@@ -22,8 +22,9 @@
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
+      :className   "left-drawer"
       :hasBackdrop false}
-     [:div.sidebar-tab.height-managed
+     [:div.height-managed
       [b/tabs
        {:id              "left-drawer-tabs"
         :class           "left-drawer-tabs"

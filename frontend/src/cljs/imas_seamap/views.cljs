@@ -588,18 +588,26 @@
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
-        tab   @(re-frame/subscribe [:left-drawer/tab])]
+        tab   @(re-frame/subscribe [:left-drawer/tab])
+        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
      {:title
-      [:div.left-drawer-header
-       [:img
-        {:src "img/Seamap2_V2_RGB.png"}]]
+      [:<>
+       [:div
+        [:a {:href "https://seamapaustralia.org/"}
+         [:img {:src "img/Seamap2_V2_RGB.png"}]]]
+       [b/button
+        {:icon     "double-chevron-left"
+         :minimal  true
+         :on-click #(re-frame/dispatch [:left-drawer/close])}]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
+      :className   "left-drawer"
+      :isCloseButtonShown false
       :hasBackdrop false}
-     [:div.sidebar-tab.height-managed
+     [:div.height-managed
       [b/tabs
        {:id              "left-drawer-tabs"
         :class           "left-drawer-tabs"
@@ -613,7 +621,9 @@
 
        [b/tab
         {:id    "active-layers"
-         :title "Active Layers"
+         :title (reagent/as-element
+                 [:<> "Active Layers"
+                  [:div.notification-bubble (count active-layers)]])
          :panel (reagent/as-element [left-drawer-active-layers])}]
 
        [b/tab

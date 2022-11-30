@@ -8,6 +8,11 @@ h1, h2, h3, h4, h5 {
     font-weight: inherit;
 }
 
+img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
 :focus, :focus-visible { outline: none }
 
 // Icons support
@@ -432,14 +437,6 @@ rect#background {
 .sidebar-pane {
     padding: 10px 5px 0 5px;
 }
-.sidebar-tab {
-    height: 100%;
-    padding: 5px;
-}
-/* Chrome 62 regression fix; see https://bugs.chromium.org/p/chromium/issues/detail?id=775880 */
-.sidebar-tabs>li, .sidebar-tabs>ul>li {
-    list-style-type: none;
-}
 
 .metadata-record {
     -webkit-user-select: text;
@@ -545,14 +542,6 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 .leaflet-control-layers-list {
     padding: 0;
-}
-
-.left-drawer-header {
-    padding: 12px;
-}
-
-.left-drawer-header img {
-    height: 36px;
 }
 
 .leaflet-left, .pre-leaflet-controls {
@@ -845,4 +834,20 @@ input.leaflet-control-layers-selector[type="radio"] {
     mask-repeat: no-repeat;
     -webkit-mask-size: contain;
     -webkit-mask-repeat: no-repeat;
+}
+
+.notification-bubble {
+    border-radius: 50%;
+    background-color: $seamap-red;
+    color: $seamap-color-7;
+    font-size: 8px;
+    display: inline-block;
+    font-size: 8px;
+    height: 13px;
+    width: 13px;
+    line-height: 13px;
+    text-align: center;
+    vertical-align: top;
+    margin-left: 3px;
+    margin-bottom: 10px;
 }
