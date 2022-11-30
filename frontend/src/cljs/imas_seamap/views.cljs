@@ -110,10 +110,17 @@
         ;; We use the id for a stable node-id:
         :let [sorting-id (get-in sorting-info [ordering val 1])
               id-str (str id-base "|" sorting-id)
-              display-name (get-in sorting-info [ordering val 2])]]
+              display-name (get-in sorting-info [ordering val 2])
+              expanded? (or (get expanded-states id-str false) open-all?)]]
     {:id id-str
-     :label (or display-name "Ungrouped")
-     :isExpanded (or (get expanded-states id-str false) open-all?)
+     :label (reagent/as-element
+             [:<>
+              [b/icon
+               {:icon  "caret-right"
+                :class (str "bp3-tree-node-caret" (when expanded? " bp3-tree-node-caret-open"))}]
+              (or display-name "Ungrouped")])
+     :isExpanded expanded?
+     :hasCaret  false
      :childNodes (if (seq ordering-remainder)
                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
                    (map-indexed

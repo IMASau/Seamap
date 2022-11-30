@@ -108,4 +108,18 @@
             padding-right: 15px;
         }
     }
+
+    .bp3-tree {
+        font-size: 12px;
+        .catalogue-layer-node>.bp3-tree-node-content { cursor: default; }
+
+        :not(.catalogue-layer-node)>.bp3-tree-node-content {
+            .bp3-tree-node-caret-none { min-width: 0; }
+
+            >.bp3-tree-node-label {
+                display: flex;
+                align-items: center;
+            }
+        }
+    }
 }
