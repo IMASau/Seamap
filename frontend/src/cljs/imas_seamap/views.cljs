@@ -600,7 +600,7 @@
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
       :hasBackdrop false}
-     [:div.sidebar-tab.height-managed
+     [:div.height-managed
       [b/tabs
        {:id              "left-drawer-tabs"
         :class           "left-drawer-tabs"

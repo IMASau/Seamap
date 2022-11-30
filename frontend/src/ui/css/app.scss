@@ -432,14 +432,6 @@ rect#background {
 .sidebar-pane {
     padding: 10px 5px 0 5px;
 }
-.sidebar-tab {
-    height: 100%;
-    padding: 5px;
-}
-/* Chrome 62 regression fix; see https://bugs.chromium.org/p/chromium/issues/detail?id=775880 */
-.sidebar-tabs>li, .sidebar-tabs>ul>li {
-    list-style-type: none;
-}
 
 .metadata-record {
     -webkit-user-select: text;
