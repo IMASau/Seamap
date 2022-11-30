@@ -99,6 +99,9 @@
         .bp3-heading {
             text-overflow: inherit;
             white-space: inherit;
+            &:last-child {
+                margin-right: initial;
+            }
         }
     }
 }

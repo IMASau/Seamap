@@ -593,13 +593,17 @@
     [components/drawer
      {:title
       [:<>
-       [:img
-        {:src "img/Seamap2_V2_RGB.png"}]]
+       [:div [:img {:src "img/Seamap2_V2_RGB.png"}]]
+       [b/button
+        {:icon     "double-chevron-left"
+         :minimal  true
+         :on-click #(re-frame/dispatch [:left-drawer/close])}]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
       :className   "left-drawer"
+      :isCloseButtonShown false
       :hasBackdrop false}
      [:div.height-managed
       [b/tabs
