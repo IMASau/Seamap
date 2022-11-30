@@ -1,36 +1,47 @@
 .catalogue-layer-search-button {
-	display: flex;
-	align-items: center;
-	cursor: pointer;
-	color: #adb6be;
-	padding: 0px 10px;
-	user-select: none;
-	height: 30px;
-	box-shadow: 0 0 0 0 rgb(19 124 189 / 0%), 0 0 0 0 rgb(19 124 189 / 0%), inset 0 0 0 1px rgb(16 22 26 / 15%), inset 0 1px 1px rgb(16 22 26 / 20%);
-	border-radius: 15px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: #adb6be;
+    padding: 0px 10px;
+    user-select: none;
+    height: 30px;
+    box-shadow: 0 0 0 0 rgb(19 124 189 / 0%), 0 0 0 0 rgb(19 124 189 / 0%), inset 0 0 0 1px rgb(16 22 26 / 15%), inset 0 1px 1px rgb(16 22 26 / 20%);
+    border-radius: 15px;
 }
 
 .catalogue-layer-search-button:hover {
-	background-color: rgba(0,0,0,0.025);
+    background-color: rgba(0,0,0,0.025);
 }
 
 .catalogue-layer-search-button > .bp3-icon {
-	margin-right: 5px;
-	color: #5c7080;
+    margin-right: 5px;
+    color: #5c7080;
 }
 
 .left-drawer-tabs {
-	overflow-y: hidden;
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-}
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 
-.left-drawer-tabs > .bp3-tab-panel {
-	overflow-y: auto;
-	flex: 1;
-}
+    > .bp3-tab-list {
+        background-color: $seamap-deep-blue-lighter;
+        color: $seamap-color-7;
+        .bp3-tab { color: inherit; }
 
-.left-drawer-tabs .bp3-input-group {
-	margin: 3px 3px 0 3px;
+        .bp3-tab-indicator-wrapper {
+            background-color: $seamap-deep-blue;
+            .bp3-tab-indicator { background-color: $seamap-color-7; }
+        }
+    }
+
+    > .bp3-tab-panel {
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .bp3-input-group {
+        margin: 3px 3px 0 3px;
+    }
 }
