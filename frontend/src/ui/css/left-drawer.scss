@@ -76,7 +76,36 @@
         flex: 1;
     }
 
-    .bp3-input-group {
-        margin: 3px 3px 0 3px;
+    .layer-search {
+        height: 39px;
+        display: flex;
+        margin: 21px 12px 0 12px;
+        >* { height: 39px; }
+
+        .bp3-input, .bp3-input:focus {
+            box-shadow: none;
+            -webkit-box-shadow: none;
+        }
+
+        .bp3-input {
+            border-radius: 15px;
+            padding-left: 15px;
+            font-size: 15px;
+
+            &::-ms-clear,
+            &::-ms-reveal { display: none; width : 0; height: 0; }
+
+            &::-webkit-search-decoration,
+            &::-webkit-search-cancel-button,
+            &::-webkit-search-results-button,
+            &::-webkit-search-results-decoration { display: none; }
+        }
+
+        .bp3-input-action {
+            display: flex;
+            align-items: center;
+            color: $seamap-deep-blue-lighter;
+            padding-right: 15px;
+        }
     }
 }

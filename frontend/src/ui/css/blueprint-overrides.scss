@@ -147,3 +147,13 @@
         }
     }
 }
+
+.bp3-input, .bp3-input:focus, .bp3-input.bp3-active {
+    box-shadow: none;
+    -webkit-box-shadow: none;
+}
+
+.bp3-input {
+    border: 2px solid $seamap-grey;
+    &:focus { border-color: $seamap-color-5;}
+}
