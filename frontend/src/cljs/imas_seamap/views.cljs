@@ -592,13 +592,14 @@
         {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
      {:title
-      [:div.left-drawer-header
+      [:<>
        [:img
         {:src "img/Seamap2_V2_RGB.png"}]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
+      :className   "left-drawer"
       :hasBackdrop false}
      [:div.height-managed
       [b/tabs
