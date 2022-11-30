@@ -593,7 +593,9 @@
     [components/drawer
      {:title
       [:<>
-       [:div [:img {:src "img/Seamap2_V2_RGB.png"}]]
+       [:div
+        [:a {:href "https://seamapaustralia.org/"}
+         [:img {:src "img/Seamap2_V2_RGB.png"}]]]
        [b/button
         {:icon     "double-chevron-left"
          :minimal  true
