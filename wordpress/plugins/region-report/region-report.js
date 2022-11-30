@@ -630,7 +630,7 @@ class RegionReport {
                     },
                     success: pose => {
                         // clear
-                        this.imageryMarkers.forEach(marker => imageryMap.removeLayer(marker));
+                        this.imageryMarkers.forEach(marker => this.imageryMap.removeLayer(marker));
                         this.imageryMarkers = [];
                         this.imageryGrid.innerHTML = "";
 

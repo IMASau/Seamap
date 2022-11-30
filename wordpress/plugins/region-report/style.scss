@@ -15,9 +15,19 @@ $body-font-family: "Open Sans", sans-serif;
 $headings-font-family: "Poppins", sans-serif;
 
 /* plugin namespaced */
-.region_report {
+.elementor-kit-430 .region_report, .region_report {
     font-family: $body-font-family;
     font-size: 14px;
+    color: black;
+
+    .leaflet-control-attribution a {
+        text-decoration: none;
+        color: #0078A8;
+        &:hover {
+            text-decoration: underline;
+            color: #0078A8;
+        }
+    }
 
     --responsive--spacing-horizontal: calc(2 * 25px * 0.6);
     --responsive--alignwide-width: calc(100vw - var(--responsive--spacing-horizontal));
@@ -53,6 +63,8 @@ $headings-font-family: "Poppins", sans-serif;
         font-size: 20px;
         margin-bottom: 20px;
     }
+    table tbody>tr:nth-child(odd)>td, table tbody>tr:nth-child(odd)>th, table tbody tr:hover>td, table tbody tr:hover>th { background-color: initial; }
+    table caption+thead tr:first-child td, table caption+thead tr:first-child th, table colgroup+thead tr:first-child td, table colgroup+thead tr:first-child th, table thead:first-child tr:first-child td, table thead:first-child tr:first-child th { border: 0; }
 
     table {
         font-size: 11px;
@@ -74,7 +86,11 @@ $headings-font-family: "Poppins", sans-serif;
     }
     
     img { width: 100% }
-    a { color: $seamap-color-2; }
+    a {
+        color: $seamap-color-2;
+        text-decoration: underline;
+        font-weight: inherit;
+    }
 
     section {
         padding: 0;
@@ -158,26 +174,34 @@ $headings-font-family: "Poppins", sans-serif;
                 list-style-type: none;
                 margin: 0;
                 padding: 12px 20px 30px 20px;
+
+                a {
+                    text-decoration: none;
+                    &:hover {
+                        text-decoration: underline;
+                        color: $seamap-color-2;
+                    }
+                }
             }
         }
     }
 
     .overview-map {
-        .labeled-toggle {
-            margin-bottom: 8px;
-        }
-
+        .labeled-toggle { margin-bottom: 8px; }
         .map { height: 300px; }
         
+        .caption {
+            background-color: inherit;
+            color: inherit;
+            padding: 0;
+        }
     }
 
     .known {
         display: flex;
         flex-direction: column;
         
-        .caption {
-            margin-bottom: 32px;
-        }
+        .caption { margin-bottom: 32px; }
 
         .statistics {
             display: flex;
@@ -362,6 +386,7 @@ $headings-font-family: "Poppins", sans-serif;
                     background-color: inherit;
                     color: inherit;
                     padding: 0;
+                    margin-bottom: 8px;
                 }
             }
         }
