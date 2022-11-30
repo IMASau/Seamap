@@ -846,3 +846,18 @@ input.leaflet-control-layers-selector[type="radio"] {
     -webkit-mask-size: contain;
     -webkit-mask-repeat: no-repeat;
 }
+
+.notification-bubble {
+    border-radius: 50%;
+    background-color: $seamap-red;
+    color: $seamap-color-7;
+    font-size: 8px;
+    display: inline-block;
+    font-size: 8px;
+    height: 13px;
+    width: 13px;
+    line-height: 13px;
+    text-align: center;
+    vertical-align: top;
+    margin-left: 1px;
+}

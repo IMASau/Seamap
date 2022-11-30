@@ -34,10 +34,8 @@
 .bp3-tab {
     color: $seamap-color-2;
     font-size: 14px;
-
-    &[aria-selected="true"] {
-        font-weight: bold;
-    }
+    font-family: $headings-font-family;
+    font-weight: 600;
 
     >*::before {
         margin-right: 2px;

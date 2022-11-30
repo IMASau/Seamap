@@ -588,7 +588,8 @@
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
-        tab   @(re-frame/subscribe [:left-drawer/tab])]
+        tab   @(re-frame/subscribe [:left-drawer/tab])
+        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
      {:title
       [:div.left-drawer-header
@@ -613,7 +614,9 @@
 
        [b/tab
         {:id    "active-layers"
-         :title "Active Layers"
+         :title (reagent/as-element
+                 [:<> "Active Layers"
+                  [:div.notification-bubble (count active-layers)]])
          :panel (reagent/as-element [left-drawer-active-layers])}]
 
        [b/tab
