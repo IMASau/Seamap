@@ -217,15 +217,17 @@
       :text     text}]))
 
 (defn- layer-search-filter []
-  (let [filter-text (re-frame/subscribe [:map.layers/filter])]
-    [:div.bp3-input-group {:data-helper-text "Filter Layers"}
-     [:span.bp3-icon.bp3-icon-search]
-     [:input.bp3-input.bp3-round {:id          "layer-search"
-                                :type        "search"
-                                :placeholder "Search Layers..."
-                                :value       @filter-text
-                                :on-change   (handler-dispatch
-                                               [:map.layers/filter (.. event -target -value)])}]]))
+  [b/text-input
+   {:value         @(re-frame/subscribe [:map.layers/filter])
+    :placeholder   "Search Layers..."
+    :type          "search"
+    :right-element (reagent/as-element
+                    [b/icon
+                     {:icon "search-template"
+                      :size "22px"}])
+    :id            "layer-search"
+    :class         "layer-search"
+    :on-change     #(re-frame/dispatch [:map.layers/filter (.. % -target -value)])}])
 
 (defn- active-layer-selection-list
   [{:keys [layers visible-layers main-national-layer loading-fn error-fn expanded-fn opacity-fn]}]
