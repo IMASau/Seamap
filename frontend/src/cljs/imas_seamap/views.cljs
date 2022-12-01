@@ -8,7 +8,7 @@
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-content main-national-layer-card main-national-layer-catalogue-content]]
+            [imas-seamap.map.layer-views :refer [layer-card main-national-layer-card layer-catalogue-node main-national-layer-catalogue-node]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
@@ -104,33 +104,42 @@
 (defn- layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   {:keys [active-layers visible-layers main-national-layer loading-fn expanded-fn error-fn opacity-fn] :as layer-props} open-all?]
+   {:keys [main-national-layer] :as layer-props} open-all?]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
         :let [sorting-id (get-in sorting-info [ordering val 1])
               id-str (str id-base "|" sorting-id)
-              display-name (get-in sorting-info [ordering val 2])]]
+              display-name (get-in sorting-info [ordering val 2])
+              expanded? (or (get expanded-states id-str false) open-all?)]]
     {:id id-str
-     :label (or display-name "Ungrouped")
-     :isExpanded (or (get expanded-states id-str false) open-all?)
-     :childNodes (if (seq ordering-remainder)
-                   (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
-                   (map-indexed
-                    (fn [i layer]
-                      (let [layer-state {:active?   (some #{layer} active-layers)
-                                         :visible?  (some #{layer} visible-layers)
-                                         :loading?  (loading-fn layer)
-                                         :expanded? (expanded-fn layer)
-                                         :errors?   (error-fn layer)
-                                         :opacity  (opacity-fn layer)}]
-                        {:id (str id-str "-" i)
-                         :className "catalogue-layer-node"
-                         :label (reagent/as-element
-                                 (if (= layer main-national-layer)
-                                   [main-national-layer-catalogue-content {:layer layer}]
-                                   [layer-catalogue-content {:layer layer :layer-state layer-state}]))}))
-                    layer-subset))}))
+     :label (reagent/as-element
+             [:<>
+              [b/icon
+               {:icon  "caret-right"
+                :size  "22px"
+                :class (str "bp3-tree-node-caret" (when expanded? " bp3-tree-node-caret-open"))}]
+              (or display-name "Ungrouped")])
+     :isExpanded expanded?
+     :hasCaret   false
+     :className  (-> ordering name (string/replace "_" "-"))
+     :childNodes (concat
+                  (if (seq ordering-remainder)
+                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
+                    (map-indexed
+                     (fn [i layer]
+                       ((if (= layer main-national-layer)
+                          main-national-layer-catalogue-node
+                          layer-catalogue-node)
+                        {:id          (str id-str "-" i)
+                         :layer       layer
+                         :layer-props layer-props}))
+                     layer-subset))
+                  
+                  ;; Dummy element appended inside of category ordering content for achieving styling
+                  (when (= ordering :category)
+                    [{:id (str id-str "-" (inc (count layer-subset)))
+                      :className "tree-cap"}]))}))
 
 (defn- layer-catalogue-tree [_layers _ordering _id _layer-props _open-all?]
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes])
@@ -151,26 +160,27 @@
       [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all?)
                :onNodeCollapse on-close
                :onNodeExpand on-open
-               :onNodeClick on-click}]])))
+               :onNodeClick on-click
+               :onNodeMouseEnter #(when-let [preview-layer (get-in (js->clj % :keywordize-keys true) [:nodeData :previewLayer])]
+                                    (re-frame/dispatch [:map/update-preview-layer preview-layer]))
+               :onNodeMouseLeave #(re-frame/dispatch [:map/update-preview-layer nil])}]])))
 
 (defn- layer-catalogue [layers layer-props]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab])
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab %1])
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
-    [:div.height-managed
-     [b/tabs {:selected-tab-id selected-tab
-              :on-change       select-tab
-              :class      "group-scrollable height-managed"}
-      [b/tab
-       {:id    "cat"
-        :title "By Category"
-        :panel (reagent/as-element
-                [layer-catalogue-tree layers [:category :data_classification] "cat" layer-props open-all?])}]
-      [b/tab
-       {:id    "org"
-        :title "By Organisation"
-        :panel (reagent/as-element
-                [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]]))
+    [b/tabs {:selected-tab-id selected-tab
+             :on-change       select-tab}
+     [b/tab
+      {:id    "cat"
+       :title "By Category"
+       :panel (reagent/as-element
+               [layer-catalogue-tree layers [:category :data_classification] "cat" layer-props open-all?])}]
+     [b/tab
+      {:id    "org"
+       :title "By Organisation"
+       :panel (reagent/as-element
+               [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]))
 
 (defn- transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -217,15 +227,17 @@
       :text     text}]))
 
 (defn- layer-search-filter []
-  (let [filter-text (re-frame/subscribe [:map.layers/filter])]
-    [:div.bp3-input-group {:data-helper-text "Filter Layers"}
-     [:span.bp3-icon.bp3-icon-search]
-     [:input.bp3-input.bp3-round {:id          "layer-search"
-                                :type        "search"
-                                :placeholder "Search Layers..."
-                                :value       @filter-text
-                                :on-change   (handler-dispatch
-                                               [:map.layers/filter (.. event -target -value)])}]]))
+  [b/text-input
+   {:value         @(re-frame/subscribe [:map.layers/filter])
+    :placeholder   "Search Layers..."
+    :type          "search"
+    :right-element (reagent/as-element
+                    [b/icon
+                     {:icon "search-template"
+                      :size "22px"}])
+    :id            "layer-search"
+    :class         "layer-search"
+    :on-change     #(re-frame/dispatch [:map.layers/filter (.. % -target -value)])}])
 
 (defn- active-layer-selection-list
   [{:keys [layers visible-layers main-national-layer loading-fn error-fn expanded-fn opacity-fn]}]
@@ -398,8 +410,7 @@
         [b/icon {:icon (if @expanded "chevron-down" "chevron-right")}]
         "API Access"]
        [b/collapse {:is-open               @expanded
-                    :keep-children-mounted true
-                    :className             "height-managed"}
+                    :keep-children-mounted true}
         [:p "You can access the data online at"]
         [:div.server-info.section
          [:span "WMS:"]
@@ -607,29 +618,29 @@
       :className   "left-drawer"
       :isCloseButtonShown false
       :hasBackdrop false}
-     [:div.height-managed
-      [b/tabs
-       {:id              "left-drawer-tabs"
-        :class           "left-drawer-tabs"
-        :selected-tab-id tab
-        :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
+     [b/tabs
+      {:id              "left-drawer-tabs"
+       :class           "left-drawer-tabs"
+       :selected-tab-id tab
+       :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
 
-       [b/tab
-        {:id    "catalogue"
-         :title "Catalogue"
-         :panel (reagent/as-element [left-drawer-catalogue])}]
+      [b/tab
+       {:id    "catalogue"
+        :class "catalogue"
+        :title "Catalogue"
+        :panel (reagent/as-element [left-drawer-catalogue])}]
 
-       [b/tab
-        {:id    "active-layers"
-         :title (reagent/as-element
-                 [:<> "Active Layers"
-                  [:div.notification-bubble (count active-layers)]])
-         :panel (reagent/as-element [left-drawer-active-layers])}]
+      [b/tab
+       {:id    "active-layers"
+        :title (reagent/as-element
+                [:<> "Active Layers"
+                 [:div.notification-bubble (count active-layers)]])
+        :panel (reagent/as-element [left-drawer-active-layers])}]
 
-       [b/tab
-        {:id    "featured-maps"
-         :title "Featured Maps"
-         :panel (reagent/as-element [featured-maps])}]]]]))
+      [b/tab
+       {:id    "featured-maps"
+        :title "Featured Maps"
+        :panel (reagent/as-element [featured-maps])}]]]))
 
 (defn layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
@@ -722,9 +733,9 @@
      [helper-overlay
       :layer-search
       :plot-footer
-      {:selector   ".group-scrollable"
+      {:selector   "*"
        :helperText "Layers available in your current field of view (zoom out to see more)"}
-      {:selector       ".group-scrollable > .layer-wrapper:first-child"
+      {:selector       "* > .layer-wrapper:first-child"
        :helperPosition "bottom"
        :helperText     "Toggle layer visibility, view more info, show legend, and download data"}
       {:selector   ".sidebar-tabs ul:first-child"

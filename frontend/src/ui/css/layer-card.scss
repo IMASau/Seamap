@@ -3,23 +3,13 @@
 }
 
 .layer-header-text {
-    flex: 1 1;
-    overflow: hidden;
+    flex: 1;
+    min-width: 0;
 }
 
-.has-tooltip .layer-header-text {
-    color: #3681b7;
-    font-style: italic;
-}
+.has-tooltip .layer-header-text { color: #3681b7; }
 
-.active-layer .layer-header-text {
-    color: #0F9960;
-    font-style: italic;
-}
-
-.layer-header-text .bp3-popover-target {
-    display: flex;
-}
+.active-layer .layer-header-text { font-weight: bold; }
 
 .layer-status-icons {
     flex: 0 0;
@@ -33,8 +23,9 @@
     opacity: 0.8;
 }
 
-.layer-control:hover {
-    opacity: 1;
+.layer-control {
+    cursor: pointer;
+    &:hover { opacity: 1; }
 }
 
 /* Special controls */
@@ -59,6 +50,7 @@
     align-items: center;
     gap: 6px;
     height: 20px;
+    .bp3-checkbox { margin-right: -6px; }
 }
 
 .legend-wrapper img {

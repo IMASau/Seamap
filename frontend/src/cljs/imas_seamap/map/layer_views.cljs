@@ -23,7 +23,7 @@
    [b/tooltip
    {:content
     (cond
-      (seq tooltip) (reagent/as-element [:div {:style {:max-width "358px"}} tooltip])
+      (seq tooltip) (reagent/as-element [:div {:style {:max-width "320px"}} tooltip])
       expanded?     "Hide details"
       :else         "Show details")
     :disabled (not (or active? (seq tooltip)))}
@@ -53,7 +53,7 @@
 
    [layer-control
     {:tooltip  "Zoom to layer"
-     :icon     "zoom-to-fit"
+     :icon     "locate"
      :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
 
    [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
@@ -141,7 +141,7 @@
   "Content of a layer card; includes both the header and the details that can be
    expanded and collapsed."
   [{{:keys [tooltip]} :layer {:keys [active? expanded?]} :layer-state :as props}]
-  [:div.layer-content
+  [:div
    {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
    [layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
@@ -159,7 +159,7 @@
   "To the right of the layer name. Basic controls for the layer, like getting info
    and enabling/disabling the layer. Differs from layer-card-controls in what
    controls are displayed."
-  [{:keys [layer] {:keys [active?]} :layer-state}]
+  [{:keys [layer]}]
   [:div.layer-controls
 
    [layer-control
@@ -169,37 +169,23 @@
 
    [layer-control
     {:tooltip  "Zoom to layer"
-     :icon     "zoom-to-fit"
-     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
-
-   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
-    [b/checkbox
-     {:checked (boolean active?)
-      :on-change #(re-frame/dispatch [:map/toggle-layer layer])}]]])
+     :icon     "locate"
+     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
 
 (defn- layer-catalogue-header
   "Top part of layer catalogue element. Always visible. Contains the layer status,
    name, and basic controls for the layer. Differs from layer-card-header in what
    controls are displayed."
-  [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
+   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
+    [b/checkbox
+     {:checked (boolean active?)
+      :on-change #(re-frame/dispatch [:map/toggle-layer layer])}]]
    (when (and active? visible?)
      [layer-status-icons layer-state])
    [layer-header-text props]
    [layer-catalogue-controls props]])
-
-(defn layer-catalogue-content
-  "Content of a layer catalogue element; includes both the header and the details
-   that can be expanded and collapsed."
-  [{{:keys [tooltip] :as layer} :layer {:keys [active? expanded?]} :layer-state :as props}]
-  [:div.layer-content
-   {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer layer])
-    :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
-    :class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
-   [layer-catalogue-header props]
-   [b/collapse {:is-open (and active? expanded?)}
-    [layer-details props]]])
-
 
 ;; Main national layer
 
@@ -212,7 +198,7 @@
      {:content
       (cond
         (seq tooltip) (reagent/as-element
-                       [:div {:style {:max-width "358px"}}
+                       [:div {:style {:max-width "320px"}}
                         tooltip
                         [b/button
                          {:icon     "cross"
@@ -241,7 +227,7 @@
 
    [layer-control
     {:tooltip  "Zoom to layer"
-     :icon     "zoom-to-fit"
+     :icon     "locate"
      :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
 
    [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
@@ -333,7 +319,7 @@
   "Content of the main national layer card; includes both the header and the main
    national layer details that can be expanded and collapsed."
   [{:keys [_layer _national-layer-details tooltip] {:keys [active? expanded?]} :layer-state :as props}]
-  [:div.layer-content
+  [:div
    {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
    [main-national-layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
@@ -358,27 +344,40 @@
      [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
 
 (defn- main-national-layer-catalogue-header
-  [{:keys [_layer _national-layer-details _tooltip] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [_national-layer-details _tooltip layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
+   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
+    [b/checkbox
+     {:checked (boolean active?)
+      :on-change #(re-frame/dispatch [:map/toggle-layer layer])}]]
    (when (and active? visible?)
      [layer-status-icons layer-state])
    [main-national-layer-header-text props]
    [layer-catalogue-controls props]])
 
-(defn- main-national-layer-catalogue-details
-  [{:keys [layer _national-layer-details _tooltip] {:keys [opacity]} :layer-state}]
-  (let [{:keys [displayed-layer]} @(re-frame/subscribe [:map/national-layer])]
-    [:div.layer-details
-     [b/slider
-      {:label-renderer false :initial-value 0 :max 100 :value opacity
-       :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
+(defn layer-catalogue-node
+  [{{:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn]} :layer-props
+    {:keys [tooltip] :as layer} :layer
+    :keys [id]}]
+  (let [active? (some #{layer} active-layers)
+        layer-state
+        {:active?   active?
+         :visible?  (some #{layer} visible-layers)
+         :loading?  (loading-fn layer)
+         :expanded? (expanded-fn layer)
+         :errors?   (error-fn layer)
+         :opacity   (opacity-fn layer)}]
+    {:id        id
+     :className (str
+                 "catalogue-layer-node"
+                 (when active? " active-layer")
+                 (when (seq tooltip) " has-tooltip"))
+     :nodeData  {:previewLayer layer}
+     :label     (reagent/as-element [layer-catalogue-header {:layer layer :layer-state layer-state}])}))
 
-     (when (not= displayed-layer layer) [:h2 (:name displayed-layer)])
-     [legend-display displayed-layer]]))
-
-(defn main-national-layer-catalogue-content
-  [{:keys [layer] :as props}]
-  (let [{:keys [active? expanded?] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
+(defn main-national-layer-catalogue-node
+  [{:keys [layer id]}]
+  (let [{:keys [active?] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
         {:keys
          [years year _alternate-views alternate-view displayed-layer]
          :as national-layer-details}
@@ -386,12 +385,16 @@
         tooltip (cond
                   (and year (not= year (apply max years))) (str "FILTER APPLIED: Year: " year)
                   alternate-view                           (str "FILTER APPLIED: Alternate view: " (:name alternate-view))
-                  :else                                    nil)
-        props (assoc props :layer-state layer-state :national-layer-details national-layer-details :tooltip tooltip)]
-    [:div.layer-content
-     {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer (or displayed-layer layer)])
-      :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
-      :class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
-     [main-national-layer-catalogue-header props]
-     [b/collapse {:is-open (and active? expanded?)}
-      [main-national-layer-catalogue-details props]]]))
+                  :else                                    nil)]
+    {:id       id
+   :className (str
+               "catalogue-layer-node"
+               (when active? " active-layer")
+               (when (seq tooltip) " has-tooltip"))
+   :nodeData  {:previewLayer displayed-layer}
+   :label     (reagent/as-element
+               [main-national-layer-catalogue-header
+                {:layer                  layer
+                 :layer-state            layer-state
+                 :national-layer-details national-layer-details
+                 :tooltip                tooltip}])}))

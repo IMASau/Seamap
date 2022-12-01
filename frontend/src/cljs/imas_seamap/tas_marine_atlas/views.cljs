@@ -24,27 +24,27 @@
       :onClose     #(re-frame/dispatch [:left-drawer/close])
       :className   "left-drawer"
       :hasBackdrop false}
-     [:div.height-managed
-      [b/tabs
-       {:id              "left-drawer-tabs"
-        :class           "left-drawer-tabs"
-        :selected-tab-id tab
-        :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
+     [b/tabs
+      {:id              "left-drawer-tabs"
+       :class           "left-drawer-tabs"
+       :selected-tab-id tab
+       :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
 
-       [b/tab
-        {:id    "catalogue"
-         :title "Catalogue"
-         :panel (reagent/as-element [left-drawer-catalogue])}]
+      [b/tab
+       {:id    "catalogue"
+        :class "catalogue"
+        :title "Catalogue"
+        :panel (reagent/as-element [left-drawer-catalogue])}]
 
-       [b/tab
-        {:id    "active-layers"
-         :title "Active Layers"
-         :panel (reagent/as-element [left-drawer-active-layers])}]
+      [b/tab
+       {:id    "active-layers"
+        :title "Active Layers"
+        :panel (reagent/as-element [left-drawer-active-layers])}]
 
-       [b/tab
-        {:id    "featured-maps"
-         :title "Featured Maps"
-         :panel (reagent/as-element [featured-maps])}]]]]))
+      [b/tab
+       {:id    "featured-maps"
+        :title "Featured Maps"
+        :panel (reagent/as-element [featured-maps])}]]]))
 
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
@@ -61,9 +61,9 @@
      [helper-overlay
       :layer-search
       :plot-footer
-      {:selector   ".group-scrollable"
+      {:selector   "*"
        :helperText "Layers available in your current field of view (zoom out to see more)"}
-      {:selector       ".group-scrollable > .layer-wrapper:first-child"
+      {:selector       "* > .layer-wrapper:first-child"
        :helperPosition "bottom"
        :helperText     "Toggle layer visibility, view more info, show legend, and download data"}
       {:selector   ".sidebar-tabs ul:first-child"

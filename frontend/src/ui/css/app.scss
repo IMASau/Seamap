@@ -232,33 +232,8 @@ footer {
     margin-top: 10px;
 }
 
-.group-scrollable{
-    overflow-y: auto;
-    padding: 2px;
-    margin-bottom: 10px;
-}
-
 .catalogue-add {
     margin-bottom: 5px;
-}
-
-.catalogue-layer-node .bp3-tree-node-content {
-    padding: 0;
-    height: auto;
-}
-
-.catalogue-layer-node .bp3-tree-node-label > div {
-    padding-left: 62px;
-    padding-bottom: 5px;
-    min-height: 30px;
-}
-
-.catalogue-layer-node .bp3-tree-node-caret-none {
-    display: none;
-}
-
-.catalogue-layer-node .bp3-tree-node-label {
-    padding: 0;
 }
 
 .transect-overlay {
