@@ -53,7 +53,7 @@
 
    [layer-control
     {:tooltip  "Zoom to layer"
-     :icon     "zoom-to-fit"
+     :icon     "locate"
      :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
 
    [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
@@ -159,7 +159,7 @@
   "To the right of the layer name. Basic controls for the layer, like getting info
    and enabling/disabling the layer. Differs from layer-card-controls in what
    controls are displayed."
-  [{:keys [layer] {:keys [active?]} :layer-state}]
+  [{:keys [layer]}]
   [:div.layer-controls
 
    [layer-control
@@ -169,20 +169,19 @@
 
    [layer-control
     {:tooltip  "Zoom to layer"
-     :icon     "zoom-to-fit"
-     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
-
-   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
-    [b/checkbox
-     {:checked (boolean active?)
-      :on-change #(re-frame/dispatch [:map/toggle-layer layer])}]]])
+     :icon     "locate"
+     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
 
 (defn- layer-catalogue-header
   "Top part of layer catalogue element. Always visible. Contains the layer status,
    name, and basic controls for the layer. Differs from layer-card-header in what
    controls are displayed."
-  [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
+   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
+    [b/checkbox
+     {:checked (boolean active?)
+      :on-change #(re-frame/dispatch [:map/toggle-layer layer])}]]
    (when (and active? visible?)
      [layer-status-icons layer-state])
    [layer-header-text props]
@@ -228,7 +227,7 @@
 
    [layer-control
     {:tooltip  "Zoom to layer"
-     :icon     "zoom-to-fit"
+     :icon     "locate"
      :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
 
    [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
@@ -345,23 +344,16 @@
      [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
 
 (defn- main-national-layer-catalogue-header
-  [{:keys [_layer _national-layer-details _tooltip] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [_national-layer-details _tooltip layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
+   [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
+    [b/checkbox
+     {:checked (boolean active?)
+      :on-change #(re-frame/dispatch [:map/toggle-layer layer])}]]
    (when (and active? visible?)
      [layer-status-icons layer-state])
    [main-national-layer-header-text props]
    [layer-catalogue-controls props]])
-
-(defn- main-national-layer-catalogue-details
-  [{:keys [layer _national-layer-details _tooltip] {:keys [opacity]} :layer-state}]
-  (let [{:keys [displayed-layer]} @(re-frame/subscribe [:map/national-layer])]
-    [:div.layer-details
-     [b/slider
-      {:label-renderer false :initial-value 0 :max 100 :value opacity
-       :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
-
-     (when (not= displayed-layer layer) [:h2 (:name displayed-layer)])
-     [legend-display displayed-layer]]))
 
 (defn layer-catalogue-node
   [{{:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn]} :layer-props
