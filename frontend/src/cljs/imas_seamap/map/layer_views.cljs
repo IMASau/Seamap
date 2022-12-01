@@ -23,7 +23,7 @@
    [b/tooltip
    {:content
     (cond
-      (seq tooltip) (reagent/as-element [:div {:style {:max-width "358px"}} tooltip])
+      (seq tooltip) (reagent/as-element [:div {:style {:max-width "320px"}} tooltip])
       expanded?     "Hide details"
       :else         "Show details")
     :disabled (not (or active? (seq tooltip)))}
@@ -198,7 +198,7 @@
      {:content
       (cond
         (seq tooltip) (reagent/as-element
-                       [:div {:style {:max-width "358px"}}
+                       [:div {:style {:max-width "320px"}}
                         tooltip
                         [b/button
                          {:icon     "cross"
