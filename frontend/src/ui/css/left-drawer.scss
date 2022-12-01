@@ -126,7 +126,7 @@
 
                 .bp3-tree {
                     font-size: 12px;
-                    .bp3-tree-node-caret-none { display: none; }
+                    .bp3-tree-node-caret-none { min-width: 4px; }
                     .bp3-tree-node-content { height: 25px; }
             
                     .catalogue-layer-node {
