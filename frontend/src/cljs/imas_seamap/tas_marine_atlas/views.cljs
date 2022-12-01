@@ -32,6 +32,7 @@
 
       [b/tab
        {:id    "catalogue"
+        :class "catalogue"
         :title "Catalogue"
         :panel (reagent/as-element [left-drawer-catalogue])}]
 
