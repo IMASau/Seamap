@@ -165,8 +165,7 @@
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
     [:div.height-managed
      [b/tabs {:selected-tab-id selected-tab
-              :on-change       select-tab
-              :class      "group-scrollable height-managed"}
+              :on-change       select-tab}
       [b/tab
        {:id    "cat"
         :title "By Category"
@@ -730,9 +729,9 @@
      [helper-overlay
       :layer-search
       :plot-footer
-      {:selector   ".group-scrollable"
+      {:selector   "*"
        :helperText "Layers available in your current field of view (zoom out to see more)"}
-      {:selector       ".group-scrollable > .layer-wrapper:first-child"
+      {:selector       "* > .layer-wrapper:first-child"
        :helperPosition "bottom"
        :helperText     "Toggle layer visibility, view more info, show legend, and download data"}
       {:selector   ".sidebar-tabs ul:first-child"

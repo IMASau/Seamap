@@ -61,9 +61,9 @@
      [helper-overlay
       :layer-search
       :plot-footer
-      {:selector   ".group-scrollable"
+      {:selector   "*"
        :helperText "Layers available in your current field of view (zoom out to see more)"}
-      {:selector       ".group-scrollable > .layer-wrapper:first-child"
+      {:selector       "* > .layer-wrapper:first-child"
        :helperPosition "bottom"
        :helperText     "Toggle layer visibility, view more info, show legend, and download data"}
       {:selector   ".sidebar-tabs ul:first-child"
