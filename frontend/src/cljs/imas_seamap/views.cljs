@@ -163,19 +163,18 @@
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab])
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab %1])
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
-    [:div.height-managed
-     [b/tabs {:selected-tab-id selected-tab
-              :on-change       select-tab}
-      [b/tab
-       {:id    "cat"
-        :title "By Category"
-        :panel (reagent/as-element
-                [layer-catalogue-tree layers [:category :data_classification] "cat" layer-props open-all?])}]
-      [b/tab
-       {:id    "org"
-        :title "By Organisation"
-        :panel (reagent/as-element
-                [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]]))
+    [b/tabs {:selected-tab-id selected-tab
+             :on-change       select-tab}
+     [b/tab
+      {:id    "cat"
+       :title "By Category"
+       :panel (reagent/as-element
+               [layer-catalogue-tree layers [:category :data_classification] "cat" layer-props open-all?])}]
+     [b/tab
+      {:id    "org"
+       :title "By Organisation"
+       :panel (reagent/as-element
+               [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]))
 
 (defn- transect-toggle []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -405,8 +404,7 @@
         [b/icon {:icon (if @expanded "chevron-down" "chevron-right")}]
         "API Access"]
        [b/collapse {:is-open               @expanded
-                    :keep-children-mounted true
-                    :className             "height-managed"}
+                    :keep-children-mounted true}
         [:p "You can access the data online at"]
         [:div.server-info.section
          [:span "WMS:"]
@@ -614,29 +612,28 @@
       :className   "left-drawer"
       :isCloseButtonShown false
       :hasBackdrop false}
-     [:div.height-managed
-      [b/tabs
-       {:id              "left-drawer-tabs"
-        :class           "left-drawer-tabs"
-        :selected-tab-id tab
-        :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
+     [b/tabs
+      {:id              "left-drawer-tabs"
+       :class           "left-drawer-tabs"
+       :selected-tab-id tab
+       :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
 
-       [b/tab
-        {:id    "catalogue"
-         :title "Catalogue"
-         :panel (reagent/as-element [left-drawer-catalogue])}]
+      [b/tab
+       {:id    "catalogue"
+        :title "Catalogue"
+        :panel (reagent/as-element [left-drawer-catalogue])}]
 
-       [b/tab
-        {:id    "active-layers"
-         :title (reagent/as-element
-                 [:<> "Active Layers"
-                  [:div.notification-bubble (count active-layers)]])
-         :panel (reagent/as-element [left-drawer-active-layers])}]
+      [b/tab
+       {:id    "active-layers"
+        :title (reagent/as-element
+                [:<> "Active Layers"
+                 [:div.notification-bubble (count active-layers)]])
+        :panel (reagent/as-element [left-drawer-active-layers])}]
 
-       [b/tab
-        {:id    "featured-maps"
-         :title "Featured Maps"
-         :panel (reagent/as-element [featured-maps])}]]]]))
+      [b/tab
+       {:id    "featured-maps"
+        :title "Featured Maps"
+        :panel (reagent/as-element [featured-maps])}]]]))
 
 (defn layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
