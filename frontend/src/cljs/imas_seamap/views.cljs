@@ -117,10 +117,12 @@
              [:<>
               [b/icon
                {:icon  "caret-right"
+                :size  "22px"
                 :class (str "bp3-tree-node-caret" (when expanded? " bp3-tree-node-caret-open"))}]
               (or display-name "Ungrouped")])
      :isExpanded expanded?
-     :hasCaret  false
+     :hasCaret   false
+     :className  (-> ordering name (string/replace "_" "-"))
      :childNodes (if (seq ordering-remainder)
                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
                    (map-indexed
