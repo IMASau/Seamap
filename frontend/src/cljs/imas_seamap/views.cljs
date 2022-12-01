@@ -123,17 +123,23 @@
      :isExpanded expanded?
      :hasCaret   false
      :className  (-> ordering name (string/replace "_" "-"))
-     :childNodes (if (seq ordering-remainder)
-                   (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
-                   (map-indexed
-                    (fn [i layer]
-                      ((if (= layer main-national-layer)
-                         main-national-layer-catalogue-node
-                         layer-catalogue-node)
-                       {:id          (str id-str "-" i)
-                        :layer       layer
-                        :layer-props layer-props}))
-                    layer-subset))}))
+     :childNodes (concat
+                  (if (seq ordering-remainder)
+                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
+                    (map-indexed
+                     (fn [i layer]
+                       ((if (= layer main-national-layer)
+                          main-national-layer-catalogue-node
+                          layer-catalogue-node)
+                        {:id          (str id-str "-" i)
+                         :layer       layer
+                         :layer-props layer-props}))
+                     layer-subset))
+                  
+                  ;; Dummy element appended inside of category ordering content for achieving styling
+                  (when (= ordering :category)
+                    [{:id (str id-str "-" (inc (count layer-subset)))
+                      :className "tree-cap"}]))}))
 
 (defn- layer-catalogue-tree [_layers _ordering _id _layer-props _open-all?]
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes])

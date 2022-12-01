@@ -131,9 +131,11 @@
             
                     .catalogue-layer-node {
                         color: $seamap-deep-blue;
+                        &.active-layer { background-color: $seamap-light-blue; }
+
                         >.bp3-tree-node-content {
                             cursor: default;
-                            height: 28px;
+                            height: 32px;
                             &:hover { background: none; }
                         }
             
@@ -141,19 +143,27 @@
                         .layer-control {
                             color: $seamap-medium-blue;
                         }
-            
-                        &.active-layer {
-                            background-color: $seamap-light-blue;
-                        }
                     }
             
                     .bp3-tree-node:not(.catalogue-layer-node) {
                         &:not(.category)>.bp3-tree-node-content { font-weight: bold; }  
             
-                        &.category>.bp3-tree-node-content {
-                            height: 32px;
-                            font-size: 20px;
-                            font-family: $headings-font-family;
+                        &.category {
+                            >.bp3-tree-node-content {
+                                height: 32px;
+                                font-size: 20px;
+                                font-family: $headings-font-family;
+                            }
+
+                            .tree-cap {
+                                padding: 10px 16px 10px 14px;
+                                >.bp3-tree-node-content {
+                                    cursor: default;
+                                    height: 2px;
+                                    background-color: $seamap-medium-blue;
+                                    &:hover { background: $seamap-medium-blue; }
+                                }
+                            }
                         }
                         
                         >.bp3-tree-node-content {
