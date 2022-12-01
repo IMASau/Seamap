@@ -111,7 +111,23 @@
 
     .bp3-tree {
         font-size: 12px;
-        .catalogue-layer-node>.bp3-tree-node-content { cursor: default; }
+        .bp3-tree-node-caret-none { display: none; }    
+
+        .catalogue-layer-node {
+            >.bp3-tree-node-content {
+                padding: 0;
+                height: auto;
+                cursor: default;
+
+                >.bp3-tree-node-label {
+                    padding: 0;
+                    >* {
+                        padding-left: 62px;
+                        min-height: 30px;
+                    }
+                }
+            }
+        }
 
         .bp3-tree-node:not(.catalogue-layer-node) {
             &>.bp3-tree-node-content {
@@ -129,7 +145,7 @@
             }
 
             >.bp3-tree-node-content {
-                .bp3-tree-node-caret-none { min-width: 0; }
+                
     
                 >.bp3-tree-node-label {
                     display: flex;

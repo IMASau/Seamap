@@ -191,14 +191,12 @@
 (defn layer-catalogue-content
   "Content of a layer catalogue element; includes both the header and the details
    that can be expanded and collapsed."
-  [{{:keys [tooltip] :as layer} :layer {:keys [active? expanded?]} :layer-state :as props}]
+  [{{:keys [tooltip] :as layer} :layer {:keys [active?]} :layer-state :as props}]
   [:div.layer-content
    {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer layer])
     :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
     :class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
-   [layer-catalogue-header props]
-   [b/collapse {:is-open (and active? expanded?)}
-    [layer-details props]]])
+   [layer-catalogue-header props]])
 
 
 ;; Main national layer
@@ -378,7 +376,7 @@
 
 (defn main-national-layer-catalogue-content
   [{:keys [layer] :as props}]
-  (let [{:keys [active? expanded?] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
+  (let [{:keys [active?] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
         {:keys
          [years year _alternate-views alternate-view displayed-layer]
          :as national-layer-details}
@@ -392,6 +390,4 @@
      {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer (or displayed-layer layer)])
       :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
       :class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
-     [main-national-layer-catalogue-header props]
-     [b/collapse {:is-open (and active? expanded?)}
-      [main-national-layer-catalogue-details props]]]))
+     [main-national-layer-catalogue-header props]]))
