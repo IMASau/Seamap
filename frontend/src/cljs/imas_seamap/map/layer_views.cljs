@@ -141,7 +141,7 @@
   "Content of a layer card; includes both the header and the details that can be
    expanded and collapsed."
   [{{:keys [tooltip]} :layer {:keys [active? expanded?]} :layer-state :as props}]
-  [:div.layer-content
+  [:div
    {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
    [layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
@@ -192,10 +192,8 @@
   "Content of a layer catalogue element; includes both the header and the details
    that can be expanded and collapsed."
   [{{:keys [tooltip] :as layer} :layer {:keys [active?]} :layer-state :as props}]
-  [:div.layer-content
-   {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer layer])
-    :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
-    :class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
+  [:div
+   {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
    [layer-catalogue-header props]])
 
 
@@ -331,7 +329,7 @@
   "Content of the main national layer card; includes both the header and the main
    national layer details that can be expanded and collapsed."
   [{:keys [_layer _national-layer-details tooltip] {:keys [active? expanded?]} :layer-state :as props}]
-  [:div.layer-content
+  [:div
    {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
    [main-national-layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
@@ -386,8 +384,6 @@
                   alternate-view                           (str "FILTER APPLIED: Alternate view: " (:name alternate-view))
                   :else                                    nil)
         props (assoc props :layer-state layer-state :national-layer-details national-layer-details :tooltip tooltip)]
-    [:div.layer-content
-     {:on-mouse-over #(re-frame/dispatch [:map/update-preview-layer (or displayed-layer layer)])
-      :on-mouse-out  #(re-frame/dispatch [:map/update-preview-layer nil])
-      :class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
+    [:div
+     {:class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
      [main-national-layer-catalogue-header props]]))

@@ -115,17 +115,7 @@
 
         .catalogue-layer-node {
             >.bp3-tree-node-content {
-                padding: 0;
-                height: auto;
                 cursor: default;
-
-                >.bp3-tree-node-label {
-                    padding: 0;
-                    >* {
-                        padding-left: 62px;
-                        min-height: 30px;
-                    }
-                }
             }
         }
 

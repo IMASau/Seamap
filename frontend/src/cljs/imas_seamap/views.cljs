@@ -127,18 +127,22 @@
                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
                    (map-indexed
                     (fn [i layer]
-                      (let [layer-state {:active?   (some #{layer} active-layers)
-                                         :visible?  (some #{layer} visible-layers)
-                                         :loading?  (loading-fn layer)
-                                         :expanded? (expanded-fn layer)
-                                         :errors?   (error-fn layer)
-                                         :opacity  (opacity-fn layer)}]
-                        {:id (str id-str "-" i)
+                      (let [layer-state  {:active?   (some #{layer} active-layers)
+                                          :visible?  (some #{layer} visible-layers)
+                                          :loading?  (loading-fn layer)
+                                          :expanded? (expanded-fn layer)
+                                          :errors?   (error-fn layer)
+                                          :opacity  (opacity-fn layer)}
+                            preview-layer (if (= layer main-national-layer)
+                                            (:displayed-layer @(re-frame/subscribe [:map/national-layer]))
+                                            layer)]
+                        {:id        (str id-str "-" i)
                          :className "catalogue-layer-node"
-                         :label (reagent/as-element
-                                 (if (= layer main-national-layer)
-                                   [main-national-layer-catalogue-content {:layer layer}]
-                                   [layer-catalogue-content {:layer layer :layer-state layer-state}]))}))
+                         :nodeData  {:previewLayer preview-layer}
+                         :label     (reagent/as-element
+                                     (if (= layer main-national-layer)
+                                       [main-national-layer-catalogue-content {:layer layer}]
+                                       [layer-catalogue-content {:layer layer :layer-state layer-state}]))}))
                     layer-subset))}))
 
 (defn- layer-catalogue-tree [_layers _ordering _id _layer-props _open-all?]
@@ -160,7 +164,10 @@
       [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all?)
                :onNodeCollapse on-close
                :onNodeExpand on-open
-               :onNodeClick on-click}]])))
+               :onNodeClick on-click
+               :onNodeMouseEnter #(when-let [preview-layer (get-in (js->clj % :keywordize-keys true) [:nodeData :previewLayer])]
+                                    (re-frame/dispatch [:map/update-preview-layer preview-layer]))
+               :onNodeMouseLeave #(re-frame/dispatch [:map/update-preview-layer nil])}]])))
 
 (defn- layer-catalogue [layers layer-props]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab])
