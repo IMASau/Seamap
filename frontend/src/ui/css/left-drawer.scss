@@ -127,7 +127,7 @@
                 .bp3-tree {
                     font-size: 12px;
                     .bp3-tree-node-caret-none { min-width: 4px; }
-                    .bp3-tree-node-content { height: 25px; }
+                    .bp3-tree-node-content { height: 28px; }
             
                     .catalogue-layer-node {
                         color: $seamap-deep-blue;
@@ -136,7 +136,6 @@
                         >.bp3-tree-node-content {
                             cursor: default;
                             height: 32px;
-                            &:hover { background: none; }
                         }
             
                         .layer-status-icons .bp3-icon,
@@ -150,7 +149,6 @@
             
                         &.category {
                             >.bp3-tree-node-content {
-                                height: 32px;
                                 font-size: 20px;
                                 font-family: $headings-font-family;
                             }
