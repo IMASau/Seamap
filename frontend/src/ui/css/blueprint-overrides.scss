@@ -159,3 +159,5 @@
     border: 2px solid $seamap-grey;
     &:focus { border-color: $seamap-color-5;}
 }
+
+.bp3-control input:focus ~ .bp3-control-indicator { outline: none; }

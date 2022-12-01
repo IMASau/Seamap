@@ -111,32 +111,20 @@
 
     .bp3-tree {
         font-size: 12px;
-        .bp3-tree-node-caret-none { display: none; }    
-
-        .catalogue-layer-node {
-            >.bp3-tree-node-content {
-                cursor: default;
-            }
-        }
+        .bp3-tree-node-caret-none { display: none; }
+        .catalogue-layer-node>.bp3-tree-node-content { cursor: default; }
+        .bp3-tree-node-content { height: 25px; }
 
         .bp3-tree-node:not(.catalogue-layer-node) {
+            &:not(.category)>.bp3-tree-node-content { font-weight: bold; }  
+
             &.category>.bp3-tree-node-content {
                 height: 32px;
                 font-size: 20px;
                 font-family: $headings-font-family;
             }
-
-            &:not(.category) {
-                >.bp3-tree-node-content {
-                    height: 25px;
-                    font-size: 12px;
-                    font-weight: bold;
-                }    
-            }
-
+            
             >.bp3-tree-node-content {
-                
-    
                 >.bp3-tree-node-label {
                     display: flex;
                     align-items: center;
