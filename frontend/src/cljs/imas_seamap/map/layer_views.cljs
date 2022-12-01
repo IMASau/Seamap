@@ -188,15 +188,6 @@
    [layer-header-text props]
    [layer-catalogue-controls props]])
 
-(defn layer-catalogue-content
-  "Content of a layer catalogue element; includes both the header and the details
-   that can be expanded and collapsed."
-  [{{:keys [tooltip] :as layer} :layer {:keys [active?]} :layer-state :as props}]
-  [:div
-   {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
-   [layer-catalogue-header props]])
-
-
 ;; Main national layer
 
 (defn- main-national-layer-header-text
@@ -372,8 +363,28 @@
      (when (not= displayed-layer layer) [:h2 (:name displayed-layer)])
      [legend-display displayed-layer]]))
 
-(defn main-national-layer-catalogue-content
-  [{:keys [layer] :as props}]
+(defn layer-catalogue-node
+  [{{:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn]} :layer-props
+    {:keys [tooltip] :as layer} :layer
+    :keys [id]}]
+  (let [active? (some #{layer} active-layers)
+        layer-state
+        {:active?   active?
+         :visible?  (some #{layer} visible-layers)
+         :loading?  (loading-fn layer)
+         :expanded? (expanded-fn layer)
+         :errors?   (error-fn layer)
+         :opacity   (opacity-fn layer)}]
+    {:id        id
+     :className (str
+                 "catalogue-layer-node"
+                 (when active? " active-layer")
+                 (when (seq tooltip) " has-tooltip"))
+     :nodeData  {:previewLayer layer}
+     :label     (reagent/as-element [layer-catalogue-header {:layer layer :layer-state layer-state}])}))
+
+(defn main-national-layer-catalogue-node
+  [{:keys [layer id]}]
   (let [{:keys [active?] :as layer-state} @(re-frame/subscribe [:map.national-layer/state])
         {:keys
          [years year _alternate-views alternate-view displayed-layer]
@@ -382,29 +393,16 @@
         tooltip (cond
                   (and year (not= year (apply max years))) (str "FILTER APPLIED: Year: " year)
                   alternate-view                           (str "FILTER APPLIED: Alternate view: " (:name alternate-view))
-                  :else                                    nil)
-        props (assoc props :layer-state layer-state :national-layer-details national-layer-details :tooltip tooltip)]
-    [:div
-     {:class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
-     [main-national-layer-catalogue-header props]]))
-
-(defn layer-catalogue-node
-  [{{:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn]} :layer-props
-    :keys [layer id]}]
-  (let [layer-state  {:active?   (some #{layer} active-layers)
-                      :visible?  (some #{layer} visible-layers)
-                      :loading?  (loading-fn layer)
-                      :expanded? (expanded-fn layer)
-                      :errors?   (error-fn layer)
-                      :opacity   (opacity-fn layer)}]
-    {:id        id
-     :className "catalogue-layer-node"
-     :nodeData  {:previewLayer layer}
-     :label     (reagent/as-element [layer-catalogue-content {:layer layer :layer-state layer-state}])}))
-
-(defn main-national-layer-catalogue-node
-  [{:keys [layer id]}]
-  {:id        id
-   :className "catalogue-layer-node"
-   :nodeData  {:previewLayer (:displayed-layer @(re-frame/subscribe [:map/national-layer]))}
-   :label     (reagent/as-element [main-national-layer-catalogue-content {:layer layer}])})
+                  :else                                    nil)]
+    {:id       id
+   :className (str
+               "catalogue-layer-node"
+               (when active? " active-layer")
+               (when (seq tooltip) " has-tooltip"))
+   :nodeData  {:previewLayer displayed-layer}
+   :label     (reagent/as-element
+               [main-national-layer-catalogue-header
+                {:layer                  layer
+                 :layer-state            layer-state
+                 :national-layer-details national-layer-details
+                 :tooltip                tooltip}])}))
