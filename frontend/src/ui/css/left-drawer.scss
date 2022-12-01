@@ -133,10 +133,7 @@
                         color: $seamap-deep-blue;
                         &.active-layer { background-color: $seamap-light-blue; }
 
-                        >.bp3-tree-node-content {
-                            cursor: default;
-                            height: 32px;
-                        }
+                        >.bp3-tree-node-content { cursor: default; }
             
                         .layer-status-icons .bp3-icon,
                         .layer-control {
@@ -151,6 +148,7 @@
                             >.bp3-tree-node-content {
                                 font-size: 20px;
                                 font-family: $headings-font-family;
+                                height: 32px;
                             }
 
                             .tree-cap {
