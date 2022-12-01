@@ -8,7 +8,7 @@
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-content main-national-layer-card main-national-layer-catalogue-content]]
+            [imas-seamap.map.layer-views :refer [layer-card main-national-layer-card layer-catalogue-node main-national-layer-catalogue-node]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
@@ -104,7 +104,7 @@
 (defn- layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   {:keys [active-layers visible-layers main-national-layer loading-fn expanded-fn error-fn opacity-fn] :as layer-props} open-all?]
+   {:keys [main-national-layer] :as layer-props} open-all?]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
@@ -127,22 +127,12 @@
                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
                    (map-indexed
                     (fn [i layer]
-                      (let [layer-state  {:active?   (some #{layer} active-layers)
-                                          :visible?  (some #{layer} visible-layers)
-                                          :loading?  (loading-fn layer)
-                                          :expanded? (expanded-fn layer)
-                                          :errors?   (error-fn layer)
-                                          :opacity  (opacity-fn layer)}
-                            preview-layer (if (= layer main-national-layer)
-                                            (:displayed-layer @(re-frame/subscribe [:map/national-layer]))
-                                            layer)]
-                        {:id        (str id-str "-" i)
-                         :className "catalogue-layer-node"
-                         :nodeData  {:previewLayer preview-layer}
-                         :label     (reagent/as-element
-                                     (if (= layer main-national-layer)
-                                       [main-national-layer-catalogue-content {:layer layer}]
-                                       [layer-catalogue-content {:layer layer :layer-state layer-state}]))}))
+                      ((if (= layer main-national-layer)
+                         main-national-layer-catalogue-node
+                         layer-catalogue-node)
+                       {:id          (str id-str "-" i)
+                        :layer       layer
+                        :layer-props layer-props}))
                     layer-subset))}))
 
 (defn- layer-catalogue-tree [_layers _ordering _id _layer-props _open-all?]

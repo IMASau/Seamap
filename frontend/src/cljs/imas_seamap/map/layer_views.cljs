@@ -387,3 +387,24 @@
     [:div
      {:class         (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
      [main-national-layer-catalogue-header props]]))
+
+(defn layer-catalogue-node
+  [{{:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn]} :layer-props
+    :keys [layer id]}]
+  (let [layer-state  {:active?   (some #{layer} active-layers)
+                      :visible?  (some #{layer} visible-layers)
+                      :loading?  (loading-fn layer)
+                      :expanded? (expanded-fn layer)
+                      :errors?   (error-fn layer)
+                      :opacity   (opacity-fn layer)}]
+    {:id        id
+     :className "catalogue-layer-node"
+     :nodeData  {:previewLayer layer}
+     :label     (reagent/as-element [layer-catalogue-content {:layer layer :layer-state layer-state}])}))
+
+(defn main-national-layer-catalogue-node
+  [{:keys [layer id]}]
+  {:id        id
+   :className "catalogue-layer-node"
+   :nodeData  {:previewLayer (:displayed-layer @(re-frame/subscribe [:map/national-layer]))}
+   :label     (reagent/as-element [main-national-layer-catalogue-content {:layer layer}])})
