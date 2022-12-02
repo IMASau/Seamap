@@ -2,17 +2,32 @@
     background-color: $seamap-light-blue;
     color: $seamap-deep-blue;
     cursor: pointer;
+    input[type="range"] { cursor: pointer; }
 
     .layer-header {
         position: relative;
         padding: 24px 28px;
         border-bottom: 2px solid $seamap-medium-blue;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+
+        >* {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 6px;
+            &:nth-child(2) {
+                input[type="range"] { width: 224px; }
+                justify-content: space-between;
+            }
+        }
     }
 
     .bp3-collapse-body {
         position: relative;
         background-color: $seamap-color-7;
-        padding: 24px 28px;
+        padding: 12px 28px;
     }
 
     &:hover {
@@ -64,11 +79,11 @@
     gap: 4px;
 }
 
-.layer-header {
+.catalogue-layer-node .layer-header {
     display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 6px;
-    height: 20px;
     .bp3-checkbox { margin-right: -6px; }
 }
 

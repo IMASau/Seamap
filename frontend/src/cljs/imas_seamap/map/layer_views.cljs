@@ -68,15 +68,25 @@
      :icon     "remove"
      :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
 
+(defn- opacity-slider
+  [{:keys [layer] {:keys [opacity]} :layer-state}]
+  [:input
+   {:type "range"
+    :min 0 :max 100 :value opacity
+    :on-input #(re-frame/dispatch [:map.layer/opacity-changed layer (.. % -target -value)])}])
+
 (defn- layer-card-header
   "Top part of layer card. Always visible. Contains the layer status, name, and
    basic controls for the layer."
-  [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [_layer] {:keys [active? visible? _opacity] :as layer-state} :layer-state :as props}]
   [:div.layer-header
-   (when (and active? visible?)
-     [layer-status-icons layer-state])
-   [layer-header-text props]
-   [layer-card-controls props]])
+   [:div
+    (when (and active? visible?)
+      [layer-status-icons layer-state])
+    [layer-header-text props]]
+   [:div
+    [opacity-slider props]
+    [layer-card-controls props]]])
 
 (defn- vector-legend-entry [{:keys [label style] :as _entry}]
   [:div.vector-legend-entry
@@ -130,11 +140,8 @@
 
 (defn- layer-details
   "Layer details, including advanced opacity slider control and the layer's legend."
-  [{:keys [layer] {:keys [opacity]} :layer-state}]
+  [{:keys [layer]}]
   [:div.layer-details
-   [b/slider
-    {:label-renderer false :initial-value 0 :max 100 :value opacity
-     :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
    [legend-display layer]])
 
 (defn- layer-card-content
@@ -241,12 +248,15 @@
      :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
 
 (defn- main-national-layer-card-header
-  [{:keys [_layer _national-layer-details _tooltip] {:keys [visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [_national-layer-details _tooltip _layer] {:keys [visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
-   (when visible?
-     [layer-status-icons layer-state])
-   [main-national-layer-header-text props]
-   [main-national-layer-card-controls props]])
+   [:div
+    (when visible?
+      [layer-status-icons layer-state])
+    [main-national-layer-header-text props]]
+   [:div
+    [opacity-slider props]
+    [main-national-layer-card-controls props]]])
 
 (defn- main-national-layer-alternate-view-select
   [{:keys [year years alternate-views alternate-view]}]
@@ -280,17 +290,13 @@
   "Expanded details for main national layer. Differs from regular details by having
    a tabbed view, with a tab for the legend and a tab for filters. The filters
    alter how the main national layer is displayed on the map."
-  [{:keys [_layer _national-layer-details _tooltip] {:keys [_opacity]} :layer-state}]
+  [{:keys [_layer _national-layer-details _tooltip _layer-state]}]
   (let [selected-tab (reagent/atom "legend")]
-    (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
+    (fn [{:keys [layer]}]
       (let [{:keys
              [_years _year _alternate-views _alternate-view displayed-layer]:as details}
             @(re-frame/subscribe [:map/national-layer])]
         [:div.layer-details
-         [b/slider
-          {:label-renderer false :initial-value 0 :max 100 :value opacity
-           :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
-
          [b/tabs
           {:selected-tab-id @selected-tab
            :on-change       #(reset! selected-tab %)}
