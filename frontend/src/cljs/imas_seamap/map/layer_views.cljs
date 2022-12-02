@@ -11,8 +11,8 @@
   [{:keys [loading? errors?]}]
   (when (or loading? errors?)
    [:div.layer-status-icons
-    (when loading? [b/spinner {:class "bp3-text-muted bp3-small"}])
-    (when errors? [b/icon {:icon "warning-sign" :class "bp3-text-muted bp3-small"}])]))
+    (when loading? [b/spinner {:class "bp3-small"}])
+    (when errors? [b/icon {:icon "warning-sign" :size 20}])]))
 
 (defn- layer-header-text
   "Layer name, with some other fancy stuff on top."
@@ -45,8 +45,9 @@
   [{:keys [tooltip icon on-click]}]
   [b/tooltip {:content tooltip}
    [b/icon
-    {:icon    icon
-     :class   "bp3-text-muted layer-control"
+    {:icon     icon
+     :class    "layer-control"
+     :size     18
      :on-click on-click}]])
 
 (defn- layer-card-controls
@@ -55,12 +56,10 @@
   [{:keys [layer] {:keys [visible?]} :layer-state}]
   [:div.layer-controls
    
-   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
-    [b/icon
-     {:icon     (if visible? "eye-on" "eye-off")
-      :size     20
-      :class    "bp3-text-muted layer-control"
-      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]]
+   [layer-control
+    {:tooltip  (if visible? "Hide layer" "Show layer")
+     :icon     (if visible? "eye-on" "eye-off")
+     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
    
    [layer-control
     {:tooltip  "Layer info / Download data"
@@ -254,12 +253,10 @@
   [{:keys [layer] {:keys [visible?]} :layer-state}]
   [:div.layer-controls
 
-   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
-    [b/icon
-     {:icon     (if visible? "eye-on" "eye-off")
-      :size     20
-      :class    "bp3-text-muted layer-control"
-      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]]
+   [layer-control
+    {:tooltip  (if visible? "Hide layer" "Show layer")
+     :icon     (if visible? "eye-on" "eye-off")
+     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
    
    [layer-control
     {:tooltip  "Layer info / Download data"
