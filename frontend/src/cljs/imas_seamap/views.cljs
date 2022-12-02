@@ -119,7 +119,8 @@
                {:icon  "caret-right"
                 :size  "22px"
                 :class (str "bp3-tree-node-caret" (when expanded? " bp3-tree-node-caret-open"))}]
-              (or display-name "Ungrouped")])
+              [b/clipped-text {:ellipsize true}
+               (or display-name "Ungrouped")]])
      :isExpanded expanded?
      :hasCaret   false
      :className  (-> ordering name (string/replace "_" "-"))
