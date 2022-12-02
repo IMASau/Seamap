@@ -122,16 +122,14 @@
 
 .vector-legend-entry {
     display: flex;
-    // align-items: center;
+    align-items: center;
     gap: 7px;
-    min-height: 20px;
+    min-height: 24px;
 }
 
 .vector-legend-entry > .key {
-    width: 13px;
-    height: 13px;
-    margin-top: 3.5px;
-    margin-left: 3px;
+    width: 16px;
+    height: 16px;
     position: relative;
     flex-shrink: 0;
 }
@@ -147,7 +145,6 @@
 .vector-legend-entry > .label {
     white-space: pre;
     font-size: 13px;
-    margin: 2px 0;
     min-width: 0;
 }
 
