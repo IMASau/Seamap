@@ -11,24 +11,33 @@
   [{:keys [loading? errors?]}]
   (when (or loading? errors?)
    [:div.layer-status-icons
-    (when loading? [b/spinner {:class "bp3-text-muted bp3-small"}])
-    (when errors? [b/icon {:icon "warning-sign" :class "bp3-text-muted bp3-small"}])]))
+    (when loading? [b/spinner {:class "bp3-small"}])
+    (when errors? [b/icon {:icon "warning-sign" :size 20}])]))
 
 (defn- layer-header-text
+  "Layer name, with some other fancy stuff on top."
+  [{:keys [_layer-state] {:keys [name tooltip]} :layer}]
+  [:div.layer-header-text
+   [b/tooltip
+    {:content
+     (reagent/as-element [:div {:style {:max-width "320px"}} tooltip])
+     :disabled (not (seq tooltip))}
+    [b/clipped-text {:ellipsize true} name]]])
+
+(defn- layer-card-header-text
   "Layer name, with some other fancy stuff on top. Clicking it will expand the
    layer's details."
   [{{:keys [name tooltip] :as layer} :layer {:keys [expanded? active?]} :layer-state}]
   [:div.layer-header-text
    {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
    [b/tooltip
-   {:content
-    (cond
-      (seq tooltip) (reagent/as-element [:div {:style {:max-width "320px"}} tooltip])
-      expanded?     "Hide details"
-      :else         "Show details")
-    :disabled (not (or active? (seq tooltip)))}
-   [b/clipped-text {:ellipsize true}
-    name]]])
+    {:content
+     (cond
+       (seq tooltip) (reagent/as-element [:div {:style {:max-width "320px"}} tooltip])
+       expanded?     "Hide details"
+       :else         "Show details")
+     :disabled (not (or active? (seq tooltip)))}
+    [b/clipped-text {:ellipsize true} name]]])
 
 (defn- layer-control
   "Basic layer control. It's an icon with a tooltip that does something when
@@ -36,8 +45,9 @@
   [{:keys [tooltip icon on-click]}]
   [b/tooltip {:content tooltip}
    [b/icon
-    {:icon    icon
-     :class   "bp3-text-muted layer-control"
+    {:icon     icon
+     :class    "layer-control"
+     :size     18
      :on-click on-click}]])
 
 (defn- layer-card-controls
@@ -45,7 +55,12 @@
    and disabling the layer."
   [{:keys [layer] {:keys [visible?]} :layer-state}]
   [:div.layer-controls
-
+   
+   [layer-control
+    {:tooltip  (if visible? "Hide layer" "Show layer")
+     :icon     (if visible? "eye-on" "eye-off")
+     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
+   
    [layer-control
     {:tooltip  "Layer info / Download data"
      :icon     "info-sign"
@@ -54,29 +69,32 @@
    [layer-control
     {:tooltip  "Zoom to layer"
      :icon     "locate"
-     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
+     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
 
-   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
-    [b/icon
-     {:icon     (if visible? "eye-on" "eye-off")
-      :size     20
-      :class    "bp3-text-muted layer-control"
-      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]]
-
-   [layer-control
-    {:tooltip  "Deactivate layer"
-     :icon     "remove"
-     :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
+(defn- opacity-slider
+  [{:keys [layer] {:keys [opacity]} :layer-state}]
+  [:input
+   {:type "range"
+    :min 0 :max 100 :value opacity
+    :on-input #(re-frame/dispatch [:map.layer/opacity-changed layer (.. % -target -value)])}])
 
 (defn- layer-card-header
   "Top part of layer card. Always visible. Contains the layer status, name, and
    basic controls for the layer."
-  [{:keys [_layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [layer] {:keys [active? visible? _opacity] :as layer-state} :layer-state :as props}]
   [:div.layer-header
-   (when (and active? visible?)
-     [layer-status-icons layer-state])
-   [layer-header-text props]
-   [layer-card-controls props]])
+   [:div
+    (when (and true true)
+      [layer-status-icons layer-state])
+    [layer-card-header-text props]
+
+    [layer-control
+     {:tooltip  "Deactivate layer"
+      :icon     "delete"
+      :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]]
+   [:div
+    [opacity-slider props]
+    [layer-card-controls props]]])
 
 (defn- vector-legend-entry [{:keys [label style] :as _entry}]
   [:div.vector-legend-entry
@@ -130,11 +148,8 @@
 
 (defn- layer-details
   "Layer details, including advanced opacity slider control and the layer's legend."
-  [{:keys [layer] {:keys [opacity]} :layer-state}]
+  [{:keys [layer]}]
   [:div.layer-details
-   [b/slider
-    {:label-renderer false :initial-value 0 :max 100 :value opacity
-     :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
    [legend-display layer]])
 
 (defn- layer-card-content
@@ -142,7 +157,7 @@
    expanded and collapsed."
   [{{:keys [tooltip]} :layer {:keys [active? expanded?]} :layer-state :as props}]
   [:div
-   {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
+   {:class (when (seq tooltip) "has-tooltip")}
    [layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [layer-details props]]])
@@ -150,9 +165,7 @@
 (defn layer-card
   "Wrapper of layer-card-content in a card for displaying in lists."
   [{:keys [_layer _layer-state] :as props}]
-  [b/card
-   {:elevation 1
-    :class     "layer-card"}
+  [:div.layer-card
    [layer-card-content props]])
 
 (defn- layer-catalogue-controls
@@ -190,6 +203,26 @@
 ;; Main national layer
 
 (defn- main-national-layer-header-text
+  [{:keys [_national-layer-details _layer-state tooltip] {:keys [name]} :layer :as _props}]
+  [:div.layer-header-text
+   [b/tooltip
+    (merge
+     {:content
+      (reagent/as-element
+       [:div {:style {:max-width "320px"}}
+        tooltip
+        [b/button
+         {:icon     "cross"
+          :minimal  true
+          :on-click #(do
+                       (.stopPropagation %)
+                       (re-frame/dispatch [:map.national-layer/reset-filters]))}]])
+      :disabled (not (seq tooltip))}
+     (when (seq tooltip)
+       {:hover-close-delay 1000}))
+    [b/clipped-text {:ellipsize true} name]]])
+
+(defn- main-national-layer-card-header-text
   [{:keys [_national-layer-details tooltip] {:keys [name] :as layer} :layer {:keys [active? expanded?]} :layer-state :as _props}]
   [:div.layer-header-text
    {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
@@ -221,6 +254,11 @@
   [:div.layer-controls
 
    [layer-control
+    {:tooltip  (if visible? "Hide layer" "Show layer")
+     :icon     (if visible? "eye-on" "eye-off")
+     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
+   
+   [layer-control
     {:tooltip  "Layer info / Download data"
      :icon     "info-sign"
      :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
@@ -228,27 +266,23 @@
    [layer-control
     {:tooltip  "Zoom to layer"
      :icon     "locate"
-     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
-
-   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
-    [b/icon
-     {:icon     (if visible? "eye-on" "eye-off")
-      :size     20
-      :class    "bp3-text-muted layer-control"
-      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]]
-
-   [layer-control
-    {:tooltip  "Deactivate layer"
-     :icon     "remove"
-     :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
+     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
 
 (defn- main-national-layer-card-header
-  [{:keys [_layer _national-layer-details _tooltip] {:keys [visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [_national-layer-details _tooltip layer] {:keys [visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
-   (when visible?
-     [layer-status-icons layer-state])
-   [main-national-layer-header-text props]
-   [main-national-layer-card-controls props]])
+   [:div
+    (when visible?
+      [layer-status-icons layer-state])
+    [main-national-layer-card-header-text props]
+    
+    [layer-control
+     {:tooltip  "Deactivate layer"
+      :icon     "delete"
+      :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]]
+   [:div
+    [opacity-slider props]
+    [main-national-layer-card-controls props]]])
 
 (defn- main-national-layer-alternate-view-select
   [{:keys [year years alternate-views alternate-view]}]
@@ -269,37 +303,50 @@
   "Time filter for main national layer, which filters what layers are displayed on
    the map."
   [{:keys [years year alternate-view]}]
-  [components/form-group {:label "Time"}
-   [b/slider
-    {:min          (apply min years)
-     :max          (apply max years)
-     :value        (or year (apply max years))
-     :label-values years
-     :on-change    #(re-frame/dispatch [:map.national-layer/year %])
-     :disabled     (boolean alternate-view)}]])
+  (let [gaps      (:gaps
+                   (reduce
+                    (fn [{:keys [gaps prev]} val]
+                      {:gaps (if prev
+                               (conj gaps (- val prev))
+                               gaps)
+                       :prev val})
+                    {:gaps [] :prev nil} years))
+        with-gaps (butlast (interleave years (conj gaps nil)))]
+    [components/form-group {:label "Time"}
+     [:input
+      {:type     "range"
+       :min      (apply min years)
+       :max      (apply max years)
+       :value    (or year (apply max years))
+       :on-input #(re-frame/dispatch [:map.national-layer/year (-> % .-target .-value js/parseInt)])
+       :disabled (boolean alternate-view)}]
+     [:div.time-range
+      (map-indexed
+       (fn [i v]
+         [:div
+          {:key   i
+           :style (when (odd? i) {:flex v})}
+          (when (even? i) v)])
+       with-gaps)]]))
 
 (defn- main-national-layer-details
   "Expanded details for main national layer. Differs from regular details by having
    a tabbed view, with a tab for the legend and a tab for filters. The filters
    alter how the main national layer is displayed on the map."
-  [{:keys [_layer _national-layer-details _tooltip] {:keys [_opacity]} :layer-state}]
+  [{:keys [_layer _national-layer-details _tooltip _layer-state]}]
   (let [selected-tab (reagent/atom "legend")]
-    (fn [{:keys [layer] {:keys [opacity]} :layer-state}]
+    (fn [{:keys [layer]}]
       (let [{:keys
              [_years _year _alternate-views _alternate-view displayed-layer]:as details}
             @(re-frame/subscribe [:map/national-layer])]
         [:div.layer-details
-         [b/slider
-          {:label-renderer false :initial-value 0 :max 100 :value opacity
-           :on-change #(re-frame/dispatch [:map.layer/opacity-changed layer %])}]
-
          [b/tabs
           {:selected-tab-id @selected-tab
            :on-change       #(reset! selected-tab %)}
 
           [b/tab
            {:id    "legend"
-            :title "Legend"
+            :title (reagent/as-element [:<> [b/icon {:icon "key"}] "Legend"])
             :panel
             (reagent/as-element
              [:<>
@@ -308,7 +355,7 @@
 
           [b/tab
            {:id    "filters"
-            :title "Filters"
+            :title (reagent/as-element [:<> [b/icon {:icon "filter-list"}] "Legend"])
             :panel
             (reagent/as-element
              [:<>
@@ -320,7 +367,7 @@
    national layer details that can be expanded and collapsed."
   [{:keys [_layer _national-layer-details tooltip] {:keys [active? expanded?]} :layer-state :as props}]
   [:div
-   {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
+   {:class (when (seq tooltip) "has-tooltip")}
    [main-national-layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [main-national-layer-details props]]])
@@ -338,9 +385,7 @@
                   alternate-view                           (str "FILTER APPLIED: Alternate view: " (:name alternate-view))
                   :else                                    nil)
         props (assoc props :layer-state layer-state :national-layer-details national-layer-details :tooltip tooltip)]
-    [b/card
-     {:elevation 1
-      :class     "layer-card"}
+    [:div.layer-card
      [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
 
 (defn- main-national-layer-catalogue-header
