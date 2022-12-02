@@ -306,14 +306,31 @@
   "Time filter for main national layer, which filters what layers are displayed on
    the map."
   [{:keys [years year alternate-view]}]
-  [components/form-group {:label "Time"}
-   [b/slider
-    {:min          (apply min years)
-     :max          (apply max years)
-     :value        (or year (apply max years))
-     :label-values years
-     :on-change    #(re-frame/dispatch [:map.national-layer/year %])
-     :disabled     (boolean alternate-view)}]])
+  (let [gaps      (:gaps
+                   (reduce
+                    (fn [{:keys [gaps prev]} val]
+                      {:gaps (if prev
+                               (conj gaps (- val prev))
+                               gaps)
+                       :prev val})
+                    {:gaps [] :prev nil} years))
+        with-gaps (butlast (interleave years (conj gaps nil)))]
+    [components/form-group {:label "Time"}
+     [:input
+      {:type     "range"
+       :min      (apply min years)
+       :max      (apply max years)
+       :value    (or year (apply max years))
+       :on-input #(re-frame/dispatch [:map.national-layer/year (-> % .-target .-value js/parseInt)])
+       :disabled (boolean alternate-view)}]
+     [:div.time-range
+      (map-indexed
+       (fn [i v]
+         [:div
+          {:key   i
+           :style (when (odd? i) {:flex v})}
+          (when (even? i) v)])
+       with-gaps)]]))
 
 (defn- main-national-layer-details
   "Expanded details for main national layer. Differs from regular details by having

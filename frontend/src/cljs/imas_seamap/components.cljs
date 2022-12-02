@@ -155,8 +155,9 @@
         :isDisabled   isDisabled}])))
 
 (defn form-group
-  [{:keys [label]} & children]
+  [{:keys [label class]} & children]
   [:div.form-group
+   (when class {:class class})
    [:div label]
    (into [:div] children)])
 

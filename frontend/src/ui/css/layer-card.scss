@@ -2,8 +2,29 @@
     background-color: $seamap-light-blue;
     color: $seamap-deep-blue;
     cursor: pointer;
-    input[type="range"] { cursor: pointer; }
     font-size: 12px;
+
+    input[type="range"] {
+        cursor: pointer;
+        accent-color: $seamap-deep-blue;
+        margin: 0;
+        width: 100%;
+    }
+
+    .time-range {
+        margin: 0 6px;
+        font-size: 11px;
+        display: flex;
+        flex-direction: row;
+        
+        >* {
+            flex: 0;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
 
     .layer-header {
         padding: 20px 24px;
@@ -15,6 +36,7 @@
 
         .layer-header-text {
             font-size: 13px;
+            font-weight: bold;
             span {vertical-align: middle;}
         }
 
@@ -59,9 +81,10 @@
     gap: 5px;
 }
 
-.layer-status-icons .bp3-icon svg,
-.layer-control svg {
-    opacity: 0.8;
+.layer-status-icons .bp3-icon,
+.layer-control {
+    color: $seamap-medium-blue;
+    svg { opacity: 0.8; }
 }
 
 .layer-control {
@@ -72,6 +95,10 @@
 /* Special controls */
 .layer-control.bp3-icon-eye-on {
     color: #0F9960;
+}
+
+.layer-control.bp3-icon-delete {
+    color: $seamap-deep-blue;
 }
 
 .layer-control.bp3-icon-eye-on:hover,

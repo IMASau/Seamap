@@ -586,17 +586,14 @@
 
 (defn left-drawer-active-layers []
   (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])]
-    [components/drawer-group
-     {:heading (str "Active Layers (" (count active-layers) ")")
-      :icon    "eye-open"}
-     [active-layer-selection-list
-      {:layers         active-layers
-       :visible-layers visible-layers
-       :main-national-layer main-national-layer
-       :loading-fn     loading-layers
-       :error-fn       error-layers
-       :expanded-fn    expanded-layers
-       :opacity-fn     layer-opacities}]]))
+    [active-layer-selection-list
+     {:layers         active-layers
+      :visible-layers visible-layers
+      :main-national-layer main-national-layer
+      :loading-fn     loading-layers
+      :error-fn       error-layers
+      :expanded-fn    expanded-layers
+      :opacity-fn     layer-opacities}]))
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
