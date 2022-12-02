@@ -114,12 +114,10 @@
     .bp3-checkbox { margin-right: -6px; }
 }
 
-.legend-wrapper img {
-    max-width: 100%;
-}
-
-.legend-wrapper .bp3-non-ideal-state {
-    height: 150px;
+.legend-wrapper {
+    margin: 8px 0;
+    img { max-width: 100%; }
+    .bp3-non-ideal-state { height: 150px; }
 }
 
 .vector-legend-entry {

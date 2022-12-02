@@ -346,7 +346,7 @@
 
           [b/tab
            {:id    "legend"
-            :title "Legend"
+            :title (reagent/as-element [:<> [b/icon {:icon "key"}] "Legend"])
             :panel
             (reagent/as-element
              [:<>
@@ -355,7 +355,7 @@
 
           [b/tab
            {:id    "filters"
-            :title "Filters"
+            :title (reagent/as-element [:<> [b/icon {:icon "filter-list"}] "Legend"])
             :panel
             (reagent/as-element
              [:<>

@@ -73,6 +73,7 @@
         > .bp3-tab-panel {
             flex: 1;
             min-height: 0;
+            overflow-y: auto;
         }
 
         .bp3-tab-panel.catalogue {
