@@ -261,7 +261,7 @@
             :opacity   (opacity-fn layer)}}])})
     :disabled    false
     :data-path   [:map :active-layers]
-    :has-handle  true
+    :has-handle  false
     :is-reversed true}])
 
 (defn- plot-component-animatable [{:keys [on-add on-remove]

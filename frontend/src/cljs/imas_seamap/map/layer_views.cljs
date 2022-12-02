@@ -142,7 +142,7 @@
    expanded and collapsed."
   [{{:keys [tooltip]} :layer {:keys [active? expanded?]} :layer-state :as props}]
   [:div
-   {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
+   {:class (when (seq tooltip) "has-tooltip")}
    [layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [layer-details props]]])
@@ -150,9 +150,7 @@
 (defn layer-card
   "Wrapper of layer-card-content in a card for displaying in lists."
   [{:keys [_layer _layer-state] :as props}]
-  [b/card
-   {:elevation 1
-    :class     "layer-card"}
+  [:div.layer-card
    [layer-card-content props]])
 
 (defn- layer-catalogue-controls
@@ -320,7 +318,7 @@
    national layer details that can be expanded and collapsed."
   [{:keys [_layer _national-layer-details tooltip] {:keys [active? expanded?]} :layer-state :as props}]
   [:div
-   {:class (str (when active? "active-layer") (when (seq tooltip) " has-tooltip"))}
+   {:class (when (seq tooltip) "has-tooltip")}
    [main-national-layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [main-national-layer-details props]]])
@@ -338,9 +336,7 @@
                   alternate-view                           (str "FILTER APPLIED: Alternate view: " (:name alternate-view))
                   :else                                    nil)
         props (assoc props :layer-state layer-state :national-layer-details national-layer-details :tooltip tooltip)]
-    [b/card
-     {:elevation 1
-      :class     "layer-card"}
+    [:div.layer-card
      [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
 
 (defn- main-national-layer-catalogue-header

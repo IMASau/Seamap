@@ -1,5 +1,24 @@
 .layer-card {
-    margin: 4px 2px;
+    background-color: $seamap-light-blue;
+    color: $seamap-deep-blue;
+    cursor: pointer;
+
+    .layer-header {
+        position: relative;
+        padding: 24px 28px;
+        border-bottom: 2px solid $seamap-medium-blue;
+    }
+
+    .bp3-collapse-body {
+        position: relative;
+        background-color: $seamap-color-7;
+        padding: 24px 28px;
+    }
+
+    &:hover {
+        background-color: rgb(197, 213, 234);
+        .bp3-collapse-body { background-color: rgba(241, 243, 246); }
+    }
 }
 
 .layer-header-text {
