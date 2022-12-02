@@ -15,20 +15,29 @@
     (when errors? [b/icon {:icon "warning-sign" :class "bp3-text-muted bp3-small"}])]))
 
 (defn- layer-header-text
+  "Layer name, with some other fancy stuff on top."
+  [{:keys [_layer-state] {:keys [name tooltip]} :layer}]
+  [:div.layer-header-text
+   [b/tooltip
+    {:content
+     (reagent/as-element [:div {:style {:max-width "320px"}} tooltip])
+     :disabled (not (seq tooltip))}
+    [b/clipped-text {:ellipsize true} name]]])
+
+(defn- layer-card-header-text
   "Layer name, with some other fancy stuff on top. Clicking it will expand the
    layer's details."
   [{{:keys [name tooltip] :as layer} :layer {:keys [expanded? active?]} :layer-state}]
   [:div.layer-header-text
    {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
    [b/tooltip
-   {:content
-    (cond
-      (seq tooltip) (reagent/as-element [:div {:style {:max-width "320px"}} tooltip])
-      expanded?     "Hide details"
-      :else         "Show details")
-    :disabled (not (or active? (seq tooltip)))}
-   [b/clipped-text {:ellipsize true}
-    name]]])
+    {:content
+     (cond
+       (seq tooltip) (reagent/as-element [:div {:style {:max-width "320px"}} tooltip])
+       expanded?     "Hide details"
+       :else         "Show details")
+     :disabled (not (or active? (seq tooltip)))}
+    [b/clipped-text {:ellipsize true} name]]])
 
 (defn- layer-control
   "Basic layer control. It's an icon with a tooltip that does something when
@@ -45,7 +54,14 @@
    and disabling the layer."
   [{:keys [layer] {:keys [visible?]} :layer-state}]
   [:div.layer-controls
-
+   
+   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
+    [b/icon
+     {:icon     (if visible? "eye-on" "eye-off")
+      :size     20
+      :class    "bp3-text-muted layer-control"
+      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]]
+   
    [layer-control
     {:tooltip  "Layer info / Download data"
      :icon     "info-sign"
@@ -54,19 +70,7 @@
    [layer-control
     {:tooltip  "Zoom to layer"
      :icon     "locate"
-     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
-
-   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
-    [b/icon
-     {:icon     (if visible? "eye-on" "eye-off")
-      :size     20
-      :class    "bp3-text-muted layer-control"
-      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]]
-
-   [layer-control
-    {:tooltip  "Deactivate layer"
-     :icon     "remove"
-     :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
+     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
 
 (defn- opacity-slider
   [{:keys [layer] {:keys [opacity]} :layer-state}]
@@ -78,12 +82,17 @@
 (defn- layer-card-header
   "Top part of layer card. Always visible. Contains the layer status, name, and
    basic controls for the layer."
-  [{:keys [_layer] {:keys [active? visible? _opacity] :as layer-state} :layer-state :as props}]
+  [{:keys [layer] {:keys [active? visible? _opacity] :as layer-state} :layer-state :as props}]
   [:div.layer-header
    [:div
-    (when (and active? visible?)
+    (when (and true true)
       [layer-status-icons layer-state])
-    [layer-header-text props]]
+    [layer-card-header-text props]
+
+    [layer-control
+     {:tooltip  "Deactivate layer"
+      :icon     "delete"
+      :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]]
    [:div
     [opacity-slider props]
     [layer-card-controls props]]])
@@ -195,6 +204,26 @@
 ;; Main national layer
 
 (defn- main-national-layer-header-text
+  [{:keys [_national-layer-details _layer-state tooltip] {:keys [name]} :layer :as _props}]
+  [:div.layer-header-text
+   [b/tooltip
+    (merge
+     {:content
+      (reagent/as-element
+       [:div {:style {:max-width "320px"}}
+        tooltip
+        [b/button
+         {:icon     "cross"
+          :minimal  true
+          :on-click #(do
+                       (.stopPropagation %)
+                       (re-frame/dispatch [:map.national-layer/reset-filters]))}]])
+      :disabled (not (seq tooltip))}
+     (when (seq tooltip)
+       {:hover-close-delay 1000}))
+    [b/clipped-text {:ellipsize true} name]]])
+
+(defn- main-national-layer-card-header-text
   [{:keys [_national-layer-details tooltip] {:keys [name] :as layer} :layer {:keys [active? expanded?]} :layer-state :as _props}]
   [:div.layer-header-text
    {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
@@ -225,6 +254,13 @@
   [{:keys [layer] {:keys [visible?]} :layer-state}]
   [:div.layer-controls
 
+   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
+    [b/icon
+     {:icon     (if visible? "eye-on" "eye-off")
+      :size     20
+      :class    "bp3-text-muted layer-control"
+      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]]
+   
    [layer-control
     {:tooltip  "Layer info / Download data"
      :icon     "info-sign"
@@ -233,27 +269,20 @@
    [layer-control
     {:tooltip  "Zoom to layer"
      :icon     "locate"
-     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]
-
-   [b/tooltip {:content (if visible? "Hide layer" "Show layer")}
-    [b/icon
-     {:icon     (if visible? "eye-on" "eye-off")
-      :size     20
-      :class    "bp3-text-muted layer-control"
-      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]]
-
-   [layer-control
-    {:tooltip  "Deactivate layer"
-     :icon     "remove"
-     :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]])
+     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
 
 (defn- main-national-layer-card-header
-  [{:keys [_national-layer-details _tooltip _layer] {:keys [visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [_national-layer-details _tooltip layer] {:keys [visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
    [:div
     (when visible?
       [layer-status-icons layer-state])
-    [main-national-layer-header-text props]]
+    [main-national-layer-card-header-text props]
+    
+    [layer-control
+     {:tooltip  "Deactivate layer"
+      :icon     "delete"
+      :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]]
    [:div
     [opacity-slider props]
     [main-national-layer-card-controls props]]])

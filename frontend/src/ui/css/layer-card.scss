@@ -3,31 +3,37 @@
     color: $seamap-deep-blue;
     cursor: pointer;
     input[type="range"] { cursor: pointer; }
+    font-size: 12px;
 
     .layer-header {
-        position: relative;
-        padding: 24px 28px;
+        padding: 20px 24px;
         border-bottom: 2px solid $seamap-medium-blue;
         display: flex;
         flex-direction: column;
         align-items: stretch;
+        gap: 10px;
+
+        .layer-header-text {
+            font-size: 13px;
+            span {vertical-align: middle;}
+        }
 
         >* {
             display: flex;
             flex-direction: row;
             align-items: center;
             gap: 6px;
+
             &:nth-child(2) {
-                input[type="range"] { width: 224px; }
                 justify-content: space-between;
+                input[type="range"] { width: 240px; }
             }
         }
     }
 
     .bp3-collapse-body {
-        position: relative;
         background-color: $seamap-color-7;
-        padding: 12px 28px;
+        padding: 12px 24px;
     }
 
     &:hover {
@@ -45,21 +51,22 @@
 
 .active-layer .layer-header-text { font-weight: bold; }
 
+.layer-controls,
 .layer-status-icons {
     flex: 0 0;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
 
-.layer-status-icons .bp3-icon,
-.layer-control {
+.layer-status-icons .bp3-icon svg,
+.layer-control svg {
     opacity: 0.8;
 }
 
 .layer-control {
     cursor: pointer;
-    &:hover { opacity: 1; }
+    &:hover svg { opacity: 1; }
 }
 
 /* Special controls */
@@ -68,15 +75,8 @@
 }
 
 .layer-control.bp3-icon-eye-on:hover,
-.layer-control.bp3-icon-remove:hover {
-    color: #C23030;
-}
-
-.layer-controls {
-    flex: 0 0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+.layer-control.bp3-icon-delete:hover {
+    color: $seamap-red;
 }
 
 .catalogue-layer-node .layer-header {

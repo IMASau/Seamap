@@ -27,6 +27,10 @@
     z-index: 2001;
 }
 
+.bp3-tree-node-label span {
+    display: unset;
+}
+
 .bp3-tree-node-content { cursor: pointer; }
 
 .bp3-tree-node-secondary-label {
@@ -161,3 +165,8 @@
 }
 
 .bp3-control input:focus ~ .bp3-control-indicator { outline: none; }
+
+.bp3-popover-target,
+.bp3-popover-target .bp3-text-overflow-ellipsis {
+    width: 100%;
+}
