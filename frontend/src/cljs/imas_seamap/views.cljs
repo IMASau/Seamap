@@ -632,7 +632,8 @@
        {:id    "active-layers"
         :title (reagent/as-element
                 [:<> "Active Layers"
-                 [:div.notification-bubble (count active-layers)]])
+                 (when (seq active-layers)
+                   [:div.notification-bubble (count active-layers)])])
         :panel (reagent/as-element [left-drawer-active-layers])}]
 
       [b/tab
