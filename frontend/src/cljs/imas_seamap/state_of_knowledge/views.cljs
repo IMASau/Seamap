@@ -217,8 +217,8 @@
   (let [disabled?          (not (pos? (or deployments 0)))
         deployments        (format-number (or deployments 0) 0)
         campaigns          (format-number (or campaigns 0) 0)
-        start_date         (or (format-date-month start_date) "unknown")
-        end_date           (or (format-date-month end_date) "unknown")
+        start_date         (format-date-month start_date)
+        end_date           (format-date-month end_date)
         method             (or method "N/A")
         images             (format-number (or images 0) 0)
         total_annotations  (format-number (or total_annotations 0) 0)
@@ -227,7 +227,7 @@
      {:title     (str deployments " Imagery Deployments (" campaigns " Campaigns)")
       :disabled? disabled?
       :stats
-      [{:label "Date Range" :text (str start_date " to " end_date)}
+      [{:label "Date Range" :text (if start_date (str start_date " to " end_date) "Unknown")}
        {:label "Methods of Collection" :text method}
        {:label "Images Collected" :text images}
        {:label "Image Annotations" :text (str total_annotations " (" public_annotations " public)")}]}]))
@@ -237,15 +237,15 @@
   (let [disabled?     (not (pos? (or deployments 0)))
         deployments   (format-number (or deployments 0) 0)
         campaigns     (format-number (or campaigns 0) 0)
-        start_date    (or (format-date-month start_date) "unknown")
-        end_date      (or (format-date-month end_date) "unknown")
+        start_date    (format-date-month start_date)
+        end_date      (format-date-month end_date)
         method        (or method "N/A")
         video_time    (format-number (or video_time 0) 0)]
     [habitat-observations-group
      {:title     (str deployments " Video Deployments (" campaigns " Campaigns)")
       :disabled? disabled?
       :stats
-      [{:label "Date Range" :text (str start_date " to " end_date)}
+      [{:label "Date Range" :text (if start_date (str start_date " to " end_date) "Unknown")}
        {:label "Methods of Collection" :text method}
        {:label "Hours of Video" :text video_time}]}]))
 
@@ -255,8 +255,8 @@
         samples    (format-number (or samples 0) 0)
         analysed   (format-number (or analysed 0) 0)
         survey     (format-number (or survey 0) 0)
-        start_date (or (format-date-month start_date) "unknown")
-        end_date   (or (format-date-month end_date) "unknown")
+        start_date (format-date-month start_date)
+        end_date   (format-date-month end_date)
         method     (or method "N/A")]
     [habitat-observations-group
      {:title
@@ -265,7 +265,7 @@
        (str "from " survey " Surveys")]
       :disabled? disabled?
       :stats
-      [{:label "Date Range" :text (str start_date " to " end_date)}
+      [{:label "Date Range" :text (if start_date (str start_date " to " end_date) "Unknown")}
        {:label "Methods of Collection" :text method}]}]))
 
 (defn- habitat-observations []

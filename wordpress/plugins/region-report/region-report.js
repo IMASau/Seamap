@@ -235,8 +235,9 @@ class RegionReport {
         // squidle item
         let squidleDeployments = squidle.deployments?.toLocaleString("en-US") ?? 0;
         let squidleCampaigns = squidle.campaigns?.toLocaleString("en-US") ?? 0;
-        let squidleStartDate = squidle.start_date ? (new Date(squidle.start_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : "unknown";
-        let squidleEndDate = squidle.end_date ? (new Date(squidle.end_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : "unknown";
+        let squidleStartDate = squidle.start_date ? (new Date(squidle.start_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : null;
+        let squidleEndDate = squidle.end_date ? (new Date(squidle.end_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : null;
+        let squidleDateRange = squidle.start_date ? `${squidleStartDate} to ${squidleEndDate}` : "Unknown";
         let squidleMethod = squidle.method ?? "N/A";
         let squidleImages = squidle.images?.toLocaleString("en-US") ?? 0;
         let squidleTotalAnnotations = squidle.total_annotations?.toLocaleString("en-US") ?? 0;
@@ -248,7 +249,7 @@ class RegionReport {
         if (squidleDeployments > 0)
             squidleItem.innerHTML += `
                 <ul>
-                    <li><b>Date Range: </b>${squidleStartDate} to ${squidleEndDate}</li>
+                    <li><b>Date Range: </b>${squidleDateRange}</li>
                     <li><b>Methods of Collection: </b>${squidleMethod}</li>
                     <li><b>Images Collected: </b>${squidleImages}</li>
                     <li><b>Images Annotations: </b>${squidleTotalAnnotations} (${squidlePublicAnnotations} public)</li>
@@ -257,8 +258,9 @@ class RegionReport {
         // global archive item
         let globalArchiveDeployments = globalArchive.deployments?.toLocaleString("en-US") ?? 0;
         let globalArchiveCampaigns = globalArchive.campaigns?.toLocaleString("en-US") ?? 0;
-        let globalArchiveStartDate = globalArchive.start_date ? (new Date(globalArchive.start_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : "unknown";
-        let globalArchiveEndDate = globalArchive.end_date ? (new Date(globalArchive.end_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : "unknown";
+        let globalArchiveStartDate = globalArchive.start_date ? (new Date(globalArchive.start_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : null;
+        let globalArchiveEndDate = globalArchive.end_date ? (new Date(globalArchive.end_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : null;
+        let globalArchiveDateRange = globalArchive.start_date ? `${globalArchiveStartDate} to ${globalArchiveEndDate}` : "Unknown";
         let globalArchiveMethod = globalArchive.method ?? "N/A";
         let globalArchiveVideoTime = globalArchive.video_time ?? 0;
 
@@ -267,7 +269,7 @@ class RegionReport {
         if (globalArchiveDeployments > 0)
             globalArchiveItem.innerHTML += `
                 <ul>
-                    <li><b>Date Range: </b>${globalArchiveStartDate} to ${globalArchiveEndDate}</li>
+                    <li><b>Date Range: </b>${globalArchiveDateRange}</li>
                     <li><b>Methods of Collection: </b>${globalArchiveMethod}</li>
                     <li><b>Hours of Video: </b>${globalArchiveVideoTime}</li>
                 </ul>`;
@@ -276,8 +278,9 @@ class RegionReport {
         let sedimentSamples = sediment.samples?.toLocaleString("en-US") ?? 0;
         let sedimentAnalysed = sediment.analysed?.toLocaleString("en-US") ?? 0;
         let sedimentSurvey = sediment.survey?.toLocaleString("en-US") ?? 0;
-        let sedimentStartDate = sediment.start_date ? (new Date(sediment.start_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : "unknown";
-        let sedimentEndDate = sediment.end_date ? (new Date(sediment.end_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : "unknown";
+        let sedimentStartDate = sediment.start_date ? (new Date(sediment.start_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : null;
+        let sedimentEndDate = sediment.end_date ? (new Date(sediment.end_date)).toLocaleString("en-AU", { month: "short", year: "numeric" }) : null;
+        let sedimentDateRange = sediment.start_date ? `${sedimentStartDate} to ${sedimentEndDate}` : "Unknown";
         let sedimentMethod = sediment.method ?? "N/A";
 
         const sedimentItem = document.createElement("li");
@@ -286,7 +289,7 @@ class RegionReport {
         if (sedimentSamples > 0)
             sedimentItem.innerHTML += `
                 <ul>
-                    <li><b>Date Range: </b>${sedimentStartDate} to ${sedimentEndDate}</li>
+                    <li><b>Date Range: </b>${sedimentDateRange}</li>
                     <li><b>Methods of Collection: </b>${sedimentMethod}</li>
                 </ul>`;
 
