@@ -349,9 +349,10 @@
                   :params          (merge
                                     {:request      "GetFeature"
                                      :service      "WFS"
-                                     :version      "2.0.0"
+                                     :version      "1.0.0"
                                      :typeNames    layer_name
-                                     :outputFormat "application/json"}
+                                     :outputFormat "application/json"
+                                     :srsName      "EPSG:4326"}
                                     (when cql-filter {:cql_filter cql-filter}))
                   :response-format (ajax/json-response-format)
                   :on-success      [:sok/got-filtered-bounds]

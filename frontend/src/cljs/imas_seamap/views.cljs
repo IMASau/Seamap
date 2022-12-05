@@ -119,7 +119,8 @@
                {:icon  "caret-right"
                 :size  "22px"
                 :class (str "bp3-tree-node-caret" (when expanded? " bp3-tree-node-caret-open"))}]
-              (or display-name "Ungrouped")])
+              [b/clipped-text {:ellipsize true}
+               (or display-name "Ungrouped")]])
      :isExpanded expanded?
      :hasCaret   false
      :className  (-> ordering name (string/replace "_" "-"))
@@ -260,7 +261,7 @@
             :opacity   (opacity-fn layer)}}])})
     :disabled    false
     :data-path   [:map :active-layers]
-    :has-handle  true
+    :has-handle  false
     :is-reversed true}])
 
 (defn- plot-component-animatable [{:keys [on-add on-remove]
@@ -585,17 +586,14 @@
 
 (defn left-drawer-active-layers []
   (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])]
-    [components/drawer-group
-     {:heading (str "Active Layers (" (count active-layers) ")")
-      :icon    "eye-open"}
-     [active-layer-selection-list
-      {:layers         active-layers
-       :visible-layers visible-layers
-       :main-national-layer main-national-layer
-       :loading-fn     loading-layers
-       :error-fn       error-layers
-       :expanded-fn    expanded-layers
-       :opacity-fn     layer-opacities}]]))
+    [active-layer-selection-list
+     {:layers         active-layers
+      :visible-layers visible-layers
+      :main-national-layer main-national-layer
+      :loading-fn     loading-layers
+      :error-fn       error-layers
+      :expanded-fn    expanded-layers
+      :opacity-fn     layer-opacities}]))
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
@@ -634,7 +632,8 @@
        {:id    "active-layers"
         :title (reagent/as-element
                 [:<> "Active Layers"
-                 [:div.notification-bubble (count active-layers)]])
+                 (when (seq active-layers)
+                   [:div.notification-bubble (count active-layers)])])
         :panel (reagent/as-element [left-drawer-active-layers])}]
 
       [b/tab

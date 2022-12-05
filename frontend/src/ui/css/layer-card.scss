@@ -1,5 +1,67 @@
 .layer-card {
-    margin: 4px 2px;
+    background-color: $seamap-light-blue;
+    color: $seamap-deep-blue;
+    cursor: pointer;
+    font-size: 12px;
+
+    input[type="range"] {
+        cursor: pointer;
+        accent-color: $seamap-deep-blue;
+        margin: 0;
+        width: 100%;
+    }
+
+    .time-range {
+        margin: 0 6px;
+        font-size: 11px;
+        display: flex;
+        flex-direction: row;
+        
+        >* {
+            flex: 0;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    .layer-header {
+        padding: 20px 24px;
+        border-bottom: 2px solid $seamap-medium-blue;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+
+        .layer-header-text {
+            font-size: 14px;
+            font-weight: bold;
+            span {vertical-align: middle;}
+        }
+
+        >* {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 6px;
+
+            &:nth-child(2) {
+                justify-content: space-between;
+                input[type="range"] { width: 240px; }
+            }
+        }
+    }
+
+    .bp3-collapse-body {
+        background-color: $seamap-color-7;
+        padding: 12px 24px;
+    }
+
+    &:hover {
+        background-color: rgb(197, 213, 234);
+        .bp3-collapse-body { background-color: rgba(241, 243, 246); }
+    }
 }
 
 .layer-header-text {
@@ -11,21 +73,23 @@
 
 .active-layer .layer-header-text { font-weight: bold; }
 
+.layer-controls,
 .layer-status-icons {
     flex: 0 0;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
 
 .layer-status-icons .bp3-icon,
 .layer-control {
-    opacity: 0.8;
+    color: $seamap-medium-blue;
+    svg { opacity: 0.8; }
 }
 
 .layer-control {
     cursor: pointer;
-    &:hover { opacity: 1; }
+    &:hover svg { opacity: 1; }
 }
 
 /* Special controls */
@@ -33,46 +97,39 @@
     color: #0F9960;
 }
 
+.layer-control.bp3-icon-delete {
+    color: $seamap-deep-blue;
+}
+
 .layer-control.bp3-icon-eye-on:hover,
-.layer-control.bp3-icon-remove:hover {
-    color: #C23030;
+.layer-control.bp3-icon-delete:hover {
+    color: $seamap-red;
 }
 
-.layer-controls {
-    flex: 0 0;
+.catalogue-layer-node .layer-header {
     display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.layer-header {
-    display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 6px;
-    height: 20px;
     .bp3-checkbox { margin-right: -6px; }
 }
 
-.legend-wrapper img {
-    max-width: 100%;
-}
-
-.legend-wrapper .bp3-non-ideal-state {
-    height: 150px;
+.legend-wrapper {
+    margin: 8px 0;
+    img { max-width: 100%; }
+    .bp3-non-ideal-state { height: 150px; }
 }
 
 .vector-legend-entry {
     display: flex;
-    // align-items: center;
+    align-items: center;
     gap: 7px;
-    min-height: 20px;
+    min-height: 24px;
 }
 
 .vector-legend-entry > .key {
-    width: 13px;
-    height: 13px;
-    margin-top: 3.5px;
-    margin-left: 3px;
+    width: 16px;
+    height: 16px;
     position: relative;
     flex-shrink: 0;
 }
@@ -88,7 +145,6 @@
 .vector-legend-entry > .label {
     white-space: pre;
     font-size: 13px;
-    margin: 2px 0;
     min-width: 0;
 }
 
