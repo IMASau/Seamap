@@ -47,7 +47,9 @@
     {:icon     icon
      :class    "layer-control"
      :size     18
-     :on-click on-click}]])
+     :on-click #(do
+                  (.stopPropagation %)
+                  on-click)}]])
 
 (defn- layer-card-controls
   "To the right of the layer name. Basic controls for the layer, like getting info
@@ -75,6 +77,7 @@
   [:input
    {:type "range"
     :min 0 :max 100 :value opacity
+    :on-click #(.stopPropagation %)
     :on-input #(re-frame/dispatch [:map.layer/opacity-changed layer (.. % -target -value)])}])
 
 (defn- layer-card-header
@@ -286,8 +289,10 @@
 (defn- main-national-layer-alternate-view-select
   [{:keys [year years alternate-views alternate-view]}]
   [components/form-group
-   {:label "Alternate View"}
-   [components/select
+   {:label    "Alternate View"}
+   [:div
+    {:on-click #(.stopPropagation %)}
+    [components/select
     {:value        alternate-view
      :options      alternate-views
      :onChange     #(re-frame/dispatch [:map.national-layer/alternate-view %])
@@ -296,7 +301,7 @@
      :isDisabled   (and (boolean year) (not= year (apply max years)))
      :keyfns
      {:id   :id
-      :text :name}}]])
+      :text :name}}]]])
 
 (defn- main-national-layer-time-filter
   "Time filter for main national layer, which filters what layers are displayed on
@@ -317,6 +322,7 @@
        :min      (apply min years)
        :max      (apply max years)
        :value    (or year (apply max years))
+       :on-click #(.stopPropagation %)
        :on-input #(re-frame/dispatch [:map.national-layer/year (-> % .-target .-value js/parseInt)])
        :disabled (boolean alternate-view)}]
      [:div.time-range
@@ -339,6 +345,7 @@
              [_years _year _alternate-views _alternate-view displayed-layer]:as details}
             @(re-frame/subscribe [:map/national-layer])]
         [:div.layer-details
+         {:on-click #(.stopPropagation %)}
          [b/tabs
           {:selected-tab-id @selected-tab
            :on-change       #(reset! selected-tab %)}
@@ -348,7 +355,8 @@
             :title (reagent/as-element [:<> [b/icon {:icon "key"}] "Legend"])
             :panel
             (reagent/as-element
-             [:<>
+             [:div
+              {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
               (when (not= displayed-layer layer) [:h2 (:name displayed-layer)])
               [legend-display displayed-layer]])}]
 
@@ -357,7 +365,8 @@
             :title (reagent/as-element [:<> [b/icon {:icon "filter-list"}] "Filters"])
             :panel
             (reagent/as-element
-             [:<>
+             [:div
+              {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
               [main-national-layer-alternate-view-select details]
               [main-national-layer-time-filter details]])}]]]))))
 
