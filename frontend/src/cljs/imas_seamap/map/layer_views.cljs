@@ -59,7 +59,7 @@
    [layer-control
     {:tooltip  (if visible? "Hide layer" "Show layer")
      :icon     (if visible? "eye-on" "eye-off")
-     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
+     :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]
    
    [layer-control
     {:tooltip  "Layer info / Download data"
@@ -256,7 +256,7 @@
    [layer-control
     {:tooltip  (if visible? "Hide layer" "Show layer")
      :icon     (if visible? "eye-on" "eye-off")
-     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
+     :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]
    
    [layer-control
     {:tooltip  "Layer info / Download data"
@@ -355,7 +355,7 @@
 
           [b/tab
            {:id    "filters"
-            :title (reagent/as-element [:<> [b/icon {:icon "filter-list"}] "Legend"])
+            :title (reagent/as-element [:<> [b/icon {:icon "filter-list"}] "Filters"])
             :panel
             (reagent/as-element
              [:<>
