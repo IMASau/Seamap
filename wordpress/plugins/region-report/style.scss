@@ -37,7 +37,7 @@ $headings-font-family: "Poppins", sans-serif;
     }
     
     @media only screen and (min-width: 822px) {
-        --responsive--alignwide-width: min(calc(100vw - 8 * 25px), 1240px);
+        --responsive--alignwide-width: min(calc(100vw - 8 * 25px), 960px);
     }
 
     >* {
