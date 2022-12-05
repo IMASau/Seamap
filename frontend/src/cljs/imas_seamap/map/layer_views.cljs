@@ -49,7 +49,7 @@
      :size     18
      :on-click #(do
                   (.stopPropagation %)
-                  on-click)}]])
+                  (on-click))}]])
 
 (defn- layer-card-controls
   "To the right of the layer name. Basic controls for the layer, like getting info
@@ -167,7 +167,7 @@
 (defn layer-card
   "Wrapper of layer-card-content in a card for displaying in lists."
   [{:keys [layer _layer-state] :as props}]
-  [:div
+  [:div.layer-card
    {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
    [layer-card-content props]])
 
