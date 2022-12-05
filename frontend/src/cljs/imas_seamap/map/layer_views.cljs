@@ -27,9 +27,8 @@
 (defn- layer-card-header-text
   "Layer name, with some other fancy stuff on top. Clicking it will expand the
    layer's details."
-  [{{:keys [name tooltip] :as layer} :layer {:keys [expanded? active?]} :layer-state}]
+  [{{:keys [name tooltip]} :layer {:keys [expanded? active?]} :layer-state}]
   [:div.layer-header-text
-   {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
    [b/tooltip
     {:content
      (cond
@@ -164,8 +163,9 @@
 
 (defn layer-card
   "Wrapper of layer-card-content in a card for displaying in lists."
-  [{:keys [_layer _layer-state] :as props}]
-  [:div.layer-card
+  [{:keys [layer _layer-state] :as props}]
+  [:div
+   {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
    [layer-card-content props]])
 
 (defn- layer-catalogue-controls
@@ -223,9 +223,8 @@
     [b/clipped-text {:ellipsize true} name]]])
 
 (defn- main-national-layer-card-header-text
-  [{:keys [_national-layer-details tooltip] {:keys [name] :as layer} :layer {:keys [active? expanded?]} :layer-state :as _props}]
+  [{:keys [_national-layer-details tooltip] {:keys [name]} :layer {:keys [active? expanded?]} :layer-state :as _props}]
   [:div.layer-header-text
-   {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
    [b/tooltip
     (merge
      {:content
@@ -374,7 +373,7 @@
 
 (defn main-national-layer-card
   "Wrapper of main-national-layer-card-content in a card for displaying in lists."
-  [{:keys [_layer] :as props}]
+  [{:keys [layer] :as props}]
   (let [layer-state @(re-frame/subscribe [:map.national-layer/state])
         {:keys
          [years year _alternate-views alternate-view _displayed-layer _tooltip]
@@ -386,6 +385,7 @@
                   :else                                    nil)
         props (assoc props :layer-state layer-state :national-layer-details national-layer-details :tooltip tooltip)]
     [:div.layer-card
+     {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
      [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
 
 (defn- main-national-layer-catalogue-header
