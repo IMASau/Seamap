@@ -160,6 +160,7 @@ $headings-font-family: "Poppins", sans-serif;
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-end;
+                .caption { font-style: italic; }
 
                 h2 {
                     font-size: 28px;
@@ -174,7 +175,14 @@ $headings-font-family: "Poppins", sans-serif;
                 list-style-type: none;
                 margin: 0;
                 padding: 12px 20px 30px 20px;
-                a:hover { color: $seamap-color-2; }
+
+                a {
+                    text-decoration: none;
+                    &:hover {
+                        text-decoration: underline;
+                        color: $seamap-color-2;
+                    }
+                }
             }
         }
     }

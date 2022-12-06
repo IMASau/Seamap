@@ -570,7 +570,11 @@ class RegionReport {
                 }
             );
             const parksParent = document.createElement("div");
-            parksParent.innerHTML = `<div class="heading"><h2>Parks</h2></div>`;
+            parksParent.innerHTML = `
+                <div class="heading">
+                    <h2>Parks</h2>
+                    <div class="caption">View reports for Parks within this Network</div>
+                </div>`;
             parksParent.appendChild(parkList);
             parksParent.className = "parks";
             outline.appendChild(parksParent);
