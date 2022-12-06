@@ -96,6 +96,7 @@ $headings-font-family: "Poppins", sans-serif;
         padding: 0;
         margin: 0;
         margin-bottom: 20px;
+        page-break-inside: avoid;
     }
     
     .entry-content>* {
@@ -193,9 +194,7 @@ $headings-font-family: "Poppins", sans-serif;
     }
 
     .known {
-        display: flex;
-        flex-direction: column;
-        
+        page-break-inside: avoid;
         .caption { margin-bottom: 32px; }
 
         .statistics {
@@ -203,6 +202,7 @@ $headings-font-family: "Poppins", sans-serif;
             flex-direction: column;
             gap: 24px;
             margin-bottom: 32px;
+            page-break-inside: avoid;
         }
 
         .observations-and-research {
@@ -210,6 +210,7 @@ $headings-font-family: "Poppins", sans-serif;
             flex-direction: row;
             gap: 16px;
             margin-bottom: 32px;
+            page-break-inside: avoid;
 
             >* {
                 flex: 1;
@@ -247,19 +248,13 @@ $headings-font-family: "Poppins", sans-serif;
                     }
                 }
             }
-
-            .research-effort-graphs {
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-            }
         }
 
         .research-rating {
             background-color: $seamap-color-2;
             color: $seamap-color-7;
             padding: 28px 52px;
-    
+            page-break-inside: avoid;
             h2, h3 { color: inherit; }
     
             >:nth-child(2) {
