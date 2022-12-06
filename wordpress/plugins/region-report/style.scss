@@ -14,6 +14,8 @@ $seamap-color-3-darker: rgb(39, 91, 141);
 $body-font-family: "Open Sans", sans-serif;
 $headings-font-family: "Poppins", sans-serif;
 
+@media print { .elementor-element { display: none; } }
+
 /* plugin namespaced */
 .elementor-kit-430 .region_report, .region_report {
     font-family: $body-font-family;
