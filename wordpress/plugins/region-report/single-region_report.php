@@ -180,6 +180,8 @@
         parkName: <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>,
         imageryCaption: <?php echo json_encode($imagery_caption); ?>
     });
+    regionReport.disablePrintCss("hcode-bootstrap-css");
+    regionReport.disablePrintCss("hello-elementor-css");
 </script>
 
 <?php get_footer(); ?>

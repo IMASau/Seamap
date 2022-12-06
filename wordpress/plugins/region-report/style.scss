@@ -14,6 +14,8 @@ $seamap-color-3-darker: rgb(39, 91, 141);
 $body-font-family: "Open Sans", sans-serif;
 $headings-font-family: "Poppins", sans-serif;
 
+@media print { .elementor-element { display: none; } }
+
 /* plugin namespaced */
 .elementor-kit-430 .region_report, .region_report {
     font-family: $body-font-family;
@@ -96,6 +98,7 @@ $headings-font-family: "Poppins", sans-serif;
         padding: 0;
         margin: 0;
         margin-bottom: 20px;
+        page-break-inside: avoid;
     }
     
     .entry-content>* {
@@ -160,6 +163,7 @@ $headings-font-family: "Poppins", sans-serif;
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-end;
+                .caption { font-style: italic; }
 
                 h2 {
                     font-size: 28px;
@@ -189,25 +193,16 @@ $headings-font-family: "Poppins", sans-serif;
     .overview-map {
         .labeled-toggle { margin-bottom: 8px; }
         .map { height: 300px; }
-        
-        .caption {
-            background-color: inherit;
-            color: inherit;
-            padding: 0;
-        }
     }
 
     .known {
-        display: flex;
-        flex-direction: column;
-        
+        page-break-inside: avoid;
         .caption { margin-bottom: 32px; }
 
         .statistics {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
             margin-bottom: 32px;
+            page-break-inside: avoid;
+            >:not(:last-child) { margin-bottom: 24px; }
         }
 
         .observations-and-research {
@@ -215,6 +210,11 @@ $headings-font-family: "Poppins", sans-serif;
             flex-direction: row;
             gap: 16px;
             margin-bottom: 32px;
+            page-break-inside: avoid;
+            .research-effort-graphs>.vega-embed {
+                width: 100%;
+                >canvas { max-width: 100%; }
+            }
 
             >* {
                 flex: 1;
@@ -252,19 +252,13 @@ $headings-font-family: "Poppins", sans-serif;
                     }
                 }
             }
-
-            .research-effort-graphs {
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-            }
         }
 
         .research-rating {
             background-color: $seamap-color-2;
             color: $seamap-color-7;
             padding: 28px 52px;
-    
+            page-break-inside: avoid;
             h2, h3 { color: inherit; }
     
             >:nth-child(2) {
@@ -316,9 +310,6 @@ $headings-font-family: "Poppins", sans-serif;
 
     .caption {
         font-size: 12px;
-        padding: 6px 10px;
-        background-color: $seamap-color-2;
-        color: $seamap-color-7;
         width: max-content;
         max-width: 100%;
 
@@ -348,17 +339,18 @@ $headings-font-family: "Poppins", sans-serif;
             .images {
                 flex: 3;
                 a { color: inherit; }
+                .caption { margin-bottom: 8px; }
         
                 .image-grid {
                     display: grid;
                     grid-template-columns: repeat(5, 1fr);
-                    gap: 8px;
         
                     >* {
                         user-select: none;
                         aspect-ratio: 5 / 4;
                         overflow: hidden;
                         position: relative;
+                        padding: 4px;
         
                         img {
                             object-fit: cover;
@@ -371,8 +363,8 @@ $headings-font-family: "Poppins", sans-serif;
                             color: white;
                             font-weight: bold;
                             position: absolute;
-                            left: 0;
-                            top: 0;
+                            left: 4px;
+                            top: 4px;
                             width: 20px;
                             aspect-ratio: 1;
                             display: flex;
@@ -380,13 +372,6 @@ $headings-font-family: "Poppins", sans-serif;
                             align-items: center;
                         }
                     }
-                }
-
-                .caption {
-                    background-color: inherit;
-                    color: inherit;
-                    padding: 0;
-                    margin-bottom: 8px;
                 }
             }
         }

@@ -246,7 +246,7 @@ class RegionReport {
         const squidleItem = document.createElement("li");
         squidleItem.innerHTML = `<span>${squidleDeployments} imagery deployments <wbr>(${squidleCampaigns} campaigns)</span>`;
 
-        if (squidleDeployments > 0)
+        if (squidle.deployments > 0)
             squidleItem.innerHTML += `
                 <ul>
                     <li><b>Date Range: </b>${squidleDateRange}</li>
@@ -266,7 +266,7 @@ class RegionReport {
 
         const globalArchiveItem = document.createElement("li");
         globalArchiveItem.innerHTML = `<span>${globalArchiveDeployments} video deployments <wbr>(${globalArchiveCampaigns} campaigns)</span>`;
-        if (globalArchiveDeployments > 0)
+        if (globalArchive.deployments > 0)
             globalArchiveItem.innerHTML += `
                 <ul>
                     <li><b>Date Range: </b>${globalArchiveDateRange}</li>
@@ -286,7 +286,7 @@ class RegionReport {
         const sedimentItem = document.createElement("li");
         sedimentItem.innerHTML = `<span>${sedimentSamples} sediment samples <wbr>(${sedimentAnalysed} analysed) from ${sedimentSurvey} surveys</span>`;
 
-        if (sedimentSamples > 0)
+        if (sediment.samples > 0)
             sedimentItem.innerHTML += `
                 <ul>
                     <li><b>Date Range: </b>${sedimentDateRange}</li>
@@ -570,7 +570,11 @@ class RegionReport {
                 }
             );
             const parksParent = document.createElement("div");
-            parksParent.innerHTML = `<div class="heading"><h2>Parks</h2></div>`;
+            parksParent.innerHTML = `
+                <div class="heading">
+                    <h2>Parks</h2>
+                    <div class="caption">View reports for Parks within this Network</div>
+                </div>`;
             parksParent.appendChild(parkList);
             parksParent.className = "parks";
             outline.appendChild(parksParent);
@@ -798,5 +802,24 @@ class RegionReport {
             });
             pressuresTabContent.appendChild(tabPane);
         });
+    }
+
+    disablePrintCss(stylesheetId) {
+        let href = document.getElementById(stylesheetId)?.href;
+        if (href == null) return;
+
+        let targetStylesheet = null;
+    
+        for (let i in document.styleSheets) {
+            if (document.styleSheets[i].href == href) {
+                targetStylesheet = document.styleSheets[i];
+                break;
+            }
+        }
+        
+        for (let i in targetStylesheet.cssRules) {
+            if (targetStylesheet.cssRules[i] instanceof CSSMediaRule && targetStylesheet.cssRules[i].conditionText == 'print')
+                targetStylesheet.deleteRule(i);
+        }
     }
 }
