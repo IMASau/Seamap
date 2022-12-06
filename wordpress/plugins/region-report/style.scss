@@ -200,11 +200,9 @@ $headings-font-family: "Poppins", sans-serif;
         .caption { margin-bottom: 32px; }
 
         .statistics {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
             margin-bottom: 32px;
             page-break-inside: avoid;
+            >:not(:last-child) { margin-bottom: 24px; }
         }
 
         .observations-and-research {
@@ -213,6 +211,10 @@ $headings-font-family: "Poppins", sans-serif;
             gap: 16px;
             margin-bottom: 32px;
             page-break-inside: avoid;
+            .research-effort-graphs>.vega-embed {
+                width: 100%;
+                >canvas { max-width: 100%; }
+            }
 
             >* {
                 flex: 1;
