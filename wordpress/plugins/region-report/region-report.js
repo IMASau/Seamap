@@ -544,6 +544,13 @@ class RegionReport {
         // zoom to map extent
         this.overviewMap.fitBounds([[bounds.north, bounds.east], [bounds.south, bounds.west]]);
         window.addEventListener("resize", this.overviewMap.invalidateSize);
+        if (navigator.userAgent.match(/chrome|chromium|crios/i))
+            window.matchMedia('print').addEventListener(
+                "change",
+                e => {
+                    if (e.matches) this.overviewMap.invalidateSize();
+                }
+            );
     }
 
     toggleMinimap(publicOnly) {
@@ -734,6 +741,13 @@ class RegionReport {
             // zoom to map extent
             this.imageryMap.fitBounds([[bounds.north, bounds.east], [bounds.south, bounds.west]]);
             window.addEventListener("resize", this.imageryMap.invalidateSize);
+            if (navigator.userAgent.match(/chrome|chromium|crios/i))
+                window.matchMedia('print').addEventListener(
+                    "change",
+                    e => {
+                        if (e.matches) this.imageryMap.invalidateSize();
+                    }
+                );
         } else {
             imageryElement.innerText = "No imagery deployments found in this region";
         }
