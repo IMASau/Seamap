@@ -352,13 +352,13 @@ $headings-font-family: "Poppins", sans-serif;
                 .image-grid {
                     display: grid;
                     grid-template-columns: repeat(5, 1fr);
-                    gap: 8px;
         
                     >* {
                         user-select: none;
                         aspect-ratio: 5 / 4;
                         overflow: hidden;
                         position: relative;
+                        padding: 4px;
         
                         img {
                             object-fit: cover;
@@ -371,8 +371,8 @@ $headings-font-family: "Poppins", sans-serif;
                             color: white;
                             font-weight: bold;
                             position: absolute;
-                            left: 0;
-                            top: 0;
+                            left: 4px;
+                            top: 4px;
                             width: 20px;
                             aspect-ratio: 1;
                             display: flex;
