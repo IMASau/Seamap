@@ -14,6 +14,11 @@ $seamap-color-3-darker: rgb(39, 91, 141);
 $body-font-family: "Open Sans", sans-serif;
 $headings-font-family: "Poppins", sans-serif;
 
+body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
 @media print { .elementor-element { display: none; } }
 
 /* plugin namespaced */
@@ -265,7 +270,7 @@ $headings-font-family: "Poppins", sans-serif;
                 display: flex;
                 flex-direction: row;
                 gap: 16px;
-                align-items: flex-end;
+                align-items: center;
                 >* { flex: 1; }
     
                 .star-ratings {
@@ -304,6 +309,11 @@ $headings-font-family: "Poppins", sans-serif;
                         margin-top: 16px;
                     }
                 }
+            }
+
+            @media print {
+                padding: 20px 34px;
+                >:nth-child(2) .feedback .quote { font-size: 12px; }
             }
         }
     }
@@ -456,7 +466,6 @@ $headings-font-family: "Poppins", sans-serif;
         display: flex;
         flex-direction: row;
         align-items: center;
-
         >:nth-child(2) { font-size: 16px; }
 
         >:nth-child(1) {
@@ -465,6 +474,11 @@ $headings-font-family: "Poppins", sans-serif;
             flex-direction: row;
             gap: 6px;
             margin-right: 12px;
+        }
+
+        @media print {
+            >:nth-child(2) { font-size: 14px; }
+            >:nth-child(1) { font-size: 24px; }
         }
     }
 
