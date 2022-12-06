@@ -182,12 +182,6 @@ $headings-font-family: "Poppins", sans-serif;
     .overview-map {
         .labeled-toggle { margin-bottom: 8px; }
         .map { height: 300px; }
-        
-        .caption {
-            background-color: inherit;
-            color: inherit;
-            padding: 0;
-        }
     }
 
     .known {
@@ -309,9 +303,6 @@ $headings-font-family: "Poppins", sans-serif;
 
     .caption {
         font-size: 12px;
-        padding: 6px 10px;
-        background-color: $seamap-color-2;
-        color: $seamap-color-7;
         width: max-content;
         max-width: 100%;
 
@@ -341,6 +332,7 @@ $headings-font-family: "Poppins", sans-serif;
             .images {
                 flex: 3;
                 a { color: inherit; }
+                .caption { margin-bottom: 8px; }
         
                 .image-grid {
                     display: grid;
@@ -373,13 +365,6 @@ $headings-font-family: "Poppins", sans-serif;
                             align-items: center;
                         }
                     }
-                }
-
-                .caption {
-                    background-color: inherit;
-                    color: inherit;
-                    padding: 0;
-                    margin-bottom: 8px;
                 }
             }
         }
