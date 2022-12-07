@@ -354,15 +354,18 @@
                                (when active-realm [(:realm active-realm)])
                                (when active-province [(:province active-province)])
                                (when active-ecoregion [(:ecoregion active-ecoregion)]))
-                      nil)]
+                      nil)
+        region-report-url @(re-frame/subscribe [:sok/region-report-url])]
     [:div.selected-boundaries
      [:div [:h2 (:name active-boundary)]
       (when (seq breadcrumbs)
         [components/breadcrumbs
          {:content breadcrumbs}])]
-     [b/icon
-      {:icon "document-open"
-       :size 24}]]))
+     (when region-report-url
+       [:a {:href region-report-url :target "_blank"}
+        [b/icon
+         {:icon "document-open"
+          :size 24}]])]))
 
 (defn state-of-knowledge []
   [components/drawer
