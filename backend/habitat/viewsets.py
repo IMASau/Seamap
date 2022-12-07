@@ -10,8 +10,8 @@ import subprocess
 import tempfile
 import zipfile
 
-from catalogue.models import Layer, RegionReport
-from catalogue.serializers import RegionReportSerializer
+from catalogue.models import Layer, RegionReport, KeyedLayer
+from catalogue.serializers import RegionReportSerializer, LayerSerializer
 from collections import defaultdict, namedtuple
 
 from django.conf import settings
@@ -1280,6 +1280,16 @@ def region_report_data(request):
     park    = params.get('park')
 
     data = RegionReportSerializer(RegionReport.objects.get(network=network, park=park)).data
+
+    data["parks"] = [{'park': v.park, 'slug': v.slug} for v in RegionReport.objects.filter(network=network) if v.park] if park == None else None
+    
+    network_region = RegionReport.objects.get(network=network, park=None)
+    data["network"] = {'network': network_region.network, 'slug': network_region.slug}
+
+    data["all_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap-panel1').order_by('-sort_key')]
+    data["all_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel1-boundary').layer).data
+    data["public_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap-panel2').order_by('-sort_key')]
+    data["public_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel2-boundary').layer).data
 
     with connections['transects'].cursor() as cursor:
         try:

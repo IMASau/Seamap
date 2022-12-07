@@ -23,6 +23,7 @@ router.register(r'baselayergroups', viewsets.BaseLayerGroupViewset)
 router.register(r'categories', viewsets.CategoryViewset)
 router.register(r'keyedlayers', viewsets.KeyedLayerViewset)
 router.register(r'nationallayertimeline', viewsets.NationalLayerTimelineViewset)
+router.register(r'regionreport', viewsets.RegionReportViewset)
 
 urlpatterns = [
     re_path(r'^api/habitat/transect', habitat_viewsets.transect),
