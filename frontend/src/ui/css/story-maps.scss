@@ -1,3 +1,11 @@
+.featured-maps>.orientation {
+    background-color: $seamap-medium-blue;
+    color: $seamap-color-7;
+    font-family: $headings-font-family;
+    font-size: 24px;
+    padding: 42px 29px 23px 29px;
+}
+
 .featured-map {
     margin: 8px 12px;
     cursor: pointer;
