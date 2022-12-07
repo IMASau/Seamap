@@ -22,6 +22,8 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/@blueprintjs/core@3.47.0/lib/css/blueprint.css" />
+<link rel="stylesheet" href="https://unpkg.com/@blueprintjs/icons@3.27.0/lib/css/blueprint-icons.css" />
 
 <script src="https://unpkg.com/vega@5.22.1/build/vega.js"></script>
 <script src="https://unpkg.com/vega-lite@5.2.0/build/vega-lite.js"></script>

@@ -153,80 +153,113 @@ class RegionReport {
 
     populateHabitatChart(habitatStatistics) {
         const values = habitatStatistics.filter(e => e.habitat);
-        vegaEmbed(
-            `#region-report-habitat-chart-${this.postId}`,
-            {
-                background: "transparent",
-                data: { values: values },
-                mark: { type: "arc" },
-                encoding: {
-                    theta: {
-                        field: "area",
-                        type: "quantitative"
-                    },
-                    color: {
-                        field: "habitat",
-                        type: "nominal",
-                        legend: { title: "Habitat" },
-                        sort: values.map(e => e.habitat),
-                        scale: { range: values.map(e => e.color) }
+
+        if (values.length > 0) {
+            vegaEmbed(
+                `#region-report-habitat-chart-${this.postId}`,
+                {
+                    background: "transparent",
+                    data: { values: values },
+                    mark: { type: "arc" },
+                    encoding: {
+                        theta: {
+                            field: "area",
+                            type: "quantitative"
+                        },
+                        color: {
+                            field: "habitat",
+                            type: "nominal",
+                            legend: { title: "Habitat" },
+                            sort: values.map(e => e.habitat),
+                            scale: { range: values.map(e => e.color) }
+                        }
                     }
-                }
-            },
-            { actions: false }
-        );
+                },
+                { actions: false }
+            );
+        } else {
+            document.getElementById(`region-report-habitat-chart-${this.postId}`).innerHTML = `
+                <div class="bp3-non-ideal-state">
+                    <div class="bp3-non-ideal-state-visual">
+                        <span class="bp3-icon bp3-icon-info-sign"></span>
+                    </div>
+                    <h4 class="bp3-heading">No Data</h4>
+                    <div>No habitat data is available for this region.</div>
+                </div>`;
+        }
     }
 
     populateHabitatTable(habitatStatistics) {
         const table = document.getElementById(`region-report-habitat-table-${this.postId}`);
-
-        habitatStatistics.forEach(habitat => {
-            const row = table.insertRow();
-
-            row.insertCell().innerText = habitat.habitat ?? "Total Mapped";
-            row.insertCell().innerText = habitat.area.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
-            row.insertCell().innerText = habitat.mapped_percentage?.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) ?? "N/A";
-            row.insertCell().innerText = habitat.total_percentage.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
-        });
+        const withoutUnmapped = habitatStatistics.filter(e => e.habitat);
+        if (withoutUnmapped.length > 0) {
+            habitatStatistics.forEach(habitat => {
+                const row = table.insertRow();
+    
+                row.insertCell().innerText = habitat.habitat ?? "Total Mapped";
+                row.insertCell().innerText = habitat.area.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+                row.insertCell().innerText = habitat.mapped_percentage?.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) ?? "N/A";
+                row.insertCell().innerText = habitat.total_percentage.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+            });
+        } else {
+            table.parentElement.outerHTML = '';
+        }
     }
 
     populateBathymetryChart(bathymetryStatistics) {
         const values = bathymetryStatistics.filter(e => e.resolution);
-        vegaEmbed(
-            `#region-report-bathymetry-chart-${this.postId}`,
-            {
-                background: "transparent",
-                data: { values: values },
-                mark: { type: "arc" },
-                encoding: {
-                    theta: {
-                        field: "area",
-                        type: "quantitative"
-                    },
-                    color: {
-                        field: "resolution",
-                        type: "nominal",
-                        legend: { title: "Resolution" },
-                        sort: values.map(e => e.resolution),
-                        scale: { range: values.map(e => e.color) }
+
+        if (values.length > 0) {
+            vegaEmbed(
+                `#region-report-bathymetry-chart-${this.postId}`,
+                {
+                    background: "transparent",
+                    data: { values: values },
+                    mark: { type: "arc" },
+                    encoding: {
+                        theta: {
+                            field: "area",
+                            type: "quantitative"
+                        },
+                        color: {
+                            field: "resolution",
+                            type: "nominal",
+                            legend: { title: "Resolution" },
+                            sort: values.map(e => e.resolution),
+                            scale: { range: values.map(e => e.color) }
+                        }
                     }
-                }
-            },
-            { actions: false }
-        );
+                },
+                { actions: false }
+            );
+        } else {
+            document.getElementById(`region-report-bathymetry-chart-${this.postId}`).innerHTML = `
+                <div class="bp3-non-ideal-state">
+                    <div class="bp3-non-ideal-state-visual">
+                        <span class="bp3-icon bp3-icon-info-sign"></span>
+                    </div>
+                    <h4 class="bp3-heading">No Data</h4>
+                    <div>No bathymetry data is available for this region.</div>
+                </div>`;
+        }
     }
 
     populateBathymetryTable(bathymetryStatistics) {
         const table = document.getElementById(`region-report-bathymetry-table-${this.postId}`);
+        const withoutUnmapped = bathymetryStatistics.filter(e => e.resolution);
 
-        bathymetryStatistics.forEach(bathymetry => {
-            const row = table.insertRow();
+        if (withoutUnmapped.length > 0) {
+            bathymetryStatistics.forEach(bathymetry => {
+                const row = table.insertRow();
 
-            row.insertCell().innerText = bathymetry.resolution ?? "Total Mapped";
-            row.insertCell().innerText = bathymetry.area.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
-            row.insertCell().innerText = bathymetry.mapped_percentage?.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) ?? "N/A";
-            row.insertCell().innerText = bathymetry.total_percentage.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
-        });
+                row.insertCell().innerText = bathymetry.resolution ?? "Total Mapped";
+                row.insertCell().innerText = bathymetry.area.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+                row.insertCell().innerText = bathymetry.mapped_percentage?.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) ?? "N/A";
+                row.insertCell().innerText = bathymetry.total_percentage.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+            });
+        } else {
+            table.parentElement.outerHTML = '';
+        }
     }
 
     populateHabitatObservations({ squidle: squidle, global_archive: globalArchive, sediment: sediment }) {
