@@ -58,6 +58,7 @@
             background-color: $seamap-deep-blue-lighter;
             color: $seamap-color-7;
             height: 49px;
+            >* { padding: 0 12px; }
             .bp3-tab { color: inherit; }
     
             .bp3-tab-indicator-wrapper {
@@ -65,7 +66,7 @@
     
                 .bp3-tab-indicator {
                     background-color: $seamap-color-7;
-                    margin-bottom: 12.5px;
+                    margin: 0 12px 12.5px 12px;
                 }
             }
         }

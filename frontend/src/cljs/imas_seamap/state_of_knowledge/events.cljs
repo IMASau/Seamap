@@ -173,10 +173,6 @@
 
 (defn update-active-mesoscale-bioregion [{:keys [db]} [_ {:keys [provincial-bioregion] :as mesoscale-bioregion}]]
   (let [old-provincial-bioregion (get-in db [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion])
-        provincial-bioregions (get-in db [:state-of-knowledge :boundaries :imcra :provincial-bioregions])
-        provincial-bioregion (if mesoscale-bioregion
-                               (first-where #(= (:name %) provincial-bioregion) provincial-bioregions)
-                               old-provincial-bioregion)
         db (-> db
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] (if provincial-bioregion {:provincial-bioregion provincial-bioregion} old-provincial-bioregion))
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] mesoscale-bioregion))]

@@ -356,10 +356,13 @@
                                (when active-ecoregion [(:ecoregion active-ecoregion)]))
                       nil)]
     [:div.selected-boundaries
-     [:h2 (:name active-boundary)]
-     (when (seq breadcrumbs)
-       [components/breadcrumbs
-        {:content breadcrumbs}])]))
+     [:div [:h2 (:name active-boundary)]
+      (when (seq breadcrumbs)
+        [components/breadcrumbs
+         {:content breadcrumbs}])]
+     [b/icon
+      {:icon "document-open"
+       :size 24}]]))
 
 (defn state-of-knowledge []
   [components/drawer
