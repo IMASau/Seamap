@@ -1,37 +1,37 @@
 .featured-map {
     margin: 8px 12px;
     cursor: pointer;
-}
 
-.featured-map::after {
-    content: "";
-    display: table;
-    clear: both;
-}
+    &::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
 
-.featured-map > .image-container {
-    width: 120px;
-    height: 104px;
-    float: left;
-    margin: 0 12px 6px 0;
-    position: relative;
-    background-color: rgba(0,0,0,.05);
-}
+    >.image-container {
+        width: 120px;
+        height: 104px;
+        float: left;
+        margin: 0 12px 6px 0;
+        position: relative;
+        background-color: rgba(0,0,0,.05);
 
-.image-container > img {
-    display: block;
-    max-width: 100%;
-    max-height: 100%;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    -webkit-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-}
+        > img {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            -webkit-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        }
+    }
 
-.featured-map > .title {
-    font-weight: bold;
-    font-size: 16px;
+    > .title {
+        font-weight: bold;
+        font-size: 16px;
+    }
 }
 
 .featured-map-drawer .summary {

@@ -8,19 +8,24 @@
             [clojure.pprint]))
 
 (defn- featured-map [{:keys [title content image] :as story-map}]
-  [b/card
-   {:elevation   1
-    :class       "featured-map"
-    :on-click    #(re-frame/dispatch [:sm/featured-map story-map])}
+  [:div.featured-map
    (when (seq image)
      [:div.image-container
       [:img {:src image}]])
    [:div.title title]
-   [:div content]])
+   [:div content]
+   [b/button
+    {:icon     "search"
+     :text     "Show me"
+     :intent   "primary"
+     :class    "show-me"
+     :large    true
+     :on-click #(re-frame/dispatch [:sm/featured-map story-map])}]])
 
 (defn featured-maps []
   (let [story-maps @(re-frame/subscribe [:sm/featured-maps])]
-    [:div
+    [:div.featured-maps
+     [:div.orientation "Seamap connects raw data with narrative and scientific context."]
      (for [{:keys [id] :as story-map} story-maps]
        ^{:key (str id)}
        [featured-map story-map])]))
