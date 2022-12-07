@@ -19,18 +19,13 @@
      [:th "Mapped (%)"]
      [:th "Total (%)"]]]
    [:tbody
-    (if (seq habitat-statistics)
-      (for [{:keys [habitat area mapped_percentage total_percentage]} habitat-statistics]
-        [:tr
-         {:key (or habitat "Total Mapped")}
-         [:td (or habitat "Total Mapped")]
-         [:td (format-number area)]
-         [:td (or (format-number mapped_percentage) "N/A")]
-         [:td (format-number total_percentage)]])
+    (for [{:keys [habitat area mapped_percentage total_percentage]} habitat-statistics]
       [:tr
-       [:td
-        {:colSpan 4}
-        "No habitat information"]])]])
+       {:key (or habitat "Total Mapped")}
+       [:td (or habitat "Total Mapped")]
+       [:td (format-number area)]
+       [:td (or (format-number mapped_percentage) "N/A")]
+       [:td (format-number total_percentage)]])]])
 
 (defn habitat-statistics
   []
@@ -55,8 +50,17 @@
             :title "Breakdown"
             :panel
             (reagent/as-element
-             (if loading?
+             (cond
+               loading?
                [b/spinner]
+
+               (empty? without-unmapped)
+               [b/non-ideal-state
+                {:title       "No Data"
+                 :description "No habitat data is available for this region."
+                 :icon        "info-sign"}]
+
+               :else
                [habitat-statistics-table
                 {:habitat-statistics results}]))}]
 
@@ -66,30 +70,44 @@
             :panel
             (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
               (reagent/as-element
-               (if loading?
+               (cond
+                 loading?
                  [b/spinner]
-                 (if (seq without-unmapped)
-                   [components/donut-chart
-                    {:id              "habitat-statistics-chart"
-                     :values          without-unmapped
-                     :independent-var :habitat
-                     :dependent-var   :area
-                     :color           :color
-                     :legend-title    "Habitat"}]
-                   [:div "No habitat information"]))))}]
+
+                 (empty? without-unmapped)
+                 [b/non-ideal-state
+                  {:title       "No Data"
+                   :description "No habitat data is available for this region."
+                   :icon        "info-sign"}]
+                 
+                 :else
+                 [components/donut-chart
+                  {:id              "habitat-statistics-chart"
+                   :values          without-unmapped
+                   :independent-var :habitat
+                   :dependent-var   :area
+                   :color           :color
+                   :legend-title    "Habitat"}])))}]
 
           [b/tab
            {:id    "download"
             :title "Download"
             :panel
             (reagent/as-element
-             (if loading?
+             (cond
+               loading?
                [b/spinner]
-               (if (seq without-unmapped)
-                 [:a.download
-                  {:href download-url}
-                  "Download as Shapefile"]
-                 [:div "No habitat information"])))}]
+
+               (empty? without-unmapped)
+               [b/non-ideal-state
+                {:title       "No Data"
+                 :description "No habitat data is available for this region."
+                 :icon        "info-sign"}]
+
+               :else
+               [:a.download
+                {:href download-url}
+                "Download as Shapefile"]))}]
 
           [b/switch
            {:checked   show-layers?
@@ -106,18 +124,13 @@
      [:th "Mapped (%)"]
      [:th "Total (%)"]]]
    [:tbody
-    (if (seq bathymetry-statistics)
-      (for [{:keys [resolution area mapped_percentage total_percentage]} bathymetry-statistics]
-        [:tr
-         {:key (or resolution "Total Mapped")}
-         [:td (or resolution "Total Mapped")]
-         [:td (format-number area)]
-         [:td (or (format-number mapped_percentage) "N/A")]
-         [:td (format-number total_percentage)]])
+    (for [{:keys [resolution area mapped_percentage total_percentage]} bathymetry-statistics]
       [:tr
-       [:td
-        {:colSpan 4}
-        "No bathymetry information"]])]])
+       {:key (or resolution "Total Mapped")}
+       [:td (or resolution "Total Mapped")]
+       [:td (format-number area)]
+       [:td (or (format-number mapped_percentage) "N/A")]
+       [:td (format-number total_percentage)]])]])
 
 (defn bathymetry-statistics
   []
@@ -141,8 +154,17 @@
            {:id    "breakdown"
             :title "Breakdown"
             :panel (reagent/as-element
-                    (if loading?
+                    (cond
+                      loading?
                       [b/spinner]
+
+                      (empty? without-unmapped)
+                      [b/non-ideal-state
+                       {:title       "No Data"
+                        :description "No bathymetry data is available for this region."
+                        :icon        "info-sign"}]
+
+                      :else
                       [bathymetry-statistics-table
                        {:bathymetry-statistics results}]))}]
 
@@ -152,31 +174,45 @@
             :panel
             (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
               (reagent/as-element
-               (if loading?
+               (cond
+                 loading?
                  [b/spinner]
-                 (if (seq without-unmapped)
-                   [components/donut-chart
-                    {:id              "bathymetry-statistics-chart"
-                     :values          without-unmapped
-                     :independent-var :resolution
-                     :dependent-var   :area
-                     :color           :color
-                     :legend-title    "Resolution"
-                     :sort-key        :rank}]
-                   [:div "No bathymetry information"]))))}]
+
+                 (empty? without-unmapped)
+                 [b/non-ideal-state
+                  {:title       "No Data"
+                   :description "No bathymetry data is available for this region."
+                   :icon        "info-sign"}]
+
+                 :else
+                 [components/donut-chart
+                  {:id              "bathymetry-statistics-chart"
+                   :values          without-unmapped
+                   :independent-var :resolution
+                   :dependent-var   :area
+                   :color           :color
+                   :legend-title    "Resolution"
+                   :sort-key        :rank}])))}]
 
           [b/tab
            {:id    "download"
             :title "Download"
             :panel
             (reagent/as-element
-             (if loading?
+             (cond
+               loading?
                [b/spinner]
-               (if (seq without-unmapped)
-                 [:a.download
-                  {:href download-url}
-                  "Download as Shapefile"]
-                 [:div "No bathymetry information"])))}]
+
+               (empty? without-unmapped)
+               [b/non-ideal-state
+                {:title       "No Data"
+                 :description "No bathymetry data is available for this region."
+                 :icon        "info-sign"}]
+
+               :else
+               [:a.download
+                {:href download-url}
+                "Download as Shapefile"]))}]
 
           [b/switch
            {:checked   show-layers?

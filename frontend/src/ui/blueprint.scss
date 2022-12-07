@@ -33,3 +33,16 @@ $blue3: $seamap-color-3;
 .#{$ns}-text-overflow-ellipsis {
     @include overflow-ellipsis();
 }
+
+.#{$ns}-non-ideal-state {
+    h4.bp3-heading, .bp3-running-text h4 {
+        font-size: 18px;
+        line-height: 21px;
+    }
+    
+    .bp3-heading {
+        font-weight: 600;
+        margin: 0 0 8px;
+        padding: 0;
+    }
+}
