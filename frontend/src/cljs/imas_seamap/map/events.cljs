@@ -398,6 +398,9 @@
   (let [national-layer-timeline (vec (sort-by :year national-layer-timeline))]
     (assoc-in db [:map :national-layer-timeline] national-layer-timeline)))
 
+(defn update-region-reports [db [_ region-reports]]
+  (assoc-in db [:state-of-knowledge :region-reports] region-reports))
+
 (defn layer-started-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loading))
 

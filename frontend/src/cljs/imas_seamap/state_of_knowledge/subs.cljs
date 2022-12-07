@@ -92,3 +92,7 @@
     (fn [layer]
       (when (and (= layer active-boundary-layer) cql-filter)
         {:cql_filter cql-filter}))))
+
+(defn region-report-url [db _]
+  (let [wordpress-url-base (get-in db [:config :url-base :wordpress-url-base])]
+    (str wordpress-url-base)))

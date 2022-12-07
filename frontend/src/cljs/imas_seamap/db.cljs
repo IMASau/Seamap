@@ -94,6 +94,7 @@
                                  :category              "categories/"
                                  :keyed-layers          "keyedlayers/"
                                  :national-layer-timeline "nationallayertimeline/"
+                                 :region-reports        "regionreports/"
                                  :amp-boundaries        "habitat/ampboundaries"
                                  :imcra-boundaries      "habitat/imcraboundaries"
                                  :meow-boundaries       "habitat/meowboundaries"

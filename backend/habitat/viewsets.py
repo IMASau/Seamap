@@ -10,8 +10,8 @@ import subprocess
 import tempfile
 import zipfile
 
-from catalogue.models import Layer, RegionReport, KeyedLayer
-from catalogue.serializers import RegionReportSerializer, LayerSerializer
+from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure
+from catalogue.serializers import RegionReportSerializer, LayerSerializer, PressureSerializer
 from collections import defaultdict, namedtuple
 
 from django.conf import settings
@@ -1289,7 +1289,8 @@ def region_report_data(request):
     data["all_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap-panel1').order_by('-sort_key')]
     data["all_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel1-boundary').layer).data
     data["public_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap-panel2').order_by('-sort_key')]
-    data["public_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel2-boundary').layer).data
+    data["public_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel2-boundary').layer).databounding_box = serializers.SerializerMethodField()
+    data["pressures"] = [PressureSerializer(v).data for v in Pressure.objects.filter(region_report=data["id"])]
 
     with connections['transects'].cursor() as cursor:
         try:

@@ -88,11 +88,7 @@ class NationalLayerTimelineSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class RegionReportSerializer(serializers.ModelSerializer):
-    pressures = serializers.SerializerMethodField()
     bounding_box = serializers.SerializerMethodField()
-    
-    def get_pressures(self, obj):
-        return [PressureSerializer(v).data for v in models.Pressure.objects.filter(region_report=obj.id)]
 
     def get_bounding_box(self, obj):
         return {
