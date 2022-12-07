@@ -2,7 +2,7 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.state-of-knowledge.subs
-  (:require [imas-seamap.utils :refer [append-query-params]]
+  (:require [imas-seamap.utils :refer [append-query-params first-where]]
             [imas-seamap.state-of-knowledge.utils :as utils :refer [boundary-filter-names cql-filter filter-valid-boundaries]]))
 
 (defn habitat-statistics [db _]
@@ -94,5 +94,16 @@
         {:cql_filter cql-filter}))))
 
 (defn region-report-url [db _]
-  (let [wordpress-url-base (get-in db [:config :url-base :wordpress-url-base])]
-    (str wordpress-url-base)))
+  (let [region-report-pages-url (get-in db [:config :urls :region-report-pages-url])
+        boundaries     (get-in db [:state-of-knowledge :boundaries])
+        {:keys [network park] :as boundaries} (boundary-filter-names boundaries)
+        only-regions?  (reduce
+                        (fn [acc val] (and acc (nil? val)))
+                        true (vals (dissoc boundaries :network :park)))
+        region-reports (get-in db [:state-of-knowledge :region-reports])
+        region-report  (first-where
+                        (fn [{report-network :network report-park :park}]
+                          (and (= report-network network) (= report-park park)))
+                        region-reports)]
+    (when (and only-regions? region-report)
+      (str region-report-pages-url (:slug region-report) "/"))))

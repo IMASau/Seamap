@@ -102,7 +102,8 @@
                                  :bathymetry-statistics "habitat/bathymetrystatistics"
                                  :habitat-observations  "habitat/habitatobservations"
                                  :layer-previews        "layer_previews/"
-                                 :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"}
+                                 :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"
+                                 :region-report-pages   "region-reports/"}
                      :urls      nil
                      :url-base {:api-url-base       "http://localhost:8000/api/"
                                 :media-url-base     "http://localhost:8000/media/"

@@ -64,6 +64,7 @@
     :sok/open?                            soksubs/open?
     :sok/open-pill                        soksubs/open-pill
     :sok/boundary-layer-filter            soksubs/boundary-layer-filter-fn
+    :sok/region-report-url                soksubs/region-report-url
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
     :sm.featured-map/open?                smsubs/featured-map-open?

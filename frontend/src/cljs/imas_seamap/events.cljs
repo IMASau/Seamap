@@ -132,7 +132,8 @@
           bathymetry-statistics
           habitat-observations
           layer-previews
-          story-maps]}
+          story-maps
+          region-report-pages]}
         (get-in db [:config :url-paths])
         {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
@@ -156,7 +157,8 @@
       :bathymetry-statistics-url   (str api-url-base bathymetry-statistics)
       :habitat-observations-url    (str api-url-base habitat-observations)
       :layer-previews-url          (str media-url-base layer-previews)
-      :story-maps-url              (str wordpress-url-base story-maps)})))
+      :story-maps-url              (str wordpress-url-base story-maps)
+      :region-report-pages-url     (str wordpress-url-base region-report-pages)})))
 
 (defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (assoc-in
