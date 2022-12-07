@@ -1,37 +1,38 @@
+.featured-maps {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    
+    >.orientation {
+        background-color: $seamap-medium-blue;
+        color: $seamap-color-7;
+        font-family: $headings-font-family;
+        font-size: 24px;
+        padding: 42px 29px 23px 29px;
+    }
+
+    >:nth-child(2) {
+        min-height: 0;
+        overflow: auto;
+    }
+}
+
 .featured-map {
-    margin: 8px 12px;
-    cursor: pointer;
-}
+    padding-bottom: 20px;
+    margin: 25px 27px 2px 27px;
+    border-bottom: 2px solid $seamap-medium-blue;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    >.content { font-size: 12px; }
+    >.show-me { margin-left: auto; }
 
-.featured-map::after {
-    content: "";
-    display: table;
-    clear: both;
-}
-
-.featured-map > .image-container {
-    width: 120px;
-    height: 104px;
-    float: left;
-    margin: 0 12px 6px 0;
-    position: relative;
-    background-color: rgba(0,0,0,.05);
-}
-
-.image-container > img {
-    display: block;
-    max-width: 100%;
-    max-height: 100%;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    -webkit-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-}
-
-.featured-map > .title {
-    font-weight: bold;
-    font-size: 16px;
+    >.title {
+        font-size: 19px;
+        font-family: $headings-font-family;
+        font-weight: 600;
+    }
 }
 
 .featured-map-drawer .summary {
