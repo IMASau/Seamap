@@ -53,6 +53,7 @@
                             [:amp :active-park]
                             [:amp :active-zone]
                             [:amp :active-zone-iucn]
+                            [:amp :active-zone-id]
                             [:imcra :active-provincial-bioregion]
                             [:imcra :active-mesoscale-bioregion]
                             [:meow :active-realm]
