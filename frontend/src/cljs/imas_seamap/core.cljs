@@ -64,6 +64,7 @@
     :sok/open?                            soksubs/open?
     :sok/open-pill                        soksubs/open-pill
     :sok/boundary-layer-filter            soksubs/boundary-layer-filter-fn
+    :sok/region-report-url                soksubs/region-report-url
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
     :sm.featured-map/open?                smsubs/featured-map-open?
@@ -180,6 +181,7 @@
     :map/update-categories                mevents/update-categories
     :map/update-keyed-layers              mevents/update-keyed-layers
     :map/update-national-layer-timeline   mevents/update-national-layer-timeline
+    :map/update-region-reports            mevents/update-region-reports
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [mevents/show-initial-layers]
     :map/pan-to-layer                     [mevents/zoom-to-layer]

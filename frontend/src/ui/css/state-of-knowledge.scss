@@ -127,17 +127,22 @@
     color: $seamap-color-7;
     padding: 12px;
     font-weight: 600;
-}
+    display: flex;
+    flex-direction: row;
+    >:nth-child(1) { flex: 1; }
 
-.selected-boundaries h2 {
-    font-size: 22px;
-    font-family: $headings-font-family;
-}
+    h2 {
+        font-size: 22px;
+        font-family: $headings-font-family;
+    }
 
-.selected-boundaries a {
-    color: $seamap-color-7;
-}
+    .breadcrumbs a {
+        color: $seamap-color-7;
+        text-decoration: underline;
+    }
 
-.selected-boundaries .breadcrumbs a {
-    text-decoration: underline;
+    >a {
+        padding: 4px;
+        color: $seamap-color-7;
+    }
 }
