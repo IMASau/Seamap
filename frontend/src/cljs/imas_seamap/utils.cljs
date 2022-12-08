@@ -268,6 +268,7 @@
     [:state-of-knowledge :boundaries :amp :boundaries]
     [:state-of-knowledge :boundaries :imcra :boundaries]
     [:state-of-knowledge :boundaries :meow :boundaries]
+    [:state-of-knowledge :region-reports]
     [:story-maps :featured-maps]
     :habitat-colours
     :habitat-titles

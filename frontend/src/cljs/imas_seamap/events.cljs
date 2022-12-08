@@ -40,6 +40,7 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/update-national-layer-timeline
+                                  :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries]
@@ -69,6 +70,7 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/update-national-layer-timeline
+                                  :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries]
@@ -98,6 +100,7 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/update-national-layer-timeline
+                                  :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries]
@@ -121,6 +124,7 @@
           category
           keyed-layers
           national-layer-timeline
+          region-reports
           amp-boundaries
           imcra-boundaries
           meow-boundaries
@@ -128,7 +132,8 @@
           bathymetry-statistics
           habitat-observations
           layer-previews
-          story-maps]}
+          story-maps
+          region-report-pages]}
         (get-in db [:config :url-paths])
         {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
@@ -144,6 +149,7 @@
       :category-url                (str api-url-base category)
       :keyed-layers-url            (str api-url-base keyed-layers)
       :national-layer-timeline-url (str api-url-base national-layer-timeline)
+      :region-reports-url          (str api-url-base region-reports)
       :amp-boundaries-url          (str api-url-base amp-boundaries)
       :imcra-boundaries-url        (str api-url-base imcra-boundaries)
       :meow-boundaries-url         (str api-url-base meow-boundaries)
@@ -151,7 +157,8 @@
       :bathymetry-statistics-url   (str api-url-base bathymetry-statistics)
       :habitat-observations-url    (str api-url-base habitat-observations)
       :layer-previews-url          (str media-url-base layer-previews)
-      :story-maps-url              (str wordpress-url-base story-maps)})))
+      :story-maps-url              (str wordpress-url-base story-maps)
+      :region-report-pages-url     (str wordpress-url-base region-report-pages)})))
 
 (defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (assoc-in
@@ -261,6 +268,7 @@
                 category-url
                 keyed-layers-url
                 national-layer-timeline-url
+                region-reports-url
                 amp-boundaries-url
                 imcra-boundaries-url
                 meow-boundaries-url
@@ -310,6 +318,11 @@
                    :uri             national-layer-timeline-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-national-layer-timeline]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             region-reports-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-region-reports]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             amp-boundaries-url
