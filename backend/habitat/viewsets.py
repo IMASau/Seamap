@@ -1279,7 +1279,8 @@ def region_report_data(request):
     network = params.get('network')
     park    = params.get('park')
 
-    data = RegionReportSerializer(RegionReport.objects.get(network=network, park=park)).data
+    rr = RegionReport.objects.get(network=network, park=park)
+    data = RegionReportSerializer(rr).data
 
     data["parks"] = [{'park': v.park, 'slug': v.slug} for v in RegionReport.objects.filter(network=network) if v.park] if park == None else None
     
@@ -1289,8 +1290,8 @@ def region_report_data(request):
     data["all_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap-panel1').order_by('-sort_key')]
     data["all_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel1-boundary').layer).data
     data["public_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap-panel2').order_by('-sort_key')]
-    data["public_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel2-boundary').layer).databounding_box = serializers.SerializerMethodField()
-    data["pressures"] = [PressureSerializer(v).data for v in Pressure.objects.filter(region_report=data["id"])]
+    data["public_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel2-boundary').layer).data
+    data["pressures"] = [PressureSerializer(v).data for v in Pressure.objects.filter(region_report=rr.id)]
 
     with connections['transects'].cursor() as cursor:
         try:
