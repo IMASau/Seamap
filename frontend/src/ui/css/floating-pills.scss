@@ -4,7 +4,7 @@ $floating-pill-height: 36px;
 	position: absolute;
 	z-index: 2000;
 	top: $floating-menu-padding;
-	left: calc($floating-menu-padding * 2 + $leaflet-control-width);
+	left: calc($floating-menu-padding * 2 + $leaflet-control-width + 2 * 2px);
 	right: calc($floating-menu-padding * 2 + 44px);
 	display: flex;
 	flex-wrap: wrap;
@@ -16,7 +16,6 @@ $floating-pill-height: 36px;
 	background-color: white;
 	padding: 0 14px;
 	height: $floating-pill-height;
-	border-radius: 14px;
 	border: 2px solid rgba(0, 0, 0, 0.2);
 	background-clip: padding-box;
 	color: black;
@@ -39,7 +38,7 @@ $floating-pill-height: 36px;
 }
 
 .catalogue-open .floating-pills {
-	left: calc($drawer-width + $floating-menu-padding * 2 + $leaflet-control-width);
+	left: calc($drawer-width + $floating-menu-padding * 2 + $leaflet-control-width + 2 * 2px);
 }
 
 .floating-pill-control-menu-button,
@@ -75,7 +74,6 @@ $floating-pill-height: 36px;
 	margin-top: 6px;
 	background-color: white;
 	padding: 12px;
-	border-radius: 14px;
 	border: 2px solid rgba(0, 0, 0, 0.2);
 	background-clip: padding-box;
 	color: black;

@@ -74,6 +74,8 @@
 }
 
 .bp3-dialog {
+    border-radius: 0;
+    box-shadow: none;
     overflow-wrap: break-word; // Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line
     width: 500px;
 
@@ -118,10 +120,13 @@
     color: $seamap-color-2;
 }
 
-:not(.bp3-popover-target):not(.bp3-toast>*)
-{
+.bp3-button {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+:not(.bp3-popover-target):not(.bp3-toast>*) {
     >.bp3-button:not(.bp3-minimal) {
-        border-radius: 0;
         font-size: 14px;
         font-weight: bold;
         padding: 7px 12px;

@@ -64,8 +64,8 @@ body.page-template-default.admin-bar #app {
 .welcome-splash {
     width: 440px;
     background-color: $seamap-color-7;
-    border-radius: initial;
-    box-shadow: initial;
+    border-radius: 0;
+    box-shadow: none;
     padding: 0;
 
     .bp3-dialog-body {
@@ -96,7 +96,7 @@ body.page-template-default.admin-bar #app {
         font-size: 28px;
         font-weight: 600;
         padding: 0;
-        border-radius: initial;
+        border-radius: 0;
         align-items: flex-start;
 
         .bp3-heading {
@@ -633,10 +633,9 @@ input.leaflet-control-layers-selector[type="radio"] {
 .layer-preview {
     position: absolute;
     top: calc($floating-pill-height + 2 * $floating-menu-padding);
-    left: calc($drawer-width + 2 * $floating-menu-padding + 34px);
+    left: calc($drawer-width + 2 * $floating-menu-padding + 42px);
     z-index: 2000;
     background-color: white;
-    border-radius: 14px;
     padding: 10px;
     border: 2px solid rgba(0,0,0,0.2);
     background-clip: padding-box;
@@ -645,7 +644,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 .layer-preview > * {
     width: 386px;
     display: block;
-    border-radius: 4px;
+    border-radius: 0;
 }
 
 .drawer-group h2::before {
@@ -668,6 +667,11 @@ input.leaflet-control-layers-selector[type="radio"] {
     z-index: 700;
     font-weight: bold;
     color: #44ff98;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 0;
+    box-shadow: 0 0 4px 2px rgb(0 0 0 / 40%);
 }
 
 .leaflet-popup.waiting .leaflet-popup-content-wrapper {
@@ -766,6 +770,8 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 /* Chunkier leaflet controls end */
 
+.leaflet-bar { border-radius: 0; }
+
 .settings-overlay-dialogue {
     padding: 0;
     width: 368px;
@@ -823,4 +829,16 @@ input.leaflet-control-layers-selector[type="radio"] {
     vertical-align: top;
     margin-left: 3px;
     margin-bottom: 10px;
+}
+
+
+.css-b62m3t-container {
+	.css-1s2u09g-control,
+    .css-1pahdxg-control,
+    .css-26l3qy-menu { border-radius: 0; }
+    .css-1pahdxg-control,
+    .css-1pahdxg-control:hover {
+        border-color: hsl(0, 0%, 80%);
+        box-shadow: none;
+    }
 }
