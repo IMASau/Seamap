@@ -629,15 +629,20 @@ ON observation.DEPLOYMENT_ID = boundary_observation.observation;
 SQL_GET_OBSERVATIONS = "SELECT * FROM @observations;"
 
 SQL_GET_GLOBALARCHIVE_STATS = """
-DECLARE @method NVARCHAR(MAX) = (SELECT
-  STRING_AGG(
-    CONVERT(NVARCHAR(MAX), method),
-    ', '
+DECLARE @method NVARCHAR(MAX) = (
+  STUFF(
+    (
+      SELECT
+        ', ' + CONVERT(NVARCHAR(MAX), method)
+      FROM (
+        SELECT DISTINCT method
+        FROM @observations AS T1
+      ) AS methods
+      FOR XML PATH('')
+    ),
+    1, 2, ''
   )
-FROM (
-  SELECT DISTINCT method
-  FROM @observations AS T1
-) AS methods);
+);
 
 SELECT
   COUNT(DISTINCT deployment_id) AS deployments,
@@ -650,15 +655,20 @@ FROM @observations AS T1;
 """
 
 SQL_GET_SEDIMENT_STATS = """
-DECLARE @method NVARCHAR(MAX) = (SELECT
-  STRING_AGG(
-    CONVERT(NVARCHAR(MAX), method),
-    ', '
+DECLARE @method NVARCHAR(MAX) = (
+  STUFF(
+    (
+      SELECT
+        ', ' + CONVERT(NVARCHAR(MAX), method)
+      FROM (
+        SELECT DISTINCT method
+        FROM @observations AS T1
+      ) AS methods
+      FOR XML PATH('')
+    ),
+    1, 2, ''
   )
-FROM (
-  SELECT DISTINCT method
-  FROM @observations AS T1
-) AS methods);
+);
 
 SELECT
   COUNT(DISTINCT sample_id) AS samples,
@@ -671,15 +681,20 @@ FROM @observations AS T1;
 """
 
 SQL_GET_SQUIDLE_STATS = """
-DECLARE @method NVARCHAR(MAX) = (SELECT
-  STRING_AGG(
-    CONVERT(NVARCHAR(MAX), method),
-    ', '
+DECLARE @method NVARCHAR(MAX) = (
+  STUFF(
+    (
+      SELECT
+        ', ' + CONVERT(NVARCHAR(MAX), method)
+      FROM (
+        SELECT DISTINCT method
+        FROM @observations AS T1
+      ) AS methods
+      FOR XML PATH('')
+    ),
+    1, 2, ''
   )
-FROM (
-  SELECT DISTINCT method
-  FROM @observations AS T1
-) AS methods);
+);
 
 SELECT
   COUNT(DISTINCT deployment_id) AS deployments,
