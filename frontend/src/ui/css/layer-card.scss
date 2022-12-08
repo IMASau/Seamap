@@ -111,17 +111,10 @@
 }
 
 /* Special controls */
-.layer-control.bp3-icon-eye-on {
-    color: #0F9960;
-}
-
+.layer-control.bp3-icon-eye-on,
 .layer-control.bp3-icon-delete {
     color: $seamap-deep-blue;
-}
-
-.layer-control.bp3-icon-eye-on:hover,
-.layer-control.bp3-icon-delete:hover {
-    color: $seamap-red;
+    &:hover { color: $seamap-red; }
 }
 
 .catalogue-layer-node .layer-header {
