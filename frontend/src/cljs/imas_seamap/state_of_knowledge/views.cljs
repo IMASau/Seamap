@@ -329,32 +329,68 @@
         {:keys [active-network active-park active-zone active-zone-iucn active-zone-id
                 active-provincial-bioregion active-mesoscale-bioregion
                 active-realm active-province active-ecoregion]} @(re-frame/subscribe [:sok/valid-boundaries])
-        breadcrumbs (case (:id active-boundary)
-                      "amp"   (cond-> []
-                                active-network
-                                (conj
-                                 [:a
-                                  {:href   "javascript:;"
-                                   :on-click #(js/console.warn "TODO: Update active network")}
-                                  (:network active-network)])
-                                
-                                active-park
-                                (conj
-                                 [:a
-                                  {:href  #(js/console.warn "TODO: Update active park")}
-                                  (:park active-park)])
-                                
-                                active-zone (conj (:zone active-zone))
-                                active-zone-iucn (conj (:zone-iucn active-zone-iucn))
-                                active-zone-id (conj (:zone-id active-zone-id)))
-                      "imcra" (cond-> []
-                                active-provincial-bioregion (conj (:provincial-bioregion active-provincial-bioregion))
-                                active-mesoscale-bioregion (conj (:mesoscale-bioregion active-mesoscale-bioregion)))
-                      "meow"  (cond-> []
-                                active-realm (conj (:realm active-realm))
-                                active-province (conj (:province active-province))
-                                active-ecoregion (conj (:ecoregion active-ecoregion)))
-                      nil)
+        breadcrumb-data (case (:id active-boundary)
+                          "amp"   (cond-> []
+                                    active-network
+                                    (conj
+                                     {:name   (:network active-network)
+                                      :action #(re-frame/dispatch [:sok/update-active-network active-network true])})
+
+                                    active-park
+                                    (conj
+                                     {:name   (:park active-park)
+                                      :action #(re-frame/dispatch [:sok/update-active-park active-park true])})
+
+                                    active-zone
+                                    (conj
+                                     {:name   (:zone active-zone)
+                                      :action #(re-frame/dispatch [:sok/update-active-zone active-zone true])})
+                                    
+                                    active-zone-iucn
+                                    (conj
+                                     {:name   (:zone-iucn active-zone-iucn)
+                                      :action #(re-frame/dispatch [:sok/update-active-zone-iucn active-zone-iucn true])})
+                                    
+                                    active-zone-id
+                                    (conj
+                                     {:name   (:zone-id active-zone-id)
+                                      :action #(re-frame/dispatch [:sok/update-active-zone-id active-zone-id true])}))
+                          "imcra" (cond-> []
+                                    active-provincial-bioregion
+                                    (conj
+                                     {:name   (conj (:provincial-bioregion active-provincial-bioregion))
+                                      :action #(re-frame/dispatch [:sok/update-active-provincial-bioregion active-provincial-bioregion true])})
+
+                                    active-mesoscale-bioregion
+                                    (conj
+                                     {:name   (:mesoscale-bioregion active-mesoscale-bioregion)
+                                      :action #(re-frame/dispatch [:sok/update-active-mesoscale-bioregion active-mesoscale-bioregion true])}))
+                          "meow"  (cond-> []
+                                    active-realm
+                                    (conj
+                                     {:name   (:realm active-realm)
+                                      :action #(re-frame/dispatch [:sok/update-active-realm active-realm true])})
+
+                                    active-province
+                                    (conj
+                                     {:name   (:province active-province)
+                                      :action #(re-frame/dispatch [:sok/update-active-province active-province true])})
+
+                                    active-ecoregion
+                                    (conj
+                                     {:name   (:ecoregion active-ecoregion)
+                                      :action #(re-frame/dispatch [:sok/update-active-ecoregion active-ecoregion true])}))
+                          nil)
+
+        breadcrumbs (conj
+                     (mapv
+                      (fn [{:keys [name action]}]
+                        [:a
+                         {:href     "#!"
+                          :on-click action}
+                         name])
+                      (butlast breadcrumb-data))
+                     (:name (last breadcrumb-data)))
         region-report-url @(re-frame/subscribe [:sok/region-report-url])]
     [:div.selected-boundaries
      [:div [:h2 (:name active-boundary)]
