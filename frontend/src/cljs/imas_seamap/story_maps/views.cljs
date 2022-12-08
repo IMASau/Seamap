@@ -24,7 +24,7 @@
 (defn featured-maps []
   (let [story-maps @(re-frame/subscribe [:sm/featured-maps])]
     [:div.featured-maps
-     [:div.orientation "Seamap connects raw data with narrative and scientific context."]
+     [:div.orientation "Connecting raw data with narrative and scientific context."]
      [:div
       (for [{:keys [id] :as story-map} story-maps]
         ^{:key (str id)}
