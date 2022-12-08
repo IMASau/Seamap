@@ -50,6 +50,7 @@ body {
     >* {
         max-width: var(--responsive--alignwide-width);
         margin: auto;
+        @media print { max-width: 100%; }
     }
     
     h2, h3 {
