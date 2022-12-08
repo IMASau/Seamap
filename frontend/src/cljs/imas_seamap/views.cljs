@@ -183,30 +183,6 @@
        :panel (reagent/as-element
                [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]))
 
-(defn- transect-toggle []
-  (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
-        [text icon dispatch] (cond
-                               drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
-                               query    ["Clear Measurement"  "eraser" :transect.draw/clear]
-                               :else    ["Transect/Measure"   "edit"   :transect.draw/enable])]
-    [:div#transect-btn-wrapper {:data-helper-text "Click to draw a transect"}
-     [b/button {:icon     icon
-                :class    "bp3-fill"
-                :on-click (handler-dispatch [dispatch])
-                :text     text}]]))
-
-(defn- selection-button []
-  (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
-        [dispatch-key label]        (cond
-                                      selecting? [:map.layer.selection/disable "Cancel Selecting"]
-                                      region     [:map.layer.selection/clear   "Clear Selection"]
-                                      :else      [:map.layer.selection/enable  "Select Region"])]
-    [:div#select-btn-wrapper {:data-helper-text "Click to select a region"}
-     [b/button {:icon       "widget"
-                :class "bp3-fill"
-                :on-click   (handler-dispatch [dispatch-key])
-                :text       label}]]))
-
 (defn- viewport-only-toggle []
   (let [[icon text] (if @(re-frame/subscribe [:map/viewport-only?])
                       ["globe" "All layers"]
@@ -288,9 +264,7 @@
         transect-results (re-frame/subscribe [:transect/results])]
     (fn []
       [:footer#plot-footer
-       {:on-click (handler-dispatch [:transect.plot/toggle-visibility])
-        :data-helper-text "This shows the habitat data along a bathymetry transect you can draw"
-        :data-helper-position "top"}
+       {:on-click (handler-dispatch [:transect.plot/toggle-visibility])}
        [:div.drag-handle [:span.bp3-icon-large.bp3-icon-drag-handle-horizontal]]
        [css-transition-group
         (when @show-plot
@@ -730,22 +704,15 @@
      
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [helper-overlay
-      :layer-search
-      :plot-footer
-      {:selector   "*"
-       :helperText "Layers available in your current field of view (zoom out to see more)"}
-      {:selector       "* > .layer-wrapper:first-child"
+      {:selector       ".layer-card:first-child .layer-header"
        :helperPosition "bottom"
        :helperText     "Toggle layer visibility, view more info, show legend, and download data"}
-      {:selector   ".sidebar-tabs ul:first-child"
-       :helperText "Choose between habitat, bathymetry, and other layer types"}
-      :transect-btn-wrapper
-      :select-btn-wrapper
-      {:selector ".sidebar-tabs ul:nth-child(2)" :helperText "Reset interface"}
-      {:id "habitat-group" :helperText "Layers showing sea-floor habitats"}
-      {:id "bathy-group" :helperText "Layers showing bathymetry data"}
-      {:id "imagery-group" :helperText "Layers showing photos collected"}
-      {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
+      {:id "layer-search" :helperText "Search for a specific layer using its name or keywords"}
+      {:id "transect-control" :helperText "Click to draw a transect"}
+      {:id "select-control" :helperText "Click to select a region"}
+      {:id "plot-footer"
+       :helperText "This shows the habitat data along a bathymetry transect you can draw"
+       :helperPosition "top"}]
      [welcome-dialogue]
      [settings-overlay]
      [info-card]

@@ -132,9 +132,9 @@
                   (catch :default _ nil)))
               100))}]])
 
-(defn- control-block-child [{:keys [on-click tooltip icon]}]
+(defn- control-block-child [{:keys [on-click tooltip icon id]}]
   [b/tooltip {:content tooltip :position b/RIGHT}
-   [:a {:on-click on-click}
+   [:a (merge {:on-click on-click} (when id {:id id}))
     [b/icon {:icon icon :size 18}]]])
 
 (defn- print-control []
@@ -162,7 +162,8 @@
     [control-block-child
      {:on-click #(re-frame/dispatch [dispatch])
       :tooltip  tooltip
-      :icon     icon}]))
+      :icon     icon
+      :id       "transect-control"}]))
 
 (defn- region-control [{:keys [selecting? region] :as _region-info}]
   (let [[tooltip icon dispatch]
@@ -173,7 +174,8 @@
     [control-block-child
      {:on-click #(re-frame/dispatch [dispatch])
       :tooltip  tooltip
-      :icon     icon}]))
+      :icon     icon
+      :id       "select-control"}]))
 
 (defn- control-block [{:keys [transect-info region-info]}]
   [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar leaflet-control-block"}}
