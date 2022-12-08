@@ -47,7 +47,7 @@
    :display         {:mouse-pos             {}
                      :help-overlay          false
                      :settings-overlay      false
-                     :left-drawer           false
+                     :left-drawer           true
                      :left-drawer-tab       "catalogue"
                      :layers-search-omnibar false
                      :catalogue             {:tab      "cat"
