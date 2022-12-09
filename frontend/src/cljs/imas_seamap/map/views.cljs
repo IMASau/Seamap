@@ -177,23 +177,8 @@
       :icon     icon
       :id       "select-control"}]))
 
-(defn- control-block [{:keys [transect-info region-info]}]
-  [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar leaflet-control-block"}}
-   
-   [print-control]
-
-   [control-block-child
-    {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
-     :tooltip  "Search all layers"
-     :icon     "search"}]
-
-   [transect-control transect-info]
-   [region-control region-info]
-
-   [control-block-child
-    {:on-click #(re-frame/dispatch [:create-save-state])
-     :tooltip  "Create Shareable URL"
-     :icon     "share"}]])
+(defn- control-block [& children]
+  (into [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar leaflet-control-block"}}] children))
 
 (defn- element-dimensions [element]
   {:x (.-offsetWidth element) :y (.-offsetHeight element)})
@@ -425,7 +410,32 @@
          :export-only true
          :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
 
-       [control-block {:transect-info transect-info :region-info region-info}]
+       [control-block
+        [print-control]
+
+        [control-block-child
+         {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
+          :tooltip  "Search All Layers"
+          :icon     "search"}]
+
+        [transect-control transect-info]
+        [region-control region-info]
+
+        [control-block-child
+         {:on-click #(re-frame/dispatch [:create-save-state])
+          :tooltip  "Create Shareable URL"
+          :icon     "share"}]]
+       
+       [control-block
+        [control-block-child
+         {:on-click #(js/document.dispatchEvent (js/KeyboardEvent. "keydown" #js{:which 47 :keyCode 47 :shiftKey true :bubbles true})) ; https://github.com/palantir/blueprint/issues/1590
+          :tooltip  "Show Keyboard Shortcuts"
+          :icon     "key-command"}]
+        
+        [control-block-child
+         {:on-click #(re-frame/dispatch [:help-layer/toggle])
+          :tooltip  "Show Help Overlay"
+          :icon     "help"}]]
 
        [leaflet/scale-control]
 

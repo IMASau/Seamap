@@ -639,7 +639,6 @@
   (let [keydown-wrapper
         (fn [m keydown-v]
           (assoc m :global    true
-                 :group     "Keyboard Shortcuts"
                  :onKeyDown #(re-frame/dispatch keydown-v)))]
     ;; See note on `use-hotkeys' for rationale invoking `clj->js' here:
     (clj->js
