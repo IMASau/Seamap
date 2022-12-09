@@ -285,7 +285,15 @@ class RegionReport {
                     <li><b>Date Range: </b>${squidleDateRange}</li>
                     <li><b>Methods of Collection: </b>${squidleMethod}</li>
                     <li><b>Images Collected: </b>${squidleImages}</li>
-                    <li><b>Images Annotations: </b>${squidleTotalAnnotations} (${squidlePublicAnnotations} <b><u>public</u></b>)</li>
+                    <li>
+                        <b>Images Annotations: </b>
+                        ${squidleTotalAnnotations} (${squidlePublicAnnotations}
+                        <span class="tooltip-parent">
+                            <b><u>public</u></b>
+                            <div class="tooltip">Finalised curated image annotations</div>
+                        </span>
+                        )
+                    </li>
                 </ul>`;
 
         // global archive item
@@ -306,7 +314,14 @@ class RegionReport {
                     <li><b>Date Range: </b>${globalArchiveDateRange}</li>
                     <li><b>Methods of Collection: </b>${globalArchiveMethod}</li>
                     <li><b>Hours of Video: </b>${globalArchiveVideoTime}</li>
-                    <li><b>Video Annotations: </b>${globalArchiveVideoAnnotations} <b><u>public</u></b></li>
+                    <li>
+                        <b>Video Annotations: </b>
+                        ${globalArchiveVideoAnnotations}
+                        <span class="tooltip-parent">
+                            <b><u>public</u></b>
+                            <div class="tooltip">Publicly available video annotations</div>
+                        </span>
+                    </li>
                 </ul>`;
 
         // sediment item

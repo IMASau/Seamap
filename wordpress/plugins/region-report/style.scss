@@ -551,4 +551,39 @@ body {
     }
 
     .fa { color: inherit; }
+
+    .tooltip-parent {
+        position: relative;
+        &:hover>.tooltip { opacity: 1; }
+
+        >.tooltip {
+            position: absolute;
+            z-index: 1;
+            background-color: rgb(57, 75, 89);
+            color: #f5f8fa;
+            border-radius: 2px;
+            padding: 8px 9.6px;
+            white-space: nowrap;
+            bottom: -100%;
+            left: 50%;
+            transform: translate(-50%, calc(-100% - 8px));
+            box-shadow: 0 0 0 1px rgb(16 22 26 / 10%), 0 2px 4px rgb(16 22 26 / 20%), 0 8px 24px rgb(16 22 26 / 20%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 200ms;
+
+            &::before {
+                content: '';
+                width: 0;
+                height: 0;
+                border-left: 8px solid transparent;
+                border-right: 8px solid transparent;
+                border-top: 10px solid rgb(57, 75, 89);
+                position: absolute;
+                bottom: -100%;
+                left: 50%;
+                transform: translate(-50%, calc(-100% - 10px));
+            }
+        }
+    }
 }
