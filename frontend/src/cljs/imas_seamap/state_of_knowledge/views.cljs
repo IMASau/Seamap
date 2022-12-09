@@ -269,21 +269,23 @@
        {:label "Image Annotations" :text (str total_annotations " (" public_annotations " public)")}]}]))
 
 (defn- global-archive-stats
-  [{:keys [deployments campaigns start_date end_date method video_time]}]
-  (let [disabled?     (not (pos? (or deployments 0)))
-        deployments   (format-number (or deployments 0) 0)
-        campaigns     (format-number (or campaigns 0) 0)
-        start_date    (format-date-month start_date)
-        end_date      (format-date-month end_date)
-        method        (or method "N/A")
-        video_time    (format-number (or video_time 0) 0)]
+  [{:keys [deployments campaigns start_date end_date method video_time video_annotations]}]
+  (let [disabled?         (not (pos? (or deployments 0)))
+        deployments       (format-number (or deployments 0) 0)
+        campaigns         (format-number (or campaigns 0) 0)
+        start_date        (format-date-month start_date)
+        end_date          (format-date-month end_date)
+        method            (or method "N/A")
+        video_time        (format-number (or video_time 0) 0)
+        video_annotations (format-number (or video_annotations 0) 0)]
     [habitat-observations-group
      {:title     (str deployments " Video Deployments (" campaigns " Campaigns)")
       :disabled? disabled?
       :stats
       [{:label "Date Range" :text (if start_date (str start_date " to " end_date) "Unknown")}
        {:label "Methods of Collection" :text method}
-       {:label "Hours of Video" :text video_time}]}]))
+       {:label "Hours of Video" :text video_time}
+       {:label "Video Annotations" :text video_annotations}]}]))
 
 (defn- sediment-stats
   [{:keys [samples analysed survey start_date end_date method]}]
@@ -297,12 +299,12 @@
     [habitat-observations-group
      {:title
       [:<>
-       (str samples " Sediment Samples (" analysed " Analysed)") [:br]
-       (str "from " survey " Surveys")]
+       (str samples " Sediment Samples (" survey " Surveys)")]
       :disabled? disabled?
       :stats
       [{:label "Date Range" :text (if start_date (str start_date " to " end_date) "Unknown")}
-       {:label "Methods of Collection" :text method}]}]))
+       {:label "Methods of Collection" :text method}
+       {:label "Samples Analysed" :text analysed}]}]))
 
 (defn- habitat-observations []
   (let [collapsed?   (reagent/atom false)]

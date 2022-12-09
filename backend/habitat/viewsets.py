@@ -302,13 +302,13 @@ DECLARE @zonename NVARCHAR(254) = %s;
 DECLARE @zoneiucn NVARCHAR(5)   = %s;
 DECLARE @zone_id  NVARCHAR(10)  = %s;
 
-DECLARE @observations TABLE
-(
-  campaign_name NVARCHAR(MAX) NOT NULL, 
-  deployment_id NVARCHAR(MAX) NOT NULL, 
-  date          DATE          NOT NULL,
-  method        NVARCHAR(100) NULL,
-  video_time    INT           NULL
+DECLARE @observations TABLE (
+  campaign_name    NVARCHAR(MAX) NOT NULL, 
+  deployment_id    NVARCHAR(MAX) NOT NULL, 
+  date             DATE          NOT NULL,
+  method           NVARCHAR(100) NULL,
+  video_time       INT           NULL,
+  video_annotation NVARCHAR(1)   NULL
 );
 
 INSERT INTO @observations
@@ -317,7 +317,8 @@ SELECT
   observation.DEPLOYMENT_ID AS deployment_id,
   observation.DATE AS date,
   observation.METHOD AS method,
-  observation.video_time
+  observation.video_time,
+  observation.data_open AS video_annotation
 FROM (
   SELECT DISTINCT observation
   FROM BOUNDARY_AMP_HABITAT_OBS_GLOBALARCHIVE
@@ -338,13 +339,13 @@ SET NOCOUNT ON;
 DECLARE @provincial_bioregion NVARCHAR(255) = %s;
 DECLARE @mesoscale_bioregion  NVARCHAR(255) = %s;
 
-DECLARE @observations TABLE
-(
-  campaign_name NVARCHAR(MAX) NOT NULL, 
-  deployment_id NVARCHAR(MAX) NOT NULL, 
-  date          DATE          NOT NULL,
-  method        NVARCHAR(100) NULL,
-  video_time    INT           NULL
+DECLARE @observations TABLE (
+  campaign_name    NVARCHAR(MAX) NOT NULL, 
+  deployment_id    NVARCHAR(MAX) NOT NULL, 
+  date             DATE          NOT NULL,
+  method           NVARCHAR(100) NULL,
+  video_time       INT           NULL,
+  video_annotation NVARCHAR(1)   NULL
 );
 
 INSERT INTO @observations
@@ -353,7 +354,8 @@ SELECT
   observation.DEPLOYMENT_ID AS deployment_id,
   observation.DATE AS date,
   observation.METHOD AS method,
-  observation.video_time
+  observation.video_time,
+  observation.data_open AS video_annotation
 FROM (
   SELECT DISTINCT observation
   FROM BOUNDARY_IMCRA_HABITAT_OBS_GLOBALARCHIVE
@@ -372,13 +374,13 @@ DECLARE @realm     NVARCHAR(255) = %s;
 DECLARE @province  NVARCHAR(255) = %s;
 DECLARE @ecoregion NVARCHAR(255) = %s;
 
-DECLARE @observations TABLE
-(
-  campaign_name NVARCHAR(MAX) NOT NULL, 
-  deployment_id NVARCHAR(MAX) NOT NULL, 
-  date          DATE          NOT NULL,
-  method        NVARCHAR(100) NULL,
-  video_time    INT           NULL
+DECLARE @observations TABLE (
+  campaign_name    NVARCHAR(MAX) NOT NULL, 
+  deployment_id    NVARCHAR(MAX) NOT NULL, 
+  date             DATE          NOT NULL,
+  method           NVARCHAR(100) NULL,
+  video_time       INT           NULL,
+  video_annotation NVARCHAR(1)   NULL
 );
 
 INSERT INTO @observations
@@ -387,7 +389,8 @@ SELECT
   observation.DEPLOYMENT_ID AS deployment_id,
   observation.DATE AS date,
   observation.METHOD AS method,
-  observation.video_time
+  observation.video_time,
+  observation.data_open AS video_annotation
 FROM (
   SELECT DISTINCT observation
   FROM BOUNDARY_MEOW_HABITAT_OBS_GLOBALARCHIVE
@@ -650,7 +653,8 @@ SELECT
   MIN(date) AS start_date,
   MAX(date) AS end_date,
   @method AS method,
-  SUM(video_time) / 60 AS video_time
+  SUM(video_time) / 60 AS video_time,
+  SUM(CASE WHEN video_annotation='Y' THEN 1 END) AS video_annotations
 FROM @observations AS T1;
 """
 
