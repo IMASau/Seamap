@@ -222,6 +222,8 @@
 
 .bp3-control input:focus ~ .bp3-control-indicator { outline: none; }
 
+span.bp3-popover-target { display: inline; }
+
 .bp3-popover-target,
 .bp3-popover-target .bp3-text-overflow-ellipsis {
     width: 100%;

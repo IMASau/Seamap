@@ -266,7 +266,7 @@
       [{:label "Date Range" :text (if start_date (str start_date " to " end_date) "Unknown")}
        {:label "Methods of Collection" :text method}
        {:label "Images Collected" :text images}
-       {:label "Image Annotations" :text (str total_annotations " (" public_annotations " public)")}]}]))
+       {:label "Image Annotations" :text [:<> total_annotations " (" public_annotations " " [b/tooltip {:content "Finalised curated image annotations"} [:b [:u "public"]]] ")"]}]}]))
 
 (defn- global-archive-stats
   [{:keys [deployments campaigns start_date end_date method video_time video_annotations]}]
@@ -285,7 +285,7 @@
       [{:label "Date Range" :text (if start_date (str start_date " to " end_date) "Unknown")}
        {:label "Methods of Collection" :text method}
        {:label "Hours of Video" :text video_time}
-       {:label "Video Annotations" :text video_annotations}]}]))
+       {:label "Video Annotations" :text [:<> video_annotations " " [b/tooltip {:content "Publicly available video annotations"} [:b [:u "public"]]]]}]}]))
 
 (defn- sediment-stats
   [{:keys [samples analysed survey start_date end_date method]}]
