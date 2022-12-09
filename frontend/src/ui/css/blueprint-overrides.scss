@@ -73,6 +73,24 @@
     margin-right: 4px;
 }
 
+.bp3-hotkey-dialog {
+    font-size: 12px;
+
+    .bp3-hotkey-column {
+        padding: 16px 24px;
+
+        .bp3-heading {
+            background-color: $seamap-color-1;
+            color: $seamap-color-7;
+            font-family: $headings-font-family;
+            font-size: 28px;
+            font-weight: 600;
+            padding: 20px 20px 16px 20px;
+            margin: -16px -24px 16px -24px;
+        }
+    }
+}
+
 .bp3-dialog {
     border-radius: 0;
     box-shadow: none;
