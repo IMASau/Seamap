@@ -79,12 +79,13 @@
     .bp3-hotkey-column {
         padding: 16px 24px;
 
-        .bp3-heading {
+        .bp3-heading:first-child {
             background-color: $seamap-color-1;
             color: $seamap-color-7;
             font-family: $headings-font-family;
             font-size: 28px;
             font-weight: 600;
+            line-height: 1.5;
             padding: 20px 20px 16px 20px;
             margin: -16px -24px 16px -24px;
         }
