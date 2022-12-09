@@ -16,7 +16,7 @@
    [b/button
     {:icon     "search"
      :text     "Show me"
-     :intent   "primary"
+     :intent   b/INTENT-PRIMARY
      :class    "show-me"
      :large    true
      :on-click #(re-frame/dispatch [:sm/featured-map story-map])}]])
@@ -37,7 +37,7 @@
    [b/button
     {:icon     "search"
      :text     "Show me"
-     :intent   "primary"
+     :intent   b/INTENT-PRIMARY
      :class    "show-me"
      :large    true
      :on-click #(re-frame/dispatch [:get-save-state shortcode [:merge-state]])}]])

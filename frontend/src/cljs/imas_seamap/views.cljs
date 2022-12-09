@@ -403,7 +403,7 @@
 
 (defn- download-menu [{:keys [title disabled? layer bbox]}]
   [b/popover {:position           b/BOTTOM
-              :is-disabled        disabled?
+              :disabled           disabled?
               :popover-class-name "bp3-minimal"
               :content            (reagent/as-element
                                    [b/menu
@@ -457,7 +457,7 @@
               metadata_url
               (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog\.search#/metadata/[-0-9a-zA-Z]+$" metadata_url)
               (= category :habitat))
-         [:div
+         [:<>
           [download-menu {:title     "Download Selection..."
                           :layer     layer
                           :disabled? (nil? region)
