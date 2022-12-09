@@ -185,21 +185,23 @@
 
 (defn- viewport-only-toggle []
   (let [[icon text] (if @(re-frame/subscribe [:map/viewport-only?])
-                      ["globe" "All layers"]
-                      ["map" "Viewport layers only"])]
+                      ["globe" "All Layers"]
+                      ["map" "Viewport Layers Only"])]
     [b/button
      {:icon     icon
       :class    "bp3-fill"
+      :intent   b/INTENT-PRIMARY
       :on-click #(re-frame/dispatch [:map/toggle-viewport-only])
       :text     text}]))
 
 (defn- autosave-application-state-toggle []
   (let [[icon text] (if @(re-frame/subscribe [:autosave?])
-                      ["disable" "Disable autosave application state"]
-                      ["floppy-disk" "Enable autosave application state"])]
+                      ["disable" "Disable Autosave Application State"]
+                      ["floppy-disk" "Enable Autosave Application State"])]
     [b/button
      {:icon     icon
       :class    "bp3-fill"
+      :intent   b/INTENT-PRIMARY
       :on-click #(re-frame/dispatch [:toggle-autosave])
       :text     text}]))
 
@@ -354,11 +356,13 @@
     :class      "settings-overlay-dialogue"
     :is-open    @(re-frame/subscribe [:ui/settings-overlay])
     :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
-   [:div.settings-overlay
+   [:div.bp3-dialog-body
     [autosave-application-state-toggle]
     [viewport-only-toggle]
     [b/button
      {:icon     "undo"
+      :class    "bp3-fill"
+      :intent   b/INTENT-PRIMARY
       :text     "Reset Interface"
       :on-click   #(re-frame/dispatch [:re-boot])}]]])
 
@@ -435,6 +439,7 @@
         title            (or (get-in layer-info [:layer :name]) "Layer Information")
         {:keys [region]} @(re-frame/subscribe [:map.layer.selection/info])]
     [b/dialogue {:title    title
+                 :class    "info-card"
                  :is-open  (and layer-info (not (:hidden? layer-info)))
                  :on-close #(re-frame/dispatch [:map.layer/close-info])}
      [:div.bp3-dialog-body

@@ -61,64 +61,23 @@ body.page-template-default.admin-bar #app {
     height: calc(100% - 90px - 32px);
 }
 
-.welcome-splash {
-    width: 440px;
-    background-color: $seamap-color-7;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 0;
+.info-card {
+    width: 500px;
 
     .bp3-dialog-body {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        align-items: flex-start;
-        
-        background-color: $seamap-color-2;
-        color: $seamap-color-7;
-        margin: initial;
-        padding: 16px 24px;
-        font-size: 16px;
-
-        .overview {
-            margin-right: 40px;
-        }
-
-        .bp3-button {
-            margin-left: auto;
-        }
+        background: none;
+        color: inherit;
     }
+}
 
-    .bp3-dialog-header {
-        background-color: $seamap-color-1;
-        color: $seamap-color-7;
-        font-family: $headings-font-family;
-        font-size: 28px;
-        font-weight: 600;
-        padding: 0;
-        border-radius: 0;
-        align-items: flex-start;
-
-        .bp3-heading {
-            white-space: initial;
-            margin: 20px 20px 16px 20px;
-        }
-    
-        .bp3-dialog-close-button {
-            margin: 4px;
-            
-            .bp3-icon svg {
-                color: $seamap-color-7;
-                width: 30px;
-                height: 30px;
-            }
-        }
+.welcome-splash {
+    .bp3-dialog-body {
+        font-size: 16px;
+        .overview { margin-right: 40px; }
+        .bp3-button { margin-left: auto; }
     }
 
     .bp3-dialog-footer {
-        margin: 0;
-        padding: 16px 24px;
-
         p {
             font-size: 10px;
             margin-left: 5px;
@@ -128,20 +87,14 @@ body.page-template-default.admin-bar #app {
             font-weight: 600;
             margin-bottom: 4px;
             font-size: 14px;
-
-            &:not(:first-child) {
-                margin-top: 14px;
-            }
+            &:not(:first-child) { margin-top: 14px; }
         }
 
         .citation-section {
             display: flex;
             flex-direction: row;
             align-items: flex-start;
-
-            p {
-                flex: 1;
-            }
+            p { flex: 1; }
 
             .citation-button {
                 margin: 0 10px;
@@ -154,14 +107,8 @@ body.page-template-default.admin-bar #app {
                 flex-direction: column;
                 align-items: center;
                 cursor: pointer;
-
-                &:hover {
-                    text-decoration: underline;
-                }
-
-                .custom-icon {
-                    background-color: $seamap-color-3;;
-                }
+                &:hover { text-decoration: underline; }
+                .custom-icon { background-color: $seamap-color-3; }
             }
         }
     }
@@ -771,11 +718,6 @@ input.leaflet-control-layers-selector[type="radio"] {
 /* Chunkier leaflet controls end */
 
 .leaflet-bar { border-radius: 0; }
-
-.settings-overlay-dialogue {
-    padding: 0;
-    width: 368px;
-}
 
 // Right drawer shared
 .state-of-knowledge-drawer,
