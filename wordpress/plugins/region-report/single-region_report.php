@@ -53,7 +53,9 @@
                 </label>
                 <div>Public/analysed data</div>
             </div>
-            <div class="map" id="region-report-overview-map-map-<?php the_ID(); ?>"></div>
+            <a id="region-report-overview-map-hyperlink-<?php the_ID(); ?>" href="#" target="_blank">
+                <div class="map" id="region-report-overview-map-map-<?php the_ID(); ?>"></div>
+            </a>
             <div><div class="caption"><?php echo $overview_map_caption; ?></div></div>
         </section>
 

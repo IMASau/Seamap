@@ -11,8 +11,11 @@ class RegionReport {
     overviewMap = null;
     allLayers = L.layerGroup();
     allLayersBoundary = null;
+    allLayersHyperlink = null;
     publicLayers = L.layerGroup();
     publicLayersBoundary = null;
+    publicLayersHyperlink = null;
+    overviewMapHyperlink = null;
 
     // imagery map
     imageryMap = null;
@@ -522,6 +525,60 @@ class RegionReport {
     setupOverviewMap() {
         this.overviewMap = L.map(`region-report-overview-map-map-${this.postId}`, { maxZoom: 19, zoomControl: false });
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.overviewMap);
+        this.overviewMapHyperlink = document.getElementById(`region-report-overview-map-hyperlink-${this.postId}`);
+    }
+
+    overviewMapAppState(bounds, layers) {
+        return [
+            "^ ",
+            "~:autosave?",
+            true,
+            "~:filters",
+            [
+                "^ ",
+                "~:layers",
+                ""
+            ],
+            "~:story-maps",
+            [
+                "^ ",
+                "~:featured-map",
+                null,
+                "~:open?",
+                false
+            ],
+            "~:display",
+            [
+                "^ ",
+                "~:left-drawer",
+                true,
+                "~:left-drawer-tab",
+                "active-layers"
+            ],
+            "~:map",
+            [
+                "^ ",
+                "~:bounds",
+                [
+                    "^ ",
+                    "~:north",
+                    bounds.north,
+                    "~:south",
+                    bounds.south,
+                    "~:east",
+                    bounds.east,
+                    "~:west",
+                    bounds.west
+                ],
+                "~:active",
+                [
+                    "~#list",
+                    layers
+                ],
+                "~:active-base",
+                1
+            ]
+        ]
     }
 
     populateOverviewMap({ all_layers: allLayers, all_layers_boundary: allLayersBoundary, public_layers: publicLayers, public_layers_boundary: publicLayersBoundary, network: network, park: park, bounding_box: bounds }) {
@@ -602,16 +659,24 @@ class RegionReport {
                     if (e.matches) this.overviewMap.invalidateSize();
                 }
             );
+
+        const allLayersAppState = this.overviewMapAppState(bounds, [allLayersBoundary.id, ...(allLayers.map(e=>e.id))]);
+        this.allLayersHyperlink = `${this.mapUrlBase}/#${btoa(JSON.stringify(allLayersAppState))}`;
+        const publicLayersAppState = this.overviewMapAppState(bounds, [publicLayersBoundary.id, ...(publicLayers.map(e=>e.id))]);
+        this.publicLayersHyperlink = `${this.mapUrlBase}/#${btoa(JSON.stringify(publicLayersAppState))}`;
+
+        this.overviewMapHyperlink.href = this.allLayersHyperlink;
     }
 
     toggleMinimap(publicOnly) {
         this.overviewMap.removeLayer(this.allLayers);
-        this.overviewMap.addLayer(this.allLayersBoundary);
+        this.overviewMap.removeLayer(this.allLayersBoundary);
         this.overviewMap.removeLayer(this.publicLayers);
-        this.overviewMap.addLayer(this.publicLayersBoundary);
+        this.overviewMap.removeLayer(this.publicLayersBoundary);
 
         this.overviewMap.addLayer(publicOnly ? this.publicLayersBoundary : this.allLayersBoundary);
         this.overviewMap.addLayer(publicOnly ? this.publicLayers : this.allLayers);
+        this.overviewMapHyperlink.href = publicOnly ? this.publicLayersHyperlink : this.allLayersHyperlink;
     }
 
     populateParksList({ parks: parks }) {
@@ -804,7 +869,149 @@ class RegionReport {
         }
     }
 
-    populatePressures({ pressures: pressures }) {
+    pressureAppState(pressureLayer, boundaryLayer, bounds, network, park) {
+        return [
+            "^ ",
+            "~:autosave?",
+            true,
+            "~:filters",
+            [
+                "^ ",
+                "~:layers",
+                ""
+            ],
+            "~:state-of-knowledge",
+            [
+                "^ ",
+                "~:boundaries",
+                [
+                    "^ ",
+                    "~:active-boundary",
+                    [
+                        "^ ",
+                        "~:id",
+                        "amp",
+                        "~:name",
+                        "Australian Marine Parks"
+                    ],
+                    "~:active-boundary-layer",
+                    [
+                        "^ ",
+                        "~:server_type",
+                        boundaryLayer.server_type,
+                        "~:category",
+                        boundaryLayer.category,
+                        "~:detail_layer",
+                        null,
+                        "~:organisation",
+                        boundaryLayer.organisation,
+                        "~:layer_name",
+                        boundaryLayer.layer_name,
+                        "~:server_url",
+                        boundaryLayer.server_url,
+                        "~:name",
+                        boundaryLayer.name,
+                        "~:info_format_type",
+                        boundaryLayer.info_format_type,
+                        "~:keywords",
+                        boundaryLayer.keywords,
+                        "~:style",
+                        boundaryLayer.style,
+                        "~:metadata_url",
+                        boundaryLayer.metadata_url,
+                        "~:id",
+                        boundaryLayer.id,
+                        "~:bounding_box",
+                        [
+                            "^ ",
+                            "~:west",
+                            boundaryLayer.bounding_box.west,
+                            "~:south",
+                            boundaryLayer.bounding_box.south,
+                            "~:east",
+                            boundaryLayer.bounding_box.east,
+                            "~:north",
+                            boundaryLayer.bounding_box.north
+                        ],
+                        "~:table_name",
+                        boundaryLayer.table_name,
+                        "~:data_classification",
+                        boundaryLayer.data_classification,
+                        "~:tooltip",
+                        boundaryLayer.tooltip,
+                        "~:legend_url",
+                        boundaryLayer.legend_url,
+                        "~:layer_type",
+                        boundaryLayer.layer_type
+                    ],
+                    "~:amp",
+                    [
+                        "^ ",
+                        "~:active-network",
+                        [
+                            "^ ",
+                            "~:network",
+                            network
+                        ],
+                        "~:active-park",
+                        (
+                            park ? [
+                                "^ ",
+                                "~:network",
+                                network,
+                                "~:park",
+                                park
+                            ] : null
+                        ),
+                    ]
+                ]
+            ],
+            "~:story-maps",
+            [
+                "^ ",
+                "~:featured-map",
+                null,
+                "~:open?",
+                false
+            ],
+            "~:display",
+            [
+                "^ ",
+                "~:left-drawer",
+                true,
+                "~:left-drawer-tab",
+                "active-layers"
+            ],
+            "~:map",
+            [
+                "^ ",
+                "~:bounds",
+                [
+                    "^ ",
+                    "~:north",
+                    bounds.north,
+                    "~:south",
+                    bounds.south,
+                    "~:east",
+                    bounds.east,
+                    "~:west",
+                    bounds.west
+                ],
+                "~:active",
+                [
+                    "~#list",
+                    [
+                        boundaryLayer.id,
+                        pressureLayer
+                    ]
+                ],
+                "~:active-base",
+                1
+            ]
+        ]        
+    }
+
+    populatePressures({ pressures: pressures, app_boundary_layer: appBoundaryLayer, bounding_box: bounds, network: network, park: park }) {
         const pressuresTabs = document.getElementById(`region-report-pressures-categories-${this.postId}`);
         const pressuresTabContent = document.getElementById(pressuresTabs.dataset.tabContent);
 
@@ -831,9 +1038,11 @@ class RegionReport {
         tabPane.className = "region-report-tab-pane pressures-grid selected";
         tabPane.dataset.tab = "All";
         pressures.forEach(pressure => {
+            const appState = this.pressureAppState(pressure.layer, appBoundaryLayer, bounds, network.network, park);         
+
             tabPane.innerHTML += `
                 <a
-                    href="${this.mapUrlBase}#${pressure.save_state}"
+                    href="${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}"
                     target="_blank"
                 >
                     <img src="${this.pressurePreviewUrlBase}/${pressure.id}.png">
@@ -857,9 +1066,11 @@ class RegionReport {
             tabPane.className = "region-report-tab-pane pressures-grid";
             tabPane.dataset.tab = category;
             pressures.forEach(pressure => {
+                const appState = this.pressureAppState(pressure.layer, appBoundaryLayer, bounds, network.network, park);         
+
                 tabPane.innerHTML += `
                     <a
-                        href="${this.mapUrlBase}/#${pressure.save_state}"
+                        href="${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}"
                         target="_blank"
                     >
                         <img src="${this.pressurePreviewUrlBase}/${pressure.id}.png">
