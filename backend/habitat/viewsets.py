@@ -1311,6 +1311,7 @@ def region_report_data(request):
     data["public_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap-panel2').order_by('-sort_key')]
     data["public_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel2-boundary').layer).data
     data["pressures"] = [PressureSerializer(v).data for v in Pressure.objects.filter(region_report=rr.id)]
+    data["app_boundary_layer"] = LayerSerializer(KeyedLayer.objects.get(keyword=('amp-park' if park != None else 'amp-network')).layer).data
 
     with connections['transects'].cursor() as cursor:
         try:
