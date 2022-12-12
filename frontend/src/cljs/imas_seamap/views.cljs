@@ -662,34 +662,28 @@
        {:label "Pan Right"              :combo "right"}
        [:map/pan-direction :right])
       (keydown-wrapper
-       {:label "Toggle Plot Panel"      :combo "p"}
+       {:label "Toggle Transect Panel"  :combo "p"}
        [:transect.plot/toggle-visibility])
-      (keydown-wrapper
-       {:label "Toggle Sidebar"         :combo "s"}
-       [:ui.sidebar/toggle])
       (keydown-wrapper
        {:label "Toggle Left Drawer"     :combo "a"}
        [:left-drawer/toggle])
       (keydown-wrapper
-       {:label "Toggle Layers Search"   :combo "shift + s"}
-       [:layers-search-omnibar/toggle])
-      (keydown-wrapper
        {:label "Start/Clear Transect"   :combo "t"}
        [:transect.draw/toggle])
       (keydown-wrapper
-       {:label "Start/Clear Region"     :combo "r"}
+       {:label "Start/Clear Region Select" :combo "r"}
        [:map.layer.selection/toggle])
       (keydown-wrapper
        {:label "Cancel"                 :combo "esc"}
        [:ui.drawing/cancel])
       (keydown-wrapper
-       {:label "Start Searching Layers" :combo "/" :prevent-default true}
-       [:ui.search/focus])
+       {:label "Layer Power Search"     :combo "s"}
+       [:layers-search-omnibar/toggle])
       (keydown-wrapper
        {:label "Reset"                  :combo "shift + r"}
        [:re-boot])
       (keydown-wrapper
-       {:label "Create Shareable URL"     :combo "c"}
+       {:label "Create Shareable URL"   :combo "c"}
        [:create-save-state])
       (keydown-wrapper
        {:label "Show Help Overlay"      :combo "h"}
