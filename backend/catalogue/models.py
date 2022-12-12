@@ -177,7 +177,6 @@ class Pressure(models.Model):
     region_report = models.ForeignKey(RegionReport, on_delete=models.CASCADE)
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     category = models.CharField(max_length=200, null=False, blank=False)
-    save_state = models.ForeignKey(SaveState, on_delete=models.PROTECT)
 
     def __str__(self):
         return f'{self.region_report}: {self.layer}'
