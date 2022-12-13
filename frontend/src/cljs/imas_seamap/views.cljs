@@ -718,7 +718,7 @@
      
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [helper-overlay
-      {:selector       ".layer-card:first-child .layer-header"
+      {:selector       ".SelectionListItem:first-child .layer-card .layer-header"
        :helperPosition "bottom"
        :helperText     "Toggle layer visibility, view more info, show legend, and download data"}
       {:id "layer-search" :helperText "Search for a specific layer using its name or keywords"}

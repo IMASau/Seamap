@@ -63,7 +63,7 @@
       :plot-footer
       {:selector   "*"
        :helperText "Layers available in your current field of view (zoom out to see more)"}
-      {:selector       "* > .layer-wrapper:first-child"
+      {:selector       ".SelectionListItem:first-child .layer-card .layer-header"
        :helperPosition "bottom"
        :helperText     "Toggle layer visibility, view more info, show legend, and download data"}
       {:selector   ".sidebar-tabs ul:first-child"
