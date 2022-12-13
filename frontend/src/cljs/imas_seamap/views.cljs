@@ -381,16 +381,16 @@
 
        (when (and (seq constraints) (= category :habitat))
          [:div
-          [:h3.metadata-subheader "Citation Information:"]
+          [:h3 "Citation Information"]
           [:p constraints]])
 
        (when (and (seq other) (= category :habitat))
          [:div
-          [:h3.metadata-subheader "Usage:"]
+          [:h3 "Usage"]
           (map-indexed (fn [i v] ^{:key i} [:p v]) other)])
 
        [:div
-        [:h3.clickable.metadata-subheader
+        [:h3.clickable
          {:on-click #(swap! expanded not)}
          [b/icon {:icon (if @expanded "chevron-down" "chevron-right")}]
          "API Access"]
@@ -405,7 +405,7 @@
        
        (when (= category :habitat)
          [:div.clearfix
-          [:h3.metadata-subheader "License Information:"]
+          [:h3 "License Information"]
           (when license-img
             [:img.metadata-img {:src license-img}])
           [:a {:href license-link :target "_blank"} license-name]])

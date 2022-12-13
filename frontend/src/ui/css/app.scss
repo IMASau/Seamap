@@ -367,6 +367,7 @@ rect#background {
     user-select: text;
     display: flex;
     flex-direction: column;
+    gap: 14px;
     .org-logo { height: 50px; }
     .download-instructions { font-style: italic; }
 
@@ -383,9 +384,10 @@ rect#background {
         margin-right: 5px;
     }
 
-    .metadata-subheader {
-        font-weight: 600;
-        margin-bottom: 10px;
+    h3 {
+        font-weight: bold;
+        margin-bottom: 5px;
+        font-size: 14px;
     }
 }
 
