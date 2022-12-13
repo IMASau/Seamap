@@ -133,13 +133,16 @@
     >:nth-child(1) { flex: 1; }
 
     h2 {
-        font-size: 22px;
+        font-size: 20px;
         font-family: $headings-font-family;
     }
 
-    .breadcrumbs a {
-        color: $seamap-color-7;
-        text-decoration: underline;
+    .breadcrumbs {
+        font-size: 12px;
+        a {
+            color: $seamap-color-7;
+            text-decoration: underline;
+        }
     }
 
     >a {

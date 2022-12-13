@@ -1,4 +1,4 @@
-$floating-pill-height: 36px;
+$floating-pill-height: 32px;
 
 .floating-pills {
 	position: absolute;
@@ -21,7 +21,7 @@ $floating-pill-height: 36px;
 	border: 2px solid rgba(0, 0, 0, 0.2);
 	background-clip: padding-box;
 	color: black;
-	font-size: 14px;
+	font-size: 13px;
 	display: flex;
 	align-items: center;
 	gap: 7px;
@@ -89,14 +89,13 @@ $floating-pill-height: 36px;
 .floating-pill-control-menu-content-header {
 	display: flex;
 	align-items: center;
-	height: 30px;
+	height: 28px;
 	gap: 7px;
 	border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 	padding: 0 3px 3px 3px;
 	margin-bottom: 12px;
 }
 
-.floating-pill-control-menu-content-header> :nth-child(1),
 .floating-pill-control-menu-content-header> :nth-child(3) {
 	aspect-ratio: 1;
 	height: 100%;
@@ -107,5 +106,5 @@ $floating-pill-height: 36px;
 
 .floating-pill-control-menu-content-header> :nth-child(2) {
 	flex: 1;
-	font-size: 15px;
+	font-size: 13px;
 }

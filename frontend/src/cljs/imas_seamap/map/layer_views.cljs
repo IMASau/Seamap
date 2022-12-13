@@ -12,7 +12,15 @@
   (when (or loading? errors?)
    [:div.layer-status-icons
     (when loading? [b/spinner {:class "bp3-small"}])
-    (when errors? [b/icon {:icon "warning-sign" :size 20}])]))
+    (when errors? [b/icon {:icon "warning-sign" :size 16}])]))
+
+(defn- layer-card-status-icons
+  "Icons that appear to the left of the layer name to indicate the current state."
+  [{:keys [loading? errors?]}]
+  (when (or loading? errors?)
+    [:div.layer-status-icons
+     (when loading? [b/spinner {:class "bp3-small"}])
+     (when errors? [b/icon {:icon "warning-sign" :size 18}])]))
 
 (defn- layer-header-text
   "Layer name, with some other fancy stuff on top."
@@ -46,6 +54,19 @@
    [b/icon
     {:icon     icon
      :class    "layer-control"
+     :size     16
+     :on-click #(do
+                  (.stopPropagation %)
+                  (on-click))}]])
+
+(defn- layer-card-control
+  "Basic layer control. It's an icon with a tooltip that does something when
+   clicked."
+  [{:keys [tooltip icon on-click]}]
+  [b/tooltip {:content tooltip}
+   [b/icon
+    {:icon     icon
+     :class    "layer-control"
      :size     18
      :on-click #(do
                   (.stopPropagation %)
@@ -57,17 +78,17 @@
   [{:keys [layer] {:keys [visible?]} :layer-state}]
   [:div.layer-controls
    
-   [layer-control
+   [layer-card-control
     {:tooltip  (if visible? "Hide layer" "Show layer")
      :icon     (if visible? "eye-on" "eye-off")
      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]
    
-   [layer-control
+   [layer-card-control
     {:tooltip  "Layer info / Download data"
      :icon     "info-sign"
      :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
 
-   [layer-control
+   [layer-card-control
     {:tooltip  "Zoom to layer"
      :icon     "locate"
      :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
@@ -87,10 +108,10 @@
   [:div.layer-header
    [:div
     (when (and true true)
-      [layer-status-icons layer-state])
+      [layer-card-status-icons layer-state])
     [layer-card-header-text props]
 
-    [layer-control
+    [layer-card-control
      {:tooltip  "Deactivate layer"
       :icon     "delete"
       :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]]
@@ -255,17 +276,17 @@
   [{:keys [layer] {:keys [visible?]} :layer-state}]
   [:div.layer-controls
 
-   [layer-control
+   [layer-card-control
     {:tooltip  (if visible? "Hide layer" "Show layer")
      :icon     (if visible? "eye-on" "eye-off")
      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]
    
-   [layer-control
+   [layer-card-control
     {:tooltip  "Layer info / Download data"
      :icon     "info-sign"
      :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
 
-   [layer-control
+   [layer-card-control
     {:tooltip  "Zoom to layer"
      :icon     "locate"
      :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
@@ -275,10 +296,10 @@
   [:div.layer-header
    [:div
     (when visible?
-      [layer-status-icons layer-state])
+      [layer-card-status-icons layer-state])
     [main-national-layer-card-header-text props]
     
-    [layer-control
+    [layer-card-control
      {:tooltip  "Deactivate layer"
       :icon     "delete"
       :on-click #(re-frame/dispatch [:map/toggle-layer layer])}]]

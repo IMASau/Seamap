@@ -48,7 +48,7 @@
     :on-click (when-not disabled on-click)}
    [b/icon
     {:icon icon
-     :icon-size 20}]
+     :size 16}]
    [:div.title text]])
 
 (defn floating-pill-control-menu
@@ -88,7 +88,7 @@
            :on-click (when-not disabled? (if expanded? on-close-click on-open-click))}
           [b/icon
            {:icon icon
-            :icon-size 20}]
+            :size 16}]
           [b/clipped-text {:ellipsize true :class "title"} text]
           (if reset-click
             [b/button
@@ -104,7 +104,7 @@
            [:div
             [b/icon
              {:icon icon
-              :icon-size 20}]]
+              :size 16}]]
            [b/clipped-text {:ellipsize true :class "title"} text]
            [:div
             [b/button
