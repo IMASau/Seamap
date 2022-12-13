@@ -528,7 +528,7 @@ class RegionReport {
         this.overviewMapHyperlink = document.getElementById(`region-report-overview-map-hyperlink-${this.postId}`);
     }
 
-    overviewMapAppState(bounds, layers) {
+    overviewMapAppState(layers, boundaryLayer, bounds, network, park) {
         return [
             "^ ",
             "~:autosave?",
@@ -538,6 +538,92 @@ class RegionReport {
                 "^ ",
                 "~:layers",
                 ""
+            ],
+            "~:state-of-knowledge",
+            [
+                "^ ",
+                "~:boundaries",
+                [
+                    "^ ",
+                    "~:active-boundary",
+                    [
+                        "^ ",
+                        "~:id",
+                        "amp",
+                        "~:name",
+                        "Australian Marine Parks"
+                    ],
+                    "~:active-boundary-layer",
+                    [
+                        "^ ",
+                        "~:server_type",
+                        `~:${boundaryLayer.server_type.toLowerCase()}`,
+                        "~:category",
+                        `~:${boundaryLayer.category.toLowerCase()}`,
+                        "~:detail_layer",
+                        boundaryLayer.detail_layer,
+                        "~:organisation",
+                        boundaryLayer.organisation,
+                        "~:layer_name",
+                        boundaryLayer.layer_name,
+                        "~:server_url",
+                        boundaryLayer.server_url,
+                        "~:name",
+                        boundaryLayer.name,
+                        "~:info_format_type",
+                        boundaryLayer.info_format_type,
+                        "~:keywords",
+                        boundaryLayer.keywords,
+                        "~:style",
+                        boundaryLayer.style,
+                        "~:metadata_url",
+                        boundaryLayer.metadata_url,
+                        "~:id",
+                        boundaryLayer.id,
+                        "~:bounding_box",
+                        [
+                            "^ ",
+                            "~:west",
+                            boundaryLayer.bounding_box.west,
+                            "~:south",
+                            boundaryLayer.bounding_box.south,
+                            "~:east",
+                            boundaryLayer.bounding_box.east,
+                            "~:north",
+                            boundaryLayer.bounding_box.north
+                        ],
+                        "~:table_name",
+                        boundaryLayer.table_name,
+                        "~:data_classification",
+                        boundaryLayer.data_classification,
+                        "~:tooltip",
+                        boundaryLayer.tooltip,
+                        "~:legend_url",
+                        boundaryLayer.legend_url,
+                        "~:layer_type",
+                        `~:${boundaryLayer.layer_type.toLowerCase()}`
+                    ],
+                    "~:amp",
+                    [
+                        "^ ",
+                        "~:active-network",
+                        [
+                            "^ ",
+                            "~:network",
+                            network
+                        ],
+                        "~:active-park",
+                        (
+                            park ? [
+                                "^ ",
+                                "~:network",
+                                network,
+                                "~:park",
+                                park
+                            ] : null
+                        ),
+                    ]
+                ]
             ],
             "~:story-maps",
             [
@@ -573,7 +659,7 @@ class RegionReport {
                 "~:active",
                 [
                     "~#list",
-                    layers
+                    [boundaryLayer.id, ...layers]
                 ],
                 "~:active-base",
                 1
@@ -581,7 +667,7 @@ class RegionReport {
         ]
     }
 
-    populateOverviewMap({ all_layers: allLayers, all_layers_boundary: allLayersBoundary, public_layers: publicLayers, public_layers_boundary: publicLayersBoundary, network: network, park: park, bounding_box: bounds }) {
+    populateOverviewMap({ all_layers: allLayers, all_layers_boundary: allLayersBoundary, public_layers: publicLayers, public_layers_boundary: publicLayersBoundary, network: network, park: park, bounding_box: bounds, app_boundary_layer: appBoundaryLayer }) {
         // all layers
         allLayers.forEach(
             layer => {
@@ -592,7 +678,7 @@ class RegionReport {
                         transparent: true,
                         tiled: true,
                         format: "image/png",
-                        styles: layer.style,
+                        styles: layer.style ?? "",
                         cql_filter: `Network='${network.network}'` + (park ? ` AND Park='${park}'` : "")
                     }
                 ).addTo(this.allLayers);
@@ -607,7 +693,7 @@ class RegionReport {
                 transparent: true,
                 tiled: true,
                 format: "image/png",
-                styles: allLayersBoundary.style,
+                styles: allLayersBoundary.style ?? "",
                 cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
             }
         );
@@ -622,7 +708,7 @@ class RegionReport {
                         transparent: true,
                         tiled: true,
                         format: "image/png",
-                        styles: layer.style,
+                        styles: layer.style ?? "",
                         cql_filter: `Network='${network.network}'` + (park ? ` AND Park='${park}'` : "")
                     }
                 ).addTo(this.publicLayers);
@@ -637,7 +723,7 @@ class RegionReport {
                 transparent: true,
                 tiled: true,
                 format: "image/png",
-                styles: publicLayersBoundary.style,
+                styles: publicLayersBoundary.style ?? "",
                 cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
             }
         );
@@ -660,9 +746,9 @@ class RegionReport {
                 }
             );
 
-        const allLayersAppState = this.overviewMapAppState(bounds, [allLayersBoundary.id, ...(allLayers.map(e=>e.id))]);
+        const allLayersAppState = this.overviewMapAppState(allLayers.map(e=>e.id), appBoundaryLayer, bounds, network.network, park);
         this.allLayersHyperlink = `${this.mapUrlBase}/#${btoa(JSON.stringify(allLayersAppState))}`;
-        const publicLayersAppState = this.overviewMapAppState(bounds, [publicLayersBoundary.id, ...(publicLayers.map(e=>e.id))]);
+        const publicLayersAppState = this.overviewMapAppState(publicLayers.map(e=>e.id), appBoundaryLayer, bounds, network.network, park);
         this.publicLayersHyperlink = `${this.mapUrlBase}/#${btoa(JSON.stringify(publicLayersAppState))}`;
 
         this.overviewMapHyperlink.href = this.allLayersHyperlink;
@@ -849,7 +935,7 @@ class RegionReport {
                     transparent: true,
                     tiled: true,
                     format: "image/png",
-                    styles: allLayersBoundary.style,
+                    styles: allLayersBoundary.style ?? "",
                     cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
                 }
             ).addTo(this.imageryMap);
@@ -898,11 +984,11 @@ class RegionReport {
                     [
                         "^ ",
                         "~:server_type",
-                        boundaryLayer.server_type,
+                        `~:${boundaryLayer.server_type.toLowerCase()}`,
                         "~:category",
-                        boundaryLayer.category,
+                        `~:${boundaryLayer.category.toLowerCase()}`,
                         "~:detail_layer",
-                        null,
+                        boundaryLayer.detail_layer,
                         "~:organisation",
                         boundaryLayer.organisation,
                         "~:layer_name",
@@ -942,7 +1028,7 @@ class RegionReport {
                         "~:legend_url",
                         boundaryLayer.legend_url,
                         "~:layer_type",
-                        boundaryLayer.layer_type
+                        `~:${boundaryLayer.layer_type.toLowerCase()}`
                     ],
                     "~:amp",
                     [
