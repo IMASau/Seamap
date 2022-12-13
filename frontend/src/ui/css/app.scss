@@ -367,54 +367,32 @@ rect#background {
     user-select: text;
     display: flex;
     flex-direction: column;
+    .org-logo { height: 50px; }
+    .download-instructions { font-style: italic; }
+
+    .server-info {
+        display: grid;
+        grid-template-columns: 60px minmax(0, 1fr);
+        margin-left: 10px;
+        line-height: 1.5em;
+        .server-layer { grid-column-start: 2; }
+    }
+
+    .metadata-img {
+        float: left;
+        margin-right: 5px;
+    }
+
+    .metadata-subheader {
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
 }
-.metadata-record .section:not(:last-child) {
-    margin-bottom: 15px;
-}
-.metadata-record .more-info {
-    margin-top: 10px;
-}
-.metadata-img {
-    float: left;
-    margin-right: 5px;
-}
-.metadata-record .server-info {
-    display: grid;
-    grid-template-columns: 60px minmax(0, 1fr);
-    margin-left: 10px;
-    line-height: 1.5em;
-}
-.metadata-record .server-layer {
-    grid-column-start: 2;
-}
-.org-logo {
-    /* width: 90px; */
-    height: 50px;
-}
+
 .clearfix::after {
     clear: both;
     display: block;
     content: "";
-}
-.metadata-record .download-instructions {
-    font-style: italic;
-}
-
-.metadata-record h3 {
-    font-weight: 600;
-    margin-bottom: 10px;
-}
-
-.metadata-record.third-party .metadata-subheader,
-.metadata-record.third-party .license-info,
-.metadata-record.third-party .download-instructions,
-.metadata-record.bathymetry .metadata-subheader,
-.metadata-record.bathymetry .license-info,
-.metadata-record.bathymetry .download-instructions,
-.metadata-record.boundaries .metadata-subheader,
-.metadata-record.boundaries .license-info,
-.metadata-record.boundaries .download-instructions {
-    display: none;
 }
 
 .clickable {
