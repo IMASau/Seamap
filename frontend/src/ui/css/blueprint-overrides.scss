@@ -111,6 +111,7 @@
             flex-direction: column;
             gap: 12px;
             align-items: flex-start;
+            >* { max-width: 100%; }
 
             a {
                 color: $seamap-color-7;
