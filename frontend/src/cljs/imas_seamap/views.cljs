@@ -379,12 +379,12 @@
            {:class (string/replace logo #"\..+$" "")
             :src   (str img-url-base logo)}]])
 
-       (when (and (seq constraints) (= category :habitat))
+       (when (seq constraints)
          [:div
           [:h3 "Citation Information"]
           [:p constraints]])
 
-       (when (and (seq other) (= category :habitat))
+       (when (seq other)
          [:div
           [:h3 "Usage"]
           (map-indexed (fn [i v] ^{:key i} [:p v]) other)])
@@ -403,10 +403,10 @@
           [:a {:href server_url} server_url]
           [:span.server-layer layer_name]]]]
        
-       (when (= category :habitat)
+       (when (or (seq license-img) (seq license-link) (seq license-name))
          [:div.clearfix
           [:h3 "License Information"]
-          (when license-img
+          (when (seq license-img)
             [:img.metadata-img {:src license-img}])
           [:a {:href license-link :target "_blank"} license-name]])
        
