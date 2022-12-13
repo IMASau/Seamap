@@ -653,14 +653,20 @@
    outside of the bounds of the map. Knowing this we can pan the map to fix this."
   [{{{{popup-x :x popup-y :y popup-lat :lat popup-lng :lng} :location} :feature
     {{map-width :x map-height :y} :size [map-lat map-lng] :center}
-    :map} :db}
+    :map :as db} :db}
    [_ {popup-width :x popup-height :y :as _popup-dimensions}]]
-  (let [map-x           (/ map-width 2)
+  (let [view-left       (+ (if (get-in db [:display :left-drawer]) 368 0) 52)
+        view-right      (if (or
+                             (boolean (get-in db [:state-of-knowledge :boundaries :active-boundary]))
+                             (get-in db [:story-maps :open?]))
+                          368 0)
+        
+        map-x           (/ map-width 2)
         map-y           (/ map-height 2)
         overflow-top    (- popup-height popup-y) ; positive values mean we're over the bounds by that many pixels (which tells us how many pixels we'd need to move the map in the opposite direction to have everything in-bounds)
         overflow-bottom (- popup-y map-height)
-        overflow-left   (- (/ popup-width 2) popup-x)
-        overflow-right  (- popup-x (- map-width (/ popup-width 2)))
+        overflow-left   (+ (- (/ popup-width 2) popup-x) view-left)
+        overflow-right  (+ (- popup-x (- map-width (/ popup-width 2))) view-right)
         x-to-lng        (/ (- popup-lng map-lng) (- popup-x map-x)) ; ratio of lng degrees per x pixel
         y-to-lat        (/ (- popup-lat map-lat) (- popup-y map-y)) ; ratio of lat degrees per y pixel
         map-lat         (cond-> map-lat
@@ -669,6 +675,11 @@
         map-lng         (cond-> map-lng
                           (pos? overflow-left) (- (* overflow-left x-to-lng))
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
+    (js/console.log db)
+    (js/console.log view-left)
+    (js/console.log view-right)
+    (js/console.log overflow-left)
+    (js/console.log overflow-right)
     {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
 
 (defmulti get-layer-legend #(get-in %2 [1 :layer_type]))
