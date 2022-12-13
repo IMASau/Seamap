@@ -397,7 +397,7 @@
         [b/collapse
          {:is-open               @expanded
           :keep-children-mounted true}
-         [:p "You can access the data online at"]
+         [:p "Access map layer online at"]
          [:div.server-info
           [:span "WMS:"]
           [:a {:href server_url} server_url]
