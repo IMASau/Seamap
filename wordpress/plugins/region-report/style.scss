@@ -409,6 +409,7 @@ body {
         .table-container {
             flex: 4;
             position: relative;
+            overflow-y: auto;
 
             >* {
                 position: absolute;
