@@ -369,41 +369,53 @@
 (defn- metadata-record [_props]
   (let [expanded (reagent/atom false)
         {:keys [img-url-base]} @(re-frame/subscribe [:url-base])]
-    (fn  [{:keys [license-name license-link license-img constraints other]
-           {:keys [category organisation metadata_url server_url layer_name]} :layer
-           :as _layer-info}]
-      [:div.metadata-record {:class (clojure.core/name category)}
+    (fn [{:keys [license-name license-link license-img constraints other]
+          {:keys [category organisation metadata_url server_url layer_name]} :layer}]
+      [:div.metadata-record
+
        (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
-         [:div.section
+         [:div
           [:img.metadata-img.org-logo
            {:class (string/replace logo #"\..+$" "")
             :src   (str img-url-base logo)}]])
-       [:h3.metadata-subheader "Citation Information:"]
-       [:div.section
-        [:p.citation  constraints]]
-       (when (seq other)
-         [:div.section
+
+       (when (and (seq constraints) (= category :habitat))
+         [:div
+          [:h3.metadata-subheader "Citation Information:"]
+          [:p constraints]])
+
+       (when (and (seq other) (= category :habitat))
+         [:div
           [:h3.metadata-subheader "Usage:"]
-          (map-indexed (fn [i o] (when o ^{:key i} [:p.other-constraints o])) other)])
-       [:h3.clickable {:on-click (handler-fn (swap! expanded not))}
-        [b/icon {:icon (if @expanded "chevron-down" "chevron-right")}]
-        "API Access"]
-       [b/collapse {:is-open               @expanded
-                    :keep-children-mounted true}
-        [:p "You can access the data online at"]
-        [:div.server-info.section
-         [:span "WMS:"]
-         [:span.server-url [:a {:href server_url} server_url]]
-         [:span.server-layer layer_name]]]
-       [:div.license-info.clearfix.section
-        [:h3 "License Information:"]
-        (when license-img [:img.license.metadata-img {:src license-img}])
-        [:a {:href license-link :target "_blank"} license-name]]
-       [:div.more-info.section
-        [:a {:href metadata_url :target "_blank"} "Click here for the full metadata record."]]
-       [:div.section
-        [:p.download-instructions
-         "Downloading implies acceptance of all citation and usage requirements."]]])))
+          (map-indexed (fn [i v] ^{:key i} [:p v]) other)])
+
+       [:div
+        [:h3.clickable.metadata-subheader
+         {:on-click #(swap! expanded not)}
+         [b/icon {:icon (if @expanded "chevron-down" "chevron-right")}]
+         "API Access"]
+        [b/collapse
+         {:is-open               @expanded
+          :keep-children-mounted true}
+         [:p "You can access the data online at"]
+         [:div.server-info
+          [:span "WMS:"]
+          [:a {:href server_url} server_url]
+          [:span.server-layer layer_name]]]]
+       
+       (when (= category :habitat)
+         [:div.clearfix
+          [:h3.metadata-subheader "License Information:"]
+          (when license-img
+            [:img.metadata-img {:src license-img}])
+          [:a {:href license-link :target "_blank"} license-name]])
+       
+       [:a {:href metadata_url :target "_blank"}
+        "Click here for the full metadata record."]
+       
+       (when (= category :habitat)
+         [:p.download-instructions
+          "Downloading implies acceptance of all citation and usage requirements."])])))
 
 (defn- download-menu [{:keys [title disabled? layer bbox]}]
   [b/popover {:position           b/BOTTOM
@@ -456,12 +468,14 @@
           :icon        "error"}]
 
         [metadata-record layer-info])]
+     
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions
-       (when (and
-              metadata_url
-              (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog\.search#/metadata/[-0-9a-zA-Z]+$" metadata_url)
-              (= category :habitat))
+       (when
+        (and
+         metadata_url
+         (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog\.search#/metadata/[-0-9a-zA-Z]+$" metadata_url)
+         (= category :habitat))
          [:<>
           [download-menu {:title     "Download Selection..."
                           :layer     layer
@@ -469,10 +483,11 @@
                           :bbox      region}]
           [download-menu {:title "Download All..."
                           :layer layer}]])
-       [b/button {:text       "Close"
-                  :auto-focus true
-                  :intent     b/INTENT-PRIMARY
-                  :on-click   (handler-dispatch [:map.layer/close-info])}]]]]))
+       [b/button
+        {:text       "Close"
+         :auto-focus true
+         :intent     b/INTENT-PRIMARY
+         :on-click   #(re-frame/dispatch [:map.layer/close-info])}]]]]))
 
 (defn pre-leaflet-controls [& controls]
   (into [:div.pre-leaflet-controls.leaflet-touch] controls))
