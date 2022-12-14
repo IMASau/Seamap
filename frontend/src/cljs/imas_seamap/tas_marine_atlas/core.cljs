@@ -26,7 +26,7 @@
             [imas-seamap.config :as config]))
 
 
-(def config
+(def config-handlers
   {:subs
    {:map/props                            msubs/map-props
     :map/layers                           msubs/map-layers
@@ -266,7 +266,7 @@
   @re-frame.db/app-db)
 
 (defn ^:export init [api-url-base media-url-base wordpress-url-base img-url-base]
-  (register-handlers! config)
+  (register-handlers! config-handlers)
   (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base])
   (dev-setup)
   (mount-root))
