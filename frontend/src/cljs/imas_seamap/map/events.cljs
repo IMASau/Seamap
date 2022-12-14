@@ -300,8 +300,8 @@
   (mapv process-layer layers))
 
 (defn update-grouped-base-layers [{{layers :base-layers groups :base-layer-groups} :map :as db}]
-  (if (and (seq layers) (seq groups))
-   (let [grouped-layers (group-by :layer_group layers)
+  (js/console.log db)
+  (let [grouped-layers (group-by :layer_group layers)
         groups (map
                 (fn [{:keys [id] :as group}]
                   (let [layers (get grouped-layers id)
@@ -319,17 +319,14 @@
         groups (sort-by-sort-key groups)]
     (-> db
         (assoc-in [:map :grouped-base-layers] (vec groups))
-        (assoc-in [:map :active-base-layer] (first groups))))
-    db))
+        (assoc-in [:map :active-base-layer] (first groups)))))
 
 (defn update-base-layer-groups [db [_ groups]]
-  (let [db (assoc-in db [:map :base-layer-groups] groups)]
-    (update-grouped-base-layers db)))
+  (assoc-in db [:map :base-layer-groups] groups))
 
 (defn update-base-layers [db [_ layers]]
-  (let [layers (mapv #(update % :layer_type (comp keyword string/lower-case)) layers)
-        db     (assoc-in db [:map :base-layers] layers)]
-    (update-grouped-base-layers db)))
+  (let [layers (mapv #(update % :layer_type (comp keyword string/lower-case)) layers)]
+    (assoc-in db [:map :base-layers] layers)))
 
 (defn- keyed-layers-join
   "Using layers and keyed-layers, replaces layer IDs in keyed-layers with layer

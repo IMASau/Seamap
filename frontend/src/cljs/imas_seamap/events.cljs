@@ -32,7 +32,9 @@
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
-                                  :map/update-base-layer-groups
+                                  :map/update-base-layer-groups]
+     :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
@@ -62,7 +64,9 @@
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
-                                  :map/update-base-layer-groups
+                                  :map/update-base-layer-groups]
+     :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
@@ -92,7 +96,9 @@
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}
     {:when :seen-all-of? :events [:map/update-base-layers
-                                  :map/update-base-layer-groups
+                                  :map/update-base-layer-groups]
+     :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications

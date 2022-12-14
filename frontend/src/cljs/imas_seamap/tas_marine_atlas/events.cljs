@@ -22,7 +22,9 @@
    [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
     {:when :seen? :events :construct-urls :dispatch [:initialise-layers]}
     {:when :seen-all-of? :events [:map/update-base-layers
-                                  :map/update-base-layer-groups
+                                  :map/update-base-layer-groups]
+     :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
@@ -41,7 +43,9 @@
     {:when :seen? :events :construct-urls :dispatch [:load-hash-state hash-code]}
     {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
     {:when :seen-all-of? :events [:map/update-base-layers
-                                  :map/update-base-layer-groups
+                                  :map/update-base-layer-groups]
+     :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
@@ -60,7 +64,9 @@
     {:when :seen? :events :construct-urls :dispatch [:get-save-state shortcode [:load-hash-state]]}
     {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
     {:when :seen-all-of? :events [:map/update-base-layers
-                                  :map/update-base-layer-groups
+                                  :map/update-base-layer-groups]
+     :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications

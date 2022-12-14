@@ -151,6 +151,7 @@
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups
+    :map/update-grouped-base-layers       mevents/update-grouped-base-layers
     :map/update-layers                    [mevents/update-layers]
     :map/update-organisations             mevents/update-organisations
     :map/update-classifications           mevents/update-classifications
