@@ -489,8 +489,8 @@
          :intent     b/INTENT-PRIMARY
          :on-click   #(re-frame/dispatch [:map.layer/close-info])}]]]]))
 
-(defn pre-leaflet-controls [& controls]
-  (into [:div.pre-leaflet-controls.leaflet-touch] controls))
+(defn custom-leaflet-controls [& controls]
+  (into [:div.leaflet-top.leaflet-left.leaflet-touch] controls))
 
 (defn- leaflet-control-button [{:keys [on-click tooltip icon]}]
   [:div.leaflet-bar.leaflet-control
@@ -735,7 +735,7 @@
      [state-of-knowledge]
      [featured-map-drawer]
      [layers-search-omnibar]
-     [pre-leaflet-controls
+     [custom-leaflet-controls
       [menu-button]
       [settings-button]]
      [floating-pills]

@@ -446,7 +446,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     padding: 0;
 }
 
-.leaflet-left, .pre-leaflet-controls {
+.leaflet-left {
     transition: left 150ms;
 }
 
@@ -454,8 +454,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     transition: right 150ms;
 }
 
-.catalogue-open .leaflet-left,
-.catalogue-open .pre-leaflet-controls {
+.catalogue-open .leaflet-left {
     left: $drawer-width;
 }
 
@@ -651,19 +650,13 @@ input.leaflet-control-layers-selector[type="radio"] {
     }
 }
 
-.pre-leaflet-controls {
-    position: absolute;
-    z-index: 2000;
-    left: 0;
-
-    .leaflet-control {
-        margin-top: 10px;
-        margin-left: 10px;
+.leaflet-control-container .leaflet-top.leaflet-left {
+    >:first-child {
+        margin-top: calc(
+            ($floating-menu-padding + $leaflet-control-width + 2 * 2px) * 2
+            + $floating-menu-padding
+        );
     }
-}
-
-.leaflet-top.leaflet-left {
-    top: calc(($floating-menu-padding + $leaflet-control-width + 2 * 2px) * 2) // 2 * 2px is control border size, 2 is number of controls
 }
 
 /* Chunkier leaflet controls start */

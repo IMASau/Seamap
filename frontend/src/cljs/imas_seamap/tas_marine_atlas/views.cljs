@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers pre-leaflet-controls menu-button settings-button layers-search-omnibar layer-preview hotkeys-combos]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layers-search-omnibar layer-preview hotkeys-combos custom-leaflet-controls]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.components :as components]
             [goog.string.format]
@@ -74,7 +74,7 @@
      [loading-display]
      [left-drawer]
      [layers-search-omnibar]
-     [pre-leaflet-controls
+     [custom-leaflet-controls
       [menu-button]
       [settings-button]]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
