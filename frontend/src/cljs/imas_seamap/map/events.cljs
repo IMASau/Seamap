@@ -344,8 +344,6 @@
     db))
 
 (defn update-layers [{:keys [db]} [_ layers]]
-  (js/console.warn "update-layers debug")
-  (js/console.log db)
   (let [{:keys [legend-ids opacity-ids]} db
         layers (process-layers layers)
         db     (-> db
@@ -353,7 +351,6 @@
                    (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
                    (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids))
                    keyed-layers-join)]
-    (js/console.log db)
     {:db         db
      :dispatch-n (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))}))
 
