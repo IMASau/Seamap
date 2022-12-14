@@ -9,6 +9,7 @@ import shapefile
 import subprocess
 import tempfile
 import zipfile
+import logging
 
 from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure
 from catalogue.serializers import RegionReportSerializer, LayerSerializer, PressureSerializer
@@ -1143,7 +1144,8 @@ def habitat_statistics(request):
             mapped_area = float(sum(v['area'] for v in habitat_stats))
             mapped_percentage = 100 * mapped_area / boundary_area
             habitat_stats.append({'habitat': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
-        except:
+        except Exception as e:
+            logging.error('Error at %s', 'division', exc_info=e)
             return Response([])
         else:
             return Response(habitat_stats)
@@ -1215,7 +1217,8 @@ def bathymetry_statistics(request):
             mapped_area = float(sum(v['area'] for v in bathymetry_stats))
             mapped_percentage = 100 * mapped_area / boundary_area
             bathymetry_stats.append({'resolution': None, 'rank': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
-        except:
+        except Exception as e:
+            logging.error('Error at %s', 'division', exc_info=e)
             return Response([])
         else:
             return Response(bathymetry_stats)
@@ -1286,7 +1289,8 @@ def habitat_observations(request):
             namedrow = namedtuple('Result', columns)
             result = namedrow(*cursor.fetchone())
             squidle = result._asdict()
-        except:
+        except Exception as e:
+            logging.error('Error at %s', 'division', exc_info=e)
             return Response({'global_archive': None, 'sediment': None, 'squidle': None})
         else:
             return Response({'global_archive': global_archive, 'sediment': sediment, 'squidle': squidle})
@@ -1317,7 +1321,8 @@ def region_report_data(request):
         try:
             cursor.execute(SQL_GET_PARK_SQUIDLE_URL if park else SQL_GET_NETWORK_SQUIDLE_URL, [park or network])
             data["squidle_url"] = cursor.fetchone()[0]
-        except:
+        except Exception as e:
+            logging.error('Error at %s', 'division', exc_info=e)
             pass
 
     return Response(data)
