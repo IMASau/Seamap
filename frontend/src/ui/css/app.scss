@@ -714,7 +714,15 @@ input.leaflet-control-layers-selector[type="radio"] {
 /* Chunkier leaflet controls end */
 
 .leaflet-control-layers,
-.leaflet-bar { border-radius: 0; }
+.leaflet-bar,
+.leaflet-touch .leaflet-bar a:first-child,
+.leaflet-touch .leaflet-bar a:last-child { border-radius: 0; }
+
+.leaflet-touch .leaflet-bar a.disabled {
+    background-color: rgb(227, 233, 237);
+    color: rgb(139, 154, 164);
+    cursor: not-allowed;
+}
 
 // Right drawer shared
 .state-of-knowledge-drawer,
