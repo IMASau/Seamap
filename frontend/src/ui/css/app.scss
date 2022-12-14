@@ -657,6 +657,29 @@ input.leaflet-control-layers-selector[type="radio"] {
             + $floating-menu-padding
         );
     }
+
+    >:nth-child(3) {
+        margin-top: calc(
+            (
+                ($leaflet-control-width + 1px) * 4 + $leaflet-control-width
+                + 2 * 2px
+            ) + (
+                $leaflet-control-width + 1px + $leaflet-control-width
+                + 2 * 2px
+            )
+            + $floating-menu-padding * 3
+        );
+    }
+}
+
+.custom-leaflet-controls {
+    >:nth-child(3) {
+        margin-top: calc(
+            ($leaflet-control-width + 1px) * 2 + $leaflet-control-width
+            + 2 * 2px
+            + $floating-menu-padding * 2
+        );
+    }
 }
 
 /* Chunkier leaflet controls start */

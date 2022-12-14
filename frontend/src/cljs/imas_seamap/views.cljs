@@ -489,8 +489,53 @@
          :intent     b/INTENT-PRIMARY
          :on-click   #(re-frame/dispatch [:map.layer/close-info])}]]]]))
 
-(defn custom-leaflet-controls [& controls]
-  (into [:div.leaflet-top.leaflet-left.leaflet-touch] controls))
+(defn- control-block [& children]
+  (into [:div.leaflet-bar.leaflet-control.leaflet-control-block] children))
+
+(defn- control-block-child [{:keys [on-click tooltip icon id]}]
+  [b/tooltip {:content tooltip :position b/RIGHT}
+   [:a (merge {:on-click on-click} (when id {:id id}))
+    [b/icon {:icon icon :size 18}]]])
+
+(defn- print-control []
+  [:div.print-control
+   [:a
+    {:on-click #(-> "CurrentSize" js/document.getElementsByClassName first .click)
+     :title    "Current Size"}
+    [b/icon {:icon "media" :size 18}]]
+   [:div.options
+    [:a
+     {:on-click #(-> "A4Landscape page" js/document.getElementsByClassName first .click)
+      :title    "A4 Landscape"}
+     [b/icon {:icon "document" :size 18 :style {:transform "rotate(-90deg)"}}]]
+    [:a
+     {:on-click #(-> "A4Portrait page" js/document.getElementsByClassName first .click)
+      :title    "A4 Portrait"}
+     [b/icon {:icon "document" :size 18}]]]])
+
+(defn- transect-control [{:keys [drawing? query] :as _transect-info}]
+  (let [[tooltip icon dispatch]
+        (cond
+          drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
+          query    ["Clear Measurement"  "eraser" :transect.draw/clear]
+          :else    ["Transect/Measure"   "edit"   :transect.draw/enable])]
+    [control-block-child
+     {:on-click #(re-frame/dispatch [dispatch])
+      :tooltip  tooltip
+      :icon     icon
+      :id       "transect-control"}]))
+
+(defn- region-control [{:keys [selecting? region] :as _region-info}]
+  (let [[tooltip icon dispatch]
+        (cond
+          selecting? ["Cancel Selecting" "undo"   :map.layer.selection/disable]
+          region     ["Clear Selection"  "eraser" :map.layer.selection/clear]
+          :else      ["Select Region"    "widget" :map.layer.selection/enable])]
+    [control-block-child
+     {:on-click #(re-frame/dispatch [dispatch])
+      :tooltip  tooltip
+      :icon     icon
+      :id       "select-control"}]))
 
 (defn- leaflet-control-button [{:keys [on-click tooltip icon]}]
   [:div.leaflet-bar.leaflet-control
@@ -502,16 +547,49 @@
      [:a {:on-click on-click}
       [b/icon {:icon icon :size 18}]])])
 
-(defn menu-button []
+(defn- menu-button []
   [leaflet-control-button
    {:on-click #(re-frame/dispatch [:left-drawer/toggle])
     :icon     "menu"}])
 
-(defn settings-button []
+(defn- settings-button []
   [leaflet-control-button
    {:on-click #(re-frame/dispatch [:ui/settings-overlay true])
     :tooltip  "Settings"
     :icon     "cog"}])
+
+(defn custom-leaflet-controls []
+  (let [transect-info @(re-frame/subscribe [:transect/info])
+        region-info   @(re-frame/subscribe [:map.layer.selection/info])]
+    [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
+     [menu-button]
+     [settings-button]
+     [control-block
+      [print-control]
+
+      [control-block-child
+       {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
+        :tooltip  "Search All Layers"
+        :icon     "search"}]
+
+      [transect-control transect-info]
+      [region-control region-info]
+
+      [control-block-child
+       {:on-click #(re-frame/dispatch [:create-save-state])
+        :tooltip  "Create Shareable URL"
+        :icon     "share"}]]
+
+     [control-block
+      [control-block-child
+       {:on-click #(js/document.dispatchEvent (js/KeyboardEvent. "keydown" #js{:which 47 :keyCode 47 :shiftKey true :bubbles true})) ; https://github.com/palantir/blueprint/issues/1590
+        :tooltip  "Show Keyboard Shortcuts"
+        :icon     "key-command"}]
+
+      [control-block-child
+       {:on-click #(re-frame/dispatch [:help-layer/toggle])
+        :tooltip  "Show Help Overlay"
+        :icon     "help"}]]]))
 
 (defn- floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
@@ -734,10 +812,8 @@
      [left-drawer]
      [state-of-knowledge]
      [featured-map-drawer]
-     [layers-search-omnibar]
-     [custom-leaflet-controls
-      [menu-button]
-      [settings-button]]
+     [layers-search-omnibar] 
+     [custom-leaflet-controls]
      [floating-pills]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 
