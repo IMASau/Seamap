@@ -65,8 +65,7 @@
                                  :save-state            "savestates"
                                  :category              "categories/"
                                  :keyed-layers          "keyedlayers/"
-                                 :layer-previews        "layer_previews/"
-                                 :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"}
+                                 :layer-previews        "layer_previews/"}
                      :urls      nil
                      :url-base {:api-url-base       "http://localhost:8000/api/"
                                 :media-url-base     "http://localhost:8000/media/"

@@ -84,10 +84,9 @@
           save-state
           category
           keyed-layers
-          layer-previews
-          story-maps]}
+          layer-previews]}
         (get-in db [:config :url-paths])
-        {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
+        {:keys [api-url-base media-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
      db [:config :urls]
      {:layer-url                 (str api-url-base layer)
@@ -100,8 +99,7 @@
       :save-state-url            (str api-url-base save-state)
       :category-url              (str api-url-base category)
       :keyed-layers-url          (str api-url-base keyed-layers)
-      :layer-previews-url        (str media-url-base layer-previews)
-      :story-maps-url            (str wordpress-url-base story-maps)})))
+      :layer-previews-url        (str media-url-base layer-previews)})))
 
 (defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (assoc-in
@@ -175,8 +173,7 @@
                 classification-url
                 descriptor-url
                 category-url
-                keyed-layers-url
-                story-maps-url]} (get-in db [:config :urls])]
+                keyed-layers-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -217,11 +214,6 @@
                    :uri             keyed-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-keyed-layers]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             story-maps-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:sm/update-featured-maps]
                    :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn create-save-state [{:keys [db]} _]
