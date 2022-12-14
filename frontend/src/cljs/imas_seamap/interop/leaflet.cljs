@@ -6,7 +6,6 @@
             ["leaflet" :as L]
             ["react-leaflet" :as ReactLeaflet]
             ["@react-leaflet/core" :as ReactLeafletCore]
-            ["react-leaflet-custom-control" :as ReactLeafletControl]
             ["esri-leaflet" :as esri]
             ["leaflet-draw"]
             ["leaflet-easyprint"]
@@ -38,7 +37,6 @@
 (def circle-marker       (r/adapt-react-class ReactLeaflet/CircleMarker))
 (def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L %))))
 (def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
-(def custom-control      (r/adapt-react-class ReactLeafletControl/default))
 (def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L .-control .-coordinates) %))))
 (def geojson-feature     L/geoJson)
 (def latlng              L/LatLng)

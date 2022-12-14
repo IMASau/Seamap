@@ -69,16 +69,6 @@
                   :intent   b/INTENT-PRIMARY
                   :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]]))
 
-(defn share-control [_props]
-  [leaflet/custom-control {:position "topleft" :container {:className "leaflet-bar"}}
-   ;; The copy-text has to be here rather than in a handler, because
-   ;; Firefox won't do execCommand('copy') outside of a "short-lived
-   ;; event handler"
-   [:a {:on-click #(do (copy-text js/location.href)
-                       (re-frame/dispatch  [:create-save-state]))}
-    [b/tooltip {:content "Create Shareable URL" :position b/RIGHT}
-     [b/icon {:icon "share"}]]]])
-
 (defn draw-transect-control []
   [leaflet/feature-group
    [leaflet/edit-control
