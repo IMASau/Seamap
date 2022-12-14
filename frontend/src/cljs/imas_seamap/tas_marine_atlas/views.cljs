@@ -8,7 +8,6 @@
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers pre-leaflet-controls menu-button settings-button layers-search-omnibar layer-preview hotkeys-combos]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.components :as components]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -22,7 +21,7 @@
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
-      :className   "left-drawer"
+      :className   "left-drawer tas-marine-atlas-drawer"
       :hasBackdrop false}
      [b/tabs
       {:id              "left-drawer-tabs"
@@ -39,12 +38,7 @@
       [b/tab
        {:id    "active-layers"
         :title "Active Layers"
-        :panel (reagent/as-element [left-drawer-active-layers])}]
-
-      [b/tab
-       {:id    "featured-maps"
-        :title "Featured Maps"
-        :panel (reagent/as-element [featured-maps])}]]]))
+        :panel (reagent/as-element [left-drawer-active-layers])}]]]))
 
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
@@ -79,7 +73,6 @@
      [settings-overlay]
      [loading-display]
      [left-drawer]
-     [featured-map-drawer]
      [layers-search-omnibar]
      [pre-leaflet-controls
       [menu-button]

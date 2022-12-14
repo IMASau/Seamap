@@ -607,7 +607,7 @@
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
-      :className   "left-drawer"
+      :className   "left-drawer seamap-drawer"
       :isCloseButtonShown false
       :hasBackdrop false}
      [b/tabs

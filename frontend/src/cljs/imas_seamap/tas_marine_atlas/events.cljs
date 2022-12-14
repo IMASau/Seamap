@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.tas-marine-atlas.db :as db]
-            [imas-seamap.utils :refer [copy-text geonetwork-force-xml merge-in append-params-from-map ids->layers]]
+            [imas-seamap.utils :refer [copy-text geonetwork-force-xml merge-in append-params-from-map ids->layers first-where]]
             [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities]]
             [imas-seamap.tas-marine-atlas.utils :refer [encode-state parse-state ajax-loaded-info]]
             [re-frame.core :as re-frame]
@@ -240,3 +240,32 @@
     {:cookie/set {:name  :cookie-state
                   :value (encode-state db)}
      :put-hash   ""}))
+
+(defn show-initial-layers
+  "Figure out the highest priority layer, and display it"
+  ;; Slight hack; note we use :active not :active-layers, because
+  ;; during boot we may have loaded hash-state, but we can't hydrate
+  ;; the id from the hash state into actual layers, until the layers
+  ;; themselves are loaded... by which time the state will have been
+  ;; re-set.  So we have this two step process.  Ditto :active-base /
+  ;; :active-base-layer
+  [{:keys [db]} _]
+  (let [{:keys [active active-base _legend-ids]} (:map db)
+        startup-layers (get-in db [:map :keyed-layers :startup] [])
+        active-layers (if active
+                        (vec (ids->layers active (get-in db [:map :layers])))
+                        startup-layers)
+        active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
+        active-base   (or active-base   ; If no base is set (eg no existing hash-state), use the first candidate
+                          (first (get-in db [:map :grouped-base-layers])))
+        story-maps    (get-in db [:story-maps :featured-maps])
+        featured-map  (get-in db [:story-maps :featured-map])
+        featured-map  (first-where #(= (% :id) featured-map) story-maps)
+        db            (-> db
+                          (assoc-in [:map :active-layers] active-layers)
+                          (assoc-in [:map :active-base-layer] active-base)
+                          (assoc-in [:story-maps :featured-map] featured-map)
+                          (assoc :initialised true))]
+    {:db         db
+     :dispatch-n [[:ui/hide-loading]
+                  [:maybe-autosave]]}))
