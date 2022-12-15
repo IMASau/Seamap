@@ -266,7 +266,7 @@
       [{:label "Date Range" :text (if start_date (str start_date " to " end_date) "Unknown")}
        {:label "Methods of Collection" :text method}
        {:label "Images Collected" :text images}
-       {:label "Image Annotations" :text [:<> total_annotations " (" public_annotations " " [b/tooltip {:content "Finalised curated image annotations"} [:b [:u "public"]]] ")"]}]}]))
+       {:label "Image Annotations" :text [:<> total_annotations " (" public_annotations " " [b/tooltip {:content "Finalised public curated image annotations"} [:b [:u "public"]]] ")"]}]}]))
 
 (defn- global-archive-stats
   [{:keys [deployments campaigns start_date end_date method video_time video_annotations]}]

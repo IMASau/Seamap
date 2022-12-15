@@ -293,7 +293,7 @@ class RegionReport {
                         ${squidleTotalAnnotations} (${squidlePublicAnnotations}
                         <span class="tooltip-parent">
                             <b><u>public</u></b>
-                            <div class="tooltip">Finalised curated image annotations</div>
+                            <div class="tooltip">Finalised public curated image annotations</div>
                         </span>
                         )
                     </li>

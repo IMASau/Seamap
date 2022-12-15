@@ -76,8 +76,14 @@
                                     <tr>
                                         <th>Habitat</th>
                                         <th>Area (km²)</th>
-                                        <th>Mapped (%)</th>
-                                        <th>Total (%)</th>
+                                        <th class="tooltip-parent alt">
+                                            Mapped (%)
+                                            <div class="tooltip">% of coverage (relative to surveyed area)</div>
+                                        </th>
+                                        <th class="tooltip-parent alt">
+                                            Total (%)
+                                            <div class="tooltip">% of coverage (relative to total region area)</div>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody id="region-report-habitat-table-<?php the_ID(); ?>"></tbody>
@@ -98,8 +104,14 @@
                                     <tr>
                                         <th>Resolution</th>
                                         <th>Area (km²)</th>
-                                        <th>Mapped (%)</th>
-                                        <th>Total (%)</th>
+                                        <th class="tooltip-parent alt">
+                                            Mapped (%)
+                                            <div class="tooltip">% of coverage (relative to surveyed area)</div>
+                                        </th>
+                                        <th class="tooltip-parent alt">
+                                            Total (%)
+                                            <div class="tooltip">% of coverage (relative to total region area)</div>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody id="region-report-bathymetry-table-<?php the_ID(); ?>"></tbody>

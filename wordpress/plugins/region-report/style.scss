@@ -567,7 +567,7 @@ body {
             white-space: nowrap;
             bottom: -100%;
             left: 50%;
-            transform: translate(-50%, calc(-100% - 8px));
+            transform: translate(-50%, calc(-100% - 6px));
             box-shadow: 0 0 0 1px rgb(16 22 26 / 10%), 0 2px 4px rgb(16 22 26 / 20%), 0 8px 24px rgb(16 22 26 / 20%);
             opacity: 0;
             pointer-events: none;
@@ -583,7 +583,25 @@ body {
                 position: absolute;
                 bottom: -100%;
                 left: 50%;
-                transform: translate(-50%, calc(-100% - 10px));
+                transform: translate(-50%, calc(-100% - 11px));
+            }
+        }
+
+        &.alt {
+            >.tooltip {
+                bottom: 0;
+                left: auto;
+                right: 50%;
+                transform: translate(0, calc(100% + 6px));
+
+                &::before {
+                    border-top: none;
+                    border-bottom: 10px solid rgb(57, 75, 89);
+                    bottom: auto;
+                    left: auto;
+                    right: 12px;
+                    transform: translate(-50%, calc(-100% - 7px));
+                }
             }
         }
     }
