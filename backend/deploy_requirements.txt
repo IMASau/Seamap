@@ -1,4 +1,4 @@
 -r base_requirements.txt
-certifi==2022.6.15
+certifi==2022.12.7
 sentry-sdk==0.17.3
 urllib3==1.26.11
