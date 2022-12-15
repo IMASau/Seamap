@@ -806,9 +806,10 @@
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
-        right-drawer-open? (or @(re-frame/subscribe [:sok/open?]) @(re-frame/subscribe [:sm.featured-map/open?]))]
+        right-drawer-open? (or @(re-frame/subscribe [:sok/open?]) @(re-frame/subscribe [:sm.featured-map/open?]))
+        loading?           @(re-frame/subscribe [:app/loading?])]
     [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
-     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
+     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
      [:div#content-wrapper
       [map-component]
       [plot-component]]

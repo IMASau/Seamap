@@ -145,6 +145,14 @@ body.page-template-default.admin-bar #app {
     position: relative;
     display: flex;
 }
+
+.loading {
+    // Disable relative positioning on map elements when printing, otherwise grey space is left around export image
+    #content-wrapper, .map-wrapper, #map {
+        position: unset !important;
+    }
+}
+
 footer {
     flex: 0 0;
     flex-basis: 10px;
