@@ -75,30 +75,33 @@
     - reset-click (optional): When this is set the caret iccon will be replaced
       with a cross, and clicking the cross will perform this action.
     - & children: the children rendered inside of the pop-out menu."
-  [{:keys [text icon disabled? expanded? on-open-click on-close-click reset-click] :as props} & children]
+  [{:keys [_text _icon _disabled? _expanded? _on-open-click _on-close-click _reset-click _tooltip] :as _props} & _children]
   (let [atom-expanded? (reagent/atom false)]
-    (fn [{:keys [text icon disabled? expanded? on-open-click on-close-click reset-click] :as props} & children]
+    (fn [{:keys [text icon disabled? expanded? on-open-click on-close-click reset-click tooltip] :as props} & children]
       (let [expanded?       (if (contains? props :expanded?) expanded? @atom-expanded?)
             on-open-click   (or on-open-click #(reset! atom-expanded? true))
-            on-close-click  (or on-close-click #(reset! atom-expanded? false))]
+            on-close-click  (or on-close-click #(reset! atom-expanded? false))
+            button          [:div
+                             {:class    (str "floating-pill floating-pill-control-menu-button" (when disabled? " disabled") (when reset-click " reset-click"))
+                              :on-click (when-not disabled? (if expanded? on-close-click on-open-click))}
+                             [b/icon
+                              {:icon icon
+                               :size 16}]
+                             [b/clipped-text {:ellipsize true :class "title"} text]
+                             (if reset-click
+                               [b/button
+                                {:icon "cross"
+                                 :minimal true
+                                 :on-click (fn [e]
+                                             (.stopPropagation e) ; so we don't fire on-open-click or on-close-click
+                                             (reset-click))}]
+                               [b/icon
+                                {:icon (if expanded? "caret-up" "caret-down")}])]]
         [:div
          {:class (str "floating-pill-control-menu" (when expanded? " expanded"))}
-         [:div
-          {:class    (str "floating-pill floating-pill-control-menu-button" (when disabled? " disabled") (when reset-click " reset-click"))
-           :on-click (when-not disabled? (if expanded? on-close-click on-open-click))}
-          [b/icon
-           {:icon icon
-            :size 16}]
-          [b/clipped-text {:ellipsize true :class "title"} text]
-          (if reset-click
-            [b/button
-             {:icon "cross"
-              :minimal true
-              :on-click (fn [e]
-                          (.stopPropagation e) ; so we don't fire on-open-click or on-close-click
-                          (reset-click))}]
-            [b/icon
-             {:icon (if expanded? "caret-up" "caret-down")}])]
+         (if tooltip
+           [b/tooltip {:content tooltip} button]
+           button)
          [:div.floating-pill-control-menu-content
           [:div.floating-pill-control-menu-content-header
            [:div

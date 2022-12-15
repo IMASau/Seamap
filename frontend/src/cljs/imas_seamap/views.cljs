@@ -508,7 +508,7 @@
   [:div.print-control
    [:a
     {:on-click #(-> "CurrentSize" js/document.getElementsByClassName first .click)
-     :title    "Current Size"}
+     :title    "Export at Current Size"}
     [b/icon {:icon "media" :size 18}]]
    [:div.options
     [:a
@@ -545,7 +545,7 @@
           (not habitat-layers?) ["No habitat layers currently active" "widget" :map.layer.selection/enable]
           selecting?            ["Cancel Selecting" "undo"   :map.layer.selection/disable]
           region                ["Clear Selection"  "eraser" :map.layer.selection/clear]
-          :else                 ["Select Region"    "widget" :map.layer.selection/enable])]
+          :else                 ["Select Habitat Data"    "widget" :map.layer.selection/enable])]
     [control-block-child
      {:on-click  #(re-frame/dispatch [dispatch])
       :tooltip   tooltip
@@ -711,20 +711,23 @@
       [b/tab
        {:id    "catalogue"
         :class "catalogue"
-        :title "Catalogue"
+        :title (reagent/as-element
+                [b/tooltip {:content "All available map layers"} "Catalogue"])
         :panel (reagent/as-element [left-drawer-catalogue])}]
 
       [b/tab
        {:id    "active-layers"
         :title (reagent/as-element
-                [:<> "Active Layers"
-                 (when (seq active-layers)
-                   [:div.notification-bubble (count active-layers)])])
+                [b/tooltip {:content "Currently active layers"}
+                 [:<> "Active Layers"
+                  (when (seq active-layers)
+                    [:div.notification-bubble (count active-layers)])]])
         :panel (reagent/as-element [left-drawer-active-layers])}]
 
       [b/tab
        {:id    "featured-maps"
-        :title "Featured Maps"
+        :title (reagent/as-element
+                [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
         :panel (reagent/as-element [featured-maps])}]]]))
 
 (defn layer-preview [_preview-layer-url]

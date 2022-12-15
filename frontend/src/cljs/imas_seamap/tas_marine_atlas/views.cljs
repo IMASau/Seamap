@@ -14,7 +14,8 @@
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
-        tab   @(re-frame/subscribe [:left-drawer/tab])]
+        tab   @(re-frame/subscribe [:left-drawer/tab])
+        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
      {:title       "Tasmania Marine Atlas"
       :position    "left"
@@ -32,12 +33,17 @@
       [b/tab
        {:id    "catalogue"
         :class "catalogue"
-        :title "Catalogue"
+        :title (reagent/as-element
+                [b/tooltip {:content "All available map layers"} "Catalogue"])
         :panel (reagent/as-element [left-drawer-catalogue])}]
 
       [b/tab
        {:id    "active-layers"
-        :title "Active Layers"
+        :title (reagent/as-element
+                [b/tooltip {:content "Currently active layers"}
+                 [:<> "Active Layers"
+                  (when (seq active-layers)
+                    [:div.notification-bubble (count active-layers)])]])
         :panel (reagent/as-element [left-drawer-active-layers])}]]]))
 
 (defn layout-app []

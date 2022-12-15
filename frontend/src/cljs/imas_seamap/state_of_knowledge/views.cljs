@@ -16,8 +16,8 @@
     [:tr
      [:th "Habitat"]
      [:th "Area (km²)"]
-     [:th "Mapped (%)"]
-     [:th "Total (%)"]]]
+     [:th [b/tooltip {:content "% of coverage (relative to surveyed area)"} "Mapped (%)"]]
+     [:th [b/tooltip {:content "% of coverage (relative to total region area)"} "Total (%)"]]]]
    [:tbody
     (for [{:keys [habitat area mapped_percentage total_percentage]} habitat-statistics]
       [:tr
@@ -121,8 +121,8 @@
     [:tr
      [:th "Resolution"]
      [:th "Area (km²)"]
-     [:th "Mapped (%)"]
-     [:th "Total (%)"]]]
+     [:th [b/tooltip {:content "% of coverage (relative to surveyed area)"} "Mapped (%)"]]
+     [:th [b/tooltip {:content "% of coverage (relative to total region area)"} "Total (%)"]]]]
    [:tbody
     (for [{:keys [resolution area mapped_percentage total_percentage]} bathymetry-statistics]
       [:tr
@@ -400,10 +400,14 @@
         [components/breadcrumbs
          {:content breadcrumbs}])]
      (when region-report-url
-       [:a {:href region-report-url :target "_blank"}
-        [b/icon
-         {:icon "document-open"
-          :size 24}]])]))
+       [b/tooltip
+        {:content "View full data report for region"}
+        [:a {:href   region-report-url
+             :target "_blank"
+             :class  "region-report-button"}
+         [b/icon
+          {:icon "document-open"
+           :size 24}]]])]))
 
 (defn state-of-knowledge []
   [components/drawer
@@ -428,6 +432,7 @@
     {:text           (or (:name active-boundary) "State of Knowledge")
      :icon           "add-column-right"
      :expanded?      expanded?
+     :tooltip        (when-not active-boundary "State of research knowledge for management region")
      :on-open-click  #(re-frame/dispatch [:sok/open-pill "state-of-knowledge"])
      :on-close-click #(re-frame/dispatch [:sok/open-pill nil])}
     (when active-boundary {:reset-click #(re-frame/dispatch [:sok/update-active-boundary nil])}))
