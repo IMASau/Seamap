@@ -107,7 +107,7 @@
   [{:keys [layer] {:keys [active? visible? _opacity] :as layer-state} :layer-state :as props}]
   [:div.layer-header
    [:div
-    (when (and true true)
+    (when (and active? visible?)
       [layer-card-status-icons layer-state])
     [layer-card-header-text props]
 
