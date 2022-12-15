@@ -28,7 +28,8 @@
       {:id              "left-drawer-tabs"
        :class           "left-drawer-tabs"
        :selected-tab-id tab
-       :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
+       :on-change       #(re-frame/dispatch [:left-drawer/tab %1])
+       :render-active-tab-panel-only true} ; doing this re-renders ellipsized text on tab switch, fixing ISA-359
 
       [b/tab
        {:id    "catalogue"

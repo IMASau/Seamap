@@ -171,7 +171,8 @@
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab %1])
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
     [b/tabs {:selected-tab-id selected-tab
-             :on-change       select-tab}
+             :on-change       select-tab
+             :render-active-tab-panel-only true} ; doing this re-renders ellipsized text on tab switch, fixing ISA-359
      [b/tab
       {:id    "cat"
        :title "By Category"
@@ -706,7 +707,8 @@
       {:id              "left-drawer-tabs"
        :class           "left-drawer-tabs"
        :selected-tab-id tab
-       :on-change       #(re-frame/dispatch [:left-drawer/tab %1])}
+       :on-change       #(re-frame/dispatch [:left-drawer/tab %1])
+       :render-active-tab-panel-only true} ; doing this re-renders ellipsized text on tab switch, fixing ISA-359
 
       [b/tab
        {:id    "catalogue"
