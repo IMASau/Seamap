@@ -300,7 +300,6 @@
   (mapv process-layer layers))
 
 (defn update-grouped-base-layers [{{layers :base-layers groups :base-layer-groups} :map :as db}]
-  (js/console.log db)
   (let [grouped-layers (group-by :layer_group layers)
         groups (map
                 (fn [{:keys [id] :as group}]
@@ -672,11 +671,6 @@
         map-lng         (cond-> map-lng
                           (pos? overflow-left) (- (* overflow-left x-to-lng))
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
-    (js/console.log db)
-    (js/console.log view-left)
-    (js/console.log view-right)
-    (js/console.log overflow-left)
-    (js/console.log overflow-right)
     {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
 
 (defmulti get-layer-legend #(get-in %2 [1 :layer_type]))
