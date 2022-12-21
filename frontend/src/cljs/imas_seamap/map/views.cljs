@@ -51,23 +51,25 @@
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
     (re-frame/dispatch [:map.layer/load-finished layer])))
 
-(defn download-component [{:keys [display-link link bbox download-type] :as _download-info}]
+(defn download-component [{:keys [display-link link bbox download-type download-layer] :as _download-info}]
   (let [type-str (download-type->str download-type)]
-    [b/dialogue {:is-open   display-link
-                 :title     (str "Download " type-str)
-                 :icon "import"
-                 :on-close  (handler-dispatch [:ui.download/close-dialogue])}
+    [b/dialogue
+     {:is-open   display-link
+      :title     (str "Download " type-str)
+      :icon      "import"
+      :on-close  #(re-frame/dispatch [:ui.download/close-dialogue])}
      [:div.bp3-dialog-body
-      [:p [:a {:href link :target "_blank"}
-           "Click here to download"
-           (when bbox " region")
-           " as "
-           type-str]]]
+      [:a
+       {:href     link
+        :target   "_blank"
+        :on-click #(re-frame/dispatch [:download-click {:link link :layer (:layer_name download-layer) :type type-str}])}
+       "Click here to download " (when bbox "region ") "as " type-str]]
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions
-       [b/button {:text     "Done"
-                  :intent   b/INTENT-PRIMARY
-                  :on-click (handler-dispatch [:ui.download/close-dialogue])}]]]]))
+       [b/button
+        {:text     "Done"
+         :intent   b/INTENT-PRIMARY
+         :on-click #(re-frame/dispatch [:ui.download/close-dialogue])}]]]]))
 
 (defn draw-transect-control []
   [leaflet/feature-group

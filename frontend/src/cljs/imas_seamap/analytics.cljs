@@ -18,6 +18,16 @@
    :eventAction   "toggle"
    :eventLabel    (:layer_name layer)})
 
+(defmethod format-event :map/add-layer [[_ layer :as _event-v]]
+  {:eventCategory "layers"
+   :eventAction   "add"
+   :eventLabel    (:layer_name layer)})
+
+(defmethod format-event :map/remove-layer [[_ layer :as _event-v]]
+  {:eventCategory "layers"
+   :eventAction   "remove"
+   :eventLabel    (:layer_name layer)})
+
 (defmethod format-event :map/pan-to-layer [[_ layer :as _event-v]]
   {:eventCategory "layers"
    :eventAction   "pan"

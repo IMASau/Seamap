@@ -135,13 +135,26 @@
         border-radius: 0;
         align-items: flex-start;
 
-        .bp3-heading {
+        >.bp3-icon:first-child {
+            align-self: center;
+            color: inherit;
+            margin: 0;
+            margin-left: 20px;
+            margin-right: -10px;
+
+            >svg {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        >.bp3-heading {
             white-space: initial;
             margin: 20px 20px 16px 20px;
             >::before { margin-right: 10px; }
         }
     
-        .bp3-dialog-close-button {
+        >.bp3-dialog-close-button {
             margin: 4px;
             
             .bp3-icon svg {

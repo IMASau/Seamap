@@ -250,7 +250,8 @@
     :left-drawer/tab                      [events/left-drawer-tab]
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
-    :layers-search-omnibar/close          events/layers-search-omnibar-close}})
+    :layers-search-omnibar/close          events/layers-search-omnibar-close
+    :download-click                       (fn [db [_ {:keys [_link]}]] db)}})
 
 (def events-for-analytics
   [:help-layer/open
@@ -258,9 +259,12 @@
    :map/clicked
    :map/pan-to-layer
    :map/toggle-layer
+   :map/add-layer
+   :map/remove-layer
    :map/toggle-layer-visibility
    :transect.plot/toggle-visibility
-   :transect/query])
+   :transect/query
+   :download-click])
 
 (def standard-interceptors
   [(when ^boolean goog.DEBUG (debug-excluding
