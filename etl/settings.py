@@ -18,6 +18,4 @@ logger = logging.getLogger()
 logger.addHandler(log_handler)
 logger.setLevel(logging.INFO)
 
-# open a connection to the database
-cnxn = pyodbc.connect(config['database']['connection_string'])
-cnxn.autocommit = False
+

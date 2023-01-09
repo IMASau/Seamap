@@ -1,8 +1,8 @@
 
-from settings import config, cnxn
+from settings import config
 
 
-def transform(source_name):
+def transform(cnxn, source_name):
     #TODO extract to be a config instead?
     proc_name = config[source_name]['table'].replace('EXTRACT', 'IMPORT')
 
