@@ -5,7 +5,7 @@ import pyodbc
 from settings import config
 from extractor import extract
 from transformer import transform
-from email_manager import send_error_email, send_generic_error_email
+from email_manager import send_error_email
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
                 send_error_email(source, str(e))
     except Exception as e:
         logging.error("An error occurred")
-        send_generic_error_email(str(e))
+        send_error_email(source_name=None, error=str(e))
     finally:
         if cnxn is not None:
             cnxn.close()
