@@ -464,7 +464,7 @@
                "amp" (str
                       (or (:network active-network) "All networks")
                       " / "
-                      (or (:park active-park) "All parks"))
+                      (or (:park active-park) "All marine parks"))
                "imcra" (str
                         (or (:provincial-bioregion active-provincial-bioregion) "All provincial bioregions")
                         " / "
@@ -500,7 +500,7 @@
 
       (when amp?
         [components/form-group
-         {:label "Park"}
+         {:label "Marine Park"}
          [components/select
           {:value        active-park
            :options      parks
