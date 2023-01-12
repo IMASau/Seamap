@@ -1320,7 +1320,8 @@ def region_report_data(request):
     with connections['transects'].cursor() as cursor:
         try:
             cursor.execute(SQL_GET_PARK_SQUIDLE_URL if park else SQL_GET_NETWORK_SQUIDLE_URL, [park or network])
-            data["squidle_url"] = cursor.fetchone()[0]
+            entry = cursor.fetchone()
+            data["squidle_url"] = entry[0] if entry else None # some parks do not have URLs, so in that event we just provide a null URL
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
             pass
