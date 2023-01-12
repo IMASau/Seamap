@@ -5,7 +5,7 @@ import urllib.request
 import pyodbc
 from pyproj import Transformer
 
-from settings import config, cnxn
+from settings import config
 
 transformer = Transformer.from_crs("epsg:4326", "epsg:3112", always_xy=True)
 
@@ -16,7 +16,7 @@ def convert_geometry(src):
     return f"POINT({x_out} {y_out})"
 
 
-def extract(source_name):
+def extract(cnxn, source_name):
     cursor = cnxn.cursor()
     try:
         resp = urllib.request.urlopen(config[source_name]['url'])
