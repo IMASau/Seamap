@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layers-search-omnibar layer-preview hotkeys-combos custom-leaflet-controls control-block]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers layers-search-omnibar layer-preview hotkeys-combos custom-leaflet-controls]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.components :as components]
             [goog.string.format]
@@ -60,22 +60,15 @@
      
      ;; TODO: Separate helper overlay for TasMarineAtlas?
      [helper-overlay
-      :layer-search
-      :plot-footer
-      {:selector   "*"
-       :helperText "Layers available in your current field of view (zoom out to see more)"}
       {:selector       ".SelectionListItem:first-child .layer-card .layer-header"
        :helperPosition "bottom"
        :helperText     "Toggle layer visibility, view more info, show legend, and download data"}
-      {:selector   ".sidebar-tabs ul:first-child"
-       :helperText "Choose between habitat, bathymetry, and other layer types"}
-      :transect-btn-wrapper
-      :select-btn-wrapper
-      {:selector ".sidebar-tabs ul:nth-child(2)" :helperText "Reset interface"}
-      {:id "habitat-group" :helperText "Layers showing sea-floor habitats"}
-      {:id "bathy-group" :helperText "Layers showing bathymetry data"}
-      {:id "imagery-group" :helperText "Layers showing photos collected"}
-      {:id "third-party-group" :helperText "Layers from other providers (eg CSIRO)"}]
+      {:id "layer-search" :helperText "Search for a specific layer using its name or keywords"}
+      {:id "transect-control" :helperText "Click to draw a transect"}
+      {:id "select-control" :helperText "Click to select a region"}
+      {:id "plot-footer"
+       :helperText "This shows the habitat data along a bathymetry transect you can draw"
+       :helperPosition "top"}]
      [info-card]
      [settings-overlay]
      [loading-display]
