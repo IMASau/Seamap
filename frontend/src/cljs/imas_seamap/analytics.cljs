@@ -42,7 +42,7 @@
 ;;; interceptor is disabled in the dev profile)
 (defn track-event [ga-event]
   (when (exists? js/gtag)
-    (js/gtag "event" "event"
+    (js/gtag "event" (:event_action ga-event)
        (-> {:hit_type "event"}
            (merge ga-event)
            clj->js))))
