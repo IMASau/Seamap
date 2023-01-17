@@ -37,12 +37,12 @@
   {:eventCategory "general"
    :eventAction   (event->action id)})
 
-;;; Note, for testing you can set "ga = console.log" in the browser
+;;; Note, for testing you can set "gtag = console.log" in the browser
 ;;; developer console (also note that by default the analytics
 ;;; interceptor is disabled in the dev profile)
 (defn track-event [ga-event]
-  (when (exists? js/ga)
-    (js/ga "send"
+  (when (exists? js/gtag)
+    (js/gtag "send"
        (-> {:hitType "event"}
            (merge ga-event)
            clj->js))))
