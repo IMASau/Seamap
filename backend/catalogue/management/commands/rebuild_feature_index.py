@@ -14,14 +14,16 @@ SQL_INSERT_LAYER_FEATURE_ROW = """
 (
   %s,
   %s,
-  GEOMETRY::STGeomFromText(%s, 4326)
+  GEOMETRY::STGeomFromText(%s, 4326),
+  %s
 )
 """
 SQL_INSERT_LAYER_FEATURE = """
 INSERT INTO layer_feature (
   layer_id,
   feature_id,
-  geom
+  geom,
+  type
 ) VALUES {};
 """
 
@@ -89,7 +91,7 @@ def add_feature_params(layer, feature):
              ['coordinates'], type=feature['geometry']['type'])
     geom = shape(o)
     wkt = geom.wkt
-    return [layer.id, feature['id'], wkt]
+    return [layer.id, feature.get('id') or 'NoId!', wkt, feature['geometry']['type']]
 
 
 def add_features(layer, successes, failures):
@@ -114,7 +116,6 @@ def add_features(layer, successes, failures):
             failures.append(layer)
             logging.info(f"FAILURE: {r.url}\n{r.text}\n")
         else:
-            successes.append(layer)
             params = []
 
             for feature in data['features']:
@@ -132,8 +133,11 @@ def add_features(layer, successes, failures):
                     )
             except Exception as e:
                 logging.error('Error at %s', 'division', exc_info=e)
-
-            logging.info(f"SUCCESS: {len(data['features'])}\n")
+                failures.append(layer)
+                logging.info(f"FAILURE: {r.url}\n{r.text}\n")
+            else:
+                successes.append(layer)
+                logging.info(f"SUCCESS: {len(data['features'])}\n")
 
 
 class Command(BaseCommand):
