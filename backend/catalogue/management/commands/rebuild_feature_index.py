@@ -1,9 +1,29 @@
 from django.core.management.base import BaseCommand
+from django.db import connections
 import requests
 import re
 import logging
+from shapely.geometry import shape
 
 from catalogue.models import Layer
+
+
+SQL_DELETE_LAYER_FEATURES = "DELETE FROM layer_feature;"
+
+SQL_INSERT_LAYER_FEATURE_ROW = """
+(
+  %s,
+  %s,
+  GEOMETRY::STGeomFromText(%s, 4326)
+)
+"""
+SQL_INSERT_LAYER_FEATURE = """
+INSERT INTO layer_feature (
+  layer_id,
+  feature_id,
+  geom
+) VALUES {};
+"""
 
 
 def geoserver_request(layer):
@@ -64,13 +84,20 @@ def mapserver_request(layer):
             return r
 
 
+def add_feature_params(layer, feature):
+    o = dict(coordinates=feature['geometry']
+             ['coordinates'], type=feature['geometry']['type'])
+    geom = shape(o)
+    wkt = geom.wkt
+    return [layer.id, feature['id'], wkt]
+
+
 def add_features(layer, successes, failures):
     logging.info(f"{layer} ({layer.id})...")
     r = mapserver_request(layer) if re.search(
         r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url) else geoserver_request(layer)
 
     try:
-        print(r.url)
         data = r.json()
     except Exception as e:
         logging.error('Error at %s\nResponse text:\n%s',
@@ -88,6 +115,24 @@ def add_features(layer, successes, failures):
             logging.info(f"FAILURE: {r.url}\n{r.text}\n")
         else:
             successes.append(layer)
+            params = []
+
+            for feature in data['features']:
+                params += add_feature_params(layer, feature)
+
+            try:
+                with connections['default'].cursor() as cursor:
+                    cursor.execute(
+                        SQL_INSERT_LAYER_FEATURE.format(
+                            ', '.join(
+                                [SQL_INSERT_LAYER_FEATURE_ROW] *
+                                len(data['features'])
+                            )
+                        ), params
+                    )
+            except Exception as e:
+                logging.error('Error at %s', 'division', exc_info=e)
+
             logging.info(f"SUCCESS: {len(data['features'])}\n")
 
 
@@ -95,9 +140,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         ids = [2, 5, 6, 15, 27, 28, 29, 30, 31, 32, 35, 38, 39, 41, 42,
                43, 75, 125, 130, 138, 140, 145, 150, 157, 163, 166, 168]
-        ids = [2]
         successes = []
         failures = []
+
+        with connections['default'].cursor() as cursor:
+            cursor.execute(SQL_DELETE_LAYER_FEATURES)
 
         for layer in Layer.objects.all():
             if layer.id in ids:
