@@ -14,36 +14,36 @@
 (defmulti format-event (fn [event-v] (first event-v)))
 
 (defmethod format-event :map/toggle-layer [[_ layer :as _event-v]]
-  {:eventCategory "layers"
-   :eventAction   "toggle"
-   :eventLabel    (:layer_name layer)})
+  {:event_category "layers"
+   :event_action   "toggle"
+   :event_label    (:layer_name layer)})
 
 (defmethod format-event :map/add-layer [[_ layer :as _event-v]]
-  {:eventCategory "layers"
-   :eventAction   "add"
-   :eventLabel    (:layer_name layer)})
+  {:event_category "layers"
+   :event_action   "add"
+   :event_label    (:layer_name layer)})
 
 (defmethod format-event :map/remove-layer [[_ layer :as _event-v]]
-  {:eventCategory "layers"
-   :eventAction   "remove"
-   :eventLabel    (:layer_name layer)})
+  {:event_category "layers"
+   :event_action   "remove"
+   :event_label    (:layer_name layer)})
 
 (defmethod format-event :map/pan-to-layer [[_ layer :as _event-v]]
-  {:eventCategory "layers"
-   :eventAction   "pan"
-   :eventLabel    (:layer_name layer)})
+  {:event_category "layers"
+   :event_action   "pan"
+   :event_label    (:layer_name layer)})
 
 (defmethod format-event :default [[id & _args :as _event-v]]
-  {:eventCategory "general"
-   :eventAction   (event->action id)})
+  {:event_category "general"
+   :event_action   (event->action id)})
 
-;;; Note, for testing you can set "ga = console.log" in the browser
+;;; Note, for testing you can set "gtag = console.log" in the browser
 ;;; developer console (also note that by default the analytics
 ;;; interceptor is disabled in the dev profile)
 (defn track-event [ga-event]
-  (when (exists? js/ga)
-    (js/ga "send"
-       (-> {:hitType "event"}
+  (when (exists? js/gtag)
+    (js/gtag "event" (:event_action ga-event)
+       (-> {:hit_type "event"}
            (merge ga-event)
            clj->js))))
 
