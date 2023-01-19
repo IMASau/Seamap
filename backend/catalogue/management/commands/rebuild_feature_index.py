@@ -75,10 +75,14 @@ def mapserver_request(layer):
 
 
 def add_feature_params(layer, feature):
+    if not feature['geometry']:
+        return None
+
     o = dict(coordinates=feature['geometry']
              ['coordinates'], type=feature['geometry']['type'])
     geom = shape(o)
     wkt = geom.wkt
+
     return LayerFeature(layer.id, feature.get('id') or 'NoId!', wkt, feature['geometry']['type'])
 
 
@@ -107,9 +111,16 @@ def add_features(layer, successes, failures):
             params = []
 
             for feature in data['features']:
-                params.append(add_feature_params(layer, feature))
+                layer_feature = add_feature_params(layer, feature)
+                if layer_feature:
+                    params.append(layer_feature)
 
             try:
+                logging.info('feature_count: %s', len(params))
+                geom_types = {}
+                for layer_feature in params:
+                    geom_types[layer_feature.type] = geom_types.get(layer_feature.type, 0) + 1
+                logging.info('geom_types: %s', geom_types)
                 with connections['default'].cursor() as cursor:
                     # TODO: Bulk inserts? https://learn.microsoft.com/en-us/sql/relational-databases/import-export/import-bulk-data-by-using-bulk-insert-or-openrowset-bulk-sql-server?view=sql-server-ver16
                     cursor.executemany(SQL_INSERT_LAYER_FEATURE, params)
