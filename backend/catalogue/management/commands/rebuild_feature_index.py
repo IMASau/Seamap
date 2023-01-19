@@ -10,23 +10,7 @@ from catalogue.models import Layer
 
 SQL_DELETE_LAYER_FEATURES = "DELETE FROM layer_feature;"
 
-SQL_INSERT_LAYER_FEATURE_ROW = """
-(
-  %s,
-  %s,
-  GEOMETRY::STGeomFromText(%s, 4326),
-  %s
-)
-"""
-SQL_INSERT_LAYER_FEATURE = """
-INSERT INTO layer_feature (
-  layer_id,
-  feature_id,
-  geom,
-  type
-) VALUES {};
-"""
-
+SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature (layer_id, feature_id, geom, type ) VALUES (%s, %s, GEOMETRY::STGeomFromText(%s, 4326), %s);"
 
 def geoserver_request(layer):
     params = {
@@ -119,22 +103,15 @@ def add_features(layer, successes, failures):
             params = []
 
             for feature in data['features']:
-                params += add_feature_params(layer, feature)
+                params.append(add_feature_params(layer, feature))
 
             try:
                 with connections['default'].cursor() as cursor:
-                    cursor.execute(
-                        SQL_INSERT_LAYER_FEATURE.format(
-                            ', '.join(
-                                [SQL_INSERT_LAYER_FEATURE_ROW] *
-                                len(data['features'])
-                            )
-                        ), params
-                    )
+                    cursor.executemany(SQL_INSERT_LAYER_FEATURE, params)
             except Exception as e:
                 logging.error('Error at %s', 'division', exc_info=e)
                 failures.append(layer)
-                logging.info(f"FAILURE: {r.url}\n{r.text}\n")
+                logging.info(f"FAILURE: {r.url}\n")
             else:
                 successes.append(layer)
                 logging.info(f"SUCCESS: {len(data['features'])}\n")
