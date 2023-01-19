@@ -4,13 +4,16 @@ import requests
 import re
 import logging
 from shapely.geometry import shape
+from collections import namedtuple
 
 from catalogue.models import Layer
 
+LayerFeature = namedtuple('LayerFeature', 'layer_id feature_id geom type')
 
 SQL_DELETE_LAYER_FEATURES = "DELETE FROM layer_feature;"
 
 SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature (layer_id, feature_id, geom, type ) VALUES (%s, %s, GEOMETRY::STGeomFromText(%s, 4326), %s);"
+
 
 def geoserver_request(layer):
     params = {
@@ -62,6 +65,7 @@ def mapserver_request(layer):
 
     if url:
         try:
+            # TODO: Deal with paginated responses
             r = requests.get(url=url, params=params)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
@@ -75,7 +79,7 @@ def add_feature_params(layer, feature):
              ['coordinates'], type=feature['geometry']['type'])
     geom = shape(o)
     wkt = geom.wkt
-    return [layer.id, feature.get('id') or 'NoId!', wkt, feature['geometry']['type']]
+    return LayerFeature(layer.id, feature.get('id') or 'NoId!', wkt, feature['geometry']['type'])
 
 
 def add_features(layer, successes, failures):
@@ -107,6 +111,7 @@ def add_features(layer, successes, failures):
 
             try:
                 with connections['default'].cursor() as cursor:
+                    # TODO: Bulk inserts? https://learn.microsoft.com/en-us/sql/relational-databases/import-export/import-bulk-data-by-using-bulk-insert-or-openrowset-bulk-sql-server?view=sql-server-ver16
                     cursor.executemany(SQL_INSERT_LAYER_FEATURE, params)
             except Exception as e:
                 logging.error('Error at %s', 'division', exc_info=e)
