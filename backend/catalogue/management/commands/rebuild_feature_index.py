@@ -5,6 +5,7 @@ import re
 import logging
 from shapely.geometry import shape
 from collections import namedtuple
+import csv
 
 from catalogue.models import Layer
 
@@ -14,8 +15,7 @@ SQL_DELETE_LAYER_FEATURES = "DELETE FROM layer_feature;"
 
 SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature (layer_id, feature_id, geom, type ) VALUES (%s, %s, GEOMETRY::STGeomFromText(%s, 4326), %s);"
 
-
-def geoserver_request(layer):
+def get_geoserver_features(layer):
     params = {
         'request':      'GetFeature',
         'service':      'WFS',
@@ -28,9 +28,20 @@ def geoserver_request(layer):
         r = requests.get(url=layer.server_url, params=params)
     except Exception as e:
         logging.error('Error at %s', 'division', exc_info=e)
-        return None
     else:
-        return r
+        try:
+            data = r.json()
+        except Exception as e:
+            logging.error('Error at %s\nResponse text:\n%s', 'division', r.text, exc_info=e)
+        else:
+            try:
+                assert not data.get('error')
+                assert data.get('features')
+            except Exception as e:
+                logging.error('Error at %s\nResponse:\n%s', 'division', data, exc_info=e)
+            else:
+                return data['features']
+    return None
 
 
 def mapserver_layer_query_url(layer):
@@ -41,22 +52,28 @@ def mapserver_layer_query_url(layer):
         r = requests.get(url=map_server_url, params={'f': 'json'})
     except Exception as e:
         logging.error('Error at %s', 'division', exc_info=e)
-        return None
     else:
         try:
             data = r.json()
         except Exception as e:
-            logging.error('Error at %s\nResponse text:\n%s',
-                          'division', r.text, exc_info=e)
-            return None
+            logging.error('Error at %s\nResponse text:\n%s', 'division', r.text, exc_info=e)
         else:
             server_layers = data['layers']
-            server_layer = (server_layers if len(server_layers) == 1 else list(filter(
-                lambda x: x['name'] == layer.layer_name, server_layers)))[0]  # get first layer if one layer, else filter the list
-            return f"{map_server_url}/{server_layer['id']}/query"
+            server_layer = (
+                server_layers
+                if len(server_layers) == 1
+                else list(filter(lambda x: x['name'] == layer.layer_name, server_layers))
+            )[0]  # get first layer if one layer, else filter the list
+            try:
+                assert server_layer
+            except Exception as e:
+                logging.error('Error at %s\nResponse:\n%s', 'division', data, exc_info=e)
+            else:
+                return f"{map_server_url}/{server_layer['id']}/query"
+    return None
 
 
-def mapserver_request(layer):
+def get_mapserver_features(layer):
     params = {
         'where': '1=1',
         'f':     'geojson'
@@ -69,79 +86,92 @@ def mapserver_request(layer):
             r = requests.get(url=url, params=params)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
-            return None
         else:
-            return r
+            try:
+                data = r.json()
+            except Exception as e:
+                logging.error('Error at %s\nResponse text:\n%s', 'division', r.text, exc_info=e)
+            else:
+                try:
+                    assert not data.get('error')
+                    assert data.get('features')
+                except Exception as e:
+                    logging.error('Error at %s\nResponse:\n%s', 'division', data, exc_info=e)
+                else:
+                    return data['features']
+    return None
 
 
-def add_feature_params(layer, feature):
+def get_layer_feature(layer, feature):
     if not feature['geometry']:
         return None
 
-    o = dict(coordinates=feature['geometry']
-             ['coordinates'], type=feature['geometry']['type'])
+    o = dict(
+        coordinates=feature['geometry']['coordinates'],
+        type=feature['geometry']['type']
+    )
     geom = shape(o)
     wkt = geom.wkt
 
     return LayerFeature(layer.id, feature.get('id') or 'NoId!', wkt, feature['geometry']['type'])
 
 
-def add_features(layer, successes, failures):
+def add_features(layer, successes, failures, to_csv=False):
     logging.info(f"{layer} ({layer.id})...")
-    r = mapserver_request(layer) if re.search(
-        r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url) else geoserver_request(layer)
-
-    try:
-        data = r.json()
-    except Exception as e:
-        logging.error('Error at %s\nResponse text:\n%s',
-                      'division', r.text, exc_info=e)
-        failures.append(layer)
-        logging.info(f"FAILURE: {r.url}\n{r.text}\n")
-        return None
+    features = None
+    if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url):
+        features = get_mapserver_features(layer)
     else:
+        features = get_geoserver_features(layer)
+
+    if features is not None:
+        # convert geojson features to LayerFeature tuples
+        layer_features = []
+        for feature in features:
+            layer_feature = get_layer_feature(layer, feature)
+            if layer_feature:
+                layer_features.append(layer_feature)
+        
+        # add the new LayerFeatures
         try:
-            assert data.get('error') == None
-        except Exception as e:
-            logging.error('Error at %s\nError in response:\n%s',
-                          'division', data.get('error'), exc_info=e)
-            failures.append(layer)
-            logging.info(f"FAILURE: {r.url}\n{r.text}\n")
-        else:
-            params = []
-
-            for feature in data['features']:
-                layer_feature = add_feature_params(layer, feature)
-                if layer_feature:
-                    params.append(layer_feature)
-
-            try:
-                logging.info('feature_count: %s', len(params))
-                geom_types = {}
-                for layer_feature in params:
-                    geom_types[layer_feature.type] = geom_types.get(layer_feature.type, 0) + 1
-                logging.info('geom_types: %s', geom_types)
+            if to_csv:
+                with open('layer_feature.csv', 'a', newline='') as csvfile:
+                    fieldnames = LayerFeature._fields
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    writer.writerows([x._asdict() for x in layer_features])
+            else:
                 with connections['default'].cursor() as cursor:
                     # TODO: Bulk inserts? https://learn.microsoft.com/en-us/sql/relational-databases/import-export/import-bulk-data-by-using-bulk-insert-or-openrowset-bulk-sql-server?view=sql-server-ver16
-                    cursor.executemany(SQL_INSERT_LAYER_FEATURE, params)
-            except Exception as e:
-                logging.error('Error at %s', 'division', exc_info=e)
-                failures.append(layer)
-                logging.info(f"FAILURE: {r.url}\n")
-            else:
-                successes.append(layer)
-                logging.info(f"SUCCESS: {len(data['features'])}\n")
+                    cursor.executemany(SQL_INSERT_LAYER_FEATURE, layer_features)
+        except Exception as e:
+            logging.error('Error at %s', 'division', exc_info=e)
+            failures.append(layer)
+        else:
+            successes.append(layer)
+    else:
+        failures.append(layer)
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--to_csv',
+            help='Set to true if you want output to go to a csv file instead of a database table'
+        )
     def handle(self, *args, **options):
-        ids = [2, 5, 6, 15, 27, 28, 29, 30, 31, 32, 35, 38, 39, 41, 42,
-               43, 75, 125, 130, 138, 140, 145, 150, 157, 163, 166, 168]
+        to_csv = options['to_csv'].lower() in ['t', 'true'] if options['to_csv'] != None else False
+        ids = [2, 5, 6, 15, 27, 28, 29, 30, 31, 32, 35, 38, 39, 41, 42, 43, 75, 125, 130, 138, 140, 145, 150, 157, 163, 166, 168]
         successes = []
         failures = []
 
-        with connections['default'].cursor() as cursor:
-            cursor.execute(SQL_DELETE_LAYER_FEATURES)
+        if to_csv:
+            with open('layer_feature.csv', 'w', newline='') as csvfile:
+                fieldnames = LayerFeature._fields
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+        else:
+            with connections['default'].cursor() as cursor:
+                cursor.execute(SQL_DELETE_LAYER_FEATURES)
 
         for layer in Layer.objects.all():
             if layer.id in ids:
