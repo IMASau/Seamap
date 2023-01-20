@@ -80,26 +80,35 @@ def get_mapserver_features(layer):
     }
     url = mapserver_layer_query_url(layer)
 
+    features = [] # start with features list, and add to it with each paginated response
+
     if url:
-        try:
-            # TODO: Deal with paginated responses
-            r = requests.get(url=url, params=params)
-        except Exception as e:
-            logging.error('Error at %s', 'division', exc_info=e)
-        else:
+        # loop through paginated responses until last page reached
+        while True:
+            if features:
+                params['resultOffset'] = len(features)
             try:
-                data = r.json()
+                r = requests.get(url=url, params=params)
             except Exception as e:
-                logging.error('Error at %s\nResponse text:\n%s', 'division', r.text, exc_info=e)
+                logging.error('Error at %s', 'division', exc_info=e)
+                return None
             else:
                 try:
-                    assert not data.get('error')
-                    assert data.get('features')
+                    data = r.json()
                 except Exception as e:
-                    logging.error('Error at %s\nResponse:\n%s', 'division', data, exc_info=e)
+                    logging.error('Error at %s\nResponse text:\n%s', 'division', r.text, exc_info=e)
+                    return None
                 else:
-                    return data['features']
-    return None
+                    try:
+                        assert not data.get('error')
+                        assert data.get('features')
+                    except Exception as e:
+                        logging.error('Error at %s\nResponse:\n%s', 'division', data, exc_info=e)
+                        return None
+                    else:
+                        features += data['features']
+                        if not data.get('exceededTransferLimit'):
+                            return features
 
 
 def get_layer_feature(layer, feature):
@@ -161,9 +170,9 @@ class Command(BaseCommand):
             '--to_csv',
             help='Set to true if you want output to go to a csv file instead of a database table'
         )
+
     def handle(self, *args, **options):
         to_csv = options['to_csv'].lower() in ['t', 'true'] if options['to_csv'] != None else False
-        ids = [2, 5, 6, 15, 27, 28, 29, 30, 31, 32, 35, 38, 39, 41, 42, 43, 75, 125, 130, 138, 140, 145, 150, 157, 163, 166, 168]
         successes = []
         failures = []
 
@@ -177,8 +186,7 @@ class Command(BaseCommand):
                 cursor.execute(SQL_DELETE_LAYER_FEATURES)
 
         for layer in Layer.objects.all():
-            if layer.id in ids:
-                add_features(layer, successes, failures, to_csv)
+            add_features(layer, successes, failures, to_csv)
 
         successes = [layer.id for layer in successes]
         logging.info("total successes: %s: %s", len(successes), successes)
