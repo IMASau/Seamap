@@ -6,11 +6,55 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layers-search-omnibar layer-preview hotkeys-combos custom-leaflet-controls control-block]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layers-search-omnibar layer-preview hotkeys-combos control-block print-control control-block-child transect-control]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.components :as components]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
+
+(defn region-control []
+  (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
+        [tooltip icon dispatch]
+        (cond
+          selecting?            ["Cancel Selecting" "undo"   :map.layer.selection/disable]
+          region                ["Clear Selection"  "eraser" :map.layer.selection/clear]
+          :else                 ["Select Region"    "widget" :map.layer.selection/enable])]
+    [control-block-child
+     {:on-click  #(re-frame/dispatch [dispatch])
+      :tooltip   tooltip
+      :icon      icon
+      :id        "select-control"}]))
+
+(defn custom-leaflet-controls []
+  [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
+   [menu-button]
+   [settings-button]
+   [control-block
+    [print-control]
+
+    [control-block-child
+     {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
+      :tooltip  "Search All Layers"
+      :icon     "search"}]
+
+    [transect-control]
+    [region-control]
+
+    [control-block-child
+     {:on-click #(re-frame/dispatch [:create-save-state])
+      :tooltip  "Create Shareable URL"
+      :icon     "share"}]]
+
+   [control-block
+    [control-block-child
+     {:on-click #(js/document.dispatchEvent (js/KeyboardEvent. "keydown" #js{:which 47 :keyCode 47 :shiftKey true :bubbles true})) ; https://github.com/palantir/blueprint/issues/1590
+      :tooltip  "Show Keyboard Shortcuts"
+      :icon     "key-command"}]
+
+    [control-block-child
+     {:on-click #(re-frame/dispatch [:help-layer/toggle])
+      :tooltip  "Show Help Overlay"
+      :icon     "help"}]]])
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])

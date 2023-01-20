@@ -490,10 +490,10 @@
          :intent     b/INTENT-PRIMARY
          :on-click   #(re-frame/dispatch [:map.layer/close-info])}]]]]))
 
-(defn- control-block [& children]
+(defn control-block [& children]
   (into [:div.leaflet-bar.leaflet-control.leaflet-control-block] children))
 
-(defn- control-block-child [{:keys [on-click tooltip icon id disabled?]}]
+(defn control-block-child [{:keys [on-click tooltip icon id disabled?]}]
   (let [disabled? (or disabled? false)]
     [b/tooltip {:content tooltip :position b/RIGHT}
      [:a
@@ -505,7 +505,7 @@
          {:on-click on-click}))
       [b/icon {:icon icon :size 18}]]]))
 
-(defn- print-control []
+(defn print-control []
   [:div.print-control
    [:a
     {:on-click #(-> "CurrentSize" js/document.getElementsByClassName first .click)
@@ -521,7 +521,7 @@
       :title    "A4 Portrait"}
      [b/icon {:icon "document" :size 18}]]]])
 
-(defn- transect-control []
+(defn transect-control []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
         [tooltip icon dispatch]
         (cond
@@ -534,7 +534,7 @@
       :icon     icon
       :id       "transect-control"}]))
 
-(defn- region-control []
+(defn region-control []
   (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
         habitat-layers? (->>
                          @(re-frame/subscribe [:map/layers])
@@ -564,12 +564,12 @@
      [:a {:on-click on-click}
       [b/icon {:icon icon :size 18}]])])
 
-(defn- menu-button []
+(defn menu-button []
   [leaflet-control-button
    {:on-click #(re-frame/dispatch [:left-drawer/toggle])
     :icon     "menu"}])
 
-(defn- settings-button []
+(defn settings-button []
   [leaflet-control-button
    {:on-click #(re-frame/dispatch [:ui/settings-overlay true])
     :tooltip  "Settings"
