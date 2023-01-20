@@ -145,10 +145,13 @@ def add_features(layer, successes, failures, to_csv=False):
                     cursor.executemany(SQL_INSERT_LAYER_FEATURE, layer_features)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
+            logging.info('FAILURE')
             failures.append(layer)
         else:
+            logging.info('SUCCESS')
             successes.append(layer)
     else:
+        logging.info('FAILURE')
         failures.append(layer)
 
 
@@ -175,7 +178,7 @@ class Command(BaseCommand):
 
         for layer in Layer.objects.all():
             if layer.id in ids:
-                add_features(layer, successes, failures)
+                add_features(layer, successes, failures, to_csv)
 
         successes = [layer.id for layer in successes]
         logging.info("total successes: %s: %s", len(successes), successes)
