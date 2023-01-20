@@ -47,6 +47,16 @@
                     [:div.notification-bubble (count active-layers)])]])
         :panel (reagent/as-element [left-drawer-active-layers])}]]]))
 
+(defn data-in-region-drawer []
+  [components/drawer
+   {:title       "Data in Region"
+    :position    "right"
+    :size        "368px"
+    :isOpen      @(re-frame/subscribe [:data-in-region/open?])
+    :onClose     #(re-frame/dispatch [:data-in-region/open false])
+    :hasBackdrop false
+    :className   "data-in-region-drawer"}])
+
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         _                  (use-hotkeys hot-keys) ; We don't need the results of this, just need to ensure it's called!
@@ -80,6 +90,7 @@
      [settings-overlay]
      [loading-display]
      [left-drawer]
+     [data-in-region-drawer]
      [layers-search-omnibar]
      [custom-leaflet-controls]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))

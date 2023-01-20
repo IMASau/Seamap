@@ -22,6 +22,7 @@
             [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
+            [imas-seamap.tas-marine-atlas.subs :as tmasubs]
             [imas-seamap.tas-marine-atlas.views :refer [layout-app]]
             [imas-seamap.config :as config]))
 
@@ -71,7 +72,8 @@
     :app/load-error-msg                   subs/load-error-msg
     :info/message                         subs/user-message
     :autosave?                            subs/autosave?
-    :url-base                             subs/url-base}
+    :url-base                             subs/url-base
+    :data-in-region/open?                 tmasubs/data-in-region-open?}
 
    :events
    {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
@@ -195,7 +197,8 @@
     :left-drawer/tab                      [events/left-drawer-tab]
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
-    :layers-search-omnibar/close          events/layers-search-omnibar-close}})
+    :layers-search-omnibar/close          events/layers-search-omnibar-close
+    :data-in-region/open                  [tmaevents/data-in-region-open]}})
 
 (def events-for-analytics
   [:help-layer/open

@@ -3,17 +3,10 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.tas-marine-atlas.events
   (:require [ajax.core :as ajax]
-            [clojure.string :as string]
-            [clojure.data.xml :as xml]
-            [clojure.data.zip.xml :as zx]
-            [clojure.zip :as zip]
-            [goog.dom :as gdom]
-            [imas-seamap.blueprint :as b]
             [imas-seamap.tas-marine-atlas.db :as db]
-            [imas-seamap.utils :refer [copy-text geonetwork-force-xml merge-in append-params-from-map ids->layers first-where]]
-            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities]]
+            [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
+            [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities]]
             [imas-seamap.tas-marine-atlas.utils :refer [encode-state parse-state ajax-loaded-info]]
-            [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn- boot-flow []
@@ -267,3 +260,7 @@
     {:db         db
      :dispatch-n [[:ui/hide-loading]
                   [:maybe-autosave]]}))
+
+(defn data-in-region-open [{:keys [db]} [_ open?]]
+  {:db       (assoc-in db [:data-in-region :open?] open?)
+   :dispatch [:maybe-autosave]})
