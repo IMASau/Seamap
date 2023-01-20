@@ -147,8 +147,8 @@
     :map.layer.legend/toggle              [mevents/toggle-legend-display]
     :map.layer.selection/enable           [mevents/map-start-selecting]
     :map.layer.selection/disable          mevents/map-cancel-selecting
-    :map.layer.selection/clear            mevents/map-clear-selection
-    :map.layer.selection/finalise         [mevents/map-finalise-selection]
+    :map.layer.selection/clear            [tmaevents/map-clear-selection]
+    :map.layer.selection/finalise         [tmaevents/map-finalise-selection]
     :map.layer.selection/toggle           [mevents/map-toggle-selecting]
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers

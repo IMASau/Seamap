@@ -7,6 +7,8 @@
             [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
             [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities]]
             [imas-seamap.tas-marine-atlas.utils :refer [encode-state parse-state ajax-loaded-info]]
+            [imas-seamap.blueprint :as b]
+            [reagent.core :as r]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn- boot-flow []
@@ -264,3 +266,19 @@
 (defn data-in-region-open [{:keys [db]} [_ open?]]
   {:db       (assoc-in db [:data-in-region :open?] open?)
    :dispatch [:maybe-autosave]})
+
+(defn map-clear-selection [{:keys [db]} _]
+  {:db (update-in db [:map :controls :download] dissoc :bbox)
+   :dispatch [:data-in-region/open false]})
+
+(defn map-finalise-selection [{:keys [db]} [_ bbox]]
+  {:db      (update-in
+             db [:map :controls :download]
+             merge {:selecting false :bbox bbox})
+   :message  [(r/as-element
+               [:div
+                "Open layer info ("
+                [b/icon {:icon "info-sign" :icon-size 14}]
+                ") to download selection"])
+              b/INTENT-NONE]
+   :dispatch [:data-in-region/open true]})
