@@ -16,22 +16,26 @@
 (defmethod format-event :map/toggle-layer [[_ layer :as _event-v]]
   {:event_category "layers"
    :event_action   "toggle"
-   :event_label    (:layer_name layer)})
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)})
 
 (defmethod format-event :map/add-layer [[_ layer :as _event-v]]
   {:event_category "layers"
    :event_action   "add"
-   :event_label    (:layer_name layer)})
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)})
 
 (defmethod format-event :map/remove-layer [[_ layer :as _event-v]]
   {:event_category "layers"
    :event_action   "remove"
-   :event_label    (:layer_name layer)})
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)})
 
 (defmethod format-event :map/pan-to-layer [[_ layer :as _event-v]]
   {:event_category "layers"
    :event_action   "pan"
-   :event_label    (:layer_name layer)})
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)})
 
 (defmethod format-event :default [[id & _args :as _event-v]]
   {:event_category "general"
