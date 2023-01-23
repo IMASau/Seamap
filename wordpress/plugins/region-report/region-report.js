@@ -1142,8 +1142,8 @@ class RegionReport {
         // Pressure category tabs
         Object.entries(groupedPressures)
             .sort((a, b) => {
-                if (/^Cumulative.+$/.test(a[0])) return 1;
-                if (/^Cumulative.+$/.test(b[0])) return -1;
+                if (/^(?i)cumulative.*$/.test(a[0])) return 1;
+                if (/^(?i)cumulative.*$/.test(b[0])) return -1;
                 return a[0] > b[0] ? 1 : -1;
             })
             .forEach(([category, pressures]) => {
