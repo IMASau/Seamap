@@ -57,7 +57,7 @@ def get_layer_image(layer, bbox, size):
     url = f'{layer.server_url}?{urlencode(sub_params)}'
     logging.info(f'Retrieving layer image from: {url}')
     image = Image.open(urlopen(url)).convert('RGBA')
-    logging.info('Layer image retrieval comple')
+    logging.info('Layer image retrieval complete')
     return image
 
 def get_boundary_layer_image(layer, bbox, size, network, park):
@@ -79,7 +79,7 @@ def get_boundary_layer_image(layer, bbox, size, network, park):
     url = f'{layer.server_url}?{urlencode(sub_params)}'
     logging.info(f'Retrieving boundary layer image from: {url}')
     image = Image.open(urlopen(url)).convert('RGBA')
-    logging.info('Boundary layer image retrieval comple')
+    logging.info('Boundary layer image retrieval complete')
     return image
 
 def generate_pressure_preview(cropped_basemap, pressure, bbox, size):
