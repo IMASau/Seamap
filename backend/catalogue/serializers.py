@@ -103,6 +103,10 @@ class RegionReportSerializer(serializers.ModelSerializer):
         exclude = ('id','minx', 'miny', 'maxx', 'maxy',)
 
 class PressureSerializer(serializers.ModelSerializer):
+    label = serializers.SerializerMethodField()
+
+    def get_label(self, obj):
+        return obj.layer.name
     class Meta:
         model = models.Pressure
         exclude = ('region_report',)

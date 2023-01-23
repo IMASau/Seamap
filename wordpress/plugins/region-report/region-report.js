@@ -1106,6 +1106,7 @@ class RegionReport {
                 target="_blank"
             >
                 <img src="${this.pressurePreviewUrlBase}/${pressure.id}.png">
+                <div class="pressure-label">${pressure.label}</div>
             </a>`;
     }
 
@@ -1135,7 +1136,7 @@ class RegionReport {
         const tabPane = document.createElement("div");
         tabPane.className = "region-report-tab-pane pressures-grid selected";
         tabPane.dataset.tab = "All";
-        pressures.forEach(pressure => tabPane.innerHTML += pressurePreview(pressure, appBoundaryLayer, bounds, network, park));
+        pressures.forEach(pressure => tabPane.innerHTML += this.pressurePreview(pressure, appBoundaryLayer, bounds, network, park));
         pressuresTabContent.appendChild(tabPane);
 
         // Pressure category tabs
@@ -1153,7 +1154,7 @@ class RegionReport {
             const tabPane = document.createElement("div");
             tabPane.className = "region-report-tab-pane pressures-grid";
             tabPane.dataset.tab = category;
-            pressures.forEach(pressure => tabPane.innerHTML += pressurePreview(pressure, appBoundaryLayer, bounds, network, park));
+            pressures.forEach(pressure => tabPane.innerHTML += this.pressurePreview(pressure, appBoundaryLayer, bounds, network, park));
             pressuresTabContent.appendChild(tabPane);
         });
     }
