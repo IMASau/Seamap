@@ -30,7 +30,9 @@
    :story-maps      {:featured-maps []
                      :featured-map  nil
                      :open?         false}
-   :data-in-region  {:open?         false}
+   :data-in-region  {:open?    false
+                     :data     nil
+                     :query-id nil}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}

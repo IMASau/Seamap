@@ -198,7 +198,9 @@
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close
-    :data-in-region/open                  [tmaevents/data-in-region-open]}})
+    :data-in-region/open                  [tmaevents/data-in-region-open]
+    :data-in-region/get                   [tmaevents/get-data-in-region]
+    :data-in-region/got                   tmaevents/got-data-in-region}})
 
 (def events-for-analytics
   [:help-layer/open

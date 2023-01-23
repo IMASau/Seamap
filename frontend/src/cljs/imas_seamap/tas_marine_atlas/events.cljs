@@ -281,4 +281,14 @@
                 [b/icon {:icon "info-sign" :icon-size 14}]
                 ") to download selection"])
               b/INTENT-NONE]
-   :dispatch [:data-in-region/open true]})
+   :dispatch-n [[:data-in-region/open true]
+                [:data-in-region/get bbox]]})
+
+(defn get-data-in-region [{:keys [db]} [_ bbox]]
+  (let [query-id (gensym)]
+    {:db (update db :data-in-region merge {:data nil :query-id query-id})
+     :dispatch [:data-in-region/got query-id "HEY"]}))
+
+(defn got-data-in-region [db [_ query-id data]]
+  (when (= (get-in db [:data-in-region :query-id]) query-id)
+   (update db :data-in-region merge {:data data :query-id nil})))
