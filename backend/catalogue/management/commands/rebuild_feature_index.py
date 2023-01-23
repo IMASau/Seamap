@@ -58,13 +58,13 @@ def mapserver_layer_query_url(layer):
         except Exception as e:
             logging.error('Error at %s\nResponse text:\n%s', 'division', r.text, exc_info=e)
         else:
-            server_layers = data['layers']
-            server_layer = (
-                server_layers
-                if len(server_layers) == 1
-                else list(filter(lambda x: x['name'] == layer.layer_name, server_layers))
-            )[0]  # get first layer if one layer, else filter the list
             try:
+                server_layers = data['layers']
+                server_layer = (
+                    server_layers
+                    if len(server_layers) == 1
+                    else list(filter(lambda x: x['name'] == layer.layer_name, server_layers))
+                )[0]  # get first layer if one layer, else filter the list
                 assert server_layer
             except Exception as e:
                 logging.error('Error at %s\nResponse:\n%s', 'division', data, exc_info=e)
