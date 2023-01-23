@@ -1153,18 +1153,7 @@ class RegionReport {
             const tabPane = document.createElement("div");
             tabPane.className = "region-report-tab-pane pressures-grid";
             tabPane.dataset.tab = category;
-            pressures.forEach(pressure => {
-                const appState = this.pressureAppState(pressure.layer, appBoundaryLayer, bounds, network.network, park);         
-
-                tabPane.innerHTML += `
-                    <a
-                        href="${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}"
-                        target="_blank"
-                    >
-                        <img src="${this.pressurePreviewUrlBase}/${pressure.id}.png">
-                        <div class="pressure-label">${pressure.layer.name}</div>
-                    </a>`;
-            });
+            pressures.forEach(pressure => tabPane.innerHTML += pressurePreview(pressure, appBoundaryLayer, bounds, network, park));
             pressuresTabContent.appendChild(tabPane);
         });
     }
