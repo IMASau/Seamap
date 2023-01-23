@@ -1097,6 +1097,18 @@ class RegionReport {
         ]        
     }
 
+    pressurePreview(pressure, appBoundaryLayer, bounds, network, park) {
+        const appState = this.pressureAppState(pressure.layer, appBoundaryLayer, bounds, network.network, park);  
+        
+        return `
+            <a
+                href="${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}"
+                target="_blank"
+            >
+                <img src="${this.pressurePreviewUrlBase}/${pressure.id}.png">
+            </a>`;
+    }
+
     populatePressures({ pressures: pressures, app_boundary_layer: appBoundaryLayer, bounding_box: bounds, network: network, park: park }) {
         const pressuresTabs = document.getElementById(`region-report-pressures-categories-${this.postId}`);
         const pressuresTabContent = document.getElementById(pressuresTabs.dataset.tabContent);
@@ -1123,17 +1135,7 @@ class RegionReport {
         const tabPane = document.createElement("div");
         tabPane.className = "region-report-tab-pane pressures-grid selected";
         tabPane.dataset.tab = "All";
-        pressures.forEach(pressure => {
-            const appState = this.pressureAppState(pressure.layer, appBoundaryLayer, bounds, network.network, park);         
-
-            tabPane.innerHTML += `
-                <a
-                    href="${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}"
-                    target="_blank"
-                >
-                    <img src="${this.pressurePreviewUrlBase}/${pressure.id}.png">
-                </a>`;
-        });
+        pressures.forEach(pressure => tabPane.innerHTML += pressurePreview(pressure, appBoundaryLayer, bounds, network, park));
         pressuresTabContent.appendChild(tabPane);
 
         // Pressure category tabs
@@ -1160,6 +1162,7 @@ class RegionReport {
                         target="_blank"
                     >
                         <img src="${this.pressurePreviewUrlBase}/${pressure.id}.png">
+                        <div class="pressure-label">${pressure.layer.name}</div>
                     </a>`;
             });
             pressuresTabContent.appendChild(tabPane);
