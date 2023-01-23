@@ -156,12 +156,18 @@ def add_features(layer, successes, failures, to_csv=False):
             logging.error('Error at %s', 'division', exc_info=e)
             logging.info('FAILURE')
             failures.append(layer)
+            with open('failures.txt', 'a') as failures:
+                failures.write(f',{layer.id}')
         else:
             logging.info('SUCCESS')
             successes.append(layer)
+            with open('successes.txt', 'a') as successes:
+                successes.write(f',{layer.id}')
     else:
         logging.info('FAILURE')
         failures.append(layer)
+        with open('failures.txt', 'a') as failures:
+            failures.write(f',{layer.id}')
 
 
 class Command(BaseCommand):
