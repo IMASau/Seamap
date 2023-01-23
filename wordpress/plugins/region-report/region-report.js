@@ -1140,23 +1140,29 @@ class RegionReport {
         pressuresTabContent.appendChild(tabPane);
 
         // Pressure category tabs
-        Object.entries(groupedPressures).forEach(([category, pressures]) => {
-            pressuresTabs.innerHTML += `
-                <div
-                    class="region-report-tab"
-                    data-tab="${category}"
-                    onclick="regionReport.toggleTab(this)"
-                >
-                    ${category} (${pressures.length})
-                </div>`;
+        Object.entries(groupedPressures)
+            .sort((a, b) => {
+                if (/^Cumulative.+$/.test(a[0])) return 1;
+                if (/^Cumulative.+$/.test(b[0])) return -1;
+                return a[0] > b[0] ? 1 : -1;
+            })
+            .forEach(([category, pressures]) => {
+                pressuresTabs.innerHTML += `
+                    <div
+                        class="region-report-tab"
+                        data-tab="${category}"
+                        onclick="regionReport.toggleTab(this)"
+                    >
+                        ${category} (${pressures.length})
+                    </div>`;
 
-            // Create tab pane
-            const tabPane = document.createElement("div");
-            tabPane.className = "region-report-tab-pane pressures-grid";
-            tabPane.dataset.tab = category;
-            pressures.forEach(pressure => tabPane.innerHTML += this.pressurePreview(pressure, appBoundaryLayer, bounds, network, park));
-            pressuresTabContent.appendChild(tabPane);
-        });
+                // Create tab pane
+                const tabPane = document.createElement("div");
+                tabPane.className = "region-report-tab-pane pressures-grid";
+                tabPane.dataset.tab = category;
+                pressures.forEach(pressure => tabPane.innerHTML += this.pressurePreview(pressure, appBoundaryLayer, bounds, network, park));
+                pressuresTabContent.appendChild(tabPane);
+            });
     }
 
     disablePrintCss(stylesheetId) {
