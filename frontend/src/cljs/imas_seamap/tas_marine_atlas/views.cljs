@@ -8,6 +8,7 @@
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers layers-search-omnibar layer-preview hotkeys-combos custom-leaflet-controls]]
             [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.components :as components]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -45,7 +46,13 @@
                  [:<> "Active Layers"
                   (when (seq active-layers)
                     [:div.notification-bubble (count active-layers)])]])
-        :panel (reagent/as-element [left-drawer-active-layers])}]]]))
+        :panel (reagent/as-element [left-drawer-active-layers])}]
+
+      [b/tab
+       {:id    "featured-maps"
+        :title (reagent/as-element
+                [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
+        :panel (reagent/as-element [featured-maps])}]]]))
 
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
@@ -89,6 +96,7 @@
      [settings-overlay]
      [loading-display]
      [left-drawer]
+     [featured-map-drawer]
      [layers-search-omnibar]
      [custom-leaflet-controls]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
