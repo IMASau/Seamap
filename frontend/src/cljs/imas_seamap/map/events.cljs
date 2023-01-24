@@ -37,7 +37,8 @@
              (assoc-in [:map :national-layer-alternate-view] nil)
              (assoc-in [:map :national-layer-timeline-selected] national-layer-timeline-selected))}
     (when (and layer (not (get-in db [:map :legends (:id layer)])))
-      {:dispatch [:map.layer/get-legend layer]}))))
+      {:dispatch-n [[:map.layer/get-legend layer]
+                    [:maybe-autosave]]}))))
 
 (defn national-layer-alternate-view [{:keys [db]} [_ national-layer-alternate-view]]
   (merge
