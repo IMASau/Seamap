@@ -51,43 +51,47 @@
 (defn helper-overlay [& element-selectors]
   (let [*line-height* 17.6 *padding* 10 *text-width* 200 ;; hard-code
         *vertical-bar* 50 *horiz-bar* 100
-        posn->offsets (fn [posn width height]
-                        (case (name posn)
-                          "top"    {:bottom (+ height *vertical-bar* *padding*)
-                                    :left (- (/ width 2) (/ *text-width* 2))}
-                          "bottom" {:top (+ height *vertical-bar* *padding*)
-                                    :left (- (/ width 2) (/ *text-width* 2))}
-                          "left"   {:right (+ width *horiz-bar* *padding*)
-                                    :top (- (/ height 2) (/ *line-height* 2))}
-                          "right"  {:left (+ width *horiz-bar* *padding*)
-                                    :top (- (/ height 2) (/ *line-height* 2))}))
-        wrapper-props (fn [posn {:keys [top left width height] :as _elem-props}]
-                        (let [vertical-padding   (when (#{"top" "bottom"} posn) *padding*)
-                              horizontal-padding (when (#{"left" "right"} posn) *padding*)]
+        posn->offsets (fn [posn width height padding]
+                        (let [padding (or padding *padding*)]
+                          (case (name posn)
+                            "top"    {:bottom (+ height *vertical-bar* padding)
+                                      :left (- (/ width 2) (/ *text-width* 2))}
+                            "bottom" {:top (+ height *vertical-bar* padding)
+                                      :left (- (/ width 2) (/ *text-width* 2))}
+                            "left"   {:right (+ width *horiz-bar* padding)
+                                      :top (- (/ height 2) (/ *line-height* 2))}
+                            "right"  {:left (+ width *horiz-bar* padding)
+                                      :top (- (/ height 2) (/ *line-height* 2))})))
+        wrapper-props (fn [posn {:keys [top left width height padding] :as _elem-props}]
+                        (let [padding            (or padding *padding*)
+                              vertical-padding   (when (#{"top" "bottom"} posn) padding)
+                              horizontal-padding (when (#{"left" "right"} posn) padding)]
                           {:width  (+ width horizontal-padding) ; allow for css padding
                            :height (+ height vertical-padding)
-                           :top    (if (= posn "top")  (- top *padding*)  top)
-                           :left   (if (= posn "left") (- left *padding*) left)}))
+                           :top    (if (= posn "top")  (- top padding)  top)
+                           :left   (if (= posn "left") (- left padding) left)}))
         open? @(re-frame/subscribe [:help-layer/open?])]
     [b/overlay {:is-open  open?
                 :on-close #(re-frame/dispatch [:help-layer/close])}
      (when open?
        (for [{:keys [width height
                      helperText helperPosition
-                     textWidth]
+                     textWidth padding]
                     :or {helperPosition "right"}
                     :as eprops} (selectors+elements element-selectors)
              :let [posn-cls (str "helper-layer-" helperPosition)]
              :when (and eprops
                         (pos? height)
                         (not (string/blank? helperText)))]
-         ^{:key (hash eprops)}
-         [:div.helper-layer-wrapper {:class posn-cls
-                                     :style (wrapper-props helperPosition eprops)}
-          [:div.helper-layer-tooltip {:class posn-cls
-                                      :style (posn->offsets helperPosition width height)}
-           [:div.helper-layer-tooltiptext {:style {:width (or textWidth *text-width*)}}
-            helperText]]]))]))
+         (do
+           (js/console.log padding)
+           ^{:key (hash eprops)}
+           [:div.helper-layer-wrapper {:class posn-cls
+                                       :style (wrapper-props helperPosition eprops)}
+            [:div.helper-layer-tooltip {:class posn-cls
+                                        :style (posn->offsets helperPosition width height padding)}
+             [:div.helper-layer-tooltiptext {:style {:width (or textWidth *text-width*)}}
+              helperText]]])))]))
 
 ;; TODO: Update, replace?
 (defn- help-button []
@@ -508,7 +512,8 @@
 (defn- print-control []
   [:div.print-control
    [:a
-    {:on-click #(-> "CurrentSize" js/document.getElementsByClassName first .click)
+    {:id       "print-control"
+     :on-click #(-> "CurrentSize" js/document.getElementsByClassName first .click)
      :title    "Export at Current Size"}
     [b/icon {:icon "media" :size 18}]]
    [:div.options
@@ -554,8 +559,9 @@
       :disabled? (not habitat-layers?)
       :id        "select-control"}]))
 
-(defn- leaflet-control-button [{:keys [on-click tooltip icon]}]
+(defn- leaflet-control-button [{:keys [on-click tooltip icon id]}]
   [:div.leaflet-bar.leaflet-control
+   (when id {:id id})
    (if tooltip
      [b/tooltip
       {:content tooltip :position b/RIGHT}
@@ -573,6 +579,7 @@
   [leaflet-control-button
    {:on-click #(re-frame/dispatch [:ui/settings-overlay true])
     :tooltip  "Settings"
+    :id       "settings-button"
     :icon     "cog"}])
 
 (defn custom-leaflet-controls []
@@ -585,6 +592,7 @@
     [control-block-child
      {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
       :tooltip  "Search All Layers"
+      :id       "omnisearch-control"
       :icon     "search"}]
 
     [transect-control]
@@ -593,17 +601,20 @@
     [control-block-child
      {:on-click #(re-frame/dispatch [:create-save-state])
       :tooltip  "Create Shareable URL"
+      :id       "share-control"
       :icon     "share"}]]
 
    [control-block
     [control-block-child
      {:on-click #(js/document.dispatchEvent (js/KeyboardEvent. "keydown" #js{:which 47 :keyCode 47 :shiftKey true :bubbles true})) ; https://github.com/palantir/blueprint/issues/1590
       :tooltip  "Show Keyboard Shortcuts"
+      :id       "shortcuts-control"
       :icon     "key-command"}]
 
     [control-block-child
      {:on-click #(re-frame/dispatch [:help-layer/toggle])
       :tooltip  "Show Help Overlay"
+      :id       "overlay-control"
       :icon     "help"}]]])
 
 (defn- floating-pills []
@@ -818,12 +829,28 @@
      [helper-overlay
       {:selector       ".SelectionListItem:first-child .layer-card .layer-header"
        :helperPosition "bottom"
-       :helperText     "Toggle layer visibility, view more info, show legend, and download data"}
-      {:id "layer-search" :helperText "Search for a specific layer using its name or keywords"}
-      {:id "transect-control" :helperText "Click to draw a transect"}
-      {:id "select-control" :helperText "Click to select a region"}
+       :helperText     "Toggle layer visibility, view info and metadata, show legend, adjust transparency, choose from download options (habitat data)"
+       :padding        0}
+      {:id "state-of-knowledge-pill"
+       :helperText "Select a management region to view summaries of the current state of research knowledge for the area"}
+      {:selector       ".leaflet-control-layers-toggle"
+       :helperText     "Select from available basemaps"
+       :helperPosition "left"}
+      {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
+      {:id "settings-button" :helperText "Select from user-configurable settings"}
+      {:id "print-control" :helperText "Export current map view as an image"}
+      {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
+      {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
+      {:id "select-control" :helperText "Select a region for download (habitat data)"}
+      {:id "share-control" :helperText "Create a shareable URL for current map view"}
+      {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
+      {:id "overlay-control" :helperText "You are here!"}
+      {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
+       :helperText     "Filter layers by category or responsible organisation"
+       :helperPosition "bottom"
+       :padding        0}
       {:id "plot-footer"
-       :helperText "This shows the habitat data along a bathymetry transect you can draw"
+       :helperText "Draw a transect to show a depth profile of habitat data"
        :helperPosition "top"}]
      [welcome-dialogue]
      [settings-overlay]
