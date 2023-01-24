@@ -359,37 +359,35 @@
   "Expanded details for main national layer. Differs from regular details by having
    a tabbed view, with a tab for the legend and a tab for filters. The filters
    alter how the main national layer is displayed on the map."
-  [{:keys [_layer _national-layer-details _tooltip _layer-state]}]
-  (let [selected-tab (reagent/atom "legend")]
-    (fn [{:keys [layer]}]
-      (let [{:keys
-             [_years _year _alternate-views _alternate-view displayed-layer]:as details}
-            @(re-frame/subscribe [:map/national-layer])]
-        [:div.layer-details
-         {:on-click #(.stopPropagation %)}
-         [b/tabs
-          {:selected-tab-id @selected-tab
-           :on-change       #(reset! selected-tab %)}
+  [{:keys [layer _national-layer-details _tooltip _layer-state]}]
+  (let [{:keys
+         [_years _year _alternate-views _alternate-view displayed-layer] :as details}
+        @(re-frame/subscribe [:map/national-layer])]
+    [:div.layer-details
+     {:on-click #(.stopPropagation %)}
+     [b/tabs
+      {:selected-tab-id @(re-frame/subscribe [:ui/national-layer-tab])
+       :on-change       #(re-frame/dispatch [:ui/national-layer-tab %])}
 
-          [b/tab
-           {:id    "legend"
-            :title (reagent/as-element [:<> [b/icon {:icon "key"}] "Legend"])
-            :panel
-            (reagent/as-element
-             [:div
-              {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
-              (when (not= displayed-layer layer) [:h2 (:name displayed-layer)])
-              [legend-display displayed-layer]])}]
+      [b/tab
+       {:id    "legend"
+        :title (reagent/as-element [:<> [b/icon {:icon "key"}] "Legend"])
+        :panel
+        (reagent/as-element
+         [:div
+          {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
+          (when (not= displayed-layer layer) [:h2 (:name displayed-layer)])
+          [legend-display displayed-layer]])}]
 
-          [b/tab
-           {:id    "filters"
-            :title (reagent/as-element [:<> [b/icon {:icon "filter-list"}] "Filters"])
-            :panel
-            (reagent/as-element
-             [:div
-              {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
-              [main-national-layer-alternate-view-select details]
-              [main-national-layer-time-filter details]])}]]]))))
+      [b/tab
+       {:id    "filters"
+        :title (reagent/as-element [:<> [b/icon {:icon "filter-list"}] "Filters"])
+        :panel
+        (reagent/as-element
+         [:div
+          {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
+          [main-national-layer-alternate-view-select details]
+          [main-national-layer-time-filter details]])}]]]))
 
 (defn- main-national-layer-card-content
   "Content of the main national layer card; includes both the header and the main

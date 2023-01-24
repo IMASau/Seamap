@@ -152,3 +152,6 @@
 
 (defn settings-overlay [db _]
   (get-in db [:display :settings-overlay]))
+
+(defn national-layer-tab [db _]
+  (get-in db [:display :national-layer-tab]))

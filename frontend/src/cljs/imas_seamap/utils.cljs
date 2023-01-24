@@ -41,7 +41,7 @@
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
   [{:keys [story-maps] map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
-  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :bounds])
+  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :national-layer-timeline-selected :national-layer-alternate-view :bounds])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
                        (update :active-base :id))
@@ -71,6 +71,7 @@
                                       [:display :catalogue]
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
+                                      [:display :national-layer-tab]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
@@ -98,6 +99,7 @@
                  [:display :catalogue]
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
+                 [:display :national-layer-tab]
                  [:filters :layers]
                  [:state-of-knowledge :boundaries :active-boundary]
                  [:state-of-knowledge :boundaries :active-boundary-layer]
@@ -124,6 +126,8 @@
                  [:map :zoom]
                  [:map :bounds]
                  [:map :viewport-only?]
+                 [:map :national-layer-timeline-selected]
+                 [:map :national-layer-alternate-view]
                  :legend-ids
                  :opacity-ids
                  :autosave?

@@ -152,7 +152,7 @@
     :map/update-base-layers               mevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups
     :map/update-grouped-base-layers       mevents/update-grouped-base-layers
-    :map/update-layers                    [mevents/update-layers]
+    :map/update-layers                    mevents/update-layers
     :map/update-organisations             mevents/update-organisations
     :map/update-classifications           mevents/update-classifications
     :map/update-descriptors               mevents/update-descriptors
@@ -160,6 +160,7 @@
     :map/update-keyed-layers              mevents/update-keyed-layers
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [tmaevents/show-initial-layers]
+    :map/join-keyed-layers                mevents/join-keyed-layers
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          [mevents/map-zoom-in]
     :map/zoom-out                         [mevents/map-zoom-out]

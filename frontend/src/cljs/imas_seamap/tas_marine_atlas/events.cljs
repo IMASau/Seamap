@@ -24,13 +24,17 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-keyed-layers]
+                                  :map/update-keyed-layers
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}
@@ -45,13 +49,17 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-keyed-layers]
+                                  :map/update-keyed-layers
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}
@@ -66,13 +74,17 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-keyed-layers]
+                                  :map/update-keyed-layers
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}
@@ -248,7 +260,8 @@
   ;; re-set.  So we have this two step process.  Ditto :active-base /
   ;; :active-base-layer
   [{:keys [db]} _]
-  (let [{:keys [active active-base _legend-ids]} (:map db)
+  (let [{:keys [active active-base layers]} (:map db)
+        legend-ids    (:legend-ids db)
         startup-layers (get-in db [:map :keyed-layers :startup] [])
         active-layers (if active
                         (vec (ids->layers active (get-in db [:map :layers])))
@@ -265,5 +278,7 @@
                           (assoc-in [:story-maps :featured-map] featured-map)
                           (assoc :initialised true))]
     {:db         db
-     :dispatch-n [[:ui/hide-loading]
-                  [:maybe-autosave]]}))
+     :dispatch-n (concat
+                  [[:ui/hide-loading]
+                   [:maybe-autosave]]
+                  (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids)))}))

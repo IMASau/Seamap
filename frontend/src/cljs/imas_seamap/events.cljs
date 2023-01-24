@@ -34,6 +34,9 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -45,7 +48,8 @@
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
-                                  :sok/update-meow-boundaries]
+                                  :sok/update-meow-boundaries
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -66,6 +70,9 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -77,7 +84,8 @@
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
-                                  :sok/update-meow-boundaries]
+                                  :sok/update-meow-boundaries
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -98,6 +106,9 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -109,7 +120,8 @@
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
-                                  :sok/update-meow-boundaries]
+                                  :sok/update-meow-boundaries
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -790,3 +802,7 @@
 
 (defn settings-overlay [db [_ open?]]
   (assoc-in db [:display :settings-overlay] open?))
+
+(defn national-layer-tab [{:keys [db]} [_ tab]]
+  {:db       (assoc-in db [:display :national-layer-tab] tab)
+   :dispatch [:maybe-autosave]})
