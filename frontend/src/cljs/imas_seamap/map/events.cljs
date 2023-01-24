@@ -32,30 +32,30 @@
         nearest-year                     (round-to-nearest national-layer-year (map :year national-layer-timeline))
         national-layer-timeline-selected (first-where #(= (:year %) nearest-year) national-layer-timeline)
         layer                            (first-where #(= (:id %) (:layer national-layer-timeline-selected)) layers)]
-   (merge
-    {:db (-> db
-             (assoc-in [:map :national-layer-alternate-view] nil)
-             (assoc-in [:map :national-layer-timeline-selected] national-layer-timeline-selected))}
-    (when (and layer (not (get-in db [:map :legends (:id layer)])))
-      {:dispatch-n [[:map.layer/get-legend layer]
-                    [:maybe-autosave]]}))))
+    {:db         (-> db
+                     (assoc-in [:map :national-layer-alternate-view] nil)
+                     (assoc-in [:map :national-layer-timeline-selected] national-layer-timeline-selected))
+     :dispatch-n [(when (and layer (not (get-in db [:map :legends (:id layer)])))
+                    [:map.layer/get-legend layer])
+                  [:maybe-autosave]]}))
 
 (defn national-layer-alternate-view [{:keys [db]} [_ national-layer-alternate-view]]
-  (merge
-   {:db (-> db
-            (assoc-in [:map :national-layer-timeline-selected] nil)
-            (assoc-in [:map :national-layer-alternate-view] national-layer-alternate-view))}
-   (when (and national-layer-alternate-view (not (get-in db [:map :legends (:id national-layer-alternate-view)])))
-     {:dispatch [:map.layer/get-legend national-layer-alternate-view]})))
+  {:db         (-> db
+                   (assoc-in [:map :national-layer-timeline-selected] nil)
+                   (assoc-in [:map :national-layer-alternate-view] national-layer-alternate-view))
+   :dispatch-n [(when (and national-layer-alternate-view (not (get-in db [:map :legends (:id national-layer-alternate-view)])))
+                  [:map.layer/get-legend national-layer-alternate-view])
+                [:maybe-autosave]]})
 
 (defn national-layer-reset-filters [{:keys [db]} _]
   (let [main-national-layer (main-national-layer (:map db))]
     (merge
-   {:db (-> db
-            (assoc-in [:map :national-layer-timeline-selected] nil)
-            (assoc-in [:map :national-layer-alternate-view] nil))}
-   (when-not (get-in db [:map :legends (:id main-national-layer)])
-     {:dispatch [:map.layer/get-legend main-national-layer]}))))
+   {:db         (-> db
+                    (assoc-in [:map :national-layer-timeline-selected] nil)
+                    (assoc-in [:map :national-layer-alternate-view] nil))
+    :dispatch-n [(when-not (get-in db [:map :legends (:id main-national-layer)])
+                   [:map.layer/get-legend main-national-layer])
+                 [:maybe-autosave]]})))
 
 (defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a
