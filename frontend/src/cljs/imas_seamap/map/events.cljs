@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -340,15 +340,14 @@
       {} keyed-layers))
     db))
 
-(defn update-layers [{:keys [db]} [_ layers]]
+(defn update-layers [db [_ layers]]
   (let [{:keys [legend-ids opacity-ids]} db
         layers (process-layers layers)
         db     (-> db
                    (assoc-in [:map :layers] layers)
                    (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
                    (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
-    {:db         db
-     :dispatch-n (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))}))
+    db))
 
 (defn- ->sort-map [ms]
   ;; Associate a category of objects (categories, organisations) with
@@ -491,7 +490,8 @@
   ;; re-set.  So we have this two step process.  Ditto :active-base /
   ;; :active-base-layer
   [{:keys [db]} _]
-  (let [{:keys [active active-base _legend-ids initial-bounds?]} (:map db)
+  (let [{:keys [active active-base initial-bounds? layers]} (:map db)
+        legend-ids    (:legend-ids db)
         startup-layers (get-in db [:map :keyed-layers :startup] [])
         active-layers (if active
                         (vec (ids->layers active (get-in db [:map :layers])))
@@ -508,10 +508,12 @@
                           (assoc-in [:story-maps :featured-map] featured-map)
                           (assoc :initialised true))]
     {:db         db
-     :dispatch-n [[:ui/hide-loading]
-                  (when (and (seq startup-layers) initial-bounds?)
-                    [:map/update-map-view {:bounds (:bounding_box (first startup-layers)) :instant? true}])
-                  [:maybe-autosave]]}))
+     :dispatch-n (concat
+                  [[:ui/hide-loading]
+                   (when (and (seq startup-layers) initial-bounds?)
+                     [:map/update-map-view {:bounds (:bounding_box (first startup-layers)) :instant? true}])
+                   [:maybe-autosave]]
+                  (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids)))}))
 
 (defn update-leaflet-map [db [_ leaflet-map]]
   (when (not= leaflet-map (get-in db [:map :leaflet-map]))
@@ -672,7 +674,11 @@
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
     {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
 
-(defmulti get-layer-legend #(get-in %2 [1 :layer_type]))
+(defmulti get-layer-legend
+  (fn [{:keys [db]} [_ layer]]
+    (if (= layer (main-national-layer (:map db)))
+      :main-national-layer
+      (:layer_type layer))))
 
 (defmethod get-layer-legend :wms
   [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
@@ -713,6 +719,10 @@
                 :response-format (ajax/json-response-format {:keywords? true})
                 :on-success      [:map.layer/get-legend-success layer]
                 :on-failure      [:map.layer/get-legend-error layer]}})
+
+(defmethod get-layer-legend :main-national-layer
+  [{:keys [db]} _]
+  {:dispatch [:map.layer/get-legend (displayed-national-layer (:map db))]})
 
 (defmethod get-layer-legend :default
   [{:keys [db]} [_ {:keys [id] :as _layer}]]

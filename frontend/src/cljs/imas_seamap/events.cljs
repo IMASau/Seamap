@@ -48,7 +48,8 @@
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
-                                  :sok/update-meow-boundaries]
+                                  :sok/update-meow-boundaries
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -83,7 +84,8 @@
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
-                                  :sok/update-meow-boundaries]
+                                  :sok/update-meow-boundaries
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -118,7 +120,8 @@
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
-                                  :sok/update-meow-boundaries]
+                                  :sok/update-meow-boundaries
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
