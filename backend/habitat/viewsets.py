@@ -22,6 +22,7 @@ from django.db.models.functions import Coalesce
 from django.http import FileResponse
 from rest_framework.decorators import action, api_view, renderer_classes
 from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer, JSONRenderer
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.serializers import ValidationError
@@ -1105,7 +1106,7 @@ def habitat_statistics(request):
         elif boundary_type == 'meow':
             cursor.execute(SQL_GET_MEOW_BOUNDARY_AREA, [realm, province, ecoregion])
         else:
-            raise Exception('Unhandled boundary type!')
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         try:
             boundary_area = float(cursor.fetchone()[0])
@@ -1117,7 +1118,7 @@ def habitat_statistics(request):
             elif boundary_type == 'meow':
                 cursor.execute(SQL_GET_MEOW_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [realm, province, ecoregion, boundary_area])
             else:
-                raise Exception('Unhandled boundary type!')
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
@@ -1132,7 +1133,7 @@ def habitat_statistics(request):
                 elif boundary_type == 'meow':
                     boundary_name = ' - '.join([v for v in [realm, province, ecoregion] if v])
                 else:
-                    raise Exception('Unhandled boundary type!')
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
                 return Response({'data': results,
                                  'fields': cursor.description,
                                  'file_name': boundary_name},
@@ -1146,7 +1147,7 @@ def habitat_statistics(request):
             habitat_stats.append({'habitat': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
-            return Response([])
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response(habitat_stats)
 
@@ -1178,7 +1179,7 @@ def bathymetry_statistics(request):
         elif boundary_type == 'meow':
             cursor.execute(SQL_GET_MEOW_BOUNDARY_AREA, [realm, province, ecoregion])
         else:
-            raise Exception('Unhandled boundary type!')
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         
         try:
             boundary_area = float(cursor.fetchone()[0])
@@ -1190,7 +1191,7 @@ def bathymetry_statistics(request):
             elif boundary_type == 'meow':
                 cursor.execute(SQL_GET_MEOW_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [realm, province, ecoregion, boundary_area])
             else:
-                raise Exception('Unhandled boundary type!')
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
@@ -1205,7 +1206,7 @@ def bathymetry_statistics(request):
                 elif boundary_type == 'meow':
                     boundary_name = ' - '.join([v for v in [realm, province, ecoregion] if v])
                 else:
-                    raise Exception('Unhandled boundary type!')
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
                 return Response({'data': results,
                                  'fields': cursor.description,
                                  'file_name': boundary_name},
@@ -1219,7 +1220,7 @@ def bathymetry_statistics(request):
             bathymetry_stats.append({'resolution': None, 'rank': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
-            return Response([])
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response(bathymetry_stats)
 
@@ -1253,7 +1254,7 @@ def habitat_observations(request):
             elif boundary_type == 'meow':
                 cursor.execute(SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [realm, province, ecoregion])
             else:
-                raise Exception('Unhandled boundary type!')
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
@@ -1268,7 +1269,7 @@ def habitat_observations(request):
             elif boundary_type == 'meow':
                 cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [realm, province, ecoregion])
             else:
-                raise Exception('Unhandled boundary type!')
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
@@ -1283,7 +1284,7 @@ def habitat_observations(request):
             elif boundary_type == 'meow':
                 cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [realm, province, ecoregion])
             else:
-                raise Exception('Unhandled boundary type!')
+                return Response(status=status.HTTP_400_BAD_REQUEST)
             
             columns = [col[0] for col in cursor.description]
             namedrow = namedtuple('Result', columns)
@@ -1291,7 +1292,7 @@ def habitat_observations(request):
             squidle = result._asdict()
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
-            return Response({'global_archive': None, 'sediment': None, 'squidle': None})
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({'global_archive': global_archive, 'sediment': sediment, 'squidle': squidle})
 
