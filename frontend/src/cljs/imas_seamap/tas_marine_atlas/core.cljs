@@ -160,6 +160,7 @@
     :map/update-keyed-layers              mevents/update-keyed-layers
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [tmaevents/show-initial-layers]
+    :map/join-keyed-layers                mevents/join-keyed-layers
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          [mevents/map-zoom-in]
     :map/zoom-out                         [mevents/map-zoom-out]

@@ -34,6 +34,9 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -66,6 +69,9 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -98,6 +104,9 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations

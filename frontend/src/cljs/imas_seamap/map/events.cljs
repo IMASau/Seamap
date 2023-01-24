@@ -328,10 +328,10 @@
   (let [layers (mapv #(update % :layer_type (comp keyword string/lower-case)) layers)]
     (assoc-in db [:map :base-layers] layers)))
 
-(defn- keyed-layers-join
+(defn join-keyed-layers
   "Using layers and keyed-layers, replaces layer IDs in keyed-layers with layer
    objects. We only update keyed-layers if the db contains layers."
-  [{{:keys [layers keyed-layers]} :map :as db}]
+  [{{:keys [layers keyed-layers]} :map :as db} _]
   (if (seq layers)
     (assoc-in
      db [:map :keyed-layers]
@@ -346,8 +346,7 @@
         db     (-> db
                    (assoc-in [:map :layers] layers)
                    (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
-                   (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids))
-                   keyed-layers-join)]
+                   (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
     {:db         db
      :dispatch-n (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))}))
 
@@ -387,9 +386,8 @@
                           (map #(update % :keyword (comp keyword string/lower-case)))
                           sort-by-sort-key
                           (group-by :keyword)
-                          (reduce-kv (fn [m k v] (assoc m k (mapv :layer v))) {}))
-        db           (assoc-in db [:map :keyed-layers] keyed-layers)]
-    (keyed-layers-join db)))
+                          (reduce-kv (fn [m k v] (assoc m k (mapv :layer v))) {}))]
+    (assoc-in db [:map :keyed-layers] keyed-layers)))
 
 (defn update-national-layer-timeline [db [_ national-layer-timeline]]
   (let [national-layer-timeline (vec (sort-by :year national-layer-timeline))]
