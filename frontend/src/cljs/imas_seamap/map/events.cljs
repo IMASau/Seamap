@@ -676,8 +676,8 @@
 
 (defmulti get-layer-legend
   (fn [{:keys [db]} [_ layer]]
-    (if (= layer (main-national-layer (:map db)))
-      :main-national-layer
+    (if (and (= layer (main-national-layer (:map db))) (not= layer (displayed-national-layer (:map db))))
+      :displayed-national-layer
       (:layer_type layer))))
 
 (defmethod get-layer-legend :wms
@@ -720,7 +720,7 @@
                 :on-success      [:map.layer/get-legend-success layer]
                 :on-failure      [:map.layer/get-legend-error layer]}})
 
-(defmethod get-layer-legend :main-national-layer
+(defmethod get-layer-legend :displayed-national-layer
   [{:keys [db]} _]
   {:dispatch [:map.layer/get-legend (displayed-national-layer (:map db))]})
 
