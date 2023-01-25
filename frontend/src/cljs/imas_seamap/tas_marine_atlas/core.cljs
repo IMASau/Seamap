@@ -73,7 +73,8 @@
     :info/message                         subs/user-message
     :autosave?                            subs/autosave?
     :url-base                             subs/url-base
-    :data-in-region/open?                 tmasubs/data-in-region-open?}
+    :data-in-region/open?                 tmasubs/data-in-region-open?
+    :data-in-region/data                  tmasubs/data-in-region}
 
    :events
    {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]

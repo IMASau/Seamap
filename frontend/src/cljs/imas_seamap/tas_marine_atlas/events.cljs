@@ -312,7 +312,7 @@
 (defn get-data-in-region [{:keys [db]} [_ bbox]]
   (let [query-id           (gensym)
         data-in-region-url (get-in db [:config :urls :data-in-region-url])]
-    {:db         (update db :data-in-region merge {:data nil :query-id query-id})
+    {:db         (update db :data-in-region merge {:data :data-in-region/loading :query-id query-id})
      :http-xhrio {:method          :get
                   :uri             data-in-region-url
                   :params          bbox
