@@ -103,14 +103,32 @@
         :panel (reagent/as-element [featured-maps])}]]]))
 
 (defn data-in-region-drawer []
-  [components/drawer
-   {:title       "Data in Region"
-    :position    "right"
-    :size        "368px"
-    :isOpen      @(re-frame/subscribe [:data-in-region/open?])
-    :onClose     #(re-frame/dispatch [:data-in-region/open false])
-    :hasBackdrop false
-    :className   "data-in-region-drawer"}])
+  (let [{:keys [status layers]} @(re-frame/subscribe [:data-in-region/data])]
+    [components/drawer
+     {:title       "Data in Region"
+      :position    "right"
+      :size        "368px"
+      :isOpen      @(re-frame/subscribe [:data-in-region/open?])
+      :onClose     #(re-frame/dispatch [:data-in-region/open false])
+      :hasBackdrop false
+      :className   "data-in-region-drawer"}
+     (case status
+       
+       :data-in-region/loaded
+       [:ul
+        (for [{:keys [id name] :as _layer} layers]
+          ^{:key (str id)}
+          [:li name])]
+       
+       :data-in-region/loading
+       [b/non-ideal-state
+        {:icon  (reagent/as-element [b/spinner {:intent "success"}])}]
+       
+       :data-in-region/none
+       [b/non-ideal-state
+        {:title       "No Data"
+         :description "We are unable to display any region data at this time."
+         :icon        "info-sign"}])]))
 
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
