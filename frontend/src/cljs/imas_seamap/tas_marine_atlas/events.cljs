@@ -98,7 +98,8 @@
           category
           keyed-layers
           layer-previews
-          story-maps]}
+          story-maps
+          data-in-region]}
         (get-in db [:config :url-paths])
         {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
@@ -113,8 +114,9 @@
       :save-state-url            (str api-url-base save-state)
       :category-url              (str api-url-base category)
       :keyed-layers-url          (str api-url-base keyed-layers)
+      :layer-previews-url        (str media-url-base layer-previews)
       :story-maps-url            (str wordpress-url-base story-maps)
-      :layer-previews-url        (str media-url-base layer-previews)})))
+      :data-in-region-url        (str api-url-base data-in-region)})))
 
 (defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (assoc-in
@@ -308,9 +310,15 @@
                 [:data-in-region/get bbox]]})
 
 (defn get-data-in-region [{:keys [db]} [_ bbox]]
-  (let [query-id (gensym)]
-    {:db (update db :data-in-region merge {:data nil :query-id query-id})
-     :dispatch [:data-in-region/got query-id "HEY"]}))
+  (let [query-id           (gensym)
+        data-in-region-url (get-in db [:config :urls :data-in-region-url])]
+    {:db         (update db :data-in-region merge {:data nil :query-id query-id})
+     :http-xhrio {:method          :get
+                  :uri             data-in-region-url
+                  :params          bbox
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success      [:data-in-region/got query-id]
+                  :on-failure      [:ajax/default-err-handler]}}))
 
 (defn got-data-in-region [db [_ query-id data]]
   (when (= (get-in db [:data-in-region :query-id]) query-id)

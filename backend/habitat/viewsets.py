@@ -1328,3 +1328,17 @@ def region_report_data(request):
             pass
 
     return Response(data)
+
+@action(detail=False)
+@api_view()
+def data_in_region(request):
+    params = {k: v or None for k, v in request.query_params.items()}
+    Bounds = namedtuple('Bounds', ['north', 'east', 'south', 'west'])
+    try:
+        region_bounds = Bounds(params['north'], params['east'], params['south'], params['west'])
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    else:
+        layers = Layer.objects.all()[0:3] # TODO: use region bounds to calculate which layers have data in the selected region
+        layer_ids = [layer.id for layer in layers]
+        return Response(layer_ids)
