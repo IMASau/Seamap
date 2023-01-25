@@ -15,27 +15,47 @@
 
 (defmethod format-event :map/toggle-layer [[_ layer :as _event-v]]
   {:event_category "layers"
-   :event_action   "toggle"
+   :event_action   "toggle-layer"
    :event_label    (:layer_name layer)
    :layer_name     (:layer_name layer)})
 
 (defmethod format-event :map/add-layer [[_ layer :as _event-v]]
   {:event_category "layers"
-   :event_action   "add"
+   :event_action   "add-layer"
    :event_label    (:layer_name layer)
    :layer_name     (:layer_name layer)})
 
 (defmethod format-event :map/remove-layer [[_ layer :as _event-v]]
   {:event_category "layers"
-   :event_action   "remove"
+   :event_action   "remove-layer"
    :event_label    (:layer_name layer)
    :layer_name     (:layer_name layer)})
 
 (defmethod format-event :map/pan-to-layer [[_ layer :as _event-v]]
   {:event_category "layers"
-   :event_action   "pan"
+   :event_action   "pan-layer"
    :event_label    (:layer_name layer)
    :layer_name     (:layer_name layer)})
+
+(defmethod format-event :map/toggle-layer-visibility [[_ layer :as _event-v]]
+  {:event_category "layers"
+   :event_action   "toggle-layer-visibility"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)})
+
+(defmethod format-event :map.layer/load-error [[_ layer :as _event-v]]
+  {:event_category "layers"
+   :event_action   "layer-load-error"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)})
+
+(defmethod format-event :download-click [[_ {:keys [link layer type]} :as _event-v]]
+  {:event_category "layers"
+   :event_action   "layer-download"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)
+   :download_link  link
+   :download_type  type})
 
 (defmethod format-event :default [[id & _args :as _event-v]]
   {:event_category "general"

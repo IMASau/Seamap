@@ -19,13 +19,17 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-keyed-layers]
+                                  :map/update-keyed-layers
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}
@@ -40,13 +44,17 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-keyed-layers]
+                                  :map/update-keyed-layers
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}
@@ -61,13 +69,17 @@
     {:when :seen-all-of? :events [:map/update-base-layers
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers]
+     :dispatch [:map/join-keyed-layers]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
                                   :map/update-classifications
                                   :map/update-descriptors
                                   :map/update-categories
-                                  :map/update-keyed-layers]
+                                  :map/update-keyed-layers
+                                  :map/join-keyed-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}
@@ -85,9 +97,10 @@
           save-state
           category
           keyed-layers
-          layer-previews]}
+          layer-previews
+          story-maps]}
         (get-in db [:config :url-paths])
-        {:keys [api-url-base media-url-base _img-url-base]} (get-in db [:config :url-base])]
+        {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
      db [:config :urls]
      {:layer-url                 (str api-url-base layer)
@@ -100,6 +113,7 @@
       :save-state-url            (str api-url-base save-state)
       :category-url              (str api-url-base category)
       :keyed-layers-url          (str api-url-base keyed-layers)
+      :story-maps-url            (str wordpress-url-base story-maps)
       :layer-previews-url        (str media-url-base layer-previews)})))
 
 (defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
@@ -174,7 +188,8 @@
                 classification-url
                 descriptor-url
                 category-url
-                keyed-layers-url]} (get-in db [:config :urls])]
+                keyed-layers-url
+                story-maps-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             layer-url
@@ -215,7 +230,12 @@
                    :uri             keyed-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-keyed-layers]
-                   :on-failure      [:ajax/default-err-handler]}]}))
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             story-maps-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:sm/update-featured-maps]
+                   :on-failure      [:sm/update-featured-maps []]}]}))
 
 (defn create-save-state [{:keys [db]} _]
   (copy-text js/location.href)
@@ -243,7 +263,8 @@
   ;; re-set.  So we have this two step process.  Ditto :active-base /
   ;; :active-base-layer
   [{:keys [db]} _]
-  (let [{:keys [active active-base _legend-ids]} (:map db)
+  (let [{:keys [active active-base layers]} (:map db)
+        legend-ids    (:legend-ids db)
         startup-layers (get-in db [:map :keyed-layers :startup] [])
         active-layers (if active
                         (vec (ids->layers active (get-in db [:map :layers])))
@@ -260,8 +281,10 @@
                           (assoc-in [:story-maps :featured-map] featured-map)
                           (assoc :initialised true))]
     {:db         db
-     :dispatch-n [[:ui/hide-loading]
-                  [:maybe-autosave]]}))
+     :dispatch-n (concat
+                  [[:ui/hide-loading]
+                   [:maybe-autosave]]
+                  (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids)))}))
 
 (defn data-in-region-open [{:keys [db]} [_ open?]]
   {:db       (assoc-in db [:data-in-region :open?] open?)

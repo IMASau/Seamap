@@ -430,6 +430,7 @@
   [components/floating-pill-control-menu
    (merge
     {:text           (or (:name active-boundary) "State of Knowledge")
+     :id             "state-of-knowledge-pill"
      :icon           "add-column-right"
      :expanded?      expanded?
      :tooltip        (when-not active-boundary "State of research knowledge for management region")

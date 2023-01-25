@@ -62,7 +62,7 @@
       [:a
        {:href     link
         :target   "_blank"
-        :on-click #(re-frame/dispatch [:download-click {:link link :layer (:layer_name download-layer) :type type-str}])}
+        :on-click #(re-frame/dispatch [:download-click {:link link :layer download-layer :type type-str}])}
        "Click here to download " (when bbox "region ") "as " type-str]]
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions

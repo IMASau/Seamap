@@ -6,8 +6,9 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layers-search-omnibar layer-preview hotkeys-combos custom-leaflet-controls control-block print-control control-block-child transect-control]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layers-search-omnibar layer-preview hotkeys-combos control-block print-control control-block-child transect-control]]
             [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.components :as components]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -35,6 +36,7 @@
     [control-block-child
      {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
       :tooltip  "Search All Layers"
+      :id       "omnisearch-control"
       :icon     "search"}]
 
     [transect-control]
@@ -43,17 +45,20 @@
     [control-block-child
      {:on-click #(re-frame/dispatch [:create-save-state])
       :tooltip  "Create Shareable URL"
+      :id       "share-control"
       :icon     "share"}]]
 
    [control-block
     [control-block-child
      {:on-click #(js/document.dispatchEvent (js/KeyboardEvent. "keydown" #js{:which 47 :keyCode 47 :shiftKey true :bubbles true})) ; https://github.com/palantir/blueprint/issues/1590
       :tooltip  "Show Keyboard Shortcuts"
+      :id       "shortcuts-control"
       :icon     "key-command"}]
 
     [control-block-child
      {:on-click #(re-frame/dispatch [:help-layer/toggle])
       :tooltip  "Show Help Overlay"
+      :id       "overlay-control"
       :icon     "help"}]]])
 
 (defn- left-drawer []
@@ -89,7 +94,13 @@
                  [:<> "Active Layers"
                   (when (seq active-layers)
                     [:div.notification-bubble (count active-layers)])]])
-        :panel (reagent/as-element [left-drawer-active-layers])}]]]))
+        :panel (reagent/as-element [left-drawer-active-layers])}]
+
+      [b/tab
+       {:id    "featured-maps"
+        :title (reagent/as-element
+                [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
+        :panel (reagent/as-element [featured-maps])}]]]))
 
 (defn data-in-region-drawer []
   [components/drawer
@@ -116,18 +127,35 @@
      [helper-overlay
       {:selector       ".SelectionListItem:first-child .layer-card .layer-header"
        :helperPosition "bottom"
-       :helperText     "Toggle layer visibility, view more info, show legend, and download data"}
-      {:id "layer-search" :helperText "Search for a specific layer using its name or keywords"}
-      {:id "transect-control" :helperText "Click to draw a transect"}
-      {:id "select-control" :helperText "Click to select a region"}
+       :helperText     "Toggle layer visibility, view info and metadata, show legend, adjust transparency, choose from download options (habitat data)"
+       :padding        0}
+      {:id "state-of-knowledge-pill"
+       :helperText "Select a management region to view summaries of the current state of research knowledge for the area"}
+      {:selector       ".leaflet-control-layers-toggle"
+       :helperText     "Select from available basemaps"
+       :helperPosition "left"}
+      {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
+      {:id "settings-button" :helperText "Select from user-configurable settings"}
+      {:id "print-control" :helperText "Export current map view as an image"}
+      {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
+      {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
+      {:id "select-control" :helperText "Select a region"}
+      {:id "share-control" :helperText "Create a shareable URL for current map view"}
+      {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
+      {:id "overlay-control" :helperText "You are here!"}
+      {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
+       :helperText     "Filter layers by category or responsible organisation"
+       :helperPosition "bottom"
+       :padding        0}
       {:id "plot-footer"
-       :helperText "This shows the habitat data along a bathymetry transect you can draw"
+       :helperText "Draw a transect to show a depth profile of habitat data"
        :helperPosition "top"}]
      [info-card]
      [settings-overlay]
      [loading-display]
      [left-drawer]
      [data-in-region-drawer]
+     [featured-map-drawer]
      [layers-search-omnibar]
      [custom-leaflet-controls]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
