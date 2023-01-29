@@ -170,6 +170,26 @@ def add_features(layer, successes, failures, to_csv=False):
             failures.write(f',{layer.id}')
 
 
+def get_feature_groups(layer):
+    logging.info(f"{layer} ({layer.id})...")
+    features = None
+
+    # get our features
+    if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url):
+        features = get_mapserver_features(layer)
+    else:
+        features = get_geoserver_features(layer)
+
+    # group the features
+    if features is not None:
+        geometry_list = [
+            shape(feature['geometry'])
+            for feature in features
+            if feature['geometry'] is not None
+        ]
+        logging.info(geometry_list)
+
+
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
@@ -192,7 +212,8 @@ class Command(BaseCommand):
                 cursor.execute(SQL_DELETE_LAYER_FEATURES)
 
         for layer in Layer.objects.all():
-            add_features(layer, successes, failures, to_csv)
+            if layer.id == 2:
+                get_feature_groups(layer)
 
         successes = [layer.id for layer in successes]
         logging.info("total successes: %s: %s", len(successes), successes)
