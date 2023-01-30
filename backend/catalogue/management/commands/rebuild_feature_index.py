@@ -4,6 +4,7 @@ import requests
 import re
 import logging
 from shapely.geometry import shape
+import geopandas
 from collections import namedtuple
 import csv
 
@@ -170,6 +171,17 @@ def add_features(layer, successes, failures, to_csv=False):
             failures.write(f',{layer.id}')
 
 
+def geometry_distance(geometryA, geometryB):
+    t1 = geopandas.GeoSeries(geometryA, crs=4326).to_crs(3857)
+    t2 = geopandas.GeoSeries(geometryB, crs=4326).to_crs(3857)
+    return t1.distance(t2).values[0]
+
+
+def get_all_close_features(i, all_distances):
+    distances = all_distances[i]
+    del all_distances[i]
+    print(distances)
+
 def get_feature_groups(layer):
     logging.info(f"{layer} ({layer.id})...")
     features = None
@@ -180,14 +192,29 @@ def get_feature_groups(layer):
     else:
         features = get_geoserver_features(layer)
 
-    # group the features
     if features is not None:
         geometry_list = [
             shape(feature['geometry'])
             for feature in features
             if feature['geometry'] is not None
         ]
-        logging.info(geometry_list)
+        geometry_list = geometry_list[0:5]
+
+        # get feature distances
+        all_distances = {}
+        for i, geometry in enumerate(geometry_list):
+            all_distances[i] = {}
+        for i, geometry in enumerate(geometry_list):
+            for j in range(i+1, len(geometry_list)):
+                distance = geometry_distance(geometry, geometry_list[j])
+                all_distances[i][j] = distance
+                all_distances[j][i] = distance
+        
+        # group the features
+        for i, geometry in enumerate(geometry_list):
+            get_all_close_features(i, all_distances)
+
+            
 
 
 class Command(BaseCommand):
