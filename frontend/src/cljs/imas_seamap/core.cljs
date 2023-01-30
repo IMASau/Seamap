@@ -161,6 +161,7 @@
     :map.layer/metadata-error             events/layer-receive-metadata-err
     :map.layer/download                   events/download-show-link
     :map.layer/opacity-changed            [mevents/layer-set-opacity]
+    :map.layer/metadata-click             (fn [db [_ {:keys [_link _layer]}]] db)
     :map.layers/filter                    [mevents/map-set-layer-filter]
     :map.layers/others-filter             mevents/map-set-others-layer-filter
     :map.layer/get-legend                 [mevents/get-layer-legend]
@@ -261,6 +262,7 @@
    :map.layer/load-error
    :map/clicked
    :map/pan-to-layer
+   :map.layer/metadata-click
    :map/add-layer
    :map/remove-layer
    :map/toggle-layer-visibility

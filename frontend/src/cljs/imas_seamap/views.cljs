@@ -375,7 +375,7 @@
   (let [expanded (reagent/atom false)
         {:keys [img-url-base]} @(re-frame/subscribe [:url-base])]
     (fn [{:keys [license-name license-link license-img constraints other]
-          {:keys [category organisation metadata_url server_url layer_name]} :layer}]
+          {:keys [category organisation metadata_url server_url layer_name] :as layer} :layer}]
       [:div.metadata-record
 
        (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
@@ -415,7 +415,10 @@
             [:img.metadata-img {:src license-img}])
           [:a {:href license-link :target "_blank"} license-name]])
        
-       [:a {:href metadata_url :target "_blank"}
+       [:a
+        {:href     metadata_url
+         :target   "_blank"
+         :on-click #(re-frame/dispatch [:map.layer/metadata-click {:link metadata_url :layer layer}])}
         "Click here for the full metadata record."]
        
        (when (= category :habitat)
