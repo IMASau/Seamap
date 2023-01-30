@@ -261,7 +261,6 @@
    :map.layer/load-error
    :map/clicked
    :map/pan-to-layer
-   :map/toggle-layer
    :map/add-layer
    :map/remove-layer
    :map/toggle-layer-visibility

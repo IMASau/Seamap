@@ -407,31 +407,9 @@
 (defn layer-finished-loading [db [_ layer]]
   (update-in db [:layer-state :loading-state] assoc layer :map.layer/loaded))
 
-(defn- toggle-layer-logic
-  "Encompases all the special-case logic in toggling active layers.
-  Returns the new active layers as a vector."
-  [layer active-layers]
-  (if ((set active-layers) layer)
-    (filterv #(not= % layer) active-layers)
-    (conj active-layers layer)))
-
 (defn toggle-layer [{:keys [db]} [_ layer]]
-  (let [{:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
-        db (-> db
-               (update-in [:map :active-layers] (partial toggle-layer-logic layer))
-               (update-in [:map :hidden-layers] #(disj % layer))
-               (cond->
-                ((set habitat) layer)
-                 (assoc-in [:state-of-knowledge :statistics :habitat :show-layers?] false)
-
-                 ((set bathymetry) layer)
-                 (assoc-in [:state-of-knowledge :statistics :bathymetry :show-layers?] false)
-
-                 ((set habitat-obs) layer)
-                 (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
-    {:db         db
-     :dispatch-n [[:map/popup-closed]
-                  [:maybe-autosave]]}))
+  (let [layer-active? ((set (get-in db [:map :active-layers])) layer)]
+    {:dispatch [(if layer-active? :map/remove-layer :map/add-layer) layer]}))
 
 (defn toggle-layer-visibility
   [{:keys [db]} [_ layer]]
@@ -451,11 +429,10 @@
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ {:keys [bounding_box] :as layer}]]
-  (let [already-active? (some #{layer} (-> db :map :active-layers))
-        db              (cond-> db
-                          (not already-active?) (update-in [:map :active-layers] (partial toggle-layer-logic layer)))]
+  (let [layer-active? ((set (get-in db [:map :active-layers])) layer)]
     {:db         db
-     :dispatch-n [[:map/update-map-view {:bounds bounding_box}]
+     :dispatch-n [(when-not layer-active? [:map/add-layer layer])
+                  [:map/update-map-view {:bounds bounding_box}]
                   [:maybe-autosave]]}))
 
 (defn region-stats-select-habitat [db [_ layer]]

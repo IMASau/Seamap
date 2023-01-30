@@ -13,12 +13,6 @@
 
 (defmulti format-event (fn [event-v] (first event-v)))
 
-(defmethod format-event :map/toggle-layer [[_ layer :as _event-v]]
-  {:event_category "layers"
-   :event_action   "toggle-layer"
-   :event_label    (:layer_name layer)
-   :layer_name     (:layer_name layer)})
-
 (defmethod format-event :map/add-layer [[_ layer :as _event-v]]
   {:event_category "layers"
    :event_action   "add-layer"
