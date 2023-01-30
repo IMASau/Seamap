@@ -82,7 +82,7 @@ def get_boundary_layer_image(layer, bbox, size, network, park):
     logging.info('Boundary layer image retrieval complete')
     return image
 
-def generate_pressure_preview(cropped_basemap, pressure, bbox, size):
+def generate_pressure_preview(cropped_basemap, boundary_layer_image, pressure, bbox, size):
     filepath = f'pressure_previews/{pressure.id}.png'
     logging.info(f'Generating pressure: {pressure}')
     layer_image = None
@@ -93,6 +93,7 @@ def generate_pressure_preview(cropped_basemap, pressure, bbox, size):
         logging.warn(f'Failed to retrieve image for {pressure.layer}')
     else:
         cropped_basemap.paste(layer_image, None, layer_image)
+        cropped_basemap.paste(boundary_layer_image, None, boundary_layer_image)
         with BytesIO() as bytes_io:
             cropped_basemap.save(bytes_io, 'PNG')
             default_storage.delete(filepath)
@@ -148,10 +149,9 @@ def generate_region_pressure_previews(region_report, boundary_layer):
         logging.error('Error at %s', 'division', exc_info=e)
         logging.warn(f'Failed to retrieve boundary image for {boundary_layer}')
     else:
-        cropped_basemap.paste(boundary_layer_image, None, boundary_layer_image)
         logging.info(f'Generating pressures for: {region_report}')
         for pressure in Pressure.objects.filter(region_report=region_report.id):
-            generate_pressure_preview(cropped_basemap.copy(), pressure, bbox, size)
+            generate_pressure_preview(cropped_basemap.copy(), boundary_layer_image, pressure, bbox, size)
 
 class Command(BaseCommand):
     def handle(self, *args, **options):

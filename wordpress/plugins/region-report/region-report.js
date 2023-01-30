@@ -1087,8 +1087,8 @@ class RegionReport {
                 [
                     "~#list",
                     [
-                        boundaryLayer.id,
-                        pressureLayer
+                        pressureLayer,
+                        boundaryLayer.id
                     ]
                 ],
                 "~:active-base",
