@@ -52,7 +52,7 @@
 
 (defmethod format-event :download-click [[_ {:keys [link layer type]} :as _event-v]]
   {:event_category "layers"
-   :event_action   "layer-download"
+   :event_action   "download-click"
    :event_label    (:layer_name layer)
    :layer_name     (:layer_name layer)
    :download_link  link
