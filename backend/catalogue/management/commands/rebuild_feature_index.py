@@ -177,10 +177,14 @@ def geometry_distance(geometryA, geometryB):
     return t1.distance(t2).values[0]
 
 
-def get_all_close_features(i, all_distances):
-    distances = all_distances[i]
-    del all_distances[i]
-    print(distances)
+def group_geometries(geometries, index, group, ungrouped):
+    geometry = geometries[index]
+    ungrouped.remove(index)
+    group.add(index)
+    for i, other in enumerate(geometries):
+        if i in ungrouped and geometry_distance(geometry, other) < 400:
+            group_geometries(geometries, i, group, ungrouped)    
+
 
 def get_feature_groups(layer):
     logging.info(f"{layer} ({layer.id})...")
@@ -193,26 +197,22 @@ def get_feature_groups(layer):
         features = get_geoserver_features(layer)
 
     if features is not None:
-        geometry_list = [
+        geometries = [
             shape(feature['geometry'])
             for feature in features
             if feature['geometry'] is not None
         ]
-        geometry_list = geometry_list[0:5]
 
-        # get feature distances
-        all_distances = {}
-        for i, geometry in enumerate(geometry_list):
-            all_distances[i] = {}
-        for i, geometry in enumerate(geometry_list):
-            for j in range(i+1, len(geometry_list)):
-                distance = geometry_distance(geometry, geometry_list[j])
-                all_distances[i][j] = distance
-                all_distances[j][i] = distance
-        
         # group the features
-        for i, geometry in enumerate(geometry_list):
-            get_all_close_features(i, all_distances)
+        groups = []
+        ungrouped = set(range(len(geometries)))
+        for i in range(len(geometries)):
+            if i in ungrouped:
+                group = set()
+                group_geometries(geometries, i, group, ungrouped)
+                groups.append(group)
+        return groups
+    return None
 
             
 
