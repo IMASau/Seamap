@@ -52,7 +52,7 @@
         layers          (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
         viewport-layers (viewport-layers bounds layers)
         filtered-layers (filter (partial match-layer filter-text categories) layers)
-        sorted-layers   (sort-layers filtered-layers sorting)]
+        sorted-layers   (sort-layers layers sorting)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
