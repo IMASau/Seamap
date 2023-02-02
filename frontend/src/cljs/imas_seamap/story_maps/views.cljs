@@ -12,7 +12,9 @@
    (when (seq image)
      [:img {:src image}])
    [:div.title title]
-   [:div.content content]
+   [:div.content
+    {:ref #(when % (set! (.-innerHTML %) content))}
+    content]
    [b/button
     {:icon     "search"
      :text     "Show me"
@@ -33,7 +35,9 @@
 (defn- map-link [{:keys [subtitle description shortcode] :as _map-link}]
   [:div.map-link
    [:div.subtitle subtitle]
-   [:div.description description]
+   [:div.description
+    {:ref #(when % (set! (.-innerHTML %) description))}
+    description]
    [b/button
     {:icon     "search"
      :text     "Show me"
@@ -52,7 +56,9 @@
      :onClose     #(re-frame/dispatch [:sm.featured-map/open false])
      :hasBackdrop false
      :className   "featured-map-drawer"}
-    [:div.summary content]
+    [:div.summary
+     {:ref #(when % (set! (.-innerHTML %) content))}
+     content]
     [:div.map-links
      (map-indexed
       (fn [index map-link-val]

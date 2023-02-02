@@ -13,12 +13,6 @@
 
 (defmulti format-event (fn [event-v] (first event-v)))
 
-(defmethod format-event :map/toggle-layer [[_ layer :as _event-v]]
-  {:event_category "layers"
-   :event_action   "toggle-layer"
-   :event_label    (:layer_name layer)
-   :layer_name     (:layer_name layer)})
-
 (defmethod format-event :map/add-layer [[_ layer :as _event-v]]
   {:event_category "layers"
    :event_action   "add-layer"
@@ -30,6 +24,13 @@
    :event_action   "remove-layer"
    :event_label    (:layer_name layer)
    :layer_name     (:layer_name layer)})
+
+(defmethod format-event :map.layer/metadata-click [[_ {:keys [link layer]} :as _event-v]]
+  {:event_category "layers"
+   :event_action   "metadata-click"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)
+   :metadata_link  link})
 
 (defmethod format-event :map/pan-to-layer [[_ layer :as _event-v]]
   {:event_category "layers"
@@ -51,7 +52,7 @@
 
 (defmethod format-event :download-click [[_ {:keys [link layer type]} :as _event-v]]
   {:event_category "layers"
-   :event_action   "layer-download"
+   :event_action   "download-click"
    :event_label    (:layer_name layer)
    :layer_name     (:layer_name layer)
    :download_link  link
