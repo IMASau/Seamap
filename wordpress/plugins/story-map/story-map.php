@@ -87,7 +87,7 @@ if (class_exists('acf')) {
                     'key'      => 'field_story_map_description',
                     'label'    => 'Description',
                     'name'     => 'description',
-                    'type'     => 'textarea',
+                    'type'     => 'wysiwyg',
                     'required' => true,
                 ],
                 [
@@ -108,7 +108,7 @@ if (class_exists('acf')) {
                             'key'      => 'field_story_map_map_link_description',
                             'label'    => 'Description',
                             'name'     => 'description',
-                            'type'     => 'textarea',
+                            'type'     => 'wysiwyg',
                             'required' => true,
                         ],
                         [
