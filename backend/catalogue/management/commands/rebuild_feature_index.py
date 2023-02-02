@@ -112,6 +112,23 @@ def get_mapserver_features(layer):
                             return features
 
 
+def get_geometries(layer):
+    features = None
+
+    if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url):
+        features = get_mapserver_features(layer)
+    else:
+        features = get_geoserver_features(layer)
+
+    if features:
+        return [
+            shape(feature['geometry'])
+            for feature in features
+            if feature['geometry'] is not None
+        ]
+    return None
+
+
 def get_layer_feature(layer, feature):
     if not feature['geometry']:
         return None
@@ -172,6 +189,7 @@ def add_features(layer, successes, failures, to_csv=False):
 
 
 def geometry_distance(geometryA, geometryB):
+    # TODO: Efficiency could be improved by moving geoseries conversion outside the function.
     t1 = geopandas.GeoSeries(geometryA, crs=4326).to_crs(3857)
     t2 = geopandas.GeoSeries(geometryB, crs=4326).to_crs(3857)
     return t1.distance(t2).values[0]
@@ -188,22 +206,9 @@ def group_geometries(geometries, index, group, ungrouped):
 
 def get_feature_groups(layer):
     logging.info(f"{layer} ({layer.id})...")
-    features = None
+    geometries = get_geometries(layer)
 
-    # get our features
-    if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url):
-        features = get_mapserver_features(layer)
-    else:
-        features = get_geoserver_features(layer)
-
-    if features is not None:
-        geometries = [
-            shape(feature['geometry'])
-            for feature in features
-            if feature['geometry'] is not None
-        ]
-
-        # group the features
+    if geometries:
         groups = []
         ungrouped = set(range(len(geometries)))
         for i in range(len(geometries)):
@@ -213,8 +218,6 @@ def get_feature_groups(layer):
                 groups.append(group)
         return groups
     return None
-
-            
 
 
 class Command(BaseCommand):
