@@ -12,7 +12,6 @@
         content   (get-in response [:acf :description])
         image     (or (get-in response [:acf :image]) nil) ; we do this because we want nil instead of false if there's no image
         map-links (get-in response [:acf :map_links])]
-    (js/console.log "content" content)
     {:id        id
      :title     title
      :content   content
