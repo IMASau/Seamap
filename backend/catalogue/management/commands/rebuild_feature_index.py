@@ -3,7 +3,7 @@ from django.db import connections
 import requests
 import re
 import logging
-from shapely.geometry import shape
+from shapely.geometry import shape, box
 import geopandas
 from collections import namedtuple
 import csv
@@ -202,6 +202,16 @@ def group_geometries(geometries, index, group, ungrouped):
     for i, other in enumerate(geometries):
         if i in ungrouped and geometry_distance(geometry, other) < 400:
             group_geometries(geometries, i, group, ungrouped)    
+
+
+def get_features_layer_coverage(layer):
+    geometries = get_geometries(layer)
+    if geometries:
+        geoseries = geopandas.GeoSeries(geometries, crs=4326)
+        feature_area = sum(v for v in geoseries.to_crs(crs=3857).area.values)
+        bounds = box(*geoseries.total_bounds)
+        bounds_area = geopandas.GeoSeries(bounds, crs=4326).to_crs(crs=3857).area.values[0]
+        return feature_area / bounds_area
 
 
 def get_feature_groups(layer):
