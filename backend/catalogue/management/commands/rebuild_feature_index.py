@@ -10,11 +10,11 @@ import csv
 
 from catalogue.models import Layer
 
-LayerFeature = namedtuple('LayerFeature', 'layer_id feature_id geom type')
+LayerFeature = namedtuple('LayerFeature', 'layer_id geom')
 
 SQL_DELETE_LAYER_FEATURES = "DELETE FROM layer_feature;"
 
-SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature (layer_id, feature_id, geom, type ) VALUES (%s, %s, GEOMETRY::STGeomFromText(%s, 4326), %s);"
+SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature (layer_id, geom ) VALUES (%s, GEOMETRY::STGeomFromText(%s, 4326).MakeValid());"
 
 def get_geoserver_features(layer):
     params = {
@@ -132,15 +132,13 @@ def get_geometries(layer):
 def get_layer_feature(layer, feature):
     if not feature['geometry']:
         return None
-
-    o = dict(
-        coordinates=feature['geometry']['coordinates'],
-        type=feature['geometry']['type']
+    return LayerFeature(
+        layer.id,
+        shape({
+            'coordinates': feature['geometry']['coordinates'],
+            'type':        feature['geometry']['type']
+        }).wkt
     )
-    geom = shape(o)
-    wkt = geom.wkt
-
-    return LayerFeature(layer.id, feature.get('id') or 'NoId!', wkt, feature['geometry']['type'])
 
 
 def add_features(layer, successes, failures, to_csv=False):
@@ -252,8 +250,7 @@ class Command(BaseCommand):
                 cursor.execute(SQL_DELETE_LAYER_FEATURES)
 
         for layer in Layer.objects.all():
-            if layer.id == 2:
-                get_feature_groups(layer)
+            add_features(layer, successes, failures, to_csv)
 
         successes = [layer.id for layer in successes]
         logging.info("total successes: %s: %s", len(successes), successes)
