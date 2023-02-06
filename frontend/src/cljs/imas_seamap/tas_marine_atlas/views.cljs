@@ -8,6 +8,7 @@
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layers-search-omnibar layer-preview hotkeys-combos control-block print-control control-block-child transect-control]]
             [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.components :as components]
             [goog.string.format]
@@ -102,8 +103,30 @@
                 [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
         :panel (reagent/as-element [featured-maps])}]]]))
 
+(defn- data-in-region-layer [layer {:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn] :as _layer-props}]
+  (let [active? (some #{layer} active-layers)
+        layer-state
+        {:active?   active?
+         :visible?  (some #{layer} visible-layers)
+         :loading?  (loading-fn layer)
+         :expanded? (expanded-fn layer)
+         :errors?   (error-fn layer)
+         :opacity   (opacity-fn layer)}]
+    [:div.data-in-region-layer
+     (when active? {:class "active-layer"})
+     [layer-catalogue-header {:layer layer :layer-state layer-state}]]))
+
 (defn data-in-region-drawer []
-  (let [{:keys [status layers]} @(re-frame/subscribe [:data-in-region/data])]
+  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
+        {:keys [status layers]} @(re-frame/subscribe [:data-in-region/data])
+        layer-props
+        {:active-layers  active-layers
+         :visible-layers visible-layers
+         :main-national-layer main-national-layer
+         :loading-fn     loading-layers
+         :error-fn       error-layers
+         :expanded-fn    expanded-layers
+         :opacity-fn     layer-opacities}]
     [components/drawer
      {:title       "Data in Region"
       :position    "right"
@@ -115,10 +138,10 @@
      (case status
        
        :data-in-region/loaded
-       [:ul
-        (for [{:keys [id name] :as _layer} layers]
+       [:div
+        (for [{:keys [id] :as layer} layers]
           ^{:key (str id)}
-          [:li name])]
+          [data-in-region-layer layer layer-props])]
        
        :data-in-region/loading
        [b/non-ideal-state
