@@ -652,12 +652,18 @@
     {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
 
 (defmulti get-layer-legend
-  (fn [{:keys [db]} [_ {:keys [layer_type] :as layer}]]
-    (if (and (= layer (main-national-layer (:map db))) (not= layer (displayed-national-layer (:map db))))
+  (fn [{:keys [db]} [_ {:keys [layer_type server_url] :as layer}]]
+    (cond
+      (and
+       (= layer (main-national-layer (:map db)))
+       (not= layer (displayed-national-layer (:map db))))
       :displayed-national-layer
-      (case layer_type
-        :wms-non-tiled :wms
-        layer_type))))
+      
+      (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
+      :map-server
+
+      (= layer_type :wms-non-tiled) :wms
+      :else                         layer_type)))
 
 (defmethod get-layer-legend :wms
   [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
@@ -688,15 +694,30 @@
   [{:keys [db]} _]
   {:dispatch [:map.layer/get-legend (displayed-national-layer (:map db))]})
 
+(defmethod get-layer-legend :map-server
+  [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
+  (let [matches    (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
+        server_url (str (get matches 1) "/rest/services/" (get matches 2) "/MapServer/legend")]
+    {:db         (assoc-in db [:map :legends id] :map.legend/loading)
+     :http-xhrio {:method          :get
+                  :uri             server_url
+                  :params          {:f "pjson"}
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success      [:map.layer/get-legend-success layer]
+                  :on-failure      [:map.layer/get-legend-error layer]}}))
+
 (defmethod get-layer-legend :default
   [{:keys [db]} [_ {:keys [id] :as _layer}]]
   {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)})
 
 (defmulti get-layer-legend-success
-  (fn [_ [_ {:keys [layer_type] :as _layer}]]
-    (case layer_type
-      :wms-non-tiled :wms
-      layer_type)))
+  (fn [_ [_ {:keys [layer_type server_url] :as _layer}]]
+    (cond
+      (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
+      :map-server
+
+      (= layer_type :wms-non-tiled) :wms
+      :else                         layer_type)))
 
 (defmulti wms-symbolizer->key #(-> % keys first))
 
@@ -757,5 +778,59 @@
                         (-> render-info convert-value-info vector))]
       (assoc-in db [:map :legends id] legend))))
 
-(defn get-layer-legend-error [db [_ {:keys [id] :as _layer}]]
+(defmethod get-layer-legend-success :map-server
+  [db [_ {:keys [id server_url layer_name] :as _layer} response]]
+  (let [legend (if (get-in response [:layers 0 :legend]) ; Get the legend data
+                 (mapv                                   ; if data, then we make a vector legend and convert to keys and labels
+                  (fn [{:keys [label imageData]}]
+                    {:label label
+                     :image (str "data:image/png;base64, " imageData)})
+                  (get-in response [:layers 0 :legend]))
+                 (append-query-params                    ; else we just use an image for the legend graphic
+                  server_url
+                  {:REQUEST     "GetLegendGraphic"
+                   :LAYER       layer_name
+                   :TRANSPARENT true
+                   :SERVICE     "WMS"
+                   :VERSION     "1.1.1"
+                   :FORMAT      "image/png"}))]
+    (assoc-in db [:map :legends id] legend)))
+
+(defmulti get-layer-legend-error
+  (fn [_ [_ {:keys [layer_type server_url] :as _layer}]]
+    (cond
+      (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
+      :map-server
+
+      (= layer_type :wms-non-tiled) :wms
+      :else                         layer_type)))
+
+(defmethod get-layer-legend-error :wms
+  [db [_ {:keys [id server_url layer_name] :as _layer}]]
+  (assoc-in
+   db [:map :legends id]
+   (append-query-params
+    server_url
+    {:REQUEST     "GetLegendGraphic"
+     :LAYER       layer_name
+     :TRANSPARENT true
+     :SERVICE     "WMS"
+     :VERSION     "1.1.1"
+     :FORMAT      "image/png"})))
+
+(defmethod get-layer-legend-error :map-server
+  [db [_ {:keys [id server_url layer_name] :as _layer}]]
+  (assoc-in
+   db [:map :legends id]
+   (append-query-params
+    server_url
+    {:REQUEST     "GetLegendGraphic"
+     :LAYER       layer_name
+     :TRANSPARENT true
+     :SERVICE     "WMS"
+     :VERSION     "1.1.1"
+     :FORMAT      "image/png"})))
+
+(defmethod get-layer-legend-error :feature
+  [db [_ {:keys [id] :as _layer}]]
   (assoc-in db [:map :legends id] :map.legend/error))
