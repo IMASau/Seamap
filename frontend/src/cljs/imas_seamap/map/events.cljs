@@ -652,10 +652,12 @@
     {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
 
 (defmulti get-layer-legend
-  (fn [{:keys [db]} [_ layer]]
+  (fn [{:keys [db]} [_ {:keys [layer_type] :as layer}]]
     (if (and (= layer (main-national-layer (:map db))) (not= layer (displayed-national-layer (:map db))))
       :displayed-national-layer
-      (:layer_type layer))))
+      (case layer_type
+        :wms-non-tiled :wms
+        layer_type))))
 
 (defmethod get-layer-legend :wms
   [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
@@ -682,21 +684,6 @@
                 :on-success      [:map.layer/get-legend-success layer]
                 :on-failure      [:map.layer/get-legend-error layer]}})
 
-(defmethod get-layer-legend :wms-non-tiled
-  [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
-  {:db         (assoc-in db [:map :legends id] :map.legend/loading)
-   :http-xhrio {:method          :get
-                :uri             server_url
-                :params          {:REQUEST     "GetLegendGraphic"
-                                  :LAYER       layer_name
-                                  :TRANSPARENT true
-                                  :SERVICE     "WMS"
-                                  :VERSION     "1.1.1"
-                                  :FORMAT      "application/json"}
-                :response-format (ajax/json-response-format {:keywords? true})
-                :on-success      [:map.layer/get-legend-success layer]
-                :on-failure      [:map.layer/get-legend-error layer]}})
-
 (defmethod get-layer-legend :displayed-national-layer
   [{:keys [db]} _]
   {:dispatch [:map.layer/get-legend (displayed-national-layer (:map db))]})
@@ -705,7 +692,11 @@
   [{:keys [db]} [_ {:keys [id] :as _layer}]]
   {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)})
 
-(defmulti get-layer-legend-success #(get-in %2 [1 :layer_type]))
+(defmulti get-layer-legend-success
+  (fn [_ [_ {:keys [layer_type] :as _layer}]]
+    (case layer_type
+      :wms-non-tiled :wms
+      layer_type)))
 
 (defmulti wms-symbolizer->key #(-> % keys first))
 
@@ -729,25 +720,6 @@
 (defmethod wms-symbolizer->key :default [] nil)
 
 (defmethod get-layer-legend-success :wms
-  [db [_ {:keys [id server_url layer_name] :as _layer} response]]
-  (let [legend (if (-> response :Legend first :rules first :symbolizers first wms-symbolizer->key) ; Convert the symbolizer for the first key
-                 (->> response :Legend first :rules                                                ; if it converts successfully, then we make a vector legend and convert to keys and labels
-                      (mapv
-                       (fn [{:keys [title filter symbolizers]}]
-                         {:label  title
-                          :filter filter
-                          :style  (-> symbolizers first wms-symbolizer->key)})))
-                 (append-query-params                                                              ; else we just use an image for the legend graphic
-                  server_url
-                  {:REQUEST     "GetLegendGraphic"
-                   :LAYER       layer_name
-                   :TRANSPARENT true
-                   :SERVICE     "WMS"
-                   :VERSION     "1.1.1"
-                   :FORMAT      "image/png"}))]
-    (assoc-in db [:map :legends id] legend)))
-
-(defmethod get-layer-legend-success :wms-non-tiled
   [db [_ {:keys [id server_url layer_name] :as _layer} response]]
   (let [legend (if (-> response :Legend first :rules first :symbolizers first wms-symbolizer->key) ; Convert the symbolizer for the first key
                  (->> response :Legend first :rules                                                ; if it converts successfully, then we make a vector legend and convert to keys and labels
