@@ -165,48 +165,6 @@ def add_features(layer, conn):
         logging.info('FAILURE')
 
 
-def geometry_distance(geometryA, geometryB):
-    # TODO: Efficiency could be improved by moving geoseries conversion outside the function.
-    t1 = geopandas.GeoSeries(geometryA, crs=4326).to_crs(3857)
-    t2 = geopandas.GeoSeries(geometryB, crs=4326).to_crs(3857)
-    return t1.distance(t2).values[0]
-
-
-def group_geometries(geometries, index, group, ungrouped):
-    geometry = geometries[index]
-    ungrouped.remove(index)
-    group.add(index)
-    for i, other in enumerate(geometries):
-        if i in ungrouped and geometry_distance(geometry, other) < 400:
-            group_geometries(geometries, i, group, ungrouped)    
-
-
-def get_features_layer_coverage(layer):
-    geometries = get_geometries(layer)
-    if geometries:
-        geoseries = geopandas.GeoSeries(geometries, crs=4326)
-        feature_area = sum(v for v in geoseries.to_crs(crs=3857).area.values)
-        bounds = box(*geoseries.total_bounds)
-        bounds_area = geopandas.GeoSeries(bounds, crs=4326).to_crs(crs=3857).area.values[0]
-        return feature_area / bounds_area
-
-
-def get_feature_groups(layer):
-    logging.info(f"{layer} ({layer.id})...")
-    geometries = get_geometries(layer)
-
-    if geometries:
-        groups = []
-        ungrouped = set(range(len(geometries)))
-        for i in range(len(geometries)):
-            if i in ungrouped:
-                group = set()
-                group_geometries(geometries, i, group, ungrouped)
-                groups.append(group)
-        return groups
-    return None
-
-
 class Command(BaseCommand):
     def handle(self, *args, **options):
         conn = None
