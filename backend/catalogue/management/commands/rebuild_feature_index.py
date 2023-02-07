@@ -1,5 +1,4 @@
 from django.core.management.base import BaseCommand
-from django.db import connections
 import requests
 import re
 import logging
@@ -7,14 +6,21 @@ from shapely.geometry import shape, box
 import geopandas
 from collections import namedtuple
 import csv
+import pyodbc
+from django.conf import settings
 
 from catalogue.models import Layer
 
 LayerFeature = namedtuple('LayerFeature', 'layer_id geom')
 
-SQL_DELETE_LAYER_FEATURES = "DELETE FROM layer_feature;"
+SQL_RESET_LAYER_FEATURES = """
+  ALTER INDEX [layer_geom] ON [dbo].[layer_feature] DISABLE; GO
+  TRUNCATE TABLE layer_feature;
+"""
 
-SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature ( layer_id, geom ) VALUES ( %s, GEOMETRY::STGeomFromText(%s, 4326).MakeValid() );"
+SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature ( layer_id, geom ) VALUES ( ?, ? );"
+
+SQL_REENABLE_SPATIAL_INDEX = "ALTER INDEX [layer_geom] ON [dbo].[layer_feature] REBUILD;"
 
 def get_geoserver_features(layer):
     params = {
@@ -129,7 +135,7 @@ def get_geometries(layer):
     return None
 
 
-def add_features(layer, successes, failures, to_csv=False):
+def add_features(layer, successes, failures, conn, to_csv=False):
     logging.info(f"{layer} ({layer.id})...")
     features = None
     if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url):
@@ -159,8 +165,9 @@ def add_features(layer, successes, failures, to_csv=False):
                     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                     writer.writerows([x._asdict() for x in layer_features])
             else:
-                with connections['default'].cursor() as cursor:
-                    # TODO: Bulk inserts? https://learn.microsoft.com/en-us/sql/relational-databases/import-export/import-bulk-data-by-using-bulk-insert-or-openrowset-bulk-sql-server?view=sql-server-ver16
+                with conn.cursor() as cursor:
+                    cursor.fast_executemany = True
+                    cursor.setinputsizes([None, (pyodbc.SQL_WVARCHAR, 0, 0)])
                     cursor.executemany(SQL_INSERT_LAYER_FEATURE, layer_features)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
@@ -234,19 +241,35 @@ class Command(BaseCommand):
         successes = []
         failures = []
 
-        if to_csv:
-            with open('layer_feature.csv', 'w', newline='') as csvfile:
-                fieldnames = LayerFeature._fields
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writeheader()
-        else:
-            with connections['default'].cursor() as cursor:
-                cursor.execute(SQL_DELETE_LAYER_FEATURES)
+        conn = None
+        try:
+            conn = pyodbc.connect(
+                "Driver={" + settings.DATABASES['default']['OPTIONS']['driver'] + "};"
+                "Server=" + settings.DATABASES['default']['HOST'] + ";"
+                "Database=" + settings.DATABASES['default']['NAME'] + ";"
+                "UID=" + settings.DATABASES['default']['USER'] + ";"
+                "PWD=" + settings.DATABASES['default']['PASSWORD'] + ";"
+                "Trusted_Connection=no;"
+            )
 
-        for layer in Layer.objects.all():
-            add_features(layer, successes, failures, to_csv)
-
-        successes = [layer.id for layer in successes]
-        logging.info("total successes: %s: %s", len(successes), successes)
-        failures = [layer.id for layer in failures]
-        logging.info("total failures: %s: %s", len(failures), failures)
+            if to_csv:
+                with open('layer_feature.csv', 'w', newline='') as csvfile:
+                    fieldnames = LayerFeature._fields
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    writer.writeheader()
+            else:
+                with conn.cursor() as cursor:
+                    cursor.execute(SQL_RESET_LAYER_FEATURES)
+            for layer in Layer.objects.all():
+                add_features(layer, successes, failures, conn, to_csv)
+        except Exception as e:
+            logging.error('Error at %s', 'division', exc_info=e)
+        finally:
+            if conn is not None:
+                with conn.cursor() as cursor:
+                    cursor.execute(SQL_REENABLE_SPATIAL_INDEX)
+                conn.close()
+            successes = [layer.id for layer in successes]
+            logging.info("total successes: %s: %s", len(successes), successes)
+            failures = [layer.id for layer in failures]
+            logging.info("total failures: %s: %s", len(failures), failures)
