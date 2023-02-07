@@ -147,7 +147,7 @@
     :map.layer/get-legend-success         mevents/get-layer-legend-success
     :map.layer/get-legend-error           mevents/get-layer-legend-error
     :map.layer.legend/toggle              [mevents/toggle-legend-display]
-    :map.layer.selection/enable           [mevents/map-start-selecting]
+    :map.layer.selection/enable           tmaevents/map-start-selecting
     :map.layer.selection/disable          mevents/map-cancel-selecting
     :map.layer.selection/clear            [tmaevents/map-clear-selection]
     :map.layer.selection/finalise         [tmaevents/map-finalise-selection]

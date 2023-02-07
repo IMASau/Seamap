@@ -292,6 +292,11 @@
   {:db       (assoc-in db [:data-in-region :open?] open?)
    :dispatch [:maybe-autosave]})
 
+(defn map-start-selecting [db _]
+  (-> db
+      (assoc-in [:map :controls :ignore-click] true)
+      (assoc-in [:map :controls :download :selecting] true)))
+
 (defn map-clear-selection [{:keys [db]} _]
   {:db (update-in db [:map :controls :download] dissoc :bbox)
    :dispatch [:data-in-region/open false]})
