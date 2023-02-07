@@ -22,6 +22,7 @@
             [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
+            [imas-seamap.tas-marine-atlas.subs :as tmasubs]
             [imas-seamap.tas-marine-atlas.views :refer [layout-app]]
             [imas-seamap.config :as config]))
 
@@ -71,7 +72,9 @@
     :app/load-error-msg                   subs/load-error-msg
     :info/message                         subs/user-message
     :autosave?                            subs/autosave?
-    :url-base                             subs/url-base}
+    :url-base                             subs/url-base
+    :data-in-region/open?                 tmasubs/data-in-region-open?
+    :data-in-region/data                  tmasubs/data-in-region}
 
    :events
    {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
@@ -144,10 +147,10 @@
     :map.layer/get-legend-success         mevents/get-layer-legend-success
     :map.layer/get-legend-error           mevents/get-layer-legend-error
     :map.layer.legend/toggle              [mevents/toggle-legend-display]
-    :map.layer.selection/enable           [mevents/map-start-selecting]
+    :map.layer.selection/enable           tmaevents/map-start-selecting
     :map.layer.selection/disable          mevents/map-cancel-selecting
-    :map.layer.selection/clear            mevents/map-clear-selection
-    :map.layer.selection/finalise         [mevents/map-finalise-selection]
+    :map.layer.selection/clear            [tmaevents/map-clear-selection]
+    :map.layer.selection/finalise         [tmaevents/map-finalise-selection]
     :map.layer.selection/toggle           [mevents/map-toggle-selecting]
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers
@@ -197,7 +200,10 @@
     :left-drawer/tab                      [events/left-drawer-tab]
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
-    :layers-search-omnibar/close          events/layers-search-omnibar-close}})
+    :layers-search-omnibar/close          events/layers-search-omnibar-close
+    :data-in-region/open                  [tmaevents/data-in-region-open]
+    :data-in-region/get                   [tmaevents/get-data-in-region]
+    :data-in-region/got                   tmaevents/got-data-in-region}})
 
 (def events-for-analytics
   [:help-layer/open

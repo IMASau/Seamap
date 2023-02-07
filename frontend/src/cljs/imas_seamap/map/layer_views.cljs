@@ -211,7 +211,7 @@
      :icon     "locate"
      :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
 
-(defn- layer-catalogue-header
+(defn layer-catalogue-header
   "Top part of layer catalogue element. Always visible. Contains the layer status,
    name, and basic controls for the layer. Differs from layer-card-header in what
    controls are displayed."

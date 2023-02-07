@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import zipfile
 import logging
+from shapely.geometry import box
 
 from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure
 from catalogue.serializers import RegionReportSerializer, LayerSerializer, PressureSerializer
@@ -723,6 +724,14 @@ FROM @observations AS T1;
 SQL_GET_NETWORK_SQUIDLE_URL = "SELECT NRandImage_URL FROM VW_IMAGERY_SQUIDLE_AMP_NETWORK WHERE NETWORK = %s;"
 SQL_GET_PARK_SQUIDLE_URL = "SELECT NRandImage_URL FROM VW_IMAGERY_SQUIDLE_AMP_PARK WHERE PARK = %s;"
 
+SQL_GET_DATA_IN_REGION = """
+DECLARE @region GEOMETRY = GEOMETRY::STGeomFromText(%s, 4326);
+SELECT DISTINCT layer_id FROM (
+  SELECT * FROM [dbo].[layer_feature]
+  WHERE @region.STIntersects(geom) = 1
+) AS [T1];
+"""
+
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
@@ -1328,3 +1337,24 @@ def region_report_data(request):
             pass
 
     return Response(data)
+
+@action(detail=False)
+@api_view()
+def data_in_region(request):
+    params = {k: v or None for k, v in request.query_params.items()}
+    try:
+        select = box(
+            float(params['east']),
+            float(params['south']),
+            float(params['west']),
+            float(params['north'])
+        )
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    else:
+        with connections['transects'].cursor() as cursor:
+            logging.info(SQL_GET_DATA_IN_REGION)
+            logging.info(select.wkt)
+            cursor.execute(SQL_GET_DATA_IN_REGION, [select.wkt])
+            layer_ids = [row[0] for row in cursor.fetchall()]
+        return Response(layer_ids)

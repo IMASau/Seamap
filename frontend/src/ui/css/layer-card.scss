@@ -117,7 +117,23 @@
     &:hover { color: $seamap-red; }
 }
 
-.catalogue-layer-node .layer-header {
+.data-in-region-layer {
+    color: $seamap-deep-blue;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    padding-right: 4px;
+    &.active-layer { background-color: $seamap-light-blue; }
+    >* { flex: 1; }
+    .layer-header {
+        height: 18px;
+        .layer-header-text { margin-top: 4px; }
+    }
+}
+
+.catalogue-layer-node .layer-header,
+.data-in-region-layer .layer-header {
     display: flex;
     flex-direction: row;
     align-items: center;

@@ -30,6 +30,9 @@
    :story-maps      {:featured-maps []
                      :featured-map  nil
                      :open?         false}
+   :data-in-region  {:open?    false
+                     :data     nil
+                     :query-id nil}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}
@@ -66,7 +69,8 @@
                                  :category              "categories/"
                                  :keyed-layers          "keyedlayers/"
                                  :layer-previews        "layer_previews/"
-                                 :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"}
+                                 :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"
+                                 :data-in-region        "habitat/datainregion"}
                      :urls      nil
                      :url-base {:api-url-base       "http://localhost:8000/api/"
                                 :media-url-base     "http://localhost:8000/media/"

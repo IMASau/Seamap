@@ -3,17 +3,12 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.tas-marine-atlas.events
   (:require [ajax.core :as ajax]
-            [clojure.string :as string]
-            [clojure.data.xml :as xml]
-            [clojure.data.zip.xml :as zx]
-            [clojure.zip :as zip]
-            [goog.dom :as gdom]
-            [imas-seamap.blueprint :as b]
             [imas-seamap.tas-marine-atlas.db :as db]
-            [imas-seamap.utils :refer [copy-text geonetwork-force-xml merge-in append-params-from-map ids->layers first-where]]
-            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities]]
+            [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
+            [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities]]
             [imas-seamap.tas-marine-atlas.utils :refer [encode-state parse-state ajax-loaded-info]]
-            [re-frame.core :as re-frame]
+            [imas-seamap.blueprint :as b]
+            [reagent.core :as r]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn- boot-flow []
@@ -103,7 +98,8 @@
           category
           keyed-layers
           layer-previews
-          story-maps]}
+          story-maps
+          data-in-region]}
         (get-in db [:config :url-paths])
         {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
@@ -118,8 +114,9 @@
       :save-state-url            (str api-url-base save-state)
       :category-url              (str api-url-base category)
       :keyed-layers-url          (str api-url-base keyed-layers)
+      :layer-previews-url        (str media-url-base layer-previews)
       :story-maps-url            (str wordpress-url-base story-maps)
-      :layer-previews-url        (str media-url-base layer-previews)})))
+      :data-in-region-url        (str api-url-base data-in-region)})))
 
 (defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (assoc-in
@@ -290,3 +287,44 @@
                   [[:ui/hide-loading]
                    [:maybe-autosave]]
                   (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids)))}))
+
+(defn data-in-region-open [{:keys [db]} [_ open?]]
+  {:db       (assoc-in db [:data-in-region :open?] open?)
+   :dispatch [:maybe-autosave]})
+
+(defn map-start-selecting [db _]
+  (-> db
+      (assoc-in [:map :controls :ignore-click] true)
+      (assoc-in [:map :controls :download :selecting] true)))
+
+(defn map-clear-selection [{:keys [db]} _]
+  {:db (update-in db [:map :controls :download] dissoc :bbox)
+   :dispatch [:data-in-region/open false]})
+
+(defn map-finalise-selection [{:keys [db]} [_ bbox]]
+  {:db      (update-in
+             db [:map :controls :download]
+             merge {:selecting false :bbox bbox})
+   :message  [(r/as-element
+               [:div
+                "Open layer info ("
+                [b/icon {:icon "info-sign" :icon-size 14}]
+                ") to download selection"])
+              b/INTENT-NONE]
+   :dispatch-n [[:data-in-region/open true]
+                [:data-in-region/get bbox]]})
+
+(defn get-data-in-region [{:keys [db]} [_ bbox]]
+  (let [query-id           (gensym)
+        data-in-region-url (get-in db [:config :urls :data-in-region-url])]
+    {:db         (update db :data-in-region merge {:data :data-in-region/loading :query-id query-id})
+     :http-xhrio {:method          :get
+                  :uri             data-in-region-url
+                  :params          bbox
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success      [:data-in-region/got query-id]
+                  :on-failure      [:ajax/default-err-handler]}}))
+
+(defn got-data-in-region [db [_ query-id data]]
+  (when (= (get-in db [:data-in-region :query-id]) query-id)
+   (update db :data-in-region merge {:data data :query-id nil})))
