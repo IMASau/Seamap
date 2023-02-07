@@ -119,10 +119,12 @@
     [opacity-slider props]
     [layer-card-controls props]]])
 
-(defn- vector-legend-entry [{:keys [label style] :as _entry}]
+(defn- vector-legend-entry [{:keys [label image style] :as _entry}]
   [:div.vector-legend-entry
    [:div.key
-    [:div {:style style}]]
+    (if image
+      [:img {:src image}]
+      [:div {:style style}])]
    [b/clipped-text
     {:ellipsize true :class "label"}
     (string/replace label #"\\n" "\n")]])
