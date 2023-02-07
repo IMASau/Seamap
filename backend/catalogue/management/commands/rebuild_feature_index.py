@@ -5,7 +5,6 @@ import logging
 from shapely.geometry import shape, box
 import geopandas
 from collections import namedtuple
-import csv
 import pyodbc
 from django.conf import settings
 
@@ -139,7 +138,7 @@ def get_geometries(layer):
     return None
 
 
-def add_features(layer, successes, failures, conn, to_csv=False):
+def add_features(layer, successes, failures, conn):
     logging.info(f"Retrieving {layer} ({layer.id}) features...")
     geometries = get_geometries(layer)
 
@@ -152,17 +151,11 @@ def add_features(layer, successes, failures, conn, to_csv=False):
         
         # add the new LayerFeatures
         try:
-            if to_csv:
-                with open('layer_feature.csv', 'a', newline='') as csvfile:
-                    fieldnames = LayerFeature._fields
-                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                    writer.writerows([x._asdict() for x in layer_features])
-            else:
-                with conn.cursor() as cursor:
-                    logging.info(f"Adding to spatial index...")
-                    cursor.fast_executemany = True
-                    cursor.setinputsizes([None, (pyodbc.SQL_WVARCHAR, 0, 0)])
-                    cursor.executemany(SQL_INSERT_LAYER_FEATURE, layer_features)
+            with conn.cursor() as cursor:
+                logging.info(f"Adding to spatial index...")
+                cursor.fast_executemany = True
+                cursor.setinputsizes([None, (pyodbc.SQL_WVARCHAR, 0, 0)])
+                cursor.executemany(SQL_INSERT_LAYER_FEATURE, layer_features)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
             logging.info('FAILURE')
@@ -224,14 +217,7 @@ def get_feature_groups(layer):
 
 
 class Command(BaseCommand):
-    def add_arguments(self, parser):
-        parser.add_argument(
-            '--to_csv',
-            help='Set to true if you want output to go to a csv file instead of a database table'
-        )
-
     def handle(self, *args, **options):
-        to_csv = options['to_csv'].lower() in ['t', 'true'] if options['to_csv'] != None else False
         successes = []
         failures = []
 
@@ -246,17 +232,10 @@ class Command(BaseCommand):
                 "Trusted_Connection=no;"
             )
 
-            if to_csv:
-                with open('layer_feature.csv', 'w', newline='') as csvfile:
-                    fieldnames = LayerFeature._fields
-                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                    writer.writeheader()
-            else:
-                with conn.cursor() as cursor:
-                    cursor.execute(SQL_RESET_LAYER_FEATURES)
+            with conn.cursor() as cursor:
+                cursor.execute(SQL_RESET_LAYER_FEATURES)
             for layer in Layer.objects.all():
-                if layer.id <= 10:
-                    add_features(layer, successes, failures, conn, to_csv)
+                add_features(layer, successes, failures, conn)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
         finally:
