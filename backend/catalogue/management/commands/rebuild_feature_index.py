@@ -14,13 +14,17 @@ from catalogue.models import Layer
 LayerFeature = namedtuple('LayerFeature', 'layer_id geom')
 
 SQL_RESET_LAYER_FEATURES = """
-  ALTER INDEX [layer_geom] ON [dbo].[layer_feature] DISABLE; GO
-  TRUNCATE TABLE layer_feature;
+ALTER INDEX layer_geom ON layer_feature DISABLE;
+TRUNCATE TABLE layer_feature;
 """
 
 SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature ( layer_id, geom ) VALUES ( ?, ? );"
 
-SQL_REENABLE_SPATIAL_INDEX = "ALTER INDEX [layer_geom] ON [dbo].[layer_feature] REBUILD;"
+SQL_REENABLE_SPATIAL_INDEX = """
+UPDATE layer_feature SET geom.STSrid = 4326;
+UPDATE layer_feature SET geom = geom.MakeValid();
+ALTER INDEX layer_geom ON layer_feature REBUILD;
+"""
 
 def get_geoserver_features(layer):
     params = {
@@ -136,25 +140,14 @@ def get_geometries(layer):
 
 
 def add_features(layer, successes, failures, conn, to_csv=False):
-    logging.info(f"{layer} ({layer.id})...")
-    features = None
-    if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url):
-        features = get_mapserver_features(layer)
-    else:
-        features = get_geoserver_features(layer)
+    logging.info(f"Retrieving {layer} ({layer.id}) features...")
+    geometries = get_geometries(layer)
 
-    if features is not None:
-        # convert geojson features to LayerFeature tuples
+    if geometries is not None:
+        # convert geometries to LayerFeature tuples
         layer_features = [
-            LayerFeature(
-                layer.id,
-                shape({
-                    'coordinates': feature['geometry']['coordinates'],
-                    'type':        feature['geometry']['type']
-                }).wkt
-            )
-            for feature in features
-            if feature['geometry']
+            LayerFeature(layer.id, geometry.wkt)
+            for geometry in geometries
         ]
         
         # add the new LayerFeatures
@@ -166,6 +159,7 @@ def add_features(layer, successes, failures, conn, to_csv=False):
                     writer.writerows([x._asdict() for x in layer_features])
             else:
                 with conn.cursor() as cursor:
+                    logging.info(f"Adding to spatial index...")
                     cursor.fast_executemany = True
                     cursor.setinputsizes([None, (pyodbc.SQL_WVARCHAR, 0, 0)])
                     cursor.executemany(SQL_INSERT_LAYER_FEATURE, layer_features)
@@ -261,7 +255,8 @@ class Command(BaseCommand):
                 with conn.cursor() as cursor:
                     cursor.execute(SQL_RESET_LAYER_FEATURES)
             for layer in Layer.objects.all():
-                add_features(layer, successes, failures, conn, to_csv)
+                if layer.id <= 10:
+                    add_features(layer, successes, failures, conn, to_csv)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
         finally:
