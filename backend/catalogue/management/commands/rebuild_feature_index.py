@@ -14,7 +14,7 @@ LayerFeature = namedtuple('LayerFeature', 'layer_id geom')
 
 SQL_DELETE_LAYER_FEATURES = "DELETE FROM layer_feature;"
 
-SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature (layer_id, geom ) VALUES (%s, GEOMETRY::STGeomFromText(%s, 4326).MakeValid());"
+SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature ( layer_id, geom ) VALUES ( %s, GEOMETRY::STGeomFromText(%s, 4326).MakeValid() );"
 
 def get_geoserver_features(layer):
     params = {

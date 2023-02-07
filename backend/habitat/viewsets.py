@@ -726,11 +726,10 @@ SQL_GET_PARK_SQUIDLE_URL = "SELECT NRandImage_URL FROM VW_IMAGERY_SQUIDLE_AMP_PA
 
 SQL_GET_DATA_IN_REGION = """
 DECLARE @region GEOMETRY = GEOMETRY::STGeomFromText(%s, 4326);
-SELECT DISTINCT layer_id FROM layer_feature
-WHERE EXISTS (
-  SELECT 1 FROM layer_feature
+SELECT DISTINCT layer_id FROM (
+  SELECT * FROM [dbo].[layer_feature]
   WHERE @region.STIntersects(geom) = 1
-);
+) AS [T1];
 """
 
 def parse_bounds(bounds_str):
@@ -1354,6 +1353,8 @@ def data_in_region(request):
         return Response(status=status.HTTP_400_BAD_REQUEST)
     else:
         with connections['transects'].cursor() as cursor:
+            logging.info(SQL_GET_DATA_IN_REGION)
+            logging.info(select.wkt)
             cursor.execute(SQL_GET_DATA_IN_REGION, [select.wkt])
             layer_ids = [row[0] for row in cursor.fetchall()]
         return Response(layer_ids)
