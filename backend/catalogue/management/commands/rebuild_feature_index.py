@@ -1,11 +1,11 @@
 from django.core.management.base import BaseCommand
+from django.conf import settings
 import requests
 import re
 import logging
 from shapely.geometry import shape
 from collections import namedtuple
 import pyodbc
-from django.conf import settings
 
 from catalogue.models import Layer
 
@@ -151,7 +151,7 @@ def add_features(layer, conn):
         # add the new LayerFeatures
         try:
             with conn.cursor() as cursor:
-                logging.info(f"Adding to spatial index...")
+                logging.info(f"Adding {len(layer_features)} features to spatial index...")
                 cursor.fast_executemany = True
                 cursor.setinputsizes([None, (pyodbc.SQL_WVARCHAR, 0, 0)])
                 cursor.executemany(SQL_INSERT_LAYER_FEATURE, layer_features)
