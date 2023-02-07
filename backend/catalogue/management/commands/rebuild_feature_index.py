@@ -129,18 +129,6 @@ def get_geometries(layer):
     return None
 
 
-def get_layer_feature(layer, feature):
-    if not feature['geometry']:
-        return None
-    return LayerFeature(
-        layer.id,
-        shape({
-            'coordinates': feature['geometry']['coordinates'],
-            'type':        feature['geometry']['type']
-        }).wkt
-    )
-
-
 def add_features(layer, successes, failures, to_csv=False):
     logging.info(f"{layer} ({layer.id})...")
     features = None
@@ -151,11 +139,17 @@ def add_features(layer, successes, failures, to_csv=False):
 
     if features is not None:
         # convert geojson features to LayerFeature tuples
-        layer_features = []
-        for feature in features:
-            layer_feature = get_layer_feature(layer, feature)
-            if layer_feature:
-                layer_features.append(layer_feature)
+        layer_features = [
+            LayerFeature(
+                layer.id,
+                shape({
+                    'coordinates': feature['geometry']['coordinates'],
+                    'type':        feature['geometry']['type']
+                }).wkt
+            )
+            for feature in features
+            if feature['geometry']
+        ]
         
         # add the new LayerFeatures
         try:
