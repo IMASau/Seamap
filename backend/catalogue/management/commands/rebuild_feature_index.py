@@ -2,8 +2,7 @@ from django.core.management.base import BaseCommand
 import requests
 import re
 import logging
-from shapely.geometry import shape, box
-import geopandas
+from shapely.geometry import shape
 from collections import namedtuple
 import pyodbc
 from django.conf import settings
