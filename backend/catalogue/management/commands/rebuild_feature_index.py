@@ -138,7 +138,7 @@ def get_geometries(layer):
     return None
 
 
-def add_features(layer, successes, failures, conn):
+def add_features(layer, conn):
     logging.info(f"Retrieving {layer} ({layer.id}) features...")
     geometries = get_geometries(layer)
 
@@ -159,19 +159,10 @@ def add_features(layer, successes, failures, conn):
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
             logging.info('FAILURE')
-            failures.append(layer)
-            with open('failures.txt', 'a') as failures:
-                failures.write(f',{layer.id}')
         else:
             logging.info('SUCCESS')
-            successes.append(layer)
-            with open('successes.txt', 'a') as successes:
-                successes.write(f',{layer.id}')
     else:
         logging.info('FAILURE')
-        failures.append(layer)
-        with open('failures.txt', 'a') as failures:
-            failures.write(f',{layer.id}')
 
 
 def geometry_distance(geometryA, geometryB):
@@ -218,9 +209,6 @@ def get_feature_groups(layer):
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        successes = []
-        failures = []
-
         conn = None
         try:
             conn = pyodbc.connect(
@@ -235,7 +223,7 @@ class Command(BaseCommand):
             with conn.cursor() as cursor:
                 cursor.execute(SQL_RESET_LAYER_FEATURES)
             for layer in Layer.objects.all():
-                add_features(layer, successes, failures, conn)
+                add_features(layer, conn)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
         finally:
@@ -243,7 +231,3 @@ class Command(BaseCommand):
                 with conn.cursor() as cursor:
                     cursor.execute(SQL_REENABLE_SPATIAL_INDEX)
                 conn.close()
-            successes = [layer.id for layer in successes]
-            logging.info("total successes: %s: %s", len(successes), successes)
-            failures = [layer.id for layer in failures]
-            logging.info("total failures: %s: %s", len(failures), failures)
