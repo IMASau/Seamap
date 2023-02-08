@@ -127,6 +127,7 @@ def get_mapserver_features(layer):
 
 def get_geometries(layer):
     features = None
+    geometries = None
 
     if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url):
         features = get_mapserver_features(layer)
@@ -134,12 +135,13 @@ def get_geometries(layer):
         features = get_geoserver_features(layer)
 
     if features:
-        return [
+        geometries = [
             shape(feature['geometry'])
             for feature in features
             if feature['geometry'] is not None
         ]
-    return None
+    del features
+    return geometries
 
 
 def add_features(layer, conn):
@@ -167,6 +169,7 @@ def add_features(layer, conn):
             logging.info('SUCCESS')
     else:
         logging.info('FAILURE')
+    del geometries
 
 
 class Command(BaseCommand):
