@@ -63,7 +63,7 @@ def mapserver_layer_query_url(layer):
     map_server_url = f'{match.group(1)}/rest/services/{match.group(2)}/MapServer'
 
     try:
-        r = requests.get(url=map_server_url, params={'f': 'json'})
+        r = requests.get(url=f"{map_server_url}/layers", params={'dynamicLayers': '1=1', 'f': 'json'})
     except Exception as e:
         logging.error('Error at %s', 'division', exc_info=e)
     else:
