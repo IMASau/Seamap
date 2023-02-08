@@ -125,7 +125,10 @@
     padding-left: 10px;
     padding-right: 4px;
     &.active-layer { background-color: $seamap-light-blue; }
-    >* { flex: 1; }
+    >* {
+        flex: 1;
+        min-width: 0;
+    }
     .layer-header {
         height: 18px;
         .layer-header-text { margin-top: 4px; }

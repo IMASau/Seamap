@@ -138,7 +138,7 @@
      (case status
        
        :data-in-region/loaded
-       [:div
+       [:<>
         (for [{:keys [id] :as layer} layers]
           ^{:key (str id)}
           [data-in-region-layer layer layer-props])]

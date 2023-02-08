@@ -1353,8 +1353,6 @@ def data_in_region(request):
         return Response(status=status.HTTP_400_BAD_REQUEST)
     else:
         with connections['transects'].cursor() as cursor:
-            logging.info(SQL_GET_DATA_IN_REGION)
-            logging.info(select.wkt)
             cursor.execute(SQL_GET_DATA_IN_REGION, [select.wkt])
             layer_ids = [row[0] for row in cursor.fetchall()]
         return Response(layer_ids)
