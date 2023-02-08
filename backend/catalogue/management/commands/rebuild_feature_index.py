@@ -16,6 +16,11 @@ ALTER INDEX layer_geom ON layer_feature DISABLE;
 TRUNCATE TABLE layer_feature;
 """
 
+SQL_DELETE_LAYER_FEATURE = """
+ALTER INDEX layer_geom ON layer_feature DISABLE;
+DELETE FROM layer_feature WHERE layer_id = ?;
+"""
+
 SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature ( layer_id, geom ) VALUES ( ?, ? );"
 
 SQL_REENABLE_SPATIAL_INDEX = """
@@ -165,7 +170,15 @@ def add_features(layer, conn):
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--layer_id',
+            help='Specify a single layer ID you\'d like to add to the feature index (for testing only)'
+        )
+
     def handle(self, *args, **options):
+        layer_id = int(options['layer_id']) if options['layer_id'] != None else None
+
         conn = None
         try:
             conn = pyodbc.connect(
@@ -177,10 +190,15 @@ class Command(BaseCommand):
                 "Trusted_Connection=no;"
             )
 
-            with conn.cursor() as cursor:
-                cursor.execute(SQL_RESET_LAYER_FEATURES)
-            for layer in Layer.objects.all():
-                add_features(layer, conn)
+            if layer_id:
+                with conn.cursor() as cursor:
+                    cursor.execute(SQL_DELETE_LAYER_FEATURE, [layer_id])
+                add_features(Layer.objects.get(id=layer_id), conn)
+            else:
+                with conn.cursor() as cursor:
+                    cursor.execute(SQL_RESET_LAYER_FEATURES)
+                for layer in Layer.objects.all():
+                    add_features(layer, conn)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
         finally:
