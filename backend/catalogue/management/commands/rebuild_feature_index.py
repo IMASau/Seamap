@@ -45,8 +45,10 @@ def get_geoserver_features(layer):
     else:
         try:
             data = r.json()
+            del r
         except Exception as e:
             logging.error('Error at %s\nResponse text:\n%s', 'division', r.text, exc_info=e)
+            del r
         else:
             try:
                 assert not data.get('error')
@@ -69,8 +71,10 @@ def mapserver_layer_query_url(layer):
     else:
         try:
             data = r.json()
+            del r
         except Exception as e:
             logging.error('Error at %s\nResponse text:\n%s', 'division', r.text, exc_info=e)
+            del r
         else:
             try:
                 server_layers = data['layers']
@@ -109,8 +113,10 @@ def get_mapserver_features(layer):
             else:
                 try:
                     data = r.json()
+                    del r
                 except Exception as e:
                     logging.error('Error at %s\nResponse text:\n%s', 'division', r.text, exc_info=e)
+                    del r
                     return None
                 else:
                     try:
@@ -161,7 +167,11 @@ def add_features(layer, conn):
                 logging.info(f"Adding {len(layer_features)} features to spatial index...")
                 cursor.fast_executemany = True
                 cursor.setinputsizes([None, (pyodbc.SQL_WVARCHAR, 0, 0)])
-                cursor.executemany(SQL_INSERT_LAYER_FEATURE, layer_features)
+                chunk_count = len(layer_features) // 100000 + (1 if len(layer_features) % 100000 else 0)
+                for i in range(0, len(layer_features), 100000):
+                    if chunk_count > 1:
+                        logging.info(f"Adding chunk {i}/{chunk_count}...")
+                    cursor.executemany(SQL_INSERT_LAYER_FEATURE, layer_features[i:i+100000])
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
             logging.info('FAILURE')
