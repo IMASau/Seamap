@@ -6,6 +6,7 @@ import logging
 from shapely.geometry import shape
 from collections import namedtuple
 import pyodbc
+import gc
 
 from catalogue.models import Layer
 
@@ -222,7 +223,7 @@ def get_geoserver_geojson(layer, server_url):
     return None
 
 
-def get_mapserver_geojson(layer, server_url, result_offset=0):
+def get_mapserver_geojson(server_url, result_offset=0):
     params = {
         'where':        '1=1',
         'f':            'geojson',
@@ -257,7 +258,7 @@ def get_features(layer, server_url, result_offset=0):
     features = None
 
     if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', server_url):
-        geojson, exceeded_transfer_limit = get_mapserver_geojson(layer, server_url, result_offset)
+        geojson, exceeded_transfer_limit = get_mapserver_geojson(server_url, result_offset)
     else:
         geojson = get_geoserver_geojson(layer, server_url)
     if geojson:
@@ -273,7 +274,7 @@ def get_features(layer, server_url, result_offset=0):
     return ( features, exceeded_transfer_limit )
 
 
-def process_layer(layer, conn):
+def process_layer(layer):
     server_url = layer.server_url
     if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', server_url):
         server_url = mapserver_layer_query_url(layer)
@@ -281,17 +282,36 @@ def process_layer(layer, conn):
     if server_url:
         result_offset = 0
         exceeded_transfer_limit = True
-        while exceeded_transfer_limit:
-            if result_offset > 0:
-                logging.info(f"Retrieving {layer} ({layer.id}) features at offset {result_offset}...")
-            else:
-                logging.info(f"Retrieving {layer} ({layer.id}) features...")
-            features, exceeded_transfer_limit = get_features(layer, server_url, result_offset)
-            if features:
-                result_offset += len(features)
+        conn = None
+        try:
+            conn = pyodbc.connect(
+                "Driver={" + settings.DATABASES['default']['OPTIONS']['driver'] + "};"
+                "Server=" + settings.DATABASES['default']['HOST'] + ";"
+                "Database=" + settings.DATABASES['default']['NAME'] + ";"
+                "UID=" + settings.DATABASES['default']['USER'] + ";"
+                "PWD=" + settings.DATABASES['default']['PASSWORD'] + ";"
+                "Trusted_Connection=no;"
+            )
+            while exceeded_transfer_limit:
                 if result_offset > 0:
+                    logging.info(f"Retrieving {layer} ({layer.id}) features at offset {result_offset}...")
+                else:
+                    logging.info(f"Retrieving {layer} ({layer.id}) features...")
+                features, exceeded_transfer_limit = get_features(layer, server_url, result_offset)
+                if features:
+                    result_offset += len(features)
                     logging.info(f"Adding {len(features)} features to spatial index...")
-                insert_features(features, conn)
+                    insert_features(features, conn)
+                    logging.info(f"SUCCESS")
+                else:
+                    logging.info(f"FAILURE")
+        except Exception as e:
+            logging.error('Error at %s', 'division', exc_info=e)
+        finally:
+            if conn is not None:
+                conn.close()
+                conn = None
+                gc.collect()
 
 
 class Command(BaseCommand):
@@ -314,16 +334,33 @@ class Command(BaseCommand):
                 "PWD=" + settings.DATABASES['default']['PASSWORD'] + ";"
                 "Trusted_Connection=no;"
             )
-
-            if layer_id:
-                with conn.cursor() as cursor:
+            with conn.cursor() as cursor:
+                if layer_id:
                     cursor.execute(SQL_DELETE_LAYER_FEATURE, [layer_id])
-                process_layer(Layer.objects.get(id=layer_id), conn)
-            else:
-                with conn.cursor() as cursor:
+                else:
                     cursor.execute(SQL_RESET_LAYER_FEATURES)
-                for layer in Layer.objects.all():
-                    process_layer(layer, conn)
+        except Exception as e:
+            logging.error('Error at %s', 'division', exc_info=e)
+        finally:
+            if conn is not None:
+                conn.close()
+                conn = None
+        
+        try:
+            conn = pyodbc.connect(
+                "Driver={" + settings.DATABASES['default']['OPTIONS']['driver'] + "};"
+                "Server=" + settings.DATABASES['default']['HOST'] + ";"
+                "Database=" + settings.DATABASES['default']['NAME'] + ";"
+                "UID=" + settings.DATABASES['default']['USER'] + ";"
+                "PWD=" + settings.DATABASES['default']['PASSWORD'] + ";"
+                "Trusted_Connection=no;"
+            )
+            with conn.cursor() as cursor:
+                if layer_id:
+                    process_layer(Layer.objects.get(id=layer_id))
+                else:
+                    for layer in Layer.objects.all():
+                        process_layer(layer)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
         finally:
