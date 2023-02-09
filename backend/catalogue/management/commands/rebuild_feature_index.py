@@ -12,25 +12,49 @@ from catalogue.models import Layer
 
 LayerFeature = namedtuple('LayerFeature', 'layer_id geom')
 
+# Clears table, and prepares it for insertion of features by disabling spatial
+# index.
 SQL_RESET_LAYER_FEATURES = """
 ALTER INDEX layer_geom ON layer_feature DISABLE;
 TRUNCATE TABLE layer_feature;
 """
 
+# Removes table rows of a specific layer (for debugging single layer insertion)
 SQL_DELETE_LAYER_FEATURE = """
 ALTER INDEX layer_geom ON layer_feature DISABLE;
 DELETE FROM layer_feature WHERE layer_id = ?;
 """
 
+# Inserts a layer feature row; geom is added in binary MS-SSCLRT format
 SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature ( layer_id, geom ) VALUES ( ?, ? );"
 
+# Ends insertion of features by updating the geoms for each row, since they are
+# inserted without a SRID due to fast_executemany limitations
+# (https://github.com/mkleehammer/pyodbc/issues/490#issuecomment-445918375).
+# Reenables spatial index.
 SQL_REENABLE_SPATIAL_INDEX = """
 UPDATE layer_feature SET geom.STSrid = 4326;
 UPDATE layer_feature SET geom = geom.MakeValid();
 ALTER INDEX layer_geom ON layer_feature REBUILD;
 """
 
+
+# (deprecated)
 def get_geoserver_features(layer):
+    """
+    (deprecated) For a given layer, request and return all the geojson features
+    present. This is to be used for layers with geoserver server URLs.
+
+    Parameters
+    ----------
+    layer : Layer
+        layer to get-request geojson for
+    
+    Returns
+    -------
+    list
+        list of geojson features
+    """
     params = {
         'request':      'GetFeature',
         'service':      'WFS',
@@ -62,6 +86,20 @@ def get_geoserver_features(layer):
 
 
 def mapserver_layer_query_url(layer):
+    """
+    For a given mapserver layer, find out from its server URL what the URL is that
+    you can query feature info from.
+
+    Parameters
+    ----------
+    layer : Layer
+        layer to find mapserver query URL for.
+    
+    Returns
+    -------
+    string
+        mapserver layer feature query URL
+    """
     match = re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url)
     map_server_url = f'{match.group(1)}/rest/services/{match.group(2)}/MapServer'
 
@@ -92,7 +130,22 @@ def mapserver_layer_query_url(layer):
     return None
 
 
+# (deprecated)
 def get_mapserver_features(layer):
+    """
+    (deprecated) For a given layer, request and return all the geojson features
+    present. This is to be used for layers with mapserver server URLs.
+
+    Parameters
+    ----------
+    layer : Layer
+        layer to get-request geojson for
+    
+    Returns
+    -------
+    list
+        list of geojson features
+    """
     params = {
         'where': '1=1',
         'f':     'geojson'
@@ -326,6 +379,8 @@ class Command(BaseCommand):
 
         conn = None
         try:
+            # we use pyodbc connection rather than django db connection because of pyodbc's
+            # cursors' ability to perform bulk insertions with fast_executemany.
             conn = pyodbc.connect(
                 "Driver={" + settings.DATABASES['default']['OPTIONS']['driver'] + "};"
                 "Server=" + settings.DATABASES['default']['HOST'] + ";"
