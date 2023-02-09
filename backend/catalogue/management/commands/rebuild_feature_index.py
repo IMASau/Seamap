@@ -171,7 +171,6 @@ def add_features(layer, conn):
                     if len(layer_features) > 100000:
                         logging.info(f"Adding {i}/{len(layer_features)}...")
                     cursor.executemany(SQL_INSERT_LAYER_FEATURE, layer_features[i:i+100000])
-                cursor.close()
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
             logging.info('FAILURE')
@@ -206,12 +205,10 @@ class Command(BaseCommand):
             if layer_id:
                 with conn.cursor() as cursor:
                     cursor.execute(SQL_DELETE_LAYER_FEATURE, [layer_id])
-                    cursor.close()
                 add_features(Layer.objects.get(id=layer_id), conn)
             else:
                 with conn.cursor() as cursor:
                     cursor.execute(SQL_RESET_LAYER_FEATURES)
-                    cursor.close()
                 for layer in Layer.objects.all():
                     add_features(layer, conn)
         except Exception as e:
