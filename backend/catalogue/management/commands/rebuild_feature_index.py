@@ -181,6 +181,119 @@ def add_features(layer, conn):
     del geometries
 
 
+def insert_features(features, conn):
+    try:
+        with conn.cursor() as cursor:
+            cursor.fast_executemany = True
+            cursor.setinputsizes([None, (pyodbc.SQL_WVARCHAR, 0, 0)])
+            cursor.executemany(SQL_INSERT_LAYER_FEATURE, features)
+    except Exception as e:
+        logging.error('Error at %s', 'division', exc_info=e)
+
+
+def get_geoserver_geojson(layer, server_url):
+    params = {
+        'request':      'GetFeature',
+        'service':      'WFS',
+        'version':      '1.0.0',
+        'typeNames':    layer.layer_name,
+        'outputFormat': 'application/json',
+    }
+
+    try:
+        r = requests.get(url=server_url, params=params)
+    except Exception as e:
+        logging.error('Error at %s', 'division', exc_info=e)
+    else:
+        try:
+            data = r.json()
+            del r
+        except Exception as e:
+            logging.error('Error at %s\nResponse text:\n%s', 'division', r.text, exc_info=e)
+            del r
+        else:
+            try:
+                assert not data.get('error')
+                assert data.get('features')
+            except Exception as e:
+                logging.error('Error at %s\nResponse:\n%s', 'division', data, exc_info=e)
+            else:
+                return data
+    return None
+
+
+def get_mapserver_geojson(layer, server_url, result_offset=0):
+    params = {
+        'where':        '1=1',
+        'f':            'geojson',
+        'resultOffset': result_offset
+    }
+
+    try:
+        r = requests.get(url=server_url, params=params)
+    except Exception as e:
+        logging.error('Error at %s', 'division', exc_info=e)
+    else:
+        try:
+            data = r.json()
+            del r
+        except Exception as e:
+            logging.error('Error at %s\nResponse text:\n%s', 'division', r.text, exc_info=e)
+            del r
+        else:
+            try:
+                assert not data.get('error')
+                assert data.get('features')
+            except Exception as e:
+                logging.error('Error at %s\nResponse:\n%s', 'division', data, exc_info=e)
+            else:
+                return ( data, (data.get('exceededTransferLimit') or False) )
+    return None
+
+
+def get_features(layer, server_url, result_offset=0):
+    geojson = None
+    exceeded_transfer_limit = False
+    features = None
+
+    if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', server_url):
+        geojson, exceeded_transfer_limit = get_mapserver_geojson(layer, server_url, result_offset)
+    else:
+        geojson = get_geoserver_geojson(layer, server_url)
+    if geojson:
+        features = [
+            LayerFeature(
+                layer.id,
+                shape(feature['geometry']).wkt
+            )
+            for feature in geojson['features']
+            if feature['geometry']
+        ]
+    del geojson
+    return ( features, exceeded_transfer_limit )
+
+
+def process_layer(layer, conn):
+    server_url = layer.server_url
+    if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', server_url):
+        server_url = mapserver_layer_query_url(layer)
+
+    if server_url:
+        result_offset = 0
+        exceeded_transfer_limit = True
+        while exceeded_transfer_limit:
+            if result_offset > 0:
+                logging.info(f"Retrieving {layer} ({layer.id}) features at offset {result_offset}...")
+            else:
+                logging.info(f"Retrieving {layer} ({layer.id}) features...")
+            features, exceeded_transfer_limit = get_features(layer, server_url, result_offset)
+            if features:
+                result_offset += len(features)
+                if result_offset > 0:
+                    logging.info(f"Adding {len(features)} features to spatial index...")
+                insert_features(features, conn)
+
+
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
@@ -205,12 +318,12 @@ class Command(BaseCommand):
             if layer_id:
                 with conn.cursor() as cursor:
                     cursor.execute(SQL_DELETE_LAYER_FEATURE, [layer_id])
-                add_features(Layer.objects.get(id=layer_id), conn)
+                process_layer(Layer.objects.get(id=layer_id), conn)
             else:
                 with conn.cursor() as cursor:
                     cursor.execute(SQL_RESET_LAYER_FEATURES)
                 for layer in Layer.objects.all():
-                    add_features(layer, conn)
+                    process_layer(layer, conn)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
         finally:
