@@ -247,8 +247,8 @@ def get_mapserver_geojson(layer, server_url, result_offset=0):
             except Exception as e:
                 logging.error('Error at %s\nResponse:\n%s', 'division', data, exc_info=e)
             else:
-                return ( data, (data.get('exceededTransferLimit') or False) )
-    return None
+                return ( data, data.get('exceededTransferLimit', False) )
+    return ( None, False )
 
 
 def get_features(layer, server_url, result_offset=0):
