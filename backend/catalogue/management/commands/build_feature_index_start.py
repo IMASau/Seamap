@@ -19,4 +19,4 @@ class Command(BaseCommand):
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
         else:
-            print(' '.join(str(layer.id) for layer in Layer.objects.all()[0:4]))
+            print(' '.join(str(layer.id) for layer in Layer.objects.all()))
