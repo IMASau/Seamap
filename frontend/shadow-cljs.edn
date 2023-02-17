@@ -1,4 +1,4 @@
-{:source-paths ["src/cljs"]
+{:source-paths ["src/cljs" "src/gen" "src/thirdparty"]
 
  :dependencies [[binaryage/devtools              "1.0.3"]
                 [cljs-ajax/cljs-ajax             "0.5.5"]
@@ -13,34 +13,36 @@
                 [org.clojure/data.zip            "1.0.0"]
                 [philoskim/debux                 "0.3.1"]
                 [re-frame/re-frame               "1.2.0"]
-                [reagent/reagent                 "1.1.0"]]
+                [reagent/reagent                 "1.1.1"]]
 
  :nrepl    {:port 8777}
  :dev-http {3451 "resources/public"}
 
  :builds {:dev {:target           :browser
-                :output-dir       "resources/public/js/compiled/"
+                :output-dir       "resources/public/js/"
                 :closure-defines  {goog.DEBUG                            true
                                    "re_frame.trace.trace_enabled_QMARK_" true}
-                :modules          {:app {:entries [imas-seamap.core]}}
+                :modules          {:app {:entries [imas-seamap.core
+                                                   imas-seamap.tas-marine-atlas.core]}}
                 :compiler-options {:pretty-print true}
                 :preloads         [devtools.preload
                                    day8.re-frame.trace.preload
                                    imas-seamap.specs.preload]}
 
-          :min {:target           :browser
-                :closure-defines  {goog.DEBUG                  false
-                                   imas-seamap.db/api-url-base "https://data.imas.utas.edu.au/seamap/api/"
-                                   imas-seamap.db/img-url-base "/app/img/"}
-                :output-dir       "resources/public/js/compiled/"
-                :modules          {:app {:entries [imas-seamap.core]}}
-                :compiler-options {:source-map true}}
+          :min {:target            :browser
+                :closure-defines   {goog.DEBUG false}
+                :output-dir        "resources/public/js/compiled/app"
+                :module-hash-names true
+                :build-options     {:manifest-name "manifest.json"}
+                :modules           {:app {:entries [imas-seamap.core
+                                                    imas-seamap.tas-marine-atlas.core]}}}
 
-          :mindev {:target           :browser
-                   :output-dir       "resources/public/js/compiled/"
-                   :closure-defines  {goog.DEBUG                  false
-                                      imas-seamap.db/api-url-base "https://data-dev.imas.utas.edu.au/seamap/api/"
-                                      imas-seamap.db/img-url-base "/app/img/"}
-                   :modules          {:app {:entries [imas-seamap.core]}}
-                   :compiler-options {:pseudo-names true
-                                      :source-map   true}}}}
+          :mindev {:target            :browser
+                   :output-dir        "resources/public/js/compiled/"
+                   :closure-defines   {goog.DEBUG false}
+                   :module-hash-names true
+                   :build-options     {:manifest-name "manifest.json"}
+                   :modules           {:app {:entries [imas-seamap.core
+                                                       imas-seamap.tas-marine-atlas.core]}}
+                   :compiler-options  {:pseudo-names true
+                                       :source-map   true}}}}

@@ -3,10 +3,9 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
-            [imas-seamap.map.utils :refer [bbox-intersects? all-priority-layers region-stats-habitat-layer]]
-            [reagent.core :as reagent]
-            [re-frame.core :as re-frame]
-            [debux.cs.core :refer [dbg] :include-macros true]))
+            [imas-seamap.utils :refer [map-on-key]]
+            [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers main-national-layer displayed-national-layer]]
+            #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
 
@@ -24,31 +23,83 @@
   "Given a string of search words, attempt to match them *all* against
   a layer (designed so it can be used to filter a list of layers, in
   conjunction with partial)."
-  [filter-text {:keys [name layer_name description organisation data_classification] :as layer}]
-  (let [layer-text (string/join " " [name layer_name description organisation data_classification])
-        search-re  (-> filter-text string/trim (string/split #"\s+") make-re)]
-    (re-find search-re layer-text)))
+  [filter-text categories layer]
+  (if-let [search-re (try
+                       (-> filter-text string/trim (string/split #"\s+") make-re)
+                       (catch :default e nil))]
+    (re-find search-re (layer-search-keywords categories layer))
+    false))
 
-(defn map-layers [{:keys [map layer-state filters] :as db} _]
-  (let [{:keys [layers active-layers bounds logic]} (get-in db [:map])
-        ;; Ignore filtering etc for boundary layers:
-        boundaries                                  (->> layers
-                                                         (filter #(= :boundaries (:category %)))
-                                                         (sort-by :name))
-        filter-text                                 (get-in db [:filters :layers])
-        layers                                      (if (= (:type logic) :map.layer-logic/automatic)
-                                                      (all-priority-layers db)
-                                                      layers)
-        visible-layers                              (filter #(bbox-intersects? bounds (:bounding_box %)) layers)
-        {:keys [third-party]}                       (group-by :category visible-layers)
-        filtered-layers                             (filter (partial match-layer filter-text) visible-layers)]
-    {:groups          (assoc (group-by :category filtered-layers)
-                             :boundaries boundaries)
+(defn- make-error-fn
+  "Given maps of layer->error-count and layer->total-tile-count, returns
+  a function that takes a layer and returns a boolean indicating if
+  the layer is problematic or not (ie, rather than just saying we
+  should notify the user about any error, we want to notify above a
+  certain threshold)"
+  [error-counts load-counts]
+  (fn [layer]
+    (let [error-count (get error-counts layer 0)
+          total-count (get load-counts layer 0)]
+      (and (pos? total-count)
+           (> (/ error-count total-count)
+              0.4)))))       ; Might be nice to make this configurable eventually
+
+(defn map-layers [{:keys [layer-state filters sorting]
+                   {:keys [layers active-layers bounds categories] :as db-map} :map
+                   :as _db} _]
+  (let [categories      (map-on-key categories :name)
+        filter-text     (:layers filters)
+        layers          (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
+        viewport-layers (viewport-layers bounds layers)
+        filtered-layers (filter (partial match-layer filter-text categories) layers)
+        sorted-layers   (sort-layers layers sorting)]
+    {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
-     :error-layers    (->> layer-state :seen-errors set)
+     :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
      :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers
-     :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))}))
+     :visible-layers  (visible-layers db-map)
+     :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
+     :filtered-layers filtered-layers
+     :sorted-layers   sorted-layers
+     :viewport-layers viewport-layers
+     :main-national-layer (main-national-layer db-map)}))
+
+(defn map-base-layers [{:keys [map]} _]
+  (select-keys map [:grouped-base-layers :active-base-layer]))
+
+(defn display-categories
+  "Filter categories to only those that have a display name and at least one layer."
+  [{:keys [map]} _]
+  (let [{:keys [layers categories]} map
+        grouped-layers              (group-by :category layers)]
+    (filter (fn [{:keys [display_name name]}] (and display_name (seq (name grouped-layers)))) categories)))
+
+(defn categories-map [db _]
+  (let [categories (get-in db [:map :categories])]
+    (map-on-key categories :name)))
+
+(defn national-layer [db _]
+  {:years           (mapv :year (get-in db [:map :national-layer-timeline]))
+   :year            (get-in db [:map :national-layer-timeline-selected :year])
+   :alternate-views (get-in db [:map :keyed-layers :national-layer-alternate-view])
+   :alternate-view  (get-in db [:map :national-layer-alternate-view])
+   :displayed-layer (displayed-national-layer (:map db))})
+
+(defn national-layer-state
+  "National layer state is based on a mix of fields of the main national layer
+   state and the currently displayed national layer state."
+  [{:keys [layer-state] {:keys [active-layers hidden-layers] :as db-map} :map :as _db} _]
+  (let [{:keys [loading-state error-count tile-count legend-shown]} layer-state
+        displayed-national-layer (displayed-national-layer db-map)
+        main-national-layer      (main-national-layer db-map)
+        active?                  (some #{main-national-layer} active-layers)]
+    {:active?   active?
+     :visible?  (and active? (not (hidden-layers main-national-layer)))
+     :loading?  (= (get loading-state displayed-national-layer) :map.layer/loading)
+     :errors?   ((make-error-fn error-count tile-count) displayed-national-layer)
+     :expanded? (legend-shown main-national-layer)
+     :opacity   (get-in layer-state [:opacity main-national-layer] 100)}))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
@@ -58,14 +109,6 @@
   ;; The selected habitat layer for region-stats, providing it is
   ;; active; default selection if there's a single habitat layer:
   {:habitat-layer (region-stats-habitat-layer db)})
-
-(defn map-layer-priorities [db _]
-  (get-in db [:map :priorities]))
-
-(defn map-layer-logic [db _]
-  (get-in db [:map :logic]
-          {:type    :map.layer-logic/automatic
-           :trigger :map.logic.trigger/automatic}))
 
 (defn map-layers-filter [db _]
   (get-in db [:filters :layers]))
@@ -80,7 +123,8 @@
    {}
    (get-in db [:map :layers])))
 
-(defn map-layer-extra-params-fn
+;; TODO: Remove, unused - related to getting boundary and habitat region stats
+#_(defn map-layer-extra-params-fn
   "Creates a function that returns a map of additional WMS parameters
   for a given layer argument."
   [db _]
@@ -105,7 +149,7 @@
                                                  lng "," lat
                                                  "</gml:coordinates></gml:Point></Contains></Filter>")}
           (= layer habitat-layer)  nil
-          :default                 {:opacity 0.1}))
+          :else                    {:opacity 0.1}))
 
       ;; Displaying info-card for a layer?  Fade-out the others (note
       ;; need to ensure we don't touch the FILTER if it's a boundary
@@ -115,11 +159,11 @@
         (cond
           (= layer info-layer)              nil
           (= :boundaries (:category layer)) {:FILTER "" :opacity 0.1}
-          :default                          {:opacity 0.1}))
+          :else                             {:opacity 0.1}))
 
       ;; Everything else; reset the CQL filter for boundaries,
       ;; otherwise leave the default opacity (and everything else)
-      :default
+      :else
       (fn [layer]
         (when (= :boundaries (:category layer))
           {:FILTER ""})))))
@@ -131,3 +175,15 @@
   (if org-name
     (some #(and (= org-name (:name %)) %) organisations)
     organisations))
+
+(defn viewport-only? [db _]
+  (get-in db [:map :viewport-only?]))
+
+(defn layer-legend [db [_ {:keys [id] :as _layer}]]
+  (let [legend-info (get-in db [:map :legends id])
+        status      (cond
+                      (keyword? legend-info) legend-info
+                      legend-info            :map.legend/loaded
+                      :else                  :map.legend/none)]
+    {:status    status
+     :info      (when (= status :map.legend/loaded) legend-info)}))

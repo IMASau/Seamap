@@ -1,0 +1,110 @@
+$floating-pill-height: 32px;
+
+.floating-pills {
+	position: absolute;
+	z-index: 700;
+	top: $floating-menu-padding;
+	left: calc($floating-menu-padding * 2 + $leaflet-control-width + 2 * 2px);
+	right: calc($floating-menu-padding * 2 + 44px);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	transition: left 150ms, right 150ms;
+	pointer-events: none;
+	>* { pointer-events: auto; }
+}
+
+.floating-pill {
+	background-color: white;
+	padding: 0 14px;
+	height: $floating-pill-height;
+	border: 2px solid rgba(0, 0, 0, 0.2);
+	background-clip: padding-box;
+	color: black;
+	font-size: 13px;
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	white-space: nowrap;
+	width: 280px;
+
+	>.title {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		// text-overflow: ellipsis;
+	}
+	>:not(.title) {
+		flex-shrink: 0;
+	}
+}
+
+.catalogue-open .floating-pills {
+	left: calc($drawer-width + $floating-menu-padding * 2 + $leaflet-control-width + 2 * 2px);
+}
+
+.floating-pill-control-menu-button,
+.floating-pill-button {
+	cursor: pointer;
+	user-select: none;
+}
+
+.floating-pill-control-menu-button:hover,
+.floating-pill-button:hover {
+	background-color: #f4f4f4;
+}
+
+.floating-pill-control-menu-button.reset-click {
+	color: #00419d;
+	background-color: #eff4ff;
+}
+
+.floating-pill-control-menu-button.reset-click:hover {
+	background-color: #e9eef8;
+}
+
+.floating-pill-control-menu-button.reset-click > button:last-child {
+	margin-right: -5px;
+}
+
+.floating-pill-control-menu-button.reset-click > button:last-child .bp3-icon {
+	color: #00419d;
+}
+
+.floating-pill-control-menu-content {
+	position: absolute;
+	margin-top: 6px;
+	background-color: white;
+	padding: 12px;
+	border: 2px solid rgba(0, 0, 0, 0.2);
+	background-clip: padding-box;
+	color: black;
+	width: 280px;
+}
+
+.floating-pill-control-menu:not(.expanded) .floating-pill-control-menu-content {
+	display: none;
+}
+
+.floating-pill-control-menu-content-header {
+	display: flex;
+	align-items: center;
+	height: 28px;
+	gap: 7px;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+	padding: 0 3px 3px 3px;
+	margin-bottom: 12px;
+}
+
+.floating-pill-control-menu-content-header> :nth-child(3) {
+	aspect-ratio: 1;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.floating-pill-control-menu-content-header> :nth-child(2) {
+	flex: 1;
+	font-size: 13px;
+}

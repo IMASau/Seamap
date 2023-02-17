@@ -1,0 +1,72 @@
+$seamap-color-1: rgb(14, 14, 25);
+$seamap-color-2: rgb(28, 50, 98);
+$seamap-color-3: rgb(45, 101, 154);
+$seamap-color-4: rgb(84, 142, 196);
+$seamap-color-5: rgb(126, 186, 231);
+$seamap-color-6: rgb(200, 220, 240);
+$seamap-color-7: white;
+
+$seamap-color-2-darker: rgb(25, 44, 86);
+$seamap-color-3-darker: rgb(39, 91, 141);
+
+$pt-grid-size: 8px !default;
+$blue2: $seamap-color-3-darker;
+$blue3: $seamap-color-3;
+
+// $pt-font-size: 14px;
+// $pt-font-size-small: 12px;
+// $pt-font-size-large: 16px;
+// $pt-line-height: 4;
+
+
+@import "~@blueprintjs/core/lib/scss/variables";
+@import "~@blueprintjs/core/src/common/colors";
+@import "~@blueprintjs/core/src/reset";
+@import "~@blueprintjs/icons/src/icons";
+@import "~@blueprintjs/core/src/components/index";
+
+// Patch solution for missing checkbox image – likely other Blueprint images missing too
+.bp3-control.bp3-checkbox input:checked~.bp3-control-indicator::before {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill-rule='evenodd' clip-rule='evenodd' d='M12 5c-.28 0-.53.11-.71.29L7 9.59l-2.29-2.3a1.003 1.003 0 00-1.42 1.42l3 3c.18.18.43.29.71.29s.53-.11.71-.29l5-5A1.003 1.003 0 0012 5z' fill='white'/%3e%3c/svg%3e");
+}
+
+.#{$ns}-text-overflow-ellipsis {
+    @include overflow-ellipsis();
+}
+
+.#{$ns}-non-ideal-state {
+    h4.bp3-heading, .bp3-running-text h4 {
+        font-size: 18px;
+        line-height: 21px;
+    }
+    
+    .bp3-heading {
+        font-weight: 600;
+        margin: 0 0 8px;
+        padding: 0;
+    }
+}
+
+.#{$ns}-running-text kbd, .#{$ns}-key {
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 3px;
+    -webkit-box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 0 0 rgba(16, 22, 26, 0), 0 1px 1px rgba(16, 22, 26, 0.2);
+    box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 0 0 rgba(16, 22, 26, 0), 0 1px 1px rgba(16, 22, 26, 0.2);
+    color: #5c7080;
+    display: -webkit-inline-box;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+    font-family: inherit;
+    font-size: 12px;
+    height: 24px;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    line-height: 24px;
+    min-width: 24px;
+    padding: 3px 6px;
+    vertical-align: middle;
+}

@@ -1,0 +1,152 @@
+.right-drawer-open .leaflet-right {
+    right: $drawer-width;
+}
+
+.right-drawer-open .floating-pills {
+    right: calc($drawer-width + $floating-menu-padding * 2 + 44px);
+}
+
+.state-of-knowledge-drawer > .drawer-children {
+    display: flex;
+    flex-direction: column;
+}
+
+.state-of-knowledge-drawer .drawer-group {
+    flex: 1 1 0;
+    min-height: 0;
+    border-bottom: 2px solid $seamap-color-4;
+}
+
+.state-of-knowledge-drawer .drawer-group {
+    transition: flex 500ms;
+}
+
+.state-of-knowledge-drawer .drawer-group.collapsed {
+    flex: 0 1 0;
+    min-height: 56px;
+}
+
+/* scrollable table body */
+.state-of-knowledge-drawer .drawer-group-content,
+.habitat-statistics  .drawer-group-content>*,
+.bathymetry-statistics  .drawer-group-content>* {
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+    >* { min-height: 0; }
+    >:last-child { flex: 1; }
+}
+
+.state-of-knowledge-drawer .bp3-tab-panel {
+    overflow-y: auto;
+    margin: 0 8px 20px 8px;
+    flex: 1;
+}
+
+.state-of-knowledge-drawer thead {
+    position: sticky;
+    top: 0;
+    background-color: $seamap-color-7;
+}
+/* scrollable table body */
+
+.habitat-statistics .bp3-tab-list .bp3-switch,
+.bathymetry-statistics .bp3-tab-list .bp3-switch,
+.habitat-observations .bp3-switch {
+    margin-left: auto;
+    height: 40px;
+    align-items: center;
+    display: flex;
+}
+
+.habitat-observations .bp3-switch {
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+
+.state-of-knowledge-drawer td {
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.state-of-knowledge-drawer th {
+    vertical-align: bottom;
+}
+
+.habitat-observations-groups {
+    overflow-y: auto;
+}
+
+.habitat-observations-group-heading {
+    display: flex;
+    align-items: center;
+    background-color: $seamap-color-6;
+    color: $seamap-color-2;
+    padding: 6px;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+    font-family: $headings-font-family;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.habitat-observations-group.disabled .habitat-observations-group-heading {
+    cursor: not-allowed;
+}
+
+.habitat-observations-group-heading>.bp3-icon {
+    aspect-ratio: 1;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.habitat-observations-group-stats {
+    margin: 0 12px 20px 12px;
+}
+
+.habitat-observations-group-stat {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    padding: 4px 14px;
+    span.bp3-popover-target { display: inline; }
+}
+
+.state-of-knowledge-pill-content {
+    width: 100%;
+}
+
+/* Fixes bug that was preventing the use of react select fields (and probably other things) while a drawer was open */
+.bp3-overlay-start-focus-trap.bp3-overlay-enter-done {
+    display: none;
+}
+
+.selected-boundaries {
+    background-color: $seamap-color-2;
+    color: $seamap-color-7;
+    padding: 12px;
+    font-weight: 600;
+    display: flex;
+    flex-direction: row;
+    >:nth-child(1) { flex: 1; }
+
+    h2 {
+        font-size: 20px;
+        font-family: $headings-font-family;
+    }
+
+    .breadcrumbs {
+        font-size: 12px;
+        a {
+            color: $seamap-color-7;
+            text-decoration: underline;
+        }
+    }
+
+    .region-report-button {
+        padding: 4px;
+        color: $seamap-color-7;
+    }
+}

@@ -1,0 +1,803 @@
+body {
+    margin: 0;
+    font-family: $body-font-family;
+    line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5 {
+    font-weight: inherit;
+}
+
+img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+:focus, :focus-visible { outline: none }
+
+// Icons support
+*::before {
+    font-family: $body-font-family;
+}
+
+a {
+	color: #106ba3;
+}
+
+a:hover {
+	text-transform: underline;
+}
+
+tbody tr:not(:last-child) td,
+thead tr th {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+table {
+    border-collapse: separate;
+    font-size: 11px;
+}
+
+td, th {
+    font-size: inherit;
+    padding: 4px 6px 4px 0;
+}
+
+th {
+    white-space: nowrap;
+}
+
+#app {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+/* Embed in wordpress: */
+body.page-template-default #app {
+    height: calc(100% - 90px);
+}
+body.page-template-default.admin-bar #app {
+    height: calc(100% - 90px - 32px);
+}
+
+.info-card {
+    width: 500px;
+
+    .bp3-dialog-body {
+        background: none;
+        color: inherit;
+    }
+}
+
+.welcome-splash {
+    .bp3-dialog-body {
+        font-size: 16px;
+        .overview { margin-right: 40px; }
+        .bp3-button { margin-left: auto; }
+    }
+
+    .bp3-dialog-footer {
+        p {
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        h3 {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+            &:not(:first-child) { margin-top: 14px; }
+        }
+
+        .citation-section {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            p { flex: 1; }
+
+            .citation-button {
+                margin: 0 10px;
+                text-align: center;
+                font-size: 9px;
+                font-weight: bold;
+                color: $seamap-color-2;
+                width: 40px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                cursor: pointer;
+                &:hover { text-decoration: underline; }
+                .custom-icon { background-color: $seamap-color-3; }
+            }
+        }
+    }
+}
+
+#main-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+}
+#sidebar {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 5px;
+    min-height: 0;
+}
+#settings {
+    padding: 5px;
+}
+#content-wrapper {
+    position: relative;
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Makes it ignore child width, in particular won't be stretched by svg */
+}
+#map {
+    flex: 1 1 100%;
+}
+.map-wrapper, #map {
+    height: 100%;
+    position: relative;
+    display: flex;
+}
+
+.loading {
+    // Disable relative positioning on map elements when printing, otherwise grey space is left around export image
+    #content-wrapper, .map-wrapper, #map {
+        position: unset !important;
+    }
+}
+
+footer {
+    flex: 0 0;
+    flex-basis: 10px;
+}
+
+.loading-splash {
+    position: absolute;
+    width: 100%;
+    height: 100vh;
+    z-index: 9000;
+    background: white;
+    opacity: 0.8;
+}
+.loading-splash.load-error {
+    opacity: 1;
+}
+
+.drag-handle {
+    display: flex;
+    justify-content: center;
+}
+.drag-handle:hover {
+    background-color: #F5F8FA;
+}
+
+#transect-btn-wrapper {
+    margin-bottom: 5px;
+}
+
+.logic-toggle {
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.catalogue-add {
+    margin-bottom: 5px;
+}
+
+.transect-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.help-button {
+    margin-top: auto;           /* stick to bottom */
+    text-align: center;
+}
+
+/* Helper overlay: */
+.helper-layer-wrapper {
+    position: absolute;
+    z-index: 9999998;
+    color: white;
+}
+
+.helper-layer-wrapper.helper-layer-left {
+    border-left: solid white 1px;
+    margin-left: -10px;
+}
+
+.helper-layer-wrapper.helper-layer-right {
+    border-right: solid white 1px;
+    padding-right: 10px;
+}
+
+.helper-layer-wrapper.helper-layer-bottom {
+    border-bottom: solid white 1px;
+    padding-bottom: 10px;
+}
+
+.helper-layer-wrapper.helper-layer-top {
+    border-top: solid white 1px;
+    padding-top: 10px;
+}
+
+.helper-layer-tooltip {
+    position: absolute;
+    max-width: 200px;
+}
+
+.helper-layer-tooltip.helper-layer-left {
+    margin-left: -135px;
+    padding-right: 10px;
+}
+
+.helper-layer-tooltip.helper-layer-right {
+    margin-right: -135px;
+    padding-left: 10px;
+}
+
+.helper-layer-tooltip.helper-layer-bottom {
+    margin-bottom: -50px;
+    padding-top: 10px;
+}
+
+.helper-layer-tooltip.helper-layer-top {
+    margin-top: -50px;
+    padding-bottom: 10px;
+}
+
+.helper-layer-tooltip.helper-layer-right:before, .helper-layer-tooltip.helper-layer-left:after, .helper-layer-tooltip.helper-layer-bottom:before, .helper-layer-tooltip.helper-layer-top:after {
+    content: ".";
+    display: inline-block;
+    background-color: white;
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+}
+
+.helper-layer-tooltip.helper-layer-right:before, .helper-layer-tooltip.helper-layer-left:after {
+    width: 100px;
+    top: 50%;
+}
+
+.helper-layer-tooltip.helper-layer-bottom:before, .helper-layer-tooltip.helper-layer-top:after {
+    width: 1px;
+    height: 50px;
+    left: 50%;
+}
+
+.helper-layer-tooltip.helper-layer-bottom:before {
+    top: -50px;
+}
+
+.helper-layer-tooltip.helper-layer-top:after {
+    bottom: -50px;
+}
+
+.helper-layer-tooltip.helper-layer-right:before {
+    left: -100px;
+}
+
+.helper-layer-tooltip.helper-layer-left:after {
+    right: -100px;
+}
+
+.helper-layer-top .helper-layer-tooltiptext,
+.helper-layer-bottom .helper-layer-tooltiptext {
+    text-align: center;
+}
+.helper-layer-left .helper-layer-tooltiptext {
+    text-align: right;
+}
+
+/* Plot animations: */
+
+.plot-container {
+    height: 200px;
+}
+.plot-height-enter {
+    height: 10px;
+}
+.plot-height-exit {
+    height: 10px;
+    transition: height 300ms ease-in;
+}
+.plot-height-enter-active {
+    height: 200px;
+    transition: height 300ms ease-in;
+}
+.plot-height-exit-active {
+    height: 10px;
+}
+
+.draw-transect::after {
+    margin-bottom: 5px;
+}
+
+@keyframes yellowfade {
+    from { background: #FFFF88;     }
+    to   { background: transparent; }
+}
+.external-trigger {
+    animation: yellowfade 1s;
+}
+
+/* SVG styling */
+rect#background {
+    fill: lightblue;
+}
+
+/* Map customisation */
+/* Don't display the edit toolbar: */
+.leaflet-draw.leaflet-control > .leaflet-draw-section:nth-child(2) { display: none !important; }
+
+.leaflet-grab {
+    cursor: default;
+}
+
+/* leaflet-sidebar overrides: */
+.sidebar-content {
+    background-color: white;
+}
+.sidebar-pane.active {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: hidden;
+}
+/* Remove tab padding */
+.sidebar-header {
+    margin: -10px -5px 0;
+    padding: 0 10px;
+}
+.sidebar-pane {
+    padding: 10px 5px 0 5px;
+}
+
+.metadata-record {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    .org-logo { height: 50px; }
+    .download-instructions { font-style: italic; }
+
+    .server-info {
+        display: grid;
+        grid-template-columns: 60px minmax(0, 1fr);
+        margin-left: 10px;
+        line-height: 1.5em;
+        .server-layer { grid-column-start: 2; }
+    }
+
+    .metadata-img {
+        float: left;
+        margin-right: 5px;
+    }
+
+    h3 {
+        font-weight: bold;
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+}
+
+.clearfix::after {
+    clear: both;
+    display: block;
+    content: "";
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.region-stats table {
+    padding-bottom: 15px
+}
+.region-stats .download {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+.region-stats td,
+.region-stats th {
+    text-align: left;
+}
+.region-stats td + td,
+.region-stats th + th {
+    text-align: right;
+}
+
+/* Overrides for the region-select tool */
+.leaflet-draw-toolbar .leaflet-draw-draw-rectangle,
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-rectangle {
+    background-image: none;
+}
+.leaflet-draw-toolbar .leaflet-draw-draw-rectangle::before,
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-rectangle::before {
+    content: "";
+    font-family: "Icons20";
+}
+
+/* sidebar tweaks */
+.sidebar.collapsed {
+    box-sizing: content-box;
+}
+@media (min-width: 768px) {
+    .sidebar-left.collapsed~.sidebar-map .leaflet-left {
+        left: 55px;
+    }
+}
+
+/* Leaflet layers control overrides: */
+input.leaflet-control-layers-selector[type="radio"] {
+    margin-top: 0;
+}
+.leaflet-control-layers-list {
+    padding: 0;
+}
+
+.leaflet-left {
+    transition: left 150ms;
+}
+
+.leaflet-right {
+    transition: right 150ms;
+}
+
+.catalogue-open .leaflet-left {
+    left: $drawer-width;
+}
+
+.form-group > :first-child {
+    font-weight: bold;
+    margin-left: 6px;
+}
+
+.form-group:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+.donut-chart {
+    width: 100%;
+}
+
+/* Drawer group component start */
+.drawer-group {
+    display: flex;
+    flex-direction: column;
+
+    .drawer-group-heading {
+        display: flex;
+        flex: 0 0;
+        align-items: center;
+        background-color: $seamap-color-5;
+        color: $seamap-color-2;
+        gap: 4px;
+        min-height: 54px;
+        padding-left: 12px;
+        font-family: $headings-font-family;
+    
+        >h1 {
+            flex: 1;
+            font-size: 20px;
+            color: inherit;
+    
+            &::before {
+                margin-right: 6px;
+            }
+        }
+    
+        >.bp3-icon {
+            aspect-ratio: 1;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+    
+    &.collapsible > .drawer-group-heading {
+        cursor: pointer;
+        user-select: none;
+    }
+}
+
+.drawer-group-content,
+.settings-overlay {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    transition: flex-grow 500ms;
+    gap: 8px;
+}
+
+.settings-overlay { margin: 12px; }
+
+.collapsed .drawer-group-content {
+    flex-grow: 0;
+    overflow: hidden;
+}
+/* Drawer group component end */
+
+.drawer-group-content .bp3-button,
+.settings-overlay .bp3-button {
+    justify-content: flex-start;
+    padding: 12px;
+}
+
+.drawer-group .bp3-button i {
+    margin-right: 7px;
+    width: 15px;
+    height: 15px;
+}
+
+.drawer-group .download {
+    font-weight: bold;
+    color: #0078A8;
+    text-decoration: none;
+}
+
+.drawer-group .download:hover {
+    color: #575757;
+    text-decoration: underline;
+}
+
+.drawer-group .bp3-spinner {
+    height: 100%;
+}
+
+.layer-preview {
+    position: absolute;
+    top: calc($floating-pill-height + 2 * $floating-menu-padding);
+    left: calc($drawer-width + 2 * $floating-menu-padding + 42px);
+    z-index: 2000;
+    background-color: white;
+    padding: 10px;
+    border: 2px solid rgba(0,0,0,0.2);
+    background-clip: padding-box;
+}
+
+.layer-preview > * {
+    width: 386px;
+    display: block;
+    border-radius: 0;
+}
+
+.drawer-group h2::before {
+    margin-right: 5px;
+}
+
+.leaflet-popup-content {
+    white-space: nowrap;
+}
+
+.leaflet-popup-content table {
+    white-space: normal;
+}
+
+.drawer-children {
+    overflow-y: auto;
+}
+
+.distance-tooltip {
+    z-index: 700;
+    font-weight: bold;
+    color: #44ff98;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 0;
+    box-shadow: 0 0 4px 2px rgb(0 0 0 / 40%);
+}
+
+.leaflet-popup.waiting .leaflet-popup-content-wrapper {
+    background: none;
+    box-shadow: none;
+}
+
+.leaflet-popup.waiting .leaflet-popup-tip-container {
+    display: none;
+}
+
+.leaflet-popup.waiting .leaflet-popup-close-button {
+    display: none;
+}
+
+.leaflet-control-block {
+    background-color: #fff;
+}
+
+.leaflet-control-block>* {
+    display: block;
+}
+
+.leaflet-control-block>*:not(:last-child) {
+    border-bottom: 1px solid #ccc;
+}
+
+.leaflet-control-easyPrint {
+    display: none;
+}
+
+.print-control {
+    .options {
+        display: none;
+        position: absolute;
+        top: -2px;
+        left: $leaflet-control-width;
+        flex-direction: row;
+        border: 2px solid rgba(0,0,0,0.2);
+        border-left: 0;
+
+        >*, >*:hover {
+            border: 0;
+            border-left: 1px solid #ccc;
+        }
+    }
+
+    &:hover .options {
+        display: inline-flex;
+    }
+}
+
+.leaflet-control-container .leaflet-top.leaflet-left {
+    >:first-child {
+        margin-top: calc(
+            ($floating-menu-padding + $leaflet-control-width + 2 * 2px) * 2
+            + $floating-menu-padding
+        );
+    }
+
+    >:nth-child(3) {
+        margin-top: calc(
+            (
+                ($leaflet-control-width + 1px) * 4 + $leaflet-control-width
+                + 2 * 2px
+            ) + (
+                $leaflet-control-width + 1px + $leaflet-control-width
+                + 2 * 2px
+            )
+            + $floating-menu-padding * 3
+        );
+    }
+}
+
+.custom-leaflet-controls {
+    >:nth-child(3) {
+        margin-top: calc(
+            ($leaflet-control-width + 1px) * 2 + $leaflet-control-width
+            + 2 * 2px
+            + $floating-menu-padding * 2
+        );
+    }
+}
+
+/* Chunkier leaflet controls start */
+.leaflet-touch .leaflet-bar a,
+.leaflet-bar a:hover {
+    width: 38px;
+    height: 38px;
+    line-height: 38px;
+    cursor: pointer;
+}
+
+.leaflet-control-zoominfo-info {
+    height: 38px;
+    line-height: 38px;
+    font-size: 16px;
+    padding: 0;
+}
+
+.leaflet-control-zoominfo-in:after,
+.leaflet-control-zoominfo-out:after {
+    font-size: 26px;
+    line-height: 34px;
+}
+
+.leaflet-draw-toolbar a {
+    background-size: 380px 38px;
+}
+
+.leaflet-draw-toolbar a {
+    font-size: 15px;
+}
+/* Chunkier leaflet controls end */
+
+.leaflet-control-layers,
+.leaflet-bar,
+.leaflet-touch .leaflet-bar a:first-child,
+.leaflet-touch .leaflet-bar a:last-child { border-radius: 0; }
+
+.leaflet-touch .leaflet-bar a.disabled {
+    background-color: rgb(227, 233, 237);
+    color: rgb(139, 154, 164);
+    cursor: not-allowed;
+}
+
+// Right drawer shared
+.state-of-knowledge-drawer,
+.featured-map-drawer,
+.tas-marine-atlas-drawer,
+.data-in-region-drawer {
+    .bp3-drawer-header {
+        padding: 0;
+        background-color: $seamap-color-1;
+        color: $seamap-color-7;
+        font-size: 26px;
+        font-family: $headings-font-family;
+        font-weight: 600;
+        align-items: flex-start;
+
+        .bp3-heading {
+            padding: 12px;
+        }
+    
+        .bp3-dialog-close-button {
+            margin: 4px;
+            
+            .bp3-icon svg {
+                color: $seamap-color-7;
+                width: 30px;
+                height: 30px;
+            }
+        }
+    }
+}
+
+.custom-icon {
+    height: 16px;
+    width: 16px;
+    background-color: black;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+}
+
+.notification-bubble {
+    border-radius: 50%;
+    background-color: $seamap-red;
+    color: $seamap-color-7;
+    font-size: 8px;
+    display: inline-block;
+    font-size: 8px;
+    height: 13px;
+    width: 13px;
+    line-height: 13px;
+    text-align: center;
+    vertical-align: top;
+    margin-left: 3px;
+    margin-bottom: 10px;
+}
+
+
+.css-b62m3t-container {
+	.css-1s2u09g-control,
+    .css-1pahdxg-control,
+    .css-26l3qy-menu { border-radius: 0; }
+    .css-1pahdxg-control,
+    .css-1pahdxg-control:hover {
+        border-color: hsl(0, 0%, 80%);
+        box-shadow: none;
+    }
+}
+
+.data-in-region-drawer .bp3-non-ideal-state { height: 150px; }

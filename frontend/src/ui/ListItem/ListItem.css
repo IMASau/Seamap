@@ -1,0 +1,29 @@
+
+.SimpleListItem, .BreadcrumbListItem, .TableListItemRow, .TableListColumnHeaderRow {
+    display: flex;
+    align-items: center;
+}
+
+.TableListColumnHeaderCell {
+    font-weight: bold;
+}
+
+.SimpleListItem, .TableListItemRow {
+    min-height: 30px;
+}
+
+.BreadcrumbListItem {
+    min-height: 40px;
+}
+
+.SimpleListItemLabel, .BreadcrumbListItemLabel {
+    flex: 1;
+}
+
+.BreadcrumbListItemPath {
+    font-size: 0.8em;
+    color: darkgrey;
+}
+
+.TableListItemCol {
+}

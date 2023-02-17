@@ -13,27 +13,62 @@
 
 (defmulti format-event (fn [event-v] (first event-v)))
 
-(defmethod format-event :map/toggle-layer [[_ layer :as _event-v]]
-  {:eventCategory "layers"
-   :eventAction   "toggle"
-   :eventLabel    (:layer_name layer)})
+(defmethod format-event :map/add-layer [[_ layer :as _event-v]]
+  {:event_category "layers"
+   :event_action   "add-layer"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)})
+
+(defmethod format-event :map/remove-layer [[_ layer :as _event-v]]
+  {:event_category "layers"
+   :event_action   "remove-layer"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)})
+
+(defmethod format-event :map.layer/metadata-click [[_ {:keys [link layer]} :as _event-v]]
+  {:event_category "layers"
+   :event_action   "metadata-click"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)
+   :metadata_link  link})
 
 (defmethod format-event :map/pan-to-layer [[_ layer :as _event-v]]
-  {:eventCategory "layers"
-   :eventAction   "pan"
-   :eventLabel    (:layer_name layer)})
+  {:event_category "layers"
+   :event_action   "pan-layer"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)})
+
+(defmethod format-event :map/toggle-layer-visibility [[_ layer :as _event-v]]
+  {:event_category "layers"
+   :event_action   "toggle-layer-visibility"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)})
+
+(defmethod format-event :map.layer/load-error [[_ layer :as _event-v]]
+  {:event_category "layers"
+   :event_action   "layer-load-error"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)})
+
+(defmethod format-event :download-click [[_ {:keys [link layer type]} :as _event-v]]
+  {:event_category "layers"
+   :event_action   "download-click"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)
+   :download_link  link
+   :download_type  type})
 
 (defmethod format-event :default [[id & _args :as _event-v]]
-  {:eventCategory "general"
-   :eventAction   (event->action id)})
+  {:event_category "general"
+   :event_action   (event->action id)})
 
-;;; Note, for testing you can set "ga = console.log" in the browser
+;;; Note, for testing you can set "gtag = console.log" in the browser
 ;;; developer console (also note that by default the analytics
 ;;; interceptor is disabled in the dev profile)
 (defn track-event [ga-event]
-  (when (exists? js/ga)
-    (js/ga "send"
-       (-> {:hitType "event"}
+  (when (exists? js/gtag)
+    (js/gtag "event" (:event_action ga-event)
+       (-> {:hit_type "event"}
            (merge ga-event)
            clj->js))))
 

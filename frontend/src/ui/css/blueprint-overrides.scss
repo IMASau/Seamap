@@ -1,0 +1,248 @@
+.bp3-collapse>.bp3-collapse-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 0;
+    flex-shrink: 1;
+    min-height: 0;              /* http://stackoverflow.com/a/36247448 */
+}
+
+.bp3-portal {
+    z-index: 2000;              /* Must be greater than leaflet */
+}
+
+.bp3-overlay-backdrop {
+    z-index: 2000;              /* Must be greater than leaflet */
+}
+.bp3-overlay-content {
+    z-index: 2001;
+}
+
+/* Allow interactivity with underneath elements while drawer is open */
+.bp3-overlay.bp3-overlay-open.bp3-overlay-container {
+    width: 0;
+    height: 0;
+}
+
+.bp3-toast-container {
+    z-index: 2001;
+}
+
+.bp3-tree-node-label span {
+    display: unset;
+}
+
+.bp3-tree-node-content { cursor: pointer; }
+
+.bp3-tree-node-secondary-label {
+    flex: 0 0 auto;
+}
+
+.bp3-tab {
+    color: $seamap-color-2;
+    font-size: 14px;
+    font-family: $headings-font-family;
+    font-weight: 600;
+
+    >*::before, >.bp3-icon:first-child {
+        margin-right: 3px;
+    }
+}
+
+.bp3-tab-list {
+    align-items: stretch;
+    height: 40px;
+
+    >* {
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        &:not(:last-child) { margin-right: initial; }
+    }
+
+    .bp3-tab-indicator-wrapper .bp3-tab-indicator {
+        height: 2px;
+        margin: 0 8px 8px 8px;
+    }
+}
+
+.bp3-tab-panel {
+    margin: 0;
+}
+
+.bp3-heading>*::before {
+    margin-right: 4px;
+}
+
+.bp3-hotkey-dialog {
+    font-size: 12px;
+
+    .bp3-hotkey-column {
+        padding: 16px 24px;
+
+        .bp3-heading:first-child {
+            background-color: $seamap-color-1;
+            color: $seamap-color-7;
+            font-family: $headings-font-family;
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 1.5;
+            padding: 20px 20px 16px 20px;
+            margin: -16px -24px 16px -24px;
+        }
+    }
+}
+
+.bp3-dialog {
+    border-radius: 0;
+    box-shadow: none;
+    background-color: $seamap-color-7;
+    padding: 0;
+    overflow-wrap: break-word; // Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line
+    width: 440px;
+
+    &:not(.bp3-hotkey-dialog) {
+        .bp3-dialog-body {
+            line-height: inherit;
+            margin: 0;
+            padding: 16px 24px;
+            background-color: $seamap-color-2;
+            color: $seamap-color-7;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+            >* { max-width: 100%; }
+
+            a {
+                color: $seamap-color-7;
+                &:hover { color: $seamap-color-6; }
+            }
+        }
+
+        .bp3-dialog-footer {
+            margin: 0;
+            padding: 16px 24px;
+        }
+    }
+
+    .bp3-dialog-header {
+        background-color: $seamap-color-1;
+        color: $seamap-color-7;
+        font-family: $headings-font-family;
+        font-size: 28px;
+        font-weight: 600;
+        padding: 0;
+        border-radius: 0;
+        align-items: flex-start;
+
+        >.bp3-icon:first-child {
+            align-self: center;
+            color: inherit;
+            margin: 0;
+            margin-left: 20px;
+            margin-right: -10px;
+
+            >svg {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        >.bp3-heading {
+            white-space: initial;
+            margin: 20px 20px 16px 20px;
+            >::before { margin-right: 10px; }
+        }
+    
+        >.bp3-dialog-close-button {
+            margin: 4px;
+            
+            .bp3-icon svg {
+                color: $seamap-color-7;
+                width: 30px;
+                height: 30px;
+            }
+        }
+    }
+}
+
+/* Another chrome-only hack (otherwise we get an extra 0.4px on the close-button) */
+.bp3-dialog-footer-actions .bp3-popover-target {
+    vertical-align: unset;
+}
+
+.bp3-drawer {
+    display: flex;
+    flex-direction: column;
+
+    >:last-child {
+        flex: 1;
+    }
+
+    .bp3-panel-stack {
+        height: 100%;
+    }
+
+    .bp3-drawer-header {
+        box-shadow: initial;
+
+        .bp3-heading {
+            text-overflow: inherit;
+            white-space: inherit;
+            &:last-child {
+                margin-right: initial;
+            }
+        }
+    }
+}
+
+.bp3-checkbox,
+.bp3-switch {
+    margin: 0;
+    color: $seamap-color-2;
+}
+
+.bp3-button {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+
+
+:not(.bp3-toast>*) {
+    >.bp3-button:not(.bp3-minimal) {
+        font-size: 14px;
+        font-weight: bold;
+        padding: 7px 12px;
+        background-image: none;
+        >.bp3-icon { color: inherit; }
+        &[class*="bp3-intent-"] { box-shadow: none; }
+        &:not([class*="bp3-intent-"]):not(.bp3-disabled) { box-shadow: inset 0 0 0 1px rgb(16 22 26 / 10%); }
+    
+        &.bp3-large {
+            font-size: 15px;
+            padding: 9px 13px;
+            .bp3-icon svg {
+                height: 20px;
+                width: 20px;
+            }
+        }
+    }
+}
+
+.bp3-input, .bp3-input:focus, .bp3-input.bp3-active {
+    box-shadow: none;
+    -webkit-box-shadow: none;
+}
+
+.bp3-input {
+    border: 2px solid $seamap-grey;
+    &:focus { border-color: $seamap-color-5;}
+}
+
+.bp3-control input:focus ~ .bp3-control-indicator { outline: none; }
+
+.bp3-popover-target,
+.bp3-popover-target .bp3-text-overflow-ellipsis {
+    width: 100%;
+}

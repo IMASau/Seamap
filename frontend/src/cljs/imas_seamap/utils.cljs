@@ -8,8 +8,8 @@
             [clojure.walk :refer [keywordize-keys]]
             [goog.crypt.base64 :as b64]
             [cognitect.transit :as t]
-            [debux.cs.core :refer [dbg] :include-macros true]
-            [imas-seamap.blueprint :as b]))
+            [imas-seamap.blueprint :as b]
+            #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 ;;; Taken from https://github.com/district0x/district-cljs-utils/
 (letfn [(merge-in* [a b]
@@ -40,17 +40,47 @@
 
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
-  [{map-state :map :as db}]
-  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers])
-                       (rename-keys {:active-layers :active})
-                       (update :active (partial map :id)))
+  [{:keys [story-maps] map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
+  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :national-layer-timeline-selected :national-layer-alternate-view :bounds])
+                       (rename-keys {:active-layers :active :active-base-layer :active-base})
+                       (update :active (partial map :id))
+                       (update :active-base :id))
+        pruned-boundaries (select-keys*
+                           boundaries-state
+                           [[:active-boundary]
+                            [:active-boundary-layer]
+                            [:amp :active-network]
+                            [:amp :active-park]
+                            [:amp :active-zone]
+                            [:amp :active-zone-iucn]
+                            [:amp :active-zone-id]
+                            [:imcra :active-provincial-bioregion]
+                            [:imcra :active-mesoscale-bioregion]
+                            [:meow :active-realm]
+                            [:meow :active-province]
+                            [:meow :active-ecoregion]])
+        pruned-statistics (select-keys*
+                           statistics-state
+                           [[:habitat :show-layers?]
+                            [:bathymetry :show-layers?]
+                            [:habitat-observations :show-layers?]])
+        pruned-story-maps (-> (select-keys story-maps [:featured-map :open?])
+                              (update :featured-map :id))
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]
                                       [:display :catalogue]
+                                      [:display :left-drawer]
+                                      [:display :left-drawer-tab]
+                                      [:display :national-layer-tab]
+                                      [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
-                                      [:transect :query]])
+                                      [:transect :query]
+                                      :autosave?])
                        (assoc :map pruned-map)
+                       (assoc-in [:state-of-knowledge :boundaries] pruned-boundaries)
+                       (assoc-in [:state-of-knowledge :statistics] pruned-statistics)
+                       (assoc :story-maps pruned-story-maps)
                        #_(update-in [:display :catalogue :expanded] #(into {} (filter second %))))
         legends    (->> db :layer-state :legend-shown (map :id))
         opacities  (->> db :layer-state :opacity (reduce (fn [acc [k v]] (if (= v 100) acc (conj acc [(:id k) v]))) {}))
@@ -60,21 +90,48 @@
                        (assoc :opacity-ids opacities))]
     (b64/encodeString (t/write (t/writer :json) db*))))
 
-(defn filter-state
+(defn- filter-state
   "Given a state map, presumably from the hashed state, filter down to
   only expected/allowed paths to prevent injection attacks."
   [state]
   (select-keys* state
                 [[:display :sidebar :selected]
-                 [:display :catalogue :tab]
-                 [:display :catalogue :expanded]
+                 [:display :catalogue]
+                 [:display :left-drawer]
+                 [:display :left-drawer-tab]
+                 [:display :national-layer-tab]
+                 [:filters :layers]
+                 [:state-of-knowledge :boundaries :active-boundary]
+                 [:state-of-knowledge :boundaries :active-boundary-layer]
+                 [:state-of-knowledge :boundaries :amp :active-network]
+                 [:state-of-knowledge :boundaries :amp :active-park]
+                 [:state-of-knowledge :boundaries :amp :active-zone]
+                 [:state-of-knowledge :boundaries :amp :active-zone-iucn]
+                 [:state-of-knowledge :boundaries :amp :active-zone-id]
+                 [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion]
+                 [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion]
+                 [:state-of-knowledge :boundaries :meow :active-realm]
+                 [:state-of-knowledge :boundaries :meow :active-province]
+                 [:state-of-knowledge :boundaries :meow :active-ecoregion]
+                 [:state-of-knowledge :statistics :habitat :show-layers?]
+                 [:state-of-knowledge :statistics :bathymetry :show-layers?]
+                 [:state-of-knowledge :statistics :habitat-observations :show-layers?]
+                 [:story-maps :featured-map]
+                 [:story-maps :open?]
                  [:transect :show?]
                  [:transect :query]
                  [:map :active]
+                 [:map :active-base]
                  [:map :center]
                  [:map :zoom]
+                 [:map :bounds]
+                 [:map :viewport-only?]
+                 [:map :national-layer-timeline-selected]
+                 [:map :national-layer-alternate-view]
                  :legend-ids
-                 :opacity-ids]))
+                 :opacity-ids
+                 :autosave?
+                 :config]))
 
 (defn parse-state [hash-str]
   (try
@@ -144,3 +201,125 @@
       (.focus prev-focus-el))
     (.removeAllRanges (.getSelection js/window))
     (js/window.document.body.removeChild el)))
+
+(defn append-params-from-map
+  [url params]
+  (reduce-kv (fn [acc key val] (str acc "?" (name key) "=" val)) url params))
+
+(defn append-query-params
+  [url params]
+  (let [params (map (fn [[key val]] (str (name key) "=" val)) params)
+        params (apply str (interpose "&" params))]
+    (str url "?" params)))
+
+(defn uuid4?
+  [val]
+  (re-matches #"^[0-9a-f]{8}\-[0-9a-f]{4}\-4[0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}$" val))
+
+(defn map-on-key
+  "Takes a seq of hashmaps and converts it to a hashmap of hashmaps, where the key
+   for each hashmap is a value within that hashmap.
+   
+   Params:
+    - seq: sequence of hashmaps we're converting to a hashmap.
+    - key: key for the hashmaps whose value corresponds to that hashmap's key."
+  [seq key]
+  (reduce
+   (fn [seq val]
+     (assoc seq (key val) val))
+   {} seq))
+
+(defn first-where
+  "Returns the first item in a collection that fulfills the predicate."
+  [pred coll]
+  (first (filter pred coll)))
+
+(defn create-shadow-dom-element [{:keys [style body]}]
+  (let [element       (js/document.createElement "div")
+        style-element (js/document.createElement "style")
+        body-element  (js/document.createElement "body")
+        shadow        (.attachShadow element (clj->js {:mode "closed"}))]
+
+    (set! (.-textContent style-element) style)
+    (set! (.-innerHTML body-element) body)
+
+    (.appendChild shadow style-element)
+    (.appendChild shadow body-element)
+
+    element))
+
+(defn with-params [url params]
+  (let [u (goog/Uri. url)]
+    (doseq [[k v] params]
+      (.setParameterValue u (name k) v))
+    (str u)))
+
+(defn index-of
+  "Returns a list of indexes that match the predicate within the collection."
+  [pred coll]
+  (->> coll
+       (map-indexed vector)
+       (filter #(pred (second %)))
+       (map first)))
+
+(defn ajax-loaded-info
+  "Returns db of all the info retrieved via ajax"
+  [db]
+  (select-keys*
+   db
+   [[:map :layers]
+    [:map :base-layers]
+    [:map :base-layer-groups]
+    [:map :grouped-base-layers]
+    [:map :organisations]
+    [:map :categories]
+    [:map :keyed-layers]
+    [:map :national-layer-timeline]
+    [:map :leaflet-map]
+    [:map :legends]
+    [:state-of-knowledge :boundaries :amp :boundaries]
+    [:state-of-knowledge :boundaries :imcra :boundaries]
+    [:state-of-knowledge :boundaries :meow :boundaries]
+    [:state-of-knowledge :region-reports]
+    [:story-maps :featured-maps]
+    :habitat-colours
+    :habitat-titles
+    :sorting
+    :config]))
+
+(defn decode-html-entities
+  "Removes HTML entities from an HTML entity encoded string:
+   https://stackoverflow.com/a/34064434"
+  [input]
+  (-> (-> (js/DOMParser.)
+          (.parseFromString input "text/html"))
+      .-documentElement .-textContent))
+
+(defn round-to-nearest
+  "Rounds val to nearest value in coll."
+  [val coll]
+  (->> coll
+       (map #(vector % (abs (- % val))))
+       (sort-by second)
+       first first))
+
+(defn format-number
+  "Formats a number with comma thousands separator and dot decimal separator. One
+   decimal place is the default, because that's the normal case in Seamap."
+  ([number fraction-digits]
+   (when number
+     (.toLocaleString
+      number "en-US"
+      #js{:maximumFractionDigits fraction-digits
+          :minimumFractionDigits fraction-digits})))
+  ([number] (format-number number 1)))
+
+(defn format-date-month
+  "Formats a date string to MMM YYYY."
+  [date-string]
+  (when date-string
+    (-> date-string
+        js/Date.
+        (.toLocaleString
+         "en-AU"
+         #js{:month "short" :year "numeric"}))))

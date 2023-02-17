@@ -1,0 +1,43 @@
+/** Slider **/
+.leaflet-control-zoominfo-wrap {
+  border-bottom: 1px solid #ccc;
+  background-color: #fff;
+}
+
+.leaflet-control-zoominfo-body:hover {
+  cursor: pointer;
+}
+
+.leaflet-dragging .leaflet-control-zoominfo,
+.leaflet-dragging .leaflet-control-zoominfo-wrap,
+.leaflet-dragging .leaflet-control-zoominfo-body,
+.leaflet-dragging .leaflet-control-zoominfo a,
+.leaflet-dragging .leaflet-control-zoominfo a.leaflet-control-zoominfo-disabled {
+  cursor: move;
+  cursor: -webkit-grabbing;
+  cursor:    -moz-grabbing;
+}
+
+/** Leaflet Zoom Styles **/
+.leaflet-control-zoominfo a:hover {
+  background-color: #f4f4f4;
+}
+.leaflet-control-zoominfo-in:after{
+  content:"+";
+  font: bold 22px 'Lucida Console', Monaco, monospace;
+}
+.leaflet-control-zoominfo-out:after{
+  content:"−";
+  font: bold 22px 'Lucida Console', Monaco, monospace;
+}
+.leaflet-control-zoominfo a.leaflet-control-zoominfo-disabled {
+  cursor: default;
+}
+
+.leaflet-control-zoominfo-info { 
+  text-align: center;
+  color: black;
+  padding: 6px;
+  cursor: default;
+  user-select: none;
+}

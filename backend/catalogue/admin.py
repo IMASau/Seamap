@@ -2,13 +2,45 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from django.contrib import admin
-from .models import Category, DataClassification, Organisation, ServerType, Layer, LayerGroup, LayerGroupPriority, HabitatDescriptor
+import catalogue.models as models
 
-admin.site.register(Category)
-admin.site.register(DataClassification)
-admin.site.register(Organisation)
-admin.site.register(ServerType)
-admin.site.register(HabitatDescriptor)
-admin.site.register(Layer)
-admin.site.register(LayerGroup)
-admin.site.register(LayerGroupPriority)
+admin.site.register(models.Category)
+admin.site.register(models.DataClassification)
+admin.site.register(models.ServerType)
+admin.site.register(models.Organisation)
+admin.site.register(models.HabitatDescriptor)
+admin.site.register(models.BaseLayerGroup)
+admin.site.register(models.BaseLayer)
+
+class LayerAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+admin.site.register(models.Layer, LayerAdmin)
+
+class SaveStateAdmin(admin.ModelAdmin):
+    readonly_fields = ('time_created',)
+admin.site.register(models.SaveState, SaveStateAdmin)
+
+class KeyedLayerAdmin(admin.ModelAdmin):
+    autocomplete_fields = ('layer',)
+admin.site.register(models.KeyedLayer, KeyedLayerAdmin)
+
+class NationalLayerTimelineAdmin(admin.ModelAdmin):
+    autocomplete_fields = ('layer',)
+admin.site.register(models.NationalLayerTimeline, NationalLayerTimelineAdmin)
+
+class PressureAdminInline(admin.TabularInline):
+    autocomplete_fields = ('layer',)
+    model = models.Pressure
+    extra = 0
+
+class RegionReportAdmin(admin.ModelAdmin):
+    inlines = (PressureAdminInline,)
+    fields = (
+        'network',
+        'park',
+        ('habitat_state','bathymetry_state','habitat_observations_state',),
+        'state_summary',
+        'slug',
+        ('minx','maxx','miny','maxy',),
+    )
+admin.site.register(models.RegionReport, RegionReportAdmin)

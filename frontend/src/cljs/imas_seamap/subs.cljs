@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.subs
     (:require [clojure.set :refer [rename-keys]]
+              [imas-seamap.utils :refer [first-where]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
               #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -35,17 +36,18 @@
         ->pctg #(/ % total-distance)
         pct (/ pct 100)
         pct-distances (map (fn [[d1 d2 seg]] [(->pctg d1) (->pctg d2) seg]) seg-distances)
-        [lower upper [s1 s2]] (first (filter (fn [[p1 p2 _s]] (<= p1 pct p2)) pct-distances))
+        [lower upper [s1 s2]] (first-where (fn [[p1 p2 _s]] (<= p1 pct p2)) pct-distances)
         remainder-pct (/ (- pct lower) (- upper lower))]
     (scale-distance s1 s2 remainder-pct)))
 
 (defn feature-info [{:keys [feature] :as _db} _]
-  (if-let [{:keys [status info location had-insecure?]} feature]
-    {:has-info? true
+  (if-let [{:keys [status location had-insecure? responses show?]} feature]
+    {:has-info?     true
      :had-insecure? had-insecure?
-     :status status
-     :info-body info
-     :location ((juxt :lat :lng) location)}
+     :status        status
+     :responses     responses
+     :location      ((juxt :lat :lng) location)
+     :show?         show?}
     {:has-info? false}))
 
 (defn download-info [db _]
@@ -58,7 +60,8 @@
 (defn transect-info [{:keys [map transect] :as _db} _]
   (merge
    {:drawing? (boolean (get-in map [:controls :transect]))
-    :query (:query transect)}
+    :query (:query transect)
+    :distance (:distance transect)}
    (when-let [pctg (:mouse-percentage transect)]
      {:mouse-loc (point->latlng
                   (point-along-line (-> transect :query :geometry :coordinates)
@@ -109,6 +112,11 @@
        (map #(vector % true))
        (into {})))
 
+(defn preview-layer-url [db _]
+  (let [url (get-in db [:config :urls :layer-previews-url])
+        layer (get-in db [:map :preview-layer])]
+    (when layer (str url (:id layer) ".png"))))
+
 (defn sidebar-state [db _]
   (get-in db [:display :sidebar]))
 
@@ -123,3 +131,27 @@
 
 (defn user-message [db _]
   (get-in db [:info :message]))
+
+(defn left-drawer-open? [db _]
+  (get-in db [:display :left-drawer]))
+
+(defn left-drawer-tab [db _]
+  (get-in db [:display :left-drawer-tab]))
+
+(defn layers-search-omnibar-open? [db _]
+  (get-in db [:display :layers-search-omnibar]))
+
+(defn mouse-pos [db _]
+  (get-in db [:display :mouse-pos]))
+
+(defn autosave? [db _]
+  (:autosave? db))
+
+(defn url-base [db _]
+  (get-in db [:config :url-base]))
+
+(defn settings-overlay [db _]
+  (get-in db [:display :settings-overlay]))
+
+(defn national-layer-tab [db _]
+  (get-in db [:display :national-layer-tab]))

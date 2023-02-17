@@ -10,6 +10,9 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 /resources/public/js
+/resources/public/css/style.npm-packaged.css
+resources/public/css/style.npm-packaged.css.map
+resources/public/css/blueprint.css
 /out
 /.repl
 /.idea
@@ -19,3 +22,5 @@ pom.xml.asc
 /doc/api
 /.nrepl-history
 figwheel_server.log
+/src/gen/
+/storybook-static/
