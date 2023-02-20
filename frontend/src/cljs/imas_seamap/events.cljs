@@ -383,7 +383,12 @@
                 :value true}})
 
 (defn layer-show-info [{:keys [db]} [_ {:keys [metadata_url] :as layer}]]
-  (if (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-[0-9a-f]{4}\-4[0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}$" metadata_url)
+  ;; This regexp: has been relaxed slightly; it used to be a strict
+  ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
+  ;; alpha-nums with optional hyphens. I assume this is from records
+  ;; re-hosted in our server, but with IDs created externally, but
+  ;; it's just not that important to be strict here, regardless:
+  (if (re-matches #"(?i)^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}$" metadata_url)
     {:db         (assoc-in db [:display :info-card] :display.info/loading)
      :http-xhrio {:method          :get
                   :uri             (-> layer :metadata_url geonetwork-force-xml)
