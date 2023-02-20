@@ -171,6 +171,7 @@
     :map.layer.selection/enable           [mevents/map-start-selecting]
     :map.layer.selection/disable          mevents/map-cancel-selecting
     :map.layer.selection/clear            mevents/map-clear-selection
+    :map.layer.selection/maybe-clear      mevents/map-maybe-clear-selection
     :map.layer.selection/finalise         [mevents/map-finalise-selection]
     :map.layer.selection/toggle           [mevents/map-toggle-selecting]
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat

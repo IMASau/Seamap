@@ -335,3 +335,9 @@
     (->> active-layers
          (remove #(hidden-layers %))
          (replace {main-national-layer displayed-national-layer}))))
+
+(defn has-active-layers?
+  "utility to simplify a check for any active layers (we want to disable
+  some behaviour if there are no layers active, for example)"
+  [{:keys [map] :as _db}]
+  (-> map :active-layers seq))
