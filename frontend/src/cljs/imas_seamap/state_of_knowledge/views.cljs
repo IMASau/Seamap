@@ -223,7 +223,7 @@
   [{:keys [label text] :as _stat}]
   [:div.habitat-observations-group-stat
    [:b (str label ": ")]
-   text])
+   (gstring/unescapeEntities text)])
 
 (defn- habitat-observations-group
   [_props]
