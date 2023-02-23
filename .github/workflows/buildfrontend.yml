@@ -71,20 +71,13 @@ jobs:
       - name: Build project
         run: npx shadow-cljs release ${{ env.PROFILE }}
 
-      - name: Conditionally update app.js path in index (master)
-        if: endswith(github.ref, '/master')
-        run: sed -i 's/app.js/compiled\/app\/app.js/' 'resources/public/index.html'
-
-      - name: Conditionally update app.js path in index (develop)
-        if: endswith(github.ref, '/develop')
+      - name: Update app.js path in index
         run: sed -i 's/app.js/compiled\/app.js/' 'resources/public/index.html'
 
-      - name: Insert app.js tag
-        if: endswith(github.ref, '/develop')
+      - name: Expand cache-busting app.js tag
         run: |
           app_tag=$(jq '.[0]."output-name"' 'resources/public/js/compiled/manifest.json')
           app_tag=$(echo $app_tag | sed 's/^"//;s/"$//')
-          echo "Replacing app.js with $app_tag" >> $GITHUB_OUTPUT
           sed -i "s/app.js/$app_tag/" 'resources/public/index.html'
 
       - run: tar -c -z -v -C resources/public -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" .
