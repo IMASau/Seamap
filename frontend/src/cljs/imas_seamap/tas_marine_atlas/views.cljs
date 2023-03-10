@@ -158,7 +158,7 @@
         _                  (use-hotkeys hot-keys) ; We don't need the results of this, just need to ensure it's called!
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? @(re-frame/subscribe [:sm.featured-map/open?])]
-    [:div#main-wrapper
+    [:div#main-wrapper.tas-marine-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper
       [map-component]
