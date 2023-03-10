@@ -1,5 +1,6 @@
 .left-drawer {
-    &.seamap-drawer .bp3-drawer-header {
+    &.seamap-drawer .bp3-drawer-header,
+    &.tas-marine-atlas-drawer .bp3-drawer-header {
         border-bottom: 7px solid $seamap-color-1;
         height: 96px;
         padding: 15px;
@@ -26,7 +27,9 @@
             }
         }
     }
-
+    &.tas-marine-atlas-drawer .bp3-drawer-header {
+        background-color: $tma-color-1;
+    }
     .left-drawer-tabs {
         overflow-y: hidden;
         display: flex;

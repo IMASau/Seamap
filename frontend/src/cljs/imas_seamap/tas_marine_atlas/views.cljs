@@ -67,12 +67,17 @@
         tab   @(re-frame/subscribe [:left-drawer/tab])
         {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
-     {:title       "Tasmania Marine Atlas"
+     {:title
+      [:<>
+       [:div
+        [:a {:href "https://tasmaniamarineatlas.org/"}
+         [:img {:src "img/TMA_Banner_cropped.jpg"}]]]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
       :className   "left-drawer tas-marine-atlas-drawer"
+      :isCloseButtonShown false
       :hasBackdrop false}
      [b/tabs
       {:id              "left-drawer-tabs"
