@@ -770,7 +770,7 @@
             [[r g b a]]
             (str "rgba(" r "," g "," b "," a ")"))
           (convert-value-info
-            [{:keys [label] :as value-info}]
+            [{:keys [label name] :as value-info}]
             {:label   (or label name)
              :style
              {:background-color (-> value-info :symbol :color convert-color)
