@@ -323,3 +323,9 @@
         (.toLocaleString
          "en-AU"
          #js{:month "short" :year "numeric"}))))
+
+(defn map-server-url?
+  "Returns true when a url looks like it comes from MapServer (which
+  sometimes needs special handling)."
+  [url]
+  (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" url))

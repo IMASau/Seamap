@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest]]
+            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url?]]
             [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer has-active-layers?]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
@@ -664,7 +664,7 @@
        (not= layer (displayed-national-layer (:map db))))
       :displayed-national-layer
       
-      (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
+      (map-server-url? server_url)
       :map-server
 
       (= layer_type :wms-non-tiled) :wms
@@ -718,7 +718,7 @@
 (defmulti get-layer-legend-success
   (fn [_ [_ {:keys [layer_type server_url] :as _layer}]]
     (cond
-      (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
+      (map-server-url? server_url)
       :map-server
 
       (= layer_type :wms-non-tiled) :wms
@@ -804,7 +804,7 @@
 (defmulti get-layer-legend-error
   (fn [_ [_ {:keys [layer_type server_url] :as _layer}]]
     (cond
-      (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
+      (map-server-url? server_url)
       :map-server
 
       (= layer_type :wms-non-tiled) :wms
