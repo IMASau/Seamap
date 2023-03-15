@@ -701,7 +701,10 @@
 
 (defmethod get-layer-legend :map-server
   [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
-  (let [matches    (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
+  ;; Note; wms layers don't include "/rest", feature layers do, but
+  ;; for retrieving the json legend we always want the /rest
+  ;; component.
+  (let [matches    (re-matches #"^(.+?)(?:/rest)?/services/(.+?)/MapServer/.+$" server_url)
         server_url (str (get matches 1) "/rest/services/" (get matches 2) "/MapServer/legend")]
     {:db         (assoc-in db [:map :legends id] :map.legend/loading)
      :http-xhrio {:method          :get
