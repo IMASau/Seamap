@@ -788,12 +788,13 @@
 
 (defmethod get-layer-legend-success :map-server
   [db [_ {:keys [id server_url layer_name] :as _layer} response]]
-  (let [legend (if (get-in response [:layers 0 :legend]) ; Get the legend data
-                 (mapv                                   ; if data, then we make a vector legend and convert to keys and labels
-                  (fn [{:keys [label imageData]}]
-                    {:label label
-                     :image (str "data:image/png;base64, " imageData)})
-                  (get-in response [:layers 0 :legend]))
+  (let [legend (if-let [layer-data (get-in response [:layers])] ; Get the legend data
+                 (mapv ; if data, then we make a vector legend and convert to keys and labels
+                  (fn [layer]
+                    (let [{:keys [label imageData]} (get-in layer [:legend 0])]
+                     {:label label
+                      :image (str "data:image/png;base64, " imageData)}))
+                  layer-data)
                  (append-query-params                    ; else we just use an image for the legend graphic
                   server_url
                   {:REQUEST     "GetLegendGraphic"
