@@ -77,12 +77,18 @@
      :east  (+ lng (/ img-x-bounds 2))
      :west  (- lng (/ img-x-bounds 2))}))
 
+(def ^:const INFO-FORMAT-HTML 1)
+(def ^:const INFO-FORMAT-JSON 2)
+(def ^:const INFO-FORMAT-NONE 3)
+(def ^:const INFO-FORMAT-FEATURE 4)
+(def ^:const INFO-FORMAT-XML 5)
+
 (defmulti get-feature-info #(second %2))
 
 (def feature-info-image-size
   {:width 101 :height 101})
 
-(defmethod get-feature-info 1
+(defmethod get-feature-info INFO-FORMAT-HTML
   [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
@@ -114,7 +120,7 @@
       :on-success      [:map/got-featureinfo request-id point "text/html" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
-(defmethod get-feature-info 2
+(defmethod get-feature-info INFO-FORMAT-JSON
   [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
@@ -146,7 +152,7 @@
       :on-success      [:map/got-featureinfo request-id point "application/json" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
-(defmethod get-feature-info 4
+(defmethod get-feature-info INFO-FORMAT-FEATURE
   [_ [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point}]]
   (let [query         (leaflet/esri-query {:url (-> layers first :server_url)})
         leaflet-point (leaflet/latlng. lat lng)]
