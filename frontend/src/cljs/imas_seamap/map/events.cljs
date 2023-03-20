@@ -694,7 +694,6 @@
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
     {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
 
-;;; FIXME: missing type :feature??  (see below for specialisation implemented)
 (defmulti get-layer-legend
   (fn [{:keys [db]} [_ {:keys [layer_type server_url] :as layer}]]
     (cond
