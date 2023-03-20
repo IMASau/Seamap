@@ -756,15 +756,6 @@
   [{:keys [db]} [_ {:keys [id] :as _layer}]]
   {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)})
 
-(defmulti get-layer-legend-success
-  (fn [_ [_ {:keys [layer_type server_url] :as _layer}]]
-    (cond
-      (map-server-url? server_url)
-      :map-server
-
-      (= layer_type :wms-non-tiled) :wms
-      :else                         layer_type)))
-
 (defmulti wms-symbolizer->key #(-> % keys first))
 
 (defmethod wms-symbolizer->key :Polygon
@@ -785,6 +776,15 @@
      (when (= mark "circle") {:border-radius "100%"}))))
 
 (defmethod wms-symbolizer->key :default [] nil)
+
+(defmulti get-layer-legend-success
+  (fn [_ [_ {:keys [layer_type server_url] :as _layer}]]
+    (cond
+      (map-server-url? server_url)
+      :map-server
+
+      (= layer_type :wms-non-tiled) :wms
+      :else                         layer_type)))
 
 (defmethod get-layer-legend-success :wms
   [db [_ {:keys [id server_url layer_name] :as _layer} response]]
