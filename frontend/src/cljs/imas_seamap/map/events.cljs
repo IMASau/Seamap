@@ -163,6 +163,38 @@
                     (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers (js->clj feature-collection)]))))
     nil))
 
+(defmethod get-feature-info INFO-FORMAT-XML
+  [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+  (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
+                  (bounds->projected wgs84->epsg3112)
+                  (bounds->str 3112))
+        layer-names (->> layers (map layer-name) reverse (string/join ","))]
+    {:http-xhrio
+     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
+     {:method          :get
+      :uri             (-> layers first :server_url)
+      :params
+      {:REQUEST       "GetFeatureInfo"
+       :LAYERS        layer-names
+       :QUERY_LAYERS  layer-names
+       :WIDTH         (:width feature-info-image-size)
+       :HEIGHT        (:height feature-info-image-size)
+       :BBOX          bbox
+       :FEATURE_COUNT 1000
+       :STYLES        ""
+       :X             50
+       :Y             50
+       :TRANSPARENT   true
+       :CRS           "EPSG:3112"
+       :SRS           "EPSG:3112"
+       :FORMAT        "image/png"
+       :INFO_FORMAT   "text/xml"
+       :SERVICE       "WMS"
+       :VERSION       "1.1.1"}
+      :response-format (ajax/text-response-format)
+      :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
+      :on-failure      [:map/got-featureinfo-err request-id point]}}))
+
 (defmethod get-feature-info :default
   [_ [_ _info-format-type layers request-id _leaflet-props point]]
   {:dispatch [:map/got-featureinfo request-id point nil nil layers]})
