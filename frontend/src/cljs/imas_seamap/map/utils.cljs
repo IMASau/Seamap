@@ -4,6 +4,7 @@
 (ns imas-seamap.map.utils
   (:require [cemerick.url :as url]
             [clojure.string :as string]
+            [goog.dom.xml :as gxml]
             [imas-seamap.utils :refer [merge-in select-values first-where]]
             ["proj4" :as proj4]
             [imas-seamap.interop.leaflet :as leaflet]
@@ -214,6 +215,60 @@
         "    <h4>" title "</h4>"
         "    <table>" property-rows "</table>"
         "</div>")})))
+
+(defmethod feature-info-response->display "text/xml"
+  [{:keys [response _info-format layers]}]
+  (let [title (->> layers
+                   (map :name)
+                   (interpose ", ")
+                   (apply str))
+        doc (gxml/loadXml response)
+        fields (gxml/selectNodes doc "/esri_wms:FeatureInfoResponse/esri_wms:FIELDS")
+        property-tables (map (fn [node]
+                               (str
+                                "<table>"
+                                (string/join ""
+                                             (for [attr node.attributes]
+                                               (str "<tr><td>" attr.name "</td><td>" attr.value "</td></tr>")))
+                                "</table>"))
+                             fields)]
+    {:style
+     (str
+      ".feature-info-xml {"
+      "    max-height: 257px;"
+      "    overflow-y: auto;"
+      "    width: 391px;"
+      "}"
+
+      ".feature-info-xml table {"
+      "    border-spacing: 0;"
+      "    width: 100%;"
+      "    margin-bottom: 10px;"
+      "    padding-bottom: 10px;"
+      "    border-bottom: 2px dashed rgb(235, 235, 235);"
+      "}"
+
+      ".feature-info-xml tr:nth-child(odd) {"
+      "    background-color: rgb(235, 235, 235);"
+      "}"
+
+      ".feature-info-xml td {"
+      "    padding: 3px 0px 3px 10px;"
+      "    vertical-align: top;"
+      "}"
+
+      ".feature-info-xml h4 {"
+      "    width: 100%;"
+      "    text-overflow: ellipsis;"
+      "    overflow-x: hidden;"
+      "}")
+     :body
+     (str
+      "<div class=\"feature-info-xml\">"
+      "    <h4>" title "</h4>"
+      (string/join "" property-tables)
+        ;; "    <table>" (string/join "" property-rows) "</table>"
+      "</div>")}))
 
 (defmethod feature-info-response->display :default
   [{:keys [_info-format _response _layers]}]
