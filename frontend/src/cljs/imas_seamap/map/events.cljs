@@ -694,21 +694,38 @@
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
     {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
 
-(defmulti get-layer-legend
-  (fn [{:keys [db]} [_ {:keys [layer_type server_url] :as layer}]]
-    (cond
-      (and
-       (= layer (main-national-layer (:map db)))
-       (not= layer (displayed-national-layer (:map db))))
-      :displayed-national-layer
-      
-      (map-server-url? server_url)
-      :map-server
+(defn ^:private layer-legend-dispatch
+  "We support 3 types: geoserver (using json vector format), ESRI
+  map/feature server layers (using their own vector format), and
+  wms-other (just defaulting to image-based GetLegendGraphic). Because
+  of this we dispatch on capability, rather than server type, because
+  eg :wms doesn't convey enough information"
+  [{:keys [db]} [_ {:keys [layer_type server_url] :as layer}]]
+  (cond
+    (and
+     (= layer (main-national-layer (:map db)))
+     (not= layer (displayed-national-layer (:map db))))
+    :displayed-national-layer         ; Will dispatch again; works around special-casing for the national layer
 
-      (= layer_type :wms-non-tiled) :wms
-      :else                         layer_type)))
+    (= layer_type :feature)
+    :map-server-vector
 
-(defmethod get-layer-legend :wms
+    (and (#{:wms :wms-non-tiled} layer_type)
+         (map-server-url? server_url))
+    :wms-image
+
+    (#{:wms :wms-non-tiled} layer_type)
+    :wms-geoserver
+
+    :else :unknown))
+
+(defmulti get-layer-legend layer-legend-dispatch)
+
+(defmethod get-layer-legend :displayed-national-layer
+  [{:keys [db]} _]
+  {:dispatch [:map.layer/get-legend (displayed-national-layer (:map db))]})
+
+(defmethod get-layer-legend :wms-geoserver
   [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
   {:db         (assoc-in db [:map :legends id] :map.legend/loading)
    :http-xhrio {:method          :get
@@ -723,27 +740,23 @@
                 :on-success      [:map.layer/get-legend-success layer]
                 :on-failure      [:map.layer/get-legend-error layer]}})
 
-(defmethod get-layer-legend :feature
-  [{:keys [db]} [_ {:keys [id server_url] :as layer}]]
-  {:db         (assoc-in db [:map :legends id] :map.legend/loading)
-   :http-xhrio {:method          :get
-                :uri             server_url
-                :params          {:f "json"}
-                :response-format (ajax/json-response-format {:keywords? true})
-                :on-success      [:map.layer/get-legend-success layer]
-                :on-failure      [:map.layer/get-legend-error layer]}})
+(defmethod get-layer-legend :wms-image
+  [{:keys [db]} [_ {:keys [id server_url layer_name] :as _layer}]]
+  (let [legend_url (append-query-params
+                    server_url
+                    {:REQUEST     "GetLegendGraphic"
+                     :LAYER       layer_name
+                     :TRANSPARENT true
+                     :SERVICE     "WMS"
+                     :VERSION     "1.1.1"
+                     :FORMAT      "image/png"})]
+    (assoc-in db [:map :legends id] legend_url)))
 
-(defmethod get-layer-legend :displayed-national-layer
-  [{:keys [db]} _]
-  {:dispatch [:map.layer/get-legend (displayed-national-layer (:map db))]})
-
-(defmethod get-layer-legend :map-server
+(defmethod get-layer-legend :map-server-vector
   [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
-  ;; Note; wms layers don't include "/rest", feature layers do, but
-  ;; for retrieving the json legend we always want the /rest
-  ;; component.
-  (let [matches    (re-matches #"^(.+?)(?:/rest)?/services/(.+?)/MapServer/.+$" server_url)
-        server_url (str (get matches 1) "/rest/services/" (get matches 2) "/MapServer/legend")]
+  ;; FIXME: replace with replace-id bit ".../(\d+)" -> /legend
+  ;; Assume our url is either ...MapServer/<id> or ...FeatureServer/<id>
+  (let [server_url (string/replace server_url #"\d+$" "legend")]
     {:db         (assoc-in db [:map :legends id] :map.legend/loading)
      :http-xhrio {:method          :get
                   :uri             server_url
@@ -777,75 +790,34 @@
 
 (defmethod wms-symbolizer->key :default [] nil)
 
-(defmulti get-layer-legend-success
-  (fn [_ [_ {:keys [layer_type server_url] :as _layer}]]
-    (cond
-      (map-server-url? server_url)
-      :map-server
+(defmulti get-layer-legend-success layer-legend-dispatch)
 
-      (= layer_type :wms-non-tiled) :wms
-      :else                         layer_type)))
-
-(defmethod get-layer-legend-success :wms
+(defmethod get-layer-legend-success :wms-geoserver
   [db [_ {:keys [id server_url layer_name] :as _layer} response]]
-  (let [legend (if (-> response :Legend first :rules first :symbolizers first wms-symbolizer->key) ; Convert the symbolizer for the first key
-                 (->> response :Legend first :rules                                                ; if it converts successfully, then we make a vector legend and convert to keys and labels
-                      (mapv
-                       (fn [{:keys [title filter symbolizers]}]
-                         {:label  title
-                          :filter filter
-                          :style  (-> symbolizers first wms-symbolizer->key)})))
-                 (append-query-params                                                              ; else we just use an image for the legend graphic
-                  server_url
-                  {:REQUEST     "GetLegendGraphic"
-                   :LAYER       layer_name
-                   :TRANSPARENT true
-                   :SERVICE     "WMS"
-                   :VERSION     "1.1.1"
-                   :FORMAT      "image/png"}))]
+  (let [legend (->> response :Legend first :rules ; FIXME
+                    (mapv
+                     (fn [{:keys [title filter symbolizers]}]
+                       {:label  title
+                        :filter filter
+                        :style  (-> symbolizers first wms-symbolizer->key)})))]
     (assoc-in db [:map :legends id] legend)))
 
-(defmethod get-layer-legend-success :feature
-  [db [_ {:keys [id] :as _layer} response]]
-  (letfn [(convert-color
-            [[r g b a]]
-            (str "rgba(" r "," g "," b "," a ")"))
-          (convert-value-info
-            [{:keys [label name] :as value-info}]
-            {:label   (or label name)
-             :style
-             {:background-color (-> value-info :symbol :color convert-color)
-              :border           (str "solid 2px " (-> value-info :symbol :outline :color convert-color))
-              :height           "100%"
-              :width            "100%"}})]
-    (let [render-info (get-in response [:drawingInfo :renderer])
-          legend      (if (:uniqueValueInfos render-info)
-                        (mapv convert-value-info (:uniqueValueInfos render-info))
-                        (-> render-info convert-value-info vector))]
-      (assoc-in db [:map :legends id] legend))))
-
-(defmethod get-layer-legend-success :map-server
-  [db [_ {:keys [id server_url layer_name] :as _layer} response]]
+(defmethod get-layer-legend-success :map-server-vector
+  [db [_ {:keys [id server_url] :as _layer} response]]
   (let [lid (-> server_url (string/split "/") last js/parseInt) ; "rest/services/something/MapServer/2" -> 2
-        lid (if (js/isNaN lid) (js/parseInt layer_name) lid)
-        _ (js/console.warn "**** layer id" lid)
-        legend (if-let [layer-data (get-in response [:layers])]
-                 (mapv ; if data, then we make a vector legend and convert to keys and labels
-                  (fn [{:keys [label imageData]}]
-                    {:label label
-                     :image (str "data:image/png;base64, " imageData)})
-                  (->> layer-data
-                       (first-where #(= lid (:layerId %)))
-                       :legend))
-                 (append-query-params                    ; else we just use an image for the legend graphic
-                  server_url
-                  {:REQUEST     "GetLegendGraphic"
-                   :LAYER       layer_name
-                   :TRANSPARENT true
-                   :SERVICE     "WMS"
-                   :VERSION     "1.1.1"
-                   :FORMAT      "image/png"}))]
+        layer-data (get-in response [:layers])
+        legend (mapv                    ; convert to keys and labels
+                (fn [{:keys [label imageData]}]
+                  {:label label
+                   :image (str "data:image/png;base64, " imageData)})
+                (->> layer-data
+                     (first-where #(= lid (:layerId %)))
+                     :legend))]
     (assoc-in db [:map :legends id] legend)))
+
+(defmethod get-layer-legend-success :default
+  [{:keys [db]} [_ {:keys [id] :as _layer} _response]]
+  {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)})
 
 (defmulti get-layer-legend-error
   (fn [_ [_ {:keys [layer_type server_url] :as _layer}]]
