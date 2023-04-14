@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layers-search-omnibar layer-preview hotkeys-combos control-block print-control control-block-child transect-control]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layers-search-omnibar hotkeys-combos control-block print-control control-block-child transect-control]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
@@ -226,6 +226,5 @@
      [featured-map-drawer]
      [layers-search-omnibar]
      [custom-leaflet-controls]
-     [welcome-dialogue]
-     [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
+     [welcome-dialogue]]))
 
