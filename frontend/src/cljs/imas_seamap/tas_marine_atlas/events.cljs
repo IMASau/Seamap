@@ -182,6 +182,9 @@
          :loading true
          :loading-message (or msg "Loading Tasmania Marine Atlas...")))
 
+(defn welcome-layer-close [db _]
+  (assoc-in db [:display :welcome-overlay] false))
+
 (defn initialise-layers [{:keys [db]} _]
   (let [{:keys [layer-url
                 base-layer-url

@@ -17,3 +17,6 @@
                  :else           :data-in-region/none)]
     {:status    status
      :layers      (when (= status :data-in-region/loaded) (ids->layers data layers))}))
+
+(defn welcome-layer-open? [db _]
+  (get-in db [:display :welcome-overlay]))

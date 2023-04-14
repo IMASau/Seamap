@@ -14,6 +14,28 @@
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
+(defn welcome-dialogue []
+  (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
+    [b/dialogue
+     {:title
+      (reagent/as-element
+       [:<> "Welcome to" [:br] "Tasmania's Marine Atlas."])
+      :class    "welcome-splash"
+      :is-open  open?
+      :on-close #(re-frame/dispatch [:welcome-layer/close])}
+     [:div.bp3-dialog-body
+      [:div.overview
+       "The Tasmania's Marine Atlas acknowledges the traditional
+       custodians of the land upon which we live and work. We honour
+       their enduring culture and knowledges as vital to the
+       self-determination, wellbeing and resilience of their
+       communities."]
+      [b/button
+       {:text       "Get Started!"
+        :intent     b/INTENT-PRIMARY
+        :auto-focus true
+        :on-click   #(re-frame/dispatch [:welcome-layer/close])}]]]))
+
 (defn region-control []
   (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
         [tooltip icon dispatch]
@@ -204,5 +226,6 @@
      [featured-map-drawer]
      [layers-search-omnibar]
      [custom-leaflet-controls]
+     [welcome-dialogue]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 
