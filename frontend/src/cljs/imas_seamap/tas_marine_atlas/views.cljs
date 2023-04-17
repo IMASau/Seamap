@@ -93,7 +93,7 @@
       [:<>
        [:div
         [:a {:href "https://tasmaniamarineatlas.org/"}
-         [:img {:src "img/TMA_Banner_cropped.jpg"}]]]]
+         [:img {:src "img/TMA_Banner_size_website.png"}]]]]
       :position    "left"
       :size        "368px"
       :isOpen      open?

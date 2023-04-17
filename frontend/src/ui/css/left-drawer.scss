@@ -29,6 +29,9 @@
     }
     &.tas-marine-atlas-drawer .bp3-drawer-header {
         background-color: $tma-color-1;
+        h4 {
+            height: 86px;
+        }
     }
     .left-drawer-tabs {
         overflow-y: hidden;
