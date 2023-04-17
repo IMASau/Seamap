@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layers-search-omnibar hotkeys-combos control-block print-control control-block-child transect-control]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layer-catalogue layers-search-omnibar hotkeys-combos control-block print-control control-block-child transect-control]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
@@ -144,7 +144,7 @@
      [layer-catalogue-header {:layer layer :layer-state layer-state}]]))
 
 (defn data-in-region-drawer []
-  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
         {:keys [status layers]} @(re-frame/subscribe [:data-in-region/data])
         layer-props
         {:active-layers  active-layers
@@ -163,17 +163,18 @@
       :hasBackdrop false
       :className   "data-in-region-drawer"}
      (case status
-       
+
        :data-in-region/loaded
-       [:<>
+       [layer-catalogue :region layers layer-props]
+       #_[:<>
         (for [{:keys [id] :as layer} layers]
           ^{:key (str id)}
           [data-in-region-layer layer layer-props])]
-       
+
        :data-in-region/loading
        [b/non-ideal-state
         {:icon  (reagent/as-element [b/spinner {:intent "success"}])}]
-       
+
        :data-in-region/none
        [b/non-ideal-state
         {:title       "No Data"

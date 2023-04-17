@@ -695,25 +695,25 @@
   {:message ["Failed to generate URL!"
              {:intent b/INTENT-WARNING :icon "warning-sign"}]})
 
-(defn catalogue-select-tab [{:keys [db]} [_ tabid]]
-  (let [db (assoc-in db [:display :catalogue :tab] tabid)]
+(defn catalogue-select-tab [{:keys [db]} [_ catid tabid]]
+  (let [db (assoc-in db [:display :catalogue catid :tab] tabid)]
     {:db       db
      :dispatch [:maybe-autosave]}))
 
-(defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
-  (let [nodes (get-in db [:display :catalogue :expanded])
-        db    (update-in db [:display :catalogue :expanded] (if (nodes nodeid) disj conj) nodeid)]
+(defn catalogue-toggle-node [{:keys [db]} [_ catid nodeid]]
+  (let [nodes (get-in db [:display :catalogue catid :expanded])
+        db    (update-in db [:display :catalogue catid :expanded] (if (nodes nodeid) disj conj) nodeid)]
     {:db       db
      :dispatch [:maybe-autosave]}))
 
-(defn catalogue-add-node [{:keys [db]} [_ nodeid]]
-  (let [db (update-in db [:display :catalogue :expanded] conj nodeid)]
+(defn catalogue-add-node [{:keys [db]} [_ catid nodeid]]
+  (let [db (update-in db [:display :catalogue catid :expanded] conj nodeid)]
    {:db       db
     :dispatch [:maybe-autosave]}))
 
 (defn catalogue-add-nodes-to-layer
   "Opens nodes in catalogue along path to specified layer"
-  [{:keys [db]} [_ layer tab categories]]
+  [{:keys [db]} [_ catid layer tab categories]]
   (let [sorting-info (:sorting db)
         node-ids   (reduce
                     (fn [node-ids category]
@@ -723,7 +723,7 @@
                                         (str "|" sorting-id))]
                         (conj node-ids node-id)))
                     [] categories)]
-    {:dispatch-n (map #(vec [:ui.catalogue/add-node %]) node-ids)}))
+    {:dispatch-n (map #(vec [:ui.catalogue/add-node catid %]) node-ids)}))
 
 (defn sidebar-open [{:keys [db]} [_ tabid]]
   (let [{:keys [selected collapsed]} (get-in db [:display :sidebar])

@@ -166,3 +166,83 @@
         }
     }
 }
+
+
+.data-in-region-drawer {
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .bp3-tab-panel {
+        flex-direction: column;
+        &:not([aria-hidden="true"]) { display: flex; }
+
+        .bp3-tree {
+            font-size: 12px;
+            .bp3-tree-node-caret-none { min-width: 4px; }
+            .bp3-tree-node-content { height: 28px; }
+
+            .catalogue-layer-node {
+                color: $seamap-deep-blue;
+                &.active-layer { background-color: $seamap-light-blue; }
+
+                >.bp3-tree-node-content { cursor: default; }
+
+                .layer-status-icons .bp3-icon,
+                .layer-control {
+                    color: $seamap-medium-blue;
+                }
+            }
+
+            .bp3-tree-node:not(.catalogue-layer-node) {
+                &:not(.category)>.bp3-tree-node-content { font-weight: bold; }
+
+                &.category {
+                    >.bp3-tree-node-content {
+                        font-size: 18px;
+                        font-family: $headings-font-family;
+                        height: 30px;
+                    }
+
+                    .tree-cap {
+                        padding: 10px 16px 10px 14px;
+                        >.bp3-tree-node-content {
+                            cursor: default;
+                            height: 2px;
+                            background-color: $seamap-medium-blue;
+                            &:hover { background: $seamap-medium-blue; }
+                        }
+                    }
+                }
+
+                >.bp3-tree-node-content {
+                    >.bp3-tree-node-label {
+                        display: flex;
+                        align-items: center;
+                        color: $seamap-deep-blue;
+
+                        >.bp3-tree-node-caret {
+                            color: inherit;
+                        }
+                    }
+                }
+            }
+        }
+
+        .bp3-tabs {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+
+            .bp3-tab-panel {
+                flex: 1;
+                min-height: 0;
+                overflow: auto;
+            }
+
+        }
+    }
+
+}

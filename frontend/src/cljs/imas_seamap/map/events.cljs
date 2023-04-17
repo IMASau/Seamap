@@ -653,8 +653,8 @@
   {:db       (assoc-in db [:display :layers-search-omnibar] false)
    :dispatch-n [[:map/add-layer layer]
                 [:left-drawer/open]
-                [:ui.catalogue/select-tab "cat"]
-                [:ui.catalogue/catalogue-add-nodes-to-layer layer "cat" [:category :data_classification]]]})
+                [:ui.catalogue/select-tab :main "cat"]
+                [:ui.catalogue/catalogue-add-nodes-to-layer :main layer "cat" [:category :data_classification]]]})
 
 (defn update-preview-layer [db [_ preview-layer]]
   (assoc-in db [:map :preview-layer] preview-layer))

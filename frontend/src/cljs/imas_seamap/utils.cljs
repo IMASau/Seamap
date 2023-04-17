@@ -68,7 +68,7 @@
                               (update :featured-map :id))
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]
-                                      [:display :catalogue]
+                                      [:display :catalogue :main]
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
                                       [:display :national-layer-tab]
@@ -96,7 +96,7 @@
   [state]
   (select-keys* state
                 [[:display :sidebar :selected]
-                 [:display :catalogue]
+                 [:display :catalogue :main]
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
                  [:display :national-layer-tab]
