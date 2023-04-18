@@ -349,6 +349,11 @@ rect#background {
     cursor: default;
 }
 
+img.leaflet-marker-icon {
+    max-width: none;
+    max-height: none;
+}
+
 /* leaflet-sidebar overrides: */
 .sidebar-content {
     background-color: white;
