@@ -207,9 +207,8 @@
     [:div#main-wrapper.tas-marine-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper
-      [map-component]
-      [plot-component]]
-     
+      [map-component]]
+
      ;; TODO: Separate helper overlay for TasMarineAtlas?
      [helper-overlay
       {:selector       ".SelectionListItem:first-child .layer-card .layer-header"
@@ -233,10 +232,7 @@
       {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
        :helperText     "Filter layers by category or responsible organisation"
        :helperPosition "bottom"
-       :padding        0}
-      {:id "plot-footer"
-       :helperText "Draw a transect to show a depth profile of habitat data"
-       :helperPosition "top"}]
+       :padding        0}]
      [info-card]
      [settings-overlay]
      [loading-display]
