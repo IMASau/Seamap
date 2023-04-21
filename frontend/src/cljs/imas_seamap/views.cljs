@@ -199,7 +199,7 @@
       :on-click #(re-frame/dispatch [:map/toggle-viewport-only])
       :text     text}]))
 
-(defn- autosave-application-state-toggle []
+(defn autosave-application-state-toggle []
   (let [[icon text] (if @(re-frame/subscribe [:autosave?])
                       ["disable" "Disable Autosave Application State"]
                       ["floppy-disk" "Enable Autosave Application State"])]
@@ -355,6 +355,7 @@
         CSIRO, IMOS, Geoscience Australia, Great Barrier Reef Marine
         Park Authority (GBRMPA), the National Environmental Science
         Program (NESP), and all State Governments."]]]))
+
 (defn settings-overlay []
   [b/dialogue
    {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])

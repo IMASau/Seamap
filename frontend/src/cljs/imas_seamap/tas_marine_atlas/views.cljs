@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layer-catalogue layers-search-omnibar hotkeys-combos control-block print-control control-block-child transect-control]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button settings-button layer-catalogue layers-search-omnibar hotkeys-combos control-block print-control control-block-child transect-control autosave-application-state-toggle]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
@@ -182,6 +182,22 @@
         {:title       "No Data"
          :description "We are unable to display any region data at this time."
          :icon        "info-sign"}])]))
+
+
+(defn settings-overlay []
+  [b/dialogue
+   {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])
+    :class      "settings-overlay-dialogue"
+    :is-open    @(re-frame/subscribe [:ui/settings-overlay])
+    :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
+   [:div.bp3-dialog-body
+    [autosave-application-state-toggle]
+    [b/button
+     {:icon     "undo"
+      :class    "bp3-fill"
+      :intent   b/INTENT-PRIMARY
+      :text     "Reset Interface"
+      :on-click   #(re-frame/dispatch [:re-boot])}]]])
 
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
