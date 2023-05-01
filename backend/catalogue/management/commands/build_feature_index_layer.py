@@ -58,13 +58,17 @@ def mapserver_layer_query_url(layer):
     return None
 
 
-def get_geoserver_geojson(layer, server_url):
+def get_geoserver_geojson(layer, server_url, result_offset=0):
     params = {
         'request':      'GetFeature',
         'service':      'WFS',
-        'version':      '1.0.0',
+        'version':      '2.0.0',
         'typeNames':    layer.layer_name,
         'outputFormat': 'application/json',
+        # Technically this is an optional feature, but we are 100%
+        # geoserver for now so should be safe:
+        'count':        5000,
+        'startIndex':   result_offset,
     }
 
     try:
@@ -83,8 +87,15 @@ def get_geoserver_geojson(layer, server_url):
             except Exception as e:
                 logging.error('Error at %s\nResponse:\n%s', 'division', data, exc_info=e)
             else:
-                return data
-    return None
+                # We will use the presence of a 'next' link (not that
+                # we use the link itself) to decide whether there is
+                # more data to come or not. I think we may end up
+                # making an extra call, for no data, but in the scheme
+                # of things that's no great drama.
+                links = data.get('links', [])
+                has_next = any(link.get('rel') == 'next' for link in links)
+                return data, has_next
+    return None, False
 
 
 def get_mapserver_geojson(server_url, result_offset=0):
@@ -122,7 +133,7 @@ def get_features(layer, server_url, result_offset=0):
     if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', server_url):
         geojson, exceeded_transfer_limit = get_mapserver_geojson(server_url, result_offset)
     else:
-        geojson = get_geoserver_geojson(layer, server_url)
+        geojson = get_geoserver_geojson(layer, server_url, result_offset)
     if geojson:
         features = [
             LayerFeature(
