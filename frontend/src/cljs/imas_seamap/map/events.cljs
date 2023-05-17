@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url?]]
+            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
             [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer has-active-layers?]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
@@ -669,6 +669,11 @@
      (not= layer (displayed-national-layer (:map db))))
     :displayed-national-layer         ; Will dispatch again; works around special-casing for the national layer
 
+    (and
+      (= layer_type :feature)
+      (feature-server-url? server_url))
+    :arcgis-feature-server
+
     (= layer_type :feature)
     :map-server-vector
 
@@ -713,6 +718,16 @@
                      :VERSION     "1.1.1"
                      :FORMAT      "image/png"})]
     (assoc-in db [:map :legends id] legend_url)))
+
+(defmethod get-layer-legend :arcgis-feature-server
+  [{:keys [db]} [_ {:keys [id server_url] :as layer}]]
+  {:db         (assoc-in db [:map :legends id] :map.legend/loading)
+   :http-xhrio {:method          :get
+                :uri             server_url
+                :params          {:f "json"}
+                :response-format (ajax/json-response-format {:keywords? true})
+                :on-success      [:map.layer/get-legend-success layer]
+                :on-failure      [:map.layer/get-legend-error layer]}})
 
 (defmethod get-layer-legend :map-server-vector
   [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
@@ -763,6 +778,25 @@
                         :filter filter
                         :style  (-> symbolizers first wms-symbolizer->key)})))]
     (assoc-in db [:map :legends id] legend)))
+
+(defmethod get-layer-legend-success :arcgis-feature-server
+  [db [_ {:keys [id server_url] :as _layer} response]]
+  (letfn [(convert-color
+            [[r g b a]]
+            (str "rgba(" r "," g "," b "," a ")"))
+          (convert-value-info
+            [{:keys [label name] :as value-info}]
+            {:label   (or label name)
+             :style
+             {:background-color (-> value-info :symbol :color convert-color)
+              :border           (str "solid 2px " (-> value-info :symbol :outline :color convert-color))
+              :height           "100%"
+              :width            "100%"}})]
+    (let [render-info (get-in response [:drawingInfo :renderer])
+          legend      (if (:uniqueValueInfos render-info)
+                        (mapv convert-value-info (:uniqueValueInfos render-info))
+                        (-> render-info convert-value-info vector))]
+      (assoc-in db [:map :legends id] legend))))
 
 (defmethod get-layer-legend-success :map-server-vector
   [db [_ {:keys [id server_url] :as _layer} response]]
