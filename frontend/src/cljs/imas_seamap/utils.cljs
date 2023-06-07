@@ -329,3 +329,9 @@
   sometimes needs special handling)."
   [url]
   (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" url))
+
+(defn feature-server-url?
+  "Returns true when a url looks like it comes from FeatureServer (which
+  sometimes needs special handling)."
+  [url]
+  (re-matches #"^(.+?)/services/(.+?)/FeatureServer/.+$" url))
