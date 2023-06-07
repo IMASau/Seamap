@@ -771,12 +771,22 @@
 
 (defmethod get-layer-legend-success :wms-geoserver
   [db [_ {:keys [id server_url layer_name] :as _layer} response]]
-  (let [legend (->> response :Legend first :rules ; FIXME
-                    (mapv
-                     (fn [{:keys [title filter symbolizers]}]
-                       {:label  title
-                        :filter filter
-                        :style  (-> symbolizers first wms-symbolizer->key)})))]
+  (js/console.log "get-layer-legend-success" :wms-geoserver)
+  (let [legend (if (-> response :Legend first :rules first :symbolizers first wms-symbolizer->key) ; Convert the symbolizer for the first key
+                 (->> response :Legend first :rules                                                ; if it converts successfully, then we make a vector legend and convert to keys and labels
+                      (mapv
+                       (fn [{:keys [title filter symbolizers]}]
+                         {:label  title
+                          :filter filter
+                          :style  (-> symbolizers first wms-symbolizer->key)})))
+                 (append-query-params                                                              ; else we just use an image for the legend graphic
+                  server_url
+                  {:REQUEST     "GetLegendGraphic"
+                   :LAYER       layer_name
+                   :TRANSPARENT true
+                   :SERVICE     "WMS"
+                   :VERSION     "1.1.1"
+                   :FORMAT      "image/png"}))]
     (assoc-in db [:map :legends id] legend)))
 
 (defmethod get-layer-legend-success :arcgis-feature-server
