@@ -771,7 +771,6 @@
 
 (defmethod get-layer-legend-success :wms-geoserver
   [db [_ {:keys [id server_url layer_name] :as _layer} response]]
-  (js/console.log "get-layer-legend-success" :wms-geoserver)
   (let [legend (if (-> response :Legend first :rules first :symbolizers first wms-symbolizer->key) ; Convert the symbolizer for the first key
                  (->> response :Legend first :rules                                                ; if it converts successfully, then we make a vector legend and convert to keys and labels
                       (mapv
