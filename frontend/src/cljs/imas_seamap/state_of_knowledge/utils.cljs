@@ -100,7 +100,7 @@
                                          (sort-by :provincial-bioregion)
                                          vec)
              :mesoscale-bioregions  (->> imcra-boundaries
-                                         (filter #(and (:mesoscale-bioregion %) (valid-boundary? % boundary-filter-names [:mesoscale-bioregion])))
+                                         (filter #(and (:mesoscale-bioregion %) (valid-boundary? % boundary-filter-names [:provincial-bioregion])))
                                          (map #(select-keys % [:provincial-bioregion :mesoscale-bioregion]))
                                          distinct
                                          (sort-by (juxt :provincial-bioregion :mesoscale-bioregion))
