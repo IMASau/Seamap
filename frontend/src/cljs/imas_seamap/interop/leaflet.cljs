@@ -24,10 +24,15 @@
 (def vector-tile-layer   (r/adapt-react-class VectorTileLayer/default))
 (def non-tiled-layer     (r/adapt-react-class
                           (ReactLeafletCore/createLayerComponent
+                           ;; Create layer fn
                            (fn [props context]
                              (let [instance ((-> L .-nonTiledLayer .-wms) (.-url props) (clj->js props))]
                                #js{:instance instance :context context}))
-                           nil)))
+                           ;; Update layer fn
+                           (fn [instance props prev-props]
+                             ; TODO: More prop updates?
+                             (when (not= (.-opacity props) (.-opacity prev-props))
+                               (.setOpacity instance (.-opacity props)))))))
 (def map-container       (r/adapt-react-class ReactLeaflet/MapContainer))
 (def pane                (r/adapt-react-class ReactLeaflet/Pane))
 (def marker              (r/adapt-react-class ReactLeaflet/Marker))
