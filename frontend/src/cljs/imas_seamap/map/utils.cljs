@@ -391,8 +391,16 @@
          (remove #(hidden-layers %))
          (replace {main-national-layer displayed-national-layer}))))
 
-(defn has-active-layers?
+#_(defn has-active-layers?
   "utility to simplify a check for any active layers (we want to disable
   some behaviour if there are no layers active, for example)"
   [{:keys [map] :as _db}]
   (-> map :active-layers seq))
+
+(defn has-visible-habitat-layers?
+  "Utility to simplify a check for any visible habitat layers."
+  [{:keys [map] :as _db}]
+  (->>
+   (visible-layers map)
+   (filter #(= (:category %) :habitat))
+   seq boolean))

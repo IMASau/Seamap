@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer has-active-layers?]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer has-visible-habitat-layers?]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -456,6 +456,7 @@
         db (update-in db [:map :hidden-layers] #((if hidden? disj conj) % layer))]
     {:db         db
      :dispatch-n [[:map/popup-closed]
+                  [:map.layer.selection/maybe-clear]
                   [:maybe-autosave]]}))
 
 (defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
@@ -578,9 +579,9 @@
 (defn map-clear-selection [db _]
   (update-in db [:map :controls :download] dissoc :bbox))
 
-(defn map-maybe-clear-selection [db _]
-  (when-not (has-active-layers? db)
-    (map-clear-selection db _)))
+(defn map-maybe-clear-selection [{:keys [db]} _]
+  (when-not (has-visible-habitat-layers? db)
+    {:dispatch [:map.layer.selection/clear]}))
 
 (defn map-finalise-selection [{:keys [db]} [_ bbox]]
   {:db      (update-in db [:map :controls :download] merge {:selecting false
