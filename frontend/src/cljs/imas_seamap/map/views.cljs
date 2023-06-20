@@ -238,7 +238,8 @@
      :transparent      true
      :opacity          (/ (layer-opacities layer) 100)
      :tiled            true
-     :format           "image/png"}
+     :format           "image/png"
+     :cross-origin     "anonymous"}
     (when style {:styles style})
     (boundary-filter layer))])
 
