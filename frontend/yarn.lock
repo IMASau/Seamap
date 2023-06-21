@@ -5249,10 +5249,8 @@ esri-leaflet-cluster@^3.0.0:
   resolved "https://registry.yarnpkg.com/esri-leaflet-cluster/-/esri-leaflet-cluster-3.0.0.tgz#bc4b1a6846112e21c4d2105ae29c3f1ecd680261"
   integrity sha512-aAj2Bv7Lv8e4uK/BLT5EJlIizk+28NSSYbkYcPT+HYrnmLwog01V7pGxGOmI3HMpDMTjlt8WE9DpygMy6TIwQQ==
 
-esri-leaflet-renderers@3.0.0:
+"esri-leaflet-renderers@file:./custom_modules/esri-leaflet-renderers":
   version "3.0.0"
-  resolved "https://registry.yarnpkg.com/esri-leaflet-renderers/-/esri-leaflet-renderers-3.0.0.tgz#71d06c4da9a31c835d240a0bb8ad3c5a682cb0f6"
-  integrity sha512-vRHzhiYBUj7QbRgkSa6amoBj7eVMbbO2JGyHOh6rnt9HQJqSP0syVkToCpv+p7zcn+VTjNdTOeMAU6hPVS523A==
   optionalDependencies:
     esri-leaflet-cluster "^3.0.0"
 
