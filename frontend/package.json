@@ -10,7 +10,7 @@
     "@react-leaflet/core": "2.0.1",
     "create-react-class": "^15.7.0",
     "esri-leaflet": "3.0.8",
-    "esri-leaflet-renderers": "3.0.0",
+    "esri-leaflet-renderers": "file:./custom_modules/esri-leaflet-renderers",
     "esri-leaflet-vector": "3.1.5",
     "leaflet": "1.8.0",
     "leaflet-draw": "^1.0.4",
