@@ -1,18 +1,34 @@
-import requests
-import re
-import logging
-import pyodbc
-from django.core.management.base import BaseCommand
-from django.conf import settings
 from collections import namedtuple
+import logging
+import re
+
+from django.conf import settings
+from django.core.management.base import BaseCommand
+from django.urls.exceptions import Http404
+from requests.adapters import HTTPAdapter, Retry
 from shapely.geometry import shape
+import pyodbc
+import requests
 
 from catalogue.models import Layer
+
 
 LayerFeature = namedtuple('LayerFeature', 'layer_id geom')
 
 # Inserts a layer feature row; geom is added in binary MS-SSCLRT format
 SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature ( layer_id, geom ) VALUES ( ?, ? );"
+
+
+def http_session():
+    retry_strategy = Retry(
+        total=3,
+        status_forcelist=[ 500, 502, 503, 504 ]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    http = requests.Session()
+    http.mount("https://", adapter)
+    http.mount("http://", adapter)
+    return http
 
 
 def mapserver_layer_query_url(layer):
@@ -67,12 +83,12 @@ def get_geoserver_geojson(layer, server_url, result_offset=0):
         'outputFormat': 'application/json',
         # Technically this is an optional feature, but we are 100%
         # geoserver for now so should be safe:
-        'count':        5000,
+        'count':        100,
         'startIndex':   result_offset,
     }
 
     try:
-        r = requests.get(url=server_url, params=params)
+        r = http_session().get(url=server_url, params=params)
     except Exception as e:
         logging.error('Error at %s', 'division', exc_info=e)
     else:
@@ -133,7 +149,7 @@ def get_features(layer, server_url, result_offset=0):
     if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', server_url):
         geojson, exceeded_transfer_limit = get_mapserver_geojson(server_url, result_offset)
     else:
-        geojson = get_geoserver_geojson(layer, server_url, result_offset)
+        geojson, exceeded_transfer_limit = get_geoserver_geojson(layer, server_url, result_offset)
     if geojson:
         features = [
             LayerFeature(
