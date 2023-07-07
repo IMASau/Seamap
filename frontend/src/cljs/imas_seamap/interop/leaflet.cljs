@@ -47,7 +47,7 @@
 (def feature-group       (r/adapt-react-class ReactLeaflet/FeatureGroup))
 (def edit-control        (r/adapt-react-class (ReactLeafletCore/createControlComponent #(new (.. L -Control -Draw) %)))) ; horrible workaround for react-leaflet-draw not working; using leaflet-draw directly
 (def circle-marker       (r/adapt-react-class ReactLeaflet/CircleMarker))
-(def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L %))))
+(def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L/default %))))
 (def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L .-control .-coordinates) %))))
 (def geojson-feature     L/geoJson)
