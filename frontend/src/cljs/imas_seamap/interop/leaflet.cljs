@@ -24,7 +24,7 @@
                           (ReactLeafletCore/createLayerComponent
                            ;; Create layer fn
                            (fn [props context]
-                             (let [instance ((-> L .-nonTiledLayer .-wms) (.-url props) (clj->js props))]
+                             (let [instance ((-> L/default .-nonTiledLayer .-wms) (.-url props) (clj->js props))]
                                #js{:instance instance :context context}))
                            ;; Update layer fn
                            (fn [instance props prev-props]
@@ -45,11 +45,11 @@
 (def marker              (r/adapt-react-class ReactLeaflet/Marker))
 (def popup               (r/adapt-react-class ReactLeaflet/Popup))
 (def feature-group       (r/adapt-react-class ReactLeaflet/FeatureGroup))
-(def edit-control        (r/adapt-react-class (ReactLeafletCore/createControlComponent #(new (.. L -Control -Draw) %)))) ; horrible workaround for react-leaflet-draw not working; using leaflet-draw directly
+(def edit-control        (r/adapt-react-class (ReactLeafletCore/createControlComponent #(new (.. L/default -Control -Draw) %)))) ; horrible workaround for react-leaflet-draw not working; using leaflet-draw directly
 (def circle-marker       (r/adapt-react-class ReactLeaflet/CircleMarker))
 (def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L/default %))))
 (def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
-(def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L .-control .-coordinates) %))))
+(def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L/default .-control .-coordinates) %))))
 (def geojson-feature     L/geoJson)
 (def latlng              L/LatLng)
 (def esri-query          #(.query esri (clj->js %)))
