@@ -410,6 +410,13 @@ class RegionReport {
         });
         const filteredValues = values.filter(e => e.year >= 2000);
 
+        // ticks
+        const startYear = Math.floor(Math.min(...values.map(e => e.year)));
+        const partialRange = new Date().getFullYear() + 1 - 2000;
+        const partialTicks = Array.from({ length: partialRange }, (_, i) => i + 2000);
+        const fullRange = new Date().getFullYear() + 1 - startYear;
+        const fullTicks = Array.from({ length: partialRange }, (_, i) => i * Math.ceil(fullRange / partialRange) + startYear);
+
         // generate graphs
         vegaEmbed(
             `#region-report-research-effort-1-${this.postId}`,
@@ -424,12 +431,12 @@ class RegionReport {
                         field: "year",
                         type: "quantitative",
                         axis: {
-                            tickMinStep: 1,
-                            format: "r"
+                            format: "r",
+                            values: fullTicks
                         },
                         scale: {
                             domain: [
-                                Math.floor(Math.min(...values.map(e => e.year))),
+                                startYear,
                                 new Date().getFullYear() + 1
                             ]
                         },
@@ -471,8 +478,8 @@ class RegionReport {
                         field: "year",
                         type: "quantitative",
                         axis: {
-                            tickMinStep: 1,
-                            format: "r"
+                            format: "r",
+                            values: partialTicks
                         },
                         scale: {
                             domain: [
