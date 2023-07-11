@@ -9,6 +9,7 @@
     "@blueprintjs/select": "^3.19.1",
     "@react-leaflet/core": "^2.1.0",
     "create-react-class": "^15.7.0",
+    "copy-to-clipboard": "3.3.3",
     "esri-leaflet": "3.0.8",
     "esri-leaflet-renderers": "file:./custom_modules/esri-leaflet-renderers",
     "esri-leaflet-vector": "3.1.5",

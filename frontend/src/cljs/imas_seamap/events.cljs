@@ -673,7 +673,6 @@
   db)
 
 (defn create-save-state [{:keys [db]} _]
-  (copy-text js/location.href)
   (let [save-state-url (get-in db [:config :urls :save-state-url])]
     {:http-xhrio [{:method          :post
                    :uri             save-state-url
