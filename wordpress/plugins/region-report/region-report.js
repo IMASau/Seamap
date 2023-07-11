@@ -415,7 +415,8 @@ class RegionReport {
         const partialRange = new Date().getFullYear() + 1 - 2000;
         const partialTicks = Array.from({ length: partialRange }, (_, i) => i + 2000);
         const fullRange = new Date().getFullYear() + 1 - startYear;
-        const fullTicks = Array.from({ length: partialRange }, (_, i) => i * Math.ceil(fullRange / partialRange) + startYear);
+        const fullStep = Math.round(fullRange / partialRange);
+        const fullTicks = Array.from({ length: Math.floor((new Date().getFullYear() - startYear) / fullStep) }, (_, i) => i * fullStep + startYear);
 
         // generate graphs
         vegaEmbed(
