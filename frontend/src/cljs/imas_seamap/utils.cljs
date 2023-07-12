@@ -177,7 +177,10 @@
           str))))
 
 (defn copy-text [text]
-  (copy-to-clipboard text))
+  (.then
+   (js/navigator.clipboard.writeText text)
+   nil
+   #(copy-to-clipboard text)))
 
 (defn append-params-from-map
   [url params]
