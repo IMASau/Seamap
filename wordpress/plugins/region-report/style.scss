@@ -222,6 +222,29 @@ body {
                 >canvas { max-width: 100%; }
             }
 
+            .research-effort-legend {
+                >h4 {
+                    font-size: 12px;
+                    font-weight: bold;
+                    margin: 0;
+                    margin-bottom: 3px;
+                }
+                >.research-effort-legend-entry {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 4px;
+                    height: 14px;
+                    >:nth-child(1) {
+                        height: 10px;
+                        aspect-ratio: 1;
+                    }
+                    >:nth-child(2) {
+                        font-size: 10px;
+                    }
+                }
+            }
+
             >* {
                 flex: 1;
                 min-width: 0;
