@@ -6,13 +6,35 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display settings-overlay left-drawer-catalogue left-drawer-active-layers menu-button settings-button layers-search-omnibar layer-preview hotkeys-combos control-block print-control control-block-child transect-control]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button settings-button layer-catalogue layers-search-omnibar hotkeys-combos control-block print-control control-block-child transect-control autosave-application-state-toggle]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.components :as components]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
+
+(defn welcome-dialogue []
+  (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
+    [b/dialogue
+     {:title
+      (reagent/as-element
+       [:<> "Welcome to" [:br] "Tasmania's Marine Atlas."])
+      :class    "welcome-splash"
+      :is-open  open?
+      :on-close #(re-frame/dispatch [:welcome-layer/close])}
+     [:div.bp3-dialog-body
+      [:div.overview
+       "The Tasmania's Marine Atlas acknowledges the traditional
+       custodians of the land upon which we live and work. We honour
+       their enduring culture and knowledges as vital to the
+       self-determination, wellbeing and resilience of their
+       communities."]
+      [b/button
+       {:text       "Get Started!"
+        :intent     b/INTENT-PRIMARY
+        :auto-focus true
+        :on-click   #(re-frame/dispatch [:welcome-layer/close])}]]]))
 
 (defn region-control []
   (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
@@ -67,12 +89,17 @@
         tab   @(re-frame/subscribe [:left-drawer/tab])
         {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
-     {:title       "Tasmania Marine Atlas"
+     {:title
+      [:<>
+       [:div
+        [:a {:href "https://tasmaniamarineatlas.org/"}
+         [:img {:src "img/TMA_Banner_size_website.png"}]]]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
       :className   "left-drawer tas-marine-atlas-drawer"
+      :isCloseButtonShown false
       :hasBackdrop false}
      [b/tabs
       {:id              "left-drawer-tabs"
@@ -117,8 +144,10 @@
      [layer-catalogue-header {:layer layer :layer-state layer-state}]]))
 
 (defn data-in-region-drawer []
-  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [filtered-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
         {:keys [status layers]} @(re-frame/subscribe [:data-in-region/data])
+        ;; Filter out layers in region that have no category (ie, currently just placeholders)
+        layers (filter (set filtered-layers) layers)
         layer-props
         {:active-layers  active-layers
          :visible-layers visible-layers
@@ -136,34 +165,50 @@
       :hasBackdrop false
       :className   "data-in-region-drawer"}
      (case status
-       
+
        :data-in-region/loaded
-       [:<>
+       [layer-catalogue :region layers layer-props]
+       #_[:<>
         (for [{:keys [id] :as layer} layers]
           ^{:key (str id)}
           [data-in-region-layer layer layer-props])]
-       
+
        :data-in-region/loading
        [b/non-ideal-state
         {:icon  (reagent/as-element [b/spinner {:intent "success"}])}]
-       
+
        :data-in-region/none
        [b/non-ideal-state
         {:title       "No Data"
          :description "We are unable to display any region data at this time."
          :icon        "info-sign"}])]))
 
+
+(defn settings-overlay []
+  [b/dialogue
+   {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])
+    :class      "settings-overlay-dialogue"
+    :is-open    @(re-frame/subscribe [:ui/settings-overlay])
+    :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
+   [:div.bp3-dialog-body
+    [autosave-application-state-toggle]
+    [b/button
+     {:icon     "undo"
+      :class    "bp3-fill"
+      :intent   b/INTENT-PRIMARY
+      :text     "Reset Interface"
+      :on-click   #(re-frame/dispatch [:re-boot])}]]])
+
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         _                  (use-hotkeys hot-keys) ; We don't need the results of this, just need to ensure it's called!
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? @(re-frame/subscribe [:sm.featured-map/open?])]
-    [:div#main-wrapper
+    [:div#main-wrapper.tas-marine-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper
-      [map-component]
-      [plot-component]]
-     
+      [map-component]]
+
      ;; TODO: Separate helper overlay for TasMarineAtlas?
      [helper-overlay
       {:selector       ".SelectionListItem:first-child .layer-card .layer-header"
@@ -187,10 +232,7 @@
       {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
        :helperText     "Filter layers by category or responsible organisation"
        :helperPosition "bottom"
-       :padding        0}
-      {:id "plot-footer"
-       :helperText "Draw a transect to show a depth profile of habitat data"
-       :helperPosition "top"}]
+       :padding        0}]
      [info-card]
      [settings-overlay]
      [loading-display]
@@ -199,5 +241,5 @@
      [featured-map-drawer]
      [layers-search-omnibar]
      [custom-leaflet-controls]
-     [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
+     [welcome-dialogue]]))
 

@@ -49,12 +49,15 @@
    :habitat-titles  {}
    :display         {:mouse-pos             {}
                      :help-overlay          false
+                     :welcome-overlay       true
                      :settings-overlay      false
                      :left-drawer           true
                      :left-drawer-tab       "catalogue"
                      :layers-search-omnibar false
-                     :catalogue             {:tab      "cat"
-                                             :expanded #{}}
+                     :catalogue             {:main {:tab      "cat"
+                                                    :expanded #{}}
+                                             :region {:tab      "cat"
+                                                      :expanded #{}}}
                      :sidebar               {:collapsed false
                                              :selected  "tab-activelayers"}}
    :autosave?       false

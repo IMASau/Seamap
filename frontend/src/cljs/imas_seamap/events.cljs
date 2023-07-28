@@ -383,7 +383,12 @@
                 :value true}})
 
 (defn layer-show-info [{:keys [db]} [_ {:keys [metadata_url] :as layer}]]
-  (if (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-[0-9a-f]{4}\-4[0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}$" metadata_url)
+  ;; This regexp: has been relaxed slightly; it used to be a strict
+  ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
+  ;; alpha-nums with optional hyphens. I assume this is from records
+  ;; re-hosted in our server, but with IDs created externally, but
+  ;; it's just not that important to be strict here, regardless:
+  (if (re-matches #"(?i)^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}$" metadata_url)
     {:db         (assoc-in db [:display :info-card] :display.info/loading)
      :http-xhrio {:method          :get
                   :uri             (-> layer :metadata_url geonetwork-force-xml)
@@ -668,7 +673,6 @@
   db)
 
 (defn create-save-state [{:keys [db]} _]
-  (copy-text js/location.href)
   (let [save-state-url (get-in db [:config :urls :save-state-url])]
     {:http-xhrio [{:method          :post
                    :uri             save-state-url
@@ -690,25 +694,25 @@
   {:message ["Failed to generate URL!"
              {:intent b/INTENT-WARNING :icon "warning-sign"}]})
 
-(defn catalogue-select-tab [{:keys [db]} [_ tabid]]
-  (let [db (assoc-in db [:display :catalogue :tab] tabid)]
+(defn catalogue-select-tab [{:keys [db]} [_ catid tabid]]
+  (let [db (assoc-in db [:display :catalogue catid :tab] tabid)]
     {:db       db
      :dispatch [:maybe-autosave]}))
 
-(defn catalogue-toggle-node [{:keys [db]} [_ nodeid]]
-  (let [nodes (get-in db [:display :catalogue :expanded])
-        db    (update-in db [:display :catalogue :expanded] (if (nodes nodeid) disj conj) nodeid)]
+(defn catalogue-toggle-node [{:keys [db]} [_ catid nodeid]]
+  (let [nodes (get-in db [:display :catalogue catid :expanded])
+        db    (update-in db [:display :catalogue catid :expanded] (if (nodes nodeid) disj conj) nodeid)]
     {:db       db
      :dispatch [:maybe-autosave]}))
 
-(defn catalogue-add-node [{:keys [db]} [_ nodeid]]
-  (let [db (update-in db [:display :catalogue :expanded] conj nodeid)]
+(defn catalogue-add-node [{:keys [db]} [_ catid nodeid]]
+  (let [db (update-in db [:display :catalogue catid :expanded] conj nodeid)]
    {:db       db
     :dispatch [:maybe-autosave]}))
 
 (defn catalogue-add-nodes-to-layer
   "Opens nodes in catalogue along path to specified layer"
-  [{:keys [db]} [_ layer tab categories]]
+  [{:keys [db]} [_ catid layer tab categories]]
   (let [sorting-info (:sorting db)
         node-ids   (reduce
                     (fn [node-ids category]
@@ -718,7 +722,7 @@
                                         (str "|" sorting-id))]
                         (conj node-ids node-id)))
                     [] categories)]
-    {:dispatch-n (map #(vec [:ui.catalogue/add-node %]) node-ids)}))
+    {:dispatch-n (map #(vec [:ui.catalogue/add-node catid %]) node-ids)}))
 
 (defn sidebar-open [{:keys [db]} [_ tabid]]
   (let [{:keys [selected collapsed]} (get-in db [:display :sidebar])

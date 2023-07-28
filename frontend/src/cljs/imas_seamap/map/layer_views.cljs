@@ -127,7 +127,8 @@
       [:div {:style style}])]
    [b/clipped-text
     {:ellipsize true :class "label"}
-    (string/replace label #"\\n" "\n")]])
+    ((fnil string/replace "") label #"\\n" "\n")]])
+
 
 (defn- legend [legend-info]
   (if (string? legend-info)

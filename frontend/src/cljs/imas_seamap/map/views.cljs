@@ -10,7 +10,6 @@
             [imas-seamap.interop.leaflet :as leaflet]
             [goog.string :as gstring]
             ["react-leaflet" :as ReactLeaflet]
-            ["/leaflet-zoominfo/L.Control.Zoominfo"]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -238,7 +237,8 @@
      :transparent      true
      :opacity          (/ (layer-opacities layer) 100)
      :tiled            true
-     :format           "image/png"}
+     :format           "image/png"
+     :cross-origin     "anonymous"}
     (when style {:styles style})
     (boundary-filter layer))])
 
@@ -274,8 +274,7 @@
          :use-fly-to           false
          :center               center
          :zoom                 zoom
-         :zoomControl          false
-         :zoominfoControl      true
+         :zoomControl          true
          :scaleFactor          true
          :minZoom              2
          :keyboard             false ; handled externally

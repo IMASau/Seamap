@@ -5,8 +5,8 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer]]
+            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer has-visible-habitat-layers?]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -77,12 +77,18 @@
      :east  (+ lng (/ img-x-bounds 2))
      :west  (- lng (/ img-x-bounds 2))}))
 
+(def ^:const INFO-FORMAT-HTML 1)
+(def ^:const INFO-FORMAT-JSON 2)
+(def ^:const INFO-FORMAT-NONE 3)
+(def ^:const INFO-FORMAT-FEATURE 4)
+(def ^:const INFO-FORMAT-XML 5)
+
 (defmulti get-feature-info #(second %2))
 
 (def feature-info-image-size
   {:width 101 :height 101})
 
-(defmethod get-feature-info 1
+(defmethod get-feature-info INFO-FORMAT-HTML
   [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
@@ -114,7 +120,7 @@
       :on-success      [:map/got-featureinfo request-id point "text/html" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
-(defmethod get-feature-info 2
+(defmethod get-feature-info INFO-FORMAT-JSON
   [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
@@ -146,7 +152,7 @@
       :on-success      [:map/got-featureinfo request-id point "application/json" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
-(defmethod get-feature-info 4
+(defmethod get-feature-info INFO-FORMAT-FEATURE
   [_ [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point}]]
   (let [query         (leaflet/esri-query {:url (-> layers first :server_url)})
         leaflet-point (leaflet/latlng. lat lng)]
@@ -156,6 +162,38 @@
                     (re-frame/dispatch [:map/got-featureinfo-err request-id point nil])
                     (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers (js->clj feature-collection)]))))
     nil))
+
+(defmethod get-feature-info INFO-FORMAT-XML
+  [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+  (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
+                  (bounds->projected wgs84->epsg3112)
+                  (bounds->str 3112))
+        layer-names (->> layers (map layer-name) reverse (string/join ","))]
+    {:http-xhrio
+     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
+     {:method          :get
+      :uri             (-> layers first :server_url)
+      :params
+      {:REQUEST       "GetFeatureInfo"
+       :LAYERS        layer-names
+       :QUERY_LAYERS  layer-names
+       :WIDTH         (:width feature-info-image-size)
+       :HEIGHT        (:height feature-info-image-size)
+       :BBOX          bbox
+       :FEATURE_COUNT 1000
+       :STYLES        ""
+       :X             50
+       :Y             50
+       :TRANSPARENT   true
+       :CRS           "EPSG:3112"
+       :SRS           "EPSG:3112"
+       :FORMAT        "image/png"
+       :INFO_FORMAT   "text/xml"
+       :SERVICE       "WMS"
+       :VERSION       "1.1.1"}
+      :response-format (ajax/text-response-format)
+      :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
+      :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
 (defmethod get-feature-info :default
   [_ [_ _info-format-type layers request-id _leaflet-props point]]
@@ -418,6 +456,7 @@
         db (update-in db [:map :hidden-layers] #((if hidden? disj conj) % layer))]
     {:db         db
      :dispatch-n [[:map/popup-closed]
+                  [:map.layer.selection/maybe-clear]
                   [:maybe-autosave]]}))
 
 (defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
@@ -540,6 +579,10 @@
 (defn map-clear-selection [db _]
   (update-in db [:map :controls :download] dissoc :bbox))
 
+(defn map-maybe-clear-selection [{:keys [db]} _]
+  (when-not (has-visible-habitat-layers? db)
+    {:dispatch [:map.layer.selection/clear]}))
+
 (defn map-finalise-selection [{:keys [db]} [_ bbox]]
   {:db      (update-in db [:map :controls :download] merge {:selecting false
                                                             :bbox      bbox})
@@ -603,6 +646,7 @@
                   (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
     {:db         db
      :dispatch-n [[:map/popup-closed]
+                  [:map.layer.selection/maybe-clear]
                   [:maybe-autosave]]}))
 
 (defn add-layer-from-omnibar
@@ -610,8 +654,8 @@
   {:db       (assoc-in db [:display :layers-search-omnibar] false)
    :dispatch-n [[:map/add-layer layer]
                 [:left-drawer/open]
-                [:ui.catalogue/select-tab "cat"]
-                [:ui.catalogue/catalogue-add-nodes-to-layer layer "cat" [:category :data_classification]]]})
+                [:ui.catalogue/select-tab :main "cat"]
+                [:ui.catalogue/catalogue-add-nodes-to-layer :main layer "cat" [:category :data_classification]]]})
 
 (defn update-preview-layer [db [_ preview-layer]]
   (assoc-in db [:map :preview-layer] preview-layer))
@@ -651,21 +695,43 @@
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
     {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
 
-(defmulti get-layer-legend
-  (fn [{:keys [db]} [_ {:keys [layer_type server_url] :as layer}]]
-    (cond
-      (and
-       (= layer (main-national-layer (:map db)))
-       (not= layer (displayed-national-layer (:map db))))
-      :displayed-national-layer
-      
-      (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
-      :map-server
+(defn ^:private layer-legend-dispatch
+  "We support 3 types: geoserver (using json vector format), ESRI
+  map/feature server layers (using their own vector format), and
+  wms-other (just defaulting to image-based GetLegendGraphic). Because
+  of this we dispatch on capability, rather than server type, because
+  eg :wms doesn't convey enough information"
+  [{:keys [db]} [_ {:keys [layer_type server_url] :as layer}]]
+  (cond
+    (and
+     (= layer (main-national-layer (:map db)))
+     (not= layer (displayed-national-layer (:map db))))
+    :displayed-national-layer         ; Will dispatch again; works around special-casing for the national layer
 
-      (= layer_type :wms-non-tiled) :wms
-      :else                         layer_type)))
+    (and
+      (= layer_type :feature)
+      (feature-server-url? server_url))
+    :arcgis-feature-server
 
-(defmethod get-layer-legend :wms
+    (= layer_type :feature)
+    :map-server-vector
+
+    (and (#{:wms :wms-non-tiled} layer_type)
+         (map-server-url? server_url))
+    :wms-image
+
+    (#{:wms :wms-non-tiled} layer_type)
+    :wms-geoserver
+
+    :else :unknown))
+
+(defmulti get-layer-legend layer-legend-dispatch)
+
+(defmethod get-layer-legend :displayed-national-layer
+  [{:keys [db]} _]
+  {:dispatch [:map.layer/get-legend (displayed-national-layer (:map db))]})
+
+(defmethod get-layer-legend :wms-geoserver
   [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
   {:db         (assoc-in db [:map :legends id] :map.legend/loading)
    :http-xhrio {:method          :get
@@ -680,7 +746,19 @@
                 :on-success      [:map.layer/get-legend-success layer]
                 :on-failure      [:map.layer/get-legend-error layer]}})
 
-(defmethod get-layer-legend :feature
+(defmethod get-layer-legend :wms-image
+  [{:keys [db]} [_ {:keys [id server_url layer_name] :as _layer}]]
+  (let [legend_url (append-query-params
+                    server_url
+                    {:REQUEST     "GetLegendGraphic"
+                     :LAYER       layer_name
+                     :TRANSPARENT true
+                     :SERVICE     "WMS"
+                     :VERSION     "1.1.1"
+                     :FORMAT      "image/png"})]
+    (assoc-in db [:map :legends id] legend_url)))
+
+(defmethod get-layer-legend :arcgis-feature-server
   [{:keys [db]} [_ {:keys [id server_url] :as layer}]]
   {:db         (assoc-in db [:map :legends id] :map.legend/loading)
    :http-xhrio {:method          :get
@@ -690,14 +768,11 @@
                 :on-success      [:map.layer/get-legend-success layer]
                 :on-failure      [:map.layer/get-legend-error layer]}})
 
-(defmethod get-layer-legend :displayed-national-layer
-  [{:keys [db]} _]
-  {:dispatch [:map.layer/get-legend (displayed-national-layer (:map db))]})
-
-(defmethod get-layer-legend :map-server
+(defmethod get-layer-legend :map-server-vector
   [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
-  (let [matches    (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
-        server_url (str (get matches 1) "/rest/services/" (get matches 2) "/MapServer/legend")]
+  ;; FIXME: replace with replace-id bit ".../(\d+)" -> /legend
+  ;; Assume our url is either ...MapServer/<id> or ...FeatureServer/<id>
+  (let [server_url (string/replace server_url #"\d+$" "legend")]
     {:db         (assoc-in db [:map :legends id] :map.legend/loading)
      :http-xhrio {:method          :get
                   :uri             server_url
@@ -709,15 +784,6 @@
 (defmethod get-layer-legend :default
   [{:keys [db]} [_ {:keys [id] :as _layer}]]
   {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)})
-
-(defmulti get-layer-legend-success
-  (fn [_ [_ {:keys [layer_type server_url] :as _layer}]]
-    (cond
-      (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
-      :map-server
-
-      (= layer_type :wms-non-tiled) :wms
-      :else                         layer_type)))
 
 (defmulti wms-symbolizer->key #(-> % keys first))
 
@@ -740,7 +806,9 @@
 
 (defmethod wms-symbolizer->key :default [] nil)
 
-(defmethod get-layer-legend-success :wms
+(defmulti get-layer-legend-success layer-legend-dispatch)
+
+(defmethod get-layer-legend-success :wms-geoserver
   [db [_ {:keys [id server_url layer_name] :as _layer} response]]
   (let [legend (if (-> response :Legend first :rules first :symbolizers first wms-symbolizer->key) ; Convert the symbolizer for the first key
                  (->> response :Legend first :rules                                                ; if it converts successfully, then we make a vector legend and convert to keys and labels
@@ -759,13 +827,13 @@
                    :FORMAT      "image/png"}))]
     (assoc-in db [:map :legends id] legend)))
 
-(defmethod get-layer-legend-success :feature
-  [db [_ {:keys [id] :as _layer} response]]
+(defmethod get-layer-legend-success :arcgis-feature-server
+  [db [_ {:keys [id server_url] :as _layer} response]]
   (letfn [(convert-color
             [[r g b a]]
             (str "rgba(" r "," g "," b "," a ")"))
           (convert-value-info
-            [{:keys [label] :as value-info}]
+            [{:keys [label name] :as value-info}]
             {:label   (or label name)
              :style
              {:background-color (-> value-info :symbol :color convert-color)
@@ -778,28 +846,27 @@
                         (-> render-info convert-value-info vector))]
       (assoc-in db [:map :legends id] legend))))
 
-(defmethod get-layer-legend-success :map-server
-  [db [_ {:keys [id server_url layer_name] :as _layer} response]]
-  (let [legend (if (get-in response [:layers 0 :legend]) ; Get the legend data
-                 (mapv                                   ; if data, then we make a vector legend and convert to keys and labels
-                  (fn [{:keys [label imageData]}]
-                    {:label label
-                     :image (str "data:image/png;base64, " imageData)})
-                  (get-in response [:layers 0 :legend]))
-                 (append-query-params                    ; else we just use an image for the legend graphic
-                  server_url
-                  {:REQUEST     "GetLegendGraphic"
-                   :LAYER       layer_name
-                   :TRANSPARENT true
-                   :SERVICE     "WMS"
-                   :VERSION     "1.1.1"
-                   :FORMAT      "image/png"}))]
+(defmethod get-layer-legend-success :map-server-vector
+  [db [_ {:keys [id server_url] :as _layer} response]]
+  (let [lid (-> server_url (string/split "/") last js/parseInt) ; "rest/services/something/MapServer/2" -> 2
+        layer-data (get-in response [:layers])
+        legend (mapv                    ; convert to keys and labels
+                (fn [{:keys [label imageData]}]
+                  {:label label
+                   :image (str "data:image/png;base64, " imageData)})
+                (->> layer-data
+                     (first-where #(= lid (:layerId %)))
+                     :legend))]
     (assoc-in db [:map :legends id] legend)))
+
+(defmethod get-layer-legend-success :default
+  [{:keys [db]} [_ {:keys [id] :as _layer} _response]]
+  {:db (assoc-in db [:map :legends id] :map.legend/unsupported-layer)})
 
 (defmulti get-layer-legend-error
   (fn [_ [_ {:keys [layer_type server_url] :as _layer}]]
     (cond
-      (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" server_url)
+      (map-server-url? server_url)
       :map-server
 
       (= layer_type :wms-non-tiled) :wms

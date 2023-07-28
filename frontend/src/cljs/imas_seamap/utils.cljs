@@ -9,6 +9,7 @@
             [goog.crypt.base64 :as b64]
             [cognitect.transit :as t]
             [imas-seamap.blueprint :as b]
+            ["copy-to-clipboard" :as copy-to-clipboard]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 ;;; Taken from https://github.com/district0x/district-cljs-utils/
@@ -68,7 +69,7 @@
                               (update :featured-map :id))
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]
-                                      [:display :catalogue]
+                                      [:display :catalogue :main]
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
                                       [:display :national-layer-tab]
@@ -96,7 +97,7 @@
   [state]
   (select-keys* state
                 [[:display :sidebar :selected]
-                 [:display :catalogue]
+                 [:display :catalogue :main]
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
                  [:display :national-layer-tab]
@@ -175,32 +176,11 @@
           update-service
           str))))
 
-;;; https://github.com/metosin/komponentit/blob/master/src/cljs/komponentit/clipboard.cljs (EPL)
 (defn copy-text [text]
-  (let [el (js/document.createElement "textarea")
-        prev-focus-el js/document.activeElement
-        y-pos (or (.. js/window -pageYOffset)
-                  (.. js/document -documentElement -scrollTop))]
-    (set! (.-style el) #js {:position "absolute"
-                            :left "-9999px"
-                            :top (str y-pos "px")
-                            ;; iOS workaround?
-                            :fontSize "12pt"
-                            ;; reset box-model
-                            :border "0"
-                            :padding "0"
-                            :margin "0"})
-    (set! (.-value el) text)
-    (.addEventListener el "focus" (fn [_] (.scrollTo js/window 0 y-pos)))
-    (js/document.body.appendChild el)
-    (.setSelectionRange el 0 (.. el -value -length))
-    (.focus el)
-    (js/document.execCommand "copy")
-    (.blur el)
-    (when prev-focus-el
-      (.focus prev-focus-el))
-    (.removeAllRanges (.getSelection js/window))
-    (js/window.document.body.removeChild el)))
+  (.then
+   (js/navigator.clipboard.writeText text)
+   nil
+   #(copy-to-clipboard text)))
 
 (defn append-params-from-map
   [url params]
@@ -323,3 +303,15 @@
         (.toLocaleString
          "en-AU"
          #js{:month "short" :year "numeric"}))))
+
+(defn map-server-url?
+  "Returns true when a url looks like it comes from MapServer (which
+  sometimes needs special handling)."
+  [url]
+  (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" url))
+
+(defn feature-server-url?
+  "Returns true when a url looks like it comes from FeatureServer (which
+  sometimes needs special handling)."
+  [url]
+  (re-matches #"^(.+?)/services/(.+?)/FeatureServer/.+$" url))

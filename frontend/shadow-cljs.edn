@@ -31,7 +31,7 @@
 
           :min {:target            :browser
                 :closure-defines   {goog.DEBUG false}
-                :output-dir        "resources/public/js/compiled/app"
+                :output-dir        "resources/public/js/compiled/"
                 :module-hash-names true
                 :build-options     {:manifest-name "manifest.json"}
                 :modules           {:app {:entries [imas-seamap.core

@@ -7,6 +7,8 @@ create table TRANSFORM_SQUIDLE_DEPLOYMENT_POINTS (
 	campaign_key nvarchar(255) COLLATE Latin1_General_CI_AS NULL,
 	campaign_id numeric(9,0) NULL,
 	color nvarchar(255) COLLATE Latin1_General_CI_AS NULL,
+	dep_min float NULL,
+	dep_max float NULL,	
 	platform_name nvarchar(255) COLLATE Latin1_General_CI_AS NULL,
 	platform_key nvarchar(255) COLLATE Latin1_General_CI_AS NULL,
 	platform_id numeric(9,0) NULL,

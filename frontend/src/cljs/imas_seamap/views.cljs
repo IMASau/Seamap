@@ -146,21 +146,21 @@
                     [{:id (str id-str "-" (inc (count layer-subset)))
                       :className "tree-cap"}]))}))
 
-(defn- layer-catalogue-tree [_layers _ordering _id _layer-props _open-all?]
-  (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes])
+(defn- layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all?]
+  (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes catid])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
                   (let [node (js->clj node :keywordize-keys true)]
-                    (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
+                    (re-frame/dispatch [:ui.catalogue/toggle-node catid (:id node)])))
         on-close (fn [node]
                    (let [node (js->clj node :keywordize-keys true)]
-                     (re-frame/dispatch [:ui.catalogue/toggle-node (:id node)])))
+                     (re-frame/dispatch [:ui.catalogue/toggle-node catid (:id node)])))
         on-click (fn [node]
                    (let [{:keys [childNodes id]} (js->clj node :keywordize-keys true)]
                      (when (seq childNodes)
                        ;; If we have children, toggle expanded state, else add to map
-                       (re-frame/dispatch [:ui.catalogue/toggle-node id]))))]
-    (fn [layers ordering id layer-props open-all?]
+                       (re-frame/dispatch [:ui.catalogue/toggle-node catid id]))))]
+    (fn [_catid layers ordering id layer-props open-all?]
      [:div.tab-body {:id id}
       [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all?)
                :onNodeCollapse on-close
@@ -170,9 +170,9 @@
                                     (re-frame/dispatch [:map/update-preview-layer preview-layer]))
                :onNodeMouseLeave #(re-frame/dispatch [:map/update-preview-layer nil])}]])))
 
-(defn- layer-catalogue [layers layer-props]
-  (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab])
-        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab %1])
+(defn layer-catalogue [catid layers layer-props]
+  (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
+        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab catid %1])
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
     [b/tabs {:selected-tab-id selected-tab
              :on-change       select-tab
@@ -181,12 +181,12 @@
       {:id    "cat"
        :title "By Category"
        :panel (reagent/as-element
-               [layer-catalogue-tree layers [:category :data_classification] "cat" layer-props open-all?])}]
+               [layer-catalogue-tree catid layers [:category :data_classification] "cat" layer-props open-all?])}]
      [b/tab
       {:id    "org"
        :title "By Organisation"
        :panel (reagent/as-element
-               [layer-catalogue-tree layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]))
+               [layer-catalogue-tree catid layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]))
 
 (defn- viewport-only-toggle []
   (let [[icon text] (if @(re-frame/subscribe [:map/viewport-only?])
@@ -199,7 +199,7 @@
       :on-click #(re-frame/dispatch [:map/toggle-viewport-only])
       :text     text}]))
 
-(defn- autosave-application-state-toggle []
+(defn autosave-application-state-toggle []
   (let [[icon text] (if @(re-frame/subscribe [:autosave?])
                       ["disable" "Disable Autosave Application State"]
                       ["floppy-disk" "Enable Autosave Application State"])]
@@ -355,6 +355,7 @@
         CSIRO, IMOS, Geoscience Australia, Great Barrier Reef Marine
         Park Authority (GBRMPA), the National Environmental Science
         Program (NESP), and all State Governments."]]]))
+
 (defn settings-overlay []
   [b/dialogue
    {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])
@@ -585,10 +586,26 @@
     :id       "settings-button"
     :icon     "cog"}])
 
+(defn zoom-control []
+  (let [{:keys [zoom]} @(re-frame/subscribe [:map/props])]
+    [control-block
+   [control-block-child
+    {:on-click #(-> "leaflet-control-zoom-in" js/document.getElementsByClassName first .click)
+     :icon     "plus"}]
+   [b/tooltip
+    {:content "Zoom Level"
+     :position b/RIGHT}
+    [:div.zoom-level zoom]]
+   [control-block-child
+    {:on-click #(-> "leaflet-control-zoom-out" js/document.getElementsByClassName first .click)
+     :icon     "minus"}]]))
+
 (defn custom-leaflet-controls []
   [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
    [menu-button]
    [settings-button]
+   [zoom-control]
+
    [control-block
     [print-control]
 
@@ -676,7 +693,7 @@
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
     [:<>
      [layer-search-filter]
-     [layer-catalogue catalogue-layers
+     [layer-catalogue :main catalogue-layers
       {:active-layers  active-layers
        :visible-layers visible-layers
        :main-national-layer main-national-layer
@@ -822,7 +839,7 @@
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (or @(re-frame/subscribe [:sok/open?]) @(re-frame/subscribe [:sm.featured-map/open?]))
         loading?           @(re-frame/subscribe [:app/loading?])]
-    [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
+    [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
      [:div#content-wrapper
       [map-component]

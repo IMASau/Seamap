@@ -1,18 +1,34 @@
-import requests
-import re
-import logging
-import pyodbc
-from django.core.management.base import BaseCommand
-from django.conf import settings
 from collections import namedtuple
+import logging
+import re
+
+from django.conf import settings
+from django.core.management.base import BaseCommand
+from django.urls.exceptions import Http404
+from requests.adapters import HTTPAdapter, Retry
 from shapely.geometry import shape
+import pyodbc
+import requests
 
 from catalogue.models import Layer
+
 
 LayerFeature = namedtuple('LayerFeature', 'layer_id geom')
 
 # Inserts a layer feature row; geom is added in binary MS-SSCLRT format
 SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature ( layer_id, geom ) VALUES ( ?, ? );"
+
+
+def http_session():
+    retry_strategy = Retry(
+        total=3,
+        status_forcelist=[ 500, 502, 503, 504 ]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    http = requests.Session()
+    http.mount("https://", adapter)
+    http.mount("http://", adapter)
+    return http
 
 
 def mapserver_layer_query_url(layer):
@@ -58,17 +74,21 @@ def mapserver_layer_query_url(layer):
     return None
 
 
-def get_geoserver_geojson(layer, server_url):
+def get_geoserver_geojson(layer, server_url, result_offset=0):
     params = {
         'request':      'GetFeature',
         'service':      'WFS',
-        'version':      '1.0.0',
+        'version':      '2.0.0',
         'typeNames':    layer.layer_name,
         'outputFormat': 'application/json',
+        # Technically this is an optional feature, but we are 100%
+        # geoserver for now so should be safe:
+        'count':        100,
+        'startIndex':   result_offset,
     }
 
     try:
-        r = requests.get(url=server_url, params=params)
+        r = http_session().get(url=server_url, params=params)
     except Exception as e:
         logging.error('Error at %s', 'division', exc_info=e)
     else:
@@ -83,8 +103,15 @@ def get_geoserver_geojson(layer, server_url):
             except Exception as e:
                 logging.error('Error at %s\nResponse:\n%s', 'division', data, exc_info=e)
             else:
-                return data
-    return None
+                # We will use the presence of a 'next' link (not that
+                # we use the link itself) to decide whether there is
+                # more data to come or not. I think we may end up
+                # making an extra call, for no data, but in the scheme
+                # of things that's no great drama.
+                links = data.get('links', [])
+                has_next = any(link.get('rel') == 'next' for link in links)
+                return data, has_next
+    return None, False
 
 
 def get_mapserver_geojson(server_url, result_offset=0):
@@ -122,7 +149,7 @@ def get_features(layer, server_url, result_offset=0):
     if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', server_url):
         geojson, exceeded_transfer_limit = get_mapserver_geojson(server_url, result_offset)
     else:
-        geojson = get_geoserver_geojson(layer, server_url)
+        geojson, exceeded_transfer_limit = get_geoserver_geojson(layer, server_url, result_offset)
     if geojson:
         features = [
             LayerFeature(
