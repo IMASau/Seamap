@@ -94,8 +94,48 @@ $seamap-medium-blue: #5f9acb;
 $seamap-color-2-darker: rgb(25, 44, 86);
 $seamap-color-3-darker: rgb(39, 91, 141);
 
+$tma-color-1: rgb(18, 37, 55);
+$tma-color-2: rgb(11, 80, 113);
+
+$tma-deep-blue: rgb(18, 89, 117);
+$tma-deep-blue-lighter: rgb(19, 102, 134);
+
+$tma-color-2-darker: rgb(8, 73, 103);
+
 $body-font-family: "OpenSans", "system-ui", "Icons16", sans-serif;
 $headings-font-family: "Poppins", "system-ui", sans-serif;
+
+:root,
+.seamap {
+    --color-1: #{$seamap-color-1};
+    --color-2: #{$seamap-color-2};
+    --color-3: #{$seamap-color-3};
+    --color-4: #{$seamap-color-4};
+    --color-5: #{$seamap-color-5};
+    --color-6: #{$seamap-color-6};
+    --color-7: #{$seamap-color-7};
+
+    --red: #{$seamap-red};
+    --deep-blue: #{$seamap-deep-blue};
+    --deep-blue-lighter: #{$seamap-deep-blue-lighter};
+    --grey: #{$seamap-grey};
+    --light-blue: #{$seamap-light-blue};
+    --medium-blue: #{$seamap-medium-blue};
+
+    --color-2-darker: #{$seamap-color-2-darker};
+    --color-3-darker: #{$seamap-color-3-darker};
+}
+
+.tas-marine-atlas {
+    --color-1: #{$tma-color-1};
+    --color-2: #{$tma-color-2};
+
+    --deep-blue: #{$tma-deep-blue};
+    --deep-blue-lighter: #{$tma-deep-blue-lighter};
+
+    --color-2-darker: #{$tma-color-2-darker};
+}
+
 
 @import 'ui/css/wordpress';
 @import 'ui/css/floating-pills';

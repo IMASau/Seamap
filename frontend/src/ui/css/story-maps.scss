@@ -5,8 +5,8 @@
     overflow: hidden;
     
     >.orientation {
-        background-color: $seamap-medium-blue;
-        color: $seamap-color-7;
+        background-color: var(--medium-blue);
+        color: var(--color-7);
         font-family: $headings-font-family;
         font-size: 19px;
         padding: 12px 29px;
@@ -36,8 +36,8 @@
 }
 
 .featured-map-drawer .summary {
-    background-color: $seamap-color-2;
-    color: $seamap-color-7;
+    background-color: var(--color-2);
+    color: var(--color-7);
     padding: 12px 20px;
     font-size: 18px;
     font-family: $headings-font-family;
@@ -68,7 +68,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    color: $seamap-color-1;
+    color: var(--color-1);
 
     .subtitle {
         font-size: 16px;

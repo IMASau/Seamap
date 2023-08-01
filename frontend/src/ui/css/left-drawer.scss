@@ -20,13 +20,18 @@
             }
 
             .bp3-icon svg {
-                color: $seamap-deep-blue-lighter;
+                color: var(--deep-blue-lighter);
                 width: 24px;
                 height: 24px;
             }
         }
     }
-
+    &.tas-marine-atlas-drawer .bp3-drawer-header {
+        background-color: $tma-color-2;
+        h4 {
+            height: 86px;
+        }
+    }
     .left-drawer-tabs {
         overflow-y: hidden;
         display: flex;
@@ -34,17 +39,17 @@
         height: 100%;
     
         > .bp3-tab-list {
-            background-color: $seamap-deep-blue-lighter;
-            color: $seamap-color-7;
+            background-color: var(--deep-blue-lighter);
+            color: var(--color-7);
             height: 49px;
             >* { padding: 0 12px; }
             .bp3-tab { color: inherit; }
     
             .bp3-tab-indicator-wrapper {
-                background-color: $seamap-deep-blue;
-    
+                background-color: var(--deep-blue);
+
                 .bp3-tab-indicator {
-                    background-color: $seamap-color-7;
+                    background-color: var(--color-7);
                     margin: 0 12px 12.5px 12px;
                 }
             }
@@ -88,7 +93,7 @@
                 .bp3-input-action {
                     display: flex;
                     align-items: center;
-                    color: $seamap-deep-blue-lighter;
+                    color: var(--deep-blue-lighter);
                     padding-right: 15px;
                 }
             }
@@ -111,14 +116,14 @@
                     .bp3-tree-node-content { height: 28px; }
             
                     .catalogue-layer-node {
-                        color: $seamap-deep-blue;
-                        &.active-layer { background-color: $seamap-light-blue; }
+                        color: var(--deep-blue);
+                        &.active-layer { background-color: var(--light-blue); }
 
                         >.bp3-tree-node-content { cursor: default; }
             
                         .layer-status-icons .bp3-icon,
                         .layer-control {
-                            color: $seamap-medium-blue;
+                            color: var(--medium-blue);
                         }
                     }
             
@@ -137,8 +142,8 @@
                                 >.bp3-tree-node-content {
                                     cursor: default;
                                     height: 2px;
-                                    background-color: $seamap-medium-blue;
-                                    &:hover { background: $seamap-medium-blue; }
+                                    background-color: var(--medium-blue);
+                                    &:hover { background: var(--medium-blue); }
                                 }
                             }
                         }
@@ -147,8 +152,8 @@
                             >.bp3-tree-node-label {
                                 display: flex;
                                 align-items: center;
-                                color: $seamap-deep-blue;
-            
+                                color: var(--deep-blue);
+
                                 >.bp3-tree-node-caret {
                                     color: inherit;
                                 }
@@ -159,4 +164,84 @@
             }
         }
     }
+}
+
+
+.data-in-region-drawer {
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .bp3-tab-panel {
+        flex-direction: column;
+        &:not([aria-hidden="true"]) { display: flex; }
+
+        .bp3-tree {
+            font-size: 12px;
+            .bp3-tree-node-caret-none { min-width: 4px; }
+            .bp3-tree-node-content { height: 28px; }
+
+            .catalogue-layer-node {
+                color: var(--deep-blue);
+                &.active-layer { background-color: var(--light-blue); }
+
+                >.bp3-tree-node-content { cursor: default; }
+
+                .layer-status-icons .bp3-icon,
+                .layer-control {
+                    color: var(--medium-blue);
+                }
+            }
+
+            .bp3-tree-node:not(.catalogue-layer-node) {
+                &:not(.category)>.bp3-tree-node-content { font-weight: bold; }
+
+                &.category {
+                    >.bp3-tree-node-content {
+                        font-size: 18px;
+                        font-family: $headings-font-family;
+                        height: 30px;
+                    }
+
+                    .tree-cap {
+                        padding: 10px 16px 10px 14px;
+                        >.bp3-tree-node-content {
+                            cursor: default;
+                            height: 2px;
+                            background-color: var(--medium-blue);
+                            &:hover { background: var(--medium-blue); }
+                        }
+                    }
+                }
+
+                >.bp3-tree-node-content {
+                    >.bp3-tree-node-label {
+                        display: flex;
+                        align-items: center;
+                        color: var(--deep-blue);
+
+                        >.bp3-tree-node-caret {
+                            color: inherit;
+                        }
+                    }
+                }
+            }
+        }
+
+        .bp3-tabs {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+
+            .bp3-tab-panel {
+                flex: 1;
+                min-height: 0;
+                overflow: auto;
+            }
+
+        }
+    }
+
 }

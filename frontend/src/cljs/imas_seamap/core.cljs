@@ -333,6 +333,7 @@
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
+  (js/document.body.classList.add "seamap")
   (.render
    root
    (r/as-element [hotkeys-provider

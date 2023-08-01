@@ -1,17 +1,6 @@
-$seamap-color-1: rgb(14, 14, 25);
-$seamap-color-2: rgb(28, 50, 98);
-$seamap-color-3: rgb(45, 101, 154);
-$seamap-color-4: rgb(84, 142, 196);
-$seamap-color-5: rgb(126, 186, 231);
-$seamap-color-6: rgb(200, 220, 240);
-$seamap-color-7: white;
-
-$seamap-color-2-darker: rgb(25, 44, 86);
-$seamap-color-3-darker: rgb(39, 91, 141);
-
 $pt-grid-size: 8px !default;
-$blue2: $seamap-color-3-darker;
-$blue3: $seamap-color-3;
+$blue2: var(--color-3-darker);
+$blue3: var(--color-3);
 
 // $pt-font-size: 14px;
 // $pt-font-size-small: 12px;
