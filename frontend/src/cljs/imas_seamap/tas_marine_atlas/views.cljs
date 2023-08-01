@@ -27,10 +27,20 @@
       :icon      icon
       :id        "select-control"}]))
 
+(defn zoom-control []
+  [control-block
+   [control-block-child
+    {:on-click #(-> "leaflet-control-zoom-in" js/document.getElementsByClassName first .click)
+     :icon     "plus"}]
+   [control-block-child
+    {:on-click #(-> "leaflet-control-zoom-out" js/document.getElementsByClassName first .click)
+     :icon     "minus"}]])
+
 (defn custom-leaflet-controls []
   [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
    [menu-button]
    [settings-button]
+   [zoom-control]
    [control-block
     [print-control]
 
