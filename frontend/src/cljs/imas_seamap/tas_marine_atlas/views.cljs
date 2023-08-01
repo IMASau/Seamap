@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button settings-button layer-catalogue layers-search-omnibar layer-preview hotkeys-combos control-block print-control control-block-child transect-control autosave-application-state-toggle]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar layer-preview hotkeys-combos control-block print-control control-block-child transect-control autosave-application-state-toggle]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
@@ -39,7 +39,6 @@
 (defn custom-leaflet-controls []
   [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
    [menu-button]
-   [settings-button]
    [zoom-control]
    [control-block
     [print-control]
@@ -57,7 +56,13 @@
      {:on-click #(re-frame/dispatch [:create-save-state])
       :tooltip  "Create Shareable URL"
       :id       "share-control"
-      :icon     "share"}]]
+      :icon     "share"}]
+    
+    [control-block-child
+     {:on-click #(re-frame/dispatch [:re-boot])
+      :tooltip  "Reset Interface"
+      :id       "reset-control"
+      :icon     "undo"}]]
 
    [control-block
     [control-block-child
@@ -164,22 +169,6 @@
          :description "We are unable to display any region data at this time."
          :icon        "info-sign"}])]))
 
-
-(defn settings-overlay []
-  [b/dialogue
-   {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])
-    :class      "settings-overlay-dialogue"
-    :is-open    @(re-frame/subscribe [:ui/settings-overlay])
-    :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
-   [:div.bp3-dialog-body
-    [autosave-application-state-toggle]
-    [b/button
-     {:icon     "undo"
-      :class    "bp3-fill"
-      :intent   b/INTENT-PRIMARY
-      :text     "Reset Interface"
-      :on-click   #(re-frame/dispatch [:re-boot])}]]])
-
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         _                  (use-hotkeys hot-keys) ; We don't need the results of this, just need to ensure it's called!
@@ -203,12 +192,12 @@
        :helperText     "Select from available basemaps"
        :helperPosition "left"}
       {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
-      {:id "settings-button" :helperText "Select from user-configurable settings"}
       {:id "print-control" :helperText "Export current map view as an image"}
       {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
       {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
       {:id "select-control" :helperText "Select a region"}
       {:id "share-control" :helperText "Create a shareable URL for current map view"}
+      {:id "reset-control" :helperText "Reset the application back to its initial state"}
       {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
       {:id "overlay-control" :helperText "You are here!"}
       {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
@@ -219,7 +208,6 @@
        :helperText "Draw a transect to show a depth profile of habitat data"
        :helperPosition "top"}]
      [info-card]
-     [settings-overlay]
      [loading-display]
      [left-drawer]
      [data-in-region-drawer]
