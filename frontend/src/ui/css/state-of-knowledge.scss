@@ -46,7 +46,7 @@
 .state-of-knowledge-drawer thead {
     position: sticky;
     top: 0;
-    background-color: $seamap-color-7;
+    background-color: var(--color-7);
 }
 /* scrollable table body */
 
@@ -81,8 +81,8 @@
 .habitat-observations-group-heading {
     display: flex;
     align-items: center;
-    background-color: $seamap-color-6;
-    color: $seamap-color-2;
+    background-color: var(--color-6);
+    color: var(--color-2);
     padding: 6px;
     gap: 4px;
     cursor: pointer;
@@ -124,8 +124,8 @@
 }
 
 .selected-boundaries {
-    background-color: $seamap-color-2;
-    color: $seamap-color-7;
+    background-color: var(--color-2);
+    color: var(--color-7);
     padding: 12px;
     font-weight: 600;
     display: flex;
@@ -140,13 +140,13 @@
     .breadcrumbs {
         font-size: 12px;
         a {
-            color: $seamap-color-7;
+            color: var(--color-7);
             text-decoration: underline;
         }
     }
 
     .region-report-button {
         padding: 4px;
-        color: $seamap-color-7;
+        color: var(--color-7);
     }
 }

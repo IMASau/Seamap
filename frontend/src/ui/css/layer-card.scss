@@ -1,6 +1,6 @@
 .layer-card {
-    background-color: $seamap-light-blue;
-    color: $seamap-deep-blue;
+    background-color: var(--light-blue);
+    color: var(--deep-blue);
     cursor: pointer;
     font-size: 12px;
     position: relative;
@@ -19,7 +19,7 @@
 
     input[type="range"] {
         cursor: pointer;
-        accent-color: $seamap-deep-blue;
+        accent-color: var(--deep-blue);
         margin: 0;
         width: 100%;
     }
@@ -67,7 +67,7 @@
     }
 
     .bp3-collapse-body {
-        background-color: $seamap-color-7;
+        background-color: var(--color-7);
         padding: 12px 24px;
         transition: background-color 200ms;
     }
@@ -101,7 +101,7 @@
 
 .layer-status-icons .bp3-icon,
 .layer-control {
-    color: $seamap-medium-blue;
+    color: var(--medium-blue);
     svg { opacity: 0.8; }
 }
 
@@ -113,18 +113,18 @@
 /* Special controls */
 .layer-control.bp3-icon-eye-on,
 .layer-control.bp3-icon-delete {
-    color: $seamap-deep-blue;
-    &:hover { color: $seamap-red; }
+    color: var(--deep-blue);
+    &:hover { color: var(--red); }
 }
 
 .data-in-region-layer {
-    color: $seamap-deep-blue;
+    color: var(--deep-blue);
     height: 28px;
     display: flex;
     align-items: center;
     padding-left: 10px;
     padding-right: 4px;
-    &.active-layer { background-color: $seamap-light-blue; }
+    &.active-layer { background-color: var(--light-blue); }
     >* {
         flex: 1;
         min-width: 0;

@@ -21,14 +21,14 @@
             }
 
             .bp3-icon svg {
-                color: $seamap-deep-blue-lighter;
+                color: var(--deep-blue-lighter);
                 width: 24px;
                 height: 24px;
             }
         }
     }
     &.tas-marine-atlas-drawer .bp3-drawer-header {
-        background-color: $tma-color-1;
+        background-color: $tma-color-2;
         h4 {
             height: 86px;
         }
@@ -40,17 +40,17 @@
         height: 100%;
 
         > .bp3-tab-list {
-            background-color: $seamap-deep-blue-lighter;
-            color: $seamap-color-7;
+            background-color: var(--deep-blue-lighter);
+            color: var(--color-7);
             height: 49px;
             >* { padding: 0 12px; }
             .bp3-tab { color: inherit; }
 
             .bp3-tab-indicator-wrapper {
-                background-color: $seamap-deep-blue;
+                background-color: var(--deep-blue);
 
                 .bp3-tab-indicator {
-                    background-color: $seamap-color-7;
+                    background-color: var(--color-7);
                     margin: 0 12px 12.5px 12px;
                 }
             }
@@ -94,7 +94,7 @@
                 .bp3-input-action {
                     display: flex;
                     align-items: center;
-                    color: $seamap-deep-blue-lighter;
+                    color: var(--deep-blue-lighter);
                     padding-right: 15px;
                 }
             }
@@ -117,14 +117,14 @@
                     .bp3-tree-node-content { height: 28px; }
 
                     .catalogue-layer-node {
-                        color: $seamap-deep-blue;
-                        &.active-layer { background-color: $seamap-light-blue; }
+                        color: var(--deep-blue);
+                        &.active-layer { background-color: var(--light-blue); }
 
                         >.bp3-tree-node-content { cursor: default; }
 
                         .layer-status-icons .bp3-icon,
                         .layer-control {
-                            color: $seamap-medium-blue;
+                            color: var(--medium-blue);
                         }
                     }
 
@@ -143,8 +143,8 @@
                                 >.bp3-tree-node-content {
                                     cursor: default;
                                     height: 2px;
-                                    background-color: $seamap-medium-blue;
-                                    &:hover { background: $seamap-medium-blue; }
+                                    background-color: var(--medium-blue);
+                                    &:hover { background: var(--medium-blue); }
                                 }
                             }
                         }
@@ -153,7 +153,7 @@
                             >.bp3-tree-node-label {
                                 display: flex;
                                 align-items: center;
-                                color: $seamap-deep-blue;
+                                color: var(--deep-blue);
 
                                 >.bp3-tree-node-caret {
                                     color: inherit;
@@ -184,14 +184,14 @@
             .bp3-tree-node-content { height: 28px; }
 
             .catalogue-layer-node {
-                color: $seamap-deep-blue;
-                &.active-layer { background-color: $seamap-light-blue; }
+                color: var(--deep-blue);
+                &.active-layer { background-color: var(--light-blue); }
 
                 >.bp3-tree-node-content { cursor: default; }
 
                 .layer-status-icons .bp3-icon,
                 .layer-control {
-                    color: $seamap-medium-blue;
+                    color: var(--medium-blue);
                 }
             }
 
@@ -210,8 +210,8 @@
                         >.bp3-tree-node-content {
                             cursor: default;
                             height: 2px;
-                            background-color: $seamap-medium-blue;
-                            &:hover { background: $seamap-medium-blue; }
+                            background-color: var(--medium-blue);
+                            &:hover { background: var(--medium-blue); }
                         }
                     }
                 }
@@ -220,7 +220,7 @@
                     >.bp3-tree-node-label {
                         display: flex;
                         align-items: center;
-                        color: $seamap-deep-blue;
+                        color: var(--deep-blue);
 
                         >.bp3-tree-node-caret {
                             color: inherit;
