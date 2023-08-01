@@ -503,15 +503,24 @@
 
 (defn control-block-child [{:keys [on-click tooltip icon id disabled?]}]
   (let [disabled? (or disabled? false)]
-    [b/tooltip {:content tooltip :position b/RIGHT}
-     [:a
-      (merge
-       {:class    (when disabled? "disabled")}
-       (when id
-         {:id id})
-       (when (not disabled?)
-         {:on-click on-click}))
-      [b/icon {:icon icon :size 18}]]]))
+    (if tooltip
+      [b/tooltip {:content tooltip :position b/RIGHT}
+       [:a
+        (merge
+         {:class    (when disabled? "disabled")}
+         (when id
+           {:id id})
+         (when (not disabled?)
+           {:on-click on-click}))
+        [b/icon {:icon icon :size 18}]]]
+      [:a
+       (merge
+        {:class    (when disabled? "disabled")}
+        (when id
+          {:id id})
+        (when (not disabled?)
+          {:on-click on-click}))
+       [b/icon {:icon icon :size 18}]])))
 
 (defn print-control []
   [:div.print-control
