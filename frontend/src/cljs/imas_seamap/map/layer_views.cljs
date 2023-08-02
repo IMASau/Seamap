@@ -276,7 +276,10 @@
   "To the right of the layer name. Basic controls for the layer. Different from
    regular layer card controls because the controls are based on the state of the
    main national layer."
-  [{:keys [layer] {:keys [visible?]} :layer-state}]
+  [{:keys [layer]
+    {:keys [displayed-layer]} :national-layer-details
+    {:keys [visible?]} :layer-state
+    :as _props}]
   [:div.layer-controls
 
    [layer-card-control
@@ -287,12 +290,12 @@
    [layer-card-control
     {:tooltip  "Layer info / Download data"
      :icon     "info-sign"
-     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
+     :on-click #(re-frame/dispatch [:map.layer/show-info displayed-layer])}]
 
    [layer-card-control
     {:tooltip  "Zoom to layer"
      :icon     "locate"
-     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
+     :on-click #(re-frame/dispatch [:map/pan-to-layer displayed-layer])}]])
 
 (defn- main-national-layer-card-header
   [{:keys [_national-layer-details _tooltip layer] {:keys [visible?] :as layer-state} :layer-state :as props}]
@@ -419,6 +422,24 @@
      {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
      [main-national-layer-card-content (assoc props :layer-state layer-state)]]))
 
+(defn- main-national-layer-catalogue-controls
+  "To the right of the layer name. Basic controls for the layer. Different from
+   regular layer catalogue controls because the controls are based on the displayed
+   layer."
+  [{{:keys [displayed-layer]} :national-layer-details
+    :as _props}]
+  [:div.layer-controls
+
+   [layer-control
+    {:tooltip  "Layer info / Download data"
+     :icon     "info-sign"
+     :on-click #(re-frame/dispatch [:map.layer/show-info displayed-layer])}]
+
+   [layer-control
+    {:tooltip  "Zoom to layer"
+     :icon     "locate"
+     :on-click #(re-frame/dispatch [:map/pan-to-layer displayed-layer])}]])
+
 (defn- main-national-layer-catalogue-header
   [{:keys [_national-layer-details _tooltip layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
@@ -429,7 +450,7 @@
    (when (and active? visible?)
      [layer-status-icons layer-state])
    [main-national-layer-header-text props]
-   [layer-catalogue-controls props]])
+   [main-national-layer-catalogue-controls props]])
 
 (defn layer-catalogue-node
   [{{:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn]} :layer-props
