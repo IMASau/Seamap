@@ -230,7 +230,9 @@
 ;; Main national layer
 
 (defn- main-national-layer-header-text
-  [{:keys [_national-layer-details _layer-state tooltip] {:keys [name]} :layer :as _props}]
+  [{:keys [tooltip]
+    {{:keys [name]} :displayed-layer} :national-layer-details
+    :as _props}]
   [:div.layer-header-text
    [b/tooltip
     (merge
@@ -250,7 +252,10 @@
     [b/clipped-text {:ellipsize true} name]]])
 
 (defn- main-national-layer-card-header-text
-  [{:keys [_national-layer-details tooltip] {:keys [name]} :layer {:keys [active? expanded?]} :layer-state :as _props}]
+  [{:keys [tooltip]
+    {{:keys [name]} :displayed-layer} :national-layer-details
+    {:keys [active? expanded?]} :layer-state
+    :as _props}]
   [:div.layer-header-text
    [b/tooltip
     (merge
