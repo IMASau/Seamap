@@ -214,9 +214,10 @@
     :format           "image/png"}])
 
 (defmethod layer-component :feature
-  [{{:keys [server_url] :as layer} :layer}]
+  [{:keys [layer-opacities] {:keys [server_url] :as layer} :layer}]
   [leaflet/feature-layer
    {:url              server_url
+    :opacity          (/ (layer-opacities layer) 100)
     :eventHandlers
     {:loading       #(re-frame/dispatch [:map.layer/load-start layer])
      :tileloadstart #(re-frame/dispatch [:map.layer/tile-load-start layer])
