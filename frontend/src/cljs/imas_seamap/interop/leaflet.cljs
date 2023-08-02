@@ -35,16 +35,24 @@
                           (ReactLeafletCore/createLayerComponent
                            ;; Create layer fn
                            (fn [props context]
-                             (let [instance ((-> esri .-featureLayer) props)]
-                               #js{:instance instance :context context}))
+                             (let [opacity (.-opacity props)]
+                               (cljs.core/js-delete props "opacity")
+                               (let [instance ((-> esri .-featureLayer) props)]
+                                 (.setStyle
+                                  instance
+                                  #(identity
+                                    #js{:opacity     opacity
+                                        :fillOpacity opacity}))
+                                 #js{:instance instance :context context})))
                            ;; Update layer fn
                            (fn [instance props prev-props]
                              ; TODO: More prop updates?
                              (when (not= (.-opacity props) (.-opacity prev-props))
                                (.setStyle
                                 instance
-                                #js{:opacity     (.-opacity props)
-                                    :fillOpacity (.-opacity props)}))))))
+                                #(identity
+                                  #js{:opacity     (.-opacity props)
+                                      :fillOpacity (.-opacity props)})))))))
 
 (def map-container       (r/adapt-react-class ReactLeaflet/MapContainer))
 (def pane                (r/adapt-react-class ReactLeaflet/Pane))
