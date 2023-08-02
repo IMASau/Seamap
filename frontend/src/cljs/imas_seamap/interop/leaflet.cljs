@@ -38,7 +38,13 @@
                              (let [instance ((-> esri .-featureLayer) props)]
                                #js{:instance instance :context context}))
                            ;; Update layer fn
-                           nil)))
+                           (fn [instance props prev-props]
+                             ; TODO: More prop updates?
+                             (when (not= (.-opacity props) (.-opacity prev-props))
+                               (.setStyle
+                                instance
+                                #js{:opacity     (.-opacity props)
+                                    :fillOpacity (.-opacity props)}))))))
 
 (def map-container       (r/adapt-react-class ReactLeaflet/MapContainer))
 (def pane                (r/adapt-react-class ReactLeaflet/Pane))
