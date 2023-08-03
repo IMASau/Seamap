@@ -36,7 +36,13 @@
   [:div.map-link
    [:div.subtitle subtitle]
    [:div.description
-    {:ref #(when % (set! (.-innerHTML %) description))}
+    {:ref
+     #(when %
+        (set! (.-innerHTML %) description)
+        (let [hyperlinks (js/Array.prototype.slice.call (.getElementsByTagName % "a"))]
+          (doseq [hyperlink hyperlinks]
+            (when-not (.getAttribute hyperlink "target")
+              (.setAttribute hyperlink "target" "_blank")))))}
     description]
    [b/button
     {:icon     "search"
