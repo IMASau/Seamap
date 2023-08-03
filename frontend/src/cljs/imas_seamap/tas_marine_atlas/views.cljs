@@ -25,13 +25,22 @@
       :on-close #(re-frame/dispatch [:welcome-layer/close])}
      [:div.bp3-dialog-body
       [:div.overview
-       "The Tasmania's Marine Atlas acknowledges the traditional
-       custodians of the land upon which we live and work. We honour
-       their enduring culture and knowledges as vital to the
-       self-determination, wellbeing and resilience of their
-       communities."]
+      [:p
+       "The waters and coastlines represented in the Tasmania's Marine Atlas are of
+        significance to Tasmanian Aboriginal people. We recognise the deep history and
+        culture of the islands represented in this Atlas and acknowledge the traditional
+        owners and custodians of Country. We pay respect to Tasmanian Aboriginal people,
+        who have survived invasion and dispossession, and continue to maintain their
+        identity, culture and Indigenous rights and honour their Elders, past and
+        present."]
+       [:p
+        "Any absence of information about Tasmanian Aboriginal people's connection to Sea
+         Country in the Tasmania's Marine Atlas does not indicate an absence of
+         connection or significance. We respect the right of Tasmanian Aboriginal people
+         to self-determination and affirm their right to decide what information is
+         included in the Atlas."]]
       [b/button
-       {:text       "Get Started!"
+       {:text       "Explore the Atlas"
         :intent     b/INTENT-PRIMARY
         :auto-focus true
         :on-click   #(re-frame/dispatch [:welcome-layer/close])}]]]))

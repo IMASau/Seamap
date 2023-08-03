@@ -75,6 +75,7 @@ body.page-template-default.admin-bar #app {
         font-size: 16px;
         .overview { margin-right: 40px; }
         .bp3-button { margin-left: auto; }
+        p { margin-bottom: 18px; }
     }
 
     .bp3-dialog-footer {
@@ -112,6 +113,10 @@ body.page-template-default.admin-bar #app {
             }
         }
     }
+}
+
+.tas-marine-atlas .welcome-splash {
+    width: 560px;
 }
 
 #main-wrapper {
