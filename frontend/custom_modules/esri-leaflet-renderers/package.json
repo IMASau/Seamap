@@ -70,9 +70,9 @@
     "symbology"
   ],
   "license": "Apache-2.0",
-  "main": "dist/esri-leaflet-renderers-debug.js",
+  "main": "dist/esri-leaflet-renderers.js",
   "module": "src/EsriLeafletRenderers.js",
-  "browser": "dist/esri-leaflet-renderers-debug.js",
+  "browser": "dist/esri-leaflet-renderers.js",
   "readmeFilename": "README.md",
   "repository": {
     "type": "git",
