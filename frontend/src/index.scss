@@ -83,6 +83,7 @@ $seamap-color-4: rgb(84, 142, 196);
 $seamap-color-5: rgb(126, 186, 231);
 $seamap-color-6: rgb(200, 220, 240);
 $seamap-color-7: white;
+$seamap-color-8: #5f9acb;
 
 $seamap-red: #ec1c24;
 $seamap-deep-blue: #20396e;
@@ -96,6 +97,7 @@ $seamap-color-3-darker: rgb(39, 91, 141);
 
 $tma-color-1: rgb(18, 37, 55);
 $tma-color-2: rgb(11, 80, 113);
+$tma-color-8: rgb(98, 191, 236);
 
 $tma-deep-blue: rgb(18, 89, 117);
 $tma-deep-blue-lighter: rgb(19, 102, 134);
@@ -114,6 +116,7 @@ $headings-font-family: "Poppins", "system-ui", sans-serif;
     --color-5: #{$seamap-color-5};
     --color-6: #{$seamap-color-6};
     --color-7: #{$seamap-color-7};
+    --color-8: #{$seamap-color-8};
 
     --red: #{$seamap-red};
     --deep-blue: #{$seamap-deep-blue};
@@ -129,6 +132,7 @@ $headings-font-family: "Poppins", "system-ui", sans-serif;
 .tas-marine-atlas {
     --color-1: #{$tma-color-1};
     --color-2: #{$tma-color-2};
+    --color-8: #{$tma-color-8};
 
     --deep-blue: #{$tma-deep-blue};
     --deep-blue-lighter: #{$tma-deep-blue-lighter};

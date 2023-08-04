@@ -1,7 +1,7 @@
 .left-drawer {
     &.seamap-drawer .bp3-drawer-header,
     &.tas-marine-atlas-drawer .bp3-drawer-header {
-        border-bottom: 7px solid $seamap-color-1;
+        border-bottom: 7px solid var(--color-1);
         height: 96px;
         padding: 15px;
 

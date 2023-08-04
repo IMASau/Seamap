@@ -236,7 +236,7 @@
 }
 
 .bp3-input {
-    border: 2px solid $seamap-grey;
+    border: 2px solid var(--grey);
     &:focus { border-color: var(--color-5);}
 }
 
