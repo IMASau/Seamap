@@ -66,22 +66,24 @@
     border-bottom: 2px solid $seamap-color-5;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     gap: 6px;
     color: var(--color-1);
 
-    .subtitle {
-        font-size: 16px;
-        font-weight: bold;
-        font-family: $headings-font-family;
+    >:nth-child(1) {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+
+        >.subtitle {
+            font-size: 16px;
+            font-weight: bold;
+            font-family: $headings-font-family;
+            flex: 1;
+        }
     }
 
-    .description {
+    >.description {
         font-size: 13px;
-    }
-
-    .show-me {
-        margin-top: 14px;
-        margin-left: auto;
     }
 }

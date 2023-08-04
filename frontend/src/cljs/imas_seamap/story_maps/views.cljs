@@ -34,7 +34,15 @@
 
 (defn- map-link [{:keys [subtitle description shortcode] :as _map-link}]
   [:div.map-link
-   [:div.subtitle subtitle]
+   [:div
+    [:div.subtitle subtitle]
+    [b/button
+     {:icon     "search"
+      :text     "Show me"
+      :intent   b/INTENT-PRIMARY
+      :class    "show-me"
+      :large    true
+      :on-click #(re-frame/dispatch [:get-save-state shortcode [:merge-state]])}]]
    [:div.description
     {:ref
      #(when %
@@ -43,14 +51,7 @@
           (doseq [hyperlink hyperlinks]
             (when-not (.getAttribute hyperlink "target")
               (.setAttribute hyperlink "target" "_blank")))))}
-    description]
-   [b/button
-    {:icon     "search"
-     :text     "Show me"
-     :intent   b/INTENT-PRIMARY
-     :class    "show-me"
-     :large    true
-     :on-click #(re-frame/dispatch [:get-save-state shortcode [:merge-state]])}]])
+    description]])
 
 (defn featured-map-drawer []
   (let [{:keys [title content map-links] :as _story-map} @(re-frame/subscribe [:sm/featured-map])]
