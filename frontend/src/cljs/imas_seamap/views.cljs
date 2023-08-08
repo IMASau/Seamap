@@ -364,13 +364,7 @@
     :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
    [:div.bp3-dialog-body
     [autosave-application-state-toggle]
-    [viewport-only-toggle]
-    [b/button
-     {:icon     "undo"
-      :class    "bp3-fill"
-      :intent   b/INTENT-PRIMARY
-      :text     "Reset Interface"
-      :on-click   #(re-frame/dispatch [:re-boot])}]]])
+    [viewport-only-toggle]]])
 
 (defn- metadata-record [_props]
   (let [expanded (reagent/atom false)
@@ -636,7 +630,13 @@
      {:on-click #(re-frame/dispatch [:create-save-state])
       :tooltip  "Create Shareable URL"
       :id       "share-control"
-      :icon     "share"}]]
+      :icon     "share"}]
+    
+    [control-block-child
+     {:on-click #(re-frame/dispatch [:re-boot])
+      :tooltip  "Reset Interface"
+      :id       "reset-control"
+      :icon     "undo"}]]
 
    [control-block
     [control-block-child
@@ -877,6 +877,7 @@
       {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
       {:id "select-control" :helperText "Select a region for download (habitat data)"}
       {:id "share-control" :helperText "Create a shareable URL for current map view"}
+      {:id "reset-control" :helperText "Reset the application back to its initial state"}
       {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
       {:id "overlay-control" :helperText "You are here!"}
       {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
