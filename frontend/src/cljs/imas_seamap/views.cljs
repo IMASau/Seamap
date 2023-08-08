@@ -370,7 +370,7 @@
   (let [expanded (reagent/atom false)
         {:keys [img-url-base]} @(re-frame/subscribe [:url-base])]
     (fn [{:keys [license-name license-link license-img constraints other]
-          {:keys [category organisation metadata_url server_url layer_name] :as layer} :layer}]
+          {:keys [category organisation metadata_url server_url layer_name metadata_summary] :as layer} :layer}]
       [:div.metadata-record
 
        (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
@@ -378,6 +378,11 @@
           [:img.metadata-img.org-logo
            {:class (string/replace logo #"\..+$" "")
             :src   (str img-url-base logo)}]])
+       
+       (when (seq metadata_summary)
+         [:div
+          [:h3 "About"]
+          [:p metadata_summary]])
 
        (when (seq constraints)
          [:div

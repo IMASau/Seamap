@@ -89,6 +89,7 @@ class Layer(models.Model):
     style = models.CharField(max_length=200, null=True, blank=True)
     layer_type = models.CharField(max_length=10)
     tooltip = models.TextField(null=True, blank=True)
+    metadata_summary = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
