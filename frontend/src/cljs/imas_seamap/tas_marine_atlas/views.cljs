@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar hotkeys-combos control-block print-control control-block-child transect-control autosave-application-state-toggle]]
+            [imas-seamap.views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child transect-control autosave-application-state-toggle]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
@@ -206,6 +206,57 @@
         {:title       "No Data"
          :description "We are unable to display any region data at this time."
          :icon        "info-sign"}])]))
+
+(def hotkeys-combos
+  (let [keydown-wrapper
+        (fn [m keydown-v]
+          (assoc m :global    true
+                 :group "Keyboard Shortcuts"
+                 :onKeyDown #(re-frame/dispatch keydown-v)))]
+    ;; See note on `use-hotkeys' for rationale invoking `clj->js' here:
+    (clj->js
+     [(keydown-wrapper
+       {:label "Zoom In"                :combo "plus"}
+       [:map/zoom-in])
+      (keydown-wrapper
+       {:label "Zoom Out"               :combo "-"}
+       [:map/zoom-out])
+      (keydown-wrapper
+       {:label "Pan Up"                 :combo "up"}
+       [:map/pan-direction :up])
+      (keydown-wrapper
+       {:label "Pan Down"               :combo "down"}
+       [:map/pan-direction :down])
+      (keydown-wrapper
+       {:label "Pan Left"               :combo "left"}
+       [:map/pan-direction :left])
+      (keydown-wrapper
+       {:label "Pan Right"              :combo "right"}
+       [:map/pan-direction :right])
+      (keydown-wrapper
+       {:label "Toggle Left Drawer"     :combo "a"}
+       [:left-drawer/toggle])
+      (keydown-wrapper
+       {:label "Start/Clear Measure"   :combo "t"}
+       [:transect.draw/toggle])
+      (keydown-wrapper
+       {:label "Start/Clear Find Data in Region" :combo "r"}
+       [:map.layer.selection/toggle])
+      (keydown-wrapper
+       {:label "Cancel"                 :combo "esc"}
+       [:ui.drawing/cancel])
+      (keydown-wrapper
+       {:label "Layer Power Search"     :combo "s"}
+       [:layers-search-omnibar/toggle])
+      (keydown-wrapper
+       {:label "Reset"                  :combo "shift + r"}
+       [:re-boot])
+      (keydown-wrapper
+       {:label "Create Shareable URL"   :combo "c"}
+       [:create-save-state])
+      (keydown-wrapper
+       {:label "Show Help Overlay"      :combo "h"}
+       [:help-layer/toggle])])))
 
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
