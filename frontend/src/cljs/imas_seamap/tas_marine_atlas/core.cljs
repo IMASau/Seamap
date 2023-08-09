@@ -24,7 +24,8 @@
             [imas-seamap.subs :as subs]
             [imas-seamap.tas-marine-atlas.subs :as tmasubs]
             [imas-seamap.tas-marine-atlas.views :refer [layout-app]]
-            [imas-seamap.config :as config]))
+            [imas-seamap.config :as config]
+            [imas-seamap.components :as components]))
 
 
 (def config-handlers
@@ -270,6 +271,12 @@
   (.render
    root
    (r/as-element [hotkeys-provider
+                  {:renderDialog
+                   (fn [state context-actions]
+                     (r/as-element
+                      [components/hotkeys-render-dialog
+                       {:state           (js->clj state :keywordize-keys true)
+                        :context-actions (js->clj context-actions :keywordize-keys true)}]))}
                   [:f> layout-app]])))
 
 (defn ^:export show-db []

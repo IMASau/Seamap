@@ -216,3 +216,34 @@
      {:mask-image (str "url(icons/" icon ".svg)")
       :-webkit-mask-image (str "url(icons/" icon ".svg)")}
      (when size {:height size :width size}))}])
+
+;; Form-3 component necessary because we only want to add the event listener
+;; once.
+;; The event listener for triggering the dialog close needs to be used because
+;; Blueprint's canEscapeKeyClose refuses to work - perhaps due to some friction
+;; with ClojureScript?
+(defn hotkeys-render-dialog
+  [{{:keys [_hotkeys _isDialogOpen]} :state
+    {:keys [handleDialogClose]} :context-actions}]
+  (reagent/create-class
+   {:component-did-mount
+    (fn [_]
+      (js/window.addEventListener
+       "keydown"
+       #(when (= (.-key %) "Escape") (handleDialogClose))))
+    :reagent-render
+    (fn
+      [{{:keys [hotkeys isDialogOpen]} :state
+        {:keys [handleDialogClose]} :context-actions}]
+      [b/dialogue
+       {:title "Keyboard Actions"
+        :class "bp3-hotkey-dialog"
+        :is-open isDialogOpen
+        :on-close handleDialogClose}
+       [:div.bp3-dialog-body
+        [:div.bp3-hotkey-column
+         (map-indexed
+          (fn [i hotkey]
+            ^{:key i}
+            [b/hotkey hotkey])
+          hotkeys)]]])}))
