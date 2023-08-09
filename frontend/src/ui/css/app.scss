@@ -114,6 +114,15 @@ body.page-template-default.admin-bar #app {
     }
 }
 
+.tas-marine-atlas .welcome-splash {
+    width: 530px;
+    .bp3-dialog-body {
+        font-size: 14px;
+        .overview { margin-right: 0; }
+        p { margin-bottom: 16px; }
+    }
+}
+
 #main-wrapper {
     height: 100%;
     display: flex;
