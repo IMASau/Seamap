@@ -21,8 +21,10 @@
 (defn update-featured-maps [db [_ response]]
   (assoc-in db [:story-maps :featured-maps] (mapv response->story-map response)))
 
-(defn featured-map [{:keys [db]} [_ story-map]]
-  (let [db        (assoc-in db [:story-maps :featured-map] story-map)]
+(defn featured-map [{:keys [db]} [_ story-map]] 
+  (let [db        (assoc-in db [:story-maps :featured-map] story-map)
+        map-links (-> "map-links" js/document.getElementsByClassName first)]
+    (when map-links (set! (.-scrollTop map-links) 0)) ; scrolls map-links to top, resolves ISA-454
     {:db         db
      :dispatch-n [[:sm.featured-map/open true]
                   [:maybe-autosave]]}))
