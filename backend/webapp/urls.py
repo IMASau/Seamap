@@ -24,6 +24,7 @@ router.register(r'categories', viewsets.CategoryViewset)
 router.register(r'keyedlayers', viewsets.KeyedLayerViewset)
 router.register(r'nationallayertimeline', viewsets.NationalLayerTimelineViewset)
 router.register(r'richlayeralternateview', viewsets.RichLayerAlternateViewViewset)
+router.register(r'richlayertimeline', viewsets.RichLayerTimelineViewset)
 router.register(r'regionreports', viewsets.RegionReportViewset)
 
 urlpatterns = [

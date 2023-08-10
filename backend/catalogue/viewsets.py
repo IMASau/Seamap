@@ -61,6 +61,10 @@ class RichLayerAlternateViewViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.RichLayerAlternateView.objects.all()
     serializer_class = serializers.RichLayerAlternateViewSerializer
 
+class RichLayerTimelineViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = models.RichLayerTimeline.objects.all()
+    serializer_class = serializers.RichLayerTimelineSerializer
+
 class RegionReportViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.RegionReport.objects.all()
     serializer_class = serializers.RegionReportSerializer
