@@ -282,8 +282,8 @@
       {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
       {:id "print-control" :helperText "Export current map view as an image"}
       {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
-      {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
-      {:id "select-control" :helperText "Select a region"}
+      {:id "transect-control" :helperText "Take a measurement"}
+      {:id "select-control" :helperText "Search for data in region"}
       {:id "share-control" :helperText "Create a shareable URL for current map view"}
       {:id "reset-control" :helperText "Reset the application back to its initial state"}
       {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
