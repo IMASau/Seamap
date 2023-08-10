@@ -148,6 +148,11 @@ class NationalLayerTimeline(models.Model):
     def __str__(self):
         return f'{self.layer} ({self.year})'
 
+@python_2_unicode_compatible
+class RichLayerAlternateView(models.Model):
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='layer')
+    parent = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='parent')
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
 
 class EmptyStringToNoneField(models.CharField):
     def get_prep_value(self, value):

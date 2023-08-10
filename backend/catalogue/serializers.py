@@ -87,6 +87,11 @@ class NationalLayerTimelineSerializer(serializers.ModelSerializer):
         model = models.NationalLayerTimeline
         fields = '__all__'
 
+class RichLayerAlternateViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.RichLayerAlternateView
+        exclude = ('id',)
+
 class RegionReportSerializer(serializers.ModelSerializer):
     bounding_box = serializers.SerializerMethodField()
 
