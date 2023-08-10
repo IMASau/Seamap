@@ -57,6 +57,10 @@ class NationalLayerTimelineViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.NationalLayerTimeline.objects.all()
     serializer_class = serializers.NationalLayerTimelineSerializer
 
+class RichLayerAlternateViewViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = models.RichLayerAlternateView.objects.all()
+    serializer_class = serializers.RichLayerAlternateViewSerializer
+
 class RegionReportViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.RegionReport.objects.all()
     serializer_class = serializers.RegionReportSerializer
