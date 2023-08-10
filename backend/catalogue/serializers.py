@@ -92,6 +92,11 @@ class RichLayerAlternateViewSerializer(serializers.ModelSerializer):
         model = models.RichLayerAlternateView
         exclude = ('id',)
 
+class RichLayerTimelineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.RichLayerTimeline
+        exclude = ('id',)
+
 class RegionReportSerializer(serializers.ModelSerializer):
     bounding_box = serializers.SerializerMethodField()
 

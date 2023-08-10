@@ -154,6 +154,11 @@ class RichLayerAlternateView(models.Model):
     parent = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='parent')
     sort_key = models.CharField(max_length=10, null=True, blank=True)
 
+@python_2_unicode_compatible
+class RichLayerTimeline(models.Model):
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    year = models.IntegerField()
+
 class EmptyStringToNoneField(models.CharField):
     def get_prep_value(self, value):
         if value == '':
