@@ -150,13 +150,14 @@ class NationalLayerTimeline(models.Model):
 
 @python_2_unicode_compatible
 class RichLayerAlternateView(models.Model):
-    layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='layer')
-    parent = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='parent')
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_child')
+    parent = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_parent')
     sort_key = models.CharField(max_length=10, null=True, blank=True)
 
 @python_2_unicode_compatible
 class RichLayerTimeline(models.Model):
-    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_child')
+    parent = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_parent')
     year = models.IntegerField()
 
 class EmptyStringToNoneField(models.CharField):
