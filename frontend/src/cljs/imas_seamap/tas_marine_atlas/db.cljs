@@ -24,6 +24,7 @@
                      :preview-layer   nil
                      :viewport-only?  false
                      :keyed-layers    {}
+                     :rich-layers     {}
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}

@@ -181,6 +181,38 @@
 (s/def :map/national-layer-timeline-selected (s/nilable :map.national-layer-timeline/entry))
 (s/def :map/national-layer-alternate-view (s/nilable :map/layer))
 
+
+(s/def :map.rich-layer.alternate-views.entry/sort_key (s/nilable string?))
+(s/def :map.rich-layer.alternate-views.entry/layer :map.layer/id)
+(s/def :map.rich-layer.alternate-views/entry
+  (s/keys :req-un [:map.rich-layer.alternate-views.entry/sort_key
+                   :map.rich-layer.alternate-views.entry/layer]))
+
+(s/def :map.rich-layer.timeline.entry/year integer?)
+(s/def :map.rich-layer.timeline.entry/layer :map.layer/id)
+(s/def :map.rich-layer.timeline/entry
+  (s/keys :req-un [:map.rich-layer.timeline.entry/year
+                   :map.rich-layer.timeline.entry/layer]))
+
+(s/def :map.rich-layer/alternate-views
+  (s/coll-of :map.rich-layer.alternate-views/entry
+             :kind vector?))
+(s/def :map.rich-layer/alternate-views-selected (s/nilable :map.rich-layer.alternate-views.entry/layer))
+(s/def :map.rich-layer/timeline
+  (s/coll-of :map.rich-layer.timeline/entry
+             :kind vector?))
+(s/def :map.rich-layer/timeline-selected (s/nilable :map.rich-layer.timeline.entry/layer))
+(s/def :map.rich-layer/tab #{"legend" "filters"})
+(s/def :map/rich-layer
+  (s/keys :req-un [:map.rich-layer/alternate-views
+                   :map.rich-layer/alternate-views-selected
+                   :map.rich-layer/timeline
+                   :map.rich-layer/timeline-selected
+                   :map.rich-layer/tab]))
+(s/def :map/rich-layers
+  (s/map-of :map.layer/id :map/rich-layer))
+
+
 (s/def :map/legends
   (s/map-of :map.layer/id
             (s/or
@@ -208,7 +240,8 @@
                    :map/keyed-layers
                    :map/national-layer-timeline
                    :map/national-layer-timeline-selected
-                   :map/national-layer-alternate-view]))
+                   :map/national-layer-alternate-view
+                   :map/rich-layers]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})
 (s/def :map.state/error-count (s/map-of :map/layer integer?))
