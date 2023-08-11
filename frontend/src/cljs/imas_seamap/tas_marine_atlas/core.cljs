@@ -168,6 +168,7 @@
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [tmaevents/show-initial-layers]
     :map/join-keyed-layers                mevents/join-keyed-layers
+    :map/join-rich-layers                 mevents/join-rich-layers
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          [mevents/map-zoom-in]
     :map/zoom-out                         [mevents/map-zoom-out]

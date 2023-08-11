@@ -378,6 +378,37 @@
       {} keyed-layers))
     db))
 
+(defn join-rich-layers
+  "Using layers and rich-layers, replaces layer IDs in rich-layer data with layer
+   objects."
+  [{{:keys [layers rich-layers]} :map :as db} _]
+  (assoc-in
+   db [:map :rich-layers]
+   (reduce-kv
+    (fn [m k {:keys [alternate-views alternate-views-selected timeline timeline-selected tab]}]
+      (let [alternate-views
+            (mapv
+             (fn [{:keys [layer] :as alternate-views-entry}]
+               (assoc
+                alternate-views-entry :layer
+                (first-where #(= (:id %) layer) layers)))
+             alternate-views)
+            timeline
+            (mapv
+             (fn [{:keys [layer] :as timeline-entry}]
+               (assoc
+                timeline-entry :layer
+                (first-where #(= (:id %) layer) layers)))
+             timeline)]
+        (assoc
+         m k
+         {:alternate-views          alternate-views
+          :alternate-views-selected alternate-views-selected
+          :timeline                 timeline
+          :timeline-selected        timeline-selected
+          :tab tab})))
+    {} rich-layers)))
+
 (defn update-layers [db [_ layers]]
   (let [{:keys [legend-ids opacity-ids]} db
         layers (process-layers layers)

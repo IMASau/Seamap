@@ -27,7 +27,7 @@
                      :national-layer-timeline []
                      :national-layer-timeline-selected nil
                      :national-layer-alternate-view nil
-                     :rich-layers     {1 {}}
+                     :rich-layers     {}
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}
