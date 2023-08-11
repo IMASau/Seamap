@@ -36,7 +36,8 @@
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
                                   :map/update-keyed-layers]
-     :dispatch [:map/join-keyed-layers]}
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -49,7 +50,8 @@
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
-                                  :map/join-keyed-layers]
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -72,7 +74,8 @@
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
                                   :map/update-keyed-layers]
-     :dispatch [:map/join-keyed-layers]}
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -85,7 +88,8 @@
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
-                                  :map/join-keyed-layers]
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -108,7 +112,8 @@
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
                                   :map/update-keyed-layers]
-     :dispatch [:map/join-keyed-layers]}
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -121,7 +126,8 @@
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
-                                  :map/join-keyed-layers]
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading

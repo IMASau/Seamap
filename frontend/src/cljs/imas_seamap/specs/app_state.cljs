@@ -183,13 +183,13 @@
 
 
 (s/def :map.rich-layer.alternate-views.entry/sort_key (s/nilable string?))
-(s/def :map.rich-layer.alternate-views.entry/layer :map.layer/id)
+(s/def :map.rich-layer.alternate-views.entry/layer :map/layer)
 (s/def :map.rich-layer.alternate-views/entry
   (s/keys :req-un [:map.rich-layer.alternate-views.entry/sort_key
                    :map.rich-layer.alternate-views.entry/layer]))
 
 (s/def :map.rich-layer.timeline.entry/year integer?)
-(s/def :map.rich-layer.timeline.entry/layer :map.layer/id)
+(s/def :map.rich-layer.timeline.entry/layer :map/layer)
 (s/def :map.rich-layer.timeline/entry
   (s/keys :req-un [:map.rich-layer.timeline.entry/year
                    :map.rich-layer.timeline.entry/layer]))
@@ -197,11 +197,11 @@
 (s/def :map.rich-layer/alternate-views
   (s/coll-of :map.rich-layer.alternate-views/entry
              :kind vector?))
-(s/def :map.rich-layer/alternate-views-selected (s/nilable :map.rich-layer.alternate-views.entry/layer))
+(s/def :map.rich-layer/alternate-views-selected (s/nilable :map.layer/id))
 (s/def :map.rich-layer/timeline
   (s/coll-of :map.rich-layer.timeline/entry
              :kind vector?))
-(s/def :map.rich-layer/timeline-selected (s/nilable :map.rich-layer.timeline.entry/layer))
+(s/def :map.rich-layer/timeline-selected (s/nilable :map.layer/id))
 (s/def :map.rich-layer/tab #{"legend" "filters"})
 (s/def :map/rich-layer
   (s/keys :req-un [:map.rich-layer/alternate-views
