@@ -430,13 +430,44 @@
   (let [national-layer-timeline (vec (sort-by :year national-layer-timeline))]
     (assoc-in db [:map :national-layer-timeline] national-layer-timeline)))
 
+(def blank-rich-layer
+  {:alternate-views []
+   :alternate-views-selected nil
+   :timeline []
+   :timeline-selected nil
+   :tab "legend"})
+
 (defn update-rich-layer-alternate-views [db [_ rich-layer-alternate-views]]
-  (js/console.log "rich-layer-alternate-views" rich-layer-alternate-views)
-  db)
+  (let [rich-layers
+        (->>
+         rich-layer-alternate-views
+         (group-by :parent)
+         (reduce-kv ; for each rich-layer (parent) we have the alternate views for, we update
+          (fn [m k v]
+            (let [alternate-views (mapv #(dissoc % :parent) v)
+                  rich-layer
+                  (->
+                   (or (get m k) blank-rich-layer) ; use rich-layer if exists, else use blank one
+                   (assoc :alternate-views alternate-views))]
+              (assoc m k rich-layer))) ; crucially, doesn't override layers we don't have alternate view for
+          (get-in db [:map :rich-layers])))] ; use the existing rich layers as the accumulator, because we only update layers we need to
+    (assoc-in db [:map :rich-layers] rich-layers)))
 
 (defn update-rich-layer-timelines [db [_ rich-layer-timelines]]
-  (js/console.log "rich-layer-timelines" rich-layer-timelines)
-  db)
+  (let [rich-layers
+        (->>
+         rich-layer-timelines
+         (group-by :parent)
+         (reduce-kv ; for each rich-layer (parent) we have the timeline for, we update
+          (fn [m k v]
+            (let [timeline (mapv #(dissoc % :parent) v)
+                  rich-layer
+                  (->
+                   (or (get m k) blank-rich-layer) ; use rich-layer if exists, else use blank one
+                   (assoc :timeline timeline))]
+              (assoc m k rich-layer))) ; crucially, doesn't override layers we don't have timeline for
+          (get-in db [:map :rich-layers])))] ; use the existing rich layers as the accumulator, because we only update layers we need to
+    (assoc-in db [:map :rich-layers] rich-layers)))
 
 (defn update-region-reports [db [_ region-reports]]
   (assoc-in db [:state-of-knowledge :region-reports] region-reports))
