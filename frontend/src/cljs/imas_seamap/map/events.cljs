@@ -430,6 +430,14 @@
   (let [national-layer-timeline (vec (sort-by :year national-layer-timeline))]
     (assoc-in db [:map :national-layer-timeline] national-layer-timeline)))
 
+(defn update-rich-layer-alternate-views [db [_ rich-layer-alternate-views]]
+  (js/console.log "rich-layer-alternate-views" rich-layer-alternate-views)
+  db)
+
+(defn update-rich-layer-timelines [db [_ rich-layer-timelines]]
+  (js/console.log "rich-layer-timelines" rich-layer-timelines)
+  db)
+
 (defn update-region-reports [db [_ region-reports]]
   (assoc-in db [:state-of-knowledge :region-reports] region-reports))
 

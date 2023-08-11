@@ -97,6 +97,8 @@
           save-state
           category
           keyed-layers
+          rich-layer-alternate-views
+          rich-layer-timelines
           layer-previews
           story-maps
           data-in-region]}
@@ -114,6 +116,8 @@
       :save-state-url            (str api-url-base save-state)
       :category-url              (str api-url-base category)
       :keyed-layers-url          (str api-url-base keyed-layers)
+      :rich-layer-alternate-views-url (str api-url-base rich-layer-alternate-views)
+      :rich-layer-timelines-url       (str api-url-base rich-layer-timelines)
       :layer-previews-url        (str media-url-base layer-previews)
       :story-maps-url            (str wordpress-url-base story-maps)
       :data-in-region-url        (str api-url-base data-in-region)})))
@@ -194,6 +198,8 @@
                 descriptor-url
                 category-url
                 keyed-layers-url
+                rich-layer-alternate-views-url
+                rich-layer-timelines-url
                 story-maps-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
@@ -235,6 +241,16 @@
                    :uri             keyed-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-keyed-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             rich-layer-alternate-views-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-rich-layer-alternate-views]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             rich-layer-timelines-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-rich-layer-timelines]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             story-maps-url
