@@ -163,6 +163,8 @@
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
     :map/update-keyed-layers              mevents/update-keyed-layers
+    :map/update-rich-layer-alternate-views mevents/update-rich-layer-alternate-views
+    :map/update-rich-layer-timelines       mevents/update-rich-layer-timelines
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [tmaevents/show-initial-layers]
     :map/join-keyed-layers                mevents/join-keyed-layers

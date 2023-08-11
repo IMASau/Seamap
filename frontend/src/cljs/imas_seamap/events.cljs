@@ -142,6 +142,8 @@
           category
           keyed-layers
           national-layer-timeline
+          rich-layer-alternate-views
+          rich-layer-timelines
           region-reports
           amp-boundaries
           imcra-boundaries
@@ -167,6 +169,8 @@
       :category-url                (str api-url-base category)
       :keyed-layers-url            (str api-url-base keyed-layers)
       :national-layer-timeline-url (str api-url-base national-layer-timeline)
+      :rich-layer-alternate-views-url (str api-url-base rich-layer-alternate-views)
+      :rich-layer-timelines-url       (str api-url-base rich-layer-timelines)
       :region-reports-url          (str api-url-base region-reports)
       :amp-boundaries-url          (str api-url-base amp-boundaries)
       :imcra-boundaries-url        (str api-url-base imcra-boundaries)
@@ -286,6 +290,8 @@
                 category-url
                 keyed-layers-url
                 national-layer-timeline-url
+                rich-layer-alternate-views-url
+                rich-layer-timelines-url
                 region-reports-url
                 amp-boundaries-url
                 imcra-boundaries-url
@@ -336,6 +342,16 @@
                    :uri             national-layer-timeline-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-national-layer-timeline]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             rich-layer-alternate-views-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-rich-layer-alternate-views]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             rich-layer-timelines-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-rich-layer-timelines]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             region-reports-url

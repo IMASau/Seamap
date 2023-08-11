@@ -95,6 +95,8 @@
                                  :category              "categories/"
                                  :keyed-layers          "keyedlayers/"
                                  :national-layer-timeline "nationallayertimeline/"
+                                 :rich-layer-alternate-views "richlayeralternateview/"
+                                 :rich-layer-timelines       "richlayertimeline/"
                                  :region-reports        "regionreports/"
                                  :amp-boundaries        "habitat/ampboundaries"
                                  :imcra-boundaries      "habitat/imcraboundaries"
