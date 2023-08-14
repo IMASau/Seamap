@@ -153,6 +153,7 @@
     :map.layer.selection/clear            [tmaevents/map-clear-selection]
     :map.layer.selection/finalise         [tmaevents/map-finalise-selection]
     :map.layer.selection/toggle           [mevents/map-toggle-selecting]
+    :map.rich-layer/tab                   [mevents/rich-layer-tab]
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups

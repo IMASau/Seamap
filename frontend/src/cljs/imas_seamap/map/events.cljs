@@ -669,6 +669,10 @@
      (get-in db [:map :controls :download :bbox])      [:map.layer.selection/clear]
      :default                                          [:map.layer.selection/enable])})
 
+(defn rich-layer-tab [{:keys [db]} [_ layer tab]]
+  {:db       (assoc-in db [:map :rich-layers (:id layer) :tab] tab)
+   :dispatch [:maybe-autosave]})
+
 (defn add-layer
   "Adds a layer to the list of active layers.
    
