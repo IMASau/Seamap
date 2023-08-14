@@ -11,7 +11,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers]]
-            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities visible-layers]]
+            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities visible-layers enhance-rich-layer]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -404,20 +404,23 @@
    :cookie/set {:name  :seen-welcome
                 :value true}})
 
-(defn layer-show-info [{:keys [db]} [_ {:keys [metadata_url] :as layer}]]
-  ;; This regexp: has been relaxed slightly; it used to be a strict
-  ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
-  ;; alpha-nums with optional hyphens. I assume this is from records
-  ;; re-hosted in our server, but with IDs created externally, but
-  ;; it's just not that important to be strict here, regardless:
-  (if (re-matches #"(?i)^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}$" metadata_url)
-    {:db         (assoc-in db [:display :info-card] :display.info/loading)
-     :http-xhrio {:method          :get
-                  :uri             (-> layer :metadata_url geonetwork-force-xml)
-                  :response-format (ajax/text-response-format)
-                  :on-success      [:map.layer/update-metadata layer]
-                  :on-failure      [:map.layer/metadata-error]}}
-    {:db (assoc-in db [:display :info-card :layer] layer)}))
+(defn layer-show-info [{:keys [db]} [_ layer]]
+  (let [{:keys [metadata_url] :as displayed-layer}
+        (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)])))]
+    (js/console.log displayed-layer)
+    ;; This regexp: has been relaxed slightly; it used to be a strict
+    ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
+    ;; alpha-nums with optional hyphens. I assume this is from records
+    ;; re-hosted in our server, but with IDs created externally, but
+    ;; it's just not that important to be strict here, regardless:
+    (if (re-matches #"(?i)^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}$" metadata_url)
+      {:db         (assoc-in db [:display :info-card] :display.info/loading)
+       :http-xhrio {:method          :get
+                    :uri             (-> displayed-layer :metadata_url geonetwork-force-xml)
+                    :response-format (ajax/text-response-format)
+                    :on-success      [:map.layer/update-metadata displayed-layer]
+                    :on-failure      [:map.layer/metadata-error]}}
+      {:db (assoc-in db [:display :info-card :layer] displayed-layer)})))
 
 ;; (xml/alias-uri 'mcp "http://schemas.aodn.org.au/mcp-2.0")
 ;; (xml/alias-uri 'gmd "http://www.isotc211.org/2005/gmd")
