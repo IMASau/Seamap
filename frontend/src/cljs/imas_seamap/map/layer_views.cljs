@@ -36,16 +36,49 @@
 (defn- layer-card-header-text
   "Layer name, with some other fancy stuff on top. Clicking it will expand the
    layer's details."
-  [{{:keys [name tooltip]} :layer {:keys [expanded? active?]} :layer-state}]
+  [{{:keys [name tooltip]} :layer
+    {:keys [expanded? active?]
+     {:keys [alternate-views-selected timeline-selected displayed-layer]} :rich-layer} :layer-state}]
   [:div.layer-header-text
    [b/tooltip
     {:content
      (cond
-       (seq tooltip) (reagent/as-element [:div {:style {:max-width "320px"}} tooltip])
-       expanded?     "Hide details"
-       :else         "Show details")
-     :disabled (not (or active? (seq tooltip)))}
-    [b/clipped-text {:ellipsize true} name]]])
+       alternate-views-selected
+       (reagent/as-element
+        [:div {:style {:max-width "320px"}}
+         (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name]))
+         [b/button
+          {:icon     "cross"
+           :minimal  true
+           :on-click
+           #(do
+              (.stopPropagation %)
+              (re-frame/dispatch [:map.national-layer/reset-filters]))}]])
+
+       timeline-selected
+       (reagent/as-element
+        [:div {:style {:max-width "320px"}}
+         (str "FILTER APPLIED: Year: " (get-in timeline-selected [:year]))
+         [b/button
+          {:icon     "cross"
+           :minimal  true
+           :on-click
+           #(do
+              (.stopPropagation %)
+              (re-frame/dispatch [:map.national-layer/reset-filters]))}]])
+
+       (seq tooltip)
+       (reagent/as-element
+        [:div {:style {:max-width "320px"}}
+         tooltip])
+       
+       expanded? "Hide details"
+       :else     "Show details")
+     :disabled (not (or active? (seq tooltip)))
+     :hover-close-delay
+     (if (or alternate-views-selected timeline-selected)
+       1000 0)}
+    [b/clipped-text {:ellipsize true} (or (:name displayed-layer) name)]]])
 
 (defn- layer-control
   "Basic layer control. It's an icon with a tooltip that does something when
@@ -263,26 +296,22 @@
 (defn- layer-card-content
   "Content of a layer card; includes both the header and the details that can be
    expanded and collapsed."
-  [{:keys [displayed-tooltip] {:keys [active? expanded?]} :layer-state :as props}]
+  [{{:keys [tooltip]} :layer
+    {:keys [active? expanded?]
+     {:keys [alternate-views-selected timeline-selected]} :rich-layer} :layer-state
+    :as props}]
   [:div
-   {:class (when (seq displayed-tooltip) "has-tooltip")}
+   {:class (when (or (seq tooltip) alternate-views-selected timeline-selected) "has-tooltip")}
    [layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [layer-details props]]])
 
 (defn layer-card
   "Wrapper of layer-card-content in a card for displaying in lists."
-  [{{:keys [tooltip] :as layer} :layer
-    {{:keys [alternate-views-selected timeline-selected]} :rich-layer} :layer-state
-    :as props}]
-  (let [displayed-tooltip (cond
-                            alternate-views-selected (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name]))
-                            timeline-selected        (str "FILTER APPLIED: Year: " (get-in timeline-selected [:year]))
-                            :else                    tooltip)
-        props             (assoc props :displayed-tooltip displayed-tooltip)]
-    [:div.layer-card
-     {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
-     [layer-card-content props]]))
+  [{:keys [_layer-state layer] :as props}]
+  [:div.layer-card
+   {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
+   [layer-card-content props]])
 
 (defn- layer-catalogue-controls
   "To the right of the layer name. Basic controls for the layer, like getting info
