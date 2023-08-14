@@ -670,8 +670,20 @@
      :default                                          [:map.layer.selection/enable])})
 
 (defn rich-layer-tab [{:keys [db]} [_ layer tab]]
-  {:db       (assoc-in db [:map :rich-layers (:id layer) :tab] tab)
+  {:db       (assoc-in
+              db [:map :rich-layers (:id layer) :tab]
+              tab)
    :dispatch [:maybe-autosave]})
+
+(defn rich-layer-alternate-views-selected [{:keys [db]} [_ layer alternate-views-selected]]
+  {:db       (->
+              db
+              (assoc-in [:map :rich-layers (:id layer) :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
+              (assoc-in [:map :rich-layers (:id layer) :timeline-selected] nil))
+   :dispatch-n [(when
+                 (and alternate-views-selected (not (get-in db [:map :legends (get-in alternate-views-selected [:layer :id])])))
+                  [:map.layer/get-legend (:layer alternate-views-selected)])
+                [:maybe-autosave]]})
 
 (defn add-layer
   "Adds a layer to the list of active layers.
