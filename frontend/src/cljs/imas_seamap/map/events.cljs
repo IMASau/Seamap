@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer has-visible-habitat-layers?]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer has-visible-habitat-layers? enhance-rich-layer]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -537,8 +537,10 @@
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
-  [{:keys [db]} [_ {:keys [bounding_box] :as layer}]]
-  (let [layer-active? ((set (get-in db [:map :active-layers])) layer)]
+  [{:keys [db]} [_ layer]]
+  (let [layer-active?  ((set (get-in db [:map :active-layers])) layer) 
+        displayed-layer (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]))) ; try rich-layer displayed layer
+        bounding_box    (:bounding_box (or displayed-layer layer))]                                         ; if rich-layer displayed layer does not exist, use base layer
     {:db         db
      :dispatch-n [(when-not layer-active? [:map/add-layer layer])
                   [:map/update-map-view {:bounds bounding_box}]
