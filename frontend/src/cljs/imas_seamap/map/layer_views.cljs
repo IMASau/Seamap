@@ -173,10 +173,40 @@
            :icon        "info-sign"}]))]))
 
 (defn- layer-details
-  "Layer details, including advanced opacity slider control and the layer's legend."
-  [{:keys [layer]}]
+  "Layer details for layer card. Includes layer's legend, and tabs for selecting
+   filters if the layer is a rich-layer."
+  [{:keys [layer]
+    {{:keys [tab displayed-layer] :as rich-layer} :rich-layer} :layer-state}]
   [:div.layer-details
-   [legend-display layer]])
+   {:on-click #(.stopPropagation %)}
+   (if rich-layer
+     [b/tabs
+      {:selected-tab-id tab
+       :on-change       #(re-frame/dispatch [:map.rich-layer/tab layer %])}
+
+      [b/tab
+       {:id    "legend"
+        :title (reagent/as-element [:<> [b/icon {:icon "key"}] "Legend"])
+        :panel
+        (reagent/as-element
+         [:div
+          {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
+          (when displayed-layer [:h2 (:name displayed-layer)])
+          [legend-display (or displayed-layer layer)]])}]
+
+      [b/tab
+       {:id    "filters"
+        :title (reagent/as-element [:<> [b/icon {:icon "filter-list"}] "Filters"])
+        :panel
+        (reagent/as-element
+         [:div
+          {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
+          ; TODO: Fix filters
+          [:div "TODO: Fix filters"]
+          #_[main-national-layer-alternate-view-select details]
+          #_[main-national-layer-time-filter details]])}]]
+     
+     [legend-display layer])])
 
 (defn- layer-card-content
   "Content of a layer card; includes both the header and the details that can be

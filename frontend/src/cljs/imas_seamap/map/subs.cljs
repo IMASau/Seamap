@@ -64,12 +64,17 @@
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
      :rich-layer-fn   (fn [{:keys [id] :as _layer}]
-                        (let [{:keys [alternate-views alternate-views-selected timeline timeline-selected tab] :as rich-layer} (get rich-layers id)]
+                        (let [{:keys [alternate-views alternate-views-selected timeline timeline-selected tab] :as rich-layer}
+                              (get rich-layers id)
+
+                              alternate-views-selected (first-where #(= (get-in % [:layer :id]) alternate-views-selected) alternate-views)
+                              timeline-selected        (first-where #(= (get-in % [:layer :id]) timeline-selected) timeline)]
                           (when rich-layer
                             {:alternate-views          alternate-views
-                             :alternate-views-selected (first-where #(= (get-in % [:layer :id]) alternate-views-selected) alternate-views)
+                             :alternate-views-selected alternate-views-selected
                              :timeline                 timeline
-                             :timeline-selected        (first-where #(= (get-in % [:layer :id]) timeline-selected) timeline)
+                             :timeline-selected        timeline-selected
+                             :displayed-layer          (:layer (or alternate-views-selected timeline-selected))
                              :tab tab})))}))
 
 (defn map-base-layers [{:keys [map]} _]
