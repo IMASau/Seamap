@@ -45,7 +45,7 @@
               0.4)))))       ; Might be nice to make this configurable eventually
 
 (defn map-layers [{:keys [layer-state filters sorting]
-                   {:keys [layers active-layers bounds categories] :as db-map} :map
+                   {:keys [layers active-layers bounds categories rich-layers] :as db-map} :map
                    :as _db} _]
   (let [categories      (map-on-key categories :name)
         filter-text     (:layers filters)
@@ -63,7 +63,7 @@
      :filtered-layers filtered-layers
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
-     :main-national-layer (main-national-layer db-map)}))
+     :rich-layer-fn   (fn [{:keys [id] :as _layer}] (get rich-layers id))}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
