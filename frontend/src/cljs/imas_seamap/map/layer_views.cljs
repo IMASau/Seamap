@@ -172,11 +172,30 @@
            :description "We are unable to display any legend data at this time."
            :icon        "info-sign"}]))]))
 
+(defn- alternate-view-select
+  [{:keys [layer]
+    {{:keys [alternate-views alternate-views-selected timeline-selected]} :rich-layer} :layer-state}]
+  [components/form-group
+   {:label    "Alternate View"}
+   [:div
+    {:on-click #(.stopPropagation %)}
+    [components/select
+     {:value        alternate-views-selected
+      :options      alternate-views
+      :onChange     #(re-frame/dispatch [:map.rich-layer/alternate-views-selected layer %])
+      :isSearchable true
+      :isClearable  true
+      :isDisabled   (boolean timeline-selected)
+      :keyfns
+      {:id   #(get-in % [:layer :id])
+       :text #(get-in % [:layer :name])}}]]])
+
 (defn- layer-details
   "Layer details for layer card. Includes layer's legend, and tabs for selecting
    filters if the layer is a rich-layer."
   [{:keys [layer]
-    {{:keys [tab displayed-layer] :as rich-layer} :rich-layer} :layer-state}]
+    {{:keys [tab displayed-layer] :as rich-layer} :rich-layer} :layer-state
+    :as props}]
   [:div.layer-details
    {:on-click #(.stopPropagation %)}
    (if rich-layer
@@ -203,7 +222,7 @@
           {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
           ; TODO: Fix filters
           [:div "TODO: Fix filters"]
-          #_[main-national-layer-alternate-view-select details]
+          [alternate-view-select props]
           #_[main-national-layer-time-filter details]])}]]
      
      [legend-display layer])])
