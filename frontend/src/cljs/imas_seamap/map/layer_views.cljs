@@ -181,19 +181,26 @@
 (defn- layer-card-content
   "Content of a layer card; includes both the header and the details that can be
    expanded and collapsed."
-  [{{:keys [tooltip]} :layer {:keys [active? expanded?]} :layer-state :as props}]
+  [{:keys [displayed-tooltip] {:keys [active? expanded?]} :layer-state :as props}]
   [:div
-   {:class (when (seq tooltip) "has-tooltip")}
+   {:class (when (seq displayed-tooltip) "has-tooltip")}
    [layer-card-header props]
    [b/collapse {:is-open (and active? expanded?)}
     [layer-details props]]])
 
 (defn layer-card
   "Wrapper of layer-card-content in a card for displaying in lists."
-  [{:keys [layer _layer-state] :as props}]
-  [:div.layer-card
-   {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
-   [layer-card-content props]])
+  [{{:keys [tooltip] :as layer} :layer
+    {{:keys [alternate-views-selected timeline-selected]} :rich-layer} :layer-state
+    :as props}]
+  (let [displayed-tooltip (cond
+                            alternate-views-selected (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name]))
+                            timeline-selected        (str "FILTER APPLIED: Year: " (get-in timeline-selected [:year]))
+                            :else                    tooltip)
+        props             (assoc props :displayed-tooltip displayed-tooltip)]
+    [:div.layer-card
+     {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
+     [layer-card-content props]]))
 
 (defn- layer-catalogue-controls
   "To the right of the layer name. Basic controls for the layer, like getting info
