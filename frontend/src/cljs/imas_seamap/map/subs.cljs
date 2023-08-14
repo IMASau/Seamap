@@ -4,7 +4,7 @@
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
             [imas-seamap.utils :refer [map-on-key first-where]]
-            [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers main-national-layer displayed-national-layer]]
+            [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers main-national-layer displayed-national-layer enhance-rich-layer]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
@@ -64,18 +64,7 @@
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
      :rich-layer-fn   (fn [{:keys [id] :as _layer}]
-                        (let [{:keys [alternate-views alternate-views-selected timeline timeline-selected tab] :as rich-layer}
-                              (get rich-layers id)
-
-                              alternate-views-selected (first-where #(= (get-in % [:layer :id]) alternate-views-selected) alternate-views)
-                              timeline-selected        (first-where #(= (get-in % [:layer :id]) timeline-selected) timeline)]
-                          (when rich-layer
-                            {:alternate-views          alternate-views
-                             :alternate-views-selected alternate-views-selected
-                             :timeline                 timeline
-                             :timeline-selected        timeline-selected
-                             :displayed-layer          (:layer (or alternate-views-selected timeline-selected))
-                             :tab tab})))}))
+                        (enhance-rich-layer (get rich-layers id)))}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
