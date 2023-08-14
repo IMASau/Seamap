@@ -157,6 +157,7 @@
     :map.layer.selection/toggle           [mevents/map-toggle-selecting]
     :map.rich-layer/tab                   [mevents/rich-layer-tab]
     :map.rich-layer/alternate-views-selected [mevents/rich-layer-alternate-views-selected]
+    :map.rich-layer/timeline-selected        [mevents/rich-layer-timeline-selected]
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups
