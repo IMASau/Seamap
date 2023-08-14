@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
-            [imas-seamap.utils :refer [map-on-key]]
+            [imas-seamap.utils :refer [map-on-key first-where]]
             [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers main-national-layer displayed-national-layer]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -63,7 +63,14 @@
      :filtered-layers filtered-layers
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
-     :rich-layer-fn   (fn [{:keys [id] :as _layer}] (get rich-layers id))}))
+     :rich-layer-fn   (fn [{:keys [id] :as _layer}]
+                        (let [{:keys [alternate-views alternate-views-selected timeline timeline-selected tab] :as rich-layer} (get rich-layers id)]
+                          (when rich-layer
+                            {:alternate-views          alternate-views
+                             :alternate-views-selected (first-where #(= (get-in % [:layer :id]) alternate-views-selected) alternate-views)
+                             :timeline                 timeline
+                             :timeline-selected        (first-where #(= (get-in % [:layer :id]) timeline-selected) timeline)
+                             :tab tab})))}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
