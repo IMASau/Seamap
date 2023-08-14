@@ -4,6 +4,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.components :as components]
             [clojure.string :as string]
+            [imas-seamap.utils :refer [first-where round-to-nearest]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn- layer-status-icons
@@ -190,6 +191,40 @@
       {:id   #(get-in % [:layer :id])
        :text #(get-in % [:layer :name])}}]]])
 
+(defn- timeline-select
+  [{:keys [layer]
+    {{:keys [timeline timeline-selected alternate-views-selected]} :rich-layer} :layer-state}]
+  (let [years     (sort (map :year timeline))
+        gaps      (:gaps
+                   (reduce
+                    (fn [{:keys [gaps prev]} val]
+                      {:gaps (if prev
+                               (conj gaps (- val prev))
+                               gaps)
+                       :prev val})
+                    {:gaps [] :prev nil} years))
+        with-gaps (butlast (interleave years (conj gaps nil)))]
+    [components/form-group {:label "Time"}
+     [:input
+      {:type     "range"
+       :min      (apply min years)
+       :max      (apply max years)
+       :value    (:year (or timeline-selected (first-where #(= (get-in % [:layer :id]) (:id layer)) timeline)))
+       :on-click #(.stopPropagation %)
+       :on-input (fn [e]
+                   (let [year (-> e .-target .-value js/parseInt)
+                         nearest-year (round-to-nearest year years)]
+                     (re-frame/dispatch [:map.rich-layer/timeline-selected layer (first-where #(= (:year %) nearest-year) timeline)])))
+       :disabled (boolean alternate-views-selected)}]
+     [:div.time-range
+      (map-indexed
+       (fn [i v]
+         [:div
+          {:key   i
+           :style (when (odd? i) {:flex v})}
+          (when (even? i) v)])
+       with-gaps)]]))
+
 (defn- layer-details
   "Layer details for layer card. Includes layer's legend, and tabs for selecting
    filters if the layer is a rich-layer."
@@ -220,10 +255,8 @@
         (reagent/as-element
          [:div
           {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
-          ; TODO: Fix filters
-          [:div "TODO: Fix filters"]
           [alternate-view-select props]
-          #_[main-national-layer-time-filter details]])}]]
+          [timeline-select props]])}]]
      
      [legend-display layer])])
 
