@@ -74,19 +74,32 @@
 (defn ajax-loaded-info
   "Returns db of all the info retrieved via ajax"
   [db]
-  (select-keys*
-   db
-   [[:map :layers]
-    [:map :base-layers]
-    [:map :base-layer-groups]
-    [:map :grouped-base-layers]
-    [:map :organisations]
-    [:map :categories]
-    [:map :keyed-layers]
-    [:map :leaflet-map]
-    [:map :legends]
-    [:story-maps :featured-maps]
-    :habitat-colours
-    :habitat-titles
-    :sorting
-    :config]))
+  (let [rich-layers
+        (reduce-kv
+         (fn [acc key {:keys [alternate-views timeline] :as _val}]
+           (assoc
+            acc
+            key
+            (assoc
+             blank-rich-layer
+             :alternate-views alternate-views
+             :timeline timeline)))
+         {} (get-in db [:map :rich-layers]))]
+    (->
+     (select-keys*
+      db
+      [[:map :layers]
+       [:map :base-layers]
+       [:map :base-layer-groups]
+       [:map :grouped-base-layers]
+       [:map :organisations]
+       [:map :categories]
+       [:map :keyed-layers]
+       [:map :leaflet-map]
+       [:map :legends]
+       [:story-maps :featured-maps]
+       :habitat-colours
+       :habitat-titles
+       :sorting
+       :config])
+     (assoc-in [:map :rich-layers] rich-layers))))
