@@ -36,7 +36,7 @@
 (defn- layer-card-header-text
   "Layer name, with some other fancy stuff on top. Clicking it will expand the
    layer's details."
-  [{{:keys [name tooltip]} :layer
+  [{{:keys [name tooltip] :as layer} :layer
     {:keys [expanded? active?]
      {:keys [alternate-views-selected timeline-selected displayed-layer]} :rich-layer} :layer-state}]
   [:div.layer-header-text
@@ -53,7 +53,7 @@
            :on-click
            #(do
               (.stopPropagation %)
-              (re-frame/dispatch [:map.national-layer/reset-filters]))}]])
+              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
 
        timeline-selected
        (reagent/as-element
@@ -65,7 +65,7 @@
            :on-click
            #(do
               (.stopPropagation %)
-              (re-frame/dispatch [:map.national-layer/reset-filters]))}]])
+              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
 
        (seq tooltip)
        (reagent/as-element
