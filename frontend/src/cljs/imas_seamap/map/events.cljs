@@ -698,6 +698,15 @@
                     [:map.layer/get-legend (:layer timeline-selected)])
                   [:maybe-autosave]]}))
 
+(defn rich-layer-reset-filters [{:keys [db]} [_ layer]]
+  (merge
+   {:db         (-> db
+                    (assoc-in [:map :rich-layers (:id layer) :alternate-views-selected] nil)
+                    (assoc-in [:map :rich-layers (:id layer) :timeline-selected] nil))
+    :dispatch-n [(when-not (get-in db [:map :legends (:id layer)])
+                   [:map.layer/get-legend layer])
+                 [:maybe-autosave]]}))
+
 (defn add-layer
   "Adds a layer to the list of active layers.
    
