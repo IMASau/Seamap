@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer has-visible-habitat-layers? enhance-rich-layer]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer has-visible-habitat-layers? enhance-rich-layer blank-rich-layer]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -460,13 +460,6 @@
 (defn update-national-layer-timeline [db [_ national-layer-timeline]]
   (let [national-layer-timeline (vec (sort-by :year national-layer-timeline))]
     (assoc-in db [:map :national-layer-timeline] national-layer-timeline)))
-
-(def blank-rich-layer
-  {:alternate-views []
-   :alternate-views-selected nil
-   :timeline []
-   :timeline-selected nil
-   :tab "legend"})
 
 (defn update-rich-layer-alternate-views [db [_ rich-layer-alternate-views]]
   (let [rich-layers
