@@ -422,8 +422,9 @@
                    (first-where
                     #(= (:id %) parent)
                     layers))
-                 v))]
-           (assoc m k parents)))
+                 v))
+               child (first-where #(= (:id %) k) layers)]
+           (assoc m child parents)))
        {} rich-layer-children))))
 
 (defn update-layers [db [_ layers]]
