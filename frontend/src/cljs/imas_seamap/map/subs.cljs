@@ -45,14 +45,20 @@
               0.4)))))       ; Might be nice to make this configurable eventually
 
 (defn map-layers [{:keys [layer-state filters sorting]
-                   {:keys [layers active-layers bounds categories rich-layers] :as db-map} :map
+                   {:keys [layers active-layers bounds categories rich-layers rich-layer-children] :as db-map} :map
                    :as _db} _]
   (let [categories      (map-on-key categories :name)
         filter-text     (:layers filters)
-        layers          (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
-        viewport-layers (viewport-layers bounds layers)
-        filtered-layers (filter (partial match-layer filter-text categories) layers)
-        sorted-layers   (sort-layers layers sorting)]
+        
+        catalogue-layers
+        (->>
+         layers
+         (filter #(get-in categories [(:category %) :display_name])) ; only layers with a category that has a display name are allowed
+         (remove (reduce-kv (fn [acc key val] (if (val key) acc (conj acc key))) #{} rich-layer-children))) ; removes rich-layer children (except those that are a child of themselves)
+
+        viewport-layers (viewport-layers bounds catalogue-layers)
+        filtered-layers (filter (partial match-layer filter-text categories) catalogue-layers)
+        sorted-layers   (sort-layers catalogue-layers sorting)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
