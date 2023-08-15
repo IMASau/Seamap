@@ -445,10 +445,3 @@
        :timeline-selected        timeline-selected
        :displayed-layer          (:layer (or alternate-views-selected timeline-selected))
        :tab tab})))
-
-(def blank-rich-layer
-  {:alternate-views []
-   :alternate-views-selected nil
-   :timeline []
-   :timeline-selected nil
-   :tab "legend"})

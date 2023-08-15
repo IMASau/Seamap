@@ -239,6 +239,13 @@
        (filter #(pred (second %)))
        (map first)))
 
+(def blank-rich-layer
+  {:alternate-views []
+   :alternate-views-selected nil
+   :timeline []
+   :timeline-selected nil
+   :tab "legend"})
+
 (defn ajax-loaded-info
   "Returns db of all the info retrieved via ajax"
   [db]
