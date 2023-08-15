@@ -35,7 +35,9 @@
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
-                                  :map/update-keyed-layers]
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layer-alternate-views
+                                  :map/update-rich-layer-timelines]
      :dispatch-n [[:map/join-keyed-layers]
                   [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
@@ -73,7 +75,9 @@
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
-                                  :map/update-keyed-layers]
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layer-alternate-views
+                                  :map/update-rich-layer-timelines]
      :dispatch-n [[:map/join-keyed-layers]
                   [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
@@ -111,7 +115,9 @@
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
-                                  :map/update-keyed-layers]
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layer-alternate-views
+                                  :map/update-rich-layer-timelines]
      :dispatch-n [[:map/join-keyed-layers]
                   [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
