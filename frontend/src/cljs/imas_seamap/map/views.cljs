@@ -255,16 +255,14 @@
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
-        {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
+        {:keys [layer-opacities visible-layers rich-layer-fn]} @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
-        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])
-        {national-layer :displayed-layer}             @(re-frame/subscribe [:map/national-layer])
-        {national-layer-opacity :opacity}             @(re-frame/subscribe [:map.national-layer/state])]
+        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     (into
      [:div.map-wrapper
       [download-component download-info]
@@ -314,20 +312,19 @@
        
        ;; Catalogue layers
        (map-indexed
-        (fn [i {:keys [id] :as layer}]
-          ;; While it's not efficient, we give every layer it's own pane to simplify the
-          ;; code.
-          ;; Panes are given a name based on a uuid and time because if a pane is given the
-          ;; same name as a previously existing pane leaflet complains about a new pane being
-          ;; made with the same name as an existing pane (causing leaflet to no longer work).
-          ^{:key (str id (boundary-filter layer) (+ i 1 (count (:layers active-base-layer))))}
-          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
-           [layer-component
-            {:layer           layer
-             :boundary-filter boundary-filter
-             :layer-opacities
-             (if (= layer national-layer)
-               #(identity national-layer-opacity) layer-opacities)}]])
+        (fn [i layer]
+          (let [{:keys [id] :as displayed-layer} (or (:displayed-layer (rich-layer-fn layer)) layer)]
+            ;; While it's not efficient, we give every layer it's own pane to simplify the
+            ;; code.
+            ;; Panes are given a name based on a uuid and time because if a pane is given the
+            ;; same name as a previously existing pane leaflet complains about a new pane being
+            ;; made with the same name as an existing pane (causing leaflet to no longer work).
+            ^{:key (str id (boundary-filter displayed-layer) (+ i 1 (count (:layers active-base-layer))))}
+            [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
+             [layer-component
+              {:layer           displayed-layer
+               :boundary-filter boundary-filter
+               :layer-opacities layer-opacities}]]))
         visible-layers)
        
        (when query
