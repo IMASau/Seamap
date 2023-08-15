@@ -109,6 +109,7 @@
        [:map :keyed-layers]
        [:map :leaflet-map]
        [:map :legends]
+       [:map :rich-layer-children]
        [:story-maps :featured-maps]
        :habitat-colours
        :habitat-titles

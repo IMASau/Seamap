@@ -285,6 +285,7 @@
        [:map :national-layer-timeline]
        [:map :leaflet-map]
        [:map :legends]
+       [:map :rich-layer-children]
        [:state-of-knowledge :boundaries :amp :boundaries]
        [:state-of-knowledge :boundaries :imcra :boundaries]
        [:state-of-knowledge :boundaries :meow :boundaries]
