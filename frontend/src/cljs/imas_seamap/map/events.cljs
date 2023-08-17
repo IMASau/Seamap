@@ -635,6 +635,14 @@
         story-maps    (get-in db [:story-maps :featured-maps])
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
+        legends-shown (init-layer-legend-status layers legend-ids)
+        rich-layers   (get-in db [:map :rich-layers])
+        legends-get   (map
+                       (fn [{:keys [id] :as layer}]
+                         (let [rich-layer (get rich-layers id)
+                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer))]
+                           (or displayed-layer layer)))
+                       legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
@@ -646,7 +654,7 @@
                    (when (and (seq startup-layers) initial-bounds?)
                      [:map/update-map-view {:bounds (:bounding_box (first startup-layers)) :instant? true}])
                    [:maybe-autosave]]
-                  (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids)))}))
+                  (mapv #(vector :map.layer/get-legend %) legends-get))}))
 
 (defn update-leaflet-map [db [_ leaflet-map]]
   (when (not= leaflet-map (get-in db [:map :leaflet-map]))
