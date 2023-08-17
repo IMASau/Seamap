@@ -611,6 +611,7 @@
     {:keys [tooltip] :as layer} :layer
     :keys [id]}]
   (let [active? (some #{layer} active-layers)
+        {:keys [alternate-views-selected timeline-selected] :as rich-layer} (rich-layer-fn layer)
         layer-state
         {:active?    active?
          :visible?   (some #{layer} visible-layers)
@@ -618,12 +619,12 @@
          :expanded?  (expanded-fn layer)
          :errors?    (error-fn layer)
          :opacity    (opacity-fn layer)
-         :rich-layer (rich-layer-fn layer)}]
+         :rich-layer rich-layer}]
     {:id        id
      :className (str
                  "catalogue-layer-node"
                  (when active? " active-layer")
-                 (when (seq tooltip) " has-tooltip"))
+                 (when (or (seq tooltip) alternate-views-selected timeline-selected) " has-tooltip"))
      :nodeData  {:previewLayer layer}
      :label     (reagent/as-element [layer-catalogue-header {:layer layer :layer-state layer-state}])}))
 
