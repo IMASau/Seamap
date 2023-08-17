@@ -96,28 +96,6 @@
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))
 
-(defn national-layer [db _]
-  {:years           (mapv :year (get-in db [:map :national-layer-timeline]))
-   :year            (get-in db [:map :national-layer-timeline-selected :year])
-   :alternate-views (get-in db [:map :keyed-layers :national-layer-alternate-view])
-   :alternate-view  (get-in db [:map :national-layer-alternate-view])
-   :displayed-layer (displayed-national-layer (:map db))})
-
-(defn national-layer-state
-  "National layer state is based on a mix of fields of the main national layer
-   state and the currently displayed national layer state."
-  [{:keys [layer-state] {:keys [active-layers hidden-layers] :as db-map} :map :as _db} _]
-  (let [{:keys [loading-state error-count tile-count legend-shown]} layer-state
-        displayed-national-layer (displayed-national-layer db-map)
-        main-national-layer      (main-national-layer db-map)
-        active?                  (some #{main-national-layer} active-layers)]
-    {:active?   active?
-     :visible?  (and active? (not (hidden-layers main-national-layer)))
-     :loading?  (= (get loading-state displayed-national-layer) :map.layer/loading)
-     :errors?   ((make-error-fn error-count tile-count) displayed-national-layer)
-     :expanded? (legend-shown main-national-layer)
-     :opacity   (get-in layer-state [:opacity main-national-layer] 100)}))
-
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))
    :region     (get-in db [:map :controls :download :bbox])})
