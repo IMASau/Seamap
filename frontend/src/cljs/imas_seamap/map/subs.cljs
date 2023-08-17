@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
+            [clojure.set :as set]
             [imas-seamap.utils :refer [map-on-key first-where]]
             [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers main-national-layer displayed-national-layer enhance-rich-layer]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -55,9 +56,18 @@
          layers
          (filter #(get-in categories [(:category %) :display_name])) ; only layers with a category that has a display name are allowed
          (remove (reduce-kv (fn [acc key val] (if (val key) acc (conj acc key))) #{} rich-layer-children))) ; removes rich-layer children (except those that are a child of themselves)
-
+        
         viewport-layers (viewport-layers bounds catalogue-layers)
-        filtered-layers (filter (partial match-layer filter-text categories) catalogue-layers)
+        filtered-layers (set (filter (partial match-layer filter-text categories) layers)) ; get the set of all layers that match the filter
+        filtered-layers (reduce
+                         (fn [acc val]
+                           (let [parents (get rich-layer-children val)] ; get the rich-layer parents for this layer, and add them to the searched layers
+                             (->
+                              acc
+                              (conj val)             ; add the layer back into the filtered-layers set
+                              (set/union parents)))) ; add the layer's rich-layer parents into the filtered-layers set
+                         #{} filtered-layers)
+        filtered-layers (filterv filtered-layers catalogue-layers) ; filtered-layers set converted into vector by filtering on catalogue-layers (sorted)
         sorted-layers   (sort-layers catalogue-layers sorting)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
