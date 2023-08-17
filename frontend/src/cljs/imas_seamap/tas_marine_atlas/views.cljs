@@ -176,12 +176,11 @@
      [layer-catalogue-header {:layer layer :layer-state layer-state}]]))
 
 (defn data-in-region-drawer []
-  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities]} @(re-frame/subscribe [:map/layers])
         {:keys [status layers]} @(re-frame/subscribe [:data-in-region/data])
         layer-props
         {:active-layers  active-layers
          :visible-layers visible-layers
-         :main-national-layer main-national-layer
          :loading-fn     loading-layers
          :error-fn       error-layers
          :expanded-fn    expanded-layers
