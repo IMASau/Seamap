@@ -37,10 +37,6 @@ class KeyedLayerAdmin(admin.ModelAdmin):
     autocomplete_fields = ('layer',)
 admin.site.register(models.KeyedLayer, KeyedLayerAdmin)
 
-class NationalLayerTimelineAdmin(admin.ModelAdmin):
-    autocomplete_fields = ('layer',)
-admin.site.register(models.NationalLayerTimeline, NationalLayerTimelineAdmin)
-
 class PressureAdminInline(admin.TabularInline):
     autocomplete_fields = ('layer',)
     model = models.Pressure
