@@ -28,13 +28,6 @@
         {:db       db
          :dispatch [:maybe-autosave]}))))
 
-(defn national-layer-alternate-view [{:keys [db]} [_ national-layer-alternate-view]]
-  {:db         (-> db
-                   (assoc-in [:map :national-layer-alternate-view] national-layer-alternate-view))
-   :dispatch-n [(when (and national-layer-alternate-view (not (get-in db [:map :legends (:id national-layer-alternate-view)])))
-                  [:map.layer/get-legend national-layer-alternate-view])
-                [:maybe-autosave]]})
-
 (defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a
   geographic point, to translate a click into a feature. The

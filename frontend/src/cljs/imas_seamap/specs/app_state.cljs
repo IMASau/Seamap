@@ -166,8 +166,6 @@
              :id    integer?
              :layer :map/layer)))
 
-(s/def :map/national-layer-alternate-view (s/nilable :map/layer))
-
 
 (s/def :map.rich-layer.alternate-views.entry/sort_key (s/nilable string?))
 (s/def :map.rich-layer.alternate-views.entry/layer :map/layer)
@@ -225,7 +223,6 @@
                    :map/organisations
                    :map/viewport-only?
                    :map/keyed-layers
-                   :map/national-layer-alternate-view
                    :map/rich-layers]))
 
 (s/def :layer/loading-state #{:map.layer/loading :map.layer/loaded})

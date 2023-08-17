@@ -24,7 +24,6 @@
                      :preview-layer   nil
                      :viewport-only?  false
                      :keyed-layers    {}
-                     :national-layer-alternate-view nil
                      :rich-layers     {}
                      :legends         {}
                      :controls        {:transect false

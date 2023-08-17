@@ -470,7 +470,7 @@
     [components/select
     {:value        alternate-view
      :options      alternate-views
-     :onChange     #(re-frame/dispatch [:map.national-layer/alternate-view %])
+     :onChange     nil
      :isSearchable true
      :isClearable  true
      :isDisabled   (and (boolean year) (not= year (apply max years)))
