@@ -758,6 +758,7 @@
   (let [layers (get-in db [:map :active-layers])
         layers (vec (remove #(= % layer) layers))
         {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
+        rich-layer (get-in db [:map :rich-layers (:id layer)])
         db     (->
                 db
                 (assoc-in [:map :active-layers] layers)
@@ -773,6 +774,7 @@
                   (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
     {:db         db
      :dispatch-n [[:map/popup-closed]
+                  (when rich-layer [:map.rich-layer/reset-filters layer])
                   [:map.layer.selection/maybe-clear]
                   [:maybe-autosave]]}))
 
