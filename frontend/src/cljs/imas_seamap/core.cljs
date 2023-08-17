@@ -83,7 +83,6 @@
     :ui/sidebar                           subs/sidebar-state
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
-    :ui/national-layer-tab                subs/national-layer-tab
     :app/loading?                         subs/app-loading?
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
@@ -250,7 +249,6 @@
     :ui.sidebar/open                      [events/sidebar-open]
     :ui.sidebar/close                     events/sidebar-close
     :ui.sidebar/toggle                    events/sidebar-toggle
-    :ui/national-layer-tab                [events/national-layer-tab]
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]

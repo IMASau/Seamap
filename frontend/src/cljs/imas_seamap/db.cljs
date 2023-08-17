@@ -79,7 +79,6 @@
                      :left-drawer           true
                      :left-drawer-tab       "catalogue"
                      :layers-search-omnibar false
-                     :national-layer-tab    "legend"
                      :catalogue             {:main {:tab      "cat"
                                                     :expanded #{}}}
                      :sidebar               {:collapsed false

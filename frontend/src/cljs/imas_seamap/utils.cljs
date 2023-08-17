@@ -83,7 +83,6 @@
                                       [:display :catalogue :main]
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
-                                      [:display :national-layer-tab]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
@@ -111,7 +110,6 @@
                  [:display :catalogue :main]
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
-                 [:display :national-layer-tab]
                  [:filters :layers]
                  [:state-of-knowledge :boundaries :active-boundary]
                  [:state-of-knowledge :boundaries :active-boundary-layer]
