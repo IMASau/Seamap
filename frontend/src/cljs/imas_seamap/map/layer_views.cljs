@@ -25,19 +25,51 @@
 
 (defn- layer-header-text
   "Layer name, with some other fancy stuff on top."
-  [{:keys [_layer-state] {:keys [name tooltip]} :layer}]
+  [{{:keys [name tooltip] :as layer} :layer
+    {{:keys [alternate-views-selected timeline-selected displayed-layer]} :rich-layer} :layer-state}]
   [:div.layer-header-text
    [b/tooltip
     {:content
-     (reagent/as-element [:div {:style {:max-width "320px"}} tooltip])
-     :disabled (not (seq tooltip))}
-    [b/clipped-text {:ellipsize true} name]]])
+     (cond
+       alternate-views-selected
+       (reagent/as-element
+        [:div {:style {:max-width "320px"}}
+         (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name]))
+         [b/button
+          {:icon     "cross"
+           :minimal  true
+           :on-click
+           #(do
+              (.stopPropagation %)
+              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
+
+       timeline-selected
+       (reagent/as-element
+        [:div {:style {:max-width "320px"}}
+         (str "FILTER APPLIED: Year: " (get-in timeline-selected [:year]))
+         [b/button
+          {:icon     "cross"
+           :minimal  true
+           :on-click
+           #(do
+              (.stopPropagation %)
+              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
+
+       :else
+       (reagent/as-element
+        [:div {:style {:max-width "320px"}}
+         tooltip]))
+     :disabled (not (or alternate-views-selected timeline-selected (seq tooltip)))
+     :hover-close-delay
+     (if (or alternate-views-selected timeline-selected)
+       1000 0)}
+    [b/clipped-text {:ellipsize true} (or (:name displayed-layer) name)]]])
 
 (defn- layer-card-header-text
   "Layer name, with some other fancy stuff on top. Clicking it will expand the
    layer's details."
   [{{:keys [name tooltip] :as layer} :layer
-    {:keys [expanded? active?]
+    {:keys [expanded?]
      {:keys [alternate-views-selected timeline-selected displayed-layer]} :rich-layer} :layer-state}]
   [:div.layer-header-text
    [b/tooltip
@@ -74,7 +106,6 @@
        
        expanded? "Hide legend"
        :else     "Show legend")
-     :disabled (not (or active? (seq tooltip)))
      :hover-close-delay
      (if (or alternate-views-selected timeline-selected)
        1000 0)}
@@ -576,17 +607,18 @@
    [main-national-layer-catalogue-controls props]])
 
 (defn layer-catalogue-node
-  [{{:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn]} :layer-props
+  [{{:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn rich-layer-fn]} :layer-props
     {:keys [tooltip] :as layer} :layer
     :keys [id]}]
   (let [active? (some #{layer} active-layers)
         layer-state
-        {:active?   active?
-         :visible?  (some #{layer} visible-layers)
-         :loading?  (loading-fn layer)
-         :expanded? (expanded-fn layer)
-         :errors?   (error-fn layer)
-         :opacity   (opacity-fn layer)}]
+        {:active?    active?
+         :visible?   (some #{layer} visible-layers)
+         :loading?   (loading-fn layer)
+         :expanded?  (expanded-fn layer)
+         :errors?    (error-fn layer)
+         :opacity    (opacity-fn layer)
+         :rich-layer (rich-layer-fn layer)}]
     {:id        id
      :className (str
                  "catalogue-layer-node"
