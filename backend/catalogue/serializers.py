@@ -82,11 +82,6 @@ class KeyedLayerSerializer(serializers.ModelSerializer):
         model = models.KeyedLayer
         fields = ('keyword', 'layer', 'sort_key')
 
-class NationalLayerTimelineSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.NationalLayerTimeline
-        fields = '__all__'
-
 class RichLayerAlternateViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.RichLayerAlternateView

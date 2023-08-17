@@ -141,14 +141,6 @@ class KeyedLayer(models.Model):
         return self.keyword
 
 @python_2_unicode_compatible
-class NationalLayerTimeline(models.Model):
-    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
-    year = models.IntegerField()
-
-    def __str__(self):
-        return f'{self.layer} ({self.year})'
-
-@python_2_unicode_compatible
 class RichLayerAlternateView(models.Model):
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_child')
     parent = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_parent')
