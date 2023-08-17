@@ -391,10 +391,7 @@
         tooltip
         [b/button
          {:icon     "cross"
-          :minimal  true
-          :on-click #(do
-                       (.stopPropagation %)
-                       (re-frame/dispatch [:map.national-layer/reset-filters]))}]])
+          :minimal  true}]])
       :disabled (not (seq tooltip))}
      (when (seq tooltip)
        {:hover-close-delay 1000}))
@@ -415,10 +412,7 @@
                         tooltip
                         [b/button
                          {:icon     "cross"
-                          :minimal  true
-                          :on-click #(do
-                                       (.stopPropagation %)
-                                       (re-frame/dispatch [:map.national-layer/reset-filters]))}]])
+                          :minimal  true}]])
         expanded?     "Hide details"
         :else         "Show details")
       :disabled (not (or active? (seq tooltip)))}
