@@ -79,6 +79,7 @@
      :filtered-layers filtered-layers
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
+     :catalogue-layers catalogue-layers
      :rich-layer-fn   (fn [{:keys [id] :as _layer}]
                         (enhance-rich-layer (get rich-layers id)))}))
 
