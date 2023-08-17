@@ -862,13 +862,8 @@
   wms-other (just defaulting to image-based GetLegendGraphic). Because
   of this we dispatch on capability, rather than server type, because
   eg :wms doesn't convey enough information"
-  [{:keys [db]} [_ {:keys [layer_type server_url] :as layer}]]
+  [{:keys [db]} [_ {:keys [layer_type server_url]}]]
   (cond
-    (and
-     (= layer (main-national-layer (:map db)))
-     (not= layer (displayed-national-layer (:map db))))
-    :displayed-national-layer         ; Will dispatch again; works around special-casing for the national layer
-
     (and
       (= layer_type :feature)
       (feature-server-url? server_url))
@@ -887,10 +882,6 @@
     :else :unknown))
 
 (defmulti get-layer-legend layer-legend-dispatch)
-
-(defmethod get-layer-legend :displayed-national-layer
-  [{:keys [db]} _]
-  {:dispatch [:map.layer/get-legend (displayed-national-layer (:map db))]})
 
 (defmethod get-layer-legend :wms-geoserver
   [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
