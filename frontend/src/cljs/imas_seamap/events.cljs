@@ -231,12 +231,20 @@
 
         {:keys [legend-ids opacity-ids]} db
         layers        (get-in db [:map :layers])
+        legends-shown (init-layer-legend-status layers legend-ids)
+        rich-layers   (get-in db [:map :rich-layers])
+        legends-get   (map
+                       (fn [{:keys [id] :as layer}]
+                         (let [rich-layer (get rich-layers id)
+                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer))]
+                           (or displayed-layer layer)))
+                       legends-shown)
         db            (-> db
-                          (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
+                          (assoc-in [:layer-state :legend-shown] legends-shown)
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
     {:db         db
      :dispatch-n (conj
-                  (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))
+                  (mapv #(vector :map.layer/get-legend %) legends-get)
                   [:map/update-map-view {:zoom zoom :center center}]
                   [:map/popup-closed])}))
 
