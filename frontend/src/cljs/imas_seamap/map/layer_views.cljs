@@ -520,8 +520,8 @@
     [:div.layer-details
      {:on-click #(.stopPropagation %)}
      [b/tabs
-      {:selected-tab-id @(re-frame/subscribe [:ui/national-layer-tab])
-       :on-change       #(re-frame/dispatch [:ui/national-layer-tab %])}
+      {:selected-tab-id nil
+       :on-change       nil}
 
       [b/tab
        {:id    "legend"

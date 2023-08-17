@@ -845,7 +845,3 @@
 
 (defn settings-overlay [db [_ open?]]
   (assoc-in db [:display :settings-overlay] open?))
-
-(defn national-layer-tab [{:keys [db]} [_ tab]]
-  {:db       (assoc-in db [:display :national-layer-tab] tab)
-   :dispatch [:maybe-autosave]})
