@@ -149,7 +149,6 @@
     :map/base-layer-changed               [mevents/base-layer-changed]
     :map.national-layer/year              [mevents/national-layer-year]
     :map.national-layer/alternate-view    [mevents/national-layer-alternate-view]
-    :map.national-layer/reset-filters     [mevents/national-layer-reset-filters]
     :map.layer/load-start                 mevents/layer-started-loading
     :map.layer/tile-load-start            mevents/layer-tile-started-loading
     :map.layer/load-error                 mevents/layer-loading-error

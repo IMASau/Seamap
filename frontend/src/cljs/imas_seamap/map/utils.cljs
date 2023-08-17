@@ -396,10 +396,6 @@
                    acc))
                {})))
 
-(defn main-national-layer [{:keys [national-layer-timeline layers] :as _map}]
-  (let [id (-> national-layer-timeline last :layer)]
-    (first-where #(= (:id %) id) layers)))
-
 (defn visible-layers
   "Shows only layers which should be visible from the map."
   [{:keys [hidden-layers active-layers]}]
