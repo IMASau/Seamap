@@ -28,21 +28,8 @@
         {:db       db
          :dispatch [:maybe-autosave]}))))
 
-(defn national-layer-year [{:keys [db]} [_ national-layer-year]] 
-  (let [{:keys [national-layer-timeline layers]} (:map db)
-        nearest-year                     (round-to-nearest national-layer-year (map :year national-layer-timeline))
-        national-layer-timeline-selected (first-where #(= (:year %) nearest-year) national-layer-timeline)
-        layer                            (first-where #(= (:id %) (:layer national-layer-timeline-selected)) layers)]
-    {:db         (-> db
-                     (assoc-in [:map :national-layer-alternate-view] nil)
-                     (assoc-in [:map :national-layer-timeline-selected] national-layer-timeline-selected))
-     :dispatch-n [(when (and layer (not (get-in db [:map :legends (:id layer)])))
-                    [:map.layer/get-legend layer])
-                  [:maybe-autosave]]}))
-
 (defn national-layer-alternate-view [{:keys [db]} [_ national-layer-alternate-view]]
   {:db         (-> db
-                   (assoc-in [:map :national-layer-timeline-selected] nil)
                    (assoc-in [:map :national-layer-alternate-view] national-layer-alternate-view))
    :dispatch-n [(when (and national-layer-alternate-view (not (get-in db [:map :legends (:id national-layer-alternate-view)])))
                   [:map.layer/get-legend national-layer-alternate-view])
@@ -464,10 +451,6 @@
                           (group-by :keyword)
                           (reduce-kv (fn [m k v] (assoc m k (mapv :layer v))) {}))]
     (assoc-in db [:map :keyed-layers] keyed-layers)))
-
-(defn update-national-layer-timeline [db [_ national-layer-timeline]]
-  (let [national-layer-timeline (vec (sort-by :year national-layer-timeline))]
-    (assoc-in db [:map :national-layer-timeline] national-layer-timeline)))
 
 (defn update-rich-layer-alternate-views [db [_ rich-layer-alternate-views]]
   (let [rich-layers

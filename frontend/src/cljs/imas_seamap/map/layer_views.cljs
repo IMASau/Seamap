@@ -498,7 +498,7 @@
        :max      (apply max years)
        :value    (or year (apply max years))
        :on-click #(.stopPropagation %)
-       :on-input #(re-frame/dispatch [:map.national-layer/year (-> % .-target .-value js/parseInt)])
+       :on-input nil
        :disabled (boolean alternate-view)}]
      [:div.time-range
       (map-indexed

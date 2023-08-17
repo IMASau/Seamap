@@ -24,8 +24,6 @@
                      :preview-layer   nil
                      :viewport-only?  false
                      :keyed-layers    {}
-                     :national-layer-timeline []
-                     :national-layer-timeline-selected nil
                      :national-layer-alternate-view nil
                      :rich-layers     {}
                      :legends         {}
@@ -94,7 +92,6 @@
                                  :save-state            "savestates"
                                  :category              "categories/"
                                  :keyed-layers          "keyedlayers/"
-                                 :national-layer-timeline "nationallayertimeline/"
                                  :rich-layer-alternate-views "richlayeralternateview/"
                                  :rich-layer-timelines       "richlayertimeline/"
                                  :region-reports        "regionreports/"

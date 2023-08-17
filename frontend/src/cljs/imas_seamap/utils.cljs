@@ -52,7 +52,7 @@
              (assoc acc key pruned-rich-layer)))
          {} (:rich-layers map-state))
 
-        pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :national-layer-timeline-selected :national-layer-alternate-view :bounds])
+        pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :national-layer-alternate-view :bounds])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
                        (update :active-base :id)
@@ -136,7 +136,6 @@
                  [:map :zoom]
                  [:map :bounds]
                  [:map :viewport-only?]
-                 [:map :national-layer-timeline-selected]
                  [:map :national-layer-alternate-view]
                  [:map :rich-layers]
                  :legend-ids
@@ -283,7 +282,6 @@
        [:map :organisations]
        [:map :categories]
        [:map :keyed-layers]
-       [:map :national-layer-timeline]
        [:map :leaflet-map]
        [:map :legends]
        [:map :rich-layer-children]
