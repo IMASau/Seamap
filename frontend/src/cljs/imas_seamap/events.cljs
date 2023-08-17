@@ -47,7 +47,6 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
-                                  :map/update-national-layer-timeline
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
@@ -87,7 +86,6 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
-                                  :map/update-national-layer-timeline
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
@@ -127,7 +125,6 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
-                                  :map/update-national-layer-timeline
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
@@ -153,7 +150,6 @@
           save-state
           category
           keyed-layers
-          national-layer-timeline
           rich-layer-alternate-views
           rich-layer-timelines
           region-reports
@@ -180,7 +176,6 @@
       :save-state-url              (str api-url-base save-state)
       :category-url                (str api-url-base category)
       :keyed-layers-url            (str api-url-base keyed-layers)
-      :national-layer-timeline-url (str api-url-base national-layer-timeline)
       :rich-layer-alternate-views-url (str api-url-base rich-layer-alternate-views)
       :rich-layer-timelines-url       (str api-url-base rich-layer-timelines)
       :region-reports-url          (str api-url-base region-reports)
@@ -309,7 +304,6 @@
                 descriptor-url
                 category-url
                 keyed-layers-url
-                national-layer-timeline-url
                 rich-layer-alternate-views-url
                 rich-layer-timelines-url
                 region-reports-url
@@ -357,11 +351,6 @@
                    :uri             keyed-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-keyed-layers]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             national-layer-timeline-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-national-layer-timeline]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             rich-layer-alternate-views-url
