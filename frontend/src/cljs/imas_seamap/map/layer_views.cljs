@@ -293,7 +293,7 @@
   "Layer details for layer card. Includes layer's legend, and tabs for selecting
    filters if the layer is a rich-layer."
   [{:keys [layer]
-    {{:keys [tab displayed-layer] :as rich-layer} :rich-layer} :layer-state
+    {{:keys [tab displayed-layer alternate-views timeline] :as rich-layer} :rich-layer} :layer-state
     :as props}]
   [:div.layer-details
    {:on-click #(.stopPropagation %)}
@@ -319,8 +319,8 @@
         (reagent/as-element
          [:div
           {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
-          [alternate-view-select props]
-          [timeline-select props]])}]]
+          (when (seq alternate-views) [alternate-view-select props])
+          (when (seq timeline) [timeline-select props])])}]]
      
      [legend-display layer])])
 
