@@ -409,8 +409,7 @@
 
 (defn layer-show-info [{:keys [db]} [_ layer]]
   (let [{:keys [metadata_url] :as displayed-layer}
-        (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)])))]
-    (js/console.log displayed-layer)
+        (or (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]))) layer)]
     ;; This regexp: has been relaxed slightly; it used to be a strict
     ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
     ;; alpha-nums with optional hyphens. I assume this is from records
