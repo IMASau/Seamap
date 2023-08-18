@@ -378,7 +378,14 @@
        (when (seq metadata_summary)
          [:div
           [:h3 "About"]
-          [:p metadata_summary]])
+          [:p
+           {:ref
+            #(when %
+               (set! (.-innerHTML %) metadata_summary)
+               (let [hyperlinks (js/Array.prototype.slice.call (.getElementsByTagName % "a"))]
+                 (doseq [hyperlink hyperlinks]
+                   (when-not (.getAttribute hyperlink "target")
+                     (.setAttribute hyperlink "target" "_blank")))))}]])
 
        (when (seq constraints)
          [:div
