@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar layer-preview control-block print-control control-block-child transect-control autosave-application-state-toggle]]
+            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar layer-preview control-block print-control control-block-child autosave-application-state-toggle]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
@@ -14,13 +14,57 @@
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
+(defn welcome-dialogue []
+  (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
+    [b/dialogue
+     {:title
+      (reagent/as-element
+       [:<> "Welcome to" [:br] "Tasmania's Marine Atlas."])
+      :class    "welcome-splash"
+      :is-open  open?
+      :on-close #(re-frame/dispatch [:welcome-layer/close])}
+     [:div.bp3-dialog-body
+      [:div.overview
+      [:p
+       "The waters and coastlines represented in the Tasmania's Marine Atlas are of
+        significance to Tasmanian Aboriginal people. We recognise the deep history and
+        culture of the islands represented in this Atlas and acknowledge the traditional
+        owners and custodians of Country. We pay respect to Tasmanian Aboriginal people,
+        who have survived invasion and dispossession, and continue to maintain their
+        identity, culture and Indigenous rights and honour their Elders, past and
+        present."]
+       [:p
+        "Any absence of information about Tasmanian Aboriginal people's connection to Sea
+         Country in the Tasmania's Marine Atlas does not indicate an absence of
+         connection or significance. We respect the right of Tasmanian Aboriginal people
+         to self-determination and affirm their right to decide what information is
+         included in the Atlas."]]
+      [b/button
+       {:text       "Explore the Atlas"
+        :intent     b/INTENT-PRIMARY
+        :auto-focus true
+        :on-click   #(re-frame/dispatch [:welcome-layer/close])}]]]))
+
+(defn transect-control []
+  (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
+        [tooltip icon dispatch]
+        (cond
+          drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
+          query    ["Clear Measurement"  "eraser" :transect.draw/clear]
+          :else    ["Measure"            "edit"   :transect.draw/enable])]
+    [control-block-child
+     {:on-click #(re-frame/dispatch [dispatch])
+      :tooltip  tooltip
+      :icon     icon
+      :id       "transect-control"}]))
+
 (defn region-control []
   (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
         [tooltip icon dispatch]
         (cond
-          selecting?            ["Cancel Selecting" "undo"   :map.layer.selection/disable]
-          region                ["Clear Selection"  "eraser" :map.layer.selection/clear]
-          :else                 ["Select Region"    "widget" :map.layer.selection/enable])]
+          selecting?            ["Cancel Selecting"    "undo"   :map.layer.selection/disable]
+          region                ["Clear Selection"     "eraser" :map.layer.selection/clear]
+          :else                 ["Find Data in Region" "widget" :map.layer.selection/enable])]
     [control-block-child
      {:on-click  #(re-frame/dispatch [dispatch])
       :tooltip   tooltip
