@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child transect-control autosave-application-state-toggle]]
+            [imas-seamap.views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child autosave-application-state-toggle]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
@@ -45,13 +45,26 @@
         :auto-focus true
         :on-click   #(re-frame/dispatch [:welcome-layer/close])}]]]))
 
+(defn transect-control []
+  (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
+        [tooltip icon dispatch]
+        (cond
+          drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
+          query    ["Clear Measurement"  "eraser" :transect.draw/clear]
+          :else    ["Measure"            "edit"   :transect.draw/enable])]
+    [control-block-child
+     {:on-click #(re-frame/dispatch [dispatch])
+      :tooltip  tooltip
+      :icon     icon
+      :id       "transect-control"}]))
+
 (defn region-control []
   (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
         [tooltip icon dispatch]
         (cond
-          selecting?            ["Cancel Selecting" "undo"   :map.layer.selection/disable]
-          region                ["Clear Selection"  "eraser" :map.layer.selection/clear]
-          :else                 ["Select Region"    "widget" :map.layer.selection/enable])]
+          selecting?            ["Cancel Selecting"    "undo"   :map.layer.selection/disable]
+          region                ["Clear Selection"     "eraser" :map.layer.selection/clear]
+          :else                 ["Find Data in Region" "widget" :map.layer.selection/enable])]
     [control-block-child
      {:on-click  #(re-frame/dispatch [dispatch])
       :tooltip   tooltip
