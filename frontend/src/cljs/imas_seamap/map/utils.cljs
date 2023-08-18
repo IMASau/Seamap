@@ -4,6 +4,7 @@
 (ns imas-seamap.map.utils
   (:require [cemerick.url :as url]
             [clojure.string :as string]
+            [clojure.set :as set]
             [goog.dom.xml :as gxml]
             [imas-seamap.utils :refer [merge-in select-values first-where]]
             ["proj4" :as proj4]
@@ -417,3 +418,14 @@
        :timeline-selected        timeline-selected
        :displayed-layer          (:layer (or alternate-views-selected timeline-selected))
        :tab tab})))
+
+(defn rich-layer-children->parents
+  [layers rich-layer-children]
+  (reduce
+   (fn [acc val]
+     (let [parents (get rich-layer-children val)] ; get the rich-layer parents for this layer
+       (->
+        acc
+        (conj val)             ; add the layer into the set
+        (set/union parents)))) ; add the layer's rich-layer parents into the set (if any exist)
+   #{} layers))
