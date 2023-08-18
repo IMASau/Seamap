@@ -168,18 +168,18 @@
      [layer-catalogue-header {:layer layer :layer-state layer-state}]]))
 
 (defn data-in-region-drawer []
-  (let [{:keys [filtered-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [catalogue-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
         {:keys [status layers]} @(re-frame/subscribe [:data-in-region/data])
         ;; Filter out layers in region that have no category (ie, currently just placeholders)
-        layers (filter (set filtered-layers) layers)
+        layers (filter (set catalogue-layers) layers)
         layer-props
         {:active-layers  active-layers
          :visible-layers visible-layers
-         :main-national-layer main-national-layer
          :loading-fn     loading-layers
          :error-fn       error-layers
          :expanded-fn    expanded-layers
-         :opacity-fn     layer-opacities}]
+         :opacity-fn     layer-opacities
+         :rich-layer-fn  rich-layer-fn}]
     [components/drawer
      {:title       "Data in Region"
       :position    "right"

@@ -82,10 +82,15 @@ class KeyedLayerSerializer(serializers.ModelSerializer):
         model = models.KeyedLayer
         fields = ('keyword', 'layer', 'sort_key')
 
-class NationalLayerTimelineSerializer(serializers.ModelSerializer):
+class RichLayerAlternateViewSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.NationalLayerTimeline
-        fields = '__all__'
+        model = models.RichLayerAlternateView
+        exclude = ('id',)
+
+class RichLayerTimelineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.RichLayerTimeline
+        exclude = ('id',)
 
 class RegionReportSerializer(serializers.ModelSerializer):
     bounding_box = serializers.SerializerMethodField()

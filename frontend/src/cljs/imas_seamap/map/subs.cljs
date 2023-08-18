@@ -3,8 +3,8 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
-            [imas-seamap.utils :refer [map-on-key]]
-            [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers main-national-layer displayed-national-layer]]
+            [imas-seamap.utils :refer [map-on-key first-where]]
+            [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers enhance-rich-layer rich-layer-children->parents]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
@@ -45,14 +45,22 @@
               0.4)))))       ; Might be nice to make this configurable eventually
 
 (defn map-layers [{:keys [layer-state filters sorting]
-                   {:keys [layers active-layers bounds categories] :as db-map} :map
+                   {:keys [layers active-layers bounds categories rich-layers rich-layer-children] :as db-map} :map
                    :as _db} _]
   (let [categories      (map-on-key categories :name)
         filter-text     (:layers filters)
-        layers          (filter #(get-in categories [(:category %) :display_name]) layers) ; only layers with a category that has a display name are allowed
-        viewport-layers (viewport-layers bounds layers)
-        filtered-layers (filter (partial match-layer filter-text categories) layers)
-        sorted-layers   (sort-layers layers sorting)]
+        
+        catalogue-layers
+        (->>
+         layers
+         (filter #(get-in categories [(:category %) :display_name])) ; only layers with a category that has a display name are allowed
+         (remove (reduce-kv (fn [acc key val] (if (val key) acc (conj acc key))) #{} rich-layer-children))) ; removes rich-layer children (except those that are a child of themselves)
+        
+        viewport-layers (viewport-layers bounds catalogue-layers)
+        filtered-layers (set (filter (partial match-layer filter-text categories) layers)) ; get the set of all layers that match the filter
+        filtered-layers (rich-layer-children->parents filtered-layers rich-layer-children) ; get the rich-layer parents for this layer, and add them to the searched layers
+        filtered-layers (filterv filtered-layers catalogue-layers) ; filtered-layers set converted into vector by filtering on catalogue-layers (sorted)
+        sorted-layers   (sort-layers catalogue-layers sorting)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
@@ -63,7 +71,9 @@
      :filtered-layers filtered-layers
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
-     :main-national-layer (main-national-layer db-map)}))
+     :catalogue-layers catalogue-layers
+     :rich-layer-fn   (fn [{:keys [id] :as _layer}]
+                        (enhance-rich-layer (get rich-layers id)))}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))
@@ -78,28 +88,6 @@
 (defn categories-map [db _]
   (let [categories (get-in db [:map :categories])]
     (map-on-key categories :name)))
-
-(defn national-layer [db _]
-  {:years           (mapv :year (get-in db [:map :national-layer-timeline]))
-   :year            (get-in db [:map :national-layer-timeline-selected :year])
-   :alternate-views (get-in db [:map :keyed-layers :national-layer-alternate-view])
-   :alternate-view  (get-in db [:map :national-layer-alternate-view])
-   :displayed-layer (displayed-national-layer (:map db))})
-
-(defn national-layer-state
-  "National layer state is based on a mix of fields of the main national layer
-   state and the currently displayed national layer state."
-  [{:keys [layer-state] {:keys [active-layers hidden-layers] :as db-map} :map :as _db} _]
-  (let [{:keys [loading-state error-count tile-count legend-shown]} layer-state
-        displayed-national-layer (displayed-national-layer db-map)
-        main-national-layer      (main-national-layer db-map)
-        active?                  (some #{main-national-layer} active-layers)]
-    {:active?   active?
-     :visible?  (and active? (not (hidden-layers main-national-layer)))
-     :loading?  (= (get loading-state displayed-national-layer) :map.layer/loading)
-     :errors?   ((make-error-fn error-count tile-count) displayed-national-layer)
-     :expanded? (legend-shown main-national-layer)
-     :opacity   (get-in layer-state [:opacity main-national-layer] 100)}))
 
 (defn layer-selection-info [db _]
   {:selecting? (boolean (get-in db [:map :controls :download :selecting]))

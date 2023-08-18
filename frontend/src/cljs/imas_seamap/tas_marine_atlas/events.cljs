@@ -5,7 +5,7 @@
   (:require [ajax.core :as ajax]
             [imas-seamap.tas-marine-atlas.db :as db]
             [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
-            [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities]]
+            [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities enhance-rich-layer]]
             [imas-seamap.tas-marine-atlas.utils :refer [encode-state parse-state ajax-loaded-info]]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -20,8 +20,11 @@
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
-                                  :map/update-keyed-layers]
-     :dispatch [:map/join-keyed-layers]}
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layer-alternate-views
+                                  :map/update-rich-layer-timelines]
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -29,7 +32,8 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
-                                  :map/join-keyed-layers]
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}
@@ -45,8 +49,11 @@
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
-                                  :map/update-keyed-layers]
-     :dispatch [:map/join-keyed-layers]}
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layer-alternate-views
+                                  :map/update-rich-layer-timelines]
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -54,7 +61,8 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
-                                  :map/join-keyed-layers]
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}
@@ -70,8 +78,11 @@
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
-                                  :map/update-keyed-layers]
-     :dispatch [:map/join-keyed-layers]}
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layer-alternate-views
+                                  :map/update-rich-layer-timelines]
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -79,7 +90,8 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
-                                  :map/join-keyed-layers]
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading :halt? true}
@@ -97,6 +109,8 @@
           save-state
           category
           keyed-layers
+          rich-layer-alternate-views
+          rich-layer-timelines
           layer-previews
           story-maps
           data-in-region]}
@@ -114,6 +128,8 @@
       :save-state-url            (str api-url-base save-state)
       :category-url              (str api-url-base category)
       :keyed-layers-url          (str api-url-base keyed-layers)
+      :rich-layer-alternate-views-url (str api-url-base rich-layer-alternate-views)
+      :rich-layer-timelines-url       (str api-url-base rich-layer-timelines)
       :layer-previews-url        (str media-url-base layer-previews)
       :story-maps-url            (str wordpress-url-base story-maps)
       :data-in-region-url        (str api-url-base data-in-region)})))
@@ -155,12 +171,20 @@
 
         {:keys [legend-ids opacity-ids]} db
         layers        (get-in db [:map :layers])
+        legends-shown (init-layer-legend-status layers legend-ids)
+        rich-layers   (get-in db [:map :rich-layers])
+        legends-get   (map
+                       (fn [{:keys [id] :as layer}]
+                         (let [rich-layer (get rich-layers id)
+                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer))]
+                           (or displayed-layer layer)))
+                       legends-shown)
         db            (-> db
-                          (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
+                          (assoc-in [:layer-state :legend-shown] legends-shown)
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
     {:db         db
      :dispatch-n (conj
-                  (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))
+                  (mapv #(vector :map.layer/get-legend %) legends-get)
                   [:map/update-map-view {:zoom zoom :center center}]
                   [:map/popup-closed])}))
 
@@ -194,6 +218,8 @@
                 descriptor-url
                 category-url
                 keyed-layers-url
+                rich-layer-alternate-views-url
+                rich-layer-timelines-url
                 story-maps-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
@@ -235,6 +261,16 @@
                    :uri             keyed-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-keyed-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             rich-layer-alternate-views-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-rich-layer-alternate-views]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             rich-layer-timelines-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-rich-layer-timelines]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             story-maps-url
@@ -280,6 +316,14 @@
         story-maps    (get-in db [:story-maps :featured-maps])
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
+        legends-shown (init-layer-legend-status layers legend-ids)
+        rich-layers   (get-in db [:map :rich-layers])
+        legends-get   (map
+                       (fn [{:keys [id] :as layer}]
+                         (let [rich-layer (get rich-layers id)
+                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer))]
+                           (or displayed-layer layer)))
+                       legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
@@ -289,7 +333,7 @@
      :dispatch-n (concat
                   [[:ui/hide-loading]
                    [:maybe-autosave]]
-                  (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids)))}))
+                  (mapv #(vector :map.layer/get-legend %) legends-get))}))
 
 (defn data-in-region-open [{:keys [db]} [_ open?]]
   {:db       (assoc-in db [:data-in-region :open?] open?)

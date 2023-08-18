@@ -8,7 +8,7 @@
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.map.layer-views :refer [layer-card main-national-layer-card layer-catalogue-node main-national-layer-catalogue-node]]
+            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
@@ -108,7 +108,7 @@
 (defn- layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   {:keys [main-national-layer] :as layer-props} open-all?]
+   layer-props open-all?]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
@@ -133,9 +133,7 @@
                     (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
                     (map-indexed
                      (fn [i layer]
-                       ((if (= layer main-national-layer)
-                          main-national-layer-catalogue-node
-                          layer-catalogue-node)
+                       (layer-catalogue-node
                         {:id          (str id-str "-" i)
                          :layer       layer
                          :layer-props layer-props}))
@@ -224,24 +222,22 @@
     :on-change     #(re-frame/dispatch [:map.layers/filter (.. % -target -value)])}])
 
 (defn- active-layer-selection-list
-  [{:keys [layers visible-layers main-national-layer loading-fn error-fn expanded-fn opacity-fn]}]
+  [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn rich-layer-fn]}]
   [components/items-selection-list
    {:items
     (for [{:keys [id] :as layer} layers]
       {:key (str id)
        :content
-       (if (= layer main-national-layer)
-         [main-national-layer-card
-          {:layer layer}]
-         [layer-card
-          {:layer layer
-           :layer-state
-           {:active?   true
-            :visible?  (some #{layer} visible-layers)
-            :loading?  (loading-fn layer)
-            :errors?   (error-fn layer)
-            :expanded? (expanded-fn layer)
-            :opacity   (opacity-fn layer)}}])})
+       [layer-card
+        {:layer layer
+         :layer-state
+         {:active?   true
+          :visible?  (some #{layer} visible-layers)
+          :loading?  (loading-fn layer)
+          :errors?   (error-fn layer)
+          :expanded? (expanded-fn layer)
+          :opacity   (opacity-fn layer)
+          :rich-layer (rich-layer-fn layer)}}]})
     :disabled    false
     :data-path   [:map :active-layers]
     :has-handle  false
@@ -702,7 +698,7 @@
        :keywords    #(layer-search-keywords categories %)}}]))
 
 (defn left-drawer-catalogue []
-  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
     [:<>
@@ -710,22 +706,22 @@
      [layer-catalogue :main catalogue-layers
       {:active-layers  active-layers
        :visible-layers visible-layers
-       :main-national-layer main-national-layer
        :loading-fn     loading-layers
        :error-fn       error-layers
        :expanded-fn    expanded-layers
-       :opacity-fn     layer-opacities}]]))
+       :opacity-fn     layer-opacities
+       :rich-layer-fn  rich-layer-fn}]]))
 
 (defn left-drawer-active-layers []
-  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])]
+  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])]
     [active-layer-selection-list
      {:layers         active-layers
       :visible-layers visible-layers
-      :main-national-layer main-national-layer
       :loading-fn     loading-layers
       :error-fn       error-layers
       :expanded-fn    expanded-layers
-      :opacity-fn     layer-opacities}]))
+      :opacity-fn     layer-opacities
+      :rich-layer-fn  rich-layer-fn}]))
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])

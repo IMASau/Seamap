@@ -141,13 +141,16 @@ class KeyedLayer(models.Model):
         return self.keyword
 
 @python_2_unicode_compatible
-class NationalLayerTimeline(models.Model):
-    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+class RichLayerAlternateView(models.Model):
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_child')
+    parent = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_parent')
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
+
+@python_2_unicode_compatible
+class RichLayerTimeline(models.Model):
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_child')
+    parent = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_parent')
     year = models.IntegerField()
-
-    def __str__(self):
-        return f'{self.layer} ({self.year})'
-
 
 class EmptyStringToNoneField(models.CharField):
     def get_prep_value(self, value):

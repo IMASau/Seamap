@@ -24,6 +24,7 @@
                      :preview-layer   nil
                      :viewport-only?  false
                      :keyed-layers    {}
+                     :rich-layers     {}
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}
@@ -71,6 +72,8 @@
                                  :save-state            "savestates"
                                  :category              "categories/"
                                  :keyed-layers          "keyedlayers/"
+                                 :rich-layer-alternate-views "richlayeralternateview/"
+                                 :rich-layer-timelines       "richlayertimeline/"
                                  :layer-previews        "layer_previews/"
                                  :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"
                                  :data-in-region        "habitat/datainregion"}

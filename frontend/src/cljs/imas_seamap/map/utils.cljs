@@ -4,6 +4,7 @@
 (ns imas-seamap.map.utils
   (:require [cemerick.url :as url]
             [clojure.string :as string]
+            [clojure.set :as set]
             [goog.dom.xml :as gxml]
             [imas-seamap.utils :refer [merge-in select-values first-where]]
             ["proj4" :as proj4]
@@ -386,28 +387,10 @@
                    acc))
                {})))
 
-(defn main-national-layer [{:keys [national-layer-timeline layers] :as _map}]
-  (let [id (-> national-layer-timeline last :layer)]
-    (first-where #(= (:id %) id) layers)))
-
-(defn displayed-national-layer
-  "What layer is currently being substituted for the main national layer?"
-  [{:keys [national-layer-timeline-selected national-layer-alternate-view layers] :as db-map}]
-  (let [main-national-layer    (main-national-layer db-map)
-        national-layer-timeline-selected (first-where #(= (:id %) (:layer national-layer-timeline-selected)) layers)]
-    (or
-     national-layer-timeline-selected
-     national-layer-alternate-view
-     main-national-layer)))
-
 (defn visible-layers
   "Shows only layers which should be visible from the map."
-  [{:keys [hidden-layers active-layers] :as db-map}]
-  (let [main-national-layer    (main-national-layer db-map)
-        displayed-national-layer (displayed-national-layer db-map)]
-    (->> active-layers
-         (remove #(hidden-layers %))
-         (replace {main-national-layer displayed-national-layer}))))
+  [{:keys [hidden-layers active-layers]}]
+  (remove #(hidden-layers %) active-layers))
 
 #_(defn has-active-layers?
   "utility to simplify a check for any active layers (we want to disable
@@ -422,3 +405,27 @@
    (visible-layers map)
    (filter #(= (:category %) :habitat))
    seq boolean))
+
+(defn enhance-rich-layer
+  "Takes a rich-layer and enhances the info with other layer data."
+  [{:keys [alternate-views alternate-views-selected timeline timeline-selected tab] :as rich-layer}]
+  (let [alternate-views-selected (first-where #(= (get-in % [:layer :id]) alternate-views-selected) alternate-views)
+        timeline-selected        (first-where #(= (get-in % [:layer :id]) timeline-selected) timeline)]
+    (when rich-layer
+      {:alternate-views          alternate-views
+       :alternate-views-selected alternate-views-selected
+       :timeline                 timeline
+       :timeline-selected        timeline-selected
+       :displayed-layer          (:layer (or alternate-views-selected timeline-selected))
+       :tab tab})))
+
+(defn rich-layer-children->parents
+  [layers rich-layer-children]
+  (reduce
+   (fn [acc val]
+     (let [parents (get rich-layer-children val)] ; get the rich-layer parents for this layer
+       (->
+        acc
+        (conj val)             ; add the layer into the set
+        (set/union parents)))) ; add the layer's rich-layer parents into the set (if any exist)
+   #{} layers))

@@ -37,8 +37,6 @@
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
-    :map/national-layer                   msubs/national-layer
-    :map.national-layer/state             msubs/national-layer-state
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/lookup                    msubs/map-layer-lookup
@@ -85,7 +83,6 @@
     :ui/sidebar                           subs/sidebar-state
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
-    :ui/national-layer-tab                subs/national-layer-tab
     :app/loading?                         subs/app-loading?
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
@@ -149,9 +146,6 @@
     :map/remove-layer                     [mevents/remove-layer]
     :map/add-layer-from-omnibar           [mevents/add-layer-from-omnibar]
     :map/base-layer-changed               [mevents/base-layer-changed]
-    :map.national-layer/year              [mevents/national-layer-year]
-    :map.national-layer/alternate-view    [mevents/national-layer-alternate-view]
-    :map.national-layer/reset-filters     [mevents/national-layer-reset-filters]
     :map.layer/load-start                 mevents/layer-started-loading
     :map.layer/tile-load-start            mevents/layer-tile-started-loading
     :map.layer/load-error                 mevents/layer-loading-error
@@ -175,6 +169,10 @@
     :map.layer.selection/maybe-clear      [mevents/map-maybe-clear-selection]
     :map.layer.selection/finalise         [mevents/map-finalise-selection]
     :map.layer.selection/toggle           [mevents/map-toggle-selecting]
+    :map.rich-layer/tab                   [mevents/rich-layer-tab]
+    :map.rich-layer/alternate-views-selected [mevents/rich-layer-alternate-views-selected]
+    :map.rich-layer/timeline-selected        [mevents/rich-layer-timeline-selected]
+    :map.rich-layer/reset-filters            [mevents/rich-layer-reset-filters]
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups
@@ -185,11 +183,13 @@
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
     :map/update-keyed-layers              mevents/update-keyed-layers
-    :map/update-national-layer-timeline   mevents/update-national-layer-timeline
+    :map/update-rich-layer-alternate-views mevents/update-rich-layer-alternate-views
+    :map/update-rich-layer-timelines       mevents/update-rich-layer-timelines
     :map/update-region-reports            mevents/update-region-reports
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [mevents/show-initial-layers]
     :map/join-keyed-layers                mevents/join-keyed-layers
+    :map/join-rich-layers                 mevents/join-rich-layers
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          [mevents/map-zoom-in]
     :map/zoom-out                         [mevents/map-zoom-out]
@@ -246,7 +246,6 @@
     :ui.sidebar/open                      [events/sidebar-open]
     :ui.sidebar/close                     events/sidebar-close
     :ui.sidebar/toggle                    events/sidebar-toggle
-    :ui/national-layer-tab                [events/national-layer-tab]
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]

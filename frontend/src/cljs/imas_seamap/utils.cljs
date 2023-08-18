@@ -42,10 +42,21 @@
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
   [{:keys [story-maps] map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
-  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :national-layer-timeline-selected :national-layer-alternate-view :bounds])
+  (let [pruned-rich-layers
+        (reduce-kv
+         (fn [acc key {:keys [alternate-views-selected timeline-selected tab] :as _val}]
+           (let [pruned-rich-layer
+                 (cond-> {:tab tab}
+                   alternate-views-selected (assoc :alternate-views-selected alternate-views-selected)
+                   timeline-selected        (assoc :timeline-selected timeline-selected))]
+             (assoc acc key pruned-rich-layer)))
+         {} (:rich-layers map-state))
+
+        pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :bounds])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
-                       (update :active-base :id))
+                       (update :active-base :id)
+                       (assoc :rich-layers pruned-rich-layers))
         pruned-boundaries (select-keys*
                            boundaries-state
                            [[:active-boundary]
@@ -72,7 +83,6 @@
                                       [:display :catalogue :main]
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
-                                      [:display :national-layer-tab]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
@@ -100,7 +110,6 @@
                  [:display :catalogue :main]
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
-                 [:display :national-layer-tab]
                  [:filters :layers]
                  [:state-of-knowledge :boundaries :active-boundary]
                  [:state-of-knowledge :boundaries :active-boundary-layer]
@@ -127,8 +136,7 @@
                  [:map :zoom]
                  [:map :bounds]
                  [:map :viewport-only?]
-                 [:map :national-layer-timeline-selected]
-                 [:map :national-layer-alternate-view]
+                 [:map :rich-layers]
                  :legend-ids
                  :opacity-ids
                  :autosave?
@@ -242,30 +250,50 @@
        (filter #(pred (second %)))
        (map first)))
 
+(def blank-rich-layer
+  {:alternate-views []
+   :alternate-views-selected nil
+   :timeline []
+   :timeline-selected nil
+   :tab "legend"})
+
 (defn ajax-loaded-info
   "Returns db of all the info retrieved via ajax"
   [db]
-  (select-keys*
-   db
-   [[:map :layers]
-    [:map :base-layers]
-    [:map :base-layer-groups]
-    [:map :grouped-base-layers]
-    [:map :organisations]
-    [:map :categories]
-    [:map :keyed-layers]
-    [:map :national-layer-timeline]
-    [:map :leaflet-map]
-    [:map :legends]
-    [:state-of-knowledge :boundaries :amp :boundaries]
-    [:state-of-knowledge :boundaries :imcra :boundaries]
-    [:state-of-knowledge :boundaries :meow :boundaries]
-    [:state-of-knowledge :region-reports]
-    [:story-maps :featured-maps]
-    :habitat-colours
-    :habitat-titles
-    :sorting
-    :config]))
+  (let [rich-layers
+        (reduce-kv
+         (fn [acc key {:keys [alternate-views timeline] :as _val}]
+           (assoc
+            acc
+            key
+            (assoc
+             blank-rich-layer
+             :alternate-views alternate-views
+             :timeline timeline)))
+         {} (get-in db [:map :rich-layers]))]
+    (->
+     (select-keys*
+      db
+      [[:map :layers]
+       [:map :base-layers]
+       [:map :base-layer-groups]
+       [:map :grouped-base-layers]
+       [:map :organisations]
+       [:map :categories]
+       [:map :keyed-layers]
+       [:map :leaflet-map]
+       [:map :legends]
+       [:map :rich-layer-children]
+       [:state-of-knowledge :boundaries :amp :boundaries]
+       [:state-of-knowledge :boundaries :imcra :boundaries]
+       [:state-of-knowledge :boundaries :meow :boundaries]
+       [:state-of-knowledge :region-reports]
+       [:story-maps :featured-maps]
+       :habitat-colours
+       :habitat-titles
+       :sorting
+       :config])
+       (assoc-in [:map :rich-layers] rich-layers))))
 
 (defn decode-html-entities
   "Removes HTML entities from an HTML entity encoded string:

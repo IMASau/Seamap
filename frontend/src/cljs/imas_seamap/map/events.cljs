@@ -3,10 +3,11 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
+            [clojure.set :as set]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers main-national-layer displayed-national-layer has-visible-habitat-layers?]]
+            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url? blank-rich-layer]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -26,36 +27,6 @@
       (let [db (assoc-in db [:map :active-base-layer] selected-base-layer)]
         {:db       db
          :dispatch [:maybe-autosave]}))))
-
-(defn national-layer-year [{:keys [db]} [_ national-layer-year]] 
-  (let [{:keys [national-layer-timeline layers]} (:map db)
-        nearest-year                     (round-to-nearest national-layer-year (map :year national-layer-timeline))
-        national-layer-timeline-selected (first-where #(= (:year %) nearest-year) national-layer-timeline)
-        layer                            (first-where #(= (:id %) (:layer national-layer-timeline-selected)) layers)]
-    {:db         (-> db
-                     (assoc-in [:map :national-layer-alternate-view] nil)
-                     (assoc-in [:map :national-layer-timeline-selected] national-layer-timeline-selected))
-     :dispatch-n [(when (and layer (not (get-in db [:map :legends (:id layer)])))
-                    [:map.layer/get-legend layer])
-                  [:maybe-autosave]]}))
-
-(defn national-layer-alternate-view [{:keys [db]} [_ national-layer-alternate-view]]
-  {:db         (-> db
-                   (assoc-in [:map :national-layer-timeline-selected] nil)
-                   (assoc-in [:map :national-layer-alternate-view] national-layer-alternate-view))
-   :dispatch-n [(when (and national-layer-alternate-view (not (get-in db [:map :legends (:id national-layer-alternate-view)])))
-                  [:map.layer/get-legend national-layer-alternate-view])
-                [:maybe-autosave]]})
-
-(defn national-layer-reset-filters [{:keys [db]} _]
-  (let [main-national-layer (main-national-layer (:map db))]
-    (merge
-   {:db         (-> db
-                    (assoc-in [:map :national-layer-timeline-selected] nil)
-                    (assoc-in [:map :national-layer-alternate-view] nil))
-    :dispatch-n [(when-not (get-in db [:map :legends (:id main-national-layer)])
-                   [:map.layer/get-legend main-national-layer])
-                 [:maybe-autosave]]})))
 
 (defn bounds-for-zoom
   "GetFeatureInfo requires the pixel coordinates and dimensions around a
@@ -378,6 +349,54 @@
       {} keyed-layers))
     db))
 
+(defn join-rich-layers
+  "Using layers and rich-layers, replaces layer IDs in rich-layer data with layer
+   objects."
+  [{{:keys [layers rich-layers rich-layer-children]} :map :as db} _]
+  (->
+   db
+   (assoc-in
+    [:map :rich-layers]
+    (reduce-kv
+     (fn [m k {:keys [alternate-views alternate-views-selected timeline timeline-selected tab]}]
+       (let [alternate-views
+             (mapv
+              (fn [{:keys [layer] :as alternate-views-entry}]
+                (assoc
+                 alternate-views-entry :layer
+                 (first-where #(= (:id %) layer) layers)))
+              alternate-views)
+             timeline
+             (mapv
+              (fn [{:keys [layer] :as timeline-entry}]
+                (assoc
+                 timeline-entry :layer
+                 (first-where #(= (:id %) layer) layers)))
+              timeline)]
+         (assoc
+          m k
+          {:alternate-views          alternate-views
+           :alternate-views-selected alternate-views-selected
+           :timeline                 timeline
+           :timeline-selected        timeline-selected
+           :tab tab})))
+     {} rich-layers))
+     (assoc-in
+      [:map :rich-layer-children]
+      (reduce-kv
+       (fn [m k v]
+         (let [parents
+               (set
+                (map
+                 (fn [parent]
+                   (first-where
+                    #(= (:id %) parent)
+                    layers))
+                 v))
+               child (first-where #(= (:id %) k) layers)]
+           (assoc m child parents)))
+       {} rich-layer-children))))
+
 (defn update-layers [db [_ layers]]
   (let [{:keys [legend-ids opacity-ids]} db
         layers (process-layers layers)
@@ -426,9 +445,71 @@
                           (reduce-kv (fn [m k v] (assoc m k (mapv :layer v))) {}))]
     (assoc-in db [:map :keyed-layers] keyed-layers)))
 
-(defn update-national-layer-timeline [db [_ national-layer-timeline]]
-  (let [national-layer-timeline (vec (sort-by :year national-layer-timeline))]
-    (assoc-in db [:map :national-layer-timeline] national-layer-timeline)))
+(defn update-rich-layer-alternate-views [db [_ rich-layer-alternate-views]]
+  (let [rich-layers
+        (->>
+         rich-layer-alternate-views
+         (group-by :parent)
+         (reduce-kv ; for each rich-layer (parent) we have the alternate views for, we update
+          (fn [m k v]
+            (let [alternate-views (mapv #(dissoc % :parent) v)
+                  rich-layer
+                  (->
+                   (or (get m k) blank-rich-layer) ; use rich-layer if exists, else use blank one
+                   (assoc :alternate-views alternate-views))]
+              (assoc m k rich-layer))) ; crucially, doesn't override layers we don't have alternate view for
+          (get-in db [:map :rich-layers]))) ; use the existing rich layers as the accumulator, because we only update layers we need to
+        
+        rich-layer-children
+        (->>
+         rich-layer-alternate-views
+         (group-by :layer)
+         (reduce-kv
+          (fn [m k v]
+            (let [parents (set (mapv :parent v))
+                  rich-layer-child
+                  (->
+                   (or (get m k) #{}) ; use rich-layer if exists, else use blank one
+                   (set/union parents))]
+              (assoc m k rich-layer-child)))
+          (get-in db [:map :rich-layer-children])))]
+    (->
+     db
+     (assoc-in [:map :rich-layers] rich-layers)
+     (assoc-in [:map :rich-layer-children] rich-layer-children))))
+
+(defn update-rich-layer-timelines [db [_ rich-layer-timelines]]
+  (let [rich-layers
+        (->>
+         rich-layer-timelines
+         (group-by :parent)
+         (reduce-kv ; for each rich-layer (parent) we have the timeline for, we update
+          (fn [m k v]
+            (let [timeline (mapv #(dissoc % :parent) v)
+                  rich-layer
+                  (->
+                   (or (get m k) blank-rich-layer) ; use rich-layer if exists, else use blank one
+                   (assoc :timeline timeline))]
+              (assoc m k rich-layer))) ; crucially, doesn't override layers we don't have timeline for
+          (get-in db [:map :rich-layers]))) ; use the existing rich layers as the accumulator, because we only update layers we need to
+        
+        rich-layer-children
+        (->>
+         rich-layer-timelines
+         (group-by :layer)
+         (reduce-kv
+          (fn [m k v]
+            (let [parents (set (mapv :parent v))
+                  rich-layer-child
+                  (->
+                   (or (get m k) #{}) ; use rich-layer if exists, else use blank one
+                   (set/union parents))]
+              (assoc m k rich-layer-child)))
+          (get-in db [:map :rich-layer-children])))]
+    (->
+     db
+     (assoc-in [:map :rich-layers] rich-layers)
+     (assoc-in [:map :rich-layer-children] rich-layer-children))))
 
 (defn update-region-reports [db [_ region-reports]]
   (assoc-in db [:state-of-knowledge :region-reports] region-reports))
@@ -467,8 +548,10 @@
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
-  [{:keys [db]} [_ {:keys [bounding_box] :as layer}]]
-  (let [layer-active? ((set (get-in db [:map :active-layers])) layer)]
+  [{:keys [db]} [_ layer]]
+  (let [layer-active?  ((set (get-in db [:map :active-layers])) layer) 
+        displayed-layer (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]))) ; try rich-layer displayed layer
+        bounding_box    (:bounding_box (or displayed-layer layer))]                                         ; if rich-layer displayed layer does not exist, use base layer
     {:db         db
      :dispatch-n [(when-not layer-active? [:map/add-layer layer])
                   [:map/update-map-view {:bounds bounding_box}]
@@ -518,6 +601,14 @@
         story-maps    (get-in db [:story-maps :featured-maps])
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
+        legends-shown (init-layer-legend-status layers legend-ids)
+        rich-layers   (get-in db [:map :rich-layers])
+        legends-get   (map
+                       (fn [{:keys [id] :as layer}]
+                         (let [rich-layer (get rich-layers id)
+                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer))]
+                           (or displayed-layer layer)))
+                       legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
@@ -529,7 +620,7 @@
                    (when (and (seq startup-layers) initial-bounds?)
                      [:map/update-map-view {:bounds (:bounding_box (first startup-layers)) :instant? true}])
                    [:maybe-autosave]]
-                  (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids)))}))
+                  (mapv #(vector :map.layer/get-legend %) legends-get))}))
 
 (defn update-leaflet-map [db [_ leaflet-map]]
   (when (not= leaflet-map (get-in db [:map :leaflet-map]))
@@ -599,6 +690,42 @@
      (get-in db [:map :controls :download :bbox])      [:map.layer.selection/clear]
      :default                                          [:map.layer.selection/enable])})
 
+(defn rich-layer-tab [{:keys [db]} [_ layer tab]]
+  {:db       (assoc-in
+              db [:map :rich-layers (:id layer) :tab]
+              tab)
+   :dispatch [:maybe-autosave]})
+
+(defn rich-layer-alternate-views-selected [{:keys [db]} [_ layer alternate-views-selected]]
+  {:db       (->
+              db
+              (assoc-in [:map :rich-layers (:id layer) :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
+              (assoc-in [:map :rich-layers (:id layer) :timeline-selected] nil))
+   :dispatch-n [(when
+                 (and alternate-views-selected (not (get-in db [:map :legends (get-in alternate-views-selected [:layer :id])])))
+                  [:map.layer/get-legend (:layer alternate-views-selected)])
+                [:maybe-autosave]]})
+
+(defn rich-layer-timeline-selected [{:keys [db]} [_ layer timeline-selected]]
+  (let [timeline-selected (when (not= layer (:layer timeline-selected)) timeline-selected)]
+    {:db       (->
+                db
+                (assoc-in [:map :rich-layers (:id layer) :timeline-selected] (get-in timeline-selected [:layer :id]))
+                (assoc-in [:map :rich-layers (:id layer) :alternate-views-selected] nil))
+     :dispatch-n [(when
+                   (and timeline-selected (not (get-in db [:map :legends (get-in timeline-selected [:layer :id])])))
+                    [:map.layer/get-legend (:layer timeline-selected)])
+                  [:maybe-autosave]]}))
+
+(defn rich-layer-reset-filters [{:keys [db]} [_ layer]]
+  (merge
+   {:db         (-> db
+                    (assoc-in [:map :rich-layers (:id layer) :alternate-views-selected] nil)
+                    (assoc-in [:map :rich-layers (:id layer) :timeline-selected] nil))
+    :dispatch-n [(when-not (get-in db [:map :legends (:id layer)])
+                   [:map.layer/get-legend layer])
+                 [:maybe-autosave]]}))
+
 (defn add-layer
   "Adds a layer to the list of active layers.
    
@@ -631,6 +758,7 @@
   (let [layers (get-in db [:map :active-layers])
         layers (vec (remove #(= % layer) layers))
         {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
+        rich-layer (get-in db [:map :rich-layers (:id layer)])
         db     (->
                 db
                 (assoc-in [:map :active-layers] layers)
@@ -646,6 +774,7 @@
                   (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
     {:db         db
      :dispatch-n [[:map/popup-closed]
+                  (when rich-layer [:map.rich-layer/reset-filters layer])
                   [:map.layer.selection/maybe-clear]
                   [:maybe-autosave]]}))
 
@@ -701,13 +830,8 @@
   wms-other (just defaulting to image-based GetLegendGraphic). Because
   of this we dispatch on capability, rather than server type, because
   eg :wms doesn't convey enough information"
-  [{:keys [db]} [_ {:keys [layer_type server_url] :as layer}]]
+  [{:keys [db]} [_ {:keys [layer_type server_url]}]]
   (cond
-    (and
-     (= layer (main-national-layer (:map db)))
-     (not= layer (displayed-national-layer (:map db))))
-    :displayed-national-layer         ; Will dispatch again; works around special-casing for the national layer
-
     (and
       (= layer_type :feature)
       (feature-server-url? server_url))
@@ -726,10 +850,6 @@
     :else :unknown))
 
 (defmulti get-layer-legend layer-legend-dispatch)
-
-(defmethod get-layer-legend :displayed-national-layer
-  [{:keys [db]} _]
-  {:dispatch [:map.layer/get-legend (displayed-national-layer (:map db))]})
 
 (defmethod get-layer-legend :wms-geoserver
   [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]

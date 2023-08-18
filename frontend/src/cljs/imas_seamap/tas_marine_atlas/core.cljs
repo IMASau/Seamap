@@ -36,9 +36,6 @@
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
-    ;; TODO: Remove national layer functionality?
-    :map/national-layer                   msubs/national-layer
-    :map.national-layer/state             msubs/national-layer-state
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/lookup                    msubs/map-layer-lookup
@@ -155,6 +152,10 @@
     :map.layer.selection/clear            [tmaevents/map-clear-selection]
     :map.layer.selection/finalise         [tmaevents/map-finalise-selection]
     :map.layer.selection/toggle           [mevents/map-toggle-selecting]
+    :map.rich-layer/tab                   [mevents/rich-layer-tab]
+    :map.rich-layer/alternate-views-selected [mevents/rich-layer-alternate-views-selected]
+    :map.rich-layer/timeline-selected        [mevents/rich-layer-timeline-selected]
+    :map.rich-layer/reset-filters            [mevents/rich-layer-reset-filters]
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups
@@ -165,9 +166,12 @@
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
     :map/update-keyed-layers              mevents/update-keyed-layers
+    :map/update-rich-layer-alternate-views mevents/update-rich-layer-alternate-views
+    :map/update-rich-layer-timelines       mevents/update-rich-layer-timelines
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [tmaevents/show-initial-layers]
     :map/join-keyed-layers                mevents/join-keyed-layers
+    :map/join-rich-layers                 mevents/join-rich-layers
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          [mevents/map-zoom-in]
     :map/zoom-out                         [mevents/map-zoom-out]
