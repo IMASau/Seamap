@@ -16,7 +16,7 @@ from catalogue.models import Layer
 LayerFeature = namedtuple('LayerFeature', 'layer_id geom')
 
 # Inserts a layer feature row; geom is added in binary MS-SSCLRT format
-SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature ( layer_id, geom ) VALUES ( ?, ? );"
+SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature_temp ( layer_id, geom ) VALUES ( ?, ? );"
 
 
 def http_session():
