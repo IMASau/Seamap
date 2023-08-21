@@ -20,8 +20,8 @@ WHERE layer_id IN (
   layer_feature_temp
 );
 
-INSERT INTO layer_feature
-SELECT * FROM layer_feature_temp;
+INSERT INTO layer_feature (layer_id, geom)
+SELECT layer_id, geom FROM layer_feature_temp;
 
 ALTER INDEX layer_geom ON layer_feature REBUILD;
 """
