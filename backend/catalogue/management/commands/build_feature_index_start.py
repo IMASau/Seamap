@@ -4,18 +4,14 @@ from django.db import connections
 
 from catalogue.models import Layer
 
-# Clears table, and prepares it for insertion of features by disabling spatial
-# index.
-SQL_RESET_LAYER_FEATURES = """
-ALTER INDEX layer_geom ON layer_feature DISABLE;
-TRUNCATE TABLE layer_feature;
-"""
+# Clears the temp layer feature table
+SQL_TRUNCATE_LAYER_FEATURE_TEMP = "TRUNCATE TABLE layer_feature_temp;"
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             with connections['transects'].cursor() as cursor:
-                cursor.execute(SQL_RESET_LAYER_FEATURES)
+                cursor.execute(SQL_TRUNCATE_LAYER_FEATURE_TEMP)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
         else:
