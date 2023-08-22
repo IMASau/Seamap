@@ -348,8 +348,15 @@
   "To the right of the layer name. Basic controls for the layer, like getting info
    and enabling/disabling the layer. Differs from layer-card-controls in what
    controls are displayed."
-  [{:keys [layer]}]
+  [{:keys [layer]
+    {:keys [rich-layer]} :layer-state}]
   [:div.layer-controls
+
+   (when rich-layer
+     [layer-control
+      {:tooltip  "Configure layer options"
+       :icon     "wrench"
+       :on-click #(re-frame/dispatch [:map.rich-layer/configure layer])}])
 
    [layer-control
     {:tooltip  "Layer info / Download data"
