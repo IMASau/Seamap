@@ -5,7 +5,7 @@
   (:require [cemerick.url :as url]
             [clojure.string :as string]
             [goog.dom.xml :as gxml]
-            [imas-seamap.utils :refer [merge-in select-values first-where]]
+            [imas-seamap.utils :refer [merge-in select-values first-where url?]]
             ["proj4" :as proj4]
             [reagent.dom.server :refer [render-to-string]]
             [imas-seamap.interop.leaflet :as leaflet]
@@ -223,10 +223,15 @@
             [:table
              (map-indexed
               (fn [j [label value]]
-                ^{:key j}
-                [:tr
-                 [:td label]
-                 [:td (or value "-")]])
+                (let [value (if (seq (str value)) (str value) "-")
+                      url?  (url? value)]
+                  ^{:key j}
+                  [:tr
+                   [:td label]
+                   [:td
+                    (if url?
+                      [:a {:href value :target "_blank"} value]
+                      value)]]))
               (get feature "properties"))])
           (get response "features"))])})))
 
@@ -281,10 +286,15 @@
           [:table
            (map-indexed
             (fn [j attr]
-              ^{:key j}
-              [:tr
-               [:td attr.name]
-               [:td attr.value]])
+              (let [value (if (seq (str attr.value)) (str attr.value) "-")
+                    url?  (url? value)]
+                ^{:key j}
+                [:tr
+                 [:td attr.name]
+                 [:td
+                  (if url?
+                    [:a {:href value :target "_blank"} value]
+                    value)]]))
             node.attributes)])
         fields)])}))
 
