@@ -314,7 +314,7 @@
 
       [b/tab
        {:id    "filters"
-        :title (reagent/as-element [:<> [b/icon {:icon "filter-list"}] "Filters"])
+        :title (reagent/as-element [:<> [b/icon {:icon "wrench"}] "Configure"])
         :panel
         (reagent/as-element
          [:div
