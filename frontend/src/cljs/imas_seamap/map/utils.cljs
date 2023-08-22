@@ -334,7 +334,7 @@
 (defn viewport-layers [{:keys [_west _south _east _north] :as bounds} layers]
   (filter (partial layer-visible? bounds) layers))
 
-(defn latlng-distance [[lat1 lng1] [lat2 lng2]]
+(defn latlng-distance [[lng1 lat1] [lng2 lat2]]
   (.distanceTo (leaflet/latlng. lat1 lng1) (leaflet/latlng. lat2 lng2)))
 
 (defn map->bounds [{:keys [west south east north] :as _bounds}]
