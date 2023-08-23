@@ -4,10 +4,12 @@ import re
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import connections
 from requests.adapters import HTTPAdapter, Retry
 from shapely.geometry import shape
 import pyodbc
 import requests
+import traceback
 
 from catalogue.models import Layer
 
@@ -16,6 +18,9 @@ LayerFeature = namedtuple('LayerFeature', 'layer_id geom')
 
 # Inserts a layer feature row; geom is added in binary MS-SSCLRT format
 SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature_temp ( layer_id, geom ) VALUES ( ?, ? );"
+
+# Inserts a layer feature log into the layer feature log table
+SQL_LAYER_FEATURE_LOG = "INSERT INTO layer_feature_log ( layer_id, error ) VALUES ( %s, %s );"
 
 
 def http_session():
@@ -235,5 +240,10 @@ class Command(BaseCommand):
                     process_layer(layer)
                 except Exception as e:
                     logging.error(f"Error processing layer {layer_id}", exc_info=e)
+                    exception_traceback = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+                    with connections['transects'].cursor() as cursor:
+                        cursor.execute(SQL_LAYER_FEATURE_LOG, [layer_id, exception_traceback])
                 else:
                     logging.info(f"Successfully processed layer {layer_id}")
+                    with connections['transects'].cursor() as cursor:
+                        cursor.execute(SQL_LAYER_FEATURE_LOG, [layer_id, None])
