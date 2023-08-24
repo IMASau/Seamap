@@ -41,8 +41,8 @@
     {:content
      (cond
        (seq tooltip) (reagent/as-element [:div {:style {:max-width "320px"}} tooltip])
-       expanded?     "Hide details"
-       :else         "Show details")
+       expanded?     "Hide legend"
+       :else         "Show legend")
      :disabled (not (or active? (seq tooltip)))}
     [b/clipped-text {:ellipsize true} name]]])
 
