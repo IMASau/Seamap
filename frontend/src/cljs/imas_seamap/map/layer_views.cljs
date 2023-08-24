@@ -104,8 +104,8 @@
         [:div {:style {:max-width "320px"}}
          tooltip])
        
-       expanded? "Hide details"
-       :else     "Show details")
+       expanded? "Hide legend"
+       :else     "Show legend")
      :hover-close-delay
      (if (or alternate-views-selected timeline-selected)
        1000 0)}
