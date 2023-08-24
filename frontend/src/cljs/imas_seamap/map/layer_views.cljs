@@ -257,7 +257,7 @@
 
 (defn- timeline-select
   [{:keys [layer]
-    {{:keys [timeline timeline-selected alternate-views-selected]} :rich-layer} :layer-state}]
+    {{:keys [timeline timeline-selected alternate-views-selected slider-label]} :rich-layer} :layer-state}] 
   (let [timeline   (sort-by :value timeline)
         values     (map :value timeline)
         gaps      (:gaps
@@ -274,7 +274,7 @@
          (interleave
           (map :label timeline)
           (conj gaps nil)))]
-    [components/form-group {:label "Time"}
+    [components/form-group {:label slider-label}
      [:input
       {:type     "range"
        :min      (apply min values)
@@ -300,7 +300,7 @@
   "Layer details for layer card. Includes layer's legend, and tabs for selecting
    filters if the layer is a rich-layer."
   [{:keys [layer]
-    {{:keys [tab displayed-layer alternate-views timeline] :as rich-layer} :rich-layer} :layer-state
+    {{:keys [tab displayed-layer alternate-views timeline tab-label icon] :as rich-layer} :rich-layer} :layer-state
     :as props}]
   [:div.layer-details
    {:on-click #(.stopPropagation %)}
@@ -321,7 +321,7 @@
 
       [b/tab
        {:id    "filters"
-        :title (reagent/as-element [:<> [b/icon {:icon "wrench"}] "Configure"])
+        :title (reagent/as-element [:<> [b/icon {:icon icon}] tab-label])
         :panel
         (reagent/as-element
          [:div
@@ -356,13 +356,13 @@
    and enabling/disabling the layer. Differs from layer-card-controls in what
    controls are displayed."
   [{:keys [layer]
-    {:keys [rich-layer]} :layer-state}]
+    {{:keys [icon tooltip] :as rich-layer} :rich-layer} :layer-state}]
   [:div.layer-controls
 
    (when rich-layer
      [layer-control
-      {:tooltip  "Configure layer options"
-       :icon     "wrench"
+      {:tooltip  tooltip
+       :icon     icon
        :on-click #(re-frame/dispatch [:map.rich-layer/configure layer])}])
 
    [layer-control
