@@ -71,7 +71,7 @@ def mapserver_layer_query_url(layer):
             else list(filter(lambda x: x['name'] == layer.layer_name, server_layers))
         )[0]  # get first layer if one layer, else filter the list
         assert server_layer
-    except AssertionError as e:
+    except Exception as e:
         raise Exception(f"No server layer found in the mapserver data JSON:\n{data}") from e
     
     return f"{map_server_url}/{server_layer['id']}/query"
