@@ -141,6 +141,14 @@ class KeyedLayer(models.Model):
         return self.keyword
 
 @python_2_unicode_compatible
+class RichLayer(models.Model):
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    tab_label = models.CharField(max_length=255, null=True, blank=True)
+    slider_label = models.CharField(max_length=255, null=True, blank=True)
+    icon = models.CharField(max_length=255, null=True, blank=True)
+    tooltip = models.CharField(max_length=255, null=True, blank=True)
+
+@python_2_unicode_compatible
 class RichLayerAlternateView(models.Model):
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_child')
     parent = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_parent')
