@@ -429,6 +429,14 @@
        :displayed-layer          (:layer (or alternate-views-selected timeline-selected))
        :tab tab})))
 
+(defn rich-layer->displayed-layer
+  "If a layer is a rich-layer, then return the currently displayed layer (including
+   default if no alternate view or timeline selected). If layer is not a
+   rich-layer, then the layer is just returned."
+  [{:keys [id] :as layer} rich-layers]
+  (let [rich-layer (enhance-rich-layer (get rich-layers id))]
+    (or (:displayed-layer rich-layer) layer)))
+
 (defn rich-layer-children->parents
   [layers rich-layer-children]
   (reduce

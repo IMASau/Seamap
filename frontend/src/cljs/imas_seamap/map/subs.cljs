@@ -3,8 +3,9 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
   (:require [clojure.string :as string]
-            [imas-seamap.utils :refer [map-on-key first-where]]
-            [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers enhance-rich-layer rich-layer-children->parents]]
+            [clojure.set :as set]
+            [imas-seamap.utils :refer [map-on-key ids->layers]]
+            [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers enhance-rich-layer rich-layer-children->parents rich-layer->displayed-layer]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
@@ -36,9 +37,10 @@
   the layer is problematic or not (ie, rather than just saying we
   should notify the user about any error, we want to notify above a
   certain threshold)"
-  [error-counts load-counts]
+  [error-counts load-counts rich-layers]
   (fn [layer]
-    (let [error-count (get error-counts layer 0)
+    (let [layer (rich-layer->displayed-layer layer rich-layers)
+          error-count (get error-counts layer 0)
           total-count (get load-counts layer 0)]
       (and (pos? total-count)
            (> (/ error-count total-count)
@@ -60,10 +62,20 @@
         filtered-layers (set (filter (partial match-layer filter-text categories) layers)) ; get the set of all layers that match the filter
         filtered-layers (rich-layer-children->parents filtered-layers rich-layer-children) ; get the rich-layer parents for this layer, and add them to the searched layers
         filtered-layers (filterv filtered-layers catalogue-layers) ; filtered-layers set converted into vector by filtering on catalogue-layers (sorted)
-        sorted-layers   (sort-layers catalogue-layers sorting)]
+        sorted-layers   (sort-layers catalogue-layers sorting)
+        displayed-rich-layers (reduce                              ; rich-layer->displayed-layer
+                               (fn [acc layer] 
+                                 (assoc acc layer (rich-layer->displayed-layer layer rich-layers)))
+                               {} (ids->layers (keys rich-layers) layers))
+        displayed-layers->layers (set/map-invert displayed-rich-layers)]
     {:groups          (group-by :category filtered-layers)
-     :loading-layers  (->> layer-state :loading-state (filter (fn [[l st]] (= st :map.layer/loading))) keys set)
-     :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state))
+     :loading-layers  (->>
+                       layer-state :loading-state
+                       (filter (fn [[l st]] (= st :map.layer/loading)))
+                       keys
+                       (map #(or (get displayed-layers->layers %) %))
+                       set)
+     :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state) rich-layers)
      :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers
      :visible-layers  (visible-layers db-map)
