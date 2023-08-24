@@ -24,6 +24,23 @@ class KeyedLayerAdmin(admin.ModelAdmin):
     autocomplete_fields = ('layer',)
 admin.site.register(models.KeyedLayer, KeyedLayerAdmin)
 
+class RichLayerAlternateViewInline(admin.TabularInline):
+    autocomplete_fields = ('layer',)
+    model = models.RichLayerAlternateView
+    fk_name = 'richlayer'
+    extra = 0
+
+class RichLayerTimelineInline(admin.TabularInline):
+    autocomplete_fields = ('layer',)
+    model = models.RichLayerTimeline
+    fk_name = 'richlayer'
+    extra = 0
+
+class RichLayerAdmin(admin.ModelAdmin):
+    inlines = (RichLayerAlternateViewInline, RichLayerTimelineInline,)
+    autocomplete_fields = ('layer',)
+admin.site.register(models.RichLayer, RichLayerAdmin)
+
 class PressureAdminInline(admin.TabularInline):
     autocomplete_fields = ('layer',)
     model = models.Pressure

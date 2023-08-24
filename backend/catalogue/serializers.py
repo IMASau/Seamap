@@ -85,11 +85,27 @@ class KeyedLayerSerializer(serializers.ModelSerializer):
 class RichLayerAlternateViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.RichLayerAlternateView
-        exclude = ('id',)
+        exclude = ('id', 'richlayer',)
 
 class RichLayerTimelineSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.RichLayerTimeline
+        exclude = ('id', 'richlayer',)
+
+class RichLayerSerializer(serializers.ModelSerializer):
+    alternate_views = serializers.SerializerMethodField()
+    timeline = serializers.SerializerMethodField()
+
+    def get_alternate_views(self, obj):
+        alternate_views = models.RichLayerAlternateView.objects.filter(richlayer=obj.id)
+        return [RichLayerAlternateViewSerializer(v).data for v in alternate_views]
+
+    def get_timeline(self, obj):
+        timeline = models.RichLayerTimeline.objects.filter(richlayer=obj.id)
+        return [RichLayerTimelineSerializer(v).data for v in timeline]
+
+    class Meta:
+        model = models.RichLayer
         exclude = ('id',)
 
 class RegionReportSerializer(serializers.ModelSerializer):
