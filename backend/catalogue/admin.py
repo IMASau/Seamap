@@ -12,20 +12,7 @@ admin.site.register(models.HabitatDescriptor)
 admin.site.register(models.BaseLayerGroup)
 admin.site.register(models.BaseLayer)
 
-class RichLayerAlternateViewInline(admin.TabularInline):
-    autocomplete_fields = ('layer',)
-    model = models.RichLayerAlternateView
-    fk_name = 'parent'
-    extra = 0
-
-class RichLayerTimelineInline(admin.TabularInline):
-    autocomplete_fields = ('layer',)
-    model = models.RichLayerTimeline
-    fk_name = 'parent'
-    extra = 0
-
 class LayerAdmin(admin.ModelAdmin):
-    inlines = (RichLayerAlternateViewInline, RichLayerTimelineInline,)
     search_fields = ('name',)
 admin.site.register(models.Layer, LayerAdmin)
 
