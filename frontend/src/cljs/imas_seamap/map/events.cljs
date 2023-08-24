@@ -358,7 +358,7 @@
    (assoc-in
     [:map :rich-layers]
     (reduce-kv
-     (fn [m k {:keys [alternate-views alternate-views-selected timeline timeline-selected tab]}]
+     (fn [m k {:keys [alternate-views timeline] :as v}]
        (let [alternate-views
              (mapv
               (fn [{:keys [layer] :as alternate-views-entry}]
@@ -375,11 +375,10 @@
               timeline)]
          (assoc
           m k
-          {:alternate-views          alternate-views
-           :alternate-views-selected alternate-views-selected
-           :timeline                 timeline
-           :timeline-selected        timeline-selected
-           :tab tab})))
+          (assoc
+           v
+           :alternate-views alternate-views
+           :timeline        timeline))))
      {} rich-layers))
      (assoc-in
       [:map :rich-layer-children]
