@@ -22,7 +22,7 @@ router.register(r'descriptors', viewsets.DescriptorViewset)
 router.register(r'baselayergroups', viewsets.BaseLayerGroupViewset)
 router.register(r'categories', viewsets.CategoryViewset)
 router.register(r'keyedlayers', viewsets.KeyedLayerViewset)
-router.register(r'richlayer', viewsets.RichLayerViewset)
+router.register(r'richlayers', viewsets.RichLayerViewset)
 router.register(r'regionreports', viewsets.RegionReportViewset)
 
 urlpatterns = [
