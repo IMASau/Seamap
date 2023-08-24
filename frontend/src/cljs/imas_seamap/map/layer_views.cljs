@@ -258,7 +258,8 @@
 (defn- timeline-select
   [{:keys [layer]
     {{:keys [timeline timeline-selected alternate-views-selected]} :rich-layer} :layer-state}]
-  (let [years     (sort (map :year timeline))
+  (let [timeline   (sort-by :value timeline)
+        values     (map :value timeline)
         gaps      (:gaps
                    (reduce
                     (fn [{:keys [gaps prev]} val]
@@ -266,19 +267,25 @@
                                (conj gaps (- val prev))
                                gaps)
                        :prev val})
-                    {:gaps [] :prev nil} years))
-        with-gaps (butlast (interleave years (conj gaps nil)))]
+                    {:gaps [] :prev nil} values))
+        
+        labels-with-gaps
+        (butlast
+         (interleave
+          (map :label timeline)
+          (conj gaps nil)))]
     [components/form-group {:label "Time"}
      [:input
       {:type     "range"
-       :min      (apply min years)
-       :max      (apply max years)
-       :value    (:year (or timeline-selected (first-where #(= (get-in % [:layer :id]) (:id layer)) timeline)))
+       :min      (apply min values)
+       :max      (apply max values)
+       :step     0.01
+       :value    (:value (or timeline-selected (first-where #(= (get-in % [:layer :id]) (:id layer)) timeline)))
        :on-click #(.stopPropagation %)
        :on-input (fn [e]
-                   (let [year (-> e .-target .-value js/parseInt)
-                         nearest-year (round-to-nearest year years)]
-                     (re-frame/dispatch [:map.rich-layer/timeline-selected layer (first-where #(= (:year %) nearest-year) timeline)])))
+                   (let [value (-> e .-target .-value)
+                         nearest-value (round-to-nearest value values)]
+                     (re-frame/dispatch [:map.rich-layer/timeline-selected layer (first-where #(= (:value %) nearest-value) timeline)])))
        :disabled (boolean alternate-views-selected)}]
      [:div.time-range
       (map-indexed
@@ -287,7 +294,7 @@
           {:key   i
            :style (when (odd? i) {:flex v})}
           (when (even? i) v)])
-       with-gaps)]]))
+       labels-with-gaps)]]))
 
 (defn- layer-details
   "Layer details for layer card. Includes layer's legend, and tabs for selecting
