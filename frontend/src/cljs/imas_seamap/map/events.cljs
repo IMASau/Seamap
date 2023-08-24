@@ -445,6 +445,49 @@
                           (reduce-kv (fn [m k v] (assoc m k (mapv :layer v))) {}))]
     (assoc-in db [:map :keyed-layers] keyed-layers)))
 
+(defn- ->rich-layer
+  [{:keys [alternate_views timeline tab_label slider_label icon tooltip]}]
+  {:alternate-views          alternate_views
+   :alternate-views-selected nil
+   :timeline                 timeline
+   :timeline-selected        nil
+   :tab                      "legend"
+   :tab-label                tab_label
+   :slider-label             slider_label
+   :icon                     icon
+   :tooltip                  tooltip})
+
+(defn- rich-layer->children
+  [{:keys [alternate-views timeline]}]
+  (set/union
+   (set (map :layer alternate-views))
+   (set (map :layer timeline))))
+
+(defn update-rich-layers [db [_ rich-layers]]
+  (let [db-rich-layers (get-in db [:map :rich-layers]) ; existing state, for merges
+
+        rich-layers
+        (reduce
+         (fn [acc {:keys [layer] :as rich-layer}]
+           (let [db-rich-layer (get db-rich-layers layer)
+                 rich-layer (merge (->rich-layer rich-layer) db-rich-layer)]
+             (assoc acc layer rich-layer)))
+         {} rich-layers)
+
+        rich-layer-children
+        (reduce-kv
+         (fn [rich-layer-children k v]
+           (let [children (rich-layer->children v)]
+             (reduce
+              (fn [rich-layer-children child]
+                (update rich-layer-children child conj k))
+              rich-layer-children children)))
+         {} rich-layers)]
+    (->
+     db
+     (assoc-in [:map :rich-layers] rich-layers)
+     (assoc-in [:map :rich-layer-children] rich-layer-children))))
+
 (defn update-rich-layer-alternate-views [db [_ rich-layer-alternate-views]]
   (let [rich-layers
         (->>

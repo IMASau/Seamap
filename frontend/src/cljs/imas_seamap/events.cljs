@@ -36,8 +36,7 @@
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
                                   :map/update-keyed-layers
-                                  :map/update-rich-layer-alternate-views
-                                  :map/update-rich-layer-timelines]
+                                  :map/update-rich-layers]
      :dispatch-n [[:map/join-keyed-layers]
                   [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
@@ -75,8 +74,7 @@
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
                                   :map/update-keyed-layers
-                                  :map/update-rich-layer-alternate-views
-                                  :map/update-rich-layer-timelines]
+                                  :map/update-rich-layers]
      :dispatch-n [[:map/join-keyed-layers]
                   [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
@@ -114,8 +112,7 @@
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
                                   :map/update-keyed-layers
-                                  :map/update-rich-layer-alternate-views
-                                  :map/update-rich-layer-timelines]
+                                  :map/update-rich-layers]
      :dispatch-n [[:map/join-keyed-layers]
                   [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
@@ -150,8 +147,7 @@
           save-state
           category
           keyed-layers
-          rich-layer-alternate-views
-          rich-layer-timelines
+          rich-layers
           region-reports
           amp-boundaries
           imcra-boundaries
@@ -176,8 +172,7 @@
       :save-state-url              (str api-url-base save-state)
       :category-url                (str api-url-base category)
       :keyed-layers-url            (str api-url-base keyed-layers)
-      :rich-layer-alternate-views-url (str api-url-base rich-layer-alternate-views)
-      :rich-layer-timelines-url       (str api-url-base rich-layer-timelines)
+      :rich-layers-url             (str api-url-base rich-layers)
       :region-reports-url          (str api-url-base region-reports)
       :amp-boundaries-url          (str api-url-base amp-boundaries)
       :imcra-boundaries-url        (str api-url-base imcra-boundaries)
@@ -304,8 +299,7 @@
                 descriptor-url
                 category-url
                 keyed-layers-url
-                rich-layer-alternate-views-url
-                rich-layer-timelines-url
+                rich-layers-url
                 region-reports-url
                 amp-boundaries-url
                 imcra-boundaries-url
@@ -353,14 +347,9 @@
                    :on-success      [:map/update-keyed-layers]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
-                   :uri             rich-layer-alternate-views-url
+                   :uri             rich-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-rich-layer-alternate-views]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             rich-layer-timelines-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-rich-layer-timelines]
+                   :on-success      [:map/update-rich-layers]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             region-reports-url
