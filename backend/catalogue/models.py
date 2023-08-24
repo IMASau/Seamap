@@ -143,10 +143,13 @@ class KeyedLayer(models.Model):
 @python_2_unicode_compatible
 class RichLayer(models.Model):
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
-    tab_label = models.CharField(max_length=255, null=True, blank=True)
-    slider_label = models.CharField(max_length=255, null=True, blank=True)
-    icon = models.CharField(max_length=255, null=True, blank=True)
-    tooltip = models.CharField(max_length=255, null=True, blank=True)
+    tab_label = models.CharField(max_length=255)
+    slider_label = models.CharField(max_length=255)
+    icon = models.CharField(max_length=255)
+    tooltip = models.CharField(max_length=255)
+
+    def __str__(self):
+        return str(self.layer)
 
 @python_2_unicode_compatible
 class RichLayerAlternateView(models.Model):
