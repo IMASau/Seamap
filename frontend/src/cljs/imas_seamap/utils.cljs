@@ -250,26 +250,20 @@
        (filter #(pred (second %)))
        (map first)))
 
-(def blank-rich-layer
-  {:alternate-views []
-   :alternate-views-selected nil
-   :timeline []
-   :timeline-selected nil
-   :tab "legend"})
-
 (defn ajax-loaded-info
   "Returns db of all the info retrieved via ajax"
   [db]
   (let [rich-layers
         (reduce-kv
-         (fn [acc key {:keys [alternate-views timeline] :as _val}]
+         (fn [acc key val]
            (assoc
             acc
             key
             (assoc
-             blank-rich-layer
-             :alternate-views alternate-views
-             :timeline timeline)))
+             val
+             :alternate-views-selected nil
+             :timeline-selected        nil
+             :tab                      "legend")))
          {} (get-in db [:map :rich-layers]))]
     (->
      (select-keys*
