@@ -20,7 +20,7 @@ LayerFeature = namedtuple('LayerFeature', 'layer_id geom')
 SQL_INSERT_LAYER_FEATURE = "INSERT INTO layer_feature_temp ( layer_id, geom ) VALUES ( ?, ? );"
 
 # Inserts a layer feature log into the layer feature log table
-SQL_LAYER_FEATURE_LOG = "INSERT INTO layer_feature_log ( layer_id, error ) VALUES ( %s, %s );"
+SQL_LAYER_FEATURE_LOG = "INSERT INTO layer_feature_log ( layer_id, error, traceback ) VALUES ( %s, %s, %s );"
 
 
 def http_session():
@@ -242,8 +242,8 @@ class Command(BaseCommand):
                     logging.error(f"Error processing layer {layer_id}", exc_info=e)
                     exception_traceback = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
                     with connections['transects'].cursor() as cursor:
-                        cursor.execute(SQL_LAYER_FEATURE_LOG, [layer_id, exception_traceback])
+                        cursor.execute(SQL_LAYER_FEATURE_LOG, [layer_id, str(e), exception_traceback])
                 else:
                     logging.info(f"Successfully processed layer {layer_id}")
                     with connections['transects'].cursor() as cursor:
-                        cursor.execute(SQL_LAYER_FEATURE_LOG, [layer_id, None])
+                        cursor.execute(SQL_LAYER_FEATURE_LOG, [layer_id, None, None])
