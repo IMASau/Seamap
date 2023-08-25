@@ -68,7 +68,12 @@ def mapserver_layer_query_url(layer):
         server_layer = (
             server_layers
             if len(server_layers) == 1
-            else list(filter(lambda x: x['name'] == layer.layer_name, server_layers))
+            else list(
+                filter(
+                    lambda x: re.sub('[^a-zA-Z0-9]', '_', x['name']) == layer.layer_name[:-5], # so "Fishing Block [DPIPWE]" will match with "Fishing_Block__DPIPWE_62889"
+                    server_layers
+                )
+            )
         )[0]  # get first layer if one layer, else filter the list
         assert server_layer
     except Exception as e:
