@@ -270,8 +270,8 @@
                           :on-click #(do
                                        (.stopPropagation %)
                                        (re-frame/dispatch [:map.national-layer/reset-filters]))}]])
-        expanded?     "Hide details"
-        :else         "Show details")
+        expanded?     "Hide legend"
+        :else         "Show legend")
       :disabled (not (or active? (seq tooltip)))}
      (when (seq tooltip)
        {:hover-close-delay 1000}))
