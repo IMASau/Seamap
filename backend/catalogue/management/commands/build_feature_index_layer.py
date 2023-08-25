@@ -35,6 +35,14 @@ def http_session():
     return http
 
 
+def mapserver_layer_match(mapserver_layer, layer):
+    # "Fishing Block [DPIPWE]" will match with "Fishing_Block__DPIPWE_62889"
+    return re.sub(
+        '\d+$',
+        '',
+        re.sub('[^-a-zA-Z0-9]', '_', mapserver_layer['name'])
+    ) == re.sub('\d+$', '', layer.layer_name)
+
 def mapserver_layer_query_url(layer):
     """
     For a given mapserver layer, find out from its server URL what the URL is that
@@ -70,7 +78,7 @@ def mapserver_layer_query_url(layer):
             if len(server_layers) == 1
             else list(
                 filter(
-                    lambda x: re.sub('[^-a-zA-Z0-9]', '_', x['name']) == layer.layer_name[:-5], # so "Fishing Block [DPIPWE]" will match with "Fishing_Block__DPIPWE_62889"
+                    lambda x: mapserver_layer_match(x, layer),
                     server_layers
                 )
             )
