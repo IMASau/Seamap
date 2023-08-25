@@ -5,7 +5,7 @@
   (:require [clojure.set :refer [rename-keys]]
             [goog.crypt.base64 :as b64]
             [cognitect.transit :as t]
-            [imas-seamap.utils :refer [select-keys* blank-rich-layer]]
+            [imas-seamap.utils :refer [select-keys*]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn encode-state
@@ -88,14 +88,15 @@
   [db]
   (let [rich-layers
         (reduce-kv
-         (fn [acc key {:keys [alternate-views timeline] :as _val}]
+         (fn [acc key val]
            (assoc
             acc
             key
             (assoc
-             blank-rich-layer
-             :alternate-views alternate-views
-             :timeline timeline)))
+             val
+             :alternate-views-selected nil
+             :timeline-selected        nil
+             :tab                      "legend")))
          {} (get-in db [:map :rich-layers]))]
     (->
      (select-keys*

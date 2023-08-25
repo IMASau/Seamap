@@ -6,7 +6,7 @@
             [clojure.set :as set]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url? blank-rich-layer]]
+            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
             [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
@@ -358,7 +358,7 @@
    (assoc-in
     [:map :rich-layers]
     (reduce-kv
-     (fn [m k {:keys [alternate-views alternate-views-selected timeline timeline-selected tab]}]
+     (fn [m k {:keys [alternate-views timeline] :as v}]
        (let [alternate-views
              (mapv
               (fn [{:keys [layer] :as alternate-views-entry}]
@@ -375,11 +375,10 @@
               timeline)]
          (assoc
           m k
-          {:alternate-views          alternate-views
-           :alternate-views-selected alternate-views-selected
-           :timeline                 timeline
-           :timeline-selected        timeline-selected
-           :tab tab})))
+          (assoc
+           v
+           :alternate-views alternate-views
+           :timeline        timeline))))
      {} rich-layers))
      (assoc-in
       [:map :rich-layer-children]
@@ -445,67 +444,46 @@
                           (reduce-kv (fn [m k v] (assoc m k (mapv :layer v))) {}))]
     (assoc-in db [:map :keyed-layers] keyed-layers)))
 
-(defn update-rich-layer-alternate-views [db [_ rich-layer-alternate-views]]
-  (let [rich-layers
-        (->>
-         rich-layer-alternate-views
-         (group-by :parent)
-         (reduce-kv ; for each rich-layer (parent) we have the alternate views for, we update
-          (fn [m k v]
-            (let [alternate-views (mapv #(dissoc % :parent) v)
-                  rich-layer
-                  (->
-                   (or (get m k) blank-rich-layer) ; use rich-layer if exists, else use blank one
-                   (assoc :alternate-views alternate-views))]
-              (assoc m k rich-layer))) ; crucially, doesn't override layers we don't have alternate view for
-          (get-in db [:map :rich-layers]))) ; use the existing rich layers as the accumulator, because we only update layers we need to
-        
-        rich-layer-children
-        (->>
-         rich-layer-alternate-views
-         (group-by :layer)
-         (reduce-kv
-          (fn [m k v]
-            (let [parents (set (mapv :parent v))
-                  rich-layer-child
-                  (->
-                   (or (get m k) #{}) ; use rich-layer if exists, else use blank one
-                   (set/union parents))]
-              (assoc m k rich-layer-child)))
-          (get-in db [:map :rich-layer-children])))]
-    (->
-     db
-     (assoc-in [:map :rich-layers] rich-layers)
-     (assoc-in [:map :rich-layer-children] rich-layer-children))))
+(defn- ->rich-layer
+  [{:keys [alternate_views timeline tab_label slider_label icon tooltip]}]
+  {:alternate-views          alternate_views
+   :alternate-views-selected nil
+   :timeline                 timeline
+   :timeline-selected        nil
+   :tab                      "legend"
+   :tab-label                tab_label
+   :slider-label             slider_label
+   :icon                     icon
+   :tooltip                  tooltip})
 
-(defn update-rich-layer-timelines [db [_ rich-layer-timelines]]
-  (let [rich-layers
-        (->>
-         rich-layer-timelines
-         (group-by :parent)
-         (reduce-kv ; for each rich-layer (parent) we have the timeline for, we update
-          (fn [m k v]
-            (let [timeline (mapv #(dissoc % :parent) v)
-                  rich-layer
-                  (->
-                   (or (get m k) blank-rich-layer) ; use rich-layer if exists, else use blank one
-                   (assoc :timeline timeline))]
-              (assoc m k rich-layer))) ; crucially, doesn't override layers we don't have timeline for
-          (get-in db [:map :rich-layers]))) ; use the existing rich layers as the accumulator, because we only update layers we need to
-        
+(defn- rich-layer->children
+  [{:keys [alternate-views timeline]}]
+  (set/union
+   (set (map :layer alternate-views))
+   (set (map :layer timeline))))
+
+(defn update-rich-layers [db [_ rich-layers]]
+  (let [db-rich-layers (get-in db [:map :rich-layers]) ; existing state, for merges
+
+        rich-layers
+        (reduce
+         (fn [acc {:keys [layer] :as rich-layer}]
+           (let [db-rich-layer (get db-rich-layers layer)
+                 rich-layer (merge (->rich-layer rich-layer) db-rich-layer)]
+             (assoc acc layer rich-layer)))
+         {} rich-layers)
+
         rich-layer-children
-        (->>
-         rich-layer-timelines
-         (group-by :layer)
-         (reduce-kv
-          (fn [m k v]
-            (let [parents (set (mapv :parent v))
-                  rich-layer-child
-                  (->
-                   (or (get m k) #{}) ; use rich-layer if exists, else use blank one
-                   (set/union parents))]
-              (assoc m k rich-layer-child)))
-          (get-in db [:map :rich-layer-children])))]
+        (reduce-kv
+         (fn [rich-layer-children k v]
+           (let [children (rich-layer->children v)]
+             (reduce
+              (fn [rich-layer-children child]
+                (if (get rich-layer-children child)
+                  (update rich-layer-children child conj k)
+                  (assoc rich-layer-children child #{k})))
+              rich-layer-children children)))
+         {} rich-layers)]
     (->
      db
      (assoc-in [:map :rich-layers] rich-layers)

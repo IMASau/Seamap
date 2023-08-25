@@ -184,8 +184,7 @@
     :map/update-descriptors               mevents/update-descriptors
     :map/update-categories                mevents/update-categories
     :map/update-keyed-layers              mevents/update-keyed-layers
-    :map/update-rich-layer-alternate-views mevents/update-rich-layer-alternate-views
-    :map/update-rich-layer-timelines       mevents/update-rich-layer-timelines
+    :map/update-rich-layers               mevents/update-rich-layers
     :map/update-region-reports            mevents/update-region-reports
     :map/update-preview-layer             mevents/update-preview-layer
     :map/initialise-display               [mevents/show-initial-layers]

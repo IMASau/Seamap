@@ -418,16 +418,15 @@
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
-  [{:keys [alternate-views alternate-views-selected timeline timeline-selected tab] :as rich-layer}]
+  [{:keys [alternate-views alternate-views-selected timeline timeline-selected] :as rich-layer}]
   (let [alternate-views-selected (first-where #(= (get-in % [:layer :id]) alternate-views-selected) alternate-views)
         timeline-selected        (first-where #(= (get-in % [:layer :id]) timeline-selected) timeline)]
     (when rich-layer
-      {:alternate-views          alternate-views
+      (assoc
+       rich-layer
        :alternate-views-selected alternate-views-selected
-       :timeline                 timeline
        :timeline-selected        timeline-selected
-       :displayed-layer          (:layer (or alternate-views-selected timeline-selected))
-       :tab tab})))
+       :displayed-layer          (:layer (or alternate-views-selected timeline-selected))))))
 
 (defn rich-layer->displayed-layer
   "If a layer is a rich-layer, then return the currently displayed layer (including

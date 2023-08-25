@@ -141,16 +141,28 @@ class KeyedLayer(models.Model):
         return self.keyword
 
 @python_2_unicode_compatible
+class RichLayer(models.Model):
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    tab_label = models.CharField(max_length=255)
+    slider_label = models.CharField(max_length=255)
+    icon = models.CharField(max_length=255)
+    tooltip = models.CharField(max_length=255)
+
+    def __str__(self):
+        return str(self.layer)
+
+@python_2_unicode_compatible
 class RichLayerAlternateView(models.Model):
-    layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_child')
-    parent = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_parent')
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT)
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
 
 @python_2_unicode_compatible
 class RichLayerTimeline(models.Model):
-    layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_child')
-    parent = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='%(class)s_parent')
-    year = models.IntegerField()
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT)
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    value = models.FloatField(null=False)
+    label = models.CharField(max_length=255)
 
 class EmptyStringToNoneField(models.CharField):
     def get_prep_value(self, value):

@@ -12,20 +12,7 @@ admin.site.register(models.HabitatDescriptor)
 admin.site.register(models.BaseLayerGroup)
 admin.site.register(models.BaseLayer)
 
-class RichLayerAlternateViewInline(admin.TabularInline):
-    autocomplete_fields = ('layer',)
-    model = models.RichLayerAlternateView
-    fk_name = 'parent'
-    extra = 0
-
-class RichLayerTimelineInline(admin.TabularInline):
-    autocomplete_fields = ('layer',)
-    model = models.RichLayerTimeline
-    fk_name = 'parent'
-    extra = 0
-
 class LayerAdmin(admin.ModelAdmin):
-    inlines = (RichLayerAlternateViewInline, RichLayerTimelineInline,)
     search_fields = ('name',)
 admin.site.register(models.Layer, LayerAdmin)
 
@@ -36,6 +23,23 @@ admin.site.register(models.SaveState, SaveStateAdmin)
 class KeyedLayerAdmin(admin.ModelAdmin):
     autocomplete_fields = ('layer',)
 admin.site.register(models.KeyedLayer, KeyedLayerAdmin)
+
+class RichLayerAlternateViewInline(admin.TabularInline):
+    autocomplete_fields = ('layer',)
+    model = models.RichLayerAlternateView
+    fk_name = 'richlayer'
+    extra = 0
+
+class RichLayerTimelineInline(admin.TabularInline):
+    autocomplete_fields = ('layer',)
+    model = models.RichLayerTimeline
+    fk_name = 'richlayer'
+    extra = 0
+
+class RichLayerAdmin(admin.ModelAdmin):
+    inlines = (RichLayerAlternateViewInline, RichLayerTimelineInline,)
+    autocomplete_fields = ('layer',)
+admin.site.register(models.RichLayer, RichLayerAdmin)
 
 class PressureAdminInline(admin.TabularInline):
     autocomplete_fields = ('layer',)
