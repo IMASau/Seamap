@@ -140,7 +140,7 @@
 (defn- layer-card-controls
   "To the right of the layer name. Basic controls for the layer, like getting info
    and disabling the layer."
-  [{:keys [layer] {:keys [visible?]} :layer-state}]
+  [{:keys [layer tma?] {:keys [visible?]} :layer-state}]
   [:div.layer-controls
    
    [layer-card-control
@@ -149,7 +149,7 @@
      :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]
    
    [layer-card-control
-    {:tooltip  "Layer info / Download data"
+    {:tooltip  (if tma? "Layer info" "Layer info / Download data")
      :icon     "info-sign"
      :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
 
@@ -346,7 +346,7 @@
 
 (defn layer-card
   "Wrapper of layer-card-content in a card for displaying in lists."
-  [{:keys [_layer-state layer] :as props}]
+  [{:keys [_layer-state layer _tma?] :as props}]
   [:div.layer-card
    {:on-click  #(re-frame/dispatch [:map.layer.legend/toggle layer])}
    [layer-card-content props]])
@@ -355,7 +355,7 @@
   "To the right of the layer name. Basic controls for the layer, like getting info
    and enabling/disabling the layer. Differs from layer-card-controls in what
    controls are displayed."
-  [{:keys [layer]
+  [{:keys [layer tma?]
     {{:keys [icon tooltip] :as rich-layer} :rich-layer} :layer-state}]
   [:div.layer-controls
 
@@ -366,7 +366,7 @@
        :on-click #(re-frame/dispatch [:map.rich-layer/configure layer])}])
 
    [layer-control
-    {:tooltip  "Layer info / Download data"
+    {:tooltip  (if tma? "Layer info" "Layer info / Download data")
      :icon     "info-sign"
      :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
 
@@ -379,7 +379,7 @@
   "Top part of layer catalogue element. Always visible. Contains the layer status,
    name, and basic controls for the layer. Differs from layer-card-header in what
    controls are displayed."
-  [{:keys [layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [layer _tma?] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
    [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
     [b/checkbox
@@ -393,7 +393,7 @@
 (defn layer-catalogue-node
   [{{:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn rich-layer-fn]} :layer-props
     {:keys [tooltip] :as layer} :layer
-    :keys [id]}]
+    :keys [id tma?]}]
   (let [active? (some #{layer} active-layers)
         {:keys [alternate-views-selected timeline-selected] :as rich-layer} (rich-layer-fn layer)
         layer-state
@@ -410,4 +410,4 @@
                  (when active? " active-layer")
                  (when (or (seq tooltip) alternate-views-selected timeline-selected) " has-tooltip"))
      :nodeData  {:previewLayer layer}
-     :label     (reagent/as-element [layer-catalogue-header {:layer layer :layer-state layer-state}])}))
+     :label     (reagent/as-element [layer-catalogue-header {:layer layer :layer-state layer-state :tma? tma?}])}))

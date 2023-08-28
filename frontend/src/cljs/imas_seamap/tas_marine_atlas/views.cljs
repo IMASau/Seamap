@@ -152,7 +152,7 @@
         :class "catalogue"
         :title (reagent/as-element
                 [b/tooltip {:content "All available map layers"} "Catalogue"])
-        :panel (reagent/as-element [left-drawer-catalogue])}]
+        :panel (reagent/as-element [left-drawer-catalogue true])}]
 
       [b/tab
        {:id    "active-layers"
@@ -161,7 +161,7 @@
                  [:<> "Active Layers"
                   (when (seq active-layers)
                     [:div.notification-bubble (count active-layers)])]])
-        :panel (reagent/as-element [left-drawer-active-layers])}]
+        :panel (reagent/as-element [left-drawer-active-layers true])}]
 
       [b/tab
        {:id    "featured-maps"
@@ -206,7 +206,7 @@
      (case status
 
        :data-in-region/loaded
-       [layer-catalogue :region layers layer-props]
+       [layer-catalogue :region layers layer-props true]
        #_[:<>
         (for [{:keys [id] :as layer} layers]
           ^{:key (str id)}
