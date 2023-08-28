@@ -40,7 +40,7 @@ def mapserver_layer_match(mapserver_layer, layer):
     return re.sub(
         '\d+$',
         '',
-        re.sub('[^-a-zA-Z0-9]', '_', mapserver_layer['name'])
+        re.sub('[^-a-zA-Z0-9.]', '_', mapserver_layer['name'])
     ) == re.sub('\d+$', '', layer.layer_name)
 
 def mapserver_layer_query_url(layer):
