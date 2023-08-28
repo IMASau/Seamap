@@ -179,10 +179,10 @@
      (str (format-number (/ distance 1000) 2) "km")
      (str (format-number distance 0) "m"))])
 
-(defmulti layer-component (comp :layer_type :layer))
+(defmulti layer-component (comp :layer_type :displayed-layer))
 
 (defmethod layer-component :wms
-  [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style] :as layer} :layer}]
+  [{:keys [boundary-filter layer-opacities layer] {:keys [server_url layer_name style]} :displayed-layer}]
   [leaflet/wms-layer
    (merge
     {:url              server_url
@@ -200,7 +200,7 @@
     (boundary-filter layer))])
 
 (defmethod layer-component :tile
-  [{:keys [layer-opacities] {:keys [server_url] :as layer} :layer}]
+  [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
   [leaflet/tile-layer
    {:url              server_url
     :eventHandlers
@@ -214,7 +214,7 @@
     :format           "image/png"}])
 
 (defmethod layer-component :feature
-  [{:keys [layer-opacities] {:keys [server_url] :as layer} :layer}]
+  [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
   [leaflet/feature-layer
    {:url              server_url
     :opacity          (/ (layer-opacities layer) 100)
@@ -225,7 +225,7 @@
      :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}]) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
 
 (defmethod layer-component :wms-non-tiled
-  [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style] :as layer} :layer}]
+  [{:keys [boundary-filter layer-opacities layer] {:keys [server_url layer_name style]} :displayed-layer}]
   [leaflet/non-tiled-layer
    (merge
     {:url              server_url
@@ -322,7 +322,8 @@
             ^{:key (str id (boundary-filter displayed-layer) (+ i 1 (count (:layers active-base-layer))))}
             [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
              [layer-component
-              {:layer           displayed-layer
+              {:layer           layer
+               :displayed-layer displayed-layer
                :boundary-filter boundary-filter
                :layer-opacities layer-opacities}]]))
         visible-layers)
