@@ -588,6 +588,7 @@
 (defn menu-button []
   [leaflet-control-button
    {:on-click #(re-frame/dispatch [:left-drawer/toggle])
+    :id       "menu-button"
     :icon     "menu"}])
 
 (defn settings-button []
@@ -602,6 +603,7 @@
     [control-block
    [control-block-child
     {:on-click #(-> "leaflet-control-zoom-in" js/document.getElementsByClassName first .click)
+     :id       "zoom-in-control"
      :icon     "plus"}]
    [b/tooltip
     {:content "Zoom Level"
@@ -609,6 +611,7 @@
     [:div.zoom-level zoom]]
    [control-block-child
     {:on-click #(-> "leaflet-control-zoom-out" js/document.getElementsByClassName first .click)
+     :id       "zoom-out-control"
      :icon     "minus"}]]))
 
 (defn custom-leaflet-controls []

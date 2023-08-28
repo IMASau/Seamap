@@ -75,9 +75,11 @@
   [control-block
    [control-block-child
     {:on-click #(-> "leaflet-control-zoom-in" js/document.getElementsByClassName first .click)
+     :id       "zoom-in-control"
      :icon     "plus"}]
    [control-block-child
     {:on-click #(-> "leaflet-control-zoom-out" js/document.getElementsByClassName first .click)
+     :id       "zoom-out-control"
      :icon     "minus"}]])
 
 (defn custom-leaflet-controls []
@@ -288,6 +290,9 @@
       {:selector       ".leaflet-control-layers-toggle"
        :helperText     "Select from available basemaps"
        :helperPosition "left"}
+      {:id "menu-button" :helperText "Expand/Collapse data menu"}
+      {:id "zoom-in-control" :helperText "Zoom in"}
+      {:id "zoom-out-control" :helperText "Zoom out"}
       {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
       {:id "print-control" :helperText "Export current map view as an image"}
       {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
