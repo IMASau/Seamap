@@ -14,10 +14,10 @@ UPDATE layer_feature_temp SET geom.STSrid = 4326;
 UPDATE layer_feature_temp SET geom = geom.MakeValid();
 ALTER INDEX layer_geom ON layer_feature DISABLE;
 
-DELETE layer_feature
+DELETE FROM layer_feature
 WHERE layer_id IN (
   SELECT DISTINCT layer_id
-  layer_feature_temp
+  FROM layer_feature_temp
 );
 
 INSERT INTO layer_feature (layer_id, geom)
