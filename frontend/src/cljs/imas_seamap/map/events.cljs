@@ -712,6 +712,7 @@
     {:db         (assoc-in db [:map :rich-layers (:id layer) :tab] "filters")
      :dispatch-n [[:map/add-layer layer]
                   [:left-drawer/tab "active-layers"]
+                  [:map/update-preview-layer nil]
                   (when-not (legends layer) [:map.layer.legend/toggle layer])
                   [:maybe-autosave]]}))
 
