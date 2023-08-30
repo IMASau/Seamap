@@ -704,6 +704,17 @@
                    [:map.layer/get-legend layer])
                  [:maybe-autosave]]}))
 
+(defn rich-layer-configure
+  "Opens a layer to the configuration tab."
+  [{:keys [db]} [_ layer]]
+  (let [legends (get-in db [:layer-state :legend-shown])]
+    {:db         (assoc-in db [:map :rich-layers (:id layer) :tab] "filters")
+     :dispatch-n [[:map/add-layer layer]
+                  [:left-drawer/tab "active-layers"]
+                  [:map/update-preview-layer nil]
+                  (when-not (legends layer) [:map.layer.legend/toggle layer])
+                  [:maybe-autosave]]}))
+
 (defn add-layer
   "Adds a layer to the list of active layers.
    
