@@ -5268,10 +5268,10 @@ esri-leaflet-vector@3.1.5:
   dependencies:
     mapbox-gl "1.13.1"
 
-esri-leaflet@3.0.8:
-  version "3.0.8"
-  resolved "https://registry.yarnpkg.com/esri-leaflet/-/esri-leaflet-3.0.8.tgz#040aae75226992521ca19abc7b837213e9a7512c"
-  integrity sha512-mLb4pRfDAbkG1YhuajD22erLXIAtrF1R32hmgmlJNI3t47n6KjTppCb8lViia0O7+GDORXFuJ9Lj9RkpsaKhSA==
+esri-leaflet@3.0.10:
+  version "3.0.10"
+  resolved "https://registry.yarnpkg.com/esri-leaflet/-/esri-leaflet-3.0.10.tgz#49c6445c41e1d21ddc8dcb86686850924d40bcb3"
+  integrity sha512-2ma+mMHrJA7oqJFHZDLZrCAMkaXTdFFJRsJqlsh3Z2G+nXKj2SrlzJ2YmN5qgnI9y/X5AkcSfxViBoQTX9rcSw==
   dependencies:
     "@terraformer/arcgis" "^2.1.0"
     tiny-binary-search "^1.0.3"
