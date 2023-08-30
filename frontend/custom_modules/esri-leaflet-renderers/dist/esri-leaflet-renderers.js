@@ -930,13 +930,13 @@
     },
 
     _getSymbol: function (feature) {
-      var val = feature.properties[this._field] ?? feature.properties[this._field.toLowerCase()];
+      var val = feature.properties[Object.keys(feature.properties).find(key => key.toLowerCase() == this._field.toLowerCase())];
       // accumulate values if there is more than one field defined
       if (this._rendererJson.fieldDelimiter && this._rendererJson.field2) {
-        var val2 = feature.properties[this._rendererJson.field2] ?? feature.properties[this._rendererJson.field2.toLowerCase()];
+        var val2 = feature.properties[Object.keys(feature.properties).find(key => key.toLowerCase() == this._rendererJson.field2.toLowerCase())];
         if (val2) {
           val += this._rendererJson.fieldDelimiter + val2;
-          var val3 = feature.properties[this._rendererJson.field3] ?? feature.properties[this._rendererJson.field3.toLowerCase()];
+          var val3 = feature.properties[Object.keys(feature.properties).find(key => key.toLowerCase() == this._rendererJson.field3.toLowerCase())];
           if (val3) {
             val += this._rendererJson.fieldDelimiter + val3;
           }
