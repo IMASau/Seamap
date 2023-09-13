@@ -1,6 +1,6 @@
 {:source-paths ["src/cljs" "src/gen" "src/thirdparty"]
 
- :dependencies [[binaryage/devtools              "1.0.3"]
+ :dependencies [[binaryage/devtools              "1.0.7"]
                 [cljs-ajax/cljs-ajax             "0.5.5"]
                 [com.cemerick/url                "0.1.1"]
                 [com.cognitect/transit-cljs      "0.8.256"]
