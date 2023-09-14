@@ -44,7 +44,7 @@
                                                     imas-seamap.tas-marine-atlas.core]}}}
 
           :mindev {:target            :browser
-                   :output-dir        "resources/public/js/compiled/"
+                   :output-dir        "resources/public/js/"
                    :asset-path        "js"
                    :closure-defines   {goog.DEBUG false}
                    :module-hash-names true
