@@ -20,10 +20,16 @@
 
  :builds {:dev {:target           :browser
                 :output-dir       "resources/public/js/"
+                :asset-path       "js"
                 :closure-defines  {goog.DEBUG                            true
                                    "re_frame.trace.trace_enabled_QMARK_" true}
-                :modules          {:app {:entries [imas-seamap.core
-                                                   imas-seamap.tas-marine-atlas.core]}}
+                :modules          {:shared {:entries []}
+                                   :app    {:entries    [imas-seamap.core
+                                                         imas-seamap.tas-marine-atlas.core]
+                                            :depends-on #{:shared}}
+                                   :worker {:init-fn    imas-seamap.worker/init
+                                            :depends-on #{:shared}
+                                            :web-worker true}}
                 :compiler-options {:pretty-print true}
                 :preloads         [devtools.preload
                                    day8.re-frame.trace.preload
@@ -39,10 +45,16 @@
 
           :mindev {:target            :browser
                    :output-dir        "resources/public/js/compiled/"
+                   :asset-path        "js"
                    :closure-defines   {goog.DEBUG false}
                    :module-hash-names true
                    :build-options     {:manifest-name "manifest.json"}
-                   :modules           {:app {:entries [imas-seamap.core
-                                                       imas-seamap.tas-marine-atlas.core]}}
+                   :modules           {:shared {:entries []}
+                                       :app    {:entries    [imas-seamap.core
+                                                             imas-seamap.tas-marine-atlas.core]
+                                                :depends-on #{:shared}}
+                                       :worker {:init-fn    imas-seamap.worker/init
+                                                :depends-on #{:shared}
+                                                :web-worker true}}
                    :compiler-options  {:pseudo-names true
                                        :source-map   true}}}}

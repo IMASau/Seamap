@@ -5268,13 +5268,9 @@ esri-leaflet-vector@3.1.5:
   dependencies:
     mapbox-gl "1.13.1"
 
-esri-leaflet@3.0.10:
-  version "3.0.10"
-  resolved "https://registry.yarnpkg.com/esri-leaflet/-/esri-leaflet-3.0.10.tgz#49c6445c41e1d21ddc8dcb86686850924d40bcb3"
-  integrity sha512-2ma+mMHrJA7oqJFHZDLZrCAMkaXTdFFJRsJqlsh3Z2G+nXKj2SrlzJ2YmN5qgnI9y/X5AkcSfxViBoQTX9rcSw==
-  dependencies:
-    "@terraformer/arcgis" "^2.1.0"
-    tiny-binary-search "^1.0.3"
+"esri-leaflet@link:./custom_modules/esri-leaflet":
+  version "0.0.0"
+  uid ""
 
 estraverse@^4.1.1:
   version "4.3.0"

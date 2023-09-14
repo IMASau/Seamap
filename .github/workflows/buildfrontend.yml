@@ -71,14 +71,26 @@ jobs:
       - name: Build project
         run: npx shadow-cljs release ${{ env.PROFILE }}
 
-      - name: Update app.js path in index
-        run: sed -i 's/app.js/compiled\/app.js/' 'resources/public/index.html'
+      # - name: Update app.js path in index
+      #   run: sed -i 's/app.js/compiled\/app.js/' 'resources/public/index.html'
 
       - name: Expand cache-busting app.js tag
         run: |
-          app_tag=$(jq '.[0]."output-name"' 'resources/public/js/compiled/manifest.json')
+          app_tag=$(jq '.[1]."output-name"' 'resources/public/js/manifest.json')
           app_tag=$(echo $app_tag | sed 's/^"//;s/"$//')
           sed -i "s/app.js/$app_tag/" 'resources/public/index.html'
+
+      - name: Expand cache-busting shared.js tag
+        run: |
+          shared_tag=$(jq '.[0]."output-name"' 'resources/public/js/manifest.json')
+          shared_tag=$(echo $shared_tag | sed 's/^"//;s/"$//')
+          sed -i "s/app.js/$shared_tag/" 'resources/public/index.html'
+
+      - name: Rename worker file to remove cache-busting
+        run: |
+          worker_tag=$(jq '.[2]."output-name"' 'resources/public/js/compiled/manifest.json')
+          worker_tag=$(echo $worker_tag | sed 's/^"//;s/"$//')
+          cp resources/public/js/$worker_tag resources/public/js/worker.js
 
 
       - name: Ensure archive is group-writeable for safe extraction
