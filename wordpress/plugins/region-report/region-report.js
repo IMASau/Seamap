@@ -941,7 +941,7 @@ class RegionReport {
                             // grid items
                             this.imageryGrid.innerHTML += `
                                 <a
-                                    href="https://squidle.org/api/media/${image.media.id}?template=models/media/preview_single.html"
+                                    href="https://squidle.org/iframe/api/media/${image.media.id}?template=models/media/preview_single.html&nologin=true&fullwidth=true"
                                     target="_blank"
                                     onmouseenter="regionReport.focusMarker(${index})"
                                     onmouseleave="regionReport.focusMarker()"
