@@ -91,7 +91,7 @@ jobs:
 
       - name: Rename worker file to remove cache-busting
         run: |
-          worker_tag=$(jq '.[2]."output-name"' 'resources/public/js/compiled/manifest.json')
+          worker_tag=$(jq '.[2]."output-name"' 'resources/public/js/manifest.json')
           worker_tag=$(echo $worker_tag | sed 's/^"//;s/"$//')
           cp resources/public/js/$worker_tag resources/public/js/worker.js
 
