@@ -68,6 +68,9 @@ jobs:
       - name: Components build
         run: yarn build-js
 
+      - name: Worker build
+        run: yarn build-worker
+
       - name: Build project
         run: npx shadow-cljs release ${{ env.PROFILE }}
 
