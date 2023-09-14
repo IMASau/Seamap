@@ -87,7 +87,7 @@ jobs:
         run: |
           shared_tag=$(jq '.[0]."output-name"' 'resources/public/js/manifest.json')
           shared_tag=$(echo $shared_tag | sed 's/^"//;s/"$//')
-          sed -i "s/app.js/$shared_tag/" 'resources/public/index.html'
+          sed -i "s/shared.js/$shared_tag/" 'resources/public/index.html'
 
       - name: Rename worker file to remove cache-busting
         run: |
