@@ -140,7 +140,7 @@ export var Query = Task.extend({
       console.log('**** else-branch,', location.href);
       return this.request(function (error, response) {
         this._trapSQLerrors(error);
-        var worker = new Worker(location.origin + location.pathname + 'js/worker.js');
+        var worker = new Worker(location.origin + location.pathname + 'js/esri-leaflet-worker.js');
           // new URL('/jsonworker.js', import.meta.url),
           // {type:'module'});
         worker.addEventListener('message', function(e) {
