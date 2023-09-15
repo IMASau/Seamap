@@ -77,21 +77,19 @@
        (for [{:keys [width height
                      helperText helperPosition
                      textWidth padding]
-                    :or {helperPosition "right"}
-                    :as eprops} (selectors+elements element-selectors)
+              :or {helperPosition "right"}
+              :as eprops} (selectors+elements element-selectors)
              :let [posn-cls (str "helper-layer-" helperPosition)]
              :when (and eprops
                         (pos? height)
                         (not (string/blank? helperText)))]
-         (do
-           (js/console.log padding)
-           ^{:key (hash eprops)}
-           [:div.helper-layer-wrapper {:class posn-cls
-                                       :style (wrapper-props helperPosition eprops)}
-            [:div.helper-layer-tooltip {:class posn-cls
-                                        :style (posn->offsets helperPosition width height padding)}
-             [:div.helper-layer-tooltiptext {:style {:width (or textWidth *text-width*)}}
-              helperText]]])))]))
+         ^{:key (hash eprops)}
+         [:div.helper-layer-wrapper {:class posn-cls
+                                     :style (wrapper-props helperPosition eprops)}
+          [:div.helper-layer-tooltip {:class posn-cls
+                                      :style (posn->offsets helperPosition width height padding)}
+           [:div.helper-layer-tooltiptext {:style {:width (or textWidth *text-width*)}}
+            helperText]]]))]))
 
 ;; TODO: Update, replace?
 (defn- help-button []
