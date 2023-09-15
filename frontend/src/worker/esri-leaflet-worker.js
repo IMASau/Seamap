@@ -74,11 +74,9 @@ export function responseToFeatureCollection (response, idAttribute) {
 ////////////////////////////////////////////////////////////////
 // web-worker interface
 
-console.log('**** worker loaded');
 self.addEventListener('message', function(e) {
   var data = e.data;
 
-  console.log('**** worker');
   self.postMessage(responseToFeatureCollection(data));
   // I think this causes timing issues where the thread dies before
   // the event has been received and deletes the payload...something

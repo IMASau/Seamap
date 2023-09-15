@@ -11,7 +11,6 @@ import {
 var POWERED_BY_ESRI_ATTRIBUTION_STRING = 'Powered by <a href="https://www.esri.com">Esri</a>';
 
 export function geojsonToArcGIS (geojson, idAttr) {
-  console.log('it might get loud');
   return g2a(geojson, idAttr);
 }
 

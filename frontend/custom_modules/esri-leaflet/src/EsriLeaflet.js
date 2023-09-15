@@ -3,8 +3,6 @@ import packageInfo from '../package.json';
 var version = packageInfo.version;
 export { version as VERSION };
 
-console.log('**** module top!');
-
 // import base
 export { Support } from './Support';
 export { options } from './Options';

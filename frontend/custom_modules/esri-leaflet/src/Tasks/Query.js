@@ -129,7 +129,6 @@ export var Query = Task.extend({
     if (this.options.isModern || (isArcgisOnline(this.options.url) && this.options.isModern === undefined)) {
       this.params.f = 'geojson';
 
-      console.log('**** if-branch');
       return this.request(function (error, response) {
         this._trapSQLerrors(error);
         callback.call(context, error, response, response);
@@ -137,7 +136,6 @@ export var Query = Task.extend({
 
       // otherwise convert it in the callback then pass it on
     } else {
-      console.log('**** else-branch,', location.href);
       return this.request(function (error, response) {
         this._trapSQLerrors(error);
         var worker = new Worker(location.origin + location.pathname + 'js/esri-leaflet-worker.js');

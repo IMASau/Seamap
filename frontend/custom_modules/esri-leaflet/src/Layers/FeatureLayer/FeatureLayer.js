@@ -11,7 +11,6 @@ export var FeatureLayer = FeatureManager.extend({
    * Constructor
    */
   initialize: function (options) {
-    console.log('**** constructor');
     if (options.apikey) {
       options.token = options.apikey;
     }
