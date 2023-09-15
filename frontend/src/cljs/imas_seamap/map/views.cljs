@@ -270,6 +270,7 @@
        (merge
         {:id                   "map"
          :crs                  leaflet/crs-epsg3857
+         :preferCanvas         true
          :use-fly-to           false
          :center               center
          :zoom                 zoom
