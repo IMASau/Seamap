@@ -31,28 +31,39 @@
                              ; TODO: More prop updates?
                              (when (not= (.-opacity props) (.-opacity prev-props))
                                (.setOpacity instance (.-opacity props)))))))
+(defn- make-update-feature-style-fn
+  "We want to apply some props (currently just opacity) on top of
+  existing styles. This creates a function that can be given to
+  .setStyle, handling the case where the current style is a function,
+  as well as just a map. Needs the instance to access the current
+  style."
+  [instance js-props]
+  (let [prev-style (.. instance -options -style)]
+    (fn [feature]
+      (js/Object.assign
+       (cond-> feature (fn? prev-style) prev-style)
+       js-props))))
+
 (def feature-layer     (r/adapt-react-class
-                          (ReactLeafletCore/createLayerComponent
-                           ;; Create layer fn
-                           (fn [props context]
-                             (let [opacity (.-opacity props)]
-                               (cljs.core/js-delete props "opacity")
-                               (let [instance ((-> esri .-featureLayer) props)]
-                                 (.setStyle
-                                  instance
-                                  #(identity
-                                    #js{:opacity     opacity
-                                        :fillOpacity opacity}))
-                                 #js{:instance instance :context context})))
-                           ;; Update layer fn
-                           (fn [instance props prev-props]
-                             ; TODO: More prop updates?
-                             (when (not= (.-opacity props) (.-opacity prev-props))
-                               (.setStyle
-                                instance
-                                #(identity
-                                  #js{:opacity     (.-opacity props)
-                                      :fillOpacity (.-opacity props)})))))))
+                        (ReactLeafletCore/createLayerComponent
+                         ;; Create layer fn
+                         (fn [props context]
+                           (cljs.core/js-delete props "opacity")
+                           (let [instance ((-> esri .-featureLayer) props)]
+                             (.setStyle
+                              instance
+                              (make-update-feature-style-fn instance
+                                                            #js{:opacity     (.-opacity props)
+                                                                :fillOpacity (.-opacity props)}))
+                             #js{:instance instance :context context}))
+                         ;; Update layer fn
+                         (fn [instance props prev-props]
+                           (when (not= (.-opacity props) (.-opacity prev-props))
+                             (.setStyle
+                              instance
+                              (make-update-feature-style-fn instance
+                                                            #js{:opacity     (.-opacity props)
+                                                                :fillOpacity (.-opacity props)})))))))
 
 (def map-container       (r/adapt-react-class ReactLeaflet/MapContainer))
 (def pane                (r/adapt-react-class ReactLeaflet/Pane))
