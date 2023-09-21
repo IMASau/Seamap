@@ -11,7 +11,7 @@
     "copy-to-clipboard": "3.3.3",
     "create-react-class": "^15.7.0",
     "esri-leaflet": "link:./custom_modules/esri-leaflet",
-    "esri-leaflet-renderers": "file:./custom_modules/esri-leaflet-renderers",
+    "esri-leaflet-renderers": "link:./custom_modules/esri-leaflet-renderers",
     "esri-leaflet-vector": "3.1.5",
     "leaflet": "1.9.0",
     "leaflet-draw": "^1.0.4",
