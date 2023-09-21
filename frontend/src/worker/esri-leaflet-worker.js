@@ -44,7 +44,7 @@ function _findIdAttributeFromFeature (feature) {
   }
 }
 
-export function responseToFeatureCollection (response, idAttribute) {
+function responseToFeatureCollection (response, idAttribute) {
   var objectIdField;
   var features = response.features || response.results;
   var count = features && features.length;
