@@ -111,6 +111,8 @@ export var FeatureManager = FeatureGrid.extend({
           map.attributionControl.addAttribution(this.getAttribution());
         }
       }
+      // Only update (request cells) once we have metadata and know whether we have geoJSON support or not:
+      this._update();
     }, this);
 
     map.on('zoomend', this._handleZoomChange, this);

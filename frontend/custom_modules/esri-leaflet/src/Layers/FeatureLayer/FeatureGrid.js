@@ -48,7 +48,8 @@ export var FeatureGrid = Layer.extend({
     this._cells = {};
     this._activeCells = {};
     this._resetView();
-    this._update();
+    // Only update (request cells) once we have metadata and know whether we have geoJSON support or not:
+    // this._update();
   },
 
   onRemove: function (map) {
@@ -244,7 +245,11 @@ export var FeatureGrid = Layer.extend({
 
       this._resetGrid();
 
-      if (cellZoom !== undefined) {
+      // To ensure we don't call _update before we have metadata,
+      // check that we have cells already loaded (a crude proxy, but
+      // should be sufficient)
+      if (cellZoom !== undefined
+          && Object.keys(this._cells).length > 0) {
         this._update(center);
       }
 
