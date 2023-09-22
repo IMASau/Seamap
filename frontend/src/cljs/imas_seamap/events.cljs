@@ -11,7 +11,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers]]
-            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities visible-layers enhance-rich-layer]]
+            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities visible-layers enhance-rich-layer rich-layer->displayed-layer]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -514,7 +514,8 @@
                                 :distance (linestring->distance linestring)
                                 :habitat :loading
                                 :bathymetry :loading})
-        visible-layers (visible-layers db-map)
+        rich-layers    (get-in db [:map :rich-layers])
+        visible-layers (map #(rich-layer->displayed-layer % rich-layers) (visible-layers db-map))
         habitat-layers (filter habitat-layer? visible-layers)]
     (merge
      {:db         db
@@ -553,7 +554,8 @@
        :message [status-text b/INTENT-DANGER]})))
 
 (defn transect-query-habitat [{{db-map :map :as db} :db} [_ query-id linestring]]
-  (let [visible-layers (visible-layers db-map)
+  (let [rich-layers    (get-in db [:map :rich-layers])
+        visible-layers (map #(rich-layer->displayed-layer % rich-layers) (visible-layers db-map))
         habitat-layers (filter habitat-layer? visible-layers)
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it
