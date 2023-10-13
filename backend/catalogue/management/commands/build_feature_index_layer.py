@@ -162,10 +162,42 @@ def get_mapserver_geojson(server_url, result_offset=0):
 
     return data, data.get('exceededTransferLimit', False)
 
+def get_featureserver_geojson(server_url, result_offset=0):
+    url = f"{server_url}/query"
+    params = {
+        'where':        '1=1',
+        'f':            'geojson',
+        'resultOffset': result_offset
+    }
+
+    try:
+        r = requests.get(url=url, params=params)
+    except Exception as e:
+        raise Exception(f"Cannot retrieve GeoJSON from featureserver ({url})") from e
+
+    try:
+        data = r.json()
+    except Exception as e:
+        raise Exception(f"Cannot decode featureserver response into JSON:\n{r.text}") from e
+
+    try:
+        assert not data.get('error')
+    except AssertionError as e:
+        raise Exception(f"GeoJSON contains an error:\n{data}") from e
+
+    try:
+        assert data.get('features')
+    except AssertionError as e:
+        raise Exception(f"No features found in the GeoJSON:\n{data}") from e
+
+    return data, data.get('exceededTransferLimit', False)
+
 
 def get_features(layer, server_url, result_offset=0):
     if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', server_url):
         geojson, exceeded_transfer_limit = get_mapserver_geojson(server_url, result_offset)
+    elif re.search(r'^(.+?)/services/(.+?)/FeatureServer/.+$', server_url):
+        geojson, exceeded_transfer_limit = get_featureserver_geojson(server_url, result_offset)
     else:
         geojson, exceeded_transfer_limit = get_geoserver_geojson(layer, server_url, result_offset)
 
