@@ -7,6 +7,7 @@ from urllib.error import HTTPError
 from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 import logging
+from catalogue.emails import email_generate_layer_preview_summary
 
 from catalogue.models import Layer
 
@@ -218,3 +219,6 @@ class Command(BaseCommand):
                     [f" • {error['layer'].layer_name} ({error['layer'].id})" for error in errors]
                 )
             ))
+
+            if not layer_id:
+                email_generate_layer_preview_summary(errors)
