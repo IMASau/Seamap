@@ -212,7 +212,7 @@
         startup-layers (get-in db [:map :keyed-layers :startup] [])
 
         active-layers (if active
-                        (vec (ids->layers active (get-in db [:map :layers])))
+                        (vec (filter identity (ids->layers active (get-in db [:map :layers]))))
                         startup-layers)
         active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         db            (-> db

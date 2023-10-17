@@ -572,7 +572,7 @@
         legend-ids    (:legend-ids db)
         startup-layers (get-in db [:map :keyed-layers :startup] [])
         active-layers (if active
-                        (vec (ids->layers active (get-in db [:map :layers])))
+                        (vec (filter identity (ids->layers active (get-in db [:map :layers]))))
                         startup-layers)
         active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         active-base   (or active-base   ; If no base is set (eg no existing hash-state), use the first candidate
