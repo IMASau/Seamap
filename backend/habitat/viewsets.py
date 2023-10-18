@@ -1022,7 +1022,11 @@ def subset(request):
     colnames = []
     field_metadata = []
     with connections['transects'].cursor() as cursor:
-        columns = cursor.columns(table=table_name)
+        columns = list(cursor.columns(table=table_name))
+
+        if not columns:
+            raise AssertionError(f"Table {table_name} does not exist; cannot generate subset shapefile")
+
         for col in columns:
             colname = col[NAME_IDX]
             typename = col[TYPE_IDX]
