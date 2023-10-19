@@ -11,10 +11,21 @@
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
   [{:keys [story-maps] map-state :map :as db}]
-  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :bounds])
+  (let [pruned-rich-layers
+        (reduce-kv
+         (fn [acc key {:keys [alternate-views-selected timeline-selected tab] :as _val}]
+           (let [pruned-rich-layer
+                 (cond-> {:tab tab}
+                   alternate-views-selected (assoc :alternate-views-selected alternate-views-selected)
+                   timeline-selected        (assoc :timeline-selected timeline-selected))]
+             (assoc acc key pruned-rich-layer)))
+         {} (:rich-layers map-state))
+        
+        pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :bounds])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
-                       (update :active-base :id))
+                       (update :active-base :id)
+                       (assoc :rich-layers pruned-rich-layers))
         pruned-story-maps (-> (select-keys story-maps [:featured-map :open?])
                               (update :featured-map :id))
         db         (-> db
@@ -57,6 +68,7 @@
                  [:map :zoom]
                  [:map :bounds]
                  [:map :viewport-only?]
+                 [:map :rich-layers]
                  :legend-ids
                  :opacity-ids
                  :autosave?
@@ -74,19 +86,34 @@
 (defn ajax-loaded-info
   "Returns db of all the info retrieved via ajax"
   [db]
-  (select-keys*
-   db
-   [[:map :layers]
-    [:map :base-layers]
-    [:map :base-layer-groups]
-    [:map :grouped-base-layers]
-    [:map :organisations]
-    [:map :categories]
-    [:map :keyed-layers]
-    [:map :leaflet-map]
-    [:map :legends]
-    [:story-maps :featured-maps]
-    :habitat-colours
-    :habitat-titles
-    :sorting
-    :config]))
+  (let [rich-layers
+        (reduce-kv
+         (fn [acc key val]
+           (assoc
+            acc
+            key
+            (assoc
+             val
+             :alternate-views-selected nil
+             :timeline-selected        nil
+             :tab                      "legend")))
+         {} (get-in db [:map :rich-layers]))]
+    (->
+     (select-keys*
+      db
+      [[:map :layers]
+       [:map :base-layers]
+       [:map :base-layer-groups]
+       [:map :grouped-base-layers]
+       [:map :organisations]
+       [:map :categories]
+       [:map :keyed-layers]
+       [:map :leaflet-map]
+       [:map :legends]
+       [:map :rich-layer-children]
+       [:story-maps :featured-maps]
+       :habitat-colours
+       :habitat-titles
+       :sorting
+       :config])
+     (assoc-in [:map :rich-layers] rich-layers))))

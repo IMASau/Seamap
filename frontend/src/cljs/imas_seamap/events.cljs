@@ -11,7 +11,7 @@
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers]]
-            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities visible-layers]]
+            [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities visible-layers enhance-rich-layer rich-layer->displayed-layer]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -35,8 +35,10 @@
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
-                                  :map/update-keyed-layers]
-     :dispatch [:map/join-keyed-layers]}
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layers]
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -44,12 +46,12 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
-                                  :map/update-national-layer-timeline
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
-                                  :map/join-keyed-layers]
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -71,8 +73,10 @@
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
-                                  :map/update-keyed-layers]
-     :dispatch [:map/join-keyed-layers]}
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layers]
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -80,12 +84,12 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
-                                  :map/update-national-layer-timeline
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
-                                  :map/join-keyed-layers]
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -107,8 +111,10 @@
                                   :map/update-base-layer-groups]
      :dispatch [:map/update-grouped-base-layers]}
     {:when :seen-all-of? :events [:map/update-layers
-                                  :map/update-keyed-layers]
-     :dispatch [:map/join-keyed-layers]}
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layers]
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
     {:when :seen-all-of? :events [:map/update-grouped-base-layers
                                   :map/update-layers
                                   :map/update-organisations
@@ -116,12 +122,12 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
-                                  :map/update-national-layer-timeline
                                   :map/update-region-reports
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
-                                  :map/join-keyed-layers]
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -141,7 +147,7 @@
           save-state
           category
           keyed-layers
-          national-layer-timeline
+          rich-layers
           region-reports
           amp-boundaries
           imcra-boundaries
@@ -166,7 +172,7 @@
       :save-state-url              (str api-url-base save-state)
       :category-url                (str api-url-base category)
       :keyed-layers-url            (str api-url-base keyed-layers)
-      :national-layer-timeline-url (str api-url-base national-layer-timeline)
+      :rich-layers-url             (str api-url-base rich-layers)
       :region-reports-url          (str api-url-base region-reports)
       :amp-boundaries-url          (str api-url-base amp-boundaries)
       :imcra-boundaries-url        (str api-url-base imcra-boundaries)
@@ -206,7 +212,7 @@
         startup-layers (get-in db [:map :keyed-layers :startup] [])
 
         active-layers (if active
-                        (vec (ids->layers active (get-in db [:map :layers])))
+                        (vec (filter identity (ids->layers active (get-in db [:map :layers]))))
                         startup-layers)
         active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
         db            (-> db
@@ -215,12 +221,20 @@
 
         {:keys [legend-ids opacity-ids]} db
         layers        (get-in db [:map :layers])
+        legends-shown (init-layer-legend-status layers legend-ids)
+        rich-layers   (get-in db [:map :rich-layers])
+        legends-get   (map
+                       (fn [{:keys [id] :as layer}]
+                         (let [rich-layer (get rich-layers id)
+                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer))]
+                           (or displayed-layer layer)))
+                       legends-shown)
         db            (-> db
-                          (assoc-in [:layer-state :legend-shown] (init-layer-legend-status layers legend-ids))
+                          (assoc-in [:layer-state :legend-shown] legends-shown)
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
     {:db         db
      :dispatch-n (conj
-                  (mapv #(vector :map.layer/get-legend %) (init-layer-legend-status layers legend-ids))
+                  (mapv #(vector :map.layer/get-legend %) legends-get)
                   [:map/update-map-view {:zoom zoom :center center}]
                   [:map/popup-closed])}))
 
@@ -285,7 +299,7 @@
                 descriptor-url
                 category-url
                 keyed-layers-url
-                national-layer-timeline-url
+                rich-layers-url
                 region-reports-url
                 amp-boundaries-url
                 imcra-boundaries-url
@@ -333,9 +347,9 @@
                    :on-success      [:map/update-keyed-layers]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
-                   :uri             national-layer-timeline-url
+                   :uri             rich-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:map/update-national-layer-timeline]
+                   :on-success      [:map/update-rich-layers]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             region-reports-url
@@ -382,20 +396,22 @@
    :cookie/set {:name  :seen-welcome
                 :value true}})
 
-(defn layer-show-info [{:keys [db]} [_ {:keys [metadata_url] :as layer}]]
-  ;; This regexp: has been relaxed slightly; it used to be a strict
-  ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
-  ;; alpha-nums with optional hyphens. I assume this is from records
-  ;; re-hosted in our server, but with IDs created externally, but
-  ;; it's just not that important to be strict here, regardless:
-  (if (re-matches #"(?i)^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}$" metadata_url)
-    {:db         (assoc-in db [:display :info-card] :display.info/loading)
-     :http-xhrio {:method          :get
-                  :uri             (-> layer :metadata_url geonetwork-force-xml)
-                  :response-format (ajax/text-response-format)
-                  :on-success      [:map.layer/update-metadata layer]
-                  :on-failure      [:map.layer/metadata-error]}}
-    {:db (assoc-in db [:display :info-card :layer] layer)}))
+(defn layer-show-info [{:keys [db]} [_ layer]]
+  (let [{:keys [metadata_url] :as displayed-layer}
+        (or (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]))) layer)]
+    ;; This regexp: has been relaxed slightly; it used to be a strict
+    ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
+    ;; alpha-nums with optional hyphens. I assume this is from records
+    ;; re-hosted in our server, but with IDs created externally, but
+    ;; it's just not that important to be strict here, regardless:
+    (if (re-matches #"(?i)^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}$" metadata_url)
+      {:db         (assoc-in db [:display :info-card] :display.info/loading)
+       :http-xhrio {:method          :get
+                    :uri             (-> displayed-layer :metadata_url geonetwork-force-xml)
+                    :response-format (ajax/text-response-format)
+                    :on-success      [:map.layer/update-metadata displayed-layer]
+                    :on-failure      [:map.layer/metadata-error]}}
+      {:db (assoc-in db [:display :info-card :layer] displayed-layer)})))
 
 ;; (xml/alias-uri 'mcp "http://schemas.aodn.org.au/mcp-2.0")
 ;; (xml/alias-uri 'gmd "http://www.isotc211.org/2005/gmd")
@@ -498,7 +514,8 @@
                                 :distance (linestring->distance linestring)
                                 :habitat :loading
                                 :bathymetry :loading})
-        visible-layers (visible-layers db-map)
+        rich-layers    (get-in db [:map :rich-layers])
+        visible-layers (map #(rich-layer->displayed-layer % rich-layers) (visible-layers db-map))
         habitat-layers (filter habitat-layer? visible-layers)]
     (merge
      {:db         db
@@ -537,7 +554,8 @@
        :message [status-text b/INTENT-DANGER]})))
 
 (defn transect-query-habitat [{{db-map :map :as db} :db} [_ query-id linestring]]
-  (let [visible-layers (visible-layers db-map)
+  (let [rich-layers    (get-in db [:map :rich-layers])
+        visible-layers (map #(rich-layer->displayed-layer % rich-layers) (visible-layers db-map))
         habitat-layers (filter habitat-layer? visible-layers)
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it
@@ -673,7 +691,6 @@
   db)
 
 (defn create-save-state [{:keys [db]} _]
-  (copy-text js/location.href)
   (let [save-state-url (get-in db [:config :urls :save-state-url])]
     {:http-xhrio [{:method          :post
                    :uri             save-state-url
@@ -807,7 +824,3 @@
 
 (defn settings-overlay [db [_ open?]]
   (assoc-in db [:display :settings-overlay] open?))
-
-(defn national-layer-tab [{:keys [db]} [_ tab]]
-  {:db       (assoc-in db [:display :national-layer-tab] tab)
-   :dispatch [:maybe-autosave]})

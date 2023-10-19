@@ -1,0 +1,10 @@
+The layer preview generation run finished.
+
+{% if errors %}
+The following layers failed to generate previews:
+{% for error in errors %} 
+• {{ error.layer.layer_name }} ({{ error.layer.id }})
+{% endfor %}
+{% else %}
+All layers previews generated successfully!
+{% endif %}

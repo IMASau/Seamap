@@ -52,6 +52,8 @@
 
 (def text-input      (reagent/adapt-react-class Blueprint/InputGroup))
 
+(def hotkey          (reagent/adapt-react-class Blueprint/Hotkey))
+
 (def use-hotkeys
   "We need to be careful with the use of this; it needs a native-js
   array, but if we wrap

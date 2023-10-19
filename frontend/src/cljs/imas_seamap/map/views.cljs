@@ -10,7 +10,6 @@
             [imas-seamap.interop.leaflet :as leaflet]
             [goog.string :as gstring]
             ["react-leaflet" :as ReactLeaflet]
-            ["/leaflet-zoominfo/L.Control.Zoominfo"]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -180,10 +179,10 @@
      (str (format-number (/ distance 1000) 2) "km")
      (str (format-number distance 0) "m"))])
 
-(defmulti layer-component (comp :layer_type :layer))
+(defmulti layer-component (comp :layer_type :displayed-layer))
 
 (defmethod layer-component :wms
-  [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style] :as layer} :layer}]
+  [{:keys [boundary-filter layer-opacities layer] {:keys [server_url layer_name style]} :displayed-layer}]
   [leaflet/wms-layer
    (merge
     {:url              server_url
@@ -201,7 +200,7 @@
     (boundary-filter layer))])
 
 (defmethod layer-component :tile
-  [{:keys [layer-opacities] {:keys [server_url] :as layer} :layer}]
+  [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
   [leaflet/tile-layer
    {:url              server_url
     :eventHandlers
@@ -215,9 +214,10 @@
     :format           "image/png"}])
 
 (defmethod layer-component :feature
-  [{{:keys [server_url] :as layer} :layer}]
+  [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
   [leaflet/feature-layer
    {:url              server_url
+    :opacity          (/ (layer-opacities layer) 100)
     :eventHandlers
     {:loading       #(re-frame/dispatch [:map.layer/load-start layer])
      :tileloadstart #(re-frame/dispatch [:map.layer/tile-load-start layer])
@@ -225,7 +225,7 @@
      :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}]) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
 
 (defmethod layer-component :wms-non-tiled
-  [{:keys [boundary-filter layer-opacities] {:keys [server_url layer_name style] :as layer} :layer}]
+  [{:keys [boundary-filter layer-opacities layer] {:keys [server_url layer_name style]} :displayed-layer}]
   [leaflet/non-tiled-layer
    (merge
     {:url              server_url
@@ -238,7 +238,8 @@
      :transparent      true
      :opacity          (/ (layer-opacities layer) 100)
      :tiled            true
-     :format           "image/png"}
+     :format           "image/png"
+     :cross-origin     "anonymous"}
     (when style {:styles style})
     (boundary-filter layer))])
 
@@ -254,16 +255,14 @@
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
-        {:keys [layer-opacities visible-layers]}      @(re-frame/subscribe [:map/layers])
+        {:keys [layer-opacities visible-layers rich-layer-fn]} @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
-        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])
-        {national-layer :displayed-layer}             @(re-frame/subscribe [:map/national-layer])
-        {national-layer-opacity :opacity}             @(re-frame/subscribe [:map.national-layer/state])]
+        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     (into
      [:div.map-wrapper
       [download-component download-info]
@@ -271,11 +270,11 @@
        (merge
         {:id                   "map"
          :crs                  leaflet/crs-epsg3857
+         :preferCanvas         true
          :use-fly-to           false
          :center               center
          :zoom                 zoom
-         :zoomControl          false
-         :zoominfoControl      true
+         :zoomControl          true
          :scaleFactor          true
          :minZoom              2
          :keyboard             false ; handled externally
@@ -314,20 +313,20 @@
        
        ;; Catalogue layers
        (map-indexed
-        (fn [i {:keys [id] :as layer}]
-          ;; While it's not efficient, we give every layer it's own pane to simplify the
-          ;; code.
-          ;; Panes are given a name based on a uuid and time because if a pane is given the
-          ;; same name as a previously existing pane leaflet complains about a new pane being
-          ;; made with the same name as an existing pane (causing leaflet to no longer work).
-          ^{:key (str id (boundary-filter layer) (+ i 1 (count (:layers active-base-layer))))}
-          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
-           [layer-component
-            {:layer           layer
-             :boundary-filter boundary-filter
-             :layer-opacities
-             (if (= layer national-layer)
-               #(identity national-layer-opacity) layer-opacities)}]])
+        (fn [i layer]
+          (let [{:keys [id] :as displayed-layer} (or (:displayed-layer (rich-layer-fn layer)) layer)]
+            ;; While it's not efficient, we give every layer it's own pane to simplify the
+            ;; code.
+            ;; Panes are given a name based on a uuid and time because if a pane is given the
+            ;; same name as a previously existing pane leaflet complains about a new pane being
+            ;; made with the same name as an existing pane (causing leaflet to no longer work).
+            ^{:key (str id (boundary-filter displayed-layer) (+ i 1 (count (:layers active-base-layer))))}
+            [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
+             [layer-component
+              {:layer           layer
+               :displayed-layer displayed-layer
+               :boundary-filter boundary-filter
+               :layer-opacities layer-opacities}]]))
         visible-layers)
        
        (when query

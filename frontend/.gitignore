@@ -24,3 +24,5 @@ resources/public/css/blueprint.css
 figwheel_server.log
 /src/gen/
 /storybook-static/
+/.cpcache
+/.parcel-cache

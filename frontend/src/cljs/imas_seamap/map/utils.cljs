@@ -4,9 +4,11 @@
 (ns imas-seamap.map.utils
   (:require [cemerick.url :as url]
             [clojure.string :as string]
+            [clojure.set :as set]
             [goog.dom.xml :as gxml]
-            [imas-seamap.utils :refer [merge-in select-values first-where]]
+            [imas-seamap.utils :refer [merge-in select-values first-where url?]]
             ["proj4" :as proj4]
+            [reagent.dom.server :refer [render-to-string]]
             [imas-seamap.interop.leaflet :as leaflet]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -174,14 +176,11 @@
 
 (defmethod feature-info-response->display "application/json"
   [{:keys [response _info-format layers]}]
-  (let [properties      (map (fn [[label value]] {:label label :value value}) (get-in response ["features" 0 "properties"]))
-        property-to-row (fn [{:keys [label value]}] (str "<tr><td>" label "</td><td>" value "</td></tr>"))
-        property-rows   (string/join "" (map (fn [property] (property-to-row property)) properties))
-        title           (->> layers
+  (let [title           (->> layers
                              (map :name)
                              (interpose ", ")
                              (apply str))]
-    (when (not-empty properties)
+    (when (seq (get response "features"))
       {:style
        (str
         ".feature-info-json {"
@@ -193,6 +192,12 @@
         ".feature-info-json table {"
         "    border-spacing: 0;"
         "    width: 100%;"
+        "}"
+
+        ".feature-info-json table:not(:last-child) {"
+        "    margin-bottom: 10px;"
+        "    padding-bottom: 10px;"
+        "    border-bottom: 2px dashed rgb(235, 235, 235);"
         "}"
 
         ".feature-info-json tr:nth-child(odd) {"
@@ -210,11 +215,26 @@
         "    overflow-x: hidden;"
         "}")
        :body
-       (str
-        "<div class=\"feature-info-json\">"
-        "    <h4>" title "</h4>"
-        "    <table>" property-rows "</table>"
-        "</div>")})))
+       (render-to-string
+        [:div.feature-info-json
+         [:h4 title]
+         (map-indexed
+          (fn [i feature]
+            ^{:key i}
+            [:table
+             (map-indexed
+              (fn [j [label value]]
+                (let [value (if (seq (str value)) (str value) "-")
+                      url?  (url? value)]
+                  ^{:key j}
+                  [:tr
+                   [:td label]
+                   [:td
+                    (if url?
+                      [:a {:href value :target "_blank"} value]
+                      value)]]))
+              (get feature "properties"))])
+          (get response "features"))])})))
 
 (defmethod feature-info-response->display "text/xml"
   [{:keys [response _info-format layers]}]
@@ -223,15 +243,7 @@
                    (interpose ", ")
                    (apply str))
         doc (gxml/loadXml response)
-        fields (gxml/selectNodes doc "/esri_wms:FeatureInfoResponse/esri_wms:FIELDS")
-        property-tables (map (fn [node]
-                               (str
-                                "<table>"
-                                (string/join ""
-                                             (for [attr node.attributes]
-                                               (str "<tr><td>" attr.name "</td><td>" attr.value "</td></tr>")))
-                                "</table>"))
-                             fields)]
+        fields (gxml/selectNodes doc "/esri_wms:FeatureInfoResponse/esri_wms:FIELDS")]
     {:style
      (str
       ".feature-info-xml {"
@@ -243,6 +255,9 @@
       ".feature-info-xml table {"
       "    border-spacing: 0;"
       "    width: 100%;"
+      "}"
+
+      ".feature-info-xml table:not(:last-child) {"
       "    margin-bottom: 10px;"
       "    padding-bottom: 10px;"
       "    border-bottom: 2px dashed rgb(235, 235, 235);"
@@ -263,12 +278,26 @@
       "    overflow-x: hidden;"
       "}")
      :body
-     (str
-      "<div class=\"feature-info-xml\">"
-      "    <h4>" title "</h4>"
-      (string/join "" property-tables)
-        ;; "    <table>" (string/join "" property-rows) "</table>"
-      "</div>")}))
+     (render-to-string
+      [:div.feature-info-xml
+       [:h4 title]
+       (map-indexed
+        (fn [i node]
+          ^{:key i}
+          [:table
+           (map-indexed
+            (fn [j attr]
+              (let [value (if (seq (str attr.value)) (str attr.value) "-")
+                    url?  (url? value)]
+                ^{:key j}
+                [:tr
+                 [:td attr.name]
+                 [:td
+                  (if url?
+                    [:a {:href value :target "_blank"} value]
+                    value)]]))
+            node.attributes)])
+        fields)])}))
 
 (defmethod feature-info-response->display :default
   [{:keys [_info-format _response _layers]}]
@@ -315,7 +344,7 @@
 (defn viewport-layers [{:keys [_west _south _east _north] :as bounds} layers]
   (filter (partial layer-visible? bounds) layers))
 
-(defn latlng-distance [[lat1 lng1] [lat2 lng2]]
+(defn latlng-distance [[lng1 lat1] [lng2 lat2]]
   (.distanceTo (leaflet/latlng. lat1 lng1) (leaflet/latlng. lat2 lng2)))
 
 (defn map->bounds [{:keys [west south east north] :as _bounds}]
@@ -368,31 +397,52 @@
                    acc))
                {})))
 
-(defn main-national-layer [{:keys [national-layer-timeline layers] :as _map}]
-  (let [id (-> national-layer-timeline last :layer)]
-    (first-where #(= (:id %) id) layers)))
-
-(defn displayed-national-layer
-  "What layer is currently being substituted for the main national layer?"
-  [{:keys [national-layer-timeline-selected national-layer-alternate-view layers] :as db-map}]
-  (let [main-national-layer    (main-national-layer db-map)
-        national-layer-timeline-selected (first-where #(= (:id %) (:layer national-layer-timeline-selected)) layers)]
-    (or
-     national-layer-timeline-selected
-     national-layer-alternate-view
-     main-national-layer)))
-
 (defn visible-layers
   "Shows only layers which should be visible from the map."
-  [{:keys [hidden-layers active-layers] :as db-map}]
-  (let [main-national-layer    (main-national-layer db-map)
-        displayed-national-layer (displayed-national-layer db-map)]
-    (->> active-layers
-         (remove #(hidden-layers %))
-         (replace {main-national-layer displayed-national-layer}))))
+  [{:keys [hidden-layers active-layers]}]
+  (remove #(hidden-layers %) active-layers))
 
-(defn has-active-layers?
+#_(defn has-active-layers?
   "utility to simplify a check for any active layers (we want to disable
   some behaviour if there are no layers active, for example)"
   [{:keys [map] :as _db}]
   (-> map :active-layers seq))
+
+(defn has-visible-habitat-layers?
+  "Utility to simplify a check for any visible habitat layers."
+  [{:keys [map] :as _db}]
+  (->>
+   (visible-layers map)
+   (filter #(= (:category %) :habitat))
+   seq boolean))
+
+(defn enhance-rich-layer
+  "Takes a rich-layer and enhances the info with other layer data."
+  [{:keys [alternate-views alternate-views-selected timeline timeline-selected] :as rich-layer}]
+  (let [alternate-views-selected (first-where #(= (get-in % [:layer :id]) alternate-views-selected) alternate-views)
+        timeline-selected        (first-where #(= (get-in % [:layer :id]) timeline-selected) timeline)]
+    (when rich-layer
+      (assoc
+       rich-layer
+       :alternate-views-selected alternate-views-selected
+       :timeline-selected        timeline-selected
+       :displayed-layer          (:layer (or alternate-views-selected timeline-selected))))))
+
+(defn rich-layer->displayed-layer
+  "If a layer is a rich-layer, then return the currently displayed layer (including
+   default if no alternate view or timeline selected). If layer is not a
+   rich-layer, then the layer is just returned."
+  [{:keys [id] :as layer} rich-layers]
+  (let [rich-layer (enhance-rich-layer (get rich-layers id))]
+    (or (:displayed-layer rich-layer) layer)))
+
+(defn rich-layer-children->parents
+  [layers rich-layer-children]
+  (reduce
+   (fn [acc val]
+     (let [parents (get rich-layer-children val)] ; get the rich-layer parents for this layer
+       (->
+        acc
+        (conj val)             ; add the layer into the set
+        (set/union parents)))) ; add the layer's rich-layer parents into the set (if any exist)
+   #{} layers))

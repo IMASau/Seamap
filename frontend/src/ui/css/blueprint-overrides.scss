@@ -38,7 +38,7 @@
 }
 
 .bp3-tab {
-    color: $seamap-color-2;
+    color: var(--color-2);
     font-size: 14px;
     font-family: $headings-font-family;
     font-weight: 600;
@@ -80,8 +80,8 @@
         padding: 16px 24px;
 
         .bp3-heading:first-child {
-            background-color: $seamap-color-1;
-            color: $seamap-color-7;
+            background-color: var(--color-1);
+            color: var(--color-7);
             font-family: $headings-font-family;
             font-size: 28px;
             font-weight: 600;
@@ -95,7 +95,7 @@
 .bp3-dialog {
     border-radius: 0;
     box-shadow: none;
-    background-color: $seamap-color-7;
+    background-color: var(--color-7);
     padding: 0;
     overflow-wrap: break-word; // Fixes ISA-197 by allowing text in the dialogues to break word and wrap to the next line, only if it doesn't fit on a single line
     width: 440px;
@@ -105,8 +105,8 @@
             line-height: inherit;
             margin: 0;
             padding: 16px 24px;
-            background-color: $seamap-color-2;
-            color: $seamap-color-7;
+            background-color: var(--color-2);
+            color: var(--color-7);
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -114,8 +114,8 @@
             >* { max-width: 100%; }
 
             a {
-                color: $seamap-color-7;
-                &:hover { color: $seamap-color-6; }
+                color: var(--color-7);
+                &:hover { color: var(--color-6); }
             }
         }
 
@@ -126,8 +126,8 @@
     }
 
     .bp3-dialog-header {
-        background-color: $seamap-color-1;
-        color: $seamap-color-7;
+        background-color: var(--color-1);
+        color: var(--color-7);
         font-family: $headings-font-family;
         font-size: 28px;
         font-weight: 600;
@@ -158,7 +158,7 @@
             margin: 4px;
             
             .bp3-icon svg {
-                color: $seamap-color-7;
+                color: var(--color-7);
                 width: 30px;
                 height: 30px;
             }
@@ -199,7 +199,7 @@
 .bp3-checkbox,
 .bp3-switch {
     margin: 0;
-    color: $seamap-color-2;
+    color: var(--color-2);
 }
 
 .bp3-button {
@@ -236,8 +236,8 @@
 }
 
 .bp3-input {
-    border: 2px solid $seamap-grey;
-    &:focus { border-color: $seamap-color-5;}
+    border: 2px solid var(--grey);
+    &:focus { border-color: var(--color-5);}
 }
 
 .bp3-control input:focus ~ .bp3-control-indicator { outline: none; }

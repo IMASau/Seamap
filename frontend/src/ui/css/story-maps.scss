@@ -5,8 +5,8 @@
     overflow: hidden;
     
     >.orientation {
-        background-color: $seamap-medium-blue;
-        color: $seamap-color-7;
+        background-color: var(--color-8);
+        color: var(--color-7);
         font-family: $headings-font-family;
         font-size: 19px;
         padding: 12px 29px;
@@ -21,7 +21,7 @@
 .featured-map {
     padding-bottom: 20px;
     margin: 25px 27px 2px 27px;
-    border-bottom: 2px solid $seamap-medium-blue;
+    border-bottom: 2px solid var(--medium-blue);
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -36,8 +36,8 @@
 }
 
 .featured-map-drawer .summary {
-    background-color: $seamap-color-2;
-    color: $seamap-color-7;
+    background-color: var(--color-2);
+    color: var(--color-7);
     padding: 12px 20px;
     font-size: 18px;
     font-family: $headings-font-family;
@@ -63,25 +63,27 @@
 .map-link {
     padding: 12px 20px 12px 0;
     margin-left: 20px;
-    border-bottom: 2px solid $seamap-color-5;
+    border-bottom: 2px solid var(--color-5);
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     gap: 6px;
-    color: $seamap-color-1;
+    color: var(--color-1);
 
-    .subtitle {
-        font-size: 16px;
-        font-weight: bold;
-        font-family: $headings-font-family;
+    >:nth-child(1) {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+
+        >.subtitle {
+            font-size: 16px;
+            font-weight: bold;
+            font-family: $headings-font-family;
+            flex: 1;
+        }
     }
 
-    .description {
+    >.description {
         font-size: 13px;
-    }
-
-    .show-me {
-        margin-top: 14px;
-        margin-left: auto;
     }
 }

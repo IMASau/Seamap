@@ -8,7 +8,7 @@
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.map.layer-views :refer [layer-card main-national-layer-card layer-catalogue-node main-national-layer-catalogue-node]]
+            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
@@ -77,21 +77,19 @@
        (for [{:keys [width height
                      helperText helperPosition
                      textWidth padding]
-                    :or {helperPosition "right"}
-                    :as eprops} (selectors+elements element-selectors)
+              :or {helperPosition "right"}
+              :as eprops} (selectors+elements element-selectors)
              :let [posn-cls (str "helper-layer-" helperPosition)]
              :when (and eprops
                         (pos? height)
                         (not (string/blank? helperText)))]
-         (do
-           (js/console.log padding)
-           ^{:key (hash eprops)}
-           [:div.helper-layer-wrapper {:class posn-cls
-                                       :style (wrapper-props helperPosition eprops)}
-            [:div.helper-layer-tooltip {:class posn-cls
-                                        :style (posn->offsets helperPosition width height padding)}
-             [:div.helper-layer-tooltiptext {:style {:width (or textWidth *text-width*)}}
-              helperText]]])))]))
+         ^{:key (hash eprops)}
+         [:div.helper-layer-wrapper {:class posn-cls
+                                     :style (wrapper-props helperPosition eprops)}
+          [:div.helper-layer-tooltip {:class posn-cls
+                                      :style (posn->offsets helperPosition width height padding)}
+           [:div.helper-layer-tooltiptext {:style {:width (or textWidth *text-width*)}}
+            helperText]]]))]))
 
 ;; TODO: Update, replace?
 (defn- help-button []
@@ -108,7 +106,7 @@
 (defn- layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   {:keys [main-national-layer] :as layer-props} open-all?]
+   layer-props open-all? tma?]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
@@ -130,15 +128,14 @@
      :className  (-> ordering name (string/replace "_" "-"))
      :childNodes (concat
                   (if (seq ordering-remainder)
-                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
+                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all? tma?)
                     (map-indexed
                      (fn [i layer]
-                       ((if (= layer main-national-layer)
-                          main-national-layer-catalogue-node
-                          layer-catalogue-node)
+                       (layer-catalogue-node
                         {:id          (str id-str "-" i)
                          :layer       layer
-                         :layer-props layer-props}))
+                         :layer-props layer-props
+                         :tma?        tma?}))
                      layer-subset))
                   
                   ;; Dummy element appended inside of category ordering content for achieving styling
@@ -146,7 +143,7 @@
                     [{:id (str id-str "-" (inc (count layer-subset)))
                       :className "tree-cap"}]))}))
 
-(defn- layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all?]
+(defn- layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all? _tma?]
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes catid])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
@@ -160,9 +157,9 @@
                      (when (seq childNodes)
                        ;; If we have children, toggle expanded state, else add to map
                        (re-frame/dispatch [:ui.catalogue/toggle-node catid id]))))]
-    (fn [_catid layers ordering id layer-props open-all?]
+    (fn [_catid layers ordering id layer-props open-all? tma?]
      [:div.tab-body {:id id}
-      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all?)
+      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all? tma?)
                :onNodeCollapse on-close
                :onNodeExpand on-open
                :onNodeClick on-click
@@ -170,7 +167,7 @@
                                     (re-frame/dispatch [:map/update-preview-layer preview-layer]))
                :onNodeMouseLeave #(re-frame/dispatch [:map/update-preview-layer nil])}]])))
 
-(defn layer-catalogue [catid layers layer-props]
+(defn layer-catalogue [catid layers layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab catid %1])
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
@@ -181,12 +178,12 @@
       {:id    "cat"
        :title "By Category"
        :panel (reagent/as-element
-               [layer-catalogue-tree catid layers [:category :data_classification] "cat" layer-props open-all?])}]
+               [layer-catalogue-tree catid layers [:category :data_classification] "cat" layer-props open-all? tma?])}]
      [b/tab
       {:id    "org"
        :title "By Organisation"
        :panel (reagent/as-element
-               [layer-catalogue-tree catid layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]))
+               [layer-catalogue-tree catid layers [:category :organisation :data_classification] "org" layer-props open-all? tma?])}]]))
 
 (defn- viewport-only-toggle []
   (let [[icon text] (if @(re-frame/subscribe [:map/viewport-only?])
@@ -224,24 +221,23 @@
     :on-change     #(re-frame/dispatch [:map.layers/filter (.. % -target -value)])}])
 
 (defn- active-layer-selection-list
-  [{:keys [layers visible-layers main-national-layer loading-fn error-fn expanded-fn opacity-fn]}]
+  [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn rich-layer-fn tma?]}]
   [components/items-selection-list
    {:items
     (for [{:keys [id] :as layer} layers]
       {:key (str id)
        :content
-       (if (= layer main-national-layer)
-         [main-national-layer-card
-          {:layer layer}]
-         [layer-card
-          {:layer layer
-           :layer-state
-           {:active?   true
-            :visible?  (some #{layer} visible-layers)
-            :loading?  (loading-fn layer)
-            :errors?   (error-fn layer)
-            :expanded? (expanded-fn layer)
-            :opacity   (opacity-fn layer)}}])})
+       [layer-card
+        {:layer layer
+         :layer-state
+         {:active?   true
+          :visible?  (some #{layer} visible-layers)
+          :loading?  (loading-fn layer)
+          :errors?   (error-fn layer)
+          :expanded? (expanded-fn layer)
+          :opacity   (opacity-fn layer)
+          :rich-layer (rich-layer-fn layer)}
+         :tma? tma?}]})
     :disabled    false
     :data-path   [:map :active-layers]
     :has-handle  false
@@ -364,19 +360,13 @@
     :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
    [:div.bp3-dialog-body
     [autosave-application-state-toggle]
-    [viewport-only-toggle]
-    [b/button
-     {:icon     "undo"
-      :class    "bp3-fill"
-      :intent   b/INTENT-PRIMARY
-      :text     "Reset Interface"
-      :on-click   #(re-frame/dispatch [:re-boot])}]]])
+    [viewport-only-toggle]]])
 
 (defn- metadata-record [_props]
   (let [expanded (reagent/atom false)
         {:keys [img-url-base]} @(re-frame/subscribe [:url-base])]
     (fn [{:keys [license-name license-link license-img constraints other]
-          {:keys [category organisation metadata_url server_url layer_name] :as layer} :layer}]
+          {:keys [category organisation metadata_url server_url layer_name metadata_summary] :as layer} :layer}]
       [:div.metadata-record
 
        (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
@@ -384,6 +374,18 @@
           [:img.metadata-img.org-logo
            {:class (string/replace logo #"\..+$" "")
             :src   (str img-url-base logo)}]])
+       
+       (when (seq metadata_summary)
+         [:div
+          [:h3 "About"]
+          [:p
+           {:ref
+            #(when %
+               (set! (.-innerHTML %) metadata_summary)
+               (let [hyperlinks (js/Array.prototype.slice.call (.getElementsByTagName % "a"))]
+                 (doseq [hyperlink hyperlinks]
+                   (when-not (.getAttribute hyperlink "target")
+                     (.setAttribute hyperlink "target" "_blank")))))}]])
 
        (when (seq constraints)
          [:div
@@ -503,15 +505,24 @@
 
 (defn control-block-child [{:keys [on-click tooltip icon id disabled?]}]
   (let [disabled? (or disabled? false)]
-    [b/tooltip {:content tooltip :position b/RIGHT}
-     [:a
-      (merge
-       {:class    (when disabled? "disabled")}
-       (when id
-         {:id id})
-       (when (not disabled?)
-         {:on-click on-click}))
-      [b/icon {:icon icon :size 18}]]]))
+    (if tooltip
+      [b/tooltip {:content tooltip :position b/RIGHT}
+       [:a
+        (merge
+         {:class    (when disabled? "disabled")}
+         (when id
+           {:id id})
+         (when (not disabled?)
+           {:on-click on-click}))
+        [b/icon {:icon icon :size 18}]]]
+      [:a
+       (merge
+        {:class    (when disabled? "disabled")}
+        (when id
+          {:id id})
+        (when (not disabled?)
+          {:on-click on-click}))
+       [b/icon {:icon icon :size 18}]])))
 
 (defn print-control []
   [:div.print-control
@@ -577,6 +588,7 @@
 (defn menu-button []
   [leaflet-control-button
    {:on-click #(re-frame/dispatch [:left-drawer/toggle])
+    :id       "menu-button"
     :icon     "menu"}])
 
 (defn settings-button []
@@ -586,10 +598,28 @@
     :id       "settings-button"
     :icon     "cog"}])
 
+(defn zoom-control []
+  (let [{:keys [zoom]} @(re-frame/subscribe [:map/props])]
+    [control-block
+   [control-block-child
+    {:on-click #(-> "leaflet-control-zoom-in" js/document.getElementsByClassName first .click)
+     :id       "zoom-in-control"
+     :icon     "plus"}]
+   [b/tooltip
+    {:content "Zoom Level"
+     :position b/RIGHT}
+    [:div.zoom-level zoom]]
+   [control-block-child
+    {:on-click #(-> "leaflet-control-zoom-out" js/document.getElementsByClassName first .click)
+     :id       "zoom-out-control"
+     :icon     "minus"}]]))
+
 (defn custom-leaflet-controls []
   [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
    [menu-button]
    [settings-button]
+   [zoom-control]
+
    [control-block
     [print-control]
 
@@ -606,7 +636,13 @@
      {:on-click #(re-frame/dispatch [:create-save-state])
       :tooltip  "Create Shareable URL"
       :id       "share-control"
-      :icon     "share"}]]
+      :icon     "share"}]
+    
+    [control-block-child
+     {:on-click #(re-frame/dispatch [:re-boot])
+      :tooltip  "Reset Interface"
+      :id       "reset-control"
+      :icon     "undo"}]]
 
    [control-block
     [control-block-child
@@ -671,8 +707,8 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
-(defn left-drawer-catalogue []
-  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])
+(defn left-drawer-catalogue [tma?]
+  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
     [:<>
@@ -680,22 +716,24 @@
      [layer-catalogue :main catalogue-layers
       {:active-layers  active-layers
        :visible-layers visible-layers
-       :main-national-layer main-national-layer
        :loading-fn     loading-layers
        :error-fn       error-layers
        :expanded-fn    expanded-layers
-       :opacity-fn     layer-opacities}]]))
+       :opacity-fn     layer-opacities
+       :rich-layer-fn  rich-layer-fn}
+      tma?]]))
 
-(defn left-drawer-active-layers []
-  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities main-national-layer]} @(re-frame/subscribe [:map/layers])]
+(defn left-drawer-active-layers [tma?]
+  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])]
     [active-layer-selection-list
      {:layers         active-layers
       :visible-layers visible-layers
-      :main-national-layer main-national-layer
       :loading-fn     loading-layers
       :error-fn       error-layers
       :expanded-fn    expanded-layers
-      :opacity-fn     layer-opacities}]))
+      :opacity-fn     layer-opacities
+      :rich-layer-fn  rich-layer-fn
+      :tma?           tma?}]))
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
@@ -730,7 +768,7 @@
         :class "catalogue"
         :title (reagent/as-element
                 [b/tooltip {:content "All available map layers"} "Catalogue"])
-        :panel (reagent/as-element [left-drawer-catalogue])}]
+        :panel (reagent/as-element [left-drawer-catalogue false])}]
 
       [b/tab
        {:id    "active-layers"
@@ -739,7 +777,7 @@
                  [:<> "Active Layers"
                   (when (seq active-layers)
                     [:div.notification-bubble (count active-layers)])]])
-        :panel (reagent/as-element [left-drawer-active-layers])}]
+        :panel (reagent/as-element [left-drawer-active-layers false])}]
 
       [b/tab
        {:id    "featured-maps"
@@ -847,6 +885,7 @@
       {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
       {:id "select-control" :helperText "Select a region for download (habitat data)"}
       {:id "share-control" :helperText "Create a shareable URL for current map view"}
+      {:id "reset-control" :helperText "Reset the application back to its initial state"}
       {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
       {:id "overlay-control" :helperText "You are here!"}
       {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"

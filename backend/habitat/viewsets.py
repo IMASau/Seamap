@@ -966,9 +966,9 @@ def ogr2ogr_subset(table_name, geom_col, colnames, bounds):
                                          user=db['USER'],
                                          password=db['PASSWORD'])
     [x1,y1,x2,y2] = bounds
-    querystr = OGR2OGR_SQL_TEMPLATE.format(geom=geom_col,
+    querystr = OGR2OGR_SQL_TEMPLATE.format(geom=f"\"{geom_col}\"",
                                            table=table_name,
-                                           columns=','.join(colnames),
+                                           columns=','.join([f"\"{c}\"" for c in colnames]),
                                            x1=x1,y1=y1,x2=x2,y2=y2)
     # Note, the contents will be cleaned up along with the directory:
     with tempfile.TemporaryDirectory(prefix=table_name) as tmpdir:
@@ -1022,10 +1022,14 @@ def subset(request):
     colnames = []
     field_metadata = []
     with connections['transects'].cursor() as cursor:
-        columns = cursor.columns(table=table_name)
-        for row in cursor.fetchall():
-            colname = row[NAME_IDX]
-            typename = row[TYPE_IDX]
+        columns = list(cursor.columns(table=table_name))
+
+        if not columns:
+            raise AssertionError(f"Table {table_name} does not exist; cannot generate subset shapefile")
+
+        for col in columns:
+            colname = col[NAME_IDX]
+            typename = col[TYPE_IDX]
             if typename == 'geometry':
                 geom_col = colname
             else:
@@ -1035,7 +1039,7 @@ def subset(request):
         if settings.OGR2OGR_PATH:
             return ogr2ogr_subset(table_name, geom_col, colnames, parse_bounds(bounds_str))
 
-        subset_sql = SQL_GET_SUBSET.format(geom_col, ','.join(colnames), table_name, geom_col)
+        subset_sql = SQL_GET_SUBSET.format(geom_col, ','.join([f"\"{c}\"" for c in colnames]), table_name, f"\"{geom_col}\"")
         cursor.execute(subset_sql, parse_bounds(bounds_str))
         data = cursor.fetchall()
         field_metadata = cursor.description

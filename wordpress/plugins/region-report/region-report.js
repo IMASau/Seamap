@@ -372,136 +372,220 @@ class RegionReport {
              <div class="research-effort-graphs" id="research-effort-graphs-${this.postId}">
                  <div id="region-report-research-effort-1-${this.postId}"></div>
                  <div id="region-report-research-effort-2-${this.postId}"></div>
+             </div>
+             <div class="research-effort-legend">
+                <h4>Legend</h4>
+                <div class="research-effort-legend-entry">
+                    <div style="background:#3C67BC"></div>
+                    <div>Imagery (campaigns)</div>
+                </div>
+                <div class="research-effort-legend-entry">
+                    <div style="background:#EA722B"></div>
+                    <div>Video (campaigns)</div>
+                </div>
+                <div class="research-effort-legend-entry">
+                    <div style="background:#9B9B9B"></div>
+                    <div>Sediment (surveys)</div>
+                </div>
+                <div class="research-effort-legend-entry">
+                    <div style="background:#FFB800"></div>
+                    <div>Bathymetry (surveys)</div>
+                </div>
              </div>`;
+    }
+
+    vegaMultiHistogram(values, tickStep, title) {
+        let start = Math.min(...values.map(e => e.year));
+        if (start % tickStep != 0)
+            start -= start % tickStep;
+        let end = new Date().getFullYear();
+        if (end % tickStep != 0)
+            end += tickStep - end % tickStep;
+        
+        const filledValues = Array.from(
+            { length: end - start },
+            (_, i) => {
+                const year = start + i;
+                let data = values.filter(e => e.year == year);
+                if (data.length > 0)
+                    return data[0];
+
+                return {
+                    year: year,
+                    imagery_count: 0,
+                    video_count: 0,
+                    sediment_count: 0,
+                    bathymetry_count: 0
+                }
+            }
+        );
+
+        return {
+            width: "container",
+            title: title,
+            background: "transparent",
+            data: { values: filledValues },
+            mark: { type: "bar" },
+            encoding: {
+                x: {
+                    field: "year",
+                    type: "quantitative",
+                    title: "Year",
+                    axis: {
+                        values: Array.from(
+                            { length: (end - start) / tickStep },
+                            (_, i) => i * tickStep + start
+                        ),
+                        format: "r",
+                        labelAngle: 0,
+                        labelFlush: false,
+                        grid: false
+                    },
+                    scale: {
+                        domain: [
+                            start - 0.5,
+                            new Date().getFullYear() + 0.5
+                        ]
+                    }
+                },
+                y: {
+                    title: "Survey Effort",
+                    axis: { tickMinStep: 1 }
+                }
+            },
+            layer: [
+                {
+                    mark: {
+                        type: "bar",
+                        color: "#3C67BC"
+                    },
+                    transform: [
+                        {
+                            calculate: "datum.year - 0.5",
+                            as: "start"
+                        },
+                        {
+                            calculate: "datum.year - 0.25",
+                            as: "end"
+                        }
+                    ],
+                    encoding: {
+                        y: {
+                            field: "imagery_count",
+                            type: "quantitative"
+                        },
+                        x: { field: "start" },
+                        x2: { field: "end" }
+                    }
+                },
+                {
+                    mark: {
+                        type: "bar",
+                        color: "#EA722B"
+                    },
+                    transform: [
+                        {
+                            calculate: "datum.year - 0.25",
+                            as: "start"
+                        },
+                        {
+                            calculate: "datum.year",
+                            as: "end"
+                        }
+                    ],
+                    encoding: {
+                        y: {
+                            field: "video_count",
+                            type: "quantitative"
+                        },
+                        x: { field: "start" },
+                        x2: { field: "end" }
+                    }
+                },
+                {
+                    mark: {
+                        type: "bar",
+                        color: "#9B9B9B"
+                    },
+                    transform: [
+                        {
+                            calculate: "datum.year",
+                            as: "start"
+                        },
+                        {
+                            calculate: "datum.year + 0.25",
+                            as: "end"
+                        }
+                    ],
+                    encoding: {
+                        y: {
+                            field: "sediment_count",
+                            type: "quantitative"
+                        },
+                        x: { field: "start" },
+                        x2: { field: "end" }
+                    }
+                },
+                {
+                    mark: {
+                        type: "bar",
+                        color: "#FFB800"
+                    },
+                    transform: [
+                        {
+                            calculate: "datum.year + 0.25",
+                            as: "start"
+                        },
+                        {
+                            calculate: "datum.year + 0.5",
+                            as: "end"
+                        }
+                    ],
+                    encoding: {
+                        y: {
+                            field: "bathymetry_count",
+                            type: "quantitative"
+                        },
+                        x: { field: "start" },
+                        x2: { field: "end" }
+                    }
+                },
+                {
+                    mark: {
+                        type: "rule",
+                        stroke: "gray",
+                        strokeWidth: 0.3,
+                    },
+                    transform: [
+                        {
+                            filter: `datum.year % ${tickStep} == 0`
+                        },
+                        {
+                            calculate: `datum.year + ${tickStep / 2}`,
+                            as: "rule"
+                        }
+                    ],
+                    encoding: {
+                        x: { field: "rule" },
+                    }
+                }
+            ]
+        }
     }
 
     toggleResearchEffort(showNetwork) {
         // build values
-        const values = [];
-        (showNetwork ? this.networkResearchEffort : this.parkResearchEffort).forEach(e => {
-            values.push({
-                year: e.year,
-                end: e.year + 0.25,
-                count: e.imagery_count,
-                group: "Imagery (campaigns)",
-                color: "#3C67BC"
-            });
-            values.push({
-                year: e.year + 0.25,
-                end: e.year + 0.5,
-                count: e.video_count,
-                group: "Video (campaigns)",
-                color: "#EA722B"
-            });
-            values.push({
-                year: e.year + 0.5,
-                end: e.year + 0.75,
-                count: e.sediment_count,
-                group: "Sediment (surveys)",
-                color: "#9B9B9B"
-            });
-            values.push({
-                year: e.year + 0.75,
-                end: e.year + 1,
-                count: e.bathymetry_count,
-                group: "Bathymetry (surveys)",
-                color: "#FFB800"
-            });
-        });
+        const values = (showNetwork ? this.networkResearchEffort : this.parkResearchEffort);
         const filteredValues = values.filter(e => e.year >= 2000);
 
-        // generate graphs
         vegaEmbed(
             `#region-report-research-effort-1-${this.postId}`,
-            {
-                title: "Full Timeseries",
-                background: "transparent",
-                data: { values: values },
-                width: "container",
-                mark: "bar",
-                encoding: {
-                    x: {
-                        field: "year",
-                        type: "quantitative",
-                        axis: {
-                            tickMinStep: 1,
-                            format: "r"
-                        },
-                        scale: {
-                            domain: [
-                                Math.floor(Math.min(...values.map(e => e.year))),
-                                new Date().getFullYear() + 1
-                            ]
-                        },
-                        title: "Year"
-                    },
-                    x2: { field: "end" },
-                    y: {
-                        field: "count",
-                        type: "quantitative",
-                        title: "Survey Effort",
-                        axis: { tickMinStep: 1 }
-                    },
-                    color: {
-                        field: "group",
-                        type: "nominal",
-                        legend: {
-                            title: "Legend",
-                            orient: "bottom",
-                            direction: "vertical"
-                        },
-                        sort: values.map(e => e.group),
-                        scale: { range: values.map(e => e.color) }
-                    }
-                }
-            },
+            this.vegaMultiHistogram(values, 5, "Full Timeseries"),
             { actions: false }
         );
-
         vegaEmbed(
             `#region-report-research-effort-2-${this.postId}`,
-            {
-                title: "2000 to Present",
-                background: "transparent",
-                data: { values: filteredValues },
-                width: "container",
-                mark: "bar",
-                encoding: {
-                    x: {
-                        field: "year",
-                        type: "quantitative",
-                        axis: {
-                            tickMinStep: 1,
-                            format: "r"
-                        },
-                        scale: {
-                            domain: [
-                                2000,
-                                new Date().getFullYear() + 1
-                            ]
-                        },
-                        title: "Year"
-                    },
-                    x2: { field: "end" },
-                    y: {
-                        field: "count",
-                        type: "quantitative",
-                        title: "Survey Effort",
-                        axis: { tickMinStep: 1 }
-                    },
-                    color: {
-                        field: "group",
-                        type: "nominal",
-                        legend: {
-                            title: "Legend",
-                            orient: "bottom",
-                            direction: "vertical"
-                        },
-                        sort: filteredValues.map(e => e.group),
-                        scale: { range: filteredValues.map(e => e.color) }
-                    }
-                }
-            },
+            this.vegaMultiHistogram(filteredValues, 2, "2000 to Present"),
             { actions: false }
         );
     }
@@ -857,7 +941,7 @@ class RegionReport {
                             // grid items
                             this.imageryGrid.innerHTML += `
                                 <a
-                                    href="https://squidle.org/api/media/${image.media.id}?template=models/media/preview_single.html"
+                                    href="https://squidle.org/iframe/api/media/${image.media.id}?template=models/media/preview_single.html&nologin=true&fullwidth=true"
                                     target="_blank"
                                     onmouseenter="regionReport.focusMarker(${index})"
                                     onmouseleave="regionReport.focusMarker()"

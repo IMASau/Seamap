@@ -89,6 +89,7 @@ class Layer(models.Model):
     style = models.CharField(max_length=200, null=True, blank=True)
     layer_type = models.CharField(max_length=10)
     tooltip = models.TextField(null=True, blank=True)
+    metadata_summary = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -140,13 +141,28 @@ class KeyedLayer(models.Model):
         return self.keyword
 
 @python_2_unicode_compatible
-class NationalLayerTimeline(models.Model):
+class RichLayer(models.Model):
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
-    year = models.IntegerField()
+    tab_label = models.CharField(max_length=255)
+    slider_label = models.CharField(max_length=255)
+    icon = models.CharField(max_length=255)
+    tooltip = models.CharField(max_length=255)
 
     def __str__(self):
-        return f'{self.layer} ({self.year})'
+        return str(self.layer)
 
+@python_2_unicode_compatible
+class RichLayerAlternateView(models.Model):
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT)
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
+
+@python_2_unicode_compatible
+class RichLayerTimeline(models.Model):
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT)
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    value = models.FloatField(null=False)
+    label = models.CharField(max_length=255)
 
 class EmptyStringToNoneField(models.CharField):
     def get_prep_value(self, value):

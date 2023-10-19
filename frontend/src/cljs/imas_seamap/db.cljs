@@ -24,9 +24,7 @@
                      :preview-layer   nil
                      :viewport-only?  false
                      :keyed-layers    {}
-                     :national-layer-timeline []
-                     :national-layer-timeline-selected nil
-                     :national-layer-alternate-view nil
+                     :rich-layers     {}
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}
@@ -78,7 +76,6 @@
                      :left-drawer           true
                      :left-drawer-tab       "catalogue"
                      :layers-search-omnibar false
-                     :national-layer-tab    "legend"
                      :catalogue             {:main {:tab      "cat"
                                                     :expanded #{}}}
                      :sidebar               {:collapsed false
@@ -94,7 +91,7 @@
                                  :save-state            "savestates"
                                  :category              "categories/"
                                  :keyed-layers          "keyedlayers/"
-                                 :national-layer-timeline "nationallayertimeline/"
+                                 :rich-layers           "richlayers/"
                                  :region-reports        "regionreports/"
                                  :amp-boundaries        "habitat/ampboundaries"
                                  :imcra-boundaries      "habitat/imcraboundaries"

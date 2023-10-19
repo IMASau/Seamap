@@ -1,12 +1,13 @@
 from django.core.management.base import BaseCommand
 from django.core.files.storage import default_storage
 from django.core.files import File
-from django.conf import settings
 from urllib.request import urlopen
 from urllib.parse import urlencode
-from PIL import Image
+from urllib.error import HTTPError
+from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 import logging
+from catalogue.emails import email_generate_layer_preview_summary
 
 from catalogue.models import Layer
 
@@ -121,10 +122,21 @@ def retrieve_image(layer, horizontal_subdivisions=None, vertical_subdivisions=No
     cropped_basemap = basemap_bbox(**bbox).resize((width, height))
 
     urls = subdivide_requests(layer, horizontal_subdivisions, vertical_subdivisions)
-    for i, h_url in enumerate(urls):
-        for j, url in enumerate(h_url):
-            logging.info(f'Retrieving part {i * vertical_subdivisions + j + 1}/{horizontal_subdivisions * vertical_subdivisions} from {url}')
-            layer_image = Image.open(urlopen(url)).convert('RGBA')
+
+    for i, h_urls in enumerate(urls):
+        for j, url in enumerate(h_urls):
+            try:
+                response = urlopen(url)
+            except HTTPError as e:
+                raise Exception(f"URL {url} returned an error response") from e
+
+            try:
+                layer_image = Image.open(response)
+            except UnidentifiedImageError as e:
+                raise Exception(f"Response from URL {url} could not be converted to an image") from e
+
+            layer_image = layer_image.convert('RGBA')
+
             cropped_basemap.paste(
                 layer_image,
                 (
@@ -133,42 +145,32 @@ def retrieve_image(layer, horizontal_subdivisions=None, vertical_subdivisions=No
                 ),
                 layer_image
             )
-
     return cropped_basemap
 
 def generate_layer_preview(layer, only_generate_missing, horizontal_subdivisions, vertical_subdivisions):
     """
     Generate and save a layer preview.
-
-    :return: True if no errors (i.e. successful image generation or expected
-    non-generation), False if failure to generate.
     """
     filepath = f'layer_previews/{layer.id}.png'
     if not only_generate_missing or not default_storage.exists(filepath):
         with BytesIO() as bytes_io:
-            layer_image = None
-
             if horizontal_subdivisions or vertical_subdivisions:
-                layer_image = retrieve_image(layer, horizontal_subdivisions, vertical_subdivisions)
+                try:
+                    layer_image = retrieve_image(layer, horizontal_subdivisions, vertical_subdivisions)
+                except Exception as e:
+                    raise Exception(f"Could not retrieve image in {horizontal_subdivisions}x{vertical_subdivisions} subdivisions") from e
             else:
                 try:
                     layer_image = retrieve_image(layer)
                 except Exception as e:
-                    logging.error('Error at %s', 'division', exc_info=e)
-                    logging.warn(f'Failed to retrieve {layer.layer_name} ({layer.id}) in a single request; attempting retrieval in chunks (40x40)')
                     try:
                         layer_image = retrieve_image(layer, 40, 40)
                     except Exception as e:
-                        logging.error('Error at %s', 'division', exc_info=e)
-                        logging.warn(f'Failed to retrieve {layer.layer_name} ({layer.id})')
+                        raise Exception("Could not retrieve image in single request or in 40x40 subdivisions") from e
 
-            if layer_image:
-                layer_image.save(bytes_io, 'PNG')
-                default_storage.delete(filepath)
-                default_storage.save(filepath, File(bytes_io, ''))
-                return True
-        return False
-    return True
+            layer_image.save(bytes_io, 'PNG')
+            default_storage.delete(filepath)
+            default_storage.save(filepath, File(bytes_io, ''))
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
@@ -194,22 +196,29 @@ class Command(BaseCommand):
         only_generate_missing = options['only_generate_missing'].lower() in ['t', 'true'] if options['only_generate_missing'] != None else False
         horizontal_subdivisions = int(options['horizontal_subdivisions']) if options['horizontal_subdivisions'] != None else None
         vertical_subdivisions = int(options['vertical_subdivisions']) if options['vertical_subdivisions'] != None else None
+        errors = []
 
         if layer_id is not None:
             layer = Layer.objects.get(id=layer_id)
-            generate_layer_preview(layer, only_generate_missing, horizontal_subdivisions, vertical_subdivisions)
+            try:
+                generate_layer_preview(layer, only_generate_missing, horizontal_subdivisions, vertical_subdivisions)
+            except Exception as e:
+                logging.error(f"Error processing layer {layer.id}", exc_info=e)
+                errors.append({'layer': layer, 'e': e})
         else:
-            failures = []
-
             for layer in Layer.objects.all():
-                success = generate_layer_preview(layer, only_generate_missing, horizontal_subdivisions, vertical_subdivisions)
+                try:
+                    generate_layer_preview(layer, only_generate_missing, horizontal_subdivisions, vertical_subdivisions)
+                except Exception as e:
+                    logging.error(f"Error processing layer {layer.id}", exc_info=e)
+                    errors.append({'layer': layer, 'e': e})
 
-                if not success:
-                    failures.append(layer)
+        if len(errors):
+            logging.warn("Failed to retrieve the following layers: \n{}".format(
+                '\n'.join(
+                    [f" • {error['layer'].layer_name} ({error['layer'].id})" for error in errors]
+                )
+            ))
 
-            if len(failures):
-                logging.warn('Failed to retrieve the following layers: \n - {}'.format(
-                    '\n - '.join(
-                        [f'{layer.layer_name} ({layer.id})' for layer in failures]
-                    )
-                ))
+            if not layer_id:
+                email_generate_layer_preview_summary(errors)

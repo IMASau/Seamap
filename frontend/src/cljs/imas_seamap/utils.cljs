@@ -9,6 +9,7 @@
             [goog.crypt.base64 :as b64]
             [cognitect.transit :as t]
             [imas-seamap.blueprint :as b]
+            ["copy-to-clipboard" :as copy-to-clipboard]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 ;;; Taken from https://github.com/district0x/district-cljs-utils/
@@ -41,10 +42,21 @@
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
   [{:keys [story-maps] map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
-  (let [pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :national-layer-timeline-selected :national-layer-alternate-view :bounds])
+  (let [pruned-rich-layers
+        (reduce-kv
+         (fn [acc key {:keys [alternate-views-selected timeline-selected tab] :as _val}]
+           (let [pruned-rich-layer
+                 (cond-> {:tab tab}
+                   alternate-views-selected (assoc :alternate-views-selected alternate-views-selected)
+                   timeline-selected        (assoc :timeline-selected timeline-selected))]
+             (assoc acc key pruned-rich-layer)))
+         {} (:rich-layers map-state))
+
+        pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :bounds])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
-                       (update :active-base :id))
+                       (update :active-base :id)
+                       (assoc :rich-layers pruned-rich-layers))
         pruned-boundaries (select-keys*
                            boundaries-state
                            [[:active-boundary]
@@ -71,7 +83,6 @@
                                       [:display :catalogue :main]
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
-                                      [:display :national-layer-tab]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
@@ -99,7 +110,6 @@
                  [:display :catalogue :main]
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
-                 [:display :national-layer-tab]
                  [:filters :layers]
                  [:state-of-knowledge :boundaries :active-boundary]
                  [:state-of-knowledge :boundaries :active-boundary-layer]
@@ -126,8 +136,7 @@
                  [:map :zoom]
                  [:map :bounds]
                  [:map :viewport-only?]
-                 [:map :national-layer-timeline-selected]
-                 [:map :national-layer-alternate-view]
+                 [:map :rich-layers]
                  :legend-ids
                  :opacity-ids
                  :autosave?
@@ -175,32 +184,11 @@
           update-service
           str))))
 
-;;; https://github.com/metosin/komponentit/blob/master/src/cljs/komponentit/clipboard.cljs (EPL)
 (defn copy-text [text]
-  (let [el (js/document.createElement "textarea")
-        prev-focus-el js/document.activeElement
-        y-pos (or (.. js/window -pageYOffset)
-                  (.. js/document -documentElement -scrollTop))]
-    (set! (.-style el) #js {:position "absolute"
-                            :left "-9999px"
-                            :top (str y-pos "px")
-                            ;; iOS workaround?
-                            :fontSize "12pt"
-                            ;; reset box-model
-                            :border "0"
-                            :padding "0"
-                            :margin "0"})
-    (set! (.-value el) text)
-    (.addEventListener el "focus" (fn [_] (.scrollTo js/window 0 y-pos)))
-    (js/document.body.appendChild el)
-    (.setSelectionRange el 0 (.. el -value -length))
-    (.focus el)
-    (js/document.execCommand "copy")
-    (.blur el)
-    (when prev-focus-el
-      (.focus prev-focus-el))
-    (.removeAllRanges (.getSelection js/window))
-    (js/window.document.body.removeChild el)))
+  (.then
+   (js/navigator.clipboard.writeText text)
+   nil
+   #(copy-to-clipboard text)))
 
 (defn append-params-from-map
   [url params]
@@ -265,27 +253,41 @@
 (defn ajax-loaded-info
   "Returns db of all the info retrieved via ajax"
   [db]
-  (select-keys*
-   db
-   [[:map :layers]
-    [:map :base-layers]
-    [:map :base-layer-groups]
-    [:map :grouped-base-layers]
-    [:map :organisations]
-    [:map :categories]
-    [:map :keyed-layers]
-    [:map :national-layer-timeline]
-    [:map :leaflet-map]
-    [:map :legends]
-    [:state-of-knowledge :boundaries :amp :boundaries]
-    [:state-of-knowledge :boundaries :imcra :boundaries]
-    [:state-of-knowledge :boundaries :meow :boundaries]
-    [:state-of-knowledge :region-reports]
-    [:story-maps :featured-maps]
-    :habitat-colours
-    :habitat-titles
-    :sorting
-    :config]))
+  (let [rich-layers
+        (reduce-kv
+         (fn [acc key val]
+           (assoc
+            acc
+            key
+            (assoc
+             val
+             :alternate-views-selected nil
+             :timeline-selected        nil
+             :tab                      "legend")))
+         {} (get-in db [:map :rich-layers]))]
+    (->
+     (select-keys*
+      db
+      [[:map :layers]
+       [:map :base-layers]
+       [:map :base-layer-groups]
+       [:map :grouped-base-layers]
+       [:map :organisations]
+       [:map :categories]
+       [:map :keyed-layers]
+       [:map :leaflet-map]
+       [:map :legends]
+       [:map :rich-layer-children]
+       [:state-of-knowledge :boundaries :amp :boundaries]
+       [:state-of-knowledge :boundaries :imcra :boundaries]
+       [:state-of-knowledge :boundaries :meow :boundaries]
+       [:state-of-knowledge :region-reports]
+       [:story-maps :featured-maps]
+       :habitat-colours
+       :habitat-titles
+       :sorting
+       :config])
+       (assoc-in [:map :rich-layers] rich-layers))))
 
 (defn decode-html-entities
   "Removes HTML entities from an HTML entity encoded string:
@@ -329,3 +331,14 @@
   sometimes needs special handling)."
   [url]
   (re-matches #"^(.+?)/services/(.+?)/MapServer/.+$" url))
+
+(defn feature-server-url?
+  "Returns true when a url looks like it comes from FeatureServer (which
+  sometimes needs special handling)."
+  [url]
+  (re-matches #"^(.+?)/services/(.+?)/FeatureServer/.+$" url))
+
+(defn url?
+  "Returns true when string is a url."
+  [value]
+  (re-find #"^https?://(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?://(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,}$" value))

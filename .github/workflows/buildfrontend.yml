@@ -68,18 +68,20 @@ jobs:
       - name: Components build
         run: yarn build-js
 
+      - name: Worker build
+        run: yarn build-worker
+
       - name: Build project
         run: npx shadow-cljs release ${{ env.PROFILE }}
 
-      - name: Update app.js path in index
-        run: sed -i 's/app.js/compiled\/app.js/' 'resources/public/index.html'
-
       - name: Expand cache-busting app.js tag
         run: |
-          app_tag=$(jq '.[0]."output-name"' 'resources/public/js/compiled/manifest.json')
+          app_tag=$(jq '.[0]."output-name"' 'resources/public/js/manifest.json')
           app_tag=$(echo $app_tag | sed 's/^"//;s/"$//')
           sed -i "s/app.js/$app_tag/" 'resources/public/index.html'
 
+      - name: Ensure archive is group-writeable for safe extraction
+        run: chmod -R g+w resources/public
       - run: tar -c -z -v -C resources/public -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" .
 
       - name: Create timestamp for release tag-name
