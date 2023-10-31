@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [plot-component helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar layer-preview control-block print-control control-block-child autosave-application-state-toggle]]
+            [imas-seamap.views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child autosave-application-state-toggle]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
@@ -128,12 +128,17 @@
         tab   @(re-frame/subscribe [:left-drawer/tab])
         {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
-     {:title       "Tasmania Marine Atlas"
+     {:title
+      [:<>
+       [:div
+        [:a {:href "https://tasmaniamarineatlas.org/"}
+         [:img {:src "img/TMA_Banner_size_website.png"}]]]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
       :className   "left-drawer tas-marine-atlas-drawer"
+      :isCloseButtonShown false
       :hasBackdrop false}
      [b/tabs
       {:id              "left-drawer-tabs"
@@ -273,12 +278,11 @@
         _                  (use-hotkeys hot-keys) ; We don't need the results of this, just need to ensure it's called!
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? @(re-frame/subscribe [:sm.featured-map/open?])]
-    [:div#main-wrapper
+    [:div#main-wrapper.tas-marine-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper
-      [map-component]
-      [plot-component]]
-     
+      [map-component]]
+
      ;; TODO: Separate helper overlay for TasMarineAtlas?
      [helper-overlay
       {:selector       ".SelectionListItem:first-child .layer-card .layer-header"
@@ -305,10 +309,7 @@
       {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
        :helperText     "Filter layers by category or responsible organisation"
        :helperPosition "bottom"
-       :padding        0}
-      {:id "plot-footer"
-       :helperText "Draw a transect to show a depth profile of habitat data"
-       :helperPosition "top"}]
+       :padding        0}]
      [info-card]
      [loading-display]
      [left-drawer]
@@ -316,5 +317,5 @@
      [featured-map-drawer]
      [layers-search-omnibar]
      [custom-leaflet-controls]
-     [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
+     [welcome-dialogue]]))
 

@@ -75,6 +75,7 @@ body.page-template-default.admin-bar #app {
         font-size: 16px;
         .overview { margin-right: 40px; }
         .bp3-button { margin-left: auto; }
+        p { margin-bottom: 18px; }
     }
 
     .bp3-dialog-footer {
@@ -718,7 +719,6 @@ input.leaflet-control-layers-selector[type="radio"] {
 // Right drawer shared
 .state-of-knowledge-drawer,
 .featured-map-drawer,
-.tas-marine-atlas-drawer,
 .data-in-region-drawer {
     .bp3-drawer-header {
         padding: 0;

@@ -7,6 +7,8 @@ create table EXTRACT_SQUIDLE_DEPLOYMENT_POINTS (
 	campaign_key nvarchar(255) NULL,
 	campaign_id nvarchar(255) NULL,
 	color nvarchar(255) NULL,
+	dep_max nvarchar(255) NULL,
+	dep_min nvarchar(255) NULL,	
 	platform_name nvarchar(255) NULL,
 	platform_key nvarchar(255) NULL,
 	platform_id nvarchar(255) NULL,

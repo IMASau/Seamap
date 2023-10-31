@@ -77,21 +77,19 @@
        (for [{:keys [width height
                      helperText helperPosition
                      textWidth padding]
-                    :or {helperPosition "right"}
-                    :as eprops} (selectors+elements element-selectors)
+              :or {helperPosition "right"}
+              :as eprops} (selectors+elements element-selectors)
              :let [posn-cls (str "helper-layer-" helperPosition)]
              :when (and eprops
                         (pos? height)
                         (not (string/blank? helperText)))]
-         (do
-           (js/console.log padding)
-           ^{:key (hash eprops)}
-           [:div.helper-layer-wrapper {:class posn-cls
-                                       :style (wrapper-props helperPosition eprops)}
-            [:div.helper-layer-tooltip {:class posn-cls
-                                        :style (posn->offsets helperPosition width height padding)}
-             [:div.helper-layer-tooltiptext {:style {:width (or textWidth *text-width*)}}
-              helperText]]])))]))
+         ^{:key (hash eprops)}
+         [:div.helper-layer-wrapper {:class posn-cls
+                                     :style (wrapper-props helperPosition eprops)}
+          [:div.helper-layer-tooltip {:class posn-cls
+                                      :style (posn->offsets helperPosition width height padding)}
+           [:div.helper-layer-tooltiptext {:style {:width (or textWidth *text-width*)}}
+            helperText]]]))]))
 
 ;; TODO: Update, replace?
 (defn- help-button []
@@ -863,7 +861,7 @@
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (or @(re-frame/subscribe [:sok/open?]) @(re-frame/subscribe [:sm.featured-map/open?]))
         loading?           @(re-frame/subscribe [:app/loading?])]
-    [:div#main-wrapper ;{:on-key-down handle-keydown :on-key-up handle-keyup}
+    [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
      [:div#content-wrapper
       [map-component]

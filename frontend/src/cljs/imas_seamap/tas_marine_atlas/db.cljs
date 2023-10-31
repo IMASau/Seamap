@@ -50,6 +50,7 @@
    :habitat-titles  {}
    :display         {:mouse-pos             {}
                      :help-overlay          false
+                     :welcome-overlay       true
                      :settings-overlay      false
                      :left-drawer           true
                      :left-drawer-tab       "catalogue"
