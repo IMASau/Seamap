@@ -15,7 +15,7 @@
     "esri-leaflet-vector": "3.1.5",
     "leaflet": "1.9.0",
     "leaflet-draw": "^1.0.4",
-    "leaflet-easyprint": "2.1.9",
+    "leaflet-easyprint": "link:./custom_modules/leaflet-easyprint",
     "leaflet-shape-markers": "^1.0.6",
     "leaflet.nontiledlayer": "1.0.9",
     "proj4": "^2.7.5",
