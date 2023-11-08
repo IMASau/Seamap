@@ -143,6 +143,7 @@ L.Control.EasyPrint = L.Control.extend({
       })
       .catch(function (error) {
           console.error('oops, something went wrong!', error);
+          plugin._map.fire("easyPrint-failed", error);
       });
   },
 
@@ -218,6 +219,7 @@ L.Control.EasyPrint = L.Control.extend({
       })
       .catch(function (error) {
           console.error('Print operation failed', error);
+          plugin._map.fire("easyPrint-failed", error);
       }); 
   },
 

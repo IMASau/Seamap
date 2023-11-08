@@ -559,6 +559,10 @@
                                            (+ x (* horiz (- east  west)))])]
     {:dispatch [:map/update-map-view {:center (shift-centre (get-in db [:map :center]))}]}))
 
+(defn map-print-error [{:keys [db]} _]
+  {:message  ["Failed to generate map export image!" b/INTENT-DANGER]
+   :dispatch [:ui/hide-loading]})
+
 (defn show-initial-layers
   "Figure out the highest priority layer, and display it"
   ;; Slight hack; note we use :active not :active-layers, because
@@ -613,6 +617,7 @@
     (.on leaflet-map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
     (.on leaflet-map "easyPrint-start"    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
     (.on leaflet-map "easyPrint-finished" #(re-frame/dispatch [:ui/hide-loading]))
+    (.on leaflet-map "easyPrint-failed"   #(re-frame/dispatch [:map.print/error]))
 
     (assoc-in db [:map :leaflet-map] leaflet-map)))
 
