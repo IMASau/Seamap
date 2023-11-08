@@ -665,7 +665,9 @@
               [:div "Open layer info ("
                [b/icon {:icon "info-sign" :icon-size 14}]
                ") to download selection"])
-             b/INTENT-NONE]})
+             b/INTENT-NONE]
+   :dispatch-n [[:left-drawer/open]
+                [:left-drawer/tab "active-layers"]]})
 
 (defn map-toggle-selecting [{:keys [db]} _]
   {:dispatch
