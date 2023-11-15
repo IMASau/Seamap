@@ -18,3 +18,4 @@ sqlparse==0.4.4
 requests==2.31.0
 shapely==1.8.5.post1
 geopandas==0.9.0
+geoplot==0.5.1

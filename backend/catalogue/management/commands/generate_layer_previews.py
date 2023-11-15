@@ -7,6 +7,10 @@ from urllib.error import HTTPError
 from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 import logging
+import requests
+import geopandas
+import geoplot
+import matplotlib.pyplot as plt
 from catalogue.emails import email_generate_layer_preview_summary
 
 from catalogue.models import Layer
@@ -171,6 +175,32 @@ def generate_layer_preview(layer, only_generate_missing, horizontal_subdivisions
             layer_image.save(bytes_io, 'PNG')
             default_storage.delete(filepath)
             default_storage.save(filepath, File(bytes_io, ''))
+
+def featureserver_layer_preview():
+    url = "https://services1.arcgis.com/wfNKYeHsOyaFyPw3/arcgis/rest/services/Declared_Area_OEI_01_2022/FeatureServer/0/query"
+    params = {
+        'where':        '1=1',
+        'outFields':    '*', # useful when renderer type = uniqueValue
+        'f':            'geojson',
+        'resultOffset': 0
+    }
+    r = requests.get(url=url, params=params)
+    collection = r.json()
+    features = collection['features']
+    for feature in features:
+        feature['properties'] = []
+    gdf = geopandas.GeoDataFrame.from_features(features)
+    geoplot.polyplot(
+        gdf,
+        facecolor=(0.298, 0.506, 0.804, 0.75), # need to split features into separate data frames with facecolor and edgecolor from drawingInfo in separate query
+        edgecolor=(0, 0, 0, 1),
+        linewidth=0.75,
+        extent=gdf.total_bounds
+    )
+    plt.savefig("test.png", transparent=True, bbox_inches='tight')
+    bounds = gdf.total_bounds
+    bmap = basemap_bbox(bounds[3], bounds[1], bounds[2], bounds[0])
+    bmap.save("test1.png")
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
