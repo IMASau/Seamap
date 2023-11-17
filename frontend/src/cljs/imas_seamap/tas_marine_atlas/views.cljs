@@ -64,7 +64,7 @@
         (cond
           selecting?            ["Cancel Selecting"    "undo"   :map.layer.selection/disable]
           region                ["Clear Selection"     "eraser" :map.layer.selection/clear]
-          :else                 ["Find Data in Region" "widget" :map.layer.selection/enable])]
+          :else                 ["Find Data in Region" "path-search" :map.layer.selection/enable])]
     [control-block-child
      {:on-click  #(re-frame/dispatch [dispatch])
       :tooltip   tooltip
