@@ -19,6 +19,21 @@ Image.MAX_IMAGE_PIXELS = None
 
 basemap = Image.open(default_storage.open('land_shallow_topo_21600.tif'))
 
+def bounds_to_image_info(bounds):
+    x_delta = (bounds['east'] - bounds['west'] + 360) % 360
+    x_delta = x_delta if x_delta != 0 else 360
+    y_delta = bounds['north'] - bounds['south']
+    aspect_ratio = x_delta / y_delta
+    width = 386
+    height = round(width / aspect_ratio)
+
+    return {
+        'width': width,
+        'height': height,
+        'x_delta': x_delta,
+        'y_delta': y_delta,
+        'aspect_ratio': aspect_ratio
+    }
 
 def basemap_latitude_to_pixel(latitude):
     t = 0.5 + (latitude / 360)
@@ -30,7 +45,7 @@ def basemap_longitude_to_pixel(longitude):
     return round(basemap.height * t)
 
 
-def basemap_bbox(north, south, east, west):
+def basemap_bbox(north, south, east, west) -> Image:
     left = basemap_latitude_to_pixel(west)
     right = basemap_latitude_to_pixel(east)
     upper = basemap_longitude_to_pixel(north)
@@ -176,31 +191,71 @@ def generate_layer_preview(layer, only_generate_missing, horizontal_subdivisions
             default_storage.delete(filepath)
             default_storage.save(filepath, File(bytes_io, ''))
 
-def featureserver_layer_preview():
-    url = "https://services1.arcgis.com/wfNKYeHsOyaFyPw3/arcgis/rest/services/Declared_Area_OEI_01_2022/FeatureServer/0/query"
-    params = {
-        'where':        '1=1',
-        'outFields':    '*', # useful when renderer type = uniqueValue
-        'f':            'geojson',
-        'resultOffset': 0
+def symbol_to_geoplot_args(symbol):
+    facecolor = symbol.get('color')
+    if facecolor:
+        facecolor = list(map(lambda v: v / 255, facecolor))
+
+    edgecolor = symbol.get('outline').get('color')
+    if edgecolor:
+        edgecolor = list(map(lambda v: v / 255, edgecolor))
+    
+    linewidth = symbol.get('outline').get('width')
+
+    return {
+        'facecolor': facecolor,
+        'edgecolor': edgecolor,
+        'linewidth': linewidth
     }
-    r = requests.get(url=url, params=params)
-    collection = r.json()
-    features = collection['features']
-    for feature in features:
-        feature['properties'] = []
-    gdf = geopandas.GeoDataFrame.from_features(features)
-    geoplot.polyplot(
-        gdf,
-        facecolor=(0.298, 0.506, 0.804, 0.75), # need to split features into separate data frames with facecolor and edgecolor from drawingInfo in separate query
-        edgecolor=(0, 0, 0, 1),
-        linewidth=0.75,
-        extent=gdf.total_bounds
-    )
-    plt.savefig("test.png", transparent=True, bbox_inches='tight')
-    bounds = gdf.total_bounds
-    bmap = basemap_bbox(bounds[3], bounds[1], bounds[2], bounds[0])
-    bmap.save("test1.png")
+
+def mapserver_layer_image(layer: Layer) -> Image:
+    drawing_info = layer.server_info()['drawingInfo']
+    renderer_type = drawing_info['renderer']['type']
+    bounds = layer.bounds()
+    image_info = bounds_to_image_info(bounds)
+
+    if renderer_type == 'simple':
+        geojson = layer.geojson()
+    elif renderer_type == 'uniqueValue':
+        geojson = layer.geojson('*')
+    else:
+        raise ValueError(f"renderer_type '{renderer_type}' not handled")
+
+    gdf = geopandas.GeoDataFrame.from_features(geojson['features'])
+    ax = None
+
+    if renderer_type == 'simple':
+        pass
+    elif renderer_type == 'uniqueValue':
+        unique_value_infos = drawing_info['renderer']['uniqueValueInfos']
+
+        for unique_value_info in unique_value_infos:
+            geoplot_args = symbol_to_geoplot_args(unique_value_info['symbol'])
+            filtered_gdf = gdf[gdf['LEGEND'] == unique_value_info['value']]
+
+            ax = geoplot.polyplot(
+                filtered_gdf,
+                ax=ax,
+                extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                **geoplot_args
+            )
+
+    with BytesIO() as bytes_io:
+        plt.plot(ax=ax)
+        plt.tight_layout()
+        plt.gcf().set_size_inches(image_info['width'], image_info['height'])
+        plt.savefig(
+            bytes_io,
+            format='png',
+            transparent=True,
+            dpi=1
+        )
+        bytes_io.seek(0)
+        image = Image.open(bytes_io).copy()
+        return image
+
+def featureserver_layer_image(layer: Layer) -> Image:
+    return mapserver_layer_image(layer) # FeatureServer case seemingly the same as MapServer case (for now)
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
