@@ -7,6 +7,7 @@ from django.db import models
 from six import python_2_unicode_compatible
 from uuid import uuid4
 from datetime import datetime
+import requests
 
 
 @python_2_unicode_compatible
@@ -93,7 +94,34 @@ class Layer(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def geojson(self, out_fields: str=None):
+        url = f"{self.server_url}/query"
+        params = {
+            'where':     '1=1',
+            'outFields': out_fields,
+            'f':         'geojson'
+        }
 
+        r = requests.get(url=url, params=params)
+
+        return r.json()
+
+    def server_info(self):
+        url = self.server_url
+        params = { 'f': 'json' }
+
+        r = requests.get(url=url, params=params)
+
+        return r.json()
+    
+    def bounds(self):
+        return {
+            'north': float(self.maxy),
+            'south': float(self.miny),
+            'east':  float(self.maxx),
+            'west':  float(self.minx)
+        }
 
 @python_2_unicode_compatible
 class BaseLayerGroup(models.Model):
