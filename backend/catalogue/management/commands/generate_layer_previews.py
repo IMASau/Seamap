@@ -11,6 +11,10 @@ import re
 import geopandas
 import geoplot
 import matplotlib.pyplot as plt
+import base64
+import matplotlib.image as mpimg
+from matplotlib.image import BboxImage
+from matplotlib.transforms import Bbox, TransformedBbox
 from catalogue.emails import email_generate_layer_preview_summary
 
 from catalogue.models import Layer
@@ -167,10 +171,13 @@ def symbol_to_geoplot_args(symbol):
 
     linewidth = symbol.get('outline', {}).get('width')
 
+    color = (0, 0, 0, 0) if symbol.get('imageData') else None
+
     return {
         'facecolor': facecolor,
         'edgecolor': edgecolor,
-        'linewidth': linewidth
+        'linewidth': linewidth,
+        'color': color
     }
 
 def symbol_to_plot_type(symbol) -> str:
@@ -181,6 +188,24 @@ def symbol_to_plot_type(symbol) -> str:
         return 'point'
     else:
         raise ValueError(f"plot_type '{plot_type}' not handled")
+
+def symbol_to_marker_image(symbol):
+    if symbol.get('imageData'):
+        i = base64.b64decode(symbol['imageData'])
+        i = BytesIO(i)
+        return mpimg.imread(i, format=symbol['imageData'].split('/')[-1])
+
+def add_marker_image_point(ax, marker_image, point):
+    bb = Bbox.from_bounds(point.x-0.5, point.y-0.5, 1, 1)  
+    bb2 = TransformedBbox(bb, ax.transData)
+    bbox_image = BboxImage(
+        bb2,
+        norm=None,
+        origin=None,
+        clip_on=False
+    )
+    bbox_image.set_data(marker_image)
+    ax.add_artist(bbox_image)
 
 def mapserver_layer_image(layer: Layer) -> Image:
     drawing_info = layer.server_info()['drawingInfo']
@@ -203,15 +228,16 @@ def mapserver_layer_image(layer: Layer) -> Image:
     ax = None
 
     if renderer_type == 'simple':
-        geoplot_args = symbol_to_geoplot_args(drawing_info['renderer']['symbol'])
-        plot_type = symbol_to_plot_type(drawing_info['renderer']['symbol'])
+        symbol = drawing_info['renderer']['symbol']
+        geoplot_args = symbol_to_geoplot_args(symbol)
+        plot_type = symbol_to_plot_type(symbol)
+        marker_image = symbol_to_marker_image(symbol)
 
         if plot_type == 'polygon':
             ax = geoplot.polyplot(
                 gdf,
                 ax=ax,
                 extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
-                # projection=geoplot.crs.WebMercator(),
                 **geoplot_args
             )
         elif plot_type == 'point':
@@ -219,9 +245,12 @@ def mapserver_layer_image(layer: Layer) -> Image:
                 gdf,
                 ax=ax,
                 extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
-                # projection=geoplot.crs.WebMercator(),
                 **geoplot_args
             )
+
+            if symbol.get('imageData'):
+                for i, row in filtered_gdf.iterrows():
+                    add_marker_image_point(ax, marker_image, row['geometry'])
         else:
             raise ValueError(f"plot_type '{plot_type}' not handled")
     elif renderer_type == 'uniqueValue':
@@ -229,8 +258,10 @@ def mapserver_layer_image(layer: Layer) -> Image:
         unique_value_infos = drawing_info['renderer']['uniqueValueInfos']
 
         for unique_value_info in unique_value_infos:
-            geoplot_args = symbol_to_geoplot_args(unique_value_info['symbol'])
-            plot_type = symbol_to_plot_type(unique_value_info['symbol'])
+            symbol = unique_value_info['symbol']
+            geoplot_args = symbol_to_geoplot_args(symbol)
+            plot_type = symbol_to_plot_type(symbol)
+            marker_image = symbol_to_marker_image(symbol)
             filtered_gdf = gdf[gdf[value_column] == unique_value_info['value']]
 
             if plot_type == 'polygon':
@@ -238,7 +269,6 @@ def mapserver_layer_image(layer: Layer) -> Image:
                     filtered_gdf,
                     ax=ax,
                     extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
-                    # projection=geoplot.crs.WebMercator(),
                     **geoplot_args
                 )
             elif plot_type == 'point':
@@ -246,8 +276,12 @@ def mapserver_layer_image(layer: Layer) -> Image:
                     filtered_gdf,
                     ax=ax,
                     extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
-                    # projection=geoplot.crs.WebMercator()
+                    **geoplot_args
                 )
+
+                if symbol.get('imageData'):
+                    for i, row in filtered_gdf.iterrows():
+                        add_marker_image_point(ax, marker_image, row['geometry'])
             else:
                 raise ValueError(f"plot_type '{plot_type}' not handled")
     else:
@@ -255,7 +289,7 @@ def mapserver_layer_image(layer: Layer) -> Image:
 
     with BytesIO() as bytes_io:
         plt.plot(ax=ax)
-        plt.tight_layout()
+        plt.tight_layout(pad=0)
         fig = plt.gcf()
         fig_width = fig.get_size_inches()[0]
         fig.set_size_inches(fig_width, fig_width / image_info['aspect_ratio'])
