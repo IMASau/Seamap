@@ -186,18 +186,30 @@ def mapserver_layer_image(layer: Layer) -> Image:
         geojson = layer.geojson('*')
     else:
         raise ValueError(f"renderer_type '{renderer_type}' not handled")
+    
+    for feature in geojson['features']:
+        feature['properties'] = feature['properties'] or {}
 
     gdf = geopandas.GeoDataFrame.from_features(geojson['features'])
+    gdf.columns = gdf.columns.str.lower()
     ax = None
 
     if renderer_type == 'simple':
-        pass
+        geoplot_args = symbol_to_geoplot_args(drawing_info['renderer']['symbol'])
+
+        ax = geoplot.polyplot(
+            gdf,
+            ax=ax,
+            extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+            **geoplot_args
+        )
     elif renderer_type == 'uniqueValue':
+        value_column = drawing_info['renderer']['field1'].lower()
         unique_value_infos = drawing_info['renderer']['uniqueValueInfos']
 
         for unique_value_info in unique_value_infos:
             geoplot_args = symbol_to_geoplot_args(unique_value_info['symbol'])
-            filtered_gdf = gdf[gdf['LEGEND'] == unique_value_info['value']]
+            filtered_gdf = gdf[gdf[value_column] == unique_value_info['value']]
 
             ax = geoplot.polyplot(
                 filtered_gdf,
