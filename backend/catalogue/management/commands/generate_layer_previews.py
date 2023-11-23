@@ -8,7 +8,6 @@ from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 import logging
 import re
-import requests
 import geopandas
 import geoplot
 import matplotlib.pyplot as plt
@@ -162,17 +161,26 @@ def symbol_to_geoplot_args(symbol):
     if facecolor:
         facecolor = list(map(lambda v: v / 255, facecolor))
 
-    edgecolor = symbol.get('outline').get('color')
+    edgecolor = symbol.get('outline', {}).get('color')
     if edgecolor:
         edgecolor = list(map(lambda v: v / 255, edgecolor))
 
-    linewidth = symbol.get('outline').get('width')
+    linewidth = symbol.get('outline', {}).get('width')
 
     return {
         'facecolor': facecolor,
         'edgecolor': edgecolor,
         'linewidth': linewidth
     }
+
+def symbol_to_plot_type(symbol) -> str:
+    plot_type = symbol['type']
+    if plot_type == 'esriSFS':
+        return 'polygon'
+    elif plot_type == 'esriPMS':
+        return 'point'
+    else:
+        raise ValueError(f"plot_type '{plot_type}' not handled")
 
 def mapserver_layer_image(layer: Layer) -> Image:
     drawing_info = layer.server_info()['drawingInfo']
@@ -196,37 +204,65 @@ def mapserver_layer_image(layer: Layer) -> Image:
 
     if renderer_type == 'simple':
         geoplot_args = symbol_to_geoplot_args(drawing_info['renderer']['symbol'])
+        plot_type = symbol_to_plot_type(drawing_info['renderer']['symbol'])
 
-        ax = geoplot.polyplot(
-            gdf,
-            ax=ax,
-            extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
-            **geoplot_args
-        )
+        if plot_type == 'polygon':
+            ax = geoplot.polyplot(
+                gdf,
+                ax=ax,
+                extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                # projection=geoplot.crs.WebMercator(),
+                **geoplot_args
+            )
+        elif plot_type == 'point':
+            ax = geoplot.pointplot(
+                gdf,
+                ax=ax,
+                extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                # projection=geoplot.crs.WebMercator(),
+                **geoplot_args
+            )
+        else:
+            raise ValueError(f"plot_type '{plot_type}' not handled")
     elif renderer_type == 'uniqueValue':
         value_column = drawing_info['renderer']['field1'].lower()
         unique_value_infos = drawing_info['renderer']['uniqueValueInfos']
 
         for unique_value_info in unique_value_infos:
             geoplot_args = symbol_to_geoplot_args(unique_value_info['symbol'])
+            plot_type = symbol_to_plot_type(unique_value_info['symbol'])
             filtered_gdf = gdf[gdf[value_column] == unique_value_info['value']]
 
-            ax = geoplot.polyplot(
-                filtered_gdf,
-                ax=ax,
-                extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
-                **geoplot_args
-            )
+            if plot_type == 'polygon':
+                ax = geoplot.polyplot(
+                    filtered_gdf,
+                    ax=ax,
+                    extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                    # projection=geoplot.crs.WebMercator(),
+                    **geoplot_args
+                )
+            elif plot_type == 'point':
+                ax = geoplot.pointplot(
+                    filtered_gdf,
+                    ax=ax,
+                    extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                    # projection=geoplot.crs.WebMercator()
+                )
+            else:
+                raise ValueError(f"plot_type '{plot_type}' not handled")
+    else:
+        raise ValueError(f"renderer_type '{renderer_type}' not handled")
 
     with BytesIO() as bytes_io:
         plt.plot(ax=ax)
         plt.tight_layout()
-        plt.gcf().set_size_inches(image_info['width'], image_info['height'])
+        fig = plt.gcf()
+        fig_width = fig.get_size_inches()[0]
+        fig.set_size_inches(fig_width, fig_width / image_info['aspect_ratio'])
         plt.savefig(
             bytes_io,
             format='png',
-            transparent=True,
-            dpi=1
+            transparent=True
         )
         bytes_io.seek(0)
         image = Image.open(bytes_io).copy()
@@ -248,6 +284,7 @@ def generate_layer_preview(layer: Layer, horizontal_subdivisions: int | None, ve
     else:
         layer_image = geoserver_layer_image(layer, horizontal_subdivisions, vertical_subdivisions)
 
+    layer_image = layer_image.resize((image_info['width'], image_info['height']))
     cropped_basemap = cropped_basemap_image(**bounds).resize((image_info['width'], image_info['height']))
     cropped_basemap.paste(layer_image, mask=layer_image)
 
