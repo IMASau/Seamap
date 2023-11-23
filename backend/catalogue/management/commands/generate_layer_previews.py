@@ -293,10 +293,10 @@ class Command(BaseCommand):
                     logging.error(f"Error processing layer {layer.id}", exc_info=e)
                     errors.append({'layer': layer, 'e': e})
         else:
-            filepath = f'layer_previews/{layer.id}.png'
+            for layer in Layer.objects.all():
+                filepath = f'layer_previews/{layer.id}.png'
 
-            if not only_generate_missing or not default_storage.exists(filepath):
-                for layer in Layer.objects.all():
+                if not only_generate_missing or not default_storage.exists(filepath):
                     try:
                         generate_layer_preview(layer, horizontal_subdivisions, vertical_subdivisions)
                     except Exception as e:
