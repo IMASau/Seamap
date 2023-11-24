@@ -145,7 +145,7 @@ def geoserver_retrieve_image(layer: Layer, horizontal_subdivisions: int=1, verti
             )
     return image
 
-def geoserver_layer_image(layer: Layer, horizontal_subdivisions: int | None, vertical_subdivisions: int | None) -> Image:
+def geoserver_layer_image(layer: Layer, horizontal_subdivisions: int, vertical_subdivisions: int) -> Image:
     if horizontal_subdivisions or vertical_subdivisions:
         try:
             return geoserver_retrieve_image(layer, horizontal_subdivisions, vertical_subdivisions)
@@ -328,7 +328,7 @@ def mapserver_layer_image(layer: Layer) -> Image:
 def featureserver_layer_image(layer: Layer) -> Image:
     return mapserver_layer_image(layer) # FeatureServer case seemingly the same as MapServer case (for now)
 
-def generate_layer_preview(layer: Layer, horizontal_subdivisions: int | None, vertical_subdivisions: int | None) -> None:
+def generate_layer_preview(layer: Layer, horizontal_subdivisions: int, vertical_subdivisions: int) -> None:
     filepath = f'layer_previews/{layer.id}.png'
     bounds = layer.bounds()
     image_info = bounds_to_image_info(bounds)
