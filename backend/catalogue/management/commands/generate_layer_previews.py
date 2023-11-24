@@ -160,23 +160,45 @@ def geoserver_layer_image(layer: Layer, horizontal_subdivisions: int | None, ver
             except Exception as e:
                 raise Exception("Could not retrieve image in single request or in 40x40 subdivisions") from e
 
-def symbol_to_geoplot_args(symbol):
+def drawing_info_to_opacity(drawing_info) -> float:
+    return (100 - drawing_info.get('transparency', 0)) / 100
+
+def symbol_to_geoplot_args(symbol, opacity: float):
     facecolor = symbol.get('color')
     if facecolor:
         facecolor = list(map(lambda v: v / 255, facecolor))
+        facecolor[3] = facecolor[3] * opacity
 
     edgecolor = symbol.get('outline', {}).get('color')
     if edgecolor:
         edgecolor = list(map(lambda v: v / 255, edgecolor))
+        edgecolor[3] = edgecolor[3] * opacity
 
     linewidth = symbol.get('outline', {}).get('width')
 
-    color = (0, 0, 0, 0) if symbol.get('imageData') else None
+    hatch_types = {
+        'esriSFSBackwardDiagonal': '\\',
+        'esriSFSCross': '+',
+        'esriSFSDiagonalCross': 'x',
+        'esriSFSForwardDiagonal': '/',
+        'esriSFSHorizontal': '-',
+        'esriSFSVertical': '|'
+    }
+    hatch = hatch_types.get(symbol.get('style'))
+
+    color = None
+    if symbol.get('imageData'):
+        color = 'None'
+
+    if hatch:
+        edgecolor = edgecolor or facecolor
+        facecolor = 'None'
 
     return {
         'facecolor': facecolor,
         'edgecolor': edgecolor,
         'linewidth': linewidth,
+        'hatch': hatch,
         'color': color
     }
 
@@ -209,6 +231,7 @@ def add_marker_image_point(ax, marker_image, point):
 
 def mapserver_layer_image(layer: Layer) -> Image:
     drawing_info = layer.server_info()['drawingInfo']
+    opacity = drawing_info_to_opacity(drawing_info)
     renderer_type = drawing_info['renderer']['type']
     bounds = layer.bounds()
     image_info = bounds_to_image_info(bounds)
@@ -229,7 +252,7 @@ def mapserver_layer_image(layer: Layer) -> Image:
 
     if renderer_type == 'simple':
         symbol = drawing_info['renderer']['symbol']
-        geoplot_args = symbol_to_geoplot_args(symbol)
+        geoplot_args = symbol_to_geoplot_args(symbol, opacity)
         plot_type = symbol_to_plot_type(symbol)
         marker_image = symbol_to_marker_image(symbol)
 
@@ -259,7 +282,7 @@ def mapserver_layer_image(layer: Layer) -> Image:
 
         for unique_value_info in unique_value_infos:
             symbol = unique_value_info['symbol']
-            geoplot_args = symbol_to_geoplot_args(symbol)
+            geoplot_args = symbol_to_geoplot_args(symbol, opacity)
             plot_type = symbol_to_plot_type(symbol)
             marker_image = symbol_to_marker_image(symbol)
             filtered_gdf = gdf[gdf[value_column] == unique_value_info['value']]
