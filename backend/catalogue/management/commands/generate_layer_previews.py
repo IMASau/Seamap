@@ -8,10 +8,13 @@ from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 import logging
 import re
-import requests
 import geopandas
 import geoplot
 import matplotlib.pyplot as plt
+import base64
+import matplotlib.image as mpimg
+from matplotlib.image import BboxImage
+from matplotlib.transforms import Bbox, TransformedBbox
 from catalogue.emails import email_generate_layer_preview_summary
 
 from catalogue.models import Layer
@@ -157,25 +160,78 @@ def geoserver_layer_image(layer: Layer, horizontal_subdivisions: int | None, ver
             except Exception as e:
                 raise Exception("Could not retrieve image in single request or in 40x40 subdivisions") from e
 
-def symbol_to_geoplot_args(symbol):
+def drawing_info_to_opacity(drawing_info) -> float:
+    return (100 - drawing_info.get('transparency', 0)) / 100
+
+def symbol_to_geoplot_args(symbol, opacity: float):
     facecolor = symbol.get('color')
     if facecolor:
         facecolor = list(map(lambda v: v / 255, facecolor))
+        facecolor[3] = facecolor[3] * opacity
 
-    edgecolor = symbol.get('outline').get('color')
+    edgecolor = symbol.get('outline', {}).get('color')
     if edgecolor:
         edgecolor = list(map(lambda v: v / 255, edgecolor))
+        edgecolor[3] = edgecolor[3] * opacity
 
-    linewidth = symbol.get('outline').get('width')
+    linewidth = symbol.get('outline', {}).get('width')
+
+    hatch_types = {
+        'esriSFSBackwardDiagonal': '\\',
+        'esriSFSCross': '+',
+        'esriSFSDiagonalCross': 'x',
+        'esriSFSForwardDiagonal': '/',
+        'esriSFSHorizontal': '-',
+        'esriSFSVertical': '|'
+    }
+    hatch = hatch_types.get(symbol.get('style'))
+
+    color = None
+    if symbol.get('imageData'):
+        color = 'None'
+
+    if hatch:
+        edgecolor = edgecolor or facecolor
+        facecolor = 'None'
 
     return {
         'facecolor': facecolor,
         'edgecolor': edgecolor,
-        'linewidth': linewidth
+        'linewidth': linewidth,
+        'hatch': hatch,
+        'color': color
     }
+
+def symbol_to_plot_type(symbol) -> str:
+    plot_type = symbol['type']
+    if plot_type == 'esriSFS':
+        return 'polygon'
+    elif plot_type == 'esriPMS':
+        return 'point'
+    else:
+        raise ValueError(f"plot_type '{plot_type}' not handled")
+
+def symbol_to_marker_image(symbol):
+    if symbol.get('imageData'):
+        i = base64.b64decode(symbol['imageData'])
+        i = BytesIO(i)
+        return mpimg.imread(i, format=symbol['imageData'].split('/')[-1])
+
+def add_marker_image_point(ax, marker_image, point):
+    bb = Bbox.from_bounds(point.x-0.5, point.y-0.5, 1, 1)  
+    bb2 = TransformedBbox(bb, ax.transData)
+    bbox_image = BboxImage(
+        bb2,
+        norm=None,
+        origin=None,
+        clip_on=False
+    )
+    bbox_image.set_data(marker_image)
+    ax.add_artist(bbox_image)
 
 def mapserver_layer_image(layer: Layer) -> Image:
     drawing_info = layer.server_info()['drawingInfo']
+    opacity = drawing_info_to_opacity(drawing_info)
     renderer_type = drawing_info['renderer']['type']
     bounds = layer.bounds()
     image_info = bounds_to_image_info(bounds)
@@ -195,38 +251,75 @@ def mapserver_layer_image(layer: Layer) -> Image:
     ax = None
 
     if renderer_type == 'simple':
-        geoplot_args = symbol_to_geoplot_args(drawing_info['renderer']['symbol'])
+        symbol = drawing_info['renderer']['symbol']
+        geoplot_args = symbol_to_geoplot_args(symbol, opacity)
+        plot_type = symbol_to_plot_type(symbol)
+        marker_image = symbol_to_marker_image(symbol)
 
-        ax = geoplot.polyplot(
-            gdf,
-            ax=ax,
-            extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
-            **geoplot_args
-        )
-    elif renderer_type == 'uniqueValue':
-        value_column = drawing_info['renderer']['field1'].lower()
-        unique_value_infos = drawing_info['renderer']['uniqueValueInfos']
-
-        for unique_value_info in unique_value_infos:
-            geoplot_args = symbol_to_geoplot_args(unique_value_info['symbol'])
-            filtered_gdf = gdf[gdf[value_column] == unique_value_info['value']]
-
+        if plot_type == 'polygon':
             ax = geoplot.polyplot(
-                filtered_gdf,
+                gdf,
+                ax=ax,
+                extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                **geoplot_args
+            )
+        elif plot_type == 'point':
+            ax = geoplot.pointplot(
+                gdf,
                 ax=ax,
                 extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
                 **geoplot_args
             )
 
+            if symbol.get('imageData'):
+                for i, row in filtered_gdf.iterrows():
+                    add_marker_image_point(ax, marker_image, row['geometry'])
+        else:
+            raise ValueError(f"plot_type '{plot_type}' not handled")
+    elif renderer_type == 'uniqueValue':
+        value_column = drawing_info['renderer']['field1'].lower()
+        unique_value_infos = drawing_info['renderer']['uniqueValueInfos']
+
+        for unique_value_info in unique_value_infos:
+            symbol = unique_value_info['symbol']
+            geoplot_args = symbol_to_geoplot_args(symbol, opacity)
+            plot_type = symbol_to_plot_type(symbol)
+            marker_image = symbol_to_marker_image(symbol)
+            filtered_gdf = gdf[gdf[value_column] == unique_value_info['value']]
+
+            if plot_type == 'polygon':
+                ax = geoplot.polyplot(
+                    filtered_gdf,
+                    ax=ax,
+                    extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                    **geoplot_args
+                )
+            elif plot_type == 'point':
+                ax = geoplot.pointplot(
+                    filtered_gdf,
+                    ax=ax,
+                    extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                    **geoplot_args
+                )
+
+                if symbol.get('imageData'):
+                    for i, row in filtered_gdf.iterrows():
+                        add_marker_image_point(ax, marker_image, row['geometry'])
+            else:
+                raise ValueError(f"plot_type '{plot_type}' not handled")
+    else:
+        raise ValueError(f"renderer_type '{renderer_type}' not handled")
+
     with BytesIO() as bytes_io:
         plt.plot(ax=ax)
-        plt.tight_layout()
-        plt.gcf().set_size_inches(image_info['width'], image_info['height'])
+        plt.tight_layout(pad=0)
+        fig = plt.gcf()
+        fig_width = fig.get_size_inches()[0]
+        fig.set_size_inches(fig_width, fig_width / image_info['aspect_ratio'])
         plt.savefig(
             bytes_io,
             format='png',
-            transparent=True,
-            dpi=1
+            transparent=True
         )
         bytes_io.seek(0)
         image = Image.open(bytes_io).copy()
@@ -248,6 +341,7 @@ def generate_layer_preview(layer: Layer, horizontal_subdivisions: int | None, ve
     else:
         layer_image = geoserver_layer_image(layer, horizontal_subdivisions, vertical_subdivisions)
 
+    layer_image = layer_image.resize((image_info['width'], image_info['height']))
     cropped_basemap = cropped_basemap_image(**bounds).resize((image_info['width'], image_info['height']))
     cropped_basemap.paste(layer_image, mask=layer_image)
 
