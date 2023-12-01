@@ -272,7 +272,7 @@ def mapserver_layer_image(layer: Layer) -> Image:
             )
 
             if symbol.get('imageData'):
-                for i, row in filtered_gdf.iterrows():
+                for i, row in gdf.iterrows():
                     add_marker_image_point(ax, marker_image, row['geometry'])
         else:
             raise ValueError(f"plot_type '{plot_type}' not handled")
