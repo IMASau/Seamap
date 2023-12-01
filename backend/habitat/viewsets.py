@@ -1095,6 +1095,10 @@ def meow_boundaries(request):
 @api_view()
 @renderer_classes((JSONRenderer, ShapefileRenderer))
 def habitat_statistics(request):
+    for required in ['boundary-type']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+
     params = {k: v or None for k, v in request.query_params.items()}
     boundary_type        = params.get('boundary-type')
     network              = params.get('network')
@@ -1119,55 +1123,54 @@ def habitat_statistics(request):
         elif boundary_type == 'meow':
             cursor.execute(SQL_GET_MEOW_BOUNDARY_AREA, [realm, province, ecoregion])
         else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({"message": f"'{boundary_type}' is not a valid value for 'boundary-type'"})
 
-        try:
-            boundary_area = float(cursor.fetchone()[0])
+        boundary_area = float(cursor.fetchone()[0])
 
-            if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [network, park, zone, zone_iucn, zone_id, boundary_area])
-            elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [provincial_bioregion, mesoscale_bioregion, boundary_area])
-            elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [realm, province, ecoregion, boundary_area])
-            else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-
-            columns = [col[0] for col in cursor.description]
-            namedrow = namedtuple('Result', columns)
-            results = [namedrow(*row) for row in cursor.fetchall()]
-
-            if is_download:
-                boundary_name = ''
-                if boundary_type == 'amp':
-                    boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn, zone_id] if v])
-                elif boundary_type == 'imcra':
-                    boundary_name = ' - '.join([v for v in [provincial_bioregion, mesoscale_bioregion] if v])
-                elif boundary_type == 'meow':
-                    boundary_name = ' - '.join([v for v in [realm, province, ecoregion] if v])
-                else:
-                    return Response(status=status.HTTP_400_BAD_REQUEST)
-                return Response({'data': results,
-                                 'fields': cursor.description,
-                                 'file_name': boundary_name},
-                                content_type='application/zip',
-                                headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
-            
-            habitat_stats = [row._asdict() for row in results]
-
-            mapped_area = float(sum(v['area'] for v in habitat_stats))
-            mapped_percentage = 100 * mapped_area / boundary_area
-            habitat_stats.append({'habitat': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
-        except Exception as e:
-            logging.error('Error at %s', 'division', exc_info=e)
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if boundary_type == 'amp':
+            cursor.execute(SQL_GET_AMP_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [network, park, zone, zone_iucn, zone_id, boundary_area])
+        elif boundary_type == 'imcra':
+            cursor.execute(SQL_GET_IMCRA_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [provincial_bioregion, mesoscale_bioregion, boundary_area])
+        elif boundary_type == 'meow':
+            cursor.execute(SQL_GET_MEOW_HABITAT_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [realm, province, ecoregion, boundary_area])
         else:
-            return Response(habitat_stats)
+            raise ValidationError({"message": f"'{boundary_type}' is not a valid value for 'boundary-type'"})
+
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        if is_download:
+            boundary_name = ''
+            if boundary_type == 'amp':
+                boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn, zone_id] if v])
+            elif boundary_type == 'imcra':
+                boundary_name = ' - '.join([v for v in [provincial_bioregion, mesoscale_bioregion] if v])
+            elif boundary_type == 'meow':
+                boundary_name = ' - '.join([v for v in [realm, province, ecoregion] if v])
+            else:
+                raise ValidationError({"message": f"'{boundary_type}' is not a valid value for 'boundary-type'"})
+            return Response({'data': results,
+                                'fields': cursor.description,
+                                'file_name': boundary_name},
+                            content_type='application/zip',
+                            headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
+        
+        habitat_stats = [row._asdict() for row in results]
+
+        mapped_area = float(sum(v['area'] for v in habitat_stats))
+        mapped_percentage = 100 * mapped_area / boundary_area
+        habitat_stats.append({'habitat': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
+        return Response(habitat_stats)
 
 @action(detail=False)
 @api_view()
 @renderer_classes((JSONRenderer, ShapefileRenderer))
 def bathymetry_statistics(request):
+    for required in ['boundary-type']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+
     params = {k: v or None for k, v in request.query_params.items()}
     boundary_type        = params.get('boundary-type')
     network              = params.get('network')
@@ -1192,54 +1195,53 @@ def bathymetry_statistics(request):
         elif boundary_type == 'meow':
             cursor.execute(SQL_GET_MEOW_BOUNDARY_AREA, [realm, province, ecoregion])
         else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            boundary_area = float(cursor.fetchone()[0])
+            raise ValidationError({"message": f"'{boundary_type}' is not a valid value for 'boundary-type'"})
 
-            if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [network, park, zone, zone_iucn, zone_id, boundary_area])
-            elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [provincial_bioregion, mesoscale_bioregion, boundary_area])
-            elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [realm, province, ecoregion, boundary_area])
-            else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+        boundary_area = float(cursor.fetchone()[0])
 
-            columns = [col[0] for col in cursor.description]
-            namedrow = namedtuple('Result', columns)
-            results = [namedrow(*row) for row in cursor.fetchall()]
-
-            if is_download:
-                boundary_name = ''
-                if boundary_type == 'amp':
-                    boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn, zone_id] if v])
-                elif boundary_type == 'imcra':
-                    boundary_name = ' - '.join([v for v in [provincial_bioregion, mesoscale_bioregion] if v])
-                elif boundary_type == 'meow':
-                    boundary_name = ' - '.join([v for v in [realm, province, ecoregion] if v])
-                else:
-                    return Response(status=status.HTTP_400_BAD_REQUEST)
-                return Response({'data': results,
-                                 'fields': cursor.description,
-                                 'file_name': boundary_name},
-                                content_type='application/zip',
-                                headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
-
-            bathymetry_stats = [row._asdict() for row in results]
-
-            mapped_area = float(sum(v['area'] for v in bathymetry_stats))
-            mapped_percentage = 100 * mapped_area / boundary_area
-            bathymetry_stats.append({'resolution': None, 'rank': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
-        except Exception as e:
-            logging.error('Error at %s', 'division', exc_info=e)
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if boundary_type == 'amp':
+            cursor.execute(SQL_GET_AMP_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [network, park, zone, zone_iucn, zone_id, boundary_area])
+        elif boundary_type == 'imcra':
+            cursor.execute(SQL_GET_IMCRA_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [provincial_bioregion, mesoscale_bioregion, boundary_area])
+        elif boundary_type == 'meow':
+            cursor.execute(SQL_GET_MEOW_BATHYMETRY_STATS.format(SQL_GEOM_BINARY_COL if is_download else ''), [realm, province, ecoregion, boundary_area])
         else:
-            return Response(bathymetry_stats)
+            raise ValidationError({"message": f"'{boundary_type}' is not a valid value for 'boundary-type'"})
+
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        results = [namedrow(*row) for row in cursor.fetchall()]
+
+        if is_download:
+            boundary_name = ''
+            if boundary_type == 'amp':
+                boundary_name = ' - '.join([v for v in [network, park, zone, zone_iucn, zone_id] if v])
+            elif boundary_type == 'imcra':
+                boundary_name = ' - '.join([v for v in [provincial_bioregion, mesoscale_bioregion] if v])
+            elif boundary_type == 'meow':
+                boundary_name = ' - '.join([v for v in [realm, province, ecoregion] if v])
+            else:
+                raise ValidationError({"message": f"'{boundary_type}' is not a valid value for 'boundary-type'"})
+            return Response({'data': results,
+                                'fields': cursor.description,
+                                'file_name': boundary_name},
+                            content_type='application/zip',
+                            headers={'Content-Disposition': 'attachment; filename="{}.zip"'.format(boundary_name)})
+
+        bathymetry_stats = [row._asdict() for row in results]
+
+        mapped_area = float(sum(v['area'] for v in bathymetry_stats))
+        mapped_percentage = 100 * mapped_area / boundary_area
+        bathymetry_stats.append({'resolution': None, 'rank': None, 'area': mapped_area, 'mapped_percentage': None, 'total_percentage': mapped_percentage})
+        return Response(bathymetry_stats)
 
 @action(detail=False)
 @api_view()
 def habitat_observations(request):
+    for required in ['boundary-type']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+
     params = {k: v or None for k, v in request.query_params.items()}
     boundary_type        = params.get('boundary-type')
     network              = params.get('network')
@@ -1258,65 +1260,67 @@ def habitat_observations(request):
     squidle = None
 
     with connections['transects'].cursor() as cursor:
-        try:
-            # Global Archives stats
-            if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [network, park, zone, zone_iucn, zone_id])
-            elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [provincial_bioregion, mesoscale_bioregion])
-            elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [realm, province, ecoregion])
-            else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-
-            columns = [col[0] for col in cursor.description]
-            namedrow = namedtuple('Result', columns)
-            result = namedrow(*cursor.fetchone())
-            global_archive = result._asdict()
-
-            # Marine Sediments stats
-            if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [network, park, zone, zone_iucn, zone_id])
-            elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [provincial_bioregion, mesoscale_bioregion])
-            elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [realm, province, ecoregion])
-            else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-
-            columns = [col[0] for col in cursor.description]
-            namedrow = namedtuple('Result', columns)
-            result = namedrow(*cursor.fetchone())
-            sediment = result._asdict()
-
-            # SQUIDLE observations
-            if boundary_type == 'amp':
-                cursor.execute(SQL_GET_AMP_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [network, park, zone, zone_iucn, zone_id])
-            elif boundary_type == 'imcra':
-                cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [provincial_bioregion, mesoscale_bioregion])
-            elif boundary_type == 'meow':
-                cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [realm, province, ecoregion])
-            else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            
-            columns = [col[0] for col in cursor.description]
-            namedrow = namedtuple('Result', columns)
-            result = namedrow(*cursor.fetchone())
-            squidle = result._asdict()
-        except Exception as e:
-            logging.error('Error at %s', 'division', exc_info=e)
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # Global Archives stats
+        if boundary_type == 'amp':
+            cursor.execute(SQL_GET_AMP_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [network, park, zone, zone_iucn, zone_id])
+        elif boundary_type == 'imcra':
+            cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [provincial_bioregion, mesoscale_bioregion])
+        elif boundary_type == 'meow':
+            cursor.execute(SQL_GET_MEOW_HABITAT_OBS_GLOBALARCHIVE + SQL_GET_GLOBALARCHIVE_STATS, [realm, province, ecoregion])
         else:
-            return Response({'global_archive': global_archive, 'sediment': sediment, 'squidle': squidle})
+            raise ValidationError({"message": f"'{boundary_type}' is not a valid value for 'boundary-type'"})
+
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        result = namedrow(*cursor.fetchone())
+        global_archive = result._asdict()
+
+        # Marine Sediments stats
+        if boundary_type == 'amp':
+            cursor.execute(SQL_GET_AMP_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [network, park, zone, zone_iucn, zone_id])
+        elif boundary_type == 'imcra':
+            cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [provincial_bioregion, mesoscale_bioregion])
+        elif boundary_type == 'meow':
+            cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SEDIMENT + SQL_GET_SEDIMENT_STATS, [realm, province, ecoregion])
+        else:
+            raise ValidationError({"message": f"'{boundary_type}' is not a valid value for 'boundary-type'"})
+
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        result = namedrow(*cursor.fetchone())
+        sediment = result._asdict()
+
+        # SQUIDLE observations
+        if boundary_type == 'amp':
+            cursor.execute(SQL_GET_AMP_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [network, park, zone, zone_iucn, zone_id])
+        elif boundary_type == 'imcra':
+            cursor.execute(SQL_GET_IMCRA_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [provincial_bioregion, mesoscale_bioregion])
+        elif boundary_type == 'meow':
+            cursor.execute(SQL_GET_MEOW_HABITAT_OBS_SQUIDLE + SQL_GET_SQUIDLE_STATS, [realm, province, ecoregion])
+        else:
+            raise ValidationError({"message": f"'{boundary_type}' is not a valid value for 'boundary-type'"})
+        
+        columns = [col[0] for col in cursor.description]
+        namedrow = namedtuple('Result', columns)
+        result = namedrow(*cursor.fetchone())
+        squidle = result._asdict()
+        return Response({'global_archive': global_archive, 'sediment': sediment, 'squidle': squidle})
 
 @action(detail=False)
 @api_view()
 def region_report_data(request):
+    for required in ['network']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+
     params = {k: v or None for k, v in request.query_params.items()}
     network = params.get('network')
     park    = params.get('park')
 
-    rr = RegionReport.objects.get(network=network, park=park)
+    try:
+        rr = RegionReport.objects.get(network=network, park=park)
+    except RegionReport.DoesNotExist as e:
+        raise ValidationError({"message": f"Region network='{request.query_params['network']}'" + (f", park='{request.query_params['park']}'" if request.query_params['park'] else "") + " is not valid"})
     data = RegionReportSerializer(rr).data
 
     data["parks"] = [{'park': v.park, 'slug': v.slug} for v in RegionReport.objects.filter(network=network) if v.park] if park == None else None
@@ -1332,31 +1336,35 @@ def region_report_data(request):
     data["app_boundary_layer"] = LayerSerializer(KeyedLayer.objects.get(keyword=('amp-park' if park != None else 'amp-network')).layer).data
 
     with connections['transects'].cursor() as cursor:
-        try:
-            cursor.execute(SQL_GET_PARK_SQUIDLE_URL if park else SQL_GET_NETWORK_SQUIDLE_URL, [park or network])
-            entry = cursor.fetchone()
-            data["squidle_url"] = entry[0] if entry else None # some parks do not have URLs, so in that event we just provide a null URL
-        except Exception as e:
-            logging.error('Error at %s', 'division', exc_info=e)
-            pass
+        cursor.execute(SQL_GET_PARK_SQUIDLE_URL if park else SQL_GET_NETWORK_SQUIDLE_URL, [park or network])
+        entry = cursor.fetchone()
+        data["squidle_url"] = entry[0] if entry else None # some park
 
     return Response(data)
 
 @action(detail=False)
 @api_view()
 def data_in_region(request):
+    for required in ['north', 'south', 'east', 'west']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+    
     params = {k: v or None for k, v in request.query_params.items()}
-    try:
-        select = box(
-            float(params['east']),
-            float(params['south']),
-            float(params['west']),
-            float(params['north'])
-        )
-    except Exception as e:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-    else:
-        with connections['transects'].cursor() as cursor:
-            cursor.execute(SQL_GET_DATA_IN_REGION, [select.wkt])
-            layer_ids = [row[0] for row in cursor.fetchall()]
-        return Response(layer_ids)
+
+    for bound in ['north', 'south', 'east', 'west']:
+        try:
+            params[bound] = float(params[bound])
+        except ValueError as e:
+            raise ValidationError({"message": f"'{params[bound]}' is not a valid value for '{bound}'"})
+    select = box(
+        params['east'],
+        params['south'],
+        params['west'],
+        params['north']
+    )
+
+    with connections['transects'].cursor() as cursor:
+        cursor.execute(SQL_GET_DATA_IN_REGION, [select.wkt])
+        layer_ids = [row[0] for row in cursor.fetchall()]
+    
+    return Response(layer_ids)

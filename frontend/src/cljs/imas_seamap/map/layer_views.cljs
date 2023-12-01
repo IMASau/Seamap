@@ -26,7 +26,7 @@
 (defn- layer-header-text
   "Layer name, with some other fancy stuff on top."
   [{{:keys [name tooltip] :as layer} :layer
-    {{:keys [alternate-views-selected timeline-selected displayed-layer]} :rich-layer} :layer-state}]
+    {{:keys [alternate-views-selected timeline-selected displayed-layer slider-label]} :rich-layer} :layer-state}]
   [:div.layer-header-text
    [b/tooltip
     {:content
@@ -46,7 +46,7 @@
        timeline-selected
        (reagent/as-element
         [:div {:style {:max-width "320px"}}
-         (str "FILTER APPLIED: Year: " (get-in timeline-selected [:year]))
+         (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label]))
          [b/button
           {:icon     "cross"
            :minimal  true
@@ -70,7 +70,7 @@
    layer's details."
   [{{:keys [name tooltip] :as layer} :layer
     {:keys [expanded?]
-     {:keys [alternate-views-selected timeline-selected displayed-layer]} :rich-layer} :layer-state}]
+     {:keys [alternate-views-selected timeline-selected displayed-layer slider-label]} :rich-layer} :layer-state}]
   [:div.layer-header-text
    [b/tooltip
     {:content
@@ -90,7 +90,7 @@
        timeline-selected
        (reagent/as-element
         [:div {:style {:max-width "320px"}}
-         (str "FILTER APPLIED: Year: " (get-in timeline-selected [:year]))
+         (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label]))
          [b/button
           {:icon     "cross"
            :minimal  true

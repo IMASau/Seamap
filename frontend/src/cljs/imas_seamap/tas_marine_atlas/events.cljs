@@ -341,12 +341,6 @@
   {:db      (update-in
              db [:map :controls :download]
              merge {:selecting false :bbox bbox})
-   :message  [(r/as-element
-               [:div
-                "Open layer info ("
-                [b/icon {:icon "info-sign" :icon-size 14}]
-                ") to download selection"])
-              b/INTENT-NONE]
    :dispatch-n [[:data-in-region/open true]
                 [:data-in-region/get bbox]]})
 
