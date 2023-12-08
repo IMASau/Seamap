@@ -131,7 +131,7 @@
      {:title
       [:<>
        [:div
-        [:a {:href "https://tasmaniamarineatlas.org/"}
+        [:a {:href "https://tasmarineatlas.org/"}
          [:img {:src "img/TMA_Banner_size_website.png"}]]]]
       :position    "left"
       :size        "368px"
