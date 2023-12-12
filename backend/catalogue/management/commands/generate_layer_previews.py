@@ -278,6 +278,7 @@ def mapserver_layer_image(layer: Layer) -> Image:
             raise ValueError(f"plot_type '{plot_type}' not handled")
     elif renderer_type == 'uniqueValue':
         value_column = drawing_info['renderer']['field1'].lower()
+        gdf[value_column] = gdf[value_column].astype(str)
         unique_value_infos = drawing_info['renderer']['uniqueValueInfos']
 
         for unique_value_info in unique_value_infos:
