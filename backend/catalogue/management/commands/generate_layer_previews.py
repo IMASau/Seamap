@@ -15,6 +15,7 @@ import base64
 import matplotlib.image as mpimg
 from matplotlib.image import BboxImage
 from matplotlib.transforms import Bbox, TransformedBbox
+from shapely.geometry import shape, LineString, MultiLineString, Polygon, MultiPolygon
 from catalogue.emails import email_generate_layer_preview_summary
 
 from catalogue.models import Layer
@@ -164,17 +165,25 @@ def drawing_info_to_opacity(drawing_info) -> float:
     return (100 - drawing_info.get('transparency', 0)) / 100
 
 def symbol_to_geoplot_args(symbol, opacity: float):
-    facecolor = symbol.get('color')
+    plot_type = symbol_to_plot_type(symbol)
+
+    facecolor = None
+    if plot_type == 'polygon':
+        facecolor = symbol.get('color')
     if facecolor:
         facecolor = list(map(lambda v: v / 255, facecolor))
         facecolor[3] = facecolor[3] * opacity
 
-    edgecolor = symbol.get('outline', {}).get('color')
+    edgecolor = None
+    if plot_type == 'polygon':
+        edgecolor = (symbol.get('outline') or {}).get('color')
+    elif plot_type == 'line':
+        edgecolor = symbol.get('color')
     if edgecolor:
         edgecolor = list(map(lambda v: v / 255, edgecolor))
         edgecolor[3] = edgecolor[3] * opacity
 
-    linewidth = symbol.get('outline', {}).get('width')
+    linewidth = (symbol.get('outline') or {}).get('width')
 
     hatch_types = {
         'esriSFSBackwardDiagonal': '\\',
@@ -206,6 +215,8 @@ def symbol_to_plot_type(symbol) -> str:
     plot_type = symbol['type']
     if plot_type == 'esriSFS':
         return 'polygon'
+    elif plot_type == 'esriSLS':
+        return 'line'
     elif plot_type == 'esriPMS':
         return 'point'
     else:
@@ -228,6 +239,21 @@ def add_marker_image_point(ax, marker_image, point):
     )
     bbox_image.set_data(marker_image)
     ax.add_artist(bbox_image)
+
+def linestring_to_polygon(geometry: LineString) -> Polygon:
+    coords = list(geometry.coords)
+    if len(coords) == 2:
+        return Polygon(coords + [coords[0]])
+    else:
+        return Polygon(coords + list(reversed(coords[1:-1])))
+
+
+def geometry_to_polygon(geometry: shape) -> shape:
+    if isinstance(geometry, LineString):
+        return linestring_to_polygon(geometry)
+    elif isinstance(geometry, MultiLineString):
+        return MultiPolygon(linestring_to_polygon(v) for v in geometry.geoms)
+    return geometry
 
 def mapserver_layer_image(layer: Layer) -> Image:
     drawing_info = layer.server_info()['drawingInfo']
@@ -263,6 +289,14 @@ def mapserver_layer_image(layer: Layer) -> Image:
                 extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
                 **geoplot_args
             )
+        elif plot_type == 'line':
+            gdf['geometry'] = gdf['geometry'].map(geometry_to_polygon)
+            ax = geoplot.polyplot(
+                gdf,
+                ax=ax,
+                extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                **geoplot_args
+            )
         elif plot_type == 'point':
             ax = geoplot.pointplot(
                 gdf,
@@ -289,6 +323,14 @@ def mapserver_layer_image(layer: Layer) -> Image:
             filtered_gdf = gdf[gdf[value_column] == unique_value_info['value']]
 
             if plot_type == 'polygon':
+                ax = geoplot.polyplot(
+                    filtered_gdf,
+                    ax=ax,
+                    extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                    **geoplot_args
+                )
+            elif plot_type == 'line':
+                filtered_gdf['geometry'] = filtered_gdf['geometry'].map(geometry_to_polygon)
                 ax = geoplot.polyplot(
                     filtered_gdf,
                     ax=ax,
