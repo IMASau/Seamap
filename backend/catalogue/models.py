@@ -103,7 +103,7 @@ class Layer(models.Model):
             'f':         'geojson'
         }
 
-        r = requests.get(url=url, params=params)
+        r = requests.get(url=url, params=params, verify=False)
 
         return r.json()
 
@@ -111,7 +111,7 @@ class Layer(models.Model):
         url = self.server_url
         params = { 'f': 'json' }
 
-        r = requests.get(url=url, params=params)
+        r = requests.get(url=url, params=params, verify=False)
 
         return r.json()
     
