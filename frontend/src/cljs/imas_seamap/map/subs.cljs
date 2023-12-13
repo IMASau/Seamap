@@ -56,7 +56,18 @@
         (->>
          layers
          (filter #(get-in categories [(:category %) :display_name])) ; only layers with a category that has a display name are allowed
-         (remove (reduce-kv (fn [acc key val] (if (val key) acc (conj acc key))) #{} rich-layer-children))) ; removes rich-layer children (except those that are a child of themselves)
+         (remove
+          (reduce-kv
+           (fn [acc key {:keys [alternate-views timeline]}]
+             (let [children
+                   (set
+                    (remove
+                     #(= (:id %) key)
+                     (set/union
+                      (set (map :layer alternate-views))
+                      (set (map :layer timeline)))))]
+               (set/union acc children)))
+           #{} rich-layers))) ; removes rich-layer children (except those that are a child of themselves)
         
         viewport-layers (viewport-layers bounds catalogue-layers)
         filtered-layers (set (filter (partial match-layer filter-text categories) layers)) ; get the set of all layers that match the filter
