@@ -85,7 +85,7 @@
      :viewport-layers viewport-layers
      :catalogue-layers catalogue-layers
      :rich-layer-fn   (fn [{:keys [id] :as _layer}]
-                        (enhance-rich-layer (get rich-layers id)))}))
+                        (enhance-rich-layer (get rich-layers id) rich-layers))}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))

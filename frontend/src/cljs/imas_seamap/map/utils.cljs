@@ -418,22 +418,32 @@
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
-  [{:keys [alternate-views alternate-views-selected timeline timeline-selected] :as rich-layer}]
-  (let [alternate-views-selected (first-where #(= (get-in % [:layer :id]) alternate-views-selected) alternate-views)
-        timeline-selected        (first-where #(= (get-in % [:layer :id]) timeline-selected) timeline)]
+  [{:keys [slider-label alternate-views timeline]
+    alternate-views-selected-id :alternate-views-selected
+    timeline-selected-id :timeline-selected
+    :as rich-layer}
+   rich-layers]
+  (let [alternate-views-selected  (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
+        alternate-view-rich-layer (get rich-layers alternate-views-selected-id)
+        timeline                  (or (:timeline alternate-view-rich-layer) timeline)
+        slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
+        timeline-selected         (first-where #(= (get-in % [:layer :id]) timeline-selected-id) timeline)]
     (when rich-layer
       (assoc
        rich-layer
        :alternate-views-selected alternate-views-selected
        :timeline-selected        timeline-selected
-       :displayed-layer          (:layer (or alternate-views-selected timeline-selected))))))
+       :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
+       :timeline                 timeline
+       :slider-label             slider-label
+       :displayed-layer          (:layer (or timeline-selected alternate-views-selected))))))
 
 (defn rich-layer->displayed-layer
   "If a layer is a rich-layer, then return the currently displayed layer (including
    default if no alternate view or timeline selected). If layer is not a
    rich-layer, then the layer is just returned."
   [{:keys [id] :as layer} rich-layers]
-  (let [rich-layer (enhance-rich-layer (get rich-layers id))]
+  (let [rich-layer (enhance-rich-layer (get rich-layers id) rich-layers)]
     (or (:displayed-layer rich-layer) layer)))
 
 (defn rich-layer-children->parents
