@@ -256,7 +256,7 @@
 
 (defn- timeline-select
   [{:keys [layer]
-    {{:keys [timeline timeline-selected timeline-disabled? slider-label displayed-layer]} :rich-layer} :layer-state}] 
+    {{:keys [timeline timeline-selected timeline-disabled? slider-label displayed-layer]} :rich-layer} :layer-state}]
   (let [timeline   (sort-by :value timeline)
         values     (map :value timeline)
         gaps      (:gaps
@@ -279,7 +279,7 @@
        :min      (apply min values)
        :max      (apply max values)
        :step     0.01
-       :value    (:value (or timeline-selected (first-where #(= (get-in % [:layer :id]) (:id displayed-layer)) timeline)))
+       :value    (:value (or timeline-selected (first-where #(= (get-in % [:layer :id]) (:id (or displayed-layer layer))) timeline)))
        :on-click #(.stopPropagation %)
        :on-input (fn [e]
                    (let [value (-> e .-target .-value)

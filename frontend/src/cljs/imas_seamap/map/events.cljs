@@ -697,7 +697,7 @@
         rich-layers (get-in db [:map :rich-layers])
         rich-layer  (get rich-layers (:id layer))
 
-        {timeline :timeline
+        {:keys [timeline]
          new-slider-label :slider-label}
         (enhance-rich-layer rich-layer rich-layers)
 
