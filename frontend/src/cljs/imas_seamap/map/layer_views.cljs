@@ -239,7 +239,7 @@
 
 (defn- alternate-view-select
   [{:keys [layer]
-    {{:keys [alternate-views alternate-views-selected timeline-selected]} :rich-layer} :layer-state}]
+    {{:keys [alternate-views alternate-views-selected]} :rich-layer} :layer-state}]
   [components/form-group
    {:label    "Alternate View"}
    [:div
@@ -250,14 +250,13 @@
       :onChange     #(re-frame/dispatch [:map.rich-layer/alternate-views-selected layer %])
       :isSearchable true
       :isClearable  true
-      :isDisabled   (boolean timeline-selected)
       :keyfns
       {:id   #(get-in % [:layer :id])
        :text #(get-in % [:layer :name])}}]]])
 
 (defn- timeline-select
   [{:keys [layer]
-    {{:keys [timeline timeline-selected alternate-views-selected slider-label]} :rich-layer} :layer-state}] 
+    {{:keys [timeline timeline-selected timeline-disabled? slider-label displayed-layer]} :rich-layer} :layer-state}]
   (let [timeline   (sort-by :value timeline)
         values     (map :value timeline)
         gaps      (:gaps
@@ -280,13 +279,13 @@
        :min      (apply min values)
        :max      (apply max values)
        :step     0.01
-       :value    (:value (or timeline-selected (first-where #(= (get-in % [:layer :id]) (:id layer)) timeline)))
+       :value    (:value (or timeline-selected (first-where #(= (get-in % [:layer :id]) (:id (or displayed-layer layer))) timeline)))
        :on-click #(.stopPropagation %)
        :on-input (fn [e]
                    (let [value (-> e .-target .-value)
                          nearest-value (round-to-nearest value values)]
                      (re-frame/dispatch [:map.rich-layer/timeline-selected layer (first-where #(= (:value %) nearest-value) timeline)])))
-       :disabled (boolean alternate-views-selected)}]
+       :disabled timeline-disabled?}]
      [:div.time-range
       (map-indexed
        (fn [i v]

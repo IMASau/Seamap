@@ -22,6 +22,7 @@
         accent-color: var(--deep-blue);
         margin: 0;
         width: 100%;
+        &:disabled { accent-color: rgb(203, 203, 203); }
     }
 
     .time-range {
@@ -29,7 +30,7 @@
         font-size: 11px;
         display: flex;
         flex-direction: row;
-        
+
         >* {
             flex: 0;
             min-width: 0;
@@ -188,7 +189,7 @@
         height: 22px;
         -webkit-appearance: none;
         background: none;
-      
+
         &::-webkit-slider-runnable-track {
             width: 100%;
             height: 8px;
@@ -199,7 +200,7 @@
             border-radius: 4px;
             border: 1px solid #acacac;
         }
-      
+
         &::-webkit-slider-thumb {
             box-shadow: none;
             border: none;
@@ -211,7 +212,7 @@
             -webkit-appearance: none;
             margin-top: -5px;
         }
-      
+
         &::-moz-range-track {
             width: 100%;
             height: 8px;
@@ -222,7 +223,7 @@
             border-radius: 4px;
             border: 1px solid #acacac;
         }
-      
+
         &::-moz-range-thumb {
             box-shadow: none;
             border: none;
@@ -232,7 +233,7 @@
             background: var(--deep-blue);
             cursor: pointer;
         }
-      
+
         &::-ms-track {
             width: 100%;
             height: 8px;
@@ -242,21 +243,21 @@
             border-color: transparent;
             color: transparent;
         }
-      
+
         &::-ms-fill-lower {
             background: #EDEDED;
             border: 1px solid #acacac;
             border-radius: 8px;
             box-shadow: none;
         }
-      
+
         &::-ms-fill-upper {
             background: #EDEDED;
             border: 1px solid #acacac;
             border-radius: 8px;
             box-shadow: none;
         }
-      
+
         &::-ms-thumb {
             margin-top: 1px;
             box-shadow: none;
@@ -266,6 +267,87 @@
             border-radius: 8px;
             background: var(--deep-blue);
             cursor: pointer;
+        }
+
+        &:disabled {
+            &::-webkit-slider-runnable-track {
+                width: 100%;
+                height: 8px;
+                cursor: pointer;
+                animate: 0.2s;
+                box-shadow: 0px 0px 0px #000000;
+                background: #EDEDED;
+                border-radius: 4px;
+                border: 1px solid #acacac;
+            }
+    
+            &::-webkit-slider-thumb {
+                box-shadow: none;
+                border: none;
+                height: 16px;
+                width: 16px;
+                border-radius: 8px;
+                background: rgb(203, 203, 203);
+                cursor: pointer;
+                -webkit-appearance: none;
+                margin-top: -5px;
+            }
+    
+            &::-moz-range-track {
+                width: 100%;
+                height: 8px;
+                cursor: pointer;
+                animate: 0.2s;
+                box-shadow: none;
+                background: rgb(250, 250, 250);
+                border-radius: 4px;
+                border: 1px solid rgb(212, 212, 212);
+            }
+    
+            &::-moz-range-thumb {
+                box-shadow: none;
+                border: none;
+                height: 16px;
+                width: 16px;
+                border-radius: 8px;
+                background: rgb(203, 203, 203);
+                cursor: pointer;
+            }
+    
+            &::-ms-track {
+                width: 100%;
+                height: 8px;
+                cursor: pointer;
+                animate: 0.2s;
+                background: transparent;
+                border-color: transparent;
+                color: transparent;
+            }
+    
+            &::-ms-fill-lower {
+                background: rgb(250, 250, 250);
+                border: 1px solid rgb(212, 212, 212);
+                border-radius: 8px;
+                box-shadow: none;
+            }
+    
+            &::-ms-fill-upper {
+                background: rgb(250, 250, 250);
+                border: 1px solid rgb(212, 212, 212);
+                border-radius: 8px;
+                box-shadow: none;
+            }
+    
+            &::-ms-thumb {
+                margin-top: 1px;
+                box-shadow: none;
+                border: none;
+                height: 16px;
+                width: 16px;
+                border-radius: 8px;
+                background: rgb(203, 203, 203);
+                cursor: pointer;
+            }
         }
     }
 }

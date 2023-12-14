@@ -529,7 +529,7 @@
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ layer]]
   (let [layer-active?  ((set (get-in db [:map :active-layers])) layer) 
-        displayed-layer (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]))) ; try rich-layer displayed layer
+        displayed-layer (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]) (get-in db [:map :rich-layers]))) ; try rich-layer displayed layer
         bounding_box    (:bounding_box (or displayed-layer layer))]                                         ; if rich-layer displayed layer does not exist, use base layer
     {:db         db
      :dispatch-n [(when-not layer-active? [:map/add-layer layer])
@@ -589,7 +589,7 @@
         legends-get   (map
                        (fn [{:keys [id] :as layer}]
                          (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer))]
+                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer rich-layers))]
                            (or displayed-layer layer)))
                        legends-shown)
         db            (-> db
@@ -683,25 +683,49 @@
    :dispatch [:maybe-autosave]})
 
 (defn rich-layer-alternate-views-selected [{:keys [db]} [_ layer alternate-views-selected]]
-  {:db       (->
-              db
-              (assoc-in [:map :rich-layers (:id layer) :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
-              (assoc-in [:map :rich-layers (:id layer) :timeline-selected] nil))
-   :dispatch-n [(when
-                 (and alternate-views-selected (not (get-in db [:map :legends (get-in alternate-views-selected [:layer :id])])))
-                  [:map.layer/get-legend (:layer alternate-views-selected)])
-                [:maybe-autosave]]})
+  (let [rich-layers (get-in db [:map :rich-layers])
+        rich-layer  (get rich-layers (:id layer))
+
+        {{old-timeline-value :value
+          old-timeline-label :label}
+         :timeline-selected
+         old-slider-label :slider-label}
+        (enhance-rich-layer rich-layer rich-layers)
+
+        db (assoc-in db [:map :rich-layers (:id layer) :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
+
+        rich-layers (get-in db [:map :rich-layers])
+        rich-layer  (get rich-layers (:id layer))
+
+        {:keys [timeline]
+         new-slider-label :slider-label}
+        (enhance-rich-layer rich-layer rich-layers)
+
+        ; Find a value on the new alternate view's timeline that matches the old
+        ; selected value.
+        new-timeline-selected
+        (first-where
+         (fn [{:keys [value label]}]
+           (and
+            (= value old-timeline-value)
+            (= label old-timeline-label)
+            (= old-slider-label new-slider-label)))
+         timeline)]
+    {:db (assoc-in db [:map :rich-layers (:id layer) :timeline-selected] (get-in new-timeline-selected [:layer :id]))
+     :dispatch-n
+     [(when
+       (and alternate-views-selected (not (get-in db [:map :legends (get-in alternate-views-selected [:layer :id])])))
+        [:map.layer/get-legend (:layer alternate-views-selected)])
+      [:maybe-autosave]]}))
 
 (defn rich-layer-timeline-selected [{:keys [db]} [_ layer timeline-selected]]
   (let [timeline-selected (when (not= layer (:layer timeline-selected)) timeline-selected)]
-    {:db       (->
-                db
-                (assoc-in [:map :rich-layers (:id layer) :timeline-selected] (get-in timeline-selected [:layer :id]))
-                (assoc-in [:map :rich-layers (:id layer) :alternate-views-selected] nil))
-     :dispatch-n [(when
-                   (and timeline-selected (not (get-in db [:map :legends (get-in timeline-selected [:layer :id])])))
-                    [:map.layer/get-legend (:layer timeline-selected)])
-                  [:maybe-autosave]]}))
+    {:db (assoc-in db [:map :rich-layers (:id layer) :timeline-selected] (get-in timeline-selected [:layer :id]))
+     :dispatch-n
+     [(when
+       (and timeline-selected (not (get-in db [:map :legends (get-in timeline-selected [:layer :id])])))
+        [:map.layer/get-legend (:layer timeline-selected)])
+      [:maybe-autosave]]}))
 
 (defn rich-layer-reset-filters [{:keys [db]} [_ layer]]
   (merge

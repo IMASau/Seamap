@@ -226,7 +226,7 @@
         legends-get   (map
                        (fn [{:keys [id] :as layer}]
                          (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer))]
+                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer rich-layers))]
                            (or displayed-layer layer)))
                        legends-shown)
         db            (-> db
@@ -398,7 +398,7 @@
 
 (defn layer-show-info [{:keys [db]} [_ layer]]
   (let [{:keys [metadata_url] :as displayed-layer}
-        (or (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]))) layer)]
+        (or (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]) (get-in db [:map :rich-layers]))) layer)]
     ;; This regexp: has been relaxed slightly; it used to be a strict
     ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
     ;; alpha-nums with optional hyphens. I assume this is from records
