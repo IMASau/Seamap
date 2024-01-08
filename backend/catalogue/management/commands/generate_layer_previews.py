@@ -146,7 +146,7 @@ def geoserver_retrieve_image(layer: Layer, horizontal_subdivisions: int=1, verti
             )
     return image
 
-def geoserver_layer_image(layer: Layer, horizontal_subdivisions: int, vertical_subdivisions: int) -> Image:
+def wms_layer_image(layer: Layer, horizontal_subdivisions: int, vertical_subdivisions: int) -> Image:
     if horizontal_subdivisions or vertical_subdivisions:
         try:
             return geoserver_retrieve_image(layer, horizontal_subdivisions, vertical_subdivisions)
@@ -255,7 +255,7 @@ def geometry_to_polygon(geometry: shape) -> shape:
         return MultiPolygon(linestring_to_polygon(v) for v in geometry.geoms)
     return geometry
 
-def mapserver_layer_image(layer: Layer) -> Image:
+def mapserver_vector_layer_image(layer: Layer) -> Image:
     drawing_info = layer.server_info()['drawingInfo']
     opacity = drawing_info_to_opacity(drawing_info)
     renderer_type = drawing_info['renderer']['type']
@@ -368,8 +368,8 @@ def mapserver_layer_image(layer: Layer) -> Image:
         image = Image.open(bytes_io).copy()
         return image
 
-def featureserver_layer_image(layer: Layer) -> Image:
-    return mapserver_layer_image(layer) # FeatureServer case seemingly the same as MapServer case (for now)
+def featureserver_vector_layer_image(layer: Layer) -> Image:
+    return mapserver_vector_layer_image(layer) # FeatureServer case seemingly the same as MapServer case (for now)
 
 def generate_layer_preview(layer: Layer, horizontal_subdivisions: int, vertical_subdivisions: int) -> None:
     filepath = f'layer_previews/{layer.id}.png'
@@ -377,12 +377,12 @@ def generate_layer_preview(layer: Layer, horizontal_subdivisions: int, vertical_
     image_info = bounds_to_image_info(bounds)
 
     layer_image = None
-    if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url):
-        layer_image = mapserver_layer_image(layer)
-    elif re.search(r'^(.+?)/services/(.+?)/FeatureServer/.+$', layer.server_url):
-        layer_image = featureserver_layer_image(layer)
+    if re.search(r'^(.+?)/services/(.+?)/MapServer/(?!WMSServer).+$', layer.server_url):
+        layer_image = mapserver_vector_layer_image(layer)
+    elif re.search(r'^(.+?)/services/(.+?)/FeatureServer/(?!WMSServer).+$', layer.server_url):
+        layer_image = featureserver_vector_layer_image(layer)
     else:
-        layer_image = geoserver_layer_image(layer, horizontal_subdivisions, vertical_subdivisions)
+        layer_image = wms_layer_image(layer, horizontal_subdivisions, vertical_subdivisions)
 
     layer_image = layer_image.resize((image_info['width'], image_info['height']))
     cropped_basemap = cropped_basemap_image(**bounds).resize((image_info['width'], image_info['height']))
@@ -443,7 +443,7 @@ class Command(BaseCommand):
         if len(errors):
             logging.warn("Failed to retrieve the following layers: \n{}".format(
                 '\n'.join(
-                    [f" • {error['layer'].layer_name} ({error['layer'].id})" for error in errors]
+                    [f" • {error['layer'].name} ({error['layer'].id})" for error in errors]
                 )
             ))
 
