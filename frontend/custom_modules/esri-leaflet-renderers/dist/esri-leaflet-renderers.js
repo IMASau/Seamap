@@ -50,7 +50,13 @@
 
     // color is an array [r,g,b,a]
     colorValue: function (color) {
+      if (color.length === 3) {
       return 'rgb(' + color[0] + ',' + color[1] + ',' + color[2] + ')';
+      } else if (color.length === 4) {
+        return 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',' + this.alphaValue(color) + ')';
+      } else {
+        throw new Error('Invalid color');
+      }
     },
 
     alphaValue: function (color) {
