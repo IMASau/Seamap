@@ -13,6 +13,7 @@ import geoplot
 import matplotlib.pyplot as plt
 import base64
 import matplotlib.image as mpimg
+import functools
 from matplotlib.image import BboxImage
 from matplotlib.transforms import Bbox, TransformedBbox
 from shapely.geometry import shape, LineString, MultiLineString, Polygon, MultiPolygon
@@ -255,6 +256,26 @@ def geometry_to_polygon(geometry: shape) -> shape:
         return MultiPolygon(linestring_to_polygon(v) for v in geometry.geoms)
     return geometry
 
+def compare_unique_value_infos(unique_value_info1, unique_value_info2) -> int:
+    style1 = unique_value_info1['symbol'].get('style')
+    style2 = unique_value_info2['symbol'].get('style')
+
+    try:
+        opacity1 = unique_value_info1['symbol']['color'][3]
+    except:
+        opacity1 = 255
+    try:
+        opacity2 = unique_value_info2['symbol']['color'][3]
+    except:
+        opacity2 = 255
+
+    if style1 == 'esriSFSSolid' and style2 != 'esriSFSSolid':
+        return -1
+    elif style1 != 'esriSFSSolid' and style2 == 'esriSFSSolid':
+        return 1
+
+    return opacity1 - opacity2
+
 def mapserver_vector_layer_image(layer: Layer) -> Image:
     drawing_info = layer.server_info()['drawingInfo']
     opacity = drawing_info_to_opacity(drawing_info)
@@ -314,6 +335,7 @@ def mapserver_vector_layer_image(layer: Layer) -> Image:
         value_column = drawing_info['renderer']['field1'].lower()
         gdf[value_column] = gdf[value_column].astype(str)
         unique_value_infos = drawing_info['renderer']['uniqueValueInfos']
+        unique_value_infos.sort(key=functools.cmp_to_key(compare_unique_value_infos))
 
         for unique_value_info in unique_value_infos:
             symbol = unique_value_info['symbol']
