@@ -861,6 +861,9 @@
     (= layer_type :feature)
     :map-server-vector
 
+    (= layer_type :raster)
+    :map-server-vector
+
     (and (#{:wms :wms-non-tiled} layer_type)
          (map-server-url? server_url))
     :wms-image
