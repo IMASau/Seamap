@@ -366,7 +366,7 @@
   (let [expanded (reagent/atom false)
         {:keys [img-url-base]} @(re-frame/subscribe [:url-base])]
     (fn [{:keys [license-name license-link license-img constraints other]
-          {:keys [category organisation metadata_url server_url layer_name metadata_summary] :as layer} :layer}]
+          {:keys [category organisation metadata_url server_url layer_name metadata_summary layer_type] :as layer} :layer}]
       [:div.metadata-record
 
        (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
@@ -408,7 +408,13 @@
          [:p "Access map layer online at"]
          [:div.server-info
           [:span "WMS:"]
-          [:a {:href server_url} server_url]
+          [:a
+           {:href
+            (case layer_type
+              :wms           (str server_url "?request=GetCapabilities&service=WMS")
+              :wms-non-tiled (str server_url "?request=GetCapabilities&service=WMS")
+              server_url)}
+           server_url]
           [:span.server-layer layer_name]]]]
        
        (when (or (seq license-img) (seq license-link) (seq license-name))
