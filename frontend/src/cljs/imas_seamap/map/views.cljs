@@ -2,7 +2,8 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.views
-  (:require [reagent.core :as r]
+  (:require [clojure.string :as string]
+            [reagent.core :as r]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [copy-text handler-dispatch create-shadow-dom-element format-number] :include-macros true]
@@ -216,13 +217,28 @@
 (defmethod layer-component :feature
   [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
   [leaflet/feature-layer
-   {:url              server_url
-    :opacity          (/ (layer-opacities layer) 100)
+   {:url     server_url
+    :opacity (/ (layer-opacities layer) 100)
     :eventHandlers
     {:loading       #(re-frame/dispatch [:map.layer/load-start layer])
      :tileloadstart #(re-frame/dispatch [:map.layer/tile-load-start layer])
      :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
      :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}]) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
+
+(defmethod layer-component :raster
+  [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
+  (let [layer-server-id (last (string/split server_url "/"))
+        url (string/join "/" (butlast (string/split server_url "/")))]
+    [leaflet/dynamic-map-layer
+     {:url             url
+      :layers          [layer-server-id]
+      :f               "image"
+      :opacity          (/ (layer-opacities layer) 100)
+      :eventHandlers
+      {:loading       #(re-frame/dispatch [:map.layer/load-start layer])
+       :tileloadstart #(re-frame/dispatch [:map.layer/tile-load-start layer])
+       :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
+       :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}])) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
 
 (defmethod layer-component :wms-non-tiled
   [{:keys [boundary-filter layer-opacities layer] {:keys [server_url layer_name style]} :displayed-layer}]

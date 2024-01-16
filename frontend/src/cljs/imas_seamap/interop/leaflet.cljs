@@ -65,6 +65,18 @@
                                                             #js{:opacity     (.-opacity props)
                                                                 :fillOpacity (.-opacity props)})))))))
 
+(def dynamic-map-layer
+  (r/adapt-react-class
+   (ReactLeafletCore/createLayerComponent
+    ;; Create layer fn
+    (fn [props context]
+      (let [instance ((-> esri .-dynamicMapLayer) props)]
+        #js{:instance instance :context context}))
+    ;; Update layer fn
+    (fn [instance props prev-props]
+      (when (not= (.-opacity props) (.-opacity prev-props))
+        (.setOpacity instance (.-opacity props)))))))
+
 (def map-container       (r/adapt-react-class ReactLeaflet/MapContainer))
 (def pane                (r/adapt-react-class ReactLeaflet/Pane))
 (def marker              (r/adapt-react-class ReactLeaflet/Marker))

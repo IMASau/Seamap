@@ -3,7 +3,8 @@
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 import catalogue.models as models
 
-from django.db.models import Min, Max
+from django.db.models import Value
+from django.db.models.functions import Coalesce
 from rest_framework import serializers
 
 
@@ -97,7 +98,10 @@ class RichLayerSerializer(serializers.ModelSerializer):
     timeline = serializers.SerializerMethodField()
 
     def get_alternate_views(self, obj):
-        alternate_views = models.RichLayerAlternateView.objects.filter(richlayer=obj.id)
+        alternate_views = models.RichLayerAlternateView.objects \
+            .filter(richlayer=obj.id) \
+            .annotate(sort_key_null=Coalesce('sort_key', Value('zzzzzzzz'))) \
+            .order_by('sort_key_null')
         return [RichLayerAlternateViewSerializer(v).data for v in alternate_views]
 
     def get_timeline(self, obj):
