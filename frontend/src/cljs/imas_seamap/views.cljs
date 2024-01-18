@@ -413,7 +413,8 @@
             (case layer_type
               :wms           (str server_url "?request=GetCapabilities&service=WMS")
               :wms-non-tiled (str server_url "?request=GetCapabilities&service=WMS")
-              server_url)}
+              server_url)
+            :target "_blank"}
            server_url]
           [:span.server-layer layer_name]]]]
        
