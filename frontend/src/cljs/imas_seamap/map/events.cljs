@@ -53,6 +53,7 @@
 (def ^:const INFO-FORMAT-NONE 3)
 (def ^:const INFO-FORMAT-FEATURE 4)
 (def ^:const INFO-FORMAT-XML 5)
+(def ^:const INFO-FORMAT-RASTER 6)
 
 (defmulti get-feature-info #(second %2))
 
@@ -165,6 +166,31 @@
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
+
+(defmethod get-feature-info INFO-FORMAT-RASTER
+  [{:keys [db]} [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point}]]
+  (let [layer-server-ids (mapv #(last (string/split (:server_url %) "/")) layers)
+        url              (string/join "/" (butlast (string/split (-> layers first :server_url) "/")))
+        leaflet-map      (get-in db [:map :leaflet-map])
+        leaflet-point    (leaflet/latlng. lat lng)]
+    (leaflet/dynamic-map-layer-query
+     url
+     leaflet-map
+     leaflet-point
+     (fn [error feature-collection _response]
+       (if error
+         (re-frame/dispatch [:map/got-featureinfo-err request-id point nil])
+         (let [feature-collection
+               (as-> (js->clj feature-collection) feature-collection
+                 (assoc
+                  feature-collection "features"
+                  (filterv
+                   #(and
+                     (some #{(str (get % "layerId"))} layer-server-ids)       ; check it's a layer we're querying for (not a different layer on the server)
+                     (not= (get-in % ["properties" "Pixel Value"]) "NoData")) ; check the layer has associated data
+                   (get feature-collection "features"))))]
+           (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers feature-collection])))))
+    nil))
 
 (defmethod get-feature-info :default
   [_ [_ _info-format-type layers request-id _leaflet-props point]]

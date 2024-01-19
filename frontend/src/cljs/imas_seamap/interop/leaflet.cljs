@@ -90,6 +90,15 @@
 (def geojson-feature     L/geoJson)
 (def latlng              L/LatLng)
 (def esri-query          #(.query esri (clj->js %)))
+(defn dynamic-map-layer-query
+  [url leaflet-map point callback]
+  (let [dynamic-map-layer ((-> esri .-dynamicMapLayer) (clj->js {:url url}))]
+    (->
+     dynamic-map-layer
+     (.identify)
+     (.on leaflet-map)
+     (.at point)
+     (.run callback))))
 
 ;;; Multiple basemaps:
 (def layers-control         (r/adapt-react-class ReactLeaflet/LayersControl))
