@@ -902,16 +902,19 @@
 (defmulti get-layer-legend layer-legend-dispatch)
 
 (defmethod get-layer-legend :wms-geoserver
-  [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
+  [{:keys [db]} [_ {:keys [id server_url layer_name style] :as layer}]]
   {:db         (assoc-in db [:map :legends id] :map.legend/loading)
    :http-xhrio {:method          :get
                 :uri             server_url
-                :params          {:REQUEST     "GetLegendGraphic"
-                                  :LAYER       layer_name
-                                  :TRANSPARENT true
-                                  :SERVICE     "WMS"
-                                  :VERSION     "1.1.1"
-                                  :FORMAT      "application/json"}
+                :params          (merge
+                                  {:REQUEST     "GetLegendGraphic"
+                                   :LAYER       layer_name
+                                   :TRANSPARENT true
+                                   :SERVICE     "WMS"
+                                   :VERSION     "1.1.1"
+                                   :FORMAT      "application/json"
+                                   :LEGEND_OPTIONS "forceLabels:on"}
+                                  (when style {:STYLES "SeamapAus_MEOW_REALM"}))
                 :response-format (ajax/json-response-format {:keywords? true})
                 :on-success      [:map.layer/get-legend-success layer]
                 :on-failure      [:map.layer/get-legend-error layer]}})
@@ -958,21 +961,24 @@
 (defmulti wms-symbolizer->key #(-> % keys first))
 
 (defmethod wms-symbolizer->key :Polygon
-  [{{:keys [fill stroke stroke-width ]} :Polygon :as _symbolizer}]
-  {:background-color fill
-   :border           (str "solid " stroke-width "px " stroke)
-   :height           "100%"
-   :width            "100%"})
+  [{{:keys [fill fill-opacity stroke stroke-width ]} :Polygon :as _symbolizer}]
+  (merge
+   {:background-color fill
+    :border           (str "solid " stroke-width "px " stroke)
+    :height           "100%"
+    :width            "100%"}
+   (when fill-opacity {:opacity fill-opacity})))
 
 (defmethod wms-symbolizer->key :Point
   [{{:keys [graphics size]} :Point :as _symbolizer}]
-  (let [{:keys [mark fill stroke stroke-width]} (first graphics)]
+  (let [{:keys [mark fill fill-opacity stroke stroke-width]} (first graphics)]
     (merge
      {:background-color fill
       :border           (str "solid " stroke-width "px " stroke)
       :width            (str size "px")
       :height           (str size "px")}
-     (when (= mark "circle") {:border-radius "100%"}))))
+     (when (= mark "circle") {:border-radius "100%"})
+     (when fill-opacity {:opacity fill-opacity}))))
 
 (defmethod wms-symbolizer->key :default [] nil)
 
@@ -983,8 +989,8 @@
   (let [legend (if (-> response :Legend first :rules first :symbolizers first wms-symbolizer->key) ; Convert the symbolizer for the first key
                  (->> response :Legend first :rules                                                ; if it converts successfully, then we make a vector legend and convert to keys and labels
                       (mapv
-                       (fn [{:keys [title filter symbolizers]}]
-                         {:label  title
+                       (fn [{:keys [title name filter symbolizers]}]
+                         {:label  (or title name)
                           :filter filter
                           :style  (-> symbolizers first wms-symbolizer->key)})))
                  (append-query-params                                                              ; else we just use an image for the legend graphic
