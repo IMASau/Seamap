@@ -914,7 +914,7 @@
                                    :VERSION     "1.1.1"
                                    :FORMAT      "application/json"
                                    :LEGEND_OPTIONS "forceLabels:on"}
-                                  (when style {:STYLES "SeamapAus_MEOW_REALM"}))
+                                  (when style {:STYLE style}))
                 :response-format (ajax/json-response-format {:keywords? true})
                 :on-success      [:map.layer/get-legend-success layer]
                 :on-failure      [:map.layer/get-legend-error layer]}})
