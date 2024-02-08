@@ -53,6 +53,7 @@
 (def ^:const INFO-FORMAT-NONE 3)
 (def ^:const INFO-FORMAT-FEATURE 4)
 (def ^:const INFO-FORMAT-XML 5)
+(def ^:const INFO-FORMAT-RASTER 6)
 
 (defmulti get-feature-info #(second %2))
 
@@ -165,6 +166,31 @@
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
+
+(defmethod get-feature-info INFO-FORMAT-RASTER
+  [{:keys [db]} [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point}]]
+  (let [layer-server-ids (mapv #(last (string/split (:server_url %) "/")) layers)
+        url              (string/join "/" (butlast (string/split (-> layers first :server_url) "/")))
+        leaflet-map      (get-in db [:map :leaflet-map])
+        leaflet-point    (leaflet/latlng. lat lng)]
+    (leaflet/dynamic-map-layer-query
+     url
+     leaflet-map
+     leaflet-point
+     (fn [error feature-collection _response]
+       (if error
+         (re-frame/dispatch [:map/got-featureinfo-err request-id point nil])
+         (let [feature-collection
+               (as-> (js->clj feature-collection) feature-collection
+                 (assoc
+                  feature-collection "features"
+                  (filterv
+                   #(and
+                     (some #{(str (get % "layerId"))} layer-server-ids)       ; check it's a layer we're querying for (not a different layer on the server)
+                     (not= (get-in % ["properties" "Pixel Value"]) "NoData")) ; check the layer has associated data
+                   (get feature-collection "features"))))]
+           (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers feature-collection])))))
+    nil))
 
 (defmethod get-feature-info :default
   [_ [_ _info-format-type layers request-id _leaflet-props point]]
@@ -876,16 +902,19 @@
 (defmulti get-layer-legend layer-legend-dispatch)
 
 (defmethod get-layer-legend :wms-geoserver
-  [{:keys [db]} [_ {:keys [id server_url layer_name] :as layer}]]
+  [{:keys [db]} [_ {:keys [id server_url layer_name style] :as layer}]]
   {:db         (assoc-in db [:map :legends id] :map.legend/loading)
    :http-xhrio {:method          :get
                 :uri             server_url
-                :params          {:REQUEST     "GetLegendGraphic"
-                                  :LAYER       layer_name
-                                  :TRANSPARENT true
-                                  :SERVICE     "WMS"
-                                  :VERSION     "1.1.1"
-                                  :FORMAT      "application/json"}
+                :params          (merge
+                                  {:REQUEST     "GetLegendGraphic"
+                                   :LAYER       layer_name
+                                   :TRANSPARENT true
+                                   :SERVICE     "WMS"
+                                   :VERSION     "1.1.1"
+                                   :FORMAT      "application/json"
+                                   :LEGEND_OPTIONS "forceLabels:on"}
+                                  (when style {:STYLE style}))
                 :response-format (ajax/json-response-format {:keywords? true})
                 :on-success      [:map.layer/get-legend-success layer]
                 :on-failure      [:map.layer/get-legend-error layer]}})
@@ -932,21 +961,24 @@
 (defmulti wms-symbolizer->key #(-> % keys first))
 
 (defmethod wms-symbolizer->key :Polygon
-  [{{:keys [fill stroke stroke-width ]} :Polygon :as _symbolizer}]
-  {:background-color fill
-   :border           (str "solid " stroke-width "px " stroke)
-   :height           "100%"
-   :width            "100%"})
+  [{{:keys [fill fill-opacity stroke stroke-width ]} :Polygon :as _symbolizer}]
+  (merge
+   {:background-color fill
+    :border           (str "solid " stroke-width "px " stroke)
+    :height           "100%"
+    :width            "100%"}
+   (when fill-opacity {:opacity fill-opacity})))
 
 (defmethod wms-symbolizer->key :Point
   [{{:keys [graphics size]} :Point :as _symbolizer}]
-  (let [{:keys [mark fill stroke stroke-width]} (first graphics)]
+  (let [{:keys [mark fill fill-opacity stroke stroke-width]} (first graphics)]
     (merge
      {:background-color fill
       :border           (str "solid " stroke-width "px " stroke)
       :width            (str size "px")
       :height           (str size "px")}
-     (when (= mark "circle") {:border-radius "100%"}))))
+     (when (= mark "circle") {:border-radius "100%"})
+     (when fill-opacity {:opacity fill-opacity}))))
 
 (defmethod wms-symbolizer->key :default [] nil)
 
@@ -957,8 +989,8 @@
   (let [legend (if (-> response :Legend first :rules first :symbolizers first wms-symbolizer->key) ; Convert the symbolizer for the first key
                  (->> response :Legend first :rules                                                ; if it converts successfully, then we make a vector legend and convert to keys and labels
                       (mapv
-                       (fn [{:keys [title filter symbolizers]}]
-                         {:label  title
+                       (fn [{:keys [title name filter symbolizers]}]
+                         {:label  (or title name)
                           :filter filter
                           :style  (-> symbolizers first wms-symbolizer->key)})))
                  (append-query-params                                                              ; else we just use an image for the legend graphic
