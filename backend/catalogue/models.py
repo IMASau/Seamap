@@ -148,7 +148,7 @@ class BaseLayer(models.Model):
 @python_2_unicode_compatible
 class SaveState(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    hashstate = models.CharField(max_length = 5000)
+    hashstate = models.CharField(max_length = 8000)
     description = models.TextField(blank=True, null=True)
     time_created = models.DateTimeField(default=datetime.now())
 
