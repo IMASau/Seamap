@@ -186,7 +186,7 @@
   (let [{:keys [catalogue-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
         {:keys [status layers]} @(re-frame/subscribe [:data-in-region/data])
         ;; Filter out layers in region that have no category (ie, currently just placeholders)
-        layers (filter (set catalogue-layers) layers)
+        layers (filter (set layers) catalogue-layers)
         layer-props
         {:active-layers  active-layers
          :visible-layers visible-layers
