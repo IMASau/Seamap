@@ -98,8 +98,8 @@
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     ;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
-    :cookie-set-no-on-success             (fn [_ cookie-options] (js/console.log "cookie set success" cookie-options (clj->js cookie-options)))
-    :cookie-set-no-on-failure             (fn [_ cookie-options] (js/console.log "cookie set success" cookie-options (clj->js cookie-options)))
+    :cookie-set-no-on-success             identity
+    :cookie-set-no-on-failure             identity
     :load-hash-state                      [events/load-hash-state]
     :get-save-state                       [events/get-save-state]
     :get-save-state-success               [events/get-save-state-success]
