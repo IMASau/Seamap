@@ -76,7 +76,7 @@
     :data-in-region/data                  tmasubs/data-in-region}
 
    :events
-   {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
+   {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
     :construct-urls                       tmaevents/construct-urls
     :merge-state                          [tmaevents/merge-state]
     :re-boot                              [tmaevents/re-boot]

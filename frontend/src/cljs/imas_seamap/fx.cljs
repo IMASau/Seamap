@@ -35,3 +35,23 @@
     (assoc cofx :save-code save-code)))
 
 (re-frame/reg-cofx :save-code cofx-save-code)
+
+(re-frame/reg-fx
+ :local-storage/set
+ (fn [{:keys [name value]}]
+   (js/window.localStorage.setItem (cljs.core/name name) value)))
+
+(re-frame/reg-fx
+ :local-storage/remove
+ (fn [{:keys [name]}]
+   (js/window.localStorage.removeItem (cljs.core/name name))))
+
+(re-frame/reg-cofx
+ :local-storage/get
+ (fn [cofx names]
+   (let [values
+         (reduce
+          (fn [acc name]
+            (assoc acc name (js/window.localStorage.getItem (cljs.core/name name))))
+          {} names)]
+     (assoc cofx :local-storage/get values))))
