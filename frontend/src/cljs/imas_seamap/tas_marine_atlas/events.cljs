@@ -129,7 +129,7 @@
       :story-maps-url            (str wordpress-url-base story-maps)
       :data-in-region-url        (str api-url-base data-in-region)})))
 
-(defn boot [{:keys [save-code hash-code] {:keys [cookie-state]} :cookie/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
+(defn boot [{:keys [save-code hash-code] {:keys [seamap-app-state]} :local-storage/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (assoc-in
                 db/default-db [:config :url-base]
                 {:api-url-base       api-url-base
@@ -139,7 +139,7 @@
    :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
                  (seq save-code)    (boot-flow-save-state save-code)    ; A shortform save-code that can be used to query for a hash-code
                  (seq hash-code)    (boot-flow-hash-state hash-code)    ; A hash-code that can be decoded into th DB's initial state
-                 (seq cookie-state) (boot-flow-hash-state cookie-state) ; Same as hash-code, except that we use the one stored in the cookies
+                 (seq seamap-app-state) (boot-flow-hash-state seamap-app-state) ; Same as hash-code, except that we use the one stored in local storage
                  :else              (boot-flow))})                      ; No information, so we start with an empty DB
 
 (defn merge-state
@@ -193,8 +193,8 @@
         {:keys [zoom center]} (:map db)]
     {:db         db
      :dispatch   [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center})]
-     :cookie/set {:name  :cookie-state
-                  :value nil}}))
+     :local-storage/remove
+     {:name :seamap-app-state}}))
 
 (defn loading-screen [db [_ msg]]
   (assoc db
@@ -280,8 +280,9 @@
 
 (defn maybe-autosave [{{:keys [autosave?] :as db} :db} _]
   (when autosave?
-    {:cookie/set {:name  :cookie-state
-                  :value (encode-state db)}
+    {:local-storage/set
+     {:name  :seamap-app-state
+      :value (encode-state db)}
      :put-hash   ""}))
 
 (defn show-initial-layers

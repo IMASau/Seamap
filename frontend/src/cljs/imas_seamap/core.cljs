@@ -91,7 +91,7 @@
     :url-base                             subs/url-base}
 
    :events
-   {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :cookie/get [:cookie-state])]
+   {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
     :construct-urls                       events/construct-urls
     :merge-state                          [events/merge-state]
     :re-boot                              [events/re-boot]
