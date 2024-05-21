@@ -126,7 +126,8 @@ L.Control.EasyPrint = L.Control.extend({
     var plugin = this;
     domtoimage.toPng(this.mapContainer, {
         width: parseInt(this.originalState.mapWidth.replace('px')),
-        height: parseInt(this.originalState.mapHeight.replace('px'))
+        height: parseInt(this.originalState.mapHeight.replace('px')),
+        cacheBust: true
       })
       .then(function (dataUrl) {
         plugin.blankDiv = document.createElement("div");
@@ -188,7 +189,8 @@ L.Control.EasyPrint = L.Control.extend({
     }
     domtoimage.toPng(plugin.mapContainer, {
         width: parseInt(widthForExport),
-        height: parseInt(plugin.mapContainer.style.height.replace('px'))
+        height: parseInt(plugin.mapContainer.style.height.replace('px')),
+        cacheBust: true
       })
       .then(function (dataUrl) {
           var blob = plugin._dataURItoBlob(dataUrl);
