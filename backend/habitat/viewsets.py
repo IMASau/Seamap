@@ -1335,6 +1335,8 @@ def region_report_data(request):
     data["pressures"] = [PressureSerializer(v).data for v in Pressure.objects.filter(region_report=rr.id)]
     data["app_boundary_layer"] = LayerSerializer(KeyedLayer.objects.get(keyword=('amp-park' if park != None else 'amp-network')).layer).data
 
+    data["minimap_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap').order_by('-sort_key')]
+
     with connections['transects'].cursor() as cursor:
         cursor.execute(SQL_GET_PARK_SQUIDLE_URL if park else SQL_GET_NETWORK_SQUIDLE_URL, [park or network])
         entry = cursor.fetchone()

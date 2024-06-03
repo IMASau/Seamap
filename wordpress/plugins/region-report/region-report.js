@@ -1,3 +1,37 @@
+const SingleLayers = L.Control.Layers.extend({
+    onAdd: function(map) {
+        this._map = map;
+        map.on('overlayadd', this._update, this);
+        map.on('overlayremove', this._update, this);
+        return L.Control.Layers.prototype.onAdd.call(this, map);
+    },
+    onRemove: function(map) {
+        map.on('overlayadd', this._update, this);
+        map.on('overlayremove', this._update, this);
+        L.Control.Layers.prototype.onRemove.call(this, map);
+    },
+    _addItem: function(obj){
+        var item = L.Control.Layers.prototype._addItem.call(this, obj);
+
+        // Check if another overlay is active
+        let otherActive = false;
+        this._layers.forEach(
+            objOther => {
+                // If another overlay is active
+                if (objOther != obj && objOther.overlay && this._map.hasLayer(objOther.layer)) {
+                    otherActive = true;
+                }
+            }
+        );
+
+        if (otherActive) {
+            item.children[0].innerHTML = `<input type="checkbox" class="leaflet-control-layers-selector" disabled><span> ${obj.name}</span>`
+        }
+
+        return item;
+    }
+});
+
 class RegionReport {
     postId = null;
     pressurePreviewUrlBase = null;
@@ -16,6 +50,7 @@ class RegionReport {
     publicLayersBoundary = null;
     publicLayersHyperlink = null;
     overviewMapHyperlink = null;
+    minimapLayers = {};
 
     // imagery map
     imageryMap = null;
@@ -751,7 +786,7 @@ class RegionReport {
         ]
     }
 
-    populateOverviewMap({ all_layers: allLayers, all_layers_boundary: allLayersBoundary, public_layers: publicLayers, public_layers_boundary: publicLayersBoundary, network: network, park: park, bounding_box: bounds, app_boundary_layer: appBoundaryLayer }) {
+    populateOverviewMap({ all_layers: allLayers, all_layers_boundary: allLayersBoundary, public_layers: publicLayers, public_layers_boundary: publicLayersBoundary, network: network, park: park, bounding_box: bounds, app_boundary_layer: appBoundaryLayer, minimap_layers: minimapLayers }) {
         // all layers
         allLayers.forEach(
             layer => {
@@ -811,6 +846,24 @@ class RegionReport {
                 cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
             }
         );
+
+        // minimap layers
+        minimapLayers.forEach(
+            layer => {
+                this.minimapLayers[layer.name] = L.tileLayer.wms(
+                    layer.server_url,
+                    {
+                        layers: layer.layer_name,
+                        transparent: true,
+                        tiled: true,
+                        format: "image/png",
+                        styles: layer.style ?? ""
+                    }
+                );
+            }
+        );
+
+        new SingleLayers(null, this.minimapLayers).addTo(this.overviewMap);
 
         // set up map
         this.overviewMap.addLayer(this.allLayersBoundary);

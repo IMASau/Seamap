@@ -113,13 +113,6 @@ body {
         text-decoration: underline;
         font-weight: inherit;
     }
-
-    section {
-        padding: 0;
-        margin: 0;
-        margin-bottom: 20px;
-        page-break-inside: avoid;
-    }
     
     .entry-content>* {
         &:not(:first-child) {
@@ -128,6 +121,14 @@ body {
 
         &:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
             max-width: 100%;
+        }
+
+        >section,
+        >section>section {
+            padding: 0;
+            margin: 0;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
         }
     }
 
@@ -658,5 +659,9 @@ body {
                 }
             }
         }
+    }
+
+    input[type=checkbox]:disabled+* {
+        color: #ccc;
     }
 }
