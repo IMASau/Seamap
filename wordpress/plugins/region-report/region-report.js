@@ -38,7 +38,7 @@ L.control.singleLayers = function (baseLayers, overlays, options) {
 
 L.Control.Legend = L.Control.extend({
     setLegend: function (layer) {
-        const url = layer.metadata?.legendUrl ?? `${layer._url}?REQUEST=GetLegendGraphic&LAYER=${layer.options.layers}&TRANSPARENT=${layer.options.transparent}&SERVICE=WMS&VERSION=1.1.1&FORMAT=image/png`
+        const url = layer.metadata?.layer?.legend_url ?? `${layer._url}?REQUEST=GetLegendGraphic&LAYER=${layer.options.layers}&TRANSPARENT=${layer.options.transparent}&SERVICE=WMS&VERSION=1.1.1&FORMAT=image/png`
         this._container.innerHTML = `<img src="${url}">`;
     },
     clearLegend: function () {
@@ -70,11 +70,14 @@ class RegionReport {
     overviewMap = null;
     allLayers = L.layerGroup();
     allLayersBoundary = null;
-    allLayersHyperlink = null;
     publicLayers = L.layerGroup();
     publicLayersBoundary = null;
-    publicLayersHyperlink = null;
     overviewMapHyperlink = null;
+    minimapState = 'all';
+    appBoundaryLayer = null;
+    bounds = null;
+    network = null;
+    park = null;
     minimapLayers = {};
 
     // imagery map
@@ -154,6 +157,11 @@ class RegionReport {
         $.ajax(regionReportDataUrl, {
             dataType: "json",
             success: response => {
+                this.appBoundaryLayer = response.app_boundary_layer;
+                this.bounds = response.bounding_box;
+                this.network = response.network.network;
+                this.park = response.park;
+
                 this.populateRegionHeading(response);
                 this.populateOverviewMap(response);
                 this.populateParksList(response);
@@ -672,7 +680,26 @@ class RegionReport {
         this.overviewMapHyperlink = document.getElementById(`region-report-overview-map-hyperlink-${this.postId}`);
     }
 
-    overviewMapAppState(layers, boundaryLayer, bounds, network, park) {
+    overviewMapAppState() {
+        let layers = [];
+
+        switch (this.minimapState) {
+            case 'all':
+                layers.concat(this.allLayers);
+                break;
+            case 'public':
+                layers.concat(this.publicLayers);
+                break;
+        }
+
+        Object.values(this.minimapLayers).forEach(
+            layer => {
+                if (this.overviewMap.hasLayer(layer)) {
+                    layers.push(layer.metadata.layer);
+                }
+            }
+        );
+
         return [
             "^ ",
             "~:autosave?",
@@ -701,51 +728,51 @@ class RegionReport {
                     [
                         "^ ",
                         "~:server_type",
-                        `~:${boundaryLayer.server_type.toLowerCase()}`,
+                        `~:${this.appBoundaryLayer.server_type.toLowerCase()}`,
                         "~:category",
-                        `~:${boundaryLayer.category.toLowerCase()}`,
+                        `~:${this.appBoundaryLayer.category.toLowerCase()}`,
                         "~:detail_layer",
-                        boundaryLayer.detail_layer,
+                        this.appBoundaryLayer.detail_layer,
                         "~:organisation",
-                        boundaryLayer.organisation,
+                        this.appBoundaryLayer.organisation,
                         "~:layer_name",
-                        boundaryLayer.layer_name,
+                        this.appBoundaryLayer.layer_name,
                         "~:server_url",
-                        boundaryLayer.server_url,
+                        this.appBoundaryLayer.server_url,
                         "~:name",
-                        boundaryLayer.name,
+                        this.appBoundaryLayer.name,
                         "~:info_format_type",
-                        boundaryLayer.info_format_type,
+                        this.appBoundaryLayer.info_format_type,
                         "~:keywords",
-                        boundaryLayer.keywords,
+                        this.appBoundaryLayer.keywords,
                         "~:style",
-                        boundaryLayer.style,
+                        this.appBoundaryLayer.style,
                         "~:metadata_url",
-                        boundaryLayer.metadata_url,
+                        this.appBoundaryLayer.metadata_url,
                         "~:id",
-                        boundaryLayer.id,
+                        this.appBoundaryLayer.id,
                         "~:bounding_box",
                         [
                             "^ ",
                             "~:west",
-                            boundaryLayer.bounding_box.west,
+                            this.appBoundaryLayer.bounding_box.west,
                             "~:south",
-                            boundaryLayer.bounding_box.south,
+                            this.appBoundaryLayer.bounding_box.south,
                             "~:east",
-                            boundaryLayer.bounding_box.east,
+                            this.appBoundaryLayer.bounding_box.east,
                             "~:north",
-                            boundaryLayer.bounding_box.north
+                            this.appBoundaryLayer.bounding_box.north
                         ],
                         "~:table_name",
-                        boundaryLayer.table_name,
+                        this.appBoundaryLayer.table_name,
                         "~:data_classification",
-                        boundaryLayer.data_classification,
+                        this.appBoundaryLayer.data_classification,
                         "~:tooltip",
-                        boundaryLayer.tooltip,
+                        this.appBoundaryLayer.tooltip,
                         "~:legend_url",
-                        boundaryLayer.legend_url,
+                        this.appBoundaryLayer.legend_url,
                         "~:layer_type",
-                        `~:${boundaryLayer.layer_type.toLowerCase()}`
+                        `~:${this.appBoundaryLayer.layer_type.toLowerCase()}`
                     ],
                     "~:amp",
                     [
@@ -754,16 +781,16 @@ class RegionReport {
                         [
                             "^ ",
                             "~:network",
-                            network
+                            this.network
                         ],
                         "~:active-park",
                         (
-                            park ? [
+                            this.park ? [
                                 "^ ",
                                 "~:network",
-                                network,
+                                this.network,
                                 "~:park",
-                                park
+                                this.park
                             ] : null
                         ),
                     ]
@@ -792,18 +819,18 @@ class RegionReport {
                 [
                     "^ ",
                     "~:north",
-                    bounds.north,
+                    this.bounds.north,
                     "~:south",
-                    bounds.south,
+                    this.bounds.south,
                     "~:east",
-                    bounds.east,
+                    this.bounds.east,
                     "~:west",
-                    bounds.west
+                    this.bounds.west
                 ],
                 "~:active",
                 [
                     "~#list",
-                    [boundaryLayer.id, ...layers]
+                    [this.appBoundaryLayer.id, ...(layers.map(e => e.id))]
                 ],
                 "~:active-base",
                 1
@@ -811,7 +838,7 @@ class RegionReport {
         ]
     }
 
-    populateOverviewMap({ all_layers: allLayers, all_layers_boundary: allLayersBoundary, public_layers: publicLayers, public_layers_boundary: publicLayersBoundary, network: network, park: park, bounding_box: bounds, app_boundary_layer: appBoundaryLayer, minimap_layers: minimapLayers }) {
+    populateOverviewMap({ all_layers: allLayers, all_layers_boundary: allLayersBoundary, public_layers: publicLayers, public_layers_boundary: publicLayersBoundary, network: network, park: park, bounding_box: bounds, minimap_layers: minimapLayers }) {
         // all layers
         allLayers.forEach(
             layer => {
@@ -885,19 +912,29 @@ class RegionReport {
                         styles: layer.style ?? ""
                     }
                 );
-                this.minimapLayers[layer.name].metadata = { "legendUrl": layer.legend_url };
+                this.minimapLayers[layer.name].metadata = { "layer": layer };
             }
         );
 
+        // map controls
         L.control.singleLayers(null, this.minimapLayers).addTo(this.overviewMap);
         L.control.legend({ position: 'bottomleft' }).addTo(this.overviewMap);
 
         // set up map
-        this.overviewMap.addLayer(this.allLayersBoundary);
-        this.overviewMap.addLayer(this.allLayers);
         this.overviewMap._handlers.forEach(function (handler) {
             handler.disable();
         });
+
+        switch (this.minimapState) {
+            case 'all':
+                this.overviewMap.addLayer(this.allLayersBoundary);
+                this.overviewMap.addLayer(this.allLayers);
+                break;
+            case 'public':
+                this.overviewMap.addLayer(this.publicLayersBoundary);
+                this.overviewMap.addLayer(this.publicLayers);
+                break;
+        }
 
         // zoom to map extent
         this.overviewMap.fitBounds([[bounds.north, bounds.east], [bounds.south, bounds.west]]);
@@ -910,23 +947,48 @@ class RegionReport {
                 }
             );
 
-        const allLayersAppState = this.overviewMapAppState(allLayers.map(e => e.id), appBoundaryLayer, bounds, network.network, park);
-        this.allLayersHyperlink = `${this.mapUrlBase}/#${btoa(JSON.stringify(allLayersAppState))}`;
-        const publicLayersAppState = this.overviewMapAppState(publicLayers.map(e => e.id), appBoundaryLayer, bounds, network.network, park);
-        this.publicLayersHyperlink = `${this.mapUrlBase}/#${btoa(JSON.stringify(publicLayersAppState))}`;
+        // set up hyperlink
+        const appState = this.overviewMapAppState();
+        this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
 
-        this.overviewMapHyperlink.href = this.allLayersHyperlink;
+        this.overviewMap.on(
+            'overlayadd',
+            () => {
+                const appState = this.overviewMapAppState();
+                this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
+            },
+            this
+        );
+        this.overviewMap.on(
+            'overlayremove',
+            () => {
+                const appState = this.overviewMapAppState();
+                this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
+            },
+            this
+        );
     }
 
-    toggleMinimap(publicOnly) {
+    toggleMinimap(minimapState) {
+        this.minimapState = minimapState;
         this.overviewMap.removeLayer(this.allLayers);
         this.overviewMap.removeLayer(this.allLayersBoundary);
         this.overviewMap.removeLayer(this.publicLayers);
         this.overviewMap.removeLayer(this.publicLayersBoundary);
 
-        this.overviewMap.addLayer(publicOnly ? this.publicLayersBoundary : this.allLayersBoundary);
-        this.overviewMap.addLayer(publicOnly ? this.publicLayers : this.allLayers);
-        this.overviewMapHyperlink.href = publicOnly ? this.publicLayersHyperlink : this.allLayersHyperlink;
+        switch (this.minimapState) {
+            case 'all':
+                this.overviewMap.addLayer(this.allLayersBoundary);
+                this.overviewMap.addLayer(this.allLayers);
+                break;
+            case 'public':
+                this.overviewMap.addLayer(this.publicLayersBoundary);
+                this.overviewMap.addLayer(this.publicLayers);
+                break;
+        }
+
+        const appState = this.overviewMapAppState();
+        this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
     }
 
     populateParksList({ parks: parks }) {

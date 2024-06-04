@@ -48,7 +48,7 @@
             <div class="labeled-toggle">
                 <div>All data</div>
                 <label class="switch">
-                    <input type="checkbox" onclick="regionReport.toggleMinimap(this.checked)">
+                    <input type="checkbox" onclick="regionReport.toggleMinimap(this.checked ? 'public' : 'all')">
                     <span class="switch-slider"></span>
                 </label>
                 <div>Public/analysed data</div>
