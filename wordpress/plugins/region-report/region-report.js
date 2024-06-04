@@ -1,16 +1,16 @@
-const SingleLayers = L.Control.Layers.extend({
-    onAdd: function(map) {
+L.Control.SingleLayers = L.Control.Layers.extend({
+    onAdd: function (map) {
         this._map = map;
         map.on('overlayadd', this._update, this);
         map.on('overlayremove', this._update, this);
         return L.Control.Layers.prototype.onAdd.call(this, map);
     },
-    onRemove: function(map) {
+    onRemove: function (map) {
         map.on('overlayadd', this._update, this);
         map.on('overlayremove', this._update, this);
         L.Control.Layers.prototype.onRemove.call(this, map);
     },
-    _addItem: function(obj){
+    _addItem: function (obj) {
         var item = L.Control.Layers.prototype._addItem.call(this, obj);
 
         // Check if another overlay is active
@@ -31,6 +31,31 @@ const SingleLayers = L.Control.Layers.extend({
         return item;
     }
 });
+
+L.control.singleLayers = function (baseLayers, overlays, options) {
+    return new L.Control.SingleLayers(baseLayers, overlays, options);
+}
+
+L.Control.Legend = L.Control.extend({
+    setLegend: function (layer) {
+        const url = layer.metadata?.legendUrl ?? `${layer._url}?REQUEST=GetLegendGraphic&LAYER=${layer.options.layers}&TRANSPARENT=${layer.options.transparent}&SERVICE=WMS&VERSION=1.1.1&FORMAT=image/png`
+        this._container.innerHTML = `<img src="${url}">`;
+    },
+    clearLegend: function () {
+        this._container.innerHTML = '';
+    },
+    onAdd: function (map) {
+        const control = L.DomUtil.create('div', 'leaflet-minimap-legend');
+        map.on('overlayadd', e => this.setLegend(e.layer), this);
+        map.on('overlayremove', this.clearLegend, this);
+        return control;
+    },
+    onRemove: function (map) { }
+});
+
+L.control.legend = function (options) {
+    return new L.Control.Legend(options);
+}
 
 class RegionReport {
     postId = null;
@@ -233,7 +258,7 @@ class RegionReport {
         if (withoutUnmapped.length > 0) {
             habitatStatistics.forEach(habitat => {
                 const row = table.insertRow();
-    
+
                 row.insertCell().innerText = habitat.habitat ?? "Total Mapped";
                 row.insertCell().innerText = habitat.area.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
                 row.insertCell().innerText = habitat.mapped_percentage?.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) ?? "N/A";
@@ -436,7 +461,7 @@ class RegionReport {
         let end = new Date().getFullYear();
         if (end % tickStep != 0)
             end += tickStep - end % tickStep;
-        
+
         const filledValues = Array.from(
             { length: end - start },
             (_, i) => {
@@ -860,10 +885,12 @@ class RegionReport {
                         styles: layer.style ?? ""
                     }
                 );
+                this.minimapLayers[layer.name].metadata = { "legendUrl": layer.legend_url };
             }
         );
 
-        new SingleLayers(null, this.minimapLayers).addTo(this.overviewMap);
+        L.control.singleLayers(null, this.minimapLayers).addTo(this.overviewMap);
+        L.control.legend({ position: 'bottomleft' }).addTo(this.overviewMap);
 
         // set up map
         this.overviewMap.addLayer(this.allLayersBoundary);
@@ -883,9 +910,9 @@ class RegionReport {
                 }
             );
 
-        const allLayersAppState = this.overviewMapAppState(allLayers.map(e=>e.id), appBoundaryLayer, bounds, network.network, park);
+        const allLayersAppState = this.overviewMapAppState(allLayers.map(e => e.id), appBoundaryLayer, bounds, network.network, park);
         this.allLayersHyperlink = `${this.mapUrlBase}/#${btoa(JSON.stringify(allLayersAppState))}`;
-        const publicLayersAppState = this.overviewMapAppState(publicLayers.map(e=>e.id), appBoundaryLayer, bounds, network.network, park);
+        const publicLayersAppState = this.overviewMapAppState(publicLayers.map(e => e.id), appBoundaryLayer, bounds, network.network, park);
         this.publicLayersHyperlink = `${this.mapUrlBase}/#${btoa(JSON.stringify(publicLayersAppState))}`;
 
         this.overviewMapHyperlink.href = this.allLayersHyperlink;
@@ -1231,12 +1258,12 @@ class RegionReport {
                 "~:active-base",
                 1
             ]
-        ]        
+        ]
     }
 
     pressurePreview(pressure, appBoundaryLayer, bounds, network, park) {
-        const appState = this.pressureAppState(pressure.layer, appBoundaryLayer, bounds, network.network, park);  
-        
+        const appState = this.pressureAppState(pressure.layer, appBoundaryLayer, bounds, network.network, park);
+
         return `
             <a
                 href="${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}"
@@ -1307,14 +1334,14 @@ class RegionReport {
         if (href == null) return;
 
         let targetStylesheet = null;
-    
+
         for (let i in document.styleSheets) {
             if (document.styleSheets[i].href == href) {
                 targetStylesheet = document.styleSheets[i];
                 break;
             }
         }
-        
+
         for (let i in targetStylesheet.cssRules) {
             if (targetStylesheet.cssRules[i] instanceof CSSMediaRule && targetStylesheet.cssRules[i].conditionText == 'print')
                 targetStylesheet.deleteRule(i);

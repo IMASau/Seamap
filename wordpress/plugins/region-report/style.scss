@@ -664,4 +664,12 @@ body {
     input[type=checkbox]:disabled+* {
         color: #ccc;
     }
+
+    .leaflet-minimap-legend {
+        width: 200px;
+        max-height: 120px;
+        overflow-y: auto;
+        margin: 0;
+        background: rgba(255, 255, 255, 0.8);
+    }
 }
