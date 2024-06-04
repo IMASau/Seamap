@@ -677,11 +677,25 @@ class RegionReport {
     setupOverviewMap() {
         this.overviewMap = L.map(`region-report-overview-map-map-${this.postId}`, { maxZoom: 19, zoomControl: false });
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.overviewMap);
+        this.overviewMap.createPane('main');
+        this.overviewMap.createPane('control');
+        this.overviewMap.getPane('main').style.zIndex = 800;
+        this.overviewMap.getPane('control').style.zIndex = 400;
         this.overviewMapHyperlink = document.getElementById(`region-report-overview-map-hyperlink-${this.postId}`);
     }
 
     overviewMapAppState() {
         let layers = [];
+
+        Object.values(this.minimapLayers).forEach(
+            layer => {
+                if (this.overviewMap.hasLayer(layer)) {
+                    layers.push(layer.metadata.layer);
+                }
+            }
+        );
+
+        layers.push(this.appBoundaryLayer);
 
         switch (this.minimapState) {
             case 'all':
@@ -691,14 +705,6 @@ class RegionReport {
                 layers = layers.concat(this.publicLayers.metadata?.layers);
                 break;
         }
-
-        Object.values(this.minimapLayers).forEach(
-            layer => {
-                if (this.overviewMap.hasLayer(layer)) {
-                    layers.push(layer.metadata.layer);
-                }
-            }
-        );
 
         return [
             "^ ",
@@ -830,7 +836,7 @@ class RegionReport {
                 "~:active",
                 [
                     "~#list",
-                    [this.appBoundaryLayer.id, ...(layers.map(e => e.id))]
+                    layers.map(e => e.id)
                 ],
                 "~:active-base",
                 1
@@ -850,7 +856,8 @@ class RegionReport {
                         tiled: true,
                         format: "image/png",
                         styles: layer.style ?? "",
-                        cql_filter: `Network='${network.network}'` + (park ? ` AND Park='${park}'` : "")
+                        cql_filter: `Network='${network.network}'` + (park ? ` AND Park='${park}'` : ""),
+                        pane: 'main'
                     }
                 ).addTo(this.allLayers);
             }
@@ -866,7 +873,8 @@ class RegionReport {
                 tiled: true,
                 format: "image/png",
                 styles: allLayersBoundary.style ?? "",
-                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
+                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`,
+                pane: 'main'
             }
         );
 
@@ -881,7 +889,8 @@ class RegionReport {
                         tiled: true,
                         format: "image/png",
                         styles: layer.style ?? "",
-                        cql_filter: `Network='${network.network}'` + (park ? ` AND Park='${park}'` : "")
+                        cql_filter: `Network='${network.network}'` + (park ? ` AND Park='${park}'` : ""),
+                        pane: 'main'
                     }
                 ).addTo(this.publicLayers);
             }
@@ -897,7 +906,8 @@ class RegionReport {
                 tiled: true,
                 format: "image/png",
                 styles: publicLayersBoundary.style ?? "",
-                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
+                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`,
+                pane: 'main'
             }
         );
 
@@ -911,7 +921,8 @@ class RegionReport {
                         transparent: true,
                         tiled: true,
                         format: "image/png",
-                        styles: layer.style ?? ""
+                        styles: layer.style ?? "",
+                        pane: 'control'
                     }
                 );
                 this.minimapLayers[layer.name].metadata = { "layer": layer };
