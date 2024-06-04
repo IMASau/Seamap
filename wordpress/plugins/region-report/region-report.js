@@ -685,10 +685,10 @@ class RegionReport {
 
         switch (this.minimapState) {
             case 'all':
-                layers.concat(this.allLayers);
+                layers = layers.concat(this.allLayers.metadata?.layers);
                 break;
             case 'public':
-                layers.concat(this.publicLayers);
+                layers = layers.concat(this.publicLayers.metadata?.layers);
                 break;
         }
 
@@ -855,6 +855,7 @@ class RegionReport {
                 ).addTo(this.allLayers);
             }
         );
+        this.allLayers.metadata = { "layers": allLayers };
 
         // all layers boundary
         this.allLayersBoundary = L.tileLayer.wms(
@@ -885,6 +886,7 @@ class RegionReport {
                 ).addTo(this.publicLayers);
             }
         );
+        this.publicLayers.metadata = { "layers": publicLayers };
 
         // public layers boundary
         this.publicLayersBoundary = L.tileLayer.wms(
