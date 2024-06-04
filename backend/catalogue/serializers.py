@@ -81,7 +81,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class KeyedLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.KeyedLayer
-        fields = ('keyword', 'layer', 'sort_key')
+        fields = ('keyword', 'layer', 'sort_key', 'description')
 
 class RichLayerAlternateViewSerializer(serializers.ModelSerializer):
     class Meta:

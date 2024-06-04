@@ -14,7 +14,7 @@
  * @wordpress-plugin
  * Plugin Name:       Region Reports
  * Description:       Adds the Seamap region report post type.
- * Version:           1.0.1
+ * Version:           1.0.2
  * Author:            Condense Pty Ltd.
  * Author URI:        https://condense.com.au/
  * License:           Affero General Public Licence (AGPL) v3

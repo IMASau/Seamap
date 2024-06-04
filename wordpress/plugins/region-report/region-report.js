@@ -82,12 +82,15 @@ class RegionReport {
             setLegend: function (layer) {
                 const url = layer.metadata?.layer?.legend_url ?? `${layer._url}?REQUEST=GetLegendGraphic&LAYER=${layer.options.layers}&TRANSPARENT=${layer.options.transparent}&SERVICE=WMS&VERSION=1.1.1&FORMAT=image/png`
                 this._container.innerHTML = `<img src="${url}">`;
+                this._container.style.display = 'block';
             },
             clearLegend: function () {
                 this._container.innerHTML = '';
+                this._container.style.display = 'none';
             },
             onAdd: function (map) {
                 const control = L.DomUtil.create('div', 'leaflet-minimap-legend');
+                control.style.display = 'none';
                 map.on('overlayadd', e => this.setLegend(e.layer), this);
                 map.on('overlayremove', this.clearLegend, this);
                 return control;
@@ -913,19 +916,19 @@ class RegionReport {
 
         // minimap layers
         minimapLayers.forEach(
-            layer => {
-                this.minimapLayers[layer.name] = L.tileLayer.wms(
-                    layer.server_url,
+            minimapLayer => {
+                this.minimapLayers[minimapLayer.label] = L.tileLayer.wms(
+                    minimapLayer.layer.server_url,
                     {
-                        layers: layer.layer_name,
+                        layers: minimapLayer.layer.layer_name,
                         transparent: true,
                         tiled: true,
                         format: "image/png",
-                        styles: layer.style ?? "",
+                        styles: minimapLayer.layer.style ?? "",
                         pane: 'control'
                     }
                 );
-                this.minimapLayers[layer.name].metadata = { "layer": layer };
+                this.minimapLayers[minimapLayer.label].metadata = { "layer": minimapLayer.layer };
             }
         );
 

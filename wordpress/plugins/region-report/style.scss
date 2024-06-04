@@ -665,9 +665,13 @@ body {
         color: #ccc;
     }
 
+    .leaflet-bottom.leaflet-left {
+        top: 0;
+    }
+
     .leaflet-minimap-legend {
         width: 200px;
-        max-height: 120px;
+        height: 100%;
         overflow-y: auto;
         margin: 0;
         background: rgba(255, 255, 255, 0.8);
