@@ -1,62 +1,3 @@
-L.Control.SingleLayers = L.Control.Layers.extend({
-    onAdd: function (map) {
-        this._map = map;
-        map.on('overlayadd', this._update, this);
-        map.on('overlayremove', this._update, this);
-        return L.Control.Layers.prototype.onAdd.call(this, map);
-    },
-    onRemove: function (map) {
-        map.on('overlayadd', this._update, this);
-        map.on('overlayremove', this._update, this);
-        L.Control.Layers.prototype.onRemove.call(this, map);
-    },
-    _addItem: function (obj) {
-        var item = L.Control.Layers.prototype._addItem.call(this, obj);
-
-        // Check if another overlay is active
-        let otherActive = false;
-        this._layers.forEach(
-            objOther => {
-                // If another overlay is active
-                if (objOther != obj && objOther.overlay && this._map.hasLayer(objOther.layer)) {
-                    otherActive = true;
-                }
-            }
-        );
-
-        if (otherActive) {
-            item.children[0].innerHTML = `<input type="checkbox" class="leaflet-control-layers-selector" disabled><span> ${obj.name}</span>`
-        }
-
-        return item;
-    }
-});
-
-L.control.singleLayers = function (baseLayers, overlays, options) {
-    return new L.Control.SingleLayers(baseLayers, overlays, options);
-}
-
-L.Control.Legend = L.Control.extend({
-    setLegend: function (layer) {
-        const url = layer.metadata?.layer?.legend_url ?? `${layer._url}?REQUEST=GetLegendGraphic&LAYER=${layer.options.layers}&TRANSPARENT=${layer.options.transparent}&SERVICE=WMS&VERSION=1.1.1&FORMAT=image/png`
-        this._container.innerHTML = `<img src="${url}">`;
-    },
-    clearLegend: function () {
-        this._container.innerHTML = '';
-    },
-    onAdd: function (map) {
-        const control = L.DomUtil.create('div', 'leaflet-minimap-legend');
-        map.on('overlayadd', e => this.setLegend(e.layer), this);
-        map.on('overlayremove', this.clearLegend, this);
-        return control;
-    },
-    onRemove: function (map) { }
-});
-
-L.control.legend = function (options) {
-    return new L.Control.Legend(options);
-}
-
 class RegionReport {
     postId = null;
     pressurePreviewUrlBase = null;
@@ -99,6 +40,65 @@ class RegionReport {
         parkName: parkName,
         imageryCaption: imageryCaption
     }) {
+        L.Control.SingleLayers = L.Control.Layers.extend({
+            onAdd: function (map) {
+                this._map = map;
+                map.on('overlayadd', this._update, this);
+                map.on('overlayremove', this._update, this);
+                return L.Control.Layers.prototype.onAdd.call(this, map);
+            },
+            onRemove: function (map) {
+                map.on('overlayadd', this._update, this);
+                map.on('overlayremove', this._update, this);
+                L.Control.Layers.prototype.onRemove.call(this, map);
+            },
+            _addItem: function (obj) {
+                var item = L.Control.Layers.prototype._addItem.call(this, obj);
+        
+                // Check if another overlay is active
+                let otherActive = false;
+                this._layers.forEach(
+                    objOther => {
+                        // If another overlay is active
+                        if (objOther != obj && objOther.overlay && this._map.hasLayer(objOther.layer)) {
+                            otherActive = true;
+                        }
+                    }
+                );
+        
+                if (otherActive) {
+                    item.children[0].innerHTML = `<input type="checkbox" class="leaflet-control-layers-selector" disabled><span> ${obj.name}</span>`
+                }
+        
+                return item;
+            }
+        });
+        
+        L.control.singleLayers = function (baseLayers, overlays, options) {
+            return new L.Control.SingleLayers(baseLayers, overlays, options);
+        }
+        
+        L.Control.Legend = L.Control.extend({
+            setLegend: function (layer) {
+                const url = layer.metadata?.layer?.legend_url ?? `${layer._url}?REQUEST=GetLegendGraphic&LAYER=${layer.options.layers}&TRANSPARENT=${layer.options.transparent}&SERVICE=WMS&VERSION=1.1.1&FORMAT=image/png`
+                this._container.innerHTML = `<img src="${url}">`;
+            },
+            clearLegend: function () {
+                this._container.innerHTML = '';
+            },
+            onAdd: function (map) {
+                const control = L.DomUtil.create('div', 'leaflet-minimap-legend');
+                map.on('overlayadd', e => this.setLegend(e.layer), this);
+                map.on('overlayremove', this.clearLegend, this);
+                return control;
+            },
+            onRemove: function (map) { }
+        });
+        
+        L.control.legend = function (options) {
+            return new L.Control.Legend(options);
+        }
+
         this.postId = postId;
         this.pressurePreviewUrlBase = pressurePreviewUrlBase;
         this.mapUrlBase = mapUrlBase;
