@@ -295,11 +295,36 @@
           (when (even? i) v)])
        labels-with-gaps)]]))
 
+(defmulti cql-control #(get-in % [:control :controller-type]))
+
+(defmethod cql-control "dropdown"
+  [{{:keys [label icon]} :control {:keys []} :rich-layer}]
+  [components/form-group
+   {:label
+    [:<>
+     (when icon [b/icon {:icon icon}])
+     label]}
+   [:div
+    {:on-click #(.stopPropagation %)}
+    [components/select
+     {:value        nil
+      :options      [1 2 3 4 5]
+      :onChange     js/console.log
+      :isSearchable true
+      :isClearable  true
+      :keyfns
+      {:id   identity
+       :text str}}]]])
+
+(defmethod cql-control :default
+ [{{:keys [label]} :control {:keys []} :rich-layer}]
+  [:div label])
+
 (defn- layer-details
   "Layer details for layer card. Includes layer's legend, and tabs for selecting
    filters if the layer is a rich-layer."
   [{:keys [layer]
-    {{:keys [tab displayed-layer alternate-views timeline tab-label icon] :as rich-layer} :rich-layer} :layer-state
+    {{:keys [tab displayed-layer alternate-views timeline controls tab-label icon] :as rich-layer} :rich-layer} :layer-state
     :as props}]
   [:div.layer-details
    {:on-click #(.stopPropagation %)}
@@ -326,7 +351,12 @@
          [:div
           {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
           (when (seq alternate-views) [alternate-view-select props])
-          (when (seq timeline) [timeline-select props])])}]]
+          (when (seq timeline) [timeline-select props])
+          (for [control controls]
+            ^{:key (:label control)}
+            [cql-control
+             {:control    control
+              :rich-layer rich-layer}])])}]]
      
      [legend-display layer])])
 

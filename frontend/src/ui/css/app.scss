@@ -484,6 +484,10 @@ input.leaflet-control-layers-selector[type="radio"] {
 .form-group > :first-child {
     font-weight: bold;
     margin-left: 6px;
+
+    .bp3-icon:first-child {
+        margin-right: 3px;
+    }
 }
 
 .form-group:not(:last-child) {

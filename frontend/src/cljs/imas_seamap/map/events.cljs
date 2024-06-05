@@ -472,12 +472,21 @@
                           (reduce-kv (fn [m k v] (assoc m k (mapv :layer v))) {}))]
     (assoc-in db [:map :keyed-layers] keyed-layers)))
 
+(defn- ->rich-layer-control
+  [rich-layer-control]
+  (set/rename-keys
+   rich-layer-control
+   {:cql_property    :cql-property
+    :data_type       :data-type
+    :controller_type :controller-type}))
+
 (defn- ->rich-layer
-  [{:keys [alternate_views timeline tab_label slider_label icon tooltip]}]
+  [{:keys [alternate_views timeline controls tab_label slider_label icon tooltip]}]
   {:alternate-views          alternate_views
    :alternate-views-selected nil
    :timeline                 timeline
    :timeline-selected        nil
+   :controls                 (mapv ->rich-layer-control controls)
    :tab                      "legend"
    :tab-label                tab_label
    :slider-label             slider_label
