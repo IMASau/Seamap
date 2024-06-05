@@ -203,6 +203,12 @@ CONTROLLER_TYPE_CHOICES = [
     ('multi-dropdown', 'multi-dropdown'),
 ]
 
+class EmptyStringToNoneField(models.CharField):
+    def get_prep_value(self, value):
+        if value == '':
+            return None  
+        return value
+
 @python_2_unicode_compatible
 class RichLayerControl(models.Model):
     richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT)
@@ -210,14 +216,8 @@ class RichLayerControl(models.Model):
     label = models.CharField(max_length=255)
     data_type = models.CharField(max_length=255, choices=DATA_TYPE_CHOICES)
     controller_type = models.CharField(max_length=255, choices=CONTROLLER_TYPE_CHOICES)
-    icon = models.CharField(max_length=255)
+    icon = EmptyStringToNoneField(max_length=255, null=True, blank=True)
     tooltip = models.CharField(max_length=255)
-
-class EmptyStringToNoneField(models.CharField):
-    def get_prep_value(self, value):
-        if value == '':
-            return None  
-        return value
 
 @python_2_unicode_compatible
 class RegionReport(models.Model):
