@@ -218,6 +218,7 @@
                            :responses         []}
                           :feature
                           {:status   :feature-info/waiting
+                           :leaflet-props leaflet-props
                            :location point
                            :show?    false}))] 
     (merge
@@ -260,7 +261,7 @@
   just want to issue a (or multiple) getFeatureInfo requests, but if
   we're in calculating-region-statistics mode we want to issue a
   different request, and it's cleaner to handle those separately."
-  [{:keys [db] :as ctx} event-v]
+  [{:keys [db]} [_ leaflet-props point]]
   (let [visible-layers (visible-layers (:map db))]
     (cond
       (get-in db [:map :controls :ignore-click])
@@ -273,7 +274,7 @@
        (not (get-in db [:map :controls :transect]))            ; we aren't drawing a transect;
        (not (get-in db [:map :controls :download :selecting])) ; we aren't selecting a region; and
        (seq visible-layers))                                   ; there are visible layers
-      (feature-info-dispatcher ctx event-v))))
+      {:dispatch [:map/feature-info-dispatcher leaflet-props point]})))
 
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))
@@ -285,7 +286,7 @@
                            vec)
         had-insecure? (get-in db [:feature-query :had-insecure?])]
     (when (seq responses)
-      {:location point :had-insecure? had-insecure? :responses responses :show? true})))
+      {:location point :leaflet-props (get-in db [:feature :leaflet-props]) :had-insecure? had-insecure? :responses responses :show? true})))
 
 (defn got-feature-info [db [_ request-id point info-format layers response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
@@ -622,12 +623,17 @@
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
                           (assoc-in [:story-maps :featured-map] featured-map)
-                          (assoc :initialised true))]
+                          (assoc :initialised true))
+
+        feature-location      (get-in db [:feature :location])
+        feature-leaflet-props (get-in db [:feature :leaflet-props])]
     {:db         db
      :dispatch-n (concat
                   [[:ui/hide-loading]
                    (when (and (seq startup-layers) initial-bounds?)
                      [:map/update-map-view {:bounds (:bounding_box (first startup-layers)) :instant? true}])
+                   (when (and feature-location feature-leaflet-props)
+                     [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                    [:maybe-autosave]]
                   (mapv #(vector :map.layer/get-legend %) legends-get))}))
 

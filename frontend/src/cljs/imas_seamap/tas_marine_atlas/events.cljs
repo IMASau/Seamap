@@ -176,11 +176,16 @@
                        legends-shown)
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
-                          (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
+                          (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
+
+        feature-location      (get-in db [:feature :location])
+        feature-leaflet-props (get-in db [:feature :leaflet-props])]
     {:db         db
      :dispatch-n (conj
                   (mapv #(vector :map.layer/get-legend %) legends-get)
                   [:map/update-map-view {:zoom zoom :center center}]
+                  (when (and feature-location feature-leaflet-props)
+                    [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                   [:map/popup-closed])}))
 
 (defn re-boot [{:keys [db]} _]
@@ -318,10 +323,15 @@
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
                           (assoc-in [:story-maps :featured-map] featured-map)
-                          (assoc :initialised true))]
+                          (assoc :initialised true))
+
+        feature-location      (get-in db [:feature :location])
+        feature-leaflet-props (get-in db [:feature :leaflet-props])]
     {:db         db
      :dispatch-n (concat
                   [[:ui/hide-loading]
+                   (when (and feature-location feature-leaflet-props)
+                     [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                    [:maybe-autosave]]
                   (mapv #(vector :map.layer/get-legend %) legends-get))}))
 

@@ -87,6 +87,8 @@
                                       :layer-state
                                       [:transect :show?]
                                       [:transect :query]
+                                      [:feature :location]
+                                      [:feature :leaflet-props]
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc-in [:state-of-knowledge :boundaries] pruned-boundaries)
@@ -137,6 +139,8 @@
                  [:map :bounds]
                  [:map :viewport-only?]
                  [:map :rich-layers]
+                 [:feature :location]
+                 [:feature :leaflet-props]
                  :legend-ids
                  :opacity-ids
                  :autosave?

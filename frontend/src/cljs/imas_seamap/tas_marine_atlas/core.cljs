@@ -121,6 +121,7 @@
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map.feature/show                     mevents/show-popup
     :map/clicked                          [mevents/map-click-dispatcher]
+    :map/feature-info-dispatcher          [mevents/feature-info-dispatcher]
     :map/get-feature-info                 [mevents/get-feature-info]
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
