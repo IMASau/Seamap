@@ -192,6 +192,27 @@ class RichLayerTimeline(models.Model):
     value = models.FloatField(null=False)
     label = models.CharField(max_length=255)
 
+DATA_TYPE_CHOICES = [
+    ('string', 'string'),
+    ('number', 'number'),
+]
+
+CONTROLLER_TYPE_CHOICES = [
+    ('slider', 'slider'),
+    ('dropdown', 'dropdown'),
+    ('multi-dropdown', 'multi-dropdown'),
+]
+
+@python_2_unicode_compatible
+class RichLayerControl(models.Model):
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT)
+    cql_property = models.CharField(max_length=255)
+    label = models.CharField(max_length=255)
+    data_type = models.CharField(max_length=255, choices=DATA_TYPE_CHOICES)
+    controller_type = models.CharField(max_length=255, choices=CONTROLLER_TYPE_CHOICES)
+    icon = models.CharField(max_length=255)
+    tooltip = models.CharField(max_length=255)
+
 class EmptyStringToNoneField(models.CharField):
     def get_prep_value(self, value):
         if value == '':

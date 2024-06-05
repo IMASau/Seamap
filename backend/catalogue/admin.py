@@ -36,8 +36,13 @@ class RichLayerTimelineInline(admin.TabularInline):
     fk_name = 'richlayer'
     extra = 0
 
+class RichLayerControlInline(admin.TabularInline):
+    model = models.RichLayerControl
+    fk_name = 'richlayer'
+    extra = 0
+
 class RichLayerAdmin(admin.ModelAdmin):
-    inlines = (RichLayerAlternateViewInline, RichLayerTimelineInline,)
+    inlines = (RichLayerAlternateViewInline, RichLayerTimelineInline, RichLayerControlInline,)
     autocomplete_fields = ('layer',)
 admin.site.register(models.RichLayer, RichLayerAdmin)
 

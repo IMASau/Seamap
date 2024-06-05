@@ -93,9 +93,15 @@ class RichLayerTimelineSerializer(serializers.ModelSerializer):
         model = models.RichLayerTimeline
         exclude = ('id', 'richlayer',)
 
+class RichLayerControlSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.RichLayerControl
+        exclude = ('id', 'richlayer',)
+
 class RichLayerSerializer(serializers.ModelSerializer):
     alternate_views = serializers.SerializerMethodField()
     timeline = serializers.SerializerMethodField()
+    controls = serializers.SerializerMethodField()
 
     def get_alternate_views(self, obj):
         alternate_views = models.RichLayerAlternateView.objects \
@@ -107,6 +113,10 @@ class RichLayerSerializer(serializers.ModelSerializer):
     def get_timeline(self, obj):
         timeline = models.RichLayerTimeline.objects.filter(richlayer=obj.id)
         return [RichLayerTimelineSerializer(v).data for v in timeline]
+
+    def get_controls(self, obj):
+        controls = models.RichLayerControl.objects.filter(richlayer=obj.id)
+        return [RichLayerControlSerializer(v).data for v in controls]
 
     class Meta:
         model = models.RichLayer
