@@ -736,7 +736,6 @@
 
 (defn rich-layer-get-cql-filter-values [{:keys [db]} [_ layer]]
   (let [rich-layer-id (get-in db [:map :rich-layers (:id layer) :id])]
-    (js/console.log "Getting CQL filter values" rich-layer-id)
     {:http-xhrio
      {:method          :get
       :uri             (get-in db [:config :urls :cql-filter-values-url])
