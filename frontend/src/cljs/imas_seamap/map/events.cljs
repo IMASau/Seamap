@@ -474,24 +474,30 @@
 
 (defn- ->rich-layer-control
   [rich-layer-control]
-  (set/rename-keys
+  (->
    rich-layer-control
-   {:cql_property    :cql-property
-    :data_type       :data-type
-    :controller_type :controller-type}))
+   (set/rename-keys
+    {:cql_property    :cql-property
+     :data_type       :data-type
+     :controller_type :controller-type})
+   (assoc
+    :values nil
+    :value  nil)))
 
 (defn- ->rich-layer
-  [{:keys [alternate_views timeline controls tab_label slider_label icon tooltip]}]
-  {:alternate-views          alternate_views
-   :alternate-views-selected nil
-   :timeline                 timeline
-   :timeline-selected        nil
-   :controls                 (mapv ->rich-layer-control controls)
-   :tab                      "legend"
-   :tab-label                tab_label
-   :slider-label             slider_label
-   :icon                     icon
-   :tooltip                  tooltip})
+  [rich-layer]
+  (->
+   rich-layer
+   (set/rename-keys
+    {:alternate_views :alternate-views
+     :tab_label       :tab-label
+     :slider_label    :slider-label})
+   (assoc
+    :tab                      "legend"
+    :alternate-views-selected nil
+    :timeline-selected        nil)
+   (dissoc :layer)
+   (update :controls #(mapv ->rich-layer-control %))))
 
 (defn- rich-layer->children
   [{:keys [alternate-views timeline]}]
@@ -721,7 +727,33 @@
   {:db       (assoc-in
               db [:map :rich-layers (:id layer) :tab]
               tab)
-   :dispatch [:maybe-autosave]})
+   :dispatch-n [(when
+                 (and
+                  (= tab "filters")                                                               ; If we're switching to the filters tab
+                  (nil? (:values (first (get-in db [:map :rich-layers (:id layer) :controls]))))) ; and we don't have any filter values
+                  [:map.rich-layer/get-cql-filter-values layer])                                  ; then get them
+                [:maybe-autosave]]})
+
+(defn rich-layer-get-cql-filter-values [{:keys [db]} [_ layer]]
+  (let [rich-layer-id (get-in db [:map :rich-layers (:id layer) :id])]
+    (js/console.log "Getting CQL filter values" rich-layer-id)
+    {:http-xhrio
+     {:method          :get
+      :uri             (get-in db [:config :urls :cql-filter-values-url])
+      :params          {:rich-layer-id rich-layer-id}
+      :response-format (ajax/json-response-format {:keywords? true})
+      :on-success      [:map.rich-layer/get-cql-filter-values-success layer]
+      :on-failure      [:ajax/default-err-handler]}}))
+
+(defn rich-layer-get-cql-filter-values-success [db [_ layer response]]
+  (update-in
+   db [:map :rich-layers (:id layer) :controls]
+   (fn [controls]
+     (mapv
+      (fn [control]
+        (let [values (:values (first-where #(= (:cql_property %) (:cql-property control)) response))]
+          (assoc control :values values)))
+      controls))))
 
 (defn rich-layer-alternate-views-selected [{:keys [db]} [_ layer alternate-views-selected]]
   (let [rich-layers (get-in db [:map :rich-layers])

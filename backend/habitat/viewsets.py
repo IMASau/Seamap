@@ -1380,16 +1380,22 @@ def cql_filter_values(request):
 
     rich_layer = RichLayer.objects.get(id=params['rich-layer-id'])
 
-    hardcoded_values = {
-        'dr': {4, 7},
-        'ec': {1000,  2000, 4000, 6000, 8000, 10000},
-        'ac': {100, 200, 300},
-    }
+    hardcoded_values = [
+        {
+            'cql_property': 'dr',
+            'values': {4, 7},
+        },
+        {
+            'cql_property': 'ec',
+            'values': {1000,  2000, 4000, 6000, 8000, 10000},
+        },
+        {
+            'cql_property': 'ac',
+            'values': {100, 200, 300},
+        },
+    ]
 
-    controls = rich_layer.controls.values('cql_property')
-    cql_filter_values = {
-        control['cql_property']: hardcoded_values[control['cql_property']]
-        for control in controls
-    }
+    cql_properties = rich_layer.controls.values_list('cql_property', flat=True)
+    cql_filter_values = [values for values in hardcoded_values if values['cql_property'] in cql_properties]
     
     return Response(cql_filter_values)
