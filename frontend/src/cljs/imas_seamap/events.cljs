@@ -155,6 +155,7 @@
           habitat-statistics
           bathymetry-statistics
           habitat-observations
+          cql-filter-values
           layer-previews
           story-maps
           region-report-pages]}
@@ -180,6 +181,7 @@
       :habitat-statistics-url      (str api-url-base habitat-statistics)
       :bathymetry-statistics-url   (str api-url-base bathymetry-statistics)
       :habitat-observations-url    (str api-url-base habitat-observations)
+      :cql-filter-values-url       (str api-url-base cql-filter-values)
       :layer-previews-url          (str media-url-base layer-previews)
       :story-maps-url              (str wordpress-url-base story-maps)
       :region-report-pages-url     (str wordpress-url-base region-report-pages)})))
