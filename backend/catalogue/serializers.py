@@ -105,7 +105,7 @@ class RichLayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.RichLayer
-        exclude = ('id',)
+        fields = '__all__'
 
 class RegionReportSerializer(serializers.ModelSerializer):
     bounding_box = serializers.SerializerMethodField()

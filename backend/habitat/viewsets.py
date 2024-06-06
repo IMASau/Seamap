@@ -12,8 +12,8 @@ import zipfile
 import logging
 from shapely.geometry import box
 
-from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure
-from catalogue.serializers import RegionReportSerializer, LayerSerializer, PressureSerializer
+from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure, RichLayer
+from catalogue.serializers import RegionReportSerializer, LayerSerializer, PressureSerializer, RichLayerSerializer
 from collections import defaultdict, namedtuple
 
 from django.conf import settings
@@ -1368,3 +1368,28 @@ def data_in_region(request):
         layer_ids = [row[0] for row in cursor.fetchall()]
     
     return Response(layer_ids)
+
+@action(detail=False)
+@api_view()
+def cql_filter_values(request):
+    for required in ['rich-layer-id']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+    
+    params = {k: v or None for k, v in request.query_params.items()}
+
+    rich_layer = RichLayer.objects.get(id=params['rich-layer-id'])
+
+    hardcoded_values = {
+        'dr': {4, 7},
+        'ec': {1000,  2000, 4000, 6000, 8000, 10000},
+        'ac': {100, 200, 300},
+    }
+
+    controls = rich_layer.controls.values('cql_property')
+    cql_filter_values = {
+        control['cql_property']: hardcoded_values[control['cql_property']]
+        for control in controls
+    }
+    
+    return Response(cql_filter_values)
