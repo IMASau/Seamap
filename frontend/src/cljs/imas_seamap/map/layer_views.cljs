@@ -298,7 +298,7 @@
 (defmulti cql-control #(get-in % [:control :controller-type]))
 
 (defmethod cql-control "dropdown"
-  [{{:keys [label icon]} :control {:keys []} :rich-layer}]
+  [{{:keys [label icon value values] :as control} :control {:keys [layer]} :props}]
   [components/form-group
    {:label
     [:<>
@@ -307,9 +307,9 @@
    [:div
     {:on-click #(.stopPropagation %)}
     [components/select
-     {:value        nil
-      :options      [1 2 3 4 5]
-      :onChange     js/console.log
+     {:value        value
+      :options      values
+      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected layer control %])
       :isSearchable true
       :isClearable  true
       :keyfns
@@ -355,8 +355,8 @@
           (for [control controls]
             ^{:key (:label control)}
             [cql-control
-             {:control    control
-              :rich-layer rich-layer}])])}]]
+             {:control control
+              :props   props}])])}]]
      
      [legend-display layer])])
 

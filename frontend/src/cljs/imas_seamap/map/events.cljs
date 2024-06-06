@@ -800,6 +800,16 @@
         [:map.layer/get-legend (:layer timeline-selected)])
       [:maybe-autosave]]}))
 
+(defn rich-layer-control-selected [{:keys [db]} [_ layer control value]]
+  {:db (update-in
+        db [:map :rich-layers (:id layer) :controls]
+        (fn [controls]
+          (mapv
+           #(if (= (:cql-property %) (:cql-property control))
+              (assoc % :value value) %)
+           controls)))
+   :dispatch [:maybe-autosave]})
+
 (defn rich-layer-reset-filters [{:keys [db]} [_ layer]]
   (merge
    {:db         (-> db

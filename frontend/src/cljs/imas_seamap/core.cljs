@@ -173,6 +173,7 @@
     :map.rich-layer/tab                   [mevents/rich-layer-tab]
     :map.rich-layer/alternate-views-selected      [mevents/rich-layer-alternate-views-selected]
     :map.rich-layer/timeline-selected             [mevents/rich-layer-timeline-selected]
+    :map.rich-layer/control-selected              [mevents/rich-layer-control-selected]
     :map.rich-layer/reset-filters                 [mevents/rich-layer-reset-filters]
     :map.rich-layer/configure                     [mevents/rich-layer-configure]
     :map.rich-layer/get-cql-filter-values         [mevents/rich-layer-get-cql-filter-values]
