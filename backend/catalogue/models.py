@@ -181,13 +181,13 @@ class RichLayer(models.Model):
 
 @python_2_unicode_compatible
 class RichLayerAlternateView(models.Model):
-    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT)
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT, related_name='alternate_views')
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
 
 @python_2_unicode_compatible
 class RichLayerTimeline(models.Model):
-    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT)
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT, related_name='timeline')
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     value = models.FloatField(null=False)
     label = models.CharField(max_length=255)
@@ -211,7 +211,7 @@ class EmptyStringToNoneField(models.CharField):
 
 @python_2_unicode_compatible
 class RichLayerControl(models.Model):
-    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT)
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT, related_name='controls')
     cql_property = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
     data_type = models.CharField(max_length=255, choices=DATA_TYPE_CHOICES)

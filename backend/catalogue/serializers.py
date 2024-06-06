@@ -99,24 +99,9 @@ class RichLayerControlSerializer(serializers.ModelSerializer):
         exclude = ('id', 'richlayer',)
 
 class RichLayerSerializer(serializers.ModelSerializer):
-    alternate_views = serializers.SerializerMethodField()
-    timeline = serializers.SerializerMethodField()
-    controls = serializers.SerializerMethodField()
-
-    def get_alternate_views(self, obj):
-        alternate_views = models.RichLayerAlternateView.objects \
-            .filter(richlayer=obj.id) \
-            .annotate(sort_key_null=Coalesce('sort_key', Value('zzzzzzzz'))) \
-            .order_by('sort_key_null')
-        return [RichLayerAlternateViewSerializer(v).data for v in alternate_views]
-
-    def get_timeline(self, obj):
-        timeline = models.RichLayerTimeline.objects.filter(richlayer=obj.id)
-        return [RichLayerTimelineSerializer(v).data for v in timeline]
-
-    def get_controls(self, obj):
-        controls = models.RichLayerControl.objects.filter(richlayer=obj.id)
-        return [RichLayerControlSerializer(v).data for v in controls]
+    alternate_views = RichLayerAlternateViewSerializer(many=True, read_only=True)
+    timeline = RichLayerTimelineSerializer(many=True, read_only=True)
+    controls = RichLayerControlSerializer(many=True, read_only=True)
 
     class Meta:
         model = models.RichLayer
