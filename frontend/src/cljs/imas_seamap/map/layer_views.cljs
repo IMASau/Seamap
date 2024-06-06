@@ -350,7 +350,6 @@
         (reagent/as-element
          [:div
           {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
-          [:div cql-filter]
           (when (seq alternate-views) [alternate-view-select props])
           (when (seq timeline) [timeline-select props])
           (for [control controls]
