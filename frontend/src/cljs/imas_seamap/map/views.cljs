@@ -184,6 +184,7 @@
 
 (defmethod layer-component :wms
   [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
+  ^{:key (str cql-filter)}
   [leaflet/wms-layer
    (merge
     {:url              server_url
@@ -242,7 +243,8 @@
        :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}])) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
 
 (defmethod layer-component :wms-non-tiled
-  [{:keys [boundary-filter layer-opacities layer] {:keys [server_url layer_name style]} :displayed-layer}]
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
+  ^{:key (str cql-filter)}
   [leaflet/non-tiled-layer
    (merge
     {:url              server_url
@@ -256,7 +258,8 @@
      :opacity          (/ (layer-opacities layer) 100)
      :tiled            true
      :format           "image/png"
-     :cross-origin     "anonymous"}
+     :cross-origin     "anonymous"
+     :cql_filter       cql-filter}
     (when style {:styles style})
     (boundary-filter layer))])
 
