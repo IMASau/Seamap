@@ -20,6 +20,7 @@ class RegionReport {
     network = null;
     park = null;
     minimapLayers = {};
+    boundary = null;
 
     // imagery map
     imageryMap = null;
@@ -54,7 +55,7 @@ class RegionReport {
             },
             _addItem: function (obj) {
                 var item = L.Control.Layers.prototype._addItem.call(this, obj);
-        
+
                 // Check if another overlay is active
                 let otherActive = false;
                 this._layers.forEach(
@@ -65,19 +66,19 @@ class RegionReport {
                         }
                     }
                 );
-        
+
                 if (otherActive) {
                     item.children[0].innerHTML = `<input type="checkbox" class="leaflet-control-layers-selector" disabled><span> ${obj.name}</span>`
                 }
-        
+
                 return item;
             }
         });
-        
+
         L.control.singleLayers = function (baseLayers, overlays, options) {
             return new L.Control.SingleLayers(baseLayers, overlays, options);
         }
-        
+
         L.Control.Legend = L.Control.extend({
             setLegend: function (layer) {
                 const url = layer.metadata?.layer?.legend_url ?? `${layer._url}?REQUEST=GetLegendGraphic&LAYER=${layer.options.layers}&TRANSPARENT=${layer.options.transparent}&SERVICE=WMS&VERSION=1.1.1&FORMAT=image/png`
@@ -97,7 +98,7 @@ class RegionReport {
             },
             onRemove: function (map) { }
         });
-        
+
         L.control.legend = function (options) {
             return new L.Control.Legend(options);
         }
@@ -164,6 +165,8 @@ class RegionReport {
                 this.bounds = response.bounding_box;
                 this.network = response.network.network;
                 this.park = response.park;
+                this.boundary = response.boundary;
+                this.squidleUrl = response.squidle_url;
 
                 this.populateRegionHeading(response);
                 this.populateOverviewMap(response);
@@ -1070,84 +1073,77 @@ class RegionReport {
     refreshImagery() {
         if (this.squidleUrl == null) return;
         if (this.imageryMap == null) return;
+        if (this.imageryGrid == null) return;
+        if (this.boundary == null) return;
 
-        $.ajax(this.squidleUrl, {
+        $.ajax("https://squidle.org/api/pose", {
             dataType: "json",
-            success: media => {
+            data: {
+                q: JSON.stringify({
+                    filters: [{
+                        name: "geom",
+                        op: "geo_in_polys_xy",
+                        val: this.boundary
+                    }],
+                    order_by: [{ random: true }],
+                    limit: 1
+                })
+            },
+            success: pose => {
+                this.imageryMarkers.forEach(marker => this.imageryMap.removeLayer(marker));
+                this.imageryMarkers = [];
+                this.imageryGrid.innerHTML = "";
 
-                $.ajax("https://squidle.org/api/pose", {
-                    dataType: "json",
-                    data: {
-                        q: JSON.stringify({
-                            filters: [{
-                                name: "media_id",
-                                op: "in",
-                                val: media.objects.map(e => e.id)
-                            }]
-                        })
-                    },
-                    success: pose => {
-                        // clear
-                        this.imageryMarkers.forEach(marker => this.imageryMap.removeLayer(marker));
-                        this.imageryMarkers = [];
-                        this.imageryGrid.innerHTML = "";
+                pose.objects.forEach((poseObject, index) => {
+                    // grid items
+                    this.imageryGrid.innerHTML += `
+                        <a
+                            href="https://squidle.org/iframe/api/media/${poseObject.media.id}?template=models/media/preview_single.html&nologin=true&fullwidth=true"
+                            target="_blank"
+                            onmouseenter="regionReport.focusMarker(${index})"
+                            onmouseleave="regionReport.focusMarker()"
+                        >
+                            <img src="${poseObject.media.path_best_thm}">
+                            <div class="grid-number">${index + 1}</div>
+                        </a>`;
 
-                        // populate
-                        media.objects.forEach((image, index) => {
-                            Object.assign(image, pose.objects.filter(e => e.media.id == image.id)[0]);
-
-                            // grid items
-                            this.imageryGrid.innerHTML += `
-                                <a
-                                    href="https://squidle.org/iframe/api/media/${image.media.id}?template=models/media/preview_single.html&nologin=true&fullwidth=true"
-                                    target="_blank"
-                                    onmouseenter="regionReport.focusMarker(${index})"
-                                    onmouseleave="regionReport.focusMarker()"
-                                >
-                                    <img src="${image.path_best_thm}">
-                                    <div class="grid-number">${index + 1}</div>
-                                </a>`;
-
-                            // marker
-                            this.imageryMarkers.push(
-                                new L.Marker(
-                                    [image.lat, image.lon],
-                                    {
-                                        icon: L.divIcon({
-                                            html: `
-                                                <svg width=25 height=41>
-                                                    <polygon
-                                                        points="0,0 25,0, 25,28 20,28 12.5,41 5,28 0,28"
-                                                        fill="rgb(0, 147, 36)"
-                                                        stroke="white"
-                                                        stroke-width=1.5
-                                                    />
-                                                    <text
-                                                        fill="white"
-                                                        x="50%"
-                                                        y=14
-                                                        dominant-baseline="middle"
-                                                        text-anchor="middle"
-                                                        font-family="sans-serif"
-                                                        font-weight="bold"
-                                                    >${index + 1}</text>
-                                                </svg>`,
-                                            iconSize: [25, 41],
-                                            iconAnchor: [12.5, 41]
-                                        })
-                                    }
-                                )
-                            );
-                            this.imageryMarkers[this.imageryMarkers.length - 1].addTo(this.imageryMap);
-                        });
-                    }
+                    // marker
+                    this.imageryMarkers.push(
+                        new L.Marker(
+                            [poseObject.lat, poseObject.lon],
+                            {
+                                icon: L.divIcon({
+                                    html: `
+                                        <svg width=25 height=41>
+                                            <polygon
+                                                points="0,0 25,0, 25,28 20,28 12.5,41 5,28 0,28"
+                                                fill="rgb(0, 147, 36)"
+                                                stroke="white"
+                                                stroke-width=1.5
+                                            />
+                                            <text
+                                                fill="white"
+                                                x="50%"
+                                                y=14
+                                                dominant-baseline="middle"
+                                                text-anchor="middle"
+                                                font-family="sans-serif"
+                                                font-weight="bold"
+                                            >${index + 1}</text>
+                                        </svg>`,
+                                    iconSize: [25, 41],
+                                    iconAnchor: [12.5, 41]
+                                })
+                            }
+                        )
+                    );
+                    this.imageryMarkers[index].addTo(this.imageryMap);
                 });
             }
         });
     }
 
-    populateImageryMap({ squidle_url: squidleUrl, all_layers_boundary: allLayersBoundary, network: network, park: park, bounding_box: bounds }) {
-        this.squidleUrl = squidleUrl;
+    populateImageryMap({ all_layers_boundary: allLayersBoundary, network: network, park: park, bounding_box: bounds }) {
         const imageryElement = document.getElementById(`region-report-imagery-${this.postId}`);
 
         if (this.squidleUrl) {

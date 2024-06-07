@@ -10,6 +10,8 @@ import subprocess
 import tempfile
 import zipfile
 import logging
+import requests
+from requests.adapters import HTTPAdapter, Retry
 from shapely.geometry import box
 
 from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure
@@ -732,6 +734,17 @@ SELECT DISTINCT layer_id FROM (
 ) AS [T1];
 """
 
+def http_session():
+    retry_strategy = Retry(
+        total=3,
+        status_forcelist=[ 500, 502, 503, 504 ]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    http = requests.Session()
+    http.mount("https://", adapter)
+    http.mount("http://", adapter)
+    return http
+
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
@@ -1328,6 +1341,7 @@ def region_report_data(request):
     network_region = RegionReport.objects.get(network=network, park=None)
     data["network"] = {'network': network_region.network, 'slug': network_region.slug}
 
+    # Add layers
     data["all_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap-panel1').order_by('-sort_key')]
     data["all_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel1-boundary').layer).data
     data["public_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap-panel2').order_by('-sort_key')]
@@ -1336,6 +1350,27 @@ def region_report_data(request):
     data["app_boundary_layer"] = LayerSerializer(KeyedLayer.objects.get(keyword=('amp-park' if park != None else 'amp-network')).layer).data
 
     data["minimap_layers"] = [{'label': v.description, 'layer': LayerSerializer(v.layer).data} for v in KeyedLayer.objects.filter(keyword='data-report-minimap').order_by('sort_key')]
+
+    # Get the boundary geometry
+    boundary_simplified = KeyedLayer.objects.get(keyword='data-report-boundary-simplified').layer
+    params = {
+        'request':      'GetFeature',
+        'service':      'WFS',
+        'version':      '2.0.0',
+        'typeNames':    boundary_simplified.layer_name,
+        'outputFormat': 'application/json',
+        'cql_filter': (f"RESNAME='{park}'" if park else f"NETWORK='{network}'")
+    }
+
+    try:
+        r = http_session().get(url=boundary_simplified.server_url, params=params)
+    except Exception as e:
+        raise Exception(f"Cannot retrieve GeoJSON from geoserver ({boundary_simplified.server_url})") from e
+    try:
+        data['boundary'] = r.json()['features'][0]['geometry']['coordinates']
+    except Exception as e:
+        raise Exception(f"Cannot decode geoserver response into JSON:\n{r.text}") from e
+    
 
     with connections['transects'].cursor() as cursor:
         cursor.execute(SQL_GET_PARK_SQUIDLE_URL if park else SQL_GET_NETWORK_SQUIDLE_URL, [park or network])
