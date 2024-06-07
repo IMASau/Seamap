@@ -169,7 +169,12 @@
         
             <section class="imagery">
                 <h3>Imagery</h3>
-                <div id="region-report-imagery-<?php the_ID(); ?>">Loading imagery deployment data...</div>
+                <div id="region-report-imagery-<?php the_ID(); ?>">
+                    <div class="map" id="region-report-imagery-map-<?php the_ID(); ?>"></div>
+                    <div class="images" id="region-report-imagery-images-<?php the_ID(); ?>">
+                        Loading imagery deployment data...
+                    </div>
+                </div>
             </section>
 
             <section class="pressures">

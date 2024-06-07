@@ -26,7 +26,6 @@ class RegionReport {
     imageryMap = null;
     imageryMarkers = [];
     squidleUrl = null;
-    imageryGrid = null;
 
     constructor({
         postId: postId,
@@ -109,6 +108,7 @@ class RegionReport {
         this.imageryCaption = imageryCaption;
 
         this.setupOverviewMap();
+        this.setupImageryMap();
         this.setupResearchEffort(networkName, parkName);
 
         // Do AJAX
@@ -166,7 +166,6 @@ class RegionReport {
                 this.network = response.network.network;
                 this.park = response.park;
                 this.boundary = response.boundary;
-                this.squidleUrl = response.squidle_url;
 
                 this.populateRegionHeading(response);
                 this.populateOverviewMap(response);
@@ -1071,11 +1070,16 @@ class RegionReport {
     }
 
     refreshImagery() {
-        if (this.squidleUrl == null) return;
         if (this.imageryMap == null) return;
-        if (this.imageryGrid == null) return;
         if (this.boundary == null) return;
 
+        // initiate loading
+        const imageryElement = document.getElementById(`region-report-imagery-images-${this.postId}`);
+        imageryElement.innerHTML = "Loading imagery deployment data...";
+        this.imageryMarkers.forEach(marker => this.imageryMap.removeLayer(marker));
+        this.imageryMarkers = [];
+
+        // retrieve data
         $.ajax("https://squidle.org/api/pose", {
             dataType: "json",
             data: {
@@ -1086,111 +1090,104 @@ class RegionReport {
                         val: this.boundary
                     }],
                     order_by: [{ random: true }],
-                    limit: 1
+                    limit: 10
                 })
             },
             success: pose => {
-                this.imageryMarkers.forEach(marker => this.imageryMap.removeLayer(marker));
-                this.imageryMarkers = [];
-                this.imageryGrid.innerHTML = "";
+                if (pose.objects.length > 0) {
+                    // populate imagery grid
+                    imageryElement.innerHTML = `
+                        <div class="image-grid" id="region-report-imagery-grid-${this.postId}"></div>
+                        <div class="caption">${this.imageryCaption}</div>
+                        <a href="#!" onclick="regionReport.refreshImagery()">Refresh images</a>`;
 
-                pose.objects.forEach((poseObject, index) => {
-                    // grid items
-                    this.imageryGrid.innerHTML += `
-                        <a
-                            href="https://squidle.org/iframe/api/media/${poseObject.media.id}?template=models/media/preview_single.html&nologin=true&fullwidth=true"
-                            target="_blank"
-                            onmouseenter="regionReport.focusMarker(${index})"
-                            onmouseleave="regionReport.focusMarker()"
-                        >
-                            <img src="${poseObject.media.path_best_thm}">
-                            <div class="grid-number">${index + 1}</div>
-                        </a>`;
-
-                    // marker
-                    this.imageryMarkers.push(
-                        new L.Marker(
-                            [poseObject.lat, poseObject.lon],
-                            {
-                                icon: L.divIcon({
-                                    html: `
-                                        <svg width=25 height=41>
-                                            <polygon
-                                                points="0,0 25,0, 25,28 20,28 12.5,41 5,28 0,28"
-                                                fill="rgb(0, 147, 36)"
-                                                stroke="white"
-                                                stroke-width=1.5
-                                            />
-                                            <text
-                                                fill="white"
-                                                x="50%"
-                                                y=14
-                                                dominant-baseline="middle"
-                                                text-anchor="middle"
-                                                font-family="sans-serif"
-                                                font-weight="bold"
-                                            >${index + 1}</text>
-                                        </svg>`,
-                                    iconSize: [25, 41],
-                                    iconAnchor: [12.5, 41]
-                                })
-                            }
-                        )
-                    );
-                    this.imageryMarkers[index].addTo(this.imageryMap);
-                });
+                    const imageryGrid = document.getElementById(`region-report-imagery-grid-${this.postId}`);
+                    pose.objects.forEach((poseObject, index) => {
+                        // grid items
+                        imageryGrid.innerHTML += `
+                            <a
+                                href="https://squidle.org/iframe/api/media/${poseObject.media.id}?template=models/media/preview_single.html&nologin=true&fullwidth=true"
+                                target="_blank"
+                                onmouseenter="regionReport.focusMarker(${index})"
+                                onmouseleave="regionReport.focusMarker()"
+                            >
+                                <img src="${poseObject.media.path_best_thm}">
+                                <div class="grid-number">${index + 1}</div>
+                            </a>`;
+    
+                        // marker
+                        this.imageryMarkers.push(
+                            new L.Marker(
+                                [poseObject.lat, poseObject.lon],
+                                {
+                                    icon: L.divIcon({
+                                        html: `
+                                            <svg width=25 height=41>
+                                                <polygon
+                                                    points="0,0 25,0, 25,28 20,28 12.5,41 5,28 0,28"
+                                                    fill="rgb(0, 147, 36)"
+                                                    stroke="white"
+                                                    stroke-width=1.5
+                                                />
+                                                <text
+                                                    fill="white"
+                                                    x="50%"
+                                                    y=14
+                                                    dominant-baseline="middle"
+                                                    text-anchor="middle"
+                                                    font-family="sans-serif"
+                                                    font-weight="bold"
+                                                >${index + 1}</text>
+                                            </svg>`,
+                                        iconSize: [25, 41],
+                                        iconAnchor: [12.5, 41]
+                                    })
+                                }
+                            )
+                        );
+                        this.imageryMarkers[index].addTo(this.imageryMap);
+                    });
+                } else {
+                    imageryElement.innerHTML = "No imagery deployments found in this region";
+                }
             }
         });
     }
 
+    setupImageryMap() {
+        // set-up map
+        this.imageryMap = L.map(`region-report-imagery-map-${this.postId}`, { maxZoom: 19, zoomControl: false });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.imageryMap);
+        this.imageryMap._handlers.forEach(e => e.disable());
+    }
+
     populateImageryMap({ all_layers_boundary: allLayersBoundary, network: network, park: park, bounding_box: bounds }) {
-        const imageryElement = document.getElementById(`region-report-imagery-${this.postId}`);
+        // map boundary layer
+        L.tileLayer.wms(
+            allLayersBoundary.server_url,
+            {
+                layers: allLayersBoundary.layer_name,
+                transparent: true,
+                tiled: true,
+                format: "image/png",
+                styles: allLayersBoundary.style ?? "",
+                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
+            }
+        ).addTo(this.imageryMap);
 
-        if (this.squidleUrl) {
-            imageryElement.innerHTML = `
-                <div class="map" id="region-report-imagery-map-${this.postId}"></div>
-                <div class="images">
-                    <div class="image-grid" id="region-report-imagery-grid-${this.postId}"></div>
-                    <div class="caption">${this.imageryCaption}</div>
-                    <a href="#!" onclick="regionReport.refreshImagery()">Refresh images</a>
-                </div>`;
-
-
-            this.imageryGrid = document.getElementById(`region-report-imagery-grid-${this.postId}`);
-
-            // set-up map
-            this.imageryMap = L.map(`region-report-imagery-map-${this.postId}`, { maxZoom: 19, zoomControl: false });
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.imageryMap);
-            this.imageryMap._handlers.forEach(e => e.disable());
-
-            this.refreshImagery();
-
-            // map boundary layer
-            L.tileLayer.wms(
-                allLayersBoundary.server_url,
-                {
-                    layers: allLayersBoundary.layer_name,
-                    transparent: true,
-                    tiled: true,
-                    format: "image/png",
-                    styles: allLayersBoundary.style ?? "",
-                    cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
+        // zoom to map extent
+        this.imageryMap.fitBounds([[bounds.north, bounds.east], [bounds.south, bounds.west]]);
+        window.addEventListener("resize", this.imageryMap.invalidateSize);
+        if (navigator.userAgent.match(/chrome|chromium|crios/i)) {
+            window.matchMedia('print').addEventListener(
+                "change",
+                e => {
+                    if (e.matches) this.imageryMap.invalidateSize();
                 }
-            ).addTo(this.imageryMap);
-
-            // zoom to map extent
-            this.imageryMap.fitBounds([[bounds.north, bounds.east], [bounds.south, bounds.west]]);
-            window.addEventListener("resize", this.imageryMap.invalidateSize);
-            if (navigator.userAgent.match(/chrome|chromium|crios/i))
-                window.matchMedia('print').addEventListener(
-                    "change",
-                    e => {
-                        if (e.matches) this.imageryMap.invalidateSize();
-                    }
-                );
-        } else {
-            imageryElement.innerText = "No imagery deployments found in this region";
+            );
         }
+
+        this.refreshImagery();
     }
 
     pressureAppState(pressureLayer, boundaryLayer, bounds, network, park) {
