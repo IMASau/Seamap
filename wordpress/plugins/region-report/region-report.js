@@ -1082,16 +1082,62 @@ class RegionReport {
         this.imageryMarkers.forEach(marker => this.imageryMap.removeLayer(marker));
         this.imageryMarkers = [];
 
+        // filters
+        const filters = [{
+            name: "geom",
+            op: "geo_in_polys_xy",
+            val: this.boundary
+        }];
+
+        const minDepth = this.imageryDepths.find(e => e.name == this.imageryFilterDepth)?.min;
+        if (minDepth) {
+            filters.push({
+                name: 'dep',
+                op: 'gt',
+                val: minDepth
+            });
+        }
+        const maxDepth = this.imageryDepths.find(e => e.name == this.imageryFilterDepth)?.max;
+        if (maxDepth) {
+            filters.push({
+                name: 'dep',
+                op: 'lte',
+                val: maxDepth
+            });
+        }
+
+        if (this.imageryFilterHighlights) {
+            // highlights filter likely to change
+            filters.push({
+                name: 'media',
+                op: 'has',
+                val: {
+                    name: 'annotations',
+                    op: 'any',
+                    val: {
+                        name: 'annotations',
+                        op: 'any',
+                        val: {
+                            name: 'tags',
+                            op: 'any',
+                            val: {
+                                name: 'id',
+                                op: 'eq',
+                                val: '348'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
         // retrieve data
         $.ajax("https://squidle.org/api/pose", {
             dataType: "json",
             data: {
                 q: JSON.stringify({
-                    filters: [{
-                        name: "geom",
-                        op: "geo_in_polys_xy",
-                        val: this.boundary
-                    }],
+                    filters: filters,
                     order_by: [{ random: true }],
                     limit: 10
                 })
