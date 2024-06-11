@@ -25,7 +25,6 @@ class RegionReport {
     // imagery map
     imageryMap = null;
     imageryMarkers = [];
-    squidleUrl = null;
 
     constructor({
         postId: postId,
