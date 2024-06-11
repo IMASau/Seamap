@@ -113,6 +113,12 @@ body {
         text-decoration: underline;
         font-weight: inherit;
     }
+
+    select {
+        width: initial;
+        padding: initial;
+        font-size: inherit;
+    }
     
     .entry-content>* {
         &:not(:first-child) {
