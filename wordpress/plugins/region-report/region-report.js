@@ -25,6 +25,9 @@ class RegionReport {
     // imagery map
     imageryMap = null;
     imageryMarkers = [];
+    imageryDepths = [];
+    imageryFilterDepth = null;
+    imageryFilterHighlights = false;
 
     constructor({
         postId: postId,
@@ -165,6 +168,7 @@ class RegionReport {
                 this.network = response.network.network;
                 this.park = response.park;
                 this.boundary = response.boundary;
+                this.imageryDepths = response.depths;
 
                 this.populateRegionHeading(response);
                 this.populateOverviewMap(response);
@@ -1153,6 +1157,16 @@ class RegionReport {
         });
     }
 
+    setImageryFilterDepth(depth) {
+        this.imageryFilterDepth = depth;
+        this.refreshImagery();
+    }
+
+    setImageryFilterHighlights(highlights) {
+        this.imageryFilterHighlights = highlights;
+        this.refreshImagery();
+    }
+
     setupImageryMap() {
         // set-up map
         this.imageryMap = L.map(`region-report-imagery-map-${this.postId}`, { maxZoom: 19, zoomControl: false });
@@ -1173,6 +1187,13 @@ class RegionReport {
                 cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
             }
         ).addTo(this.imageryMap);
+
+        const imageryDepthElement = document.getElementById(`region-report-imagery-depth-${this.postId}`);
+        this.imageryDepths.forEach(
+            depth => {
+                imageryDepthElement.innerHTML += `<option value="${depth.name}">${depth.name}</option>`;
+            }
+        );
 
         // zoom to map extent
         this.imageryMap.fitBounds([[bounds.north, bounds.east], [bounds.south, bounds.west]]);

@@ -368,14 +368,22 @@ body {
     .imagery-and-pressures {
         >.caption { margin-bottom: 32px; }
 
-        .imagery>:nth-child(2) {
+        .imagery>* {
             display: flex;
             flex-direction: row;
             gap: 16px;
+            >:nth-child(1) { flex: 2; }
+            >:nth-child(2) { flex: 3; }
+
+            .imagery-controls {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
 
             .map {
                 height: 300px;
-                flex: 2;
 
                 .leaflet-div-icon {
                     background: none;
@@ -386,7 +394,6 @@ body {
             }
 
             .images {
-                flex: 3;
                 a { color: inherit; }
                 .caption { margin-bottom: 8px; }
         

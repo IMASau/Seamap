@@ -1398,6 +1398,17 @@ def region_report_data(request):
         data['boundary'] = r.json()['features'][0]['geometry']['coordinates']
     except Exception as e:
         raise Exception(f"Cannot decode geoserver response into JSON:\n{r.text}") from e
+    
+    data['depths'] = [
+        { 'name': "Shallow", 'min': None, 'max': 30 },
+        { 'name': "Mesophotic", 'min': 30, 'max': 70 },
+        { 'name': "Rariphotic", 'min': 70, 'max': 200 },
+        { 'name': "Upper-slope", 'min': 200, 'max': 700 },
+        { 'name': "Mid-slope", 'min': 700, 'max': 2000 },
+        { 'name': "Lower-slope", 'min': 2000, 'max': 4000 },
+        { 'name': "Abyss", 'min': 4000, 'max': 6000 },
+        { 'name': "Hadal", 'min': 6000, 'max': None },
+    ]
 
     return Response(data)
 

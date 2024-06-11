@@ -168,7 +168,22 @@
             <div class="caption"><?php echo $pressures_caption; ?></div>
         
             <section class="imagery">
-                <h3>Imagery</h3>
+                <div>
+                    <h3>Imagery</h3>
+                    <div class="imagery-controls">
+                        <select name="imagery-depth" id="region-report-imagery-depth-<?php the_ID(); ?>" onchange="regionReport.setImageryFilterDepth(this.value)">
+                            <option value>All depths</option>
+                        </select>
+                        <div class="labeled-toggle">
+                            <div>Reperesentative</div>
+                            <label class="switch">
+                                <input type="checkbox" onclick="regionReport.setImageryFilterHighlights(this.checked)">
+                                <span class="switch-slider"></span>
+                            </label>
+                            <div>Highlights</div>
+                        </div>
+                    </div>
+                </div>
                 <div id="region-report-imagery-<?php the_ID(); ?>">
                     <div class="map" id="region-report-imagery-map-<?php the_ID(); ?>"></div>
                     <div class="images" id="region-report-imagery-images-<?php the_ID(); ?>">
