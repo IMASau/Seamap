@@ -1085,7 +1085,7 @@ class RegionReport {
         // filters
         const filters = [{
             name: "geom",
-            op: "geo_in_polys_xy",
+            op: "geo_in_polyh_xy",
             val: this.boundary
         }];
 

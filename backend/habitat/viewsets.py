@@ -1352,6 +1352,7 @@ def region_report_data(request):
                 'amp-network',
                 'amp-park',
                 'data-report-minimap',
+                'data-report-boundary-network-simplified',
                 'data-report-boundary-simplified',
             ]
         ).order_by('sort_key'),
@@ -1380,14 +1381,14 @@ def region_report_data(request):
     data["minimap_layers"] = [{'label': keyed_layer['description'], 'layer': next(layer for layer in layers if layer['id'] == keyed_layer['layer'])} for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap']
 
     # Get the boundary geometry
-    boundary_simplified = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-boundary-simplified']][0]
+    boundary_simplified = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == ('data-report-boundary-simplified' if park != None else 'data-report-boundary-network-simplified')]][0]
     params = {
         'request':      'GetFeature',
         'service':      'WFS',
         'version':      '2.0.0',
         'typeNames':    boundary_simplified['layer_name'],
         'outputFormat': 'application/json',
-        'cql_filter': (f"RESNAME='{park}'" if park else f"NETWORK='{network}'")
+        'cql_filter': (f"RESNAME='{park}'" if park else f"NETNAME='{network}'")
     }
 
     try:
