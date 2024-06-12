@@ -1089,7 +1089,7 @@ class RegionReport {
             val: this.boundary
         }];
 
-        const minDepth = this.imageryDepths.find(e => e.name == this.imageryFilterDepth)?.min;
+        const minDepth = this.imageryDepths.find(e => e.zonename == this.imageryFilterDepth)?.min;
         if (minDepth) {
             filters.push({
                 name: 'dep',
@@ -1097,7 +1097,7 @@ class RegionReport {
                 val: minDepth
             });
         }
-        const maxDepth = this.imageryDepths.find(e => e.name == this.imageryFilterDepth)?.max;
+        const maxDepth = this.imageryDepths.find(e => e.zonename == this.imageryFilterDepth)?.max;
         if (maxDepth) {
             filters.push({
                 name: 'dep',
@@ -1237,7 +1237,7 @@ class RegionReport {
         const imageryDepthElement = document.getElementById(`region-report-imagery-depth-${this.postId}`);
         this.imageryDepths.forEach(
             depth => {
-                imageryDepthElement.innerHTML += `<option value="${depth.name}">${depth.name}</option>`;
+                imageryDepthElement.innerHTML += `<option value="${depth.zonename}">${depth.zonename}</option>`;
             }
         );
 

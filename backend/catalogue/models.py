@@ -224,3 +224,25 @@ class Pressure(models.Model):
 
     def __str__(self):
         return f'{self.region_report}: {self.layer}'
+
+
+# SQL Views
+
+@python_2_unicode_compatible
+class AmpDepthZones(models.Model):
+    netname = models.CharField(max_length=255, null=False, blank=False, db_column='NETNAME', primary_key=True) # NETNAME is not unique, but Django models require a primary key
+    resname = models.CharField(max_length=255, null=False, blank=False, db_column='RESNAME')
+    zonename = models.CharField(max_length=255, null=False, blank=False, db_column='ZONENAME')
+    min = models.IntegerField(db_column='MIN')
+    max = models.IntegerField(db_column='MAX')
+
+    def __str__(self):
+        return self.network + (f' > {self.park}' if self.park else '') + f': {self.zonename}'
+    
+    def save(self, **kwargs):
+        raise NotImplementedError()
+    
+    class Meta:
+        db_table = 'VW_AMP_DEPTHZONES'
+        managed = False
+        unique_together = (('netname', 'resname', 'zonename'),)

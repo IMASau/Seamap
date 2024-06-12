@@ -14,6 +14,7 @@ import requests
 from requests.adapters import HTTPAdapter, Retry
 from shapely.geometry import box
 
+from catalogue import models, serializers
 from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure
 from catalogue.serializers import KeyedLayerSerializer, RegionReportSerializer, LayerSerializer, PressureSerializer
 from collections import defaultdict, namedtuple
@@ -1396,17 +1397,25 @@ def region_report_data(request):
         data['boundary'] = r.json()['features'][0]['geometry']['coordinates']
     except Exception as e:
         raise Exception(f"Cannot decode geoserver response into JSON:\n{r.text}") from e
+
+    if park:
+        data['depths'] = serializers.AmpDepthZonesSerializer(
+            models.AmpDepthZones.objects.filter(netname=network, resname=park)
+                .order_by('min'),
+            many=True
+        ).data
+    else:
+        data['depths'] = serializers.AmpDepthZonesSerializer(
+            models.AmpDepthZones.objects.filter(netname=network) 
+                .order_by('min'),
+            many=True
+        ).data
     
-    data['depths'] = [
-        { 'name': "Shallow", 'min': None, 'max': 30 },
-        { 'name': "Mesophotic", 'min': 30, 'max': 70 },
-        { 'name': "Rariphotic", 'min': 70, 'max': 200 },
-        { 'name': "Upper-slope", 'min': 200, 'max': 700 },
-        { 'name': "Mid-slope", 'min': 700, 'max': 2000 },
-        { 'name': "Lower-slope", 'min': 2000, 'max': 4000 },
-        { 'name': "Abyss", 'min': 4000, 'max': 6000 },
-        { 'name': "Hadal", 'min': 6000, 'max': None },
-    ]
+    for depth in data['depths']:
+        del depth['netname']
+        del depth['resname']
+
+    data['depths'] = [i for n, i in enumerate(data['depths']) if i not in data['depths'][:n]]
 
     return Response(data)
 

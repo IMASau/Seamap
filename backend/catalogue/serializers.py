@@ -135,3 +135,11 @@ class PressureSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Pressure
         exclude = ('region_report',)
+
+
+# SQL Views
+
+class AmpDepthZonesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.AmpDepthZones
+        fields = '__all__'
