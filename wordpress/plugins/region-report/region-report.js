@@ -28,6 +28,7 @@ class RegionReport {
     imageryDepths = [];
     imageryFilterDepth = null;
     imageryFilterHighlights = false;
+    imageryMinimapLayers = {};
 
     constructor({
         postId: postId,
@@ -169,6 +170,35 @@ class RegionReport {
                 this.park = response.park;
                 this.boundary = response.boundary;
                 this.imageryDepths = response.depths;
+                response.minimap_layers.forEach(
+                    minimapLayer => {
+                        this.minimapLayers[minimapLayer.label] = L.tileLayer.wms(
+                            minimapLayer.layer.server_url,
+                            {
+                                layers: minimapLayer.layer.layer_name,
+                                transparent: true,
+                                tiled: true,
+                                format: "image/png",
+                                styles: minimapLayer.layer.style ?? "",
+                                pane: 'control'
+                            }
+                        );
+                        this.minimapLayers[minimapLayer.label].metadata = { "layer": minimapLayer.layer };
+
+                        this.imageryMinimapLayers[minimapLayer.label] = L.tileLayer.wms(
+                            minimapLayer.layer.server_url,
+                            {
+                                layers: minimapLayer.layer.layer_name,
+                                transparent: true,
+                                tiled: true,
+                                format: "image/png",
+                                styles: minimapLayer.layer.style ?? "",
+                                pane: 'control'
+                            }
+                        );
+                        this.imageryMinimapLayers[minimapLayer.label].metadata = { "layer": minimapLayer.layer };
+                    }
+                );
 
                 this.populateRegionHeading(response);
                 this.populateOverviewMap(response);
@@ -852,7 +882,7 @@ class RegionReport {
         ]
     }
 
-    populateOverviewMap({ all_layers: allLayers, all_layers_boundary: allLayersBoundary, public_layers: publicLayers, public_layers_boundary: publicLayersBoundary, network: network, park: park, bounding_box: bounds, minimap_layers: minimapLayers }) {
+    populateOverviewMap({ all_layers: allLayers, all_layers_boundary: allLayersBoundary, public_layers: publicLayers, public_layers_boundary: publicLayersBoundary, network: network, park: park, bounding_box: bounds }) {
         // all layers
         allLayers.forEach(
             layer => {
@@ -916,24 +946,6 @@ class RegionReport {
                 styles: publicLayersBoundary.style ?? "",
                 cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`,
                 pane: 'main'
-            }
-        );
-
-        // minimap layers
-        minimapLayers.forEach(
-            minimapLayer => {
-                this.minimapLayers[minimapLayer.label] = L.tileLayer.wms(
-                    minimapLayer.layer.server_url,
-                    {
-                        layers: minimapLayer.layer.layer_name,
-                        transparent: true,
-                        tiled: true,
-                        format: "image/png",
-                        styles: minimapLayer.layer.style ?? "",
-                        pane: 'control'
-                    }
-                );
-                this.minimapLayers[minimapLayer.label].metadata = { "layer": minimapLayer.layer };
             }
         );
 
@@ -1190,7 +1202,8 @@ class RegionReport {
                                             </svg>`,
                                         iconSize: [25, 41],
                                         iconAnchor: [12.5, 41]
-                                    })
+                                    }),
+                                    pane: 'main'
                                 }
                             )
                         );
@@ -1217,6 +1230,10 @@ class RegionReport {
         // set-up map
         this.imageryMap = L.map(`region-report-imagery-map-${this.postId}`, { maxZoom: 19, zoomControl: false });
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.imageryMap);
+        this.imageryMap.createPane('main');
+        this.imageryMap.createPane('control');
+        this.imageryMap.getPane('main').style.zIndex = 800;
+        this.imageryMap.getPane('control').style.zIndex = 400;
         this.imageryMap._handlers.forEach(e => e.disable());
     }
 
@@ -1230,7 +1247,8 @@ class RegionReport {
                 tiled: true,
                 format: "image/png",
                 styles: allLayersBoundary.style ?? "",
-                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
+                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`,
+                pane: 'main'
             }
         ).addTo(this.imageryMap);
 
@@ -1240,6 +1258,10 @@ class RegionReport {
                 imageryDepthElement.innerHTML += `<option value="${depth.zonename}">${depth.zonename}</option>`;
             }
         );
+
+        // map controls
+        L.control.singleLayers(null, this.imageryMinimapLayers).addTo(this.imageryMap);
+        L.control.legend({ position: 'bottomleft' }).addTo(this.imageryMap);
 
         // zoom to map extent
         this.imageryMap.fitBounds([[bounds.north, bounds.east], [bounds.south, bounds.west]]);
