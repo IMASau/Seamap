@@ -1394,7 +1394,14 @@ def region_report_data(request):
     except Exception as e:
         raise Exception(f"Cannot retrieve GeoJSON from geoserver ({boundary_simplified['server_url']})") from e
     try:
-        data['boundary'] = r.json()['features'][0]['geometry']['coordinates']
+        r_data = r.json()
+        boundary_type = r_data['features'][0]['geometry']['type']
+        if boundary_type == 'Polygon':
+            data['boundary'] = [r_data['features'][0]['geometry']['coordinates']]
+        elif boundary_type == 'MultiPolygon':
+            data['boundary'] = r_data['features'][0]['geometry']['coordinates']
+        else:
+            raise Exception(f"Unexpected boundary type: {boundary_type}")
     except Exception as e:
         raise Exception(f"Cannot decode geoserver response into JSON:\n{r.text}") from e
 
