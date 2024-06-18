@@ -1369,9 +1369,9 @@ def region_report_data(request):
         many=True
     ).data
 
-    data["all_layers"] = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap-panel1']]
+    data["all_layers"] = list(reversed([next(layer for layer in layers if layer["id"] == keyed_layer['layer']) for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap-panel1']))
     data["all_layers_boundary"] = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap-panel1-boundary']][0]
-    data["public_layers"] = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap-panel2']]
+    data["public_layers"] = list(reversed([next(layer for layer in layers if layer["id"] == keyed_layer['layer']) for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap-panel2']))
     data["public_layers_boundary"] = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap-panel2-boundary']][0]
     data["app_boundary_layer"] = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == ('amp-park' if park != None else 'amp-network')]][0]
     data["pressures"] = PressureSerializer(Pressure.objects.filter(region_report=rr.id).prefetch_related('layer'), many=True).data
