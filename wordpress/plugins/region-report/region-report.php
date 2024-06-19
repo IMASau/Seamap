@@ -340,6 +340,17 @@ add_action( 'admin_init', function () {
             'default'           => null
         ]
     );
+    register_setting(
+        'region_report',
+        'region_report_pressures_caption',
+        [
+            'type'              => 'string',
+            'description'       => 'Pressures caption',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
 
     add_settings_section(
         'region_report_configurable_text',

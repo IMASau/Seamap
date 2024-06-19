@@ -13,6 +13,7 @@
     $known_caption = get_option('region_report_known_caption');
     $squidle_caption = get_option('region_report_squidle_caption');
     $imagery_caption = get_option('region_report_imagery_caption');
+    $pressures_caption = get_option('region_report_pressures_caption');
 
     $network_name = get_post_meta(get_the_ID(), 'network_name', true);
     $park_name = get_post_meta(get_the_ID(), 'park_name', true);
@@ -191,6 +192,8 @@
 
         <section class="pressures">
             <h2>Pressures acting on the <?php echo $region_name; ?></h2>
+            <div class="caption"><?php echo $pressures_caption; ?></div>
+ 
             <h3>Pressures & Activities</h3>
             <div>
                 <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>

@@ -496,6 +496,8 @@ body {
     }
     
     .pressures {
+        >.caption { margin-bottom: 32px; }
+
         .tab-content {
             height: 390px;
             overflow: auto;
