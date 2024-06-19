@@ -1089,7 +1089,7 @@ class RegionReport {
         if (this.boundary == null) return;
 
         // initiate loading
-        const imageryElement = document.getElementById(`region-report-imagery-images-${this.postId}`);
+        const imageryElement = document.getElementById(`region-report-imagery-annotations-${this.postId}`);
         imageryElement.innerHTML = "Loading imagery deployment data...";
         this.imageryMarkers.forEach(marker => this.imageryMap.removeLayer(marker));
         this.imageryMarkers = [];
@@ -1151,16 +1151,19 @@ class RegionReport {
                 q: JSON.stringify({
                     filters: filters,
                     order_by: [{ random: true }],
-                    limit: 10
+                    limit: 9
                 })
             },
             success: pose => {
                 if (pose.objects.length > 0) {
                     // populate imagery grid
                     imageryElement.innerHTML = `
-                        <div class="image-grid" id="region-report-imagery-grid-${this.postId}"></div>
-                        <div class="caption">${this.squidleCaption}</div>
-                        <a href="#!" onclick="regionReport.refreshImagery()">Refresh images</a>`;
+                        <div class="images">
+                            <div class="image-grid" id="region-report-imagery-grid-${this.postId}"></div>
+                            <div class="caption">${this.squidleCaption}</div>
+                            <a href="#!" onclick="regionReport.refreshImagery()">Refresh imagery</a>
+                        </div>
+                        <div></div>`;
 
                     const imageryGrid = document.getElementById(`region-report-imagery-grid-${this.postId}`);
                     pose.objects.forEach((poseObject, index) => {
@@ -1210,7 +1213,14 @@ class RegionReport {
                         this.imageryMarkers[index].addTo(this.imageryMap);
                     });
                 } else {
-                    imageryElement.innerHTML = "No imagery deployments found in this region";
+                    imageryElement.innerHTML = `
+                        <div class="bp3-non-ideal-state">
+                            <div class="bp3-non-ideal-state-visual">
+                                <span class="bp3-icon bp3-icon-info-sign"></span>
+                            </div>
+                            <h4 class="bp3-heading">No Data</h4>
+                            <div>No public imagery data was found for this region.</div>
+                        </div>`;
                 }
             }
         });

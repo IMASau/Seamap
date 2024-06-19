@@ -183,7 +183,7 @@
                         <div>Highlights</div>
                     </div>
                 </div>
-                <div class="images" id="region-report-imagery-images-<?php the_ID(); ?>">
+                <div class="images" id="region-report-imagery-annotations-<?php the_ID(); ?>">
                     Loading imagery deployment data...
                 </div>
             </div>
