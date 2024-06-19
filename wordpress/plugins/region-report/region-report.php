@@ -331,10 +331,10 @@ add_action( 'admin_init', function () {
     );
     register_setting(
         'region_report',
-        'region_report_pressures_caption',
+        'region_report_imagery_caption',
         [
             'type'              => 'string',
-            'description'       => 'Pressures caption',
+            'description'       => 'Imagery caption',
             'sanitize_callback' => null,
             'show_in_rest'      => true,
             'default'           => null
@@ -398,13 +398,13 @@ add_action( 'admin_init', function () {
         'region_report_configurable_text'
     );
     add_settings_field(
-        'region_report_pressures_caption_field',
-        'Pressures caption',
+        'region_report_imagery_caption_field',
+        'Imagery caption',
         function () {
-            $setting = get_option('region_report_pressures_caption');
+            $setting = get_option('region_report_imagery_caption');
             ?>
             <textarea
-                name="region_report_pressures_caption"
+                name="region_report_imagery_caption"
                 rows="6"
                 cols="80"
             ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>

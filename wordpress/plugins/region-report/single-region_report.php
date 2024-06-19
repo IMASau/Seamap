@@ -12,7 +12,7 @@
     $overview_map_caption = get_option('region_report_overview_map_caption');
     $known_caption = get_option('region_report_known_caption');
     $squidle_caption = get_option('region_report_squidle_caption');
-    $pressures_caption = get_option('region_report_pressures_caption');
+    $imagery_caption = get_option('region_report_imagery_caption');
 
     $network_name = get_post_meta(get_the_ID(), 'network_name', true);
     $park_name = get_post_meta(get_the_ID(), 'park_name', true);
@@ -165,7 +165,7 @@
 
         <section class="imagery">
             <h2>What's in the <?php echo $region_name; ?>?</h2>
-            <div class="caption"><?php echo $pressures_caption; ?></div>
+            <div class="caption"><?php echo $imagery_caption; ?></div>
 
             <h3>Imagery</h3>
             <div>
