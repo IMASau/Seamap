@@ -426,7 +426,7 @@ add_action( 'admin_init', function () {
     );
     add_settings_field(
         'region_report_pressures_caption_field',
-        'Imagery caption',
+        'Pressures caption',
         function () {
             $setting = get_option('region_report_pressures_caption');
             ?>
