@@ -2,7 +2,7 @@ class RegionReport {
     postId = null;
     pressurePreviewUrlBase = null;
     mapUrlBase = null;
-    imageryCaption = null;
+    squidleCaption = null;
 
     networkResearchEffort = null;
     parkResearchEffort = null;
@@ -41,7 +41,7 @@ class RegionReport {
         mapUrlBase: mapUrlBase,
         networkName: networkName,
         parkName: parkName,
-        imageryCaption: imageryCaption
+        squidleCaption: squidleCaption
     }) {
         L.Control.SingleLayers = L.Control.Layers.extend({
             onAdd: function (map) {
@@ -108,7 +108,7 @@ class RegionReport {
         this.postId = postId;
         this.pressurePreviewUrlBase = pressurePreviewUrlBase;
         this.mapUrlBase = mapUrlBase;
-        this.imageryCaption = imageryCaption;
+        this.squidleCaption = squidleCaption;
 
         this.setupOverviewMap();
         this.setupImageryMap();
@@ -1159,7 +1159,7 @@ class RegionReport {
                     // populate imagery grid
                     imageryElement.innerHTML = `
                         <div class="image-grid" id="region-report-imagery-grid-${this.postId}"></div>
-                        <div class="caption">${this.imageryCaption}</div>
+                        <div class="caption">${this.squidleCaption}</div>
                         <a href="#!" onclick="regionReport.refreshImagery()">Refresh images</a>`;
 
                     const imageryGrid = document.getElementById(`region-report-imagery-grid-${this.postId}`);

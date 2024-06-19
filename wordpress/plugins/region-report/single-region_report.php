@@ -11,7 +11,7 @@
 
     $overview_map_caption = get_option('region_report_overview_map_caption');
     $known_caption = get_option('region_report_known_caption');
-    $imagery_caption = get_option('region_report_imagery_caption');
+    $squidle_caption = get_option('region_report_squidle_caption');
     $pressures_caption = get_option('region_report_pressures_caption');
 
     $network_name = get_post_meta(get_the_ID(), 'network_name', true);
@@ -211,7 +211,7 @@
         mapUrlBase: <?php echo json_encode($map_url_base); ?>,
         networkName: "<?php echo $network_name; ?>",
         parkName: <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>,
-        imageryCaption: <?php echo json_encode($imagery_caption); ?>
+        squidleCaption: <?php echo json_encode($squidle_caption); ?>
     });
     regionReport.disablePrintCss("hcode-bootstrap-css");
     regionReport.disablePrintCss("hello-elementor-css");

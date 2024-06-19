@@ -320,10 +320,10 @@ add_action( 'admin_init', function () {
     );
     register_setting(
         'region_report',
-        'region_report_imagery_caption',
+        'region_report_squidle_caption',
         [
             'type'              => 'string',
-            'description'       => 'Imagery caption',
+            'description'       => 'Squidle caption',
             'sanitize_callback' => null,
             'show_in_rest'      => true,
             'default'           => null
@@ -382,13 +382,13 @@ add_action( 'admin_init', function () {
         'region_report_configurable_text'
     );
     add_settings_field(
-        'region_report_imagery_caption_field',
-        'Imagery caption',
+        'region_report_squidle_caption_field',
+        'Squidle caption',
         function () {
-            $setting = get_option('region_report_imagery_caption');
+            $setting = get_option('region_report_squidle_caption');
             ?>
             <textarea
-                name="region_report_imagery_caption"
+                name="region_report_squidle_caption"
                 rows="6"
                 cols="80"
             ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
