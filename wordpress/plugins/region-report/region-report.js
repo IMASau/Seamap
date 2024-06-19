@@ -1156,6 +1156,98 @@ class RegionReport {
             },
             success: pose => {
                 if (pose.objects.length > 0) {
+
+                    // annotations filters
+                    const annotationsFilters = [{
+                        name: 'point',
+                        op: 'has',
+                        val: {
+                            name: 'media',
+                            op: 'has',
+                            val: {
+                                name: 'poses',
+                                op: 'any',
+                                val: {
+                                    name: "geom",
+                                    op: "geo_in_mpolyh_xy",
+                                    val: this.boundary
+                                }
+                            }
+                        }
+                    }];
+
+                    if (minDepth) {
+                        annotationsFilters.push({
+                            name: 'point',
+                            op: 'has',
+                            val: {
+                                name: 'media',
+                                op: 'has',
+                                val: {
+                                    name: 'poses',
+                                    op: 'any',
+                                    val: {
+                                        name: 'dep',
+                                        op: 'gt',
+                                        val: minDepth
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    if (maxDepth) {
+                        annotationsFilters.push({
+                            name: 'point',
+                            op: 'has',
+                            val: {
+                                name: 'media',
+                                op: 'has',
+                                val: {
+                                    name: 'poses',
+                                    op: 'any',
+                                    val: {
+                                        name: 'dep',
+                                        op: 'lte',
+                                        val: maxDepth
+                                    }
+                                }
+                            }
+                        });
+                    }
+            
+                    if (this.imageryFilterHighlights) {
+                        // highlights filter likely to change
+                        annotationsFilters.push({
+                            name: 'point',
+                            op: 'has',
+                            val: {
+                                name: 'media',
+                                op: 'has',
+                                val: {
+                                    name: 'annotations',
+                                    op: 'any',
+                                    val: {
+                                        name: 'annotations',
+                                        op: 'any',
+                                        val: {
+                                            name: 'tags',
+                                            op: 'any',
+                                            val: {
+                                                name: 'id',
+                                                op: 'eq',
+                                                val: '348'
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    console.log(annotationsFilters);
+                    const annotationsUrl = `https://squidle.org/api/annotation/tally/label?template=models/annotation/tally_chart_mini.html&results_per_page=10&template=json.html&q=${JSON.stringify({ filters: annotationsFilters })}`;
+                    console.log(annotationsUrl);
+
                     // populate imagery grid
                     imageryElement.innerHTML = `
                         <div class="images">
@@ -1163,7 +1255,7 @@ class RegionReport {
                             <div class="caption">${this.squidleCaption}</div>
                             <a href="#!" onclick="regionReport.refreshImagery()">Refresh imagery</a>
                         </div>
-                        <div></div>`;
+                        <iframe src='${annotationsUrl}'></iframe>`;
 
                     const imageryGrid = document.getElementById(`region-report-imagery-grid-${this.postId}`);
                     pose.objects.forEach((poseObject, index) => {
