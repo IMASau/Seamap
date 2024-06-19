@@ -163,42 +163,39 @@
             </div>
         </section>
 
-        <section class="imagery-and-pressures">
+        <section class="imagery">
             <h2>What's in the <?php echo $region_name; ?>?</h2>
             <div class="caption"><?php echo $pressures_caption; ?></div>
-        
-            <section class="imagery">
-                <div>
-                    <h3>Imagery</h3>
-                    <div class="imagery-controls">
-                        <select name="imagery-depth" id="region-report-imagery-depth-<?php the_ID(); ?>" onchange="regionReport.setImageryFilterDepth(this.value)">
-                            <option value>All depths</option>
-                        </select>
-                        <div class="labeled-toggle">
-                            <div>Reperesentative</div>
-                            <label class="switch">
-                                <input type="checkbox" onclick="regionReport.setImageryFilterHighlights(this.checked)">
-                                <span class="switch-slider"></span>
-                            </label>
-                            <div>Highlights</div>
-                        </div>
-                    </div>
-                </div>
-                <div id="region-report-imagery-<?php the_ID(); ?>">
-                    <div class="map" id="region-report-imagery-map-<?php the_ID(); ?>"></div>
-                    <div class="images" id="region-report-imagery-images-<?php the_ID(); ?>">
-                        Loading imagery deployment data...
-                    </div>
-                </div>
-            </section>
 
-            <section class="pressures">
-                <h3>Pressures & Activities</h3>
-                <div>
-                    <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
-                    <div class="tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+            <h3>Imagery</h3>
+            <div>
+                <div class="map" id="region-report-imagery-map-<?php the_ID(); ?>"></div>
+                <div class="imagery-controls">
+                    <select name="imagery-depth" id="region-report-imagery-depth-<?php the_ID(); ?>" onchange="regionReport.setImageryFilterDepth(this.value)">
+                        <option value>All depths</option>
+                    </select>
+                    <div class="labeled-toggle">
+                        <div>Reperesentative</div>
+                        <label class="switch">
+                            <input type="checkbox" onclick="regionReport.setImageryFilterHighlights(this.checked)">
+                            <span class="switch-slider"></span>
+                        </label>
+                        <div>Highlights</div>
+                    </div>
                 </div>
-            </section>
+                <div class="images" id="region-report-imagery-images-<?php the_ID(); ?>">
+                    Loading imagery deployment data...
+                </div>
+            </div>
+        </section>
+
+        <section class="pressures">
+            <h2>Pressures acting on the <?php echo $region_name; ?></h2>
+            <h3>Pressures & Activities</h3>
+            <div>
+                <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+                <div class="tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+            </div>
         </section>
     </div>
 </article>

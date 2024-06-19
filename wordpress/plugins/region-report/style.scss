@@ -371,22 +371,13 @@ body {
         a { color: inherit; }
     }
 
-    .imagery-and-pressures {
+    .imagery {
         >.caption { margin-bottom: 32px; }
 
-        .imagery>* {
+        >:nth-child(4) {
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             gap: 16px;
-            >:nth-child(1) { flex: 2; }
-            >:nth-child(2) { flex: 3; }
-
-            .imagery-controls {
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-            }
 
             .map {
                 height: 300px;
@@ -397,6 +388,13 @@ body {
                     cursor: default;
                     svg { overflow: visible; }
                 }
+            }
+
+            .imagery-controls {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
             }
 
             .images {
@@ -436,15 +434,6 @@ body {
                     }
                 }
             }
-        }
-
-        .pressures>:nth-child(2) {
-            flex: 1;
-            min-width: 0;
-            overflow-x: hidden;
-            gap: 16px;
-            display: flex;
-            flex-direction: column;
         }
     }
     
@@ -551,6 +540,7 @@ body {
         display: flex;
         flex-direction: row;
         gap: 16px;
+        margin-bottom: 16px;
 
         .region-report-tab {
             cursor: pointer;
