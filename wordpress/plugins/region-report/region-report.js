@@ -30,6 +30,9 @@ class RegionReport {
     imageryFilterHighlights = false;
     imageryMinimapLayers = {};
 
+    // url templates
+    squidleMediaUrlTemplate = null;
+
     constructor({
         postId: postId,
         habitatStatisticsUrlBase: habitatStatisticsUrlBase,
@@ -41,7 +44,8 @@ class RegionReport {
         mapUrlBase: mapUrlBase,
         networkName: networkName,
         parkName: parkName,
-        squidleCaption: squidleCaption
+        squidleCaption: squidleCaption,
+        squidleMediaUrlTemplate: squidleMediaUrlTemplate
     }) {
         L.Control.SingleLayers = L.Control.Layers.extend({
             onAdd: function (map) {
@@ -109,6 +113,9 @@ class RegionReport {
         this.pressurePreviewUrlBase = pressurePreviewUrlBase;
         this.mapUrlBase = mapUrlBase;
         this.squidleCaption = squidleCaption;
+
+        // url templates
+        this.squidleMediaUrlTemplate = squidleMediaUrlTemplate;
 
         this.setupOverviewMap();
         this.setupImageryMap();
@@ -209,6 +216,15 @@ class RegionReport {
                 this.populatePressures(response);
             }
         });
+    }
+
+    templateStringFill(text, data) {
+        return text.replace(
+            /%(\w+)%/g,
+            function (match, key) {
+                return data[key] ?? match;
+            }
+        );
     }
 
     starRating(element, value, total, text) {
@@ -1214,7 +1230,7 @@ class RegionReport {
                             }
                         });
                     }
-            
+
                     if (this.imageryFilterHighlights) {
                         // highlights filter likely to change
                         annotationsFilters.push({
@@ -1260,7 +1276,7 @@ class RegionReport {
                         // grid items
                         imageryGrid.innerHTML += `
                             <a
-                                href="https://squidle.org/iframe/api/media/${poseObject.media.id}?template=models/media/preview_single.html&nologin=true&fullwidth=true"
+                                href="${this.templateStringFill(this.squidleMediaUrlTemplate, { 'media_id': poseObject.media.id })}"
                                 target="_blank"
                                 onmouseenter="regionReport.focusMarker(${index})"
                                 onmouseleave="regionReport.focusMarker()"
@@ -1268,7 +1284,7 @@ class RegionReport {
                                 <img src="${poseObject.media.path_best_thm}">
                                 <div class="grid-number">${index + 1}</div>
                             </a>`;
-    
+
                         // marker
                         this.imageryMarkers.push(
                             new L.Marker(
