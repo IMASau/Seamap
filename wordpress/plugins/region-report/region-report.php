@@ -424,6 +424,22 @@ add_action( 'admin_init', function () {
         'region_report',
         'region_report_configurable_text'
     );
+    add_settings_field(
+        'region_report_pressures_caption_field',
+        'Imagery caption',
+        function () {
+            $setting = get_option('region_report_pressures_caption');
+            ?>
+            <textarea
+                name="region_report_pressures_caption"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_configurable_text'
+    );
 } );
 
 add_action( 'admin_menu', function () {
