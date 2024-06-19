@@ -1244,9 +1244,7 @@ class RegionReport {
                         });
                     }
 
-                    console.log(annotationsFilters);
                     const annotationsUrl = `https://squidle.org/api/annotation/tally/label?template=models/annotation/tally_chart_mini.html&results_per_page=10&template=json.html&q=${JSON.stringify({ filters: annotationsFilters })}`;
-                    console.log(annotationsUrl);
 
                     // populate imagery grid
                     imageryElement.innerHTML = `
