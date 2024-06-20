@@ -214,7 +214,8 @@
         mapUrlBase: <?php echo json_encode($map_url_base); ?>,
         networkName: "<?php echo $network_name; ?>",
         parkName: <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>,
-        squidleCaption: <?php echo json_encode($squidle_caption); ?>
+        squidleCaption: <?php echo json_encode($squidle_caption); ?>,
+        squidleMediaUrlTemplate: get_option('region_report_squidle_media_url_template'),
     });
     regionReport.disablePrintCss("hcode-bootstrap-css");
     regionReport.disablePrintCss("hello-elementor-css");
