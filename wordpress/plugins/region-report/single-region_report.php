@@ -15,6 +15,8 @@
     $imagery_caption = get_option('region_report_imagery_caption');
     $pressures_caption = get_option('region_report_pressures_caption');
 
+    $squidle_media_url_template = get_option('region_report_squidle_media_url_template');
+
     $network_name = get_post_meta(get_the_ID(), 'network_name', true);
     $park_name = get_post_meta(get_the_ID(), 'park_name', true);
     
@@ -215,7 +217,7 @@
         networkName: "<?php echo $network_name; ?>",
         parkName: <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>,
         squidleCaption: <?php echo json_encode($squidle_caption); ?>,
-        squidleMediaUrlTemplate: get_option('region_report_squidle_media_url_template'),
+        squidleMediaUrlTemplate: <?php echo json_encode($squidle_media_url_template); ?>,
     });
     regionReport.disablePrintCss("hcode-bootstrap-css");
     regionReport.disablePrintCss("hello-elementor-css");

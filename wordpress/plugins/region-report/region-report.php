@@ -359,19 +359,13 @@ add_action( 'admin_init', function () {
             'description'       => 'Squidle media URL template',
             'sanitize_callback' => null,
             'show_in_rest'      => true,
-            'default'           => 'https://squidle.org/iframe/api/media/%media_id%?template=models/media/preview_single.html&nologin=true&fullwidth=true'
+            'default'           => null
         ]
     );
 
     add_settings_section(
         'region_report_configurable_text',
         'Region Report Configurable Text',
-        null,
-        'region_report'
-    );
-    add_settings_section(
-        'region_report_url_templates',
-        'Region Report URL Templates',
         null,
         'region_report'
     );
@@ -458,10 +452,17 @@ add_action( 'admin_init', function () {
         'region_report_configurable_text'
     );
 
+    add_settings_section(
+        'region_report_url_templates',
+        'Region Report URL Templates',
+        null,
+        'region_report'
+    );
+
     // Register URL templates settings fields
     add_settings_field(
         'region_report_squidle_media_url_template',
-        'Pressures caption',
+        'Squidle media URL template',
         function () {
             $setting = get_option('region_report_squidle_media_url_template');
             ?>
