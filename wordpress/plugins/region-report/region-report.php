@@ -353,6 +353,50 @@ add_action( 'admin_init', function () {
     );
     register_setting(
         'region_report',
+        'region_report_squidle_pose_url_template',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle pose URL template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_squidle_pose_filter_min_depth_template',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle pose filter min depth template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_squidle_pose_filter_max_depth_template',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle pose filter max depth template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_squidle_pose_filter_highlights_template',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle pose filter highlights template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
         'region_report_squidle_media_url_template',
         [
             'type'              => 'string',
@@ -460,6 +504,70 @@ add_action( 'admin_init', function () {
     );
 
     // Register URL templates settings fields
+    add_settings_field(
+        'region_report_squidle_pose_url_template',
+        'Squidle pose URL template',
+        function () {
+            $setting = get_option('region_report_squidle_pose_url_template');
+            ?>
+            <textarea
+                name="region_report_squidle_pose_url_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_squidle_pose_filter_min_depth_template',
+        'Squidle pose filter min depth template',
+        function () {
+            $setting = get_option('region_report_squidle_pose_filter_min_depth_template');
+            ?>
+            <textarea
+                name="region_report_squidle_pose_filter_min_depth_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_squidle_pose_filter_max_depth_template',
+        'Squidle pose filter max depth template',
+        function () {
+            $setting = get_option('region_report_squidle_pose_filter_max_depth_template');
+            ?>
+            <textarea
+                name="region_report_squidle_pose_filter_max_depth_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_squidle_pose_filter_highlights_template',
+        'Squidle pose filter highlights template',
+        function () {
+            $setting = get_option('region_report_squidle_pose_filter_highlights_template');
+            ?>
+            <textarea
+                name="region_report_squidle_pose_filter_highlights_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
     add_settings_field(
         'region_report_squidle_media_url_template',
         'Squidle media URL template',

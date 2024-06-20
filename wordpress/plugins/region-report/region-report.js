@@ -31,6 +31,10 @@ class RegionReport {
     imageryMinimapLayers = {};
 
     // url templates
+    squidlePoseUrlTemplate = null;
+    squidlePoseFilterMinDepthTemplate = null;
+    squidlePoseFilterMaxDepthTemplate = null;
+    squidlePoseFilterHighlightsTemplate = null;
     squidleMediaUrlTemplate = null;
 
     constructor({
@@ -45,6 +49,10 @@ class RegionReport {
         networkName: networkName,
         parkName: parkName,
         squidleCaption: squidleCaption,
+        squidlePoseUrlTemplate: squidlePoseUrlTemplate,
+        squidlePoseFilterMinDepthTemplate: squidlePoseFilterMinDepthTemplate,
+        squidlePoseFilterMaxDepthTemplate: squidlePoseFilterMaxDepthTemplate,
+        squidlePoseFilterHighlightsTemplate: squidlePoseFilterHighlightsTemplate,
         squidleMediaUrlTemplate: squidleMediaUrlTemplate
     }) {
         L.Control.SingleLayers = L.Control.Layers.extend({
@@ -115,6 +123,10 @@ class RegionReport {
         this.squidleCaption = squidleCaption;
 
         // url templates
+        this.squidlePoseUrlTemplate = squidlePoseUrlTemplate;
+        this.squidlePoseFilterMinDepthTemplate = squidlePoseFilterMinDepthTemplate;
+        this.squidlePoseFilterMaxDepthTemplate = squidlePoseFilterMaxDepthTemplate;
+        this.squidlePoseFilterHighlightsTemplate = squidlePoseFilterHighlightsTemplate;
         this.squidleMediaUrlTemplate = squidleMediaUrlTemplate;
 
         this.setupOverviewMap();
@@ -1110,66 +1122,23 @@ class RegionReport {
         this.imageryMarkers.forEach(marker => this.imageryMap.removeLayer(marker));
         this.imageryMarkers = [];
 
-        // filters
-        const filters = [{
-            name: "geom",
-            op: "geo_in_mpolyh_xy",
-            val: this.boundary
-        }];
-
         const minDepth = this.imageryDepths.find(e => e.zonename == this.imageryFilterDepth)?.min;
-        if (minDepth) {
-            filters.push({
-                name: 'dep',
-                op: 'gt',
-                val: minDepth
-            });
-        }
         const maxDepth = this.imageryDepths.find(e => e.zonename == this.imageryFilterDepth)?.max;
-        if (maxDepth) {
-            filters.push({
-                name: 'dep',
-                op: 'lte',
-                val: maxDepth
-            });
-        }
 
-        if (this.imageryFilterHighlights) {
-            // highlights filter likely to change
-            filters.push({
-                name: 'media',
-                op: 'has',
-                val: {
-                    name: 'annotations',
-                    op: 'any',
-                    val: {
-                        name: 'annotations',
-                        op: 'any',
-                        val: {
-                            name: 'tags',
-                            op: 'any',
-                            val: {
-                                name: 'id',
-                                op: 'eq',
-                                val: '348'
-                            }
-                        }
-                    }
-                }
-            });
-        }
+        const imageryUrl = this.templateStringFill(
+            this.squidlePoseUrlTemplate,
+            {
+                'boundary': JSON.stringify(this.boundary),
+                'min_depth': minDepth ? this.templateStringFill(this.squidlePoseFilterMinDepthTemplate, { 'min_depth': minDepth }) : '',
+                'max_depth': maxDepth ? this.templateStringFill(this.squidlePoseFilterMaxDepthTemplate, { 'max_depth': maxDepth }) : '',
+                'highlights': this.imageryFilterHighlights ? this.squidlePoseFilterHighlightsTemplate : ''
+            }
+        );
 
 
         // retrieve data
-        $.ajax("https://squidle.org/api/pose", {
+        $.ajax(imageryUrl, {
             dataType: "json",
-            data: {
-                q: JSON.stringify({
-                    filters: filters,
-                    order_by: [{ random: true }],
-                    limit: 9
-                })
-            },
             success: pose => {
                 if (pose.objects.length > 0) {
 

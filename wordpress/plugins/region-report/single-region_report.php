@@ -217,7 +217,11 @@
         networkName: "<?php echo $network_name; ?>",
         parkName: <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>,
         squidleCaption: <?php echo json_encode($squidle_caption); ?>,
-        squidleMediaUrlTemplate: <?php echo json_encode($squidle_media_url_template); ?>,
+        squidlePoseUrlTemplate: <?php echo json_encode(get_option('region_report_squidle_pose_url_template')); ?>,
+        squidlePoseFilterMinDepthTemplate: <?php echo json_encode(get_option('region_report_squidle_pose_filter_min_depth_template')); ?>,
+        squidlePoseFilterMaxDepthTemplate: <?php echo json_encode(get_option('region_report_squidle_pose_filter_max_depth_template')); ?>,
+        squidlePoseFilterHighlightsTemplate: <?php echo json_encode(get_option('region_report_squidle_pose_filter_highlights_template')); ?>,
+        squidleMediaUrlTemplate: <?php echo json_encode($squidle_media_url_template); ?>
     });
     regionReport.disablePrintCss("hcode-bootstrap-css");
     regionReport.disablePrintCss("hello-elementor-css");
