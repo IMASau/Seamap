@@ -1260,7 +1260,7 @@ class RegionReport {
                         });
                     }
 
-                    const annotationsUrl = `https://squidle.org/api/annotation/tally/label?template=models/annotation/tally_chart_mini.html&results_per_page=10&template=json.html&q=${JSON.stringify({ filters: annotationsFilters })}`;
+                    const annotationsUrl = `https://squidle.org/iframe/api/annotation/tally/label?template=models/annotation/tally_chart_mini.html&results_per_page=10&q=${JSON.stringify({ filters: annotationsFilters })}`;
 
                     // populate imagery grid
                     imageryElement.innerHTML = `
