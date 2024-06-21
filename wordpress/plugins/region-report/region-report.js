@@ -1294,7 +1294,7 @@ class RegionReport {
                                 <span class="bp3-icon bp3-icon-info-sign"></span>
                             </div>
                             <h4 class="bp3-heading">No Data</h4>
-                            <div>No public imagery data was found for this region.</div>
+                            <div>No public imagery was found for this region.</div>
                         </div>`;
                 }
             }
