@@ -10,6 +10,8 @@ import subprocess
 import tempfile
 import zipfile
 import logging
+import requests
+from requests.adapters import HTTPAdapter, Retry
 from shapely.geometry import box
 
 from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure, RichLayer
@@ -731,6 +733,17 @@ SELECT DISTINCT layer_id FROM (
   WHERE @region.STIntersects(geom) = 1
 ) AS [T1];
 """
+
+def http_session():
+    retry_strategy = Retry(
+        total=3,
+        status_forcelist=[ 500, 502, 503, 504 ]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    http = requests.Session()
+    http.mount("https://", adapter)
+    http.mount("http://", adapter)
+    return http
 
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
