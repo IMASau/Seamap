@@ -1392,23 +1392,28 @@ def cql_filter_values(request):
     params = {k: v or None for k, v in request.query_params.items()}
 
     rich_layer = RichLayer.objects.get(id=params['rich-layer-id'])
-
-    hardcoded_values = [
-        {
-            'cql_property': 'dr',
-            'values': {4, 7},
-        },
-        {
-            'cql_property': 'ec',
-            'values': {1000,  2000, 4000, 6000, 8000, 10000},
-        },
-        {
-            'cql_property': 'ac',
-            'values': {100, 200, 300},
-        },
-    ]
-
     cql_properties = rich_layer.controls.values_list('cql_property', flat=True)
-    cql_filter_values = [values for values in hardcoded_values if values['cql_property'] in cql_properties]
+
+    r_params = {
+        'service': 'WFS',
+        'version': '2.0.0',
+        'request': 'GetFeature',
+        'typeNames': rich_layer.layer.layer_name,
+        'outputFormat': 'application/json',
+        'propertyName': f"({','.join(cql_properties)})",
+    }
+    r = http_session().get(url=rich_layer.layer.server_url, params=r_params)
+    r_data = r.json()
+    
+    cql_filter_values = [
+        {
+            'cql_property': cql_property,
+            'values': sorted(set([
+                feature["properties"][cql_property]
+                for feature in r_data["features"]
+            ]))
+        }
+        for cql_property in cql_properties
+    ]
     
     return Response(cql_filter_values)
