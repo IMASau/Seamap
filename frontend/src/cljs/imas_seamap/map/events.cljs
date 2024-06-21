@@ -562,10 +562,19 @@
                   [:maybe-autosave]]}))
 
 (defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
-  (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))]
+  (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))
+        has-legend? (get-in db [:map :legends id])
+        rich-layer (get-in db [:map :rich-layers id])
+        has-cql-filter-values? (get-in rich-layer [:controls :values])]
     {:db         db
      :dispatch-n [[:maybe-autosave]
-                  (when-not (get-in db [:map :legends id]) [:map.layer/get-legend layer])]})) ; Retrieve layer legend data for display if we don't already have it or aren't already retrieving it
+                  ;; Retrieve layer legend data for display if we don't already have it or aren't
+                  ;; already retrieving it
+                  (when-not has-legend?
+                    [:map.layer/get-legend layer])
+                  ;; Retrieve rich layer cql filter data if we don't already have it
+                  (when (and rich-layer (not has-cql-filter-values?))
+                    [:map.rich-layer/get-cql-filter-values layer])]}))
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
@@ -650,7 +659,8 @@
                    (when (and feature-location feature-leaflet-props)
                      [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                    [:maybe-autosave]]
-                  (mapv #(vector :map.layer/get-legend %) legends-get))}))
+                  (mapv #(vector :map.layer/get-legend %) legends-get)
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) legends-shown))}))
 
 (defn update-leaflet-map [db [_ leaflet-map]]
   (when (not= leaflet-map (get-in db [:map :leaflet-map]))

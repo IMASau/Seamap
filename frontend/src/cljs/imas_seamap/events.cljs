@@ -238,8 +238,10 @@
         feature-location      (get-in db [:feature :location])
         feature-leaflet-props (get-in db [:feature :leaflet-props])]
     {:db         db
-     :dispatch-n (conj
+     :dispatch-n (concat
+                  []
                   (mapv #(vector :map.layer/get-legend %) legends-get)
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) legends-shown)
                   [:map/update-map-view {:zoom zoom :center center}]
                   (when (and feature-location feature-leaflet-props)
                     [:map/feature-info-dispatcher feature-leaflet-props feature-location])
