@@ -395,6 +395,24 @@ body {
                 flex-direction: row;
                 justify-content: space-between;
                 align-items: center;
+
+                >.imagery-depth {
+                    display: flex;
+                    flex-direction: row;
+                    gap: 8px;
+                    align-items: center;
+
+                    >label {
+                        font-size: 12px;
+                        color: var(--color-2);
+                    }
+                    >select {
+                        font-size: 12px;
+                        color: var(--color-2);
+                        padding: 4px 8px;
+                        border-radius: 6px;
+                    }
+                }
             }
 
             .imagery-annotations {

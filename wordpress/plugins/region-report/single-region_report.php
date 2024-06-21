@@ -174,11 +174,14 @@
             <div>
                 <div class="map" id="region-report-imagery-map-<?php the_ID(); ?>"></div>
                 <div class="imagery-controls">
-                    <select name="imagery-depth" id="region-report-imagery-depth-<?php the_ID(); ?>" onchange="regionReport.setImageryFilterDepth(this.value)">
-                        <option value>All depths</option>
-                    </select>
+                    <span class="imagery-depth">
+                        <label>Filter by Depth:</label>
+                        <select name="imagery-depth" id="region-report-imagery-depth-<?php the_ID(); ?>" onchange="regionReport.setImageryFilterDepth(this.value)">
+                            <option value>All depths</option>
+                        </select>
+                    </span>
                     <div class="labeled-toggle">
-                        <div>Reperesentative</div>
+                        <div>Representative</div>
                         <label class="switch">
                             <input type="checkbox" onclick="regionReport.setImageryFilterHighlights(this.checked)">
                             <span class="switch-slider"></span>
