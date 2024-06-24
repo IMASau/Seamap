@@ -23,93 +23,98 @@
      (when loading? [b/spinner {:class "bp3-small"}])
      (when errors? [b/icon {:icon "warning-sign" :size 18}])]))
 
+(defn- cql-control-filter-text
+  [{:keys [label value values controller-type]}]
+  (case controller-type
+    "dropdown"
+    (when value (str "FILTER APPLIED: " label ": " value))
+    "multi-dropdown"
+    (when (seq value)
+      (str
+       "FILTER APPLIED: " label ": "
+       (if (= (count value) 1)
+         (first value)
+         (apply str (interpose ", " value)))))
+    "slider"
+    (when (and value (not= value (apply max values)))
+      (str "FILTER APPLIED: " label ": " value))))
+
 (defn- layer-header-text
   "Layer name, with some other fancy stuff on top."
   [{{:keys [name tooltip] :as layer} :layer
-    {{:keys [alternate-views-selected timeline-selected displayed-layer slider-label]} :rich-layer} :layer-state}]
-  [:div.layer-header-text
-   [b/tooltip
-    {:content
-     (cond
-       alternate-views-selected
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name]))
-         [b/button
-          {:icon     "cross"
-           :minimal  true
-           :on-click
-           #(do
-              (.stopPropagation %)
-              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
-
-       timeline-selected
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label]))
-         [b/button
-          {:icon     "cross"
-           :minimal  true
-           :on-click
-           #(do
-              (.stopPropagation %)
-              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
-
-       :else
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         tooltip]))
-     :disabled (not (or alternate-views-selected timeline-selected (seq tooltip)))
-     :hover-close-delay
-     (if (or alternate-views-selected timeline-selected)
-       1000 0)}
-    [b/clipped-text {:ellipsize true} (or (:name displayed-layer) name)]]])
+    {{:keys [alternate-views-selected timeline-selected displayed-layer slider-label controls]} :rich-layer} :layer-state}]
+  (let [filters-text
+        (remove
+         nil?
+         (conj
+          (map cql-control-filter-text controls)
+          (when alternate-views-selected
+            (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name])))
+          (when timeline-selected
+            (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label])))))]
+    [:div.layer-header-text
+     [b/tooltip
+      {:content
+       (if (seq filters-text)
+         (reagent/as-element
+          [:div {:style {:max-width "320px"}}
+           (apply str (interpose "\n" filters-text))
+           [b/button
+            {:icon     "cross"
+             :minimal  true
+             :on-click
+             #(do
+                (.stopPropagation %)
+                (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
+         (reagent/as-element
+          [:div {:style {:max-width "320px"}}
+           tooltip]))
+       :disabled (not (or alternate-views-selected timeline-selected (seq tooltip)))
+       :hover-close-delay
+       (if (seq filters-text) 1000 0)}
+      [b/clipped-text {:ellipsize true} (or (:name displayed-layer) name)]]]))
 
 (defn- layer-card-header-text
   "Layer name, with some other fancy stuff on top. Clicking it will expand the
    layer's details."
   [{{:keys [name tooltip] :as layer} :layer
     {:keys [expanded?]
-     {:keys [alternate-views-selected timeline-selected displayed-layer slider-label]} :rich-layer} :layer-state}]
-  [:div.layer-header-text
-   [b/tooltip
-    {:content
-     (cond
-       alternate-views-selected
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name]))
-         [b/button
-          {:icon     "cross"
-           :minimal  true
-           :on-click
-           #(do
-              (.stopPropagation %)
-              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
+     {:keys [alternate-views-selected timeline-selected displayed-layer slider-label controls]} :rich-layer} :layer-state}]
+  (let [filters-text
+        (remove
+         nil?
+         (conj
+          (map cql-control-filter-text controls)
+          (when alternate-views-selected
+            (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name])))
+          (when timeline-selected
+            (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label])))))]
+    [:div.layer-header-text
+     [b/tooltip
+      {:content
+       (cond
+         (seq filters-text)
+         (reagent/as-element
+          [:div {:style {:max-width "320px"}}
+           (apply str (interpose "\n" filters-text))
+           [b/button
+            {:icon     "cross"
+             :minimal  true
+             :on-click
+             #(do
+                (.stopPropagation %)
+                (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
 
-       timeline-selected
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label]))
-         [b/button
-          {:icon     "cross"
-           :minimal  true
-           :on-click
-           #(do
-              (.stopPropagation %)
-              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
+         (seq tooltip)
+         (reagent/as-element
+          [:div {:style {:max-width "320px"}}
+           tooltip])
 
-       (seq tooltip)
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         tooltip])
-       
-       expanded? "Hide legend"
-       :else     "Show legend")
-     :hover-close-delay
-     (if (or alternate-views-selected timeline-selected)
-       1000 0)}
-    [b/clipped-text {:ellipsize true} (or (:name displayed-layer) name)]]])
+         expanded? "Hide legend"
+         :else     "Show legend")
+       :hover-close-delay
+       (if (seq filters-text) 1000 0)}
+      [b/clipped-text {:ellipsize true} (or (:name displayed-layer) name)]]]))
 
 (defn- layer-control
   "Basic layer control. It's an icon with a tooltip that does something when
