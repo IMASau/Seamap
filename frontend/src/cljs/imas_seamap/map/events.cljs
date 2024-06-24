@@ -768,9 +768,14 @@
    db [:map :rich-layers (:id layer) :controls]
    (fn [controls]
      (mapv
-      (fn [control]
-        (let [values (:values (first-where #(= (:cql_property %) (:cql-property control)) response))]
-          (assoc control :values values)))
+      (fn [{:keys [cql-property controller-type value] :as control}]
+        (let [values (:values (first-where #(= (:cql_property %) cql-property) response))]
+          (if (= controller-type "slider")
+            (assoc
+             control
+             :values values
+             :value  (or value (apply max values)))
+            (assoc control :values values))))
       controls))))
 
 (defn rich-layer-alternate-views-selected [{:keys [db]} [_ layer alternate-views-selected]]
@@ -835,7 +840,12 @@
                     (assoc-in [:map :rich-layers (:id layer) :timeline-selected] nil)
                     (update-in
                      [:map :rich-layers (:id layer) :controls]
-                     (fn [controls] (mapv #(assoc % :value nil) controls))))
+                     #(mapv
+                       (fn [{:keys [controller-type values] :as control}]
+                         (if (= controller-type "slider")
+                           (assoc control :value (apply max values))
+                           (assoc control :value nil)))
+                       %)))
     :dispatch-n [(when-not (get-in db [:map :legends (:id layer)])
                    [:map.layer/get-legend layer])
                  [:maybe-autosave]]}))

@@ -95,7 +95,13 @@
   (let [rich-layers
         (reduce-kv
          (fn [rich-layers layer-id {:keys [controls] :as rich-layer}]
-           (let [controls (mapv #(assoc % :value nil) controls)
+           (let [controls
+                 (mapv
+                  (fn [{:keys [controller-type values] :as control}]
+                    (if (= controller-type "slider")
+                      (assoc control :value (apply max values))
+                      (assoc control :value nil)))
+                  controls)
                  rich-layer
                  (assoc
                   rich-layer

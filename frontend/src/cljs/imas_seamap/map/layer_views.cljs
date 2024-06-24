@@ -316,6 +316,48 @@
       {:id   identity
        :text str}}]]])
 
+(defmethod cql-control "slider"
+  [{{:keys [label icon value values] :as control} :control {:keys [layer]} :props}]
+  (let [gaps (:gaps
+              (reduce
+               (fn [{:keys [gaps prev]} val]
+                 {:gaps (if prev
+                          (conj gaps (- val prev))
+                          gaps)
+                  :prev val})
+               {:gaps [] :prev nil} values))
+
+        labels-with-gaps
+        (butlast
+         (interleave
+          values
+          (conj gaps nil)))]
+    [components/form-group
+     {:label
+      [:<>
+       (when icon [b/icon {:icon icon}])
+       label]}
+     [:input
+      {:type     "range"
+       :min      (apply min values)
+       :max      (apply max values)
+       :step     0.01
+       :value    value
+       :on-click #(.stopPropagation %)
+       :on-input
+       (fn [e]
+         (let [value (-> e .-target .-value)
+               nearest-value (round-to-nearest value values)]
+           (re-frame/dispatch [:map.rich-layer/control-selected layer control nearest-value])))}]
+     [:div.time-range
+      (map-indexed
+       (fn [i v]
+         [:div
+          {:key   i
+           :style (when (odd? i) {:flex v})}
+          (when (even? i) v)])
+       labels-with-gaps)]]))
+
 (defmethod cql-control :default
  [{{:keys [label]} :control {:keys []} :rich-layer}]
   [:div label])
