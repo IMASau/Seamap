@@ -362,7 +362,7 @@
        :min      (apply min values)
        :max      (apply max values)
        :step     0.01
-       :value    value
+       :value    (or value 0)
        :on-click #(.stopPropagation %)
        :on-input
        (fn [e]

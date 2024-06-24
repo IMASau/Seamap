@@ -34,9 +34,11 @@ export function Select({value, options, onChange, isSearchable, isClearable, isD
 	return (
 		<ReactSelect
 			value={
-				isMulti
-				? options.filter(({id}) => value.includes(id))
-				: options.filter(({id}) => id == value)
+				value
+					? isMulti
+						? options.filter(({ id }) => value.includes(id))
+						: options.filter(({ id }) => id == value)
+					: null
 			}
 			options={options}
 			getOptionValue={({id})=> id}
