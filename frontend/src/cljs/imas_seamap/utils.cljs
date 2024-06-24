@@ -44,12 +44,18 @@
   [{:keys [story-maps] map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
   (let [pruned-rich-layers
         (reduce-kv
-         (fn [acc key {:keys [alternate-views-selected timeline-selected tab] :as _val}]
-           (let [pruned-rich-layer
+         (fn [pruned-rich-layers layer-id {:keys [alternate-views-selected timeline-selected tab controls] :as _rich-layer}]
+           (let [pruned-controls
+                 (->>
+                  controls
+                  (mapv #(select-keys % [:cql-property :value]))
+                  (filterv :value))
+                 pruned-rich-layer
                  (cond-> {:tab tab}
                    alternate-views-selected (assoc :alternate-views-selected alternate-views-selected)
-                   timeline-selected        (assoc :timeline-selected timeline-selected))]
-             (assoc acc key pruned-rich-layer)))
+                   timeline-selected        (assoc :timeline-selected timeline-selected)
+                   (seq pruned-controls)    (assoc :controls pruned-controls))]
+             (assoc pruned-rich-layers layer-id pruned-rich-layer)))
          {} (:rich-layers map-state))
 
         pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :bounds])
@@ -259,15 +265,16 @@
   [db]
   (let [rich-layers
         (reduce-kv
-         (fn [acc key val]
-           (assoc
-            acc
-            key
-            (assoc
-             val
-             :alternate-views-selected nil
-             :timeline-selected        nil
-             :tab                      "legend")))
+         (fn [rich-layers layer-id {:keys [controls] :as rich-layer}]
+           (let [controls (mapv #(assoc % :value nil) controls)
+                 rich-layer
+                 (assoc
+                  rich-layer
+                  :alternate-views-selected nil
+                  :timeline-selected        nil
+                  :controls                 controls
+                  :tab                      "legend")]
+             (assoc rich-layers layer-id rich-layer)))
          {} (get-in db [:map :rich-layers]))]
     (->
      (select-keys*

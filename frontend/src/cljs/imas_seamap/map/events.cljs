@@ -511,8 +511,17 @@
         rich-layers
         (reduce
          (fn [acc {:keys [layer] :as rich-layer}]
-           (let [db-rich-layer (get db-rich-layers layer)
-                 rich-layer (merge (->rich-layer rich-layer) db-rich-layer)]
+           (let [{db-controls :controls :as db-rich-layer} (get db-rich-layers layer)
+                 {:keys [controls] :as rich-layer} (->rich-layer rich-layer)
+                 ; Merge controls and db-controls
+                 controls
+                 (mapv
+                  (fn [{:keys [cql-property] :as control}]
+                    (let [db-control (first-where #(= (:cql-property %) cql-property) db-controls)]
+                      (merge control db-control)))
+                  controls)
+                 rich-layer (merge rich-layer db-rich-layer)
+                 rich-layer (assoc rich-layer :controls controls)]
              (assoc acc layer rich-layer)))
          {} rich-layers)
 
