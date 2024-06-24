@@ -432,17 +432,23 @@
                                    str
                                    (interpose
                                     " AND "
-                                    (mapv
-                                     (fn [{:keys [cql-property value controller-type]}]
-                                       (if (= controller-type "multi-dropdown")
-                                         (str
-                                          "("
-                                          (apply
-                                           str
-                                           (interpose " OR " (map #(str cql-property "=" %) value)))
-                                          ")")
-                                         (str cql-property "=" value)))
-                                     (filterv :value controls))))]
+                                    (->>
+                                     controls
+                                     (mapv
+                                      (fn [{:keys [cql-property value controller-type]}]
+                                        (if (= controller-type "multi-dropdown")
+                                          (case (count value)
+                                            0 nil
+                                            1 (str cql-property "=" (first value))
+                                            2 (str
+                                               "("
+                                               (apply
+                                                str
+                                                (interpose " OR " (map #(str cql-property "=" %) value)))
+                                               ")"))
+
+                                          (when value (str cql-property "=" value)))))
+                                     (remove nil?))))]
     (when rich-layer
       (assoc
        rich-layer
