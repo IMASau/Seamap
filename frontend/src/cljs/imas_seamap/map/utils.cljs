@@ -433,8 +433,15 @@
                                    (interpose
                                     " AND "
                                     (mapv
-                                     (fn [{:keys [cql-property value]}]
-                                       (str cql-property "=" value ""))
+                                     (fn [{:keys [cql-property value controller-type]}]
+                                       (if (= controller-type "multi-dropdown")
+                                         (str
+                                          "("
+                                          (apply
+                                           str
+                                           (interpose " OR " (map #(str cql-property "=" %) value)))
+                                          ")")
+                                         (str cql-property "=" value)))
                                      (filterv :value controls))))]
     (when rich-layer
       (assoc

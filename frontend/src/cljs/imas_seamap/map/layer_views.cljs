@@ -316,6 +316,26 @@
       {:id   identity
        :text str}}]]])
 
+(defmethod cql-control "multi-dropdown"
+  [{{:keys [label icon value values] :as control} :control {:keys [layer]} :props}]
+  [components/form-group
+   {:label
+    [:<>
+     (when icon [b/icon {:icon icon}])
+     label]}
+   [:div
+    {:on-click #(.stopPropagation %)}
+    [components/select
+     {:value        value
+      :options      values
+      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected layer control %])
+      :isSearchable true
+      :isClearable  true
+      :isMulti      true
+      :keyfns
+      {:id   identity
+       :text str}}]]])
+
 (defmethod cql-control "slider"
   [{{:keys [label icon value values] :as control} :control {:keys [layer]} :props}]
   (let [gaps (:gaps
