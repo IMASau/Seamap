@@ -31,7 +31,7 @@ jobs:
         run: |
           echo "PROFILE=min" >> $GITHUB_ENV
       - name: Conditionally set build profile based on branch (develop)
-        if: not endswith(github.ref, '/master')
+        if: !endswith(github.ref, '/master')
         run: |
           echo "PROFILE=mindev" >> $GITHUB_ENV
 
