@@ -17,7 +17,20 @@
 (def crs-epsg4326        L/CRS.EPSG4326)
 (def crs-epsg3857        L/CRS.EPSG3857)
 (def tile-layer          (r/adapt-react-class ReactLeaflet/TileLayer))
-(def wms-layer           (r/adapt-react-class ReactLeaflet/WMSTileLayer))
+;; (def wms-layer           (r/adapt-react-class ReactLeaflet/WMSTileLayer))
+(def wms-layer           (r/adapt-react-class
+                          (ReactLeafletCore/createLayerComponent
+                           ;; Create layer fn
+                           (fn [props context]
+                             (let [instance ((-> L/default .-tileLayer .-wms) (.-url props) (clj->js props))]
+                               #js{:instance instance :context context}))
+                           ;; Update layer fn
+                           (fn [instance ^js/Object props ^js/Object prev-props]
+                             ; TODO: More prop updates?
+                             (when (not= (.-opacity props) (.-opacity prev-props))
+                               (.setOpacity instance (.-opacity props)))
+                             (when (not= (.-cql_filter props) (.-cql_filter prev-props))
+                               (.setParams instance (clj->js {:cql_filter (.-cql_filter props)})))))))
 (def geojson-layer       (r/adapt-react-class ReactLeaflet/GeoJSON))
 (def vector-tile-layer   (r/adapt-react-class VectorTileLayer/default))
 (def non-tiled-layer     (r/adapt-react-class
@@ -27,10 +40,12 @@
                              (let [instance ((-> L/default .-nonTiledLayer .-wms) (.-url props) (clj->js props))]
                                #js{:instance instance :context context}))
                            ;; Update layer fn
-                           (fn [instance props prev-props]
+                           (fn [instance ^js/Object props ^js/Object prev-props]
                              ; TODO: More prop updates?
                              (when (not= (.-opacity props) (.-opacity prev-props))
-                               (.setOpacity instance (.-opacity props)))))))
+                               (.setOpacity instance (.-opacity props)))
+                             (when (not= (.-cql_filter props) (.-cql_filter prev-props))
+                               (.setParams instance (clj->js {:cql_filter (.-cql_filter props)})))))))
 (defn- make-update-feature-style-fn
   "We want to apply some props (currently just opacity) on top of
   existing styles. This creates a function that can be given to

@@ -832,7 +832,10 @@
   (merge
    {:db         (-> db
                     (assoc-in [:map :rich-layers (:id layer) :alternate-views-selected] nil)
-                    (assoc-in [:map :rich-layers (:id layer) :timeline-selected] nil))
+                    (assoc-in [:map :rich-layers (:id layer) :timeline-selected] nil)
+                    (update-in
+                     [:map :rich-layers (:id layer) :controls]
+                     (fn [controls] (mapv #(assoc % :value nil) controls))))
     :dispatch-n [(when-not (get-in db [:map :legends (:id layer)])
                    [:map.layer/get-legend layer])
                  [:maybe-autosave]]}))

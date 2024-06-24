@@ -184,7 +184,6 @@
 
 (defmethod layer-component :wms
   [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
-  ^{:key (str cql-filter)}
   [leaflet/wms-layer
    (merge
     {:url              server_url
@@ -197,10 +196,10 @@
      :transparent      true
      :opacity          (/ (layer-opacities layer) 100)
      :tiled            true
-     :format           "image/png"
-     :cql_filter       cql-filter}
+     :format           "image/png"}
     (when style {:styles style})
-    (boundary-filter layer))])
+    (boundary-filter layer)
+    (when cql-filter {:cql_filter cql-filter}))])
 
 (defmethod layer-component :tile
   [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
@@ -244,7 +243,6 @@
 
 (defmethod layer-component :wms-non-tiled
   [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
-  ^{:key (str cql-filter)}
   [leaflet/non-tiled-layer
    (merge
     {:url              server_url
@@ -258,10 +256,10 @@
      :opacity          (/ (layer-opacities layer) 100)
      :tiled            true
      :format           "image/png"
-     :cross-origin     "anonymous"
-     :cql_filter       cql-filter}
+     :cross-origin     "anonymous"}
     (when style {:styles style})
-    (boundary-filter layer))])
+    (boundary-filter layer)
+    (when cql-filter {:cql_filter cql-filter}))])
 
 (defmulti basemap-layer-component :layer_type)
 
@@ -340,7 +338,7 @@
             ;; Panes are given a name based on a uuid and time because if a pane is given the
             ;; same name as a previously existing pane leaflet complains about a new pane being
             ;; made with the same name as an existing pane (causing leaflet to no longer work).
-            ^{:key (str id (boundary-filter displayed-layer (:cql-filter (rich-layer-fn layer))) (+ i 1 (count (:layers active-base-layer))))}
+            ^{:key (str id (+ i 1 (count (:layers active-base-layer))))}
             [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
              [layer-component
               {:layer           layer
