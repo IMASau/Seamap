@@ -298,12 +298,14 @@
 (defmulti cql-control #(get-in % [:control :controller-type]))
 
 (defmethod cql-control "dropdown"
-  [{{:keys [label icon value values] :as control} :control {:keys [layer]} :props}]
+  [{{:keys [label icon tooltip value values] :as control} :control {:keys [layer]} :props}]
   [components/form-group
    {:label
-    [:<>
-     (when icon [b/icon {:icon icon}])
-     label]}
+    [b/tooltip
+     {:content tooltip}
+     [:<>
+      (when icon [b/icon {:icon icon}])
+      label]]}
    [:div
     {:on-click #(.stopPropagation %)}
     [components/select
@@ -317,12 +319,14 @@
        :text str}}]]])
 
 (defmethod cql-control "multi-dropdown"
-  [{{:keys [label icon value values] :as control} :control {:keys [layer]} :props}]
+  [{{:keys [label icon tooltip value values] :as control} :control {:keys [layer]} :props}]
   [components/form-group
    {:label
-    [:<>
-     (when icon [b/icon {:icon icon}])
-     label]}
+    [b/tooltip
+     {:content tooltip}
+     [:<>
+      (when icon [b/icon {:icon icon}])
+      label]]}
    [:div
     {:on-click #(.stopPropagation %)}
     [components/select
@@ -337,7 +341,7 @@
        :text str}}]]])
 
 (defmethod cql-control "slider"
-  [{{:keys [label icon value values] :as control} :control {:keys [layer]} :props}]
+  [{{:keys [label icon tooltip value values] :as control} :control {:keys [layer]} :props}]
   (let [gaps (:gaps
               (reduce
                (fn [{:keys [gaps prev]} val]
@@ -354,9 +358,11 @@
           (conj gaps nil)))]
     [components/form-group
      {:label
-      [:<>
-       (when icon [b/icon {:icon icon}])
-       label]}
+      [b/tooltip
+       {:content tooltip}
+       [:<>
+        (when icon [b/icon {:icon icon}])
+        label]]}
      [:input
       {:type     "range"
        :min      (apply min values)
