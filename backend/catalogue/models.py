@@ -217,7 +217,7 @@ class RichLayerControl(models.Model):
     data_type = models.CharField(max_length=255, choices=DATA_TYPE_CHOICES)
     controller_type = models.CharField(max_length=255, choices=CONTROLLER_TYPE_CHOICES)
     icon = EmptyStringToNoneField(max_length=255, null=True, blank=True)
-    tooltip = models.CharField(max_length=255)
+    tooltip = models.CharField(max_length=255, null=True, blank=True)
 
 @python_2_unicode_compatible
 class RegionReport(models.Model):

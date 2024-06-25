@@ -6,5 +6,5 @@ CREATE TABLE [dbo].[catalogue_richlayercontrol] (
   [data_type]       NVARCHAR(MAX) NOT NULL,
   [controller_type] NVARCHAR(MAX) NOT NULL,
   [icon]            NVARCHAR(MAX) NULL,
-  [tooltip]         NVARCHAR(MAX) NOT NULL
+  [tooltip]         NVARCHAR(MAX) NULL
 );
