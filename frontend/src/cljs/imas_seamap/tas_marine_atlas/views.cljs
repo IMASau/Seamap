@@ -123,6 +123,18 @@
       :id       "overlay-control"
       :icon     "help"}]]])
 
+(defn- floating-pills []
+  (let [collapsed            (:collapsed @(re-frame/subscribe [:ui/sidebar]))
+        active-dynamic-pills @(re-frame/subscribe [:map/active-dynamic-pills])]
+    [:div
+     {:class (str "floating-pills" (when collapsed " collapsed"))}
+     (for [{:keys [text icon tooltip]} active-dynamic-pills]
+       ^{:key text}
+       [components/floating-pill-button
+        {:text    text
+         :icon    icon
+         :tooltip tooltip}])]))
+
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
@@ -317,5 +329,6 @@
      [featured-map-drawer]
      [layers-search-omnibar]
      [custom-leaflet-controls]
+     [floating-pills]
      [welcome-dialogue]]))
 

@@ -670,6 +670,7 @@
         valid-boundaries         @(re-frame/subscribe [:sok/valid-boundaries])
         boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])
+        active-dynamic-pills     @(re-frame/subscribe [:map/active-dynamic-pills])
         open-pill                @(re-frame/subscribe [:sok/open-pill])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
@@ -690,7 +691,13 @@
        [floating-zones-pill
         (merge
          valid-boundaries
-         {:expanded? (= open-pill "zones")})])]))
+         {:expanded? (= open-pill "zones")})])
+     (for [{:keys [text icon tooltip]} active-dynamic-pills]
+       ^{:key text}
+       [components/floating-pill-button
+        {:text    text
+         :icon    icon
+         :tooltip tooltip}])]))
 
 (defn layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])
