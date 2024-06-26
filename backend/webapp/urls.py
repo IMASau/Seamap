@@ -24,6 +24,7 @@ router.register(r'categories', viewsets.CategoryViewset)
 router.register(r'keyedlayers', viewsets.KeyedLayerViewset)
 router.register(r'richlayers', viewsets.RichLayerViewset)
 router.register(r'regionreports', viewsets.RegionReportViewset)
+router.register(r'dynamicpills', viewsets.DynamicPillViewset)
 
 urlpatterns = [
     re_path(r'^api/habitat/transect', habitat_viewsets.transect),

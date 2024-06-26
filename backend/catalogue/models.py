@@ -245,3 +245,14 @@ class Pressure(models.Model):
 
     def __str__(self):
         return f'{self.region_report}: {self.layer}'
+
+
+@python_2_unicode_compatible
+class DynamicPill(models.Model):
+    text = models.CharField(max_length=255)
+    icon = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    tooltip = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    layers = models.ManyToManyField(Layer)
+    
+    def __str__(self):
+        return self.text

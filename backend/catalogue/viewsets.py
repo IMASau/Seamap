@@ -60,3 +60,7 @@ class RichLayerViewset(viewsets.ReadOnlyModelViewSet):
 class RegionReportViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.RegionReport.objects.all()
     serializer_class = serializers.RegionReportSerializer
+
+class DynamicPillViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = models.DynamicPill.objects.prefetch_related('layers').all()
+    serializer_class = serializers.DynamicPillSerializer

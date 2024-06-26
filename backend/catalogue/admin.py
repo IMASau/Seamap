@@ -62,3 +62,7 @@ class RegionReportAdmin(admin.ModelAdmin):
         ('minx','maxx','miny','maxy',),
     )
 admin.site.register(models.RegionReport, RegionReportAdmin)
+
+class DynamicPillAdmin(admin.ModelAdmin):
+    autocomplete_fields = ('layers',)
+admin.site.register(models.DynamicPill, DynamicPillAdmin)

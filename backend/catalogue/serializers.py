@@ -130,3 +130,8 @@ class PressureSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Pressure
         exclude = ('region_report',)
+
+class DynamicPillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DynamicPill
+        exclude = ('id',)
