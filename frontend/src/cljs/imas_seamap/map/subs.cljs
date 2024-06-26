@@ -198,3 +198,11 @@
                       :else                  :map.legend/none)]
     {:status    status
      :info      (when (= status :map.legend/loaded) legend-info)}))
+
+(defn active-dynamic-pills [{:keys [dynamic-pills] {:keys [active-layers]} :map} _]
+  (filterv
+   #(seq
+     (set/intersection
+      (set (:layers %))
+      (set (map :id active-layers))))
+   dynamic-pills))
