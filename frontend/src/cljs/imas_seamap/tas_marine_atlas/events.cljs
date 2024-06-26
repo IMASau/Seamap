@@ -31,6 +31,7 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
+                                  :update-dynamic-pills
                                   :map/join-keyed-layers
                                   :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
@@ -59,6 +60,7 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
+                                  :update-dynamic-pills
                                   :map/join-keyed-layers
                                   :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
@@ -87,6 +89,7 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
+                                  :update-dynamic-pills
                                   :map/join-keyed-layers
                                   :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
@@ -107,6 +110,7 @@
           category
           keyed-layers
           rich-layers
+          dynamic-pills
           layer-previews
           story-maps
           data-in-region
@@ -126,6 +130,7 @@
       :category-url              (str api-url-base category)
       :keyed-layers-url          (str api-url-base keyed-layers)
       :rich-layers-url           (str api-url-base rich-layers)
+      :dynamic-pills-url         (str api-url-base dynamic-pills)
       :layer-previews-url        (str media-url-base layer-previews)
       :story-maps-url            (str wordpress-url-base story-maps)
       :data-in-region-url        (str api-url-base data-in-region)
@@ -223,6 +228,7 @@
                 category-url
                 keyed-layers-url
                 rich-layers-url
+                dynamic-pills-url
                 story-maps-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
@@ -269,6 +275,11 @@
                    :uri             rich-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-rich-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             dynamic-pills-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-dynamic-pills]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             story-maps-url

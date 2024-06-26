@@ -47,6 +47,7 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/update-region-reports
+                                  :update-dynamic-pills
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
@@ -85,6 +86,7 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/update-region-reports
+                                  :update-dynamic-pills
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
@@ -123,6 +125,7 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/update-region-reports
+                                  :update-dynamic-pills
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
@@ -149,6 +152,7 @@
           keyed-layers
           rich-layers
           region-reports
+          dynamic-pills
           amp-boundaries
           imcra-boundaries
           meow-boundaries
@@ -175,6 +179,7 @@
       :keyed-layers-url            (str api-url-base keyed-layers)
       :rich-layers-url             (str api-url-base rich-layers)
       :region-reports-url          (str api-url-base region-reports)
+      :dynamic-pills-url           (str api-url-base dynamic-pills)
       :amp-boundaries-url          (str api-url-base amp-boundaries)
       :imcra-boundaries-url        (str api-url-base imcra-boundaries)
       :meow-boundaries-url         (str api-url-base meow-boundaries)
@@ -310,6 +315,7 @@
                 keyed-layers-url
                 rich-layers-url
                 region-reports-url
+                dynamic-pills-url
                 amp-boundaries-url
                 imcra-boundaries-url
                 meow-boundaries-url
@@ -364,6 +370,11 @@
                    :uri             region-reports-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-region-reports]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             dynamic-pills-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-dynamic-pills]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             amp-boundaries-url
@@ -834,3 +845,6 @@
 
 (defn settings-overlay [db [_ open?]]
   (assoc-in db [:display :settings-overlay] open?))
+
+(defn update-dynamic-pills [db [_ dynamic-pills]]
+  (assoc db :dynamic-pills dynamic-pills))

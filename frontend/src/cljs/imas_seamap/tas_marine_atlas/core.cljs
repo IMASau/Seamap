@@ -91,6 +91,7 @@
     :initialise-db                        [events/initialise-db]
     :initialise-layers                    [tmaevents/initialise-layers]
     :loading-failed                       events/loading-failed
+    :update-dynamic-pills                 events/update-dynamic-pills
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
