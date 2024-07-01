@@ -79,7 +79,8 @@
                      :catalogue             {:main {:tab      "cat"
                                                     :expanded #{}}}
                      :sidebar               {:collapsed false
-                                             :selected  "tab-activelayers"}}
+                                             :selected  "tab-activelayers"}
+                     :right-sidebars        []}
    :autosave?       false
    :config          {:url-paths {:layer                 "layers/"
                                  :base-layer            "baselayers/"

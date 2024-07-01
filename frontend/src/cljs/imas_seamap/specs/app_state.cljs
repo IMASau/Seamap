@@ -286,6 +286,14 @@
 (s/def :display/drawer-panels (s/coll-of :display/drawer-panel
                                          :kind vector?))
 
+(s/def :display.right-sidebar/id string?)
+(s/def :display.right-sidebar/type (s/keys :req-un [:state-of-knowledge :story-map]))
+(s/def :display/right-sidebar
+  (s/keys :req-un [:display.right-sidebar/id
+                   :display.right-sidebar/type]))
+(s/def :display/right-sidebars (s/coll-of :display/right-sidebar
+                                          :kind vector?))
+
 
 ;; state of knowledge
 (s/def :state-of-knowledge.boundaries.active-boundary/short string?)
@@ -486,7 +494,8 @@
                    :display/sidebar
                    :display/left-drawer
                    :display/state-of-knowledge
-                   :display/drawer-panels]))
+                   :display/drawer-panels
+                   :display/right-sidebars]))
 
 
 ;; filters
