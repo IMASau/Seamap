@@ -854,3 +854,9 @@
 
 (defn right-sidebar-pop [db _]
   (update-in db [:display :right-sidebars] pop))
+
+(defn right-sidebar-bring-to-front [db [_ sidebar]]
+  (update-in db [:display :right-sidebars] (fn [sidebars] (conj (vec (remove #(= % sidebar) sidebars)) sidebar))))
+
+(defn right-sidebar-remove [db [_ sidebar]]
+  (update-in db [:display :right-sidebars] (fn [sidebars] (vec (remove #(= % sidebar) sidebars)))))

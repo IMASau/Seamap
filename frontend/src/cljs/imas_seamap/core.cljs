@@ -256,6 +256,8 @@
     :ui.sidebar/toggle                    events/sidebar-toggle
     :ui.right-sidebar/push                events/right-sidebar-push
     :ui.right-sidebar/pop                 events/right-sidebar-pop
+    :ui.right-sidebar/bring-to-front      events/right-sidebar-bring-to-front
+    :ui.right-sidebar/remove              events/right-sidebar-remove
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
