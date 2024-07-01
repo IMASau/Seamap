@@ -39,6 +39,7 @@
                                       [:display :catalogue :main]
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
+                                      [:display :right-sidebars]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
@@ -63,6 +64,7 @@
                  [:display :catalogue :main]
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
+                 [:display :right-sidebars]
                  [:filters :layers]
                  [:story-maps :featured-map]
                  [:story-maps :open?]

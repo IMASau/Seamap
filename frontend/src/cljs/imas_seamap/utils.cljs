@@ -89,6 +89,7 @@
                                       [:display :catalogue :main]
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
+                                      [:display :right-sidebars]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
@@ -118,6 +119,7 @@
                  [:display :catalogue :main]
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
+                 [:display :right-sidebars]
                  [:filters :layers]
                  [:state-of-knowledge :boundaries :active-boundary]
                  [:state-of-knowledge :boundaries :active-boundary-layer]
