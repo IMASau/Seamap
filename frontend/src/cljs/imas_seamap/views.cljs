@@ -799,6 +799,17 @@
                 [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
         :panel (reagent/as-element [featured-maps])}]]]))
 
+(defmulti right-drawer :type)
+
+(defmethod right-drawer :state-of-knowledge []
+  [state-of-knowledge])
+
+(defmethod right-drawer :story-map []
+  [featured-map-drawer])
+
+(defmethod right-drawer :default []
+  nil)
+
 (defn layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
         error? (reagent/atom false)]    ; keeps track of if previous url had an error in displaying
@@ -873,7 +884,7 @@
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
-        right-drawer-open? (or @(re-frame/subscribe [:sok/open?]) @(re-frame/subscribe [:sm.featured-map/open?]))
+        right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])]
     [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
@@ -914,9 +925,8 @@
      [info-card]
      [loading-display]
      [left-drawer]
-     [state-of-knowledge]
-     [featured-map-drawer]
-     [layers-search-omnibar] 
+     [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
+     [layers-search-omnibar]
      [custom-leaflet-controls]
      [floating-pills]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))

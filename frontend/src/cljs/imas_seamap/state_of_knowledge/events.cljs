@@ -85,7 +85,10 @@
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
                   (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [(if active-boundary
+                    [:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                    [:ui.right-sidebar/remove {:id "state-of-knowledge" :type :state-of-knowledge}])
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -104,7 +107,8 @@
               (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil)))
         park (get-in db [:state-of-knowledge :boundaries :amp :active-park])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -123,7 +127,8 @@
               (assoc-in [:state-of-knowledge :boundaries :amp :active-zone] nil)
               (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil)))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -137,7 +142,8 @@
                 force-clear-lower?
                  (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-id] nil)))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -151,7 +157,8 @@
                 force-clear-lower?
                  (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-id] nil)))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -165,7 +172,8 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-park] (if park {:network network :park park} old-park))
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-id] zone-id))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -179,7 +187,8 @@
               (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] provincial-bioregion)))
         mesoscale-bioregion (get-in db [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -191,7 +200,8 @@
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion] (if provincial-bioregion {:provincial-bioregion provincial-bioregion} old-provincial-bioregion))
                (assoc-in [:state-of-knowledge :boundaries :imcra :active-mesoscale-bioregion] mesoscale-bioregion))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -206,7 +216,8 @@
               (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))
         ecoregion (get-in db [:state-of-knowledge :boundaries :meow :active-ecoregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -222,7 +233,8 @@
               (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil)))
         ecoregion (get-in db [:state-of-knowledge :boundaries :meow :active-ecoregion])]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -236,7 +248,8 @@
                (assoc-in [:state-of-knowledge :boundaries :meow :active-province] (if province {:realm realm :province province} old-province))
                (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] ecoregion))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
@@ -252,7 +265,8 @@
                (assoc-in [:state-of-knowledge :boundaries :meow :active-province] nil)
                (assoc-in [:state-of-knowledge :boundaries :meow :active-ecoregion] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))
@@ -263,7 +277,8 @@
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-iucn] nil)
                (assoc-in [:state-of-knowledge :boundaries :amp :active-zone-id] nil))]
     {:db db
-     :dispatch-n [[:sok/update-active-boundary-layer]
+     :dispatch-n [[:ui.right-sidebar/bring-to-front {:id "state-of-knowledge" :type :state-of-knowledge}]
+                  [:sok/update-active-boundary-layer]
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]]}))

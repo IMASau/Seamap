@@ -289,7 +289,7 @@
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         _                  (use-hotkeys hot-keys) ; We don't need the results of this, just need to ensure it's called!
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
-        right-drawer-open? @(re-frame/subscribe [:sm.featured-map/open?])]
+        right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))]
     [:div#main-wrapper.tas-marine-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper

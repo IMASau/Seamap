@@ -414,9 +414,7 @@
    {:title       "State of Knowledge"
     :position    "right"
     :size        "368px"
-    :isOpen      (and
-                  @(re-frame/subscribe [:sok/open?])
-                  (not @(re-frame/subscribe [:sm.featured-map/open?])))
+    :isOpen      true
     :onClose     #(re-frame/dispatch [:sok/close])
     :hasBackdrop false
     :className   "state-of-knowledge-drawer"}
