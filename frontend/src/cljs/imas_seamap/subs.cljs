@@ -155,3 +155,6 @@
 
 (defn right-sidebar [db _]
   (last (get-in db [:display :right-sidebars])))
+
+(defn open-pill [db _]
+  (get-in db [:display :open-pill]))

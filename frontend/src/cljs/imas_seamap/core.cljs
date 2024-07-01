@@ -62,7 +62,6 @@
     :sok/active-boundaries?               soksubs/active-boundaries?
     :sok/active-zones?                    soksubs/active-zones?
     :sok/open?                            soksubs/open?
-    :sok/open-pill                        soksubs/open-pill
     :sok/boundary-layer-filter            soksubs/boundary-layer-filter-fn
     :sok/region-report-url                soksubs/region-report-url
     :sm/featured-maps                     smsubs/featured-maps
@@ -83,6 +82,7 @@
     :ui/preview-layer-url                 subs/preview-layer-url
     :ui/sidebar                           subs/sidebar-state
     :ui/right-sidebar                     subs/right-sidebar
+    :ui/open-pill                         subs/open-pill
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
     :app/loading?                         subs/app-loading?
@@ -233,7 +233,6 @@
     :sok/get-habitat-observations         [sokevents/get-habitat-observations]
     :sok/got-habitat-observations         sokevents/got-habitat-observations
     :sok/close                            [sokevents/close]
-    :sok/open-pill                        sokevents/open-pill
     :sok/get-filtered-bounds              [sokevents/get-filtered-bounds]
     :sok/got-filtered-bounds              [sokevents/got-filtered-bounds]
     :sok/habitat-toggle-show-layers       [sokevents/habitat-toggle-show-layers]
@@ -258,6 +257,7 @@
     :ui.right-sidebar/pop                 events/right-sidebar-pop
     :ui.right-sidebar/bring-to-front      events/right-sidebar-bring-to-front
     :ui.right-sidebar/remove              events/right-sidebar-remove
+    :ui/open-pill                         events/open-pill
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]

@@ -860,3 +860,6 @@
 
 (defn right-sidebar-remove [db [_ sidebar]]
   (update-in db [:display :right-sidebars] (fn [sidebars] (vec (remove #(= % sidebar) sidebars)))))
+
+(defn open-pill [db [_ pill-id]]
+  (assoc-in db [:display :open-pill] pill-id))

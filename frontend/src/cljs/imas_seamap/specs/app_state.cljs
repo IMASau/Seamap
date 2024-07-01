@@ -294,6 +294,8 @@
 (s/def :display/right-sidebars (s/coll-of :display/right-sidebar
                                           :kind vector?))
 
+(s/def :display/open-pill (s/nilable string?))
+
 
 ;; state of knowledge
 (s/def :state-of-knowledge.boundaries.active-boundary/short string?)
@@ -495,7 +497,8 @@
                    :display/left-drawer
                    :display/state-of-knowledge
                    :display/drawer-panels
-                   :display/right-sidebars]))
+                   :display/right-sidebars
+                   :display/open-pill]))
 
 
 ;; filters

@@ -92,7 +92,7 @@
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when active-boundary [:sok/open-pill nil])]}))
+                  (when active-boundary [:ui/open-pill nil])]}))
 
 (defn update-active-network [{:keys [db]} [_ network force-clear-lower?]]
   (let [db (cond-> db
@@ -112,7 +112,7 @@
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when (and network park) [:sok/open-pill nil])]}))
+                  (when (and network park) [:ui/open-pill nil])]}))
 
 (defn update-active-park [{:keys [db]} [_ {:keys [network] :as park} force-clear-lower?]]
   (let [old-network (get-in db [:state-of-knowledge :boundaries :amp :active-network])
@@ -132,7 +132,7 @@
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when park [:sok/open-pill nil])]}))
+                  (when park [:ui/open-pill nil])]}))
 
 (defn update-active-zone [{:keys [db]} [_ zone force-clear-lower?]]
   (let [db (-> db
@@ -147,7 +147,7 @@
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when zone [:sok/open-pill nil])]}))
+                  (when zone [:ui/open-pill nil])]}))
 
 (defn update-active-zone-iucn [{:keys [db]} [_ zone-iucn force-clear-lower?]]
   (let [db (-> db
@@ -162,7 +162,7 @@
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when zone-iucn [:sok/open-pill nil])]}))
+                  (when zone-iucn [:ui/open-pill nil])]}))
 
 (defn update-active-zone-id [{:keys [db]} [_ {:keys [network park] :as zone-id} _force-clear-lower?]]
   (let [{old-network :active-network
@@ -177,7 +177,7 @@
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when zone-id [:sok/open-pill nil])]}))
+                  (when zone-id [:ui/open-pill nil])]}))
 
 (defn update-active-provincial-bioregion [{:keys [db]} [_ provincial-bioregion force-clear-lower?]]
   (let [db (cond-> db
@@ -192,7 +192,7 @@
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when (and provincial-bioregion mesoscale-bioregion) [:sok/open-pill nil])]}))
+                  (when (and provincial-bioregion mesoscale-bioregion) [:ui/open-pill nil])]}))
 
 (defn update-active-mesoscale-bioregion [{:keys [db]} [_ {:keys [provincial-bioregion] :as mesoscale-bioregion} _force-clear-lower?]]
   (let [old-provincial-bioregion (get-in db [:state-of-knowledge :boundaries :imcra :active-provincial-bioregion])
@@ -205,7 +205,7 @@
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when mesoscale-bioregion [:sok/open-pill nil])]}))
+                  (when mesoscale-bioregion [:ui/open-pill nil])]}))
 
 (defn update-active-realm [{:keys [db]} [_ realm force-clear-lower?]]
   (let [db (cond-> db
@@ -221,7 +221,7 @@
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when (and realm ecoregion) [:sok/open-pill nil])]}))
+                  (when (and realm ecoregion) [:ui/open-pill nil])]}))
 
 (defn update-active-province [{:keys [db]} [_ {:keys [realm] :as province} force-clear-lower?]]
   (let [old-realm (get-in db [:state-of-knowledge :boundaries :meow :active-realm])
@@ -238,7 +238,7 @@
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when (and province ecoregion) [:sok/open-pill nil])]}))
+                  (when (and province ecoregion) [:ui/open-pill nil])]}))
 
 (defn update-active-ecoregion [{:keys [db]} [_ {:keys [realm province] :as ecoregion} _force-clear-lower?]]
   (let [{old-realm    :active-realm
@@ -253,7 +253,7 @@
                   [:sok/get-habitat-statistics]
                   [:sok/get-bathymetry-statistics]
                   [:sok/get-habitat-observations]
-                  (when ecoregion [:sok/open-pill nil])]}))
+                  (when ecoregion [:ui/open-pill nil])]}))
 
 (defn reset-active-boundaries [{:keys [db]} _]
   (let [db (-> db
@@ -356,14 +356,11 @@
 
 (defn close [{:keys [db]} _]
   {:db db
-   :dispatch-n [[:sok/open-pill nil]
+   :dispatch-n [[:ui/open-pill nil]
                 [:sok/update-active-boundary nil]
                 [:sok/got-habitat-statistics nil]
                 [:sok/got-bathymetry-statistics nil]
                 [:sok/got-habitat-observations nil]]})
-
-(defn open-pill [db [_ pill-id]]
-  (assoc-in db [:state-of-knowledge :open-pill] pill-id))
 
 (defn get-filtered-bounds [{:keys [db]} _]
   (let [{{:keys [layer_name server_url]} :active-boundary-layer :as boundaries}

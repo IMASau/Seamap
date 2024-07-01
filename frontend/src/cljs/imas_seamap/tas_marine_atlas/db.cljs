@@ -61,7 +61,8 @@
                                                       :expanded #{}}}
                      :sidebar               {:collapsed false
                                              :selected  "tab-activelayers"}
-                     :right-sidebars        []}
+                     :right-sidebars        []
+                     :open-pill             nil}
    :autosave?       false
    :config          {:url-paths {:layer                 "layers/"
                                  :base-layer            "baselayers/"

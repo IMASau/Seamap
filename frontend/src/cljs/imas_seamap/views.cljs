@@ -671,7 +671,7 @@
         boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])
         active-dynamic-pills     @(re-frame/subscribe [:map/active-dynamic-pills])
-        open-pill                @(re-frame/subscribe [:sok/open-pill])]
+        open-pill                @(re-frame/subscribe [:ui/open-pill])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
 
