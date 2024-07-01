@@ -848,3 +848,9 @@
 
 (defn update-dynamic-pills [db [_ dynamic-pills]]
   (assoc db :dynamic-pills dynamic-pills))
+
+(defn right-sidebar-push [db [_ sidebar]]
+  (update-in db [:display :right-sidebars] conj sidebar))
+
+(defn right-sidebar-pop [db _]
+  (update-in db [:display :right-sidebars] pop))

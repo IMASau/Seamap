@@ -152,3 +152,6 @@
 
 (defn settings-overlay [db _]
   (get-in db [:display :settings-overlay]))
+
+(defn right-sidebar [db _]
+  (last (get-in db [:display :right-sidebars])))
