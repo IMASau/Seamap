@@ -664,6 +664,35 @@
       :id       "overlay-control"
       :icon     "help"}]]])
 
+(defn- dynamic-pill
+  [{:keys [id text icon tooltip expanded? active?] :as dynamic-pill}]
+  (if active?
+    [components/floating-pill-control-menu
+     {:text           text
+      :id             "state-of-knowledge-pill"
+      :icon           icon
+      :expanded?      expanded?
+      :active?        active?
+      :tooltip        tooltip
+      :on-open-click  #(re-frame/dispatch [:ui/open-pill (str "dynamic-pill-" id)])
+      :on-close-click #(re-frame/dispatch [:ui/open-pill nil])}
+     [:div.state-of-knowledge-pill-content
+      [components/form-group
+       {:label "Region"}
+       [components/select
+        {:value        nil
+         :options      []
+         :onChange     js/console.log
+         :isSearchable true
+         :isClearable  true
+         :keyfns
+         {:id   identity
+          :text identity}}]]]]
+    [components/floating-pill-button
+     {:text text
+      :icon icon
+      :on-click #(re-frame/dispatch [:dynamic-pill/active dynamic-pill true])}]))
+
 (defn- floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
@@ -692,12 +721,9 @@
         (merge
          valid-boundaries
          {:expanded? (= open-pill "zones")})])
-     (for [{:keys [text icon tooltip]} filtered-dynamic-pills]
-       ^{:key text}
-       [components/floating-pill-button
-        {:text    text
-         :icon    icon
-         :tooltip tooltip}])]))
+     (for [{:keys [id] :as dp} filtered-dynamic-pills]
+       ^{:key (str id)}
+       [dynamic-pill dp])]))
 
 (defn layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])
