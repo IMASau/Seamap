@@ -12,7 +12,7 @@
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
+            [imas-seamap.utils :refer [handler-fn handler-dispatch first-where] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
@@ -832,6 +832,20 @@
 
 (defmethod right-drawer :story-map []
   [featured-map-drawer])
+
+(defmethod right-drawer :dynamic-pill
+  [{{:keys [dynamic-pill-id]} :params}]
+  (let [filtered-dynamic-pills @(re-frame/subscribe [:map/filtered-dynamic-pills])
+        
+        {:keys [text icon] :as dynamic-pill}
+        (first-where #(= (:id %) dynamic-pill-id) filtered-dynamic-pills)]
+    [components/drawer
+     {:title       [:<> [b/icon {:icon icon}] text]
+      :position    "right"
+      :size        "368px"
+      :isOpen      true
+      :onClose     #(re-frame/dispatch [:dynamic-pill/active dynamic-pill false])
+      :hasBackdrop false}]))
 
 (defmethod right-drawer :default []
   nil)
