@@ -25,6 +25,10 @@
                      :viewport-only?  false
                      :keyed-layers    {}
                      :rich-layers     {}
+                     :rich-layers-new {:rich-layers  []
+                                       :states       {}
+                                       :async-datas  {}
+                                       :layer-lookup {}}
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}

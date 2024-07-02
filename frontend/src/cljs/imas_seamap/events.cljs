@@ -10,7 +10,7 @@
             [goog.dom :as gdom]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers first-where]]
             [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities visible-layers enhance-rich-layer rich-layer->displayed-layer]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -241,12 +241,18 @@
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
 
         feature-location      (get-in db [:feature :location])
-        feature-leaflet-props (get-in db [:feature :leaflet-props])]
+        feature-leaflet-props (get-in db [:feature :leaflet-props])
+        rich-layers-new (get-in db [:map :rich-layers-new :rich-layers])
+        cql-get
+        (->>
+         legend-ids
+         (mapv #(get-in db [:map :rich-layers-new :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers-new))))]
     {:db         db
      :dispatch-n (concat
                   []
                   (mapv #(vector :map.layer/get-legend %) legends-get)
-                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) legends-shown)
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) cql-get)
                   [:map/update-map-view {:zoom zoom :center center}]
                   (when (and feature-location feature-leaflet-props)
                     [:map/feature-info-dispatcher feature-leaflet-props feature-location])

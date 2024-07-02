@@ -404,7 +404,7 @@
    (if rich-layer
      [b/tabs
       {:selected-tab-id tab
-       :on-change       #(re-frame/dispatch [:map.rich-layer/tab layer %])}
+       :on-change       #(re-frame/dispatch [:map.rich-layer/tab rich-layer %])}
 
       [b/tab
        {:id    "legend"

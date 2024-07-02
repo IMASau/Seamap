@@ -186,12 +186,18 @@
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
 
         feature-location      (get-in db [:feature :location])
-        feature-leaflet-props (get-in db [:feature :leaflet-props])]
+        feature-leaflet-props (get-in db [:feature :leaflet-props])
+        rich-layers-new (get-in db [:map :rich-layers-new :rich-layers])
+        cql-get
+        (->>
+         legend-ids
+         (mapv #(get-in db [:map :rich-layers-new :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers-new))))]
     {:db         db
      :dispatch-n (concat
                   []
                   (mapv #(vector :map.layer/get-legend %) legends-get)
-                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) legends-shown)
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) cql-get)
                   [:map/update-map-view {:zoom zoom :center center}]
                   (when (and feature-location feature-leaflet-props)
                     [:map/feature-info-dispatcher feature-leaflet-props feature-location])
@@ -341,7 +347,13 @@
                           (assoc :initialised true))
 
         feature-location      (get-in db [:feature :location])
-        feature-leaflet-props (get-in db [:feature :leaflet-props])]
+        feature-leaflet-props (get-in db [:feature :leaflet-props])
+        rich-layers-new (get-in db [:map :rich-layers-new :rich-layers])
+        cql-get
+        (->>
+         legend-ids
+         (mapv #(get-in db [:map :rich-layers-new :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers-new))))]
     {:db         db
      :dispatch-n (concat
                   [[:ui/hide-loading]
@@ -349,7 +361,7 @@
                      [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                    [:maybe-autosave]]
                   (mapv #(vector :map.layer/get-legend %) legends-get)
-                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) legends-shown))}))
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) cql-get))}))
 
 (defn data-in-region-open [{:keys [db]} [_ open?]]
   {:db       (assoc-in db [:data-in-region :open?] open?)

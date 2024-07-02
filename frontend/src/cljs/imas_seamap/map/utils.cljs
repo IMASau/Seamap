@@ -418,12 +418,14 @@
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
-  [{:keys [slider-label alternate-views timeline controls]
+  [{:keys [id slider-label alternate-views timeline controls]
     alternate-views-selected-id :alternate-views-selected
     timeline-selected-id :timeline-selected
     :as rich-layer}
    rich-layers db]
-  (let [alternate-views-selected  (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
+  (let [state                     (get-in db [:map :rich-layers-new :states id])
+        async-data                (get-in db [:map :rich-layers-new :async-datas id])
+        alternate-views-selected  (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
         alternate-view-rich-layer (get rich-layers alternate-views-selected-id)
         timeline                  (or (:timeline alternate-view-rich-layer) timeline)
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
@@ -450,15 +452,18 @@
                                           (when value (str cql-property "=" value)))))
                                      (remove nil?))))]
     (when rich-layer
-      (assoc
+      (->
        rich-layer
-       :alternate-views-selected alternate-views-selected
-       :timeline-selected        timeline-selected
-       :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
-       :timeline                 timeline
-       :slider-label             slider-label
-       :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
-       :cql-filter               cql-filter))))
+       (merge (dissoc state :controls))
+       (merge (dissoc async-data :controls))
+       (assoc
+        :alternate-views-selected alternate-views-selected
+        :timeline-selected        timeline-selected
+        :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
+        :timeline                 timeline
+        :slider-label             slider-label
+        :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
+        :cql-filter               cql-filter)))))
 
 (defn rich-layer->displayed-layer
   "If a layer is a rich-layer, then return the currently displayed layer (including

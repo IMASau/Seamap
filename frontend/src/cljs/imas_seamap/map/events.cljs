@@ -499,6 +499,14 @@
    (dissoc :layer)
    (update :controls #(mapv ->rich-layer-control %))))
 
+(defn- ->rich-layer-new
+  [rich-layer]
+  (set/rename-keys
+   rich-layer
+   {:alternate_views :alternate-views
+    :tab_label       :tab-label
+    :slider_label    :slider-label}))
+
 (defn- rich-layer->children
   [{:keys [alternate-views timeline]}]
   (set/union
@@ -508,6 +516,7 @@
 (defn update-rich-layers [db [_ rich-layers]]
   (let [db-rich-layers (get-in db [:map :rich-layers]) ; existing state, for merges
 
+        rich-layers-new (mapv ->rich-layer-new rich-layers)
         rich-layers
         (reduce
          (fn [acc {:keys [layer] :as rich-layer}]
@@ -539,6 +548,14 @@
     (->
      db
      (assoc-in [:map :rich-layers] rich-layers)
+     (assoc-in
+      [:map :rich-layers-new]
+      {:rich-layers rich-layers-new
+       :layer-lookup
+       (reduce
+        (fn [layer-lookup {:keys [id layer]}]
+          (assoc layer-lookup layer id))
+        {} rich-layers-new)})
      (assoc-in [:map :rich-layer-children] rich-layer-children))))
 
 (defn update-region-reports [db [_ region-reports]]
@@ -583,7 +600,7 @@
                     [:map.layer/get-legend layer])
                   ;; Retrieve rich layer cql filter data if we don't already have it
                   (when (and rich-layer (not has-cql-filter-values?))
-                    [:map.rich-layer/get-cql-filter-values layer])]}))
+                    [:map.rich-layer/get-cql-filter-values rich-layer])]}))
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
@@ -659,7 +676,13 @@
                           (assoc :initialised true))
 
         feature-location      (get-in db [:feature :location])
-        feature-leaflet-props (get-in db [:feature :leaflet-props])]
+        feature-leaflet-props (get-in db [:feature :leaflet-props])
+        rich-layers-new (get-in db [:map :rich-layers-new :rich-layers])
+        cql-get
+        (->>
+         legend-ids
+         (mapv #(get-in db [:map :rich-layers-new :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers-new))))]
     {:db         db
      :dispatch-n (concat
                   [[:ui/hide-loading]
@@ -669,7 +692,7 @@
                      [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                    [:maybe-autosave]]
                   (mapv #(vector :map.layer/get-legend %) legends-get)
-                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) legends-shown))}))
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) cql-get))}))
 
 (defn update-leaflet-map [db [_ leaflet-map]]
   (when (not= leaflet-map (get-in db [:map :leaflet-map]))
@@ -742,30 +765,29 @@
      (get-in db [:map :controls :download :bbox])      [:map.layer.selection/clear]
      :default                                          [:map.layer.selection/enable])})
 
-(defn rich-layer-tab [{:keys [db]} [_ layer tab]]
+(defn rich-layer-tab [{:keys [db]} [_ {:keys [id] :as rich-layer} tab]]
   {:db       (assoc-in
-              db [:map :rich-layers (:id layer) :tab]
+              db [:map :rich-layers-new :states id :tab]
               tab)
    :dispatch-n [(when
                  (and
-                  (= tab "filters")                                                               ; If we're switching to the filters tab
-                  (nil? (:values (first (get-in db [:map :rich-layers (:id layer) :controls]))))) ; and we don't have any filter values
-                  [:map.rich-layer/get-cql-filter-values layer])                                  ; then get them
+                  (= tab "filters")                                                                       ; If we're switching to the filters tab
+                  (nil? (:values (first (get-in db [:map :rich-layers-new :async-datas id :controls]))))) ; and we don't have any filter values
+                  [:map.rich-layer/get-cql-filter-values rich-layer])                                     ; then get them
                 [:maybe-autosave]]})
 
-(defn rich-layer-get-cql-filter-values [{:keys [db]} [_ layer]]
-  (let [rich-layer-id (get-in db [:map :rich-layers (:id layer) :id])]
-    {:http-xhrio
-     {:method          :get
-      :uri             (get-in db [:config :urls :cql-filter-values-url])
-      :params          {:rich-layer-id rich-layer-id}
-      :response-format (ajax/json-response-format {:keywords? true})
-      :on-success      [:map.rich-layer/get-cql-filter-values-success layer]
-      :on-failure      [:ajax/default-err-handler]}}))
+(defn rich-layer-get-cql-filter-values [{:keys [db]} [_ {:keys [id] :as rich-layer}]]
+  {:http-xhrio
+   {:method          :get
+    :uri             (get-in db [:config :urls :cql-filter-values-url])
+    :params          {:rich-layer-id id}
+    :response-format (ajax/json-response-format {:keywords? true})
+    :on-success      [:map.rich-layer/get-cql-filter-values-success rich-layer]
+    :on-failure      [:ajax/default-err-handler]}})
 
-(defn rich-layer-get-cql-filter-values-success [db [_ layer response]]
+(defn rich-layer-get-cql-filter-values-success [db [_ {:keys [id] :as _rich-layer} response]]
   (update-in
-   db [:map :rich-layers (:id layer) :controls]
+   db [:map :rich-layers-new :async-datas id :controls]
    (fn [controls]
      (mapv
       (fn [{:keys [cql-property controller-type value] :as control}]
