@@ -699,7 +699,7 @@
         valid-boundaries         @(re-frame/subscribe [:sok/valid-boundaries])
         boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])
-        filtered-dynamic-pills   @(re-frame/subscribe [:map/filtered-dynamic-pills])
+        {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])
         open-pill                @(re-frame/subscribe [:ui/open-pill])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
@@ -721,7 +721,7 @@
         (merge
          valid-boundaries
          {:expanded? (= open-pill "zones")})])
-     (for [{:keys [id] :as dp} filtered-dynamic-pills]
+     (for [{:keys [id] :as dp} dynamic-pills]
        ^{:key (str id)}
        [dynamic-pill dp])]))
 
@@ -835,10 +835,8 @@
 
 (defmethod right-drawer :dynamic-pill
   [{{:keys [dynamic-pill-id]} :params}]
-  (let [filtered-dynamic-pills @(re-frame/subscribe [:map/filtered-dynamic-pills])
-        
-        {:keys [text icon] :as dynamic-pill}
-        (first-where #(= (:id %) dynamic-pill-id) filtered-dynamic-pills)]
+  (let [{dynamic-pills :mapped} @(re-frame/subscribe [:dynamic-pills])
+        {:keys [text icon] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)]
     [components/drawer
      {:title       [:<> [b/icon {:icon icon}] text]
       :position    "right"

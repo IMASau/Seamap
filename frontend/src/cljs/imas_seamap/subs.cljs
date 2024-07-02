@@ -2,7 +2,7 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.subs
-    (:require [clojure.set :refer [rename-keys]]
+    (:require [clojure.set :refer [rename-keys] :as set]
               [imas-seamap.utils :refer [first-where]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
               #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -158,3 +158,28 @@
 
 (defn open-pill [db _]
   (get-in db [:display :open-pill]))
+
+(defn- ->dynamic-pill [db {:keys [id] :as dynamic-pill}]
+  (->
+   dynamic-pill
+   (merge (get-in db [:dynamic-pills :states id]))
+   (assoc
+    :expanded?
+    (=
+     (get-in db [:display :open-pill])
+     (str "dynamic-pill-" id)))))
+
+(defn dynamic-pills [{{:keys [dynamic-pills]} :dynamic-pills {:keys [active-layers]} :map :as db} _]
+  (let [dynamic-pills (mapv #(->dynamic-pill db %) dynamic-pills)]
+    {:filtered
+     (filterv
+      #(seq
+        (set/intersection
+         (set (:layers %))
+         (set (map :id active-layers))))
+      dynamic-pills)
+     :mapped
+     (reduce
+      (fn [mapped {:keys [id] :as dynamic-pill}]
+        (assoc mapped id dynamic-pill))
+      {} dynamic-pills)}))

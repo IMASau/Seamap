@@ -47,7 +47,6 @@
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
-    :map/filtered-dynamic-pills           msubs/filtered-dynamic-pills
     :sok/habitat-statistics               soksubs/habitat-statistics
     :sok/habitat-statistics-download-url  soksubs/habitat-statistics-download-url
     :sok/bathymetry-statistics            soksubs/bathymetry-statistics
@@ -85,6 +84,7 @@
     :ui/open-pill                         subs/open-pill
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
+    :dynamic-pills                        subs/dynamic-pills
     :app/loading?                         subs/app-loading?
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
