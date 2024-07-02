@@ -265,6 +265,7 @@
     :left-drawer/open                     [events/left-drawer-open]
     :left-drawer/close                    [events/left-drawer-close]
     :left-drawer/tab                      [events/left-drawer-tab]
+    :dynamic-pill/active                  [events/dynamic-pill-active]
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close

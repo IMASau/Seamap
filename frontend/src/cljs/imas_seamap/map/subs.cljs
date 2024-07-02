@@ -199,9 +199,10 @@
     {:status    status
      :info      (when (= status :map.legend/loaded) legend-info)}))
 
-(defn- ->dynamic-pill [db {:keys [id] :as dynamic-pill}]
+(defn- ->dynamic-pill [{:keys [active-dynamic-pills] :as db} {:keys [id] :as dynamic-pill}]
   (assoc
    dynamic-pill
+   :active? (some #{id} active-dynamic-pills)
    :expanded?
    (=
     (get-in db [:display :open-pill])

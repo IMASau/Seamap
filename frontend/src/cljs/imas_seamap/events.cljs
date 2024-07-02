@@ -863,3 +863,12 @@
 
 (defn open-pill [db [_ pill-id]]
   (assoc-in db [:display :open-pill] pill-id))
+
+(defn dynamic-pill-active [{:keys [db]} [_ {:keys [id] :as _dynamic-pill} active?]]
+  {:db
+   (update
+    db :active-dynamic-pills
+    #(if active?
+       (conj % id)
+       (disj % id)))
+   :dispatch [:maybe-autosave]})
