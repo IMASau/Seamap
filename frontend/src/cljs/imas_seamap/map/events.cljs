@@ -829,9 +829,9 @@
         [:map.layer/get-legend (:layer alternate-views-selected)])
       [:maybe-autosave]]}))
 
-(defn rich-layer-timeline-selected [{:keys [db]} [_ layer timeline-selected]]
-  (let [timeline-selected (when (not= layer (:layer timeline-selected)) timeline-selected)]
-    {:db (assoc-in db [:map :rich-layers (:id layer) :timeline-selected] (get-in timeline-selected [:layer :id]))
+(defn rich-layer-timeline-selected [{:keys [db]} [_ {:keys [id layer] :as _rich-layer} timeline-selected]]
+  (let [timeline-selected (when (not= (:layer timeline-selected) layer) timeline-selected)]
+    {:db (assoc-in db [:map :rich-layers-new :states id :timeline-selected] (get-in timeline-selected [:layer :id]))
      :dispatch-n
      [(when
        (and timeline-selected (not (get-in db [:map :legends (get-in timeline-selected [:layer :id])])))

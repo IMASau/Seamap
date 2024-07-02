@@ -261,7 +261,7 @@
 
 (defn- timeline-select
   [{:keys [layer]
-    {{:keys [timeline timeline-selected timeline-disabled? slider-label displayed-layer]} :rich-layer} :layer-state}]
+    {{:keys [timeline timeline-selected timeline-disabled? slider-label displayed-layer] :as rich-layer} :rich-layer} :layer-state}]
   (let [timeline   (sort-by :value timeline)
         values     (map :value timeline)
         gaps      (:gaps
@@ -289,7 +289,7 @@
        :on-input (fn [e]
                    (let [value (-> e .-target .-value)
                          nearest-value (round-to-nearest value values)]
-                     (re-frame/dispatch [:map.rich-layer/timeline-selected layer (first-where #(= (:value %) nearest-value) timeline)])))
+                     (re-frame/dispatch [:map.rich-layer/timeline-selected rich-layer (first-where #(= (:value %) nearest-value) timeline)])))
        :disabled timeline-disabled?}]
      [:div.time-range
       (map-indexed
