@@ -44,7 +44,7 @@
                                       :layer-state
                                       [:transect :show?]
                                       [:transect :query]
-                                      [:dynamic-pills :state]
+                                      [:dynamic-pills :states]
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc :story-maps pruned-story-maps))
@@ -78,7 +78,7 @@
                  [:map :bounds]
                  [:map :viewport-only?]
                  [:map :rich-layers]
-                 [:dynamic-pills :state]
+                 [:dynamic-pills :states]
                  :legend-ids
                  :opacity-ids
                  :autosave?

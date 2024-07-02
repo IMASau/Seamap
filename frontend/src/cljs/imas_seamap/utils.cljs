@@ -96,7 +96,7 @@
                                       [:transect :query]
                                       [:feature :location]
                                       [:feature :leaflet-props]
-                                      [:dynamic-pills :state]
+                                      [:dynamic-pills :states]
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc-in [:state-of-knowledge :boundaries] pruned-boundaries)
@@ -150,7 +150,7 @@
                  [:map :rich-layers]
                  [:feature :location]
                  [:feature :leaflet-props]
-                 [:dynamic-pills :state]
+                 [:dynamic-pills :states]
                  :legend-ids
                  :opacity-ids
                  :autosave?
