@@ -244,7 +244,7 @@
 
 (defn- alternate-view-select
   [{:keys [layer]
-    {{:keys [alternate-views alternate-views-selected]} :rich-layer} :layer-state}]
+    {{:keys [alternate-views alternate-views-selected] :as rich-layer} :rich-layer} :layer-state}]
   [components/form-group
    {:label    "Alternate View"}
    [:div
@@ -252,7 +252,7 @@
     [components/select
      {:value        alternate-views-selected
       :options      alternate-views
-      :onChange     #(re-frame/dispatch [:map.rich-layer/alternate-views-selected layer %])
+      :onChange     #(re-frame/dispatch [:map.rich-layer/alternate-views-selected rich-layer %])
       :isSearchable true
       :isClearable  true
       :keyfns

@@ -800,21 +800,14 @@
             (assoc control :values values))))
       controls))))
 
-(defn rich-layer-alternate-views-selected [{:keys [db]} [_ layer alternate-views-selected]]
-  (let [rich-layers (get-in db [:map :rich-layers])
-        rich-layer  (get rich-layers (:id layer))
-
-        {{old-timeline-value :value
+(defn rich-layer-alternate-views-selected [{:keys [db]} [_ {:keys [id] :as rich-layer} alternate-views-selected]]
+  (let [{{old-timeline-value :value
           old-timeline-label :label}
          :timeline-selected
          old-slider-label :slider-label}
         (enhance-rich-layer rich-layer db)
 
-        db (assoc-in db [:map :rich-layers (:id layer) :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
-
-        rich-layers (get-in db [:map :rich-layers])
-        rich-layer  (get rich-layers (:id layer))
-
+        db (assoc-in db [:map :rich-layers-new :states id :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
         {:keys [timeline]
          new-slider-label :slider-label}
         (enhance-rich-layer rich-layer db)
@@ -829,7 +822,7 @@
             (= label old-timeline-label)
             (= old-slider-label new-slider-label)))
          timeline)]
-    {:db (assoc-in db [:map :rich-layers (:id layer) :timeline-selected] (get-in new-timeline-selected [:layer :id]))
+    {:db (assoc-in db [:map :rich-layers-new :states id :timeline-selected] (get-in new-timeline-selected [:layer :id]))
      :dispatch-n
      [(when
        (and alternate-views-selected (not (get-in db [:map :legends (get-in alternate-views-selected [:layer :id])])))

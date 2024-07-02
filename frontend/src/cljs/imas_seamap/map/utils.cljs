@@ -419,10 +419,11 @@
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
   [{:keys [id slider-label alternate-views timeline controls]
-    alternate-views-selected-id :alternate-views-selected
     timeline-selected-id :timeline-selected
     :as rich-layer} db]
-  (let [state                     (get-in db [:map :rich-layers-new :states id])
+  (let [{alternate-views-selected-id :alternate-views-selected
+         :as state}
+        (get-in db [:map :rich-layers-new :states id])
         async-data                (get-in db [:map :rich-layers-new :async-datas id])
         alternate-views-selected  (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
         rich-layers               (get-in db [:map :rich-layers])
