@@ -431,6 +431,7 @@
      :id             "state-of-knowledge-pill"
      :icon           "add-column-right"
      :expanded?      expanded?
+     :active?        (boolean active-boundary)
      :tooltip        (when-not active-boundary "State of research knowledge for management region")
      :on-open-click  #(re-frame/dispatch [:ui/open-pill "state-of-knowledge"])
      :on-close-click #(re-frame/dispatch [:ui/open-pill nil])}
@@ -479,6 +480,7 @@
       {:text           text
        :icon           "heatmap"
        :expanded?      expanded?
+       :active?        active-boundaries?
        :on-open-click  #(re-frame/dispatch [:ui/open-pill "boundaries"])
        :on-close-click #(re-frame/dispatch [:ui/open-pill nil])}
       (when active-boundaries? {:reset-click #(re-frame/dispatch [:sok/reset-active-boundaries])}))
@@ -588,6 +590,7 @@
       {:text           text
        :icon           "polygon-filter"
        :expanded?      expanded?
+       :active?        active-zones?
        :on-open-click  #(re-frame/dispatch [:ui/open-pill "zones"])
        :on-close-click #(re-frame/dispatch [:ui/open-pill nil])}
       (when active-zones? {:reset-click #(re-frame/dispatch [:sok/reset-active-zones])}))

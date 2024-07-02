@@ -75,15 +75,15 @@
     - reset-click (optional): When this is set the caret iccon will be replaced
       with a cross, and clicking the cross will perform this action.
     - & children: the children rendered inside of the pop-out menu."
-  [{:keys [_text _icon _disabled? _expanded? _on-open-click _on-close-click _reset-click _tooltip _id] :as _props} & _children]
+  [{:keys [_text _icon _disabled? _expanded? _on-open-click _on-close-click _reset-click _active? _tooltip _id] :as _props} & _children]
   (let [atom-expanded? (reagent/atom false)]
-    (fn [{:keys [text icon disabled? expanded? on-open-click on-close-click reset-click tooltip id] :as props} & children]
+    (fn [{:keys [text icon disabled? expanded? on-open-click on-close-click reset-click active? tooltip id] :as props} & children]
       (let [expanded?       (if (contains? props :expanded?) expanded? @atom-expanded?)
             on-open-click   (or on-open-click #(reset! atom-expanded? true))
             on-close-click  (or on-close-click #(reset! atom-expanded? false))
             button          [:div
                              (merge
-                              {:class    (str "floating-pill floating-pill-control-menu-button" (when disabled? " disabled") (when reset-click " reset-click"))
+                              {:class    (str "floating-pill floating-pill-control-menu-button" (when disabled? " disabled") (when active? " active"))
                                :on-click (when-not disabled? (if expanded? on-close-click on-open-click))}
                               (when id {:id id}))
                              [b/icon
