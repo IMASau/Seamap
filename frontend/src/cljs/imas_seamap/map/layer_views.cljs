@@ -303,7 +303,7 @@
 (defmulti cql-control #(get-in % [:control :controller-type]))
 
 (defmethod cql-control "dropdown"
-  [{{:keys [label icon tooltip value values] :as control} :control {:keys [layer]} :props}]
+  [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
   [components/form-group
    {:label
     [b/tooltip
@@ -316,7 +316,7 @@
     [components/select
      {:value        value
       :options      values
-      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected layer control %])
+      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected rich-layer control %])
       :isSearchable true
       :isClearable  true
       :keyfns
@@ -324,7 +324,7 @@
        :text str}}]]])
 
 (defmethod cql-control "multi-dropdown"
-  [{{:keys [label icon tooltip value values] :as control} :control {:keys [layer]} :props}]
+  [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
   [components/form-group
    {:label
     [b/tooltip
@@ -337,7 +337,7 @@
     [components/select
      {:value        value
       :options      values
-      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected layer control %])
+      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected rich-layer control %])
       :isSearchable true
       :isClearable  true
       :isMulti      true
@@ -346,7 +346,7 @@
        :text str}}]]])
 
 (defmethod cql-control "slider"
-  [{{:keys [label icon tooltip value values] :as control} :control {:keys [layer]} :props}]
+  [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
   (let [gaps (:gaps
               (reduce
                (fn [{:keys [gaps prev]} val]
@@ -379,7 +379,7 @@
        (fn [e]
          (let [value (-> e .-target .-value)
                nearest-value (round-to-nearest value values)]
-           (re-frame/dispatch [:map.rich-layer/control-selected layer control nearest-value])))}]
+           (re-frame/dispatch [:map.rich-layer/control-selected rich-layer control nearest-value])))}]
      [:div.time-range
       (map-indexed
        (fn [i v]

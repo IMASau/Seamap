@@ -499,13 +499,23 @@
    (dissoc :layer)
    (update :controls #(mapv ->rich-layer-control %))))
 
+(defn ->rich-layer-control-new
+  [rich-layer-control]
+  (set/rename-keys
+   rich-layer-control
+   {:cql_property    :cql-property
+    :data_type       :data-type
+    :controller_type :controller-type}))
+
 (defn- ->rich-layer-new
   [rich-layer]
-  (set/rename-keys
+  (->
    rich-layer
-   {:alternate_views :alternate-views
-    :tab_label       :tab-label
-    :slider_label    :slider-label}))
+   (set/rename-keys
+    {:alternate_views :alternate-views
+     :tab_label       :tab-label
+     :slider_label    :slider-label})
+   (update :controls #(mapv ->rich-layer-control-new %))))
 
 (defn- rich-layer->children
   [{:keys [alternate-views timeline]}]
@@ -786,19 +796,10 @@
     :on-failure      [:ajax/default-err-handler]}})
 
 (defn rich-layer-get-cql-filter-values-success [db [_ {:keys [id] :as _rich-layer} response]]
-  (update-in
-   db [:map :rich-layers-new :async-datas id :controls]
-   (fn [controls]
-     (mapv
-      (fn [{:keys [cql-property controller-type value] :as control}]
-        (let [values (:values (first-where #(= (:cql_property %) cql-property) response))]
-          (if (= controller-type "slider")
-            (assoc
-             control
-             :values values
-             :value  (or value (apply max values)))
-            (assoc control :values values))))
-      controls))))
+  (reduce
+   (fn [db {:keys [cql_property values]}]
+     (assoc-in db [:map :rich-layers-new :async-datas id :controls cql_property :values] values))
+   db response))
 
 (defn rich-layer-alternate-views-selected [{:keys [db]} [_ {:keys [id] :as rich-layer} alternate-views-selected]]
   (let [{{old-timeline-value :value
@@ -838,14 +839,8 @@
         [:map.layer/get-legend (:layer timeline-selected)])
       [:maybe-autosave]]}))
 
-(defn rich-layer-control-selected [{:keys [db]} [_ layer control value]]
-  {:db (update-in
-        db [:map :rich-layers (:id layer) :controls]
-        (fn [controls]
-          (mapv
-           #(if (= (:cql-property %) (:cql-property control))
-              (assoc % :value value) %)
-           controls)))
+(defn rich-layer-control-selected [{:keys [db]} [_ {:keys [id] :as _rich-layer} {:keys [cql-property] :as _control} value]]
+  {:db       (assoc-in db [:map :rich-layers-new :states id :controls cql-property :value] value)
    :dispatch [:maybe-autosave]})
 
 (defn rich-layer-reset-filters [{:keys [db]} [_ layer]]

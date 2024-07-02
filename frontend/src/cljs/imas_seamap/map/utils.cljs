@@ -416,6 +416,12 @@
    (filter #(= (:category %) :habitat))
    seq boolean))
 
+(defn- ->control [{:keys [cql-property] :as control} {:keys [id] :as _rich-layer} db]
+  (assoc
+   control
+   :values (get-in db [:map :rich-layers-new :async-datas id :controls cql-property :values])
+   :value  (get-in db [:map :rich-layers-new :states id :controls cql-property :value])))
+
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
   [{:keys [id slider-label alternate-views timeline controls]
@@ -432,6 +438,7 @@
         timeline                  (or (:timeline alternate-view-rich-layer) timeline)
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
         timeline-selected         (first-where #(= (get-in % [:layer :id]) timeline-selected-id) timeline)
+        controls                  (mapv #(->control % rich-layer db) controls)
         cql-filter                (apply
                                    str
                                    (interpose
@@ -456,9 +463,10 @@
     (when rich-layer
       (->
        rich-layer
-       (merge (dissoc state :controls))
-       (merge (dissoc async-data :controls))
+       (merge state)
+       (merge async-data)
        (assoc
+        :controls                 controls
         :alternate-views-selected alternate-views-selected
         :timeline-selected        timeline-selected
         :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
