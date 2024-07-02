@@ -866,4 +866,14 @@
 
 (defn dynamic-pill-active [{:keys [db]} [_ {:keys [id] :as _dynamic-pill} active?]]
   {:db (assoc-in db [:dynamic-pills :states id :active?] active?)
-   :dispatch [:maybe-autosave]})
+   :dispatch-n
+   [(if active?
+      [:ui.right-sidebar/bring-to-front
+       {:id     (str "dynamic-pill-" id)
+        :type   :dynamic-pill
+        :params {:dynamic-pill-id id}}]
+      [:ui.right-sidebar/remove
+       {:id     (str "dynamic-pill-" id)
+        :type   :dynamic-pill
+        :params {:dynamic-pill-id id}}])
+    [:maybe-autosave]]})
