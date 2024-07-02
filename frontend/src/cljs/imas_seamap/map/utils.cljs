@@ -422,7 +422,7 @@
     alternate-views-selected-id :alternate-views-selected
     timeline-selected-id :timeline-selected
     :as rich-layer}
-   rich-layers]
+   rich-layers db]
   (let [alternate-views-selected  (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
         alternate-view-rich-layer (get rich-layers alternate-views-selected-id)
         timeline                  (or (:timeline alternate-view-rich-layer) timeline)
@@ -464,8 +464,8 @@
   "If a layer is a rich-layer, then return the currently displayed layer (including
    default if no alternate view or timeline selected). If layer is not a
    rich-layer, then the layer is just returned."
-  [{:keys [id] :as layer} rich-layers]
-  (let [rich-layer (enhance-rich-layer (get rich-layers id) rich-layers)]
+  [{:keys [id] :as layer} rich-layers db]
+  (let [rich-layer (enhance-rich-layer (get rich-layers id) rich-layers db)]
     (or (:displayed-layer rich-layer) layer)))
 
 (defn rich-layer-children->parents

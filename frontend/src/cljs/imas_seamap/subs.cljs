@@ -159,7 +159,7 @@
 (defn open-pill [db _]
   (get-in db [:display :open-pill]))
 
-(defn- ->dynamic-pill [db {:keys [id] :as dynamic-pill}]
+(defn- ->dynamic-pill [{:keys [id] :as dynamic-pill} db]
   (->
    dynamic-pill
    (merge (get-in db [:dynamic-pills :states id]))
@@ -170,7 +170,7 @@
      (str "dynamic-pill-" id)))))
 
 (defn dynamic-pills [{{:keys [dynamic-pills]} :dynamic-pills {:keys [active-layers]} :map :as db} _]
-  (let [dynamic-pills (mapv #(->dynamic-pill db %) dynamic-pills)]
+  (let [dynamic-pills (mapv #(->dynamic-pill % db) dynamic-pills)]
     {:filtered
      (filterv
       #(seq

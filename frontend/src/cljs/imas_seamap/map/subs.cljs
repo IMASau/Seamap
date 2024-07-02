@@ -37,9 +37,9 @@
   the layer is problematic or not (ie, rather than just saying we
   should notify the user about any error, we want to notify above a
   certain threshold)"
-  [error-counts load-counts rich-layers]
+  [error-counts load-counts rich-layers db]
   (fn [layer]
-    (let [layer (rich-layer->displayed-layer layer rich-layers)
+    (let [layer (rich-layer->displayed-layer layer rich-layers db)
           error-count (get error-counts layer 0)
           total-count (get load-counts layer 0)]
       (and (pos? total-count)
@@ -48,7 +48,7 @@
 
 (defn map-layers [{:keys [layer-state filters sorting]
                    {:keys [layers active-layers bounds categories rich-layers rich-layer-children] :as db-map} :map
-                   :as _db} _]
+                   :as db} _]
   (let [categories      (map-on-key categories :name)
         filter-text     (:layers filters)
         
@@ -76,7 +76,7 @@
         sorted-layers   (sort-layers catalogue-layers sorting)
         displayed-rich-layers (reduce                              ; rich-layer->displayed-layer
                                (fn [acc layer] 
-                                 (assoc acc layer (rich-layer->displayed-layer layer rich-layers)))
+                                 (assoc acc layer (rich-layer->displayed-layer layer rich-layers db)))
                                {} (ids->layers (keys rich-layers) layers))
         displayed-layers->layers (set/map-invert displayed-rich-layers)]
     {:groups          (group-by :category filtered-layers)
@@ -86,7 +86,7 @@
                        keys
                        (map #(or (get displayed-layers->layers %) %))
                        set)
-     :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state) rich-layers)
+     :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state) rich-layers db)
      :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers
      :visible-layers  (visible-layers db-map)
@@ -96,7 +96,7 @@
      :viewport-layers viewport-layers
      :catalogue-layers catalogue-layers
      :rich-layer-fn   (fn [{:keys [id] :as _layer}]
-                        (enhance-rich-layer (get rich-layers id) rich-layers))}))
+                        (enhance-rich-layer (get rich-layers id) rich-layers db))}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))

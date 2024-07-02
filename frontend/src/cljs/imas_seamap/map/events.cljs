@@ -198,7 +198,7 @@
 
 (defn feature-info-dispatcher [{:keys [db]} [_ leaflet-props point]]
   (let [rich-layers    (get-in db [:map :rich-layers])
-        visible-layers (map #(rich-layer->displayed-layer % rich-layers) (visible-layers (:map db)))
+        visible-layers (map #(rich-layer->displayed-layer % rich-layers db) (visible-layers (:map db)))
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         per-request    (group-by (juxt :server_url :info_format_type) secure-layers)
         request-id     (gensym)
@@ -589,7 +589,7 @@
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ layer]]
   (let [layer-active?  ((set (get-in db [:map :active-layers])) layer) 
-        displayed-layer (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]) (get-in db [:map :rich-layers]))) ; try rich-layer displayed layer
+        displayed-layer (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]) (get-in db [:map :rich-layers]) db)) ; try rich-layer displayed layer
         bounding_box    (:bounding_box (or displayed-layer layer))]                                         ; if rich-layer displayed layer does not exist, use base layer
     {:db         db
      :dispatch-n [(when-not layer-active? [:map/add-layer layer])
@@ -649,7 +649,7 @@
         legends-get   (map
                        (fn [{:keys [id] :as layer}]
                          (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer rich-layers))]
+                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer rich-layers db))]
                            (or displayed-layer layer)))
                        legends-shown)
         db            (-> db
@@ -786,7 +786,7 @@
           old-timeline-label :label}
          :timeline-selected
          old-slider-label :slider-label}
-        (enhance-rich-layer rich-layer rich-layers)
+        (enhance-rich-layer rich-layer rich-layers db)
 
         db (assoc-in db [:map :rich-layers (:id layer) :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
 
@@ -795,7 +795,7 @@
 
         {:keys [timeline]
          new-slider-label :slider-label}
-        (enhance-rich-layer rich-layer rich-layers)
+        (enhance-rich-layer rich-layer rich-layers db)
 
         ; Find a value on the new alternate view's timeline that matches the old
         ; selected value.
