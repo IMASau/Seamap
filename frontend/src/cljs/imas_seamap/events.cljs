@@ -847,7 +847,7 @@
   (assoc-in db [:display :settings-overlay] open?))
 
 (defn update-dynamic-pills [db [_ dynamic-pills]]
-  (assoc db :dynamic-pills dynamic-pills))
+  (assoc-in db [:dynamic-pills :dynamic-pills] dynamic-pills))
 
 (defn right-sidebar-push [db [_ sidebar]]
   (update-in db [:display :right-sidebars] conj sidebar))
@@ -865,10 +865,5 @@
   (assoc-in db [:display :open-pill] pill-id))
 
 (defn dynamic-pill-active [{:keys [db]} [_ {:keys [id] :as _dynamic-pill} active?]]
-  {:db
-   (update
-    db :active-dynamic-pills
-    #(if active?
-       (conj % id)
-       (disj % id)))
+  {:db (assoc-in db [:dynamic-pills :states id :active?] active?)
    :dispatch [:maybe-autosave]})

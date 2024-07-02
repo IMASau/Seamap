@@ -517,19 +517,27 @@
                    :config/urls]))
 
 ;; dynamic pills
-(s/def :dynamic-pill/id integer?)
-(s/def :dynamic-pill/text string?)
-(s/def :dynamic-pill/icon (s/nilable string?))
-(s/def :dynamic-pill/tooltip (s/nilable string?))
-(s/def :dynamic-pill/layers (s/coll-of :map.layer/id :kind vector?))
-(s/def ::dynamic-pill
-  (s/keys :req-un [:dynamic-pill/id
-                   :dynamic-pill/text
-                   :dynamic-pill/icon
-                   :dynamic-pill/tooltip
-                   :dynamic-pill/layers]))
-(s/def ::dynamic-pills (s/coll-of :dynamic-pill :kind vector?))
-(s/def ::active-dynamic-pills (s/coll-of :dynamic-pill/id :kind set?))
+(s/def :dynamic-pills.dynamic-pill/id integer?)
+(s/def :dynamic-pills.dynamic-pill/text string?)
+(s/def :dynamic-pills.dynamic-pill/icon (s/nilable string?))
+(s/def :dynamic-pills.dynamic-pill/tooltip (s/nilable string?))
+(s/def :dynamic-pills.dynamic-pill/layers (s/coll-of :map.layer/id :kind vector?))
+(s/def :dynamic-pills/dynamic-pill
+  (s/keys :req-un [:dynamic-pills.dynamic-pill/id
+                   :dynamic-pills.dynamic-pill/text
+                   :dynamic-pills.dynamic-pill/icon
+                   :dynamic-pills.dynamic-pill/tooltip
+                   :dynamic-pills.dynamic-pill/layers]))
+(s/def :dynamic-pills/dynamic-pills (s/coll-of :dynamic-pills/dynamic-pill :kind vector?))
+
+(s/def :dynamic-pills.state/active? (s/nilable boolean?))
+(s/def :dynamic-pills/state
+  (s/keys :req-un [:dynamic-pills.state/active?]))
+(s/def :dynamic-pills/states (s/map-of :dynamic-pills.dynamic-pill/id :dynamic-pills/state))
+
+(s/def ::dynamic-pills
+  (s/keys :req-un [:dynamic-pills/dynamic-pills
+                   :dynamic-pills/states]))
 
 (s/def :seamap/app-state
   (s/keys :req-un [::config
@@ -543,5 +551,4 @@
                    ::layer-state
                    ::map
                    ::dynamic-pills
-                   ::active-dynamic-pills
                    ::transect]))

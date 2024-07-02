@@ -81,8 +81,8 @@
                                              :selected  "tab-activelayers"}
                      :right-sidebars        []
                      :open-pill             nil}
-   :dynamic-pills        []
-   :active-dynamic-pills #{}
+   :dynamic-pills {:dynamic-pills []
+                   :states        {}}
    :autosave?       false
    :config          {:url-paths {:layer                 "layers/"
                                  :base-layer            "baselayers/"

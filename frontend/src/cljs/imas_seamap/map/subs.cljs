@@ -199,16 +199,17 @@
     {:status    status
      :info      (when (= status :map.legend/loaded) legend-info)}))
 
-(defn- ->dynamic-pill [{:keys [active-dynamic-pills] :as db} {:keys [id] :as dynamic-pill}]
-  (assoc
+(defn- ->dynamic-pill [db {:keys [id] :as dynamic-pill}]
+  (->
    dynamic-pill
-   :active? (some #{id} active-dynamic-pills)
-   :expanded?
-   (=
-    (get-in db [:display :open-pill])
-    (str "dynamic-pill-" id))))
+   (merge (get-in db [:dynamic-pills :states id]))
+   (assoc
+    :expanded?
+    (=
+     (get-in db [:display :open-pill])
+     (str "dynamic-pill-" id)))))
 
-(defn filtered-dynamic-pills [{:keys [dynamic-pills] {:keys [active-layers]} :map :as db} _]
+(defn filtered-dynamic-pills [{{:keys [dynamic-pills]} :dynamic-pills {:keys [active-layers]} :map :as db} _]
   (->>
    dynamic-pills
    (filterv
