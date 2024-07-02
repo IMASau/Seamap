@@ -178,7 +178,7 @@
         legends-get   (map
                        (fn [{:keys [id] :as layer}]
                          (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer rich-layers db))]
+                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer db))]
                            (or displayed-layer layer)))
                        legends-shown)
         db            (-> db
@@ -337,7 +337,7 @@
         legends-get   (map
                        (fn [{:keys [id] :as layer}]
                          (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer rich-layers db))]
+                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer db))]
                            (or displayed-layer layer)))
                        legends-shown)
         db            (-> db

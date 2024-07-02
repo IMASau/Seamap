@@ -421,11 +421,11 @@
   [{:keys [id slider-label alternate-views timeline controls]
     alternate-views-selected-id :alternate-views-selected
     timeline-selected-id :timeline-selected
-    :as rich-layer}
-   rich-layers db]
+    :as rich-layer} db]
   (let [state                     (get-in db [:map :rich-layers-new :states id])
         async-data                (get-in db [:map :rich-layers-new :async-datas id])
         alternate-views-selected  (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
+        rich-layers               (get-in db [:map :rich-layers])
         alternate-view-rich-layer (get rich-layers alternate-views-selected-id)
         timeline                  (or (:timeline alternate-view-rich-layer) timeline)
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
@@ -470,7 +470,7 @@
    default if no alternate view or timeline selected). If layer is not a
    rich-layer, then the layer is just returned."
   [{:keys [id] :as layer} rich-layers db]
-  (let [rich-layer (enhance-rich-layer (get rich-layers id) rich-layers db)]
+  (let [rich-layer (enhance-rich-layer (get rich-layers id) db)]
     (or (:displayed-layer rich-layer) layer)))
 
 (defn rich-layer-children->parents
