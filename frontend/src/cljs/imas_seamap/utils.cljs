@@ -96,6 +96,7 @@
                                       [:transect :query]
                                       [:feature :location]
                                       [:feature :leaflet-props]
+                                      [:dynamic-pills :state]
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc-in [:state-of-knowledge :boundaries] pruned-boundaries)
@@ -149,6 +150,7 @@
                  [:map :rich-layers]
                  [:feature :location]
                  [:feature :leaflet-props]
+                 [:dynamic-pills :state]
                  :legend-ids
                  :opacity-ids
                  :autosave?
@@ -302,6 +304,7 @@
        [:state-of-knowledge :boundaries :meow :boundaries]
        [:state-of-knowledge :region-reports]
        [:story-maps :featured-maps]
+       [:dynamic-pills :dynamic-pills]
        :habitat-colours
        :habitat-titles
        :sorting

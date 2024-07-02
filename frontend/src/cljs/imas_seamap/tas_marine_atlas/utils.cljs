@@ -44,6 +44,7 @@
                                       :layer-state
                                       [:transect :show?]
                                       [:transect :query]
+                                      [:dynamic-pills :state]
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc :story-maps pruned-story-maps))
@@ -77,6 +78,7 @@
                  [:map :bounds]
                  [:map :viewport-only?]
                  [:map :rich-layers]
+                 [:dynamic-pills :state]
                  :legend-ids
                  :opacity-ids
                  :autosave?
@@ -127,6 +129,7 @@
        [:map :legends]
        [:map :rich-layer-children]
        [:story-maps :featured-maps]
+       [:dynamic-pills :dynamic-pills]
        :habitat-colours
        :habitat-titles
        :sorting
