@@ -134,4 +134,4 @@ class PressureSerializer(serializers.ModelSerializer):
 class DynamicPillSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DynamicPill
-        exclude = ('id',)
+        fields = '__all__'

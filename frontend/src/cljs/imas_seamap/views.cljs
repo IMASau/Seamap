@@ -670,7 +670,7 @@
         valid-boundaries         @(re-frame/subscribe [:sok/valid-boundaries])
         boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])
-        active-dynamic-pills     @(re-frame/subscribe [:map/active-dynamic-pills])
+        filtered-dynamic-pills   @(re-frame/subscribe [:map/filtered-dynamic-pills])
         open-pill                @(re-frame/subscribe [:ui/open-pill])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
@@ -692,7 +692,7 @@
         (merge
          valid-boundaries
          {:expanded? (= open-pill "zones")})])
-     (for [{:keys [text icon tooltip]} active-dynamic-pills]
+     (for [{:keys [text icon tooltip]} filtered-dynamic-pills]
        ^{:key text}
        [components/floating-pill-button
         {:text    text

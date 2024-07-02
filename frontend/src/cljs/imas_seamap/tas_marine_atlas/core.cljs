@@ -46,7 +46,7 @@
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
-    :map/active-dynamic-pills             msubs/active-dynamic-pills
+    :map/filtered-dynamic-pills           msubs/filtered-dynamic-pills
     :sok/boundary-layer-filter            (fn [] #(identity nil))
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map

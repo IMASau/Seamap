@@ -125,10 +125,10 @@
 
 (defn- floating-pills []
   (let [collapsed            (:collapsed @(re-frame/subscribe [:ui/sidebar]))
-        active-dynamic-pills @(re-frame/subscribe [:map/active-dynamic-pills])]
+        filtered-dynamic-pills @(re-frame/subscribe [:map/filtered-dynamic-pills])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
-     (for [{:keys [text icon tooltip]} active-dynamic-pills]
+     (for [{:keys [text icon tooltip]} filtered-dynamic-pills]
        ^{:key text}
        [components/floating-pill-button
         {:text    text

@@ -47,7 +47,7 @@
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
-    :map/active-dynamic-pills             msubs/active-dynamic-pills
+    :map/filtered-dynamic-pills           msubs/filtered-dynamic-pills
     :sok/habitat-statistics               soksubs/habitat-statistics
     :sok/habitat-statistics-download-url  soksubs/habitat-statistics-download-url
     :sok/bathymetry-statistics            soksubs/bathymetry-statistics

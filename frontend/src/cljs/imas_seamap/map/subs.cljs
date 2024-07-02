@@ -199,10 +199,20 @@
     {:status    status
      :info      (when (= status :map.legend/loaded) legend-info)}))
 
-(defn active-dynamic-pills [{:keys [dynamic-pills] {:keys [active-layers]} :map} _]
-  (filterv
-   #(seq
-     (set/intersection
-      (set (:layers %))
-      (set (map :id active-layers))))
-   dynamic-pills))
+(defn- ->dynamic-pill [db {:keys [id] :as dynamic-pill}]
+  (assoc
+   dynamic-pill
+   :expanded?
+   (=
+    (get-in db [:display :open-pill])
+    (str "dynamic-pill-" id))))
+
+(defn filtered-dynamic-pills [{:keys [dynamic-pills] {:keys [active-layers]} :map :as db} _]
+  (->>
+   dynamic-pills
+   (filterv
+    #(seq
+      (set/intersection
+       (set (:layers %))
+       (set (map :id active-layers)))))
+   (mapv #(->dynamic-pill db %))))
