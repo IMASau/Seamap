@@ -444,17 +444,13 @@
                           (reduce-kv (fn [m k v] (assoc m k (mapv :layer v))) {}))]
     (assoc-in db [:map :keyed-layers] keyed-layers)))
 
-(defn- ->rich-layer-control
+(defn ->rich-layer-control
   [rich-layer-control]
-  (->
+  (set/rename-keys
    rich-layer-control
-   (set/rename-keys
-    {:cql_property    :cql-property
-     :data_type       :data-type
-     :controller_type :controller-type})
-   (assoc
-    :values nil
-    :value  nil)))
+   {:cql_property    :cql-property
+    :data_type       :data-type
+    :controller_type :controller-type}))
 
 (defn- ->rich-layer
   [rich-layer]
@@ -463,32 +459,9 @@
    (set/rename-keys
     {:alternate_views :alternate-views
      :tab_label       :tab-label
-     :slider_label    :slider-label})
-   (assoc
-    :tab                      "legend"
-    :alternate-views-selected nil
-    :timeline-selected        nil)
-   (dissoc :layer)
-   (update :controls #(mapv ->rich-layer-control %))))
-
-(defn ->rich-layer-control-new
-  [rich-layer-control]
-  (set/rename-keys
-   rich-layer-control
-   {:cql_property    :cql-property
-    :data_type       :data-type
-    :controller_type :controller-type}))
-
-(defn- ->rich-layer-new
-  [rich-layer]
-  (->
-   rich-layer
-   (set/rename-keys
-    {:alternate_views :alternate-views
-     :tab_label       :tab-label
      :slider_label    :slider-label
      :layer           :layer-id})
-   (update :controls #(mapv ->rich-layer-control-new %))))
+   (update :controls #(mapv ->rich-layer-control %))))
 
 (defn- rich-layer->children
   [{:keys [alternate-views timeline]}]
@@ -497,7 +470,7 @@
    (set (map :layer timeline))))
 
 (defn update-rich-layers [db [_ rich-layers]]
-  (let [rich-layers (mapv ->rich-layer-new rich-layers)
+  (let [rich-layers (mapv ->rich-layer rich-layers)
 
         rich-layer-children
         (reduce
