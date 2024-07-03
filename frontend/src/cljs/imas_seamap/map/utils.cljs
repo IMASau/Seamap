@@ -416,6 +416,16 @@
    (filter #(= (:category %) :habitat))
    seq boolean))
 
+(defn ->alternate-view [{layer-id :layer :as alternate-view} db]
+  (let [layers (get-in db [:map :layers])
+        layer  (first-where #(= (:id %) layer-id) layers)]
+    (assoc alternate-view :layer layer)))
+
+(defn ->timeline [{layer-id :layer :as timeline} db]
+  (let [layers (get-in db [:map :layers])
+        layer  (first-where #(= (:id %) layer-id) layers)]
+    (assoc timeline :layer layer)))
+
 (defn- ->control [{:keys [cql-property] :as control} {:keys [id] :as _rich-layer} db]
   (assoc
    control
@@ -424,20 +434,26 @@
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
-  [{:keys [id slider-label alternate-views timeline controls]
-    :as rich-layer} db]
-  (let [{alternate-views-selected-id :alternate-views-selected
+  [{:keys [id]} db]
+  (let [{:keys [id slider-label alternate-views timeline controls]
+         :as rich-layer}
+        (first-where #(= (:id %) id) (get-in db [:map :rich-layers-new :rich-layers]))
+
+        {alternate-views-selected-id :alternate-views-selected
          timeline-selected-id        :timeline-selected
          :as state}
         (get-in db [:map :rich-layers-new :states id])
-
         async-data                (get-in db [:map :rich-layers-new :async-datas id])
-        alternate-views-selected  (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
-        rich-layers               (get-in db [:map :rich-layers])
-        alternate-view-rich-layer (get rich-layers alternate-views-selected-id)
-        timeline                  (or (:timeline alternate-view-rich-layer) timeline)
-        slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
+
+        alternate-views              (mapv #(->alternate-view % db) alternate-views)
+        alternate-views-selected     (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
+        alternate-view-rich-layer-id (get-in db [:map :rich-layers-new :layer-lookup alternate-views-selected-id])
+        alternate-view-rich-layer    (first-where #(= (:id %) alternate-view-rich-layer-id) (get-in db [:map :rich-layers-new :rich-layers]))
+
+        timeline                  (mapv #(->timeline % db) (or (:timeline alternate-view-rich-layer) timeline))
         timeline-selected         (first-where #(= (get-in % [:layer :id]) timeline-selected-id) timeline)
+        slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
+
         controls                  (mapv #(->control % rich-layer db) controls)
         cql-filter                (apply
                                    str
@@ -467,10 +483,11 @@
        (merge async-data)
        (assoc
         :controls                 controls
+        :alternate-views          alternate-views
         :alternate-views-selected alternate-views-selected
+        :timeline                 timeline
         :timeline-selected        timeline-selected
         :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
-        :timeline                 timeline
         :slider-label             slider-label
         :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
         :cql-filter               cql-filter)))))

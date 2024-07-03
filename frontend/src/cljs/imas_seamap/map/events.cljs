@@ -514,7 +514,8 @@
    (set/rename-keys
     {:alternate_views :alternate-views
      :tab_label       :tab-label
-     :slider_label    :slider-label})
+     :slider_label    :slider-label
+     :layer           :layer-id})
    (update :controls #(mapv ->rich-layer-control-new %))))
 
 (defn- rich-layer->children
@@ -563,8 +564,8 @@
       {:rich-layers rich-layers-new
        :layer-lookup
        (reduce
-        (fn [layer-lookup {:keys [id layer]}]
-          (assoc layer-lookup layer id))
+        (fn [layer-lookup {:keys [id layer-id]}]
+          (assoc layer-lookup layer-id id))
         {} rich-layers-new)})
      (assoc-in [:map :rich-layer-children] rich-layer-children))))
 
@@ -863,14 +864,17 @@
 
 (defn rich-layer-configure
   "Opens a layer to the configuration tab."
-  [{:keys [db]} [_ layer]]
-  (let [legends (get-in db [:layer-state :legend-shown])]
-    {:db         (assoc-in db [:map :rich-layers (:id layer) :tab] "filters")
-     :dispatch-n [[:map/add-layer layer]
-                  [:left-drawer/tab "active-layers"]
-                  [:map/update-preview-layer nil]
-                  (when-not (legends layer) [:map.layer.legend/toggle layer])
-                  [:maybe-autosave]]}))
+  [{:keys [db]} [_ {:keys [id layer-id] :as _rich-layer}]]
+  (let [layers  (get-in db [:map :layers])
+        layer   (first-where #(= (:id %) layer-id) layers)
+        legends (get-in db [:layer-state :legend-shown])]
+    {:db (assoc-in db [:map :rich-layers-new :states id :tab] "filters")
+     :dispatch-n
+     [[:map/add-layer layer]
+      [:left-drawer/tab "active-layers"]
+      [:map/update-preview-layer nil]
+      (when-not (legends layer) [:map.layer.legend/toggle layer])
+      [:maybe-autosave]]}))
 
 (defn add-layer
   "Adds a layer to the list of active layers.
