@@ -229,13 +229,7 @@
         {:keys [legend-ids opacity-ids]} db
         layers        (get-in db [:map :layers])
         legends-shown (init-layer-legend-status layers legend-ids)
-        rich-layers   (get-in db [:map :rich-layers])
-        legends-get   (map
-                       (fn [{:keys [id] :as layer}]
-                         (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer db))]
-                           (or displayed-layer layer)))
-                       legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
@@ -424,7 +418,7 @@
 
 (defn layer-show-info [{:keys [db]} [_ layer]]
   (let [{:keys [metadata_url] :as displayed-layer}
-        (or (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]) db)) layer)]
+        (rich-layer->displayed-layer layer db)]
     ;; This regexp: has been relaxed slightly; it used to be a strict
     ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
     ;; alpha-nums with optional hyphens. I assume this is from records
@@ -540,8 +534,7 @@
                                 :distance (linestring->distance linestring)
                                 :habitat :loading
                                 :bathymetry :loading})
-        rich-layers    (get-in db [:map :rich-layers])
-        visible-layers (map #(rich-layer->displayed-layer % rich-layers db) (visible-layers db-map))
+        visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers db-map))
         habitat-layers (filter habitat-layer? visible-layers)]
     (merge
      {:db         db
@@ -580,8 +573,7 @@
        :message [status-text b/INTENT-DANGER]})))
 
 (defn transect-query-habitat [{{db-map :map :as db} :db} [_ query-id linestring]]
-  (let [rich-layers    (get-in db [:map :rich-layers])
-        visible-layers (map #(rich-layer->displayed-layer % rich-layers db) (visible-layers db-map))
+  (let [visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers db-map))
         habitat-layers (filter habitat-layer? visible-layers)
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it

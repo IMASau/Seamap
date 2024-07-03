@@ -197,8 +197,7 @@
   {:dispatch [:map/got-featureinfo request-id point nil nil layers]})
 
 (defn feature-info-dispatcher [{:keys [db]} [_ leaflet-props point]]
-  (let [rich-layers    (get-in db [:map :rich-layers])
-        visible-layers (map #(rich-layer->displayed-layer % rich-layers db) (visible-layers (:map db)))
+  (let [visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers (:map db)))
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         per-request    (group-by (juxt :server_url :info_format_type) secure-layers)
         request-id     (gensym)
@@ -616,9 +615,9 @@
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ layer]]
-  (let [layer-active?  ((set (get-in db [:map :active-layers])) layer) 
-        displayed-layer (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]) db)) ; try rich-layer displayed layer
-        bounding_box    (:bounding_box (or displayed-layer layer))]                                         ; if rich-layer displayed layer does not exist, use base layer
+  (let [layer-active?  ((set (get-in db [:map :active-layers])) layer)
+        displayed-layer (rich-layer->displayed-layer layer db)
+        bounding_box    (:bounding_box displayed-layer)]
     {:db         db
      :dispatch-n [(when-not layer-active? [:map/add-layer layer])
                   [:map/update-map-view {:bounds bounding_box}]
@@ -673,13 +672,7 @@
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
         legends-shown (init-layer-legend-status layers legend-ids)
-        rich-layers   (get-in db [:map :rich-layers])
-        legends-get   (map
-                       (fn [{:keys [id] :as layer}]
-                         (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer db))]
-                           (or displayed-layer layer)))
-                       legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)

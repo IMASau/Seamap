@@ -5,7 +5,7 @@
   (:require [ajax.core :as ajax]
             [imas-seamap.tas-marine-atlas.db :as db]
             [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
-            [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities enhance-rich-layer]]
+            [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities rich-layer->displayed-layer]]
             [imas-seamap.tas-marine-atlas.utils :refer [encode-state parse-state ajax-loaded-info]]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -174,13 +174,7 @@
         {:keys [legend-ids opacity-ids]} db
         layers        (get-in db [:map :layers])
         legends-shown (init-layer-legend-status layers legend-ids)
-        rich-layers   (get-in db [:map :rich-layers])
-        legends-get   (map
-                       (fn [{:keys [id] :as layer}]
-                         (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer db))]
-                           (or displayed-layer layer)))
-                       legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
@@ -333,13 +327,7 @@
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
         legends-shown (init-layer-legend-status layers legend-ids)
-        rich-layers   (get-in db [:map :rich-layers])
-        legends-get   (map
-                       (fn [{:keys [id] :as layer}]
-                         (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer db))]
-                           (or displayed-layer layer)))
-                       legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)

@@ -434,12 +434,10 @@
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
-  [{:keys [id]} db]
-  (let [{:keys [id slider-label alternate-views timeline controls]
-         :as rich-layer}
-        (first-where #(= (:id %) id) (get-in db [:map :rich-layers-new :rich-layers]))
-
-        {alternate-views-selected-id :alternate-views-selected
+  [{:keys [id slider-label alternate-views timeline controls]
+    :as rich-layer} db]
+  (let [{:keys [tab]
+         alternate-views-selected-id :alternate-views-selected
          timeline-selected-id        :timeline-selected
          :as state}
         (get-in db [:map :rich-layers-new :states id])
@@ -482,6 +480,7 @@
        (merge state)
        (merge async-data)
        (assoc
+        :tab                      (or tab "legend")
         :controls                 controls
         :alternate-views          alternate-views
         :alternate-views-selected alternate-views-selected
@@ -492,12 +491,17 @@
         :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
         :cql-filter               cql-filter)))))
 
+(defn layer->rich-layer [{:keys [id] :as _layer} db]
+  (let [{:keys [rich-layers layer-lookup]} (get-in db [:map :rich-layers-new])
+        rich-layer-id (get layer-lookup id)]
+    (first-where #(= (:id %) rich-layer-id) rich-layers)))
+
 (defn rich-layer->displayed-layer
   "If a layer is a rich-layer, then return the currently displayed layer (including
    default if no alternate view or timeline selected). If layer is not a
    rich-layer, then the layer is just returned."
-  [{:keys [id] :as layer} rich-layers db]
-  (let [rich-layer (enhance-rich-layer (get rich-layers id) db)]
+  [layer db]
+  (let [rich-layer (layer->rich-layer layer db)]
     (or (:displayed-layer rich-layer) layer)))
 
 (defn rich-layer-children->parents
