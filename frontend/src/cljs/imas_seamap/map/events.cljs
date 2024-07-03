@@ -554,18 +554,18 @@
                   (update rich-layer-children child conj k)
                   (assoc rich-layer-children child #{k})))
               rich-layer-children children)))
-         {} rich-layers)]
+         {} rich-layers)
+        
+        layer-lookup
+        (reduce
+         (fn [layer-lookup {:keys [id layer-id]}]
+           (assoc layer-lookup layer-id id))
+         {} rich-layers-new)]
     (->
      db
      (assoc-in [:map :rich-layers] rich-layers)
-     (assoc-in
-      [:map :rich-layers-new]
-      {:rich-layers rich-layers-new
-       :layer-lookup
-       (reduce
-        (fn [layer-lookup {:keys [id layer-id]}]
-          (assoc layer-lookup layer-id id))
-        {} rich-layers-new)})
+     (assoc-in [:map :rich-layers-new :rich-layers] rich-layers-new)
+     (assoc-in [:map :rich-layers-new :layer-lookup] layer-lookup)
      (assoc-in [:map :rich-layer-children] rich-layer-children))))
 
 (defn update-region-reports [db [_ region-reports]]

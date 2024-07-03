@@ -51,7 +51,7 @@
                    :as db} _]
   (let [categories      (map-on-key categories :name)
         filter-text     (:layers filters)
-        rich-layers (get-in db [:map :rich-layers-new :rich-layers]) ; TODO: CHANGE EVERYTHING TO WORK WITH rich-layers-new!
+        rich-layers (get-in db [:map :rich-layers-new :rich-layers])
 
         rlc-ids ; rich-layer-children
         (reduce

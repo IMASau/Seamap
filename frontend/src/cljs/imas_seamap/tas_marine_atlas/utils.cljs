@@ -11,27 +11,18 @@
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
   [{:keys [story-maps] map-state :map :as db}]
-  (let [pruned-rich-layers
-        (reduce-kv
-         (fn [pruned-rich-layers layer-id {:keys [alternate-views-selected timeline-selected tab controls] :as _rich-layer}]
-           (let [pruned-controls
-                 (->>
-                  controls
-                  (mapv #(select-keys % [:cql-property :value]))
-                  (filterv :value))
-                 pruned-rich-layer
-                 (cond-> {:tab tab}
-                   alternate-views-selected (assoc :alternate-views-selected alternate-views-selected)
-                   timeline-selected        (assoc :timeline-selected timeline-selected)
-                   (seq pruned-controls)    (assoc :controls pruned-controls))]
-             (assoc pruned-rich-layers layer-id pruned-rich-layer)))
-         {} (:rich-layers map-state))
-        
-        pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :bounds])
+  (let [pruned-map (-> (select-keys*
+                        map-state
+                        [[:rich-layers-new :states]
+                         :center
+                         :zoom
+                         :active-layers
+                         :active-base-layer
+                         :viewport-only?
+                         :bounds])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
-                       (update :active-base :id)
-                       (assoc :rich-layers pruned-rich-layers))
+                       (update :active-base :id))
         pruned-story-maps (-> (select-keys story-maps [:featured-map :open?])
                               (update :featured-map :id))
         db         (-> db
@@ -77,7 +68,7 @@
                  [:map :zoom]
                  [:map :bounds]
                  [:map :viewport-only?]
-                 [:map :rich-layers]
+                 [:map :rich-layers-new :states]
                  [:dynamic-pills :states]
                  :legend-ids
                  :opacity-ids
@@ -96,42 +87,24 @@
 (defn ajax-loaded-info
   "Returns db of all the info retrieved via ajax"
   [db]
-  (let [rich-layers
-        (reduce-kv
-         (fn [rich-layers layer-id {:keys [controls] :as rich-layer}]
-           (let [controls
-                 (mapv
-                  (fn [{:keys [controller-type values] :as control}]
-                    (if (= controller-type "slider")
-                      (assoc control :value (apply max values))
-                      (assoc control :value nil)))
-                  controls)
-                 rich-layer
-                 (assoc
-                  rich-layer
-                  :alternate-views-selected nil
-                  :timeline-selected        nil
-                  :controls                 controls
-                  :tab                      "legend")]
-             (assoc rich-layers layer-id rich-layer)))
-         {} (get-in db [:map :rich-layers]))]
-    (->
-     (select-keys*
-      db
-      [[:map :layers]
-       [:map :base-layers]
-       [:map :base-layer-groups]
-       [:map :grouped-base-layers]
-       [:map :organisations]
-       [:map :categories]
-       [:map :keyed-layers]
-       [:map :leaflet-map]
-       [:map :legends]
-       [:map :rich-layer-children]
-       [:story-maps :featured-maps]
-       [:dynamic-pills :dynamic-pills]
-       :habitat-colours
-       :habitat-titles
-       :sorting
-       :config])
-     (assoc-in [:map :rich-layers] rich-layers))))
+  (select-keys*
+   db
+   [[:map :layers]
+    [:map :base-layers]
+    [:map :base-layer-groups]
+    [:map :grouped-base-layers]
+    [:map :organisations]
+    [:map :categories]
+    [:map :keyed-layers]
+    [:map :leaflet-map]
+    [:map :legends]
+    [:map :rich-layer-children]
+    [:map :rich-layers-new :rich-layers]
+    [:map :rich-layers-new :async-datas]
+    [:map :rich-layers-new :layer-lookup]
+    [:story-maps :featured-maps]
+    [:dynamic-pills :dynamic-pills]
+    :habitat-colours
+    :habitat-titles
+    :sorting
+    :config]))
