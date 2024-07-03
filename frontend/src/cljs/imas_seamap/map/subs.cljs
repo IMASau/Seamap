@@ -65,8 +65,6 @@
                     (set (map :layer timeline)))))]
              (set/union acc children)))
          #{} rich-layers)
-        
-        _ (js/console.log "rlc-ids" rlc-ids)
 
         catalogue-layers
         (->>
