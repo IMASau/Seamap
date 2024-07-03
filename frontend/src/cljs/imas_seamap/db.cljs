@@ -24,7 +24,7 @@
                      :preview-layer   nil
                      :viewport-only?  false
                      :keyed-layers    {}
-                     :rich-layers-new {:rich-layers  []
+                     :rich-layers     {:rich-layers  []
                                        :states       {}
                                        :async-datas  {}
                                        :layer-lookup {}}

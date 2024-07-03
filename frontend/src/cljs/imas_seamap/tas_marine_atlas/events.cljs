@@ -181,12 +181,12 @@
 
         feature-location      (get-in db [:feature :location])
         feature-leaflet-props (get-in db [:feature :leaflet-props])
-        rich-layers-new (get-in db [:map :rich-layers-new :rich-layers])
+        rich-layers (get-in db [:map :rich-layers :rich-layers])
         cql-get
         (->>
          legend-ids
-         (mapv #(get-in db [:map :rich-layers-new :layer-lookup %]))
-         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers-new))))]
+         (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))]
     {:db         db
      :dispatch-n (concat
                   []
@@ -336,12 +336,12 @@
 
         feature-location      (get-in db [:feature :location])
         feature-leaflet-props (get-in db [:feature :leaflet-props])
-        rich-layers-new (get-in db [:map :rich-layers-new :rich-layers])
+        rich-layers (get-in db [:map :rich-layers :rich-layers])
         cql-get
         (->>
          legend-ids
-         (mapv #(get-in db [:map :rich-layers-new :layer-lookup %]))
-         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers-new))))]
+         (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))]
     {:db         db
      :dispatch-n (concat
                   [[:ui/hide-loading]

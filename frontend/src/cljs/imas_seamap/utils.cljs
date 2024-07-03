@@ -44,7 +44,7 @@
   [{:keys [story-maps] map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
   (let [pruned-map (-> (select-keys*
                         map-state
-                        [[:rich-layers-new :states]
+                        [[:rich-layers :states]
                          :center
                          :zoom
                          :active-layers
@@ -138,7 +138,7 @@
                  [:map :zoom]
                  [:map :bounds]
                  [:map :viewport-only?]
-                 [:map :rich-layers-new :states]
+                 [:map :rich-layers :states]
                  [:feature :location]
                  [:feature :leaflet-props]
                  [:dynamic-pills :states]
@@ -270,9 +270,9 @@
     [:map :leaflet-map]
     [:map :legends]
     [:map :rich-layer-children]
-    [:map :rich-layers-new :rich-layers]
-    [:map :rich-layers-new :async-datas]
-    [:map :rich-layers-new :layer-lookup]
+    [:map :rich-layers :rich-layers]
+    [:map :rich-layers :async-datas]
+    [:map :rich-layers :layer-lookup]
     [:state-of-knowledge :boundaries :amp :boundaries]
     [:state-of-knowledge :boundaries :imcra :boundaries]
     [:state-of-knowledge :boundaries :meow :boundaries]

@@ -13,7 +13,7 @@
   [{:keys [story-maps] map-state :map :as db}]
   (let [pruned-map (-> (select-keys*
                         map-state
-                        [[:rich-layers-new :states]
+                        [[:rich-layers :states]
                          :center
                          :zoom
                          :active-layers
@@ -68,7 +68,7 @@
                  [:map :zoom]
                  [:map :bounds]
                  [:map :viewport-only?]
-                 [:map :rich-layers-new :states]
+                 [:map :rich-layers :states]
                  [:dynamic-pills :states]
                  :legend-ids
                  :opacity-ids
@@ -99,9 +99,9 @@
     [:map :leaflet-map]
     [:map :legends]
     [:map :rich-layer-children]
-    [:map :rich-layers-new :rich-layers]
-    [:map :rich-layers-new :async-datas]
-    [:map :rich-layers-new :layer-lookup]
+    [:map :rich-layers :rich-layers]
+    [:map :rich-layers :async-datas]
+    [:map :rich-layers :layer-lookup]
     [:story-maps :featured-maps]
     [:dynamic-pills :dynamic-pills]
     :habitat-colours

@@ -427,8 +427,8 @@
     (assoc timeline :layer layer)))
 
 (defn- ->control [{:keys [cql-property controller-type] :as control} {:keys [id] :as _rich-layer} db]
-  (let [values (get-in db [:map :rich-layers-new :async-datas id :controls cql-property :values])
-        value  (get-in db [:map :rich-layers-new :states id :controls cql-property :value])
+  (let [values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])
+        value  (get-in db [:map :rich-layers :states id :controls cql-property :value])
         value  (if (and (not value) (= controller-type "slider")) (apply max values) value)]
     (assoc
      control
@@ -443,13 +443,13 @@
          alternate-views-selected-id :alternate-views-selected
          timeline-selected-id        :timeline-selected
          :as state}
-        (get-in db [:map :rich-layers-new :states id])
-        async-data                (get-in db [:map :rich-layers-new :async-datas id])
+        (get-in db [:map :rich-layers :states id])
+        async-data                (get-in db [:map :rich-layers :async-datas id])
 
         alternate-views              (mapv #(->alternate-view % db) alternate-views)
         alternate-views-selected     (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
-        alternate-view-rich-layer-id (get-in db [:map :rich-layers-new :layer-lookup alternate-views-selected-id])
-        alternate-view-rich-layer    (first-where #(= (:id %) alternate-view-rich-layer-id) (get-in db [:map :rich-layers-new :rich-layers]))
+        alternate-view-rich-layer-id (get-in db [:map :rich-layers :layer-lookup alternate-views-selected-id])
+        alternate-view-rich-layer    (first-where #(= (:id %) alternate-view-rich-layer-id) (get-in db [:map :rich-layers :rich-layers]))
 
         timeline                  (mapv #(->timeline % db) (or (:timeline alternate-view-rich-layer) timeline))
         timeline-selected         (first-where #(= (get-in % [:layer :id]) timeline-selected-id) timeline)
@@ -495,7 +495,7 @@
         :cql-filter               cql-filter)))))
 
 (defn layer->rich-layer [{:keys [id] :as _layer} db]
-  (let [{:keys [rich-layers layer-lookup]} (get-in db [:map :rich-layers-new])
+  (let [{:keys [rich-layers layer-lookup]} (get-in db [:map :rich-layers])
         rich-layer-id (get layer-lookup id)]
     (first-where #(= (:id %) rich-layer-id) rich-layers)))
 

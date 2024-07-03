@@ -497,7 +497,7 @@
    (set (map :layer timeline))))
 
 (defn update-rich-layers [db [_ rich-layers]]
-  (let [rich-layers-new (mapv ->rich-layer-new rich-layers)
+  (let [rich-layers (mapv ->rich-layer-new rich-layers)
 
         rich-layer-children
         (reduce
@@ -509,17 +509,17 @@
                   (update rich-layer-children child conj layer-id)
                   (assoc rich-layer-children child #{layer-id})))
               rich-layer-children children)))
-         {} rich-layers-new)
+         {} rich-layers)
         
         layer-lookup
         (reduce
          (fn [layer-lookup {:keys [id layer-id]}]
            (assoc layer-lookup layer-id id))
-         {} rich-layers-new)]
+         {} rich-layers)]
     (->
      db
-     (assoc-in [:map :rich-layers-new :rich-layers] rich-layers-new)
-     (assoc-in [:map :rich-layers-new :layer-lookup] layer-lookup)
+     (assoc-in [:map :rich-layers :rich-layers] rich-layers)
+     (assoc-in [:map :rich-layers :layer-lookup] layer-lookup)
      (assoc-in [:map :rich-layer-children] rich-layer-children))))
 
 (defn update-region-reports [db [_ region-reports]]
@@ -635,12 +635,12 @@
 
         feature-location      (get-in db [:feature :location])
         feature-leaflet-props (get-in db [:feature :leaflet-props])
-        rich-layers-new (get-in db [:map :rich-layers-new :rich-layers])
+        rich-layers (get-in db [:map :rich-layers :rich-layers])
         cql-get
         (->>
          legend-ids
-         (mapv #(get-in db [:map :rich-layers-new :layer-lookup %]))
-         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers-new))))]
+         (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))]
     {:db         db
      :dispatch-n (concat
                   [[:ui/hide-loading]
@@ -725,13 +725,13 @@
 
 (defn rich-layer-tab [{:keys [db]} [_ {:keys [id] :as rich-layer} tab]]
   {:db       (assoc-in
-              db [:map :rich-layers-new :states id :tab]
+              db [:map :rich-layers :states id :tab]
               tab)
    :dispatch-n [(when
                  (and
-                  (= tab "filters")                                                                       ; If we're switching to the filters tab
-                  (nil? (:values (first (get-in db [:map :rich-layers-new :async-datas id :controls]))))) ; and we don't have any filter values
-                  [:map.rich-layer/get-cql-filter-values rich-layer])                                     ; then get them
+                  (= tab "filters")                                                                   ; If we're switching to the filters tab
+                  (nil? (:values (first (get-in db [:map :rich-layers :async-datas id :controls]))))) ; and we don't have any filter values
+                  [:map.rich-layer/get-cql-filter-values rich-layer])                                 ; then get them
                 [:maybe-autosave]]})
 
 (defn rich-layer-get-cql-filter-values [{:keys [db]} [_ {:keys [id] :as rich-layer}]]
@@ -746,7 +746,7 @@
 (defn rich-layer-get-cql-filter-values-success [db [_ {:keys [id] :as _rich-layer} response]]
   (reduce
    (fn [db {:keys [cql_property values]}]
-     (assoc-in db [:map :rich-layers-new :async-datas id :controls cql_property :values] values))
+     (assoc-in db [:map :rich-layers :async-datas id :controls cql_property :values] values))
    db response))
 
 (defn rich-layer-alternate-views-selected [{:keys [db]} [_ {:keys [id] :as rich-layer} alternate-views-selected]]
@@ -756,7 +756,7 @@
          old-slider-label :slider-label}
         (enhance-rich-layer rich-layer db)
 
-        db (assoc-in db [:map :rich-layers-new :states id :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
+        db (assoc-in db [:map :rich-layers :states id :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
         {:keys [timeline]
          new-slider-label :slider-label}
         (enhance-rich-layer rich-layer db)
@@ -771,7 +771,7 @@
             (= label old-timeline-label)
             (= old-slider-label new-slider-label)))
          timeline)]
-    {:db (assoc-in db [:map :rich-layers-new :states id :timeline-selected] (get-in new-timeline-selected [:layer :id]))
+    {:db (assoc-in db [:map :rich-layers :states id :timeline-selected] (get-in new-timeline-selected [:layer :id]))
      :dispatch-n
      [(when
        (and alternate-views-selected (not (get-in db [:map :legends (get-in alternate-views-selected [:layer :id])])))
@@ -780,7 +780,7 @@
 
 (defn rich-layer-timeline-selected [{:keys [db]} [_ {:keys [id layer] :as _rich-layer} timeline-selected]]
   (let [timeline-selected (when (not= (:layer timeline-selected) layer) timeline-selected)]
-    {:db (assoc-in db [:map :rich-layers-new :states id :timeline-selected] (get-in timeline-selected [:layer :id]))
+    {:db (assoc-in db [:map :rich-layers :states id :timeline-selected] (get-in timeline-selected [:layer :id]))
      :dispatch-n
      [(when
        (and timeline-selected (not (get-in db [:map :legends (get-in timeline-selected [:layer :id])])))
@@ -788,17 +788,17 @@
       [:maybe-autosave]]}))
 
 (defn rich-layer-control-selected [{:keys [db]} [_ {:keys [id] :as _rich-layer} {:keys [cql-property] :as _control} value]]
-  {:db       (assoc-in db [:map :rich-layers-new :states id :controls cql-property :value] value)
+  {:db       (assoc-in db [:map :rich-layers :states id :controls cql-property :value] value)
    :dispatch [:maybe-autosave]})
 
 (defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
   (merge
    {:db
     (-> db
-        (update-in [:map :rich-layers-new :states id] dissoc :alternate-views-selected)
-        (update-in [:map :rich-layers-new :states id] dissoc :timeline-selected)
+        (update-in [:map :rich-layers :states id] dissoc :alternate-views-selected)
+        (update-in [:map :rich-layers :states id] dissoc :timeline-selected)
         (update-in
-         [:map :rich-layers-new :states id :controls]
+         [:map :rich-layers :states id :controls]
          (fn [controls-state]
            (reduce
             (fn [controls-state {:keys [cql-property]}]
@@ -815,7 +815,7 @@
   (let [layers  (get-in db [:map :layers])
         layer   (first-where #(= (:id %) layer-id) layers)
         legends (get-in db [:layer-state :legend-shown])]
-    {:db (assoc-in db [:map :rich-layers-new :states id :tab] "filters")
+    {:db (assoc-in db [:map :rich-layers :states id :tab] "filters")
      :dispatch-n
      [[:map/add-layer layer]
       [:left-drawer/tab "active-layers"]
