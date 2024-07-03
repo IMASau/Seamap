@@ -7,7 +7,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -379,49 +379,22 @@
 (defn join-rich-layers
   "Using layers and rich-layers, replaces layer IDs in rich-layer data with layer
    objects."
-  [{{:keys [layers rich-layers rich-layer-children]} :map :as db} _]
-  (->
-   db
-   (assoc-in
-    [:map :rich-layers]
-    (reduce-kv
-     (fn [m k {:keys [alternate-views timeline] :as v}]
-       (let [alternate-views
-             (mapv
-              (fn [{:keys [layer] :as alternate-views-entry}]
-                (assoc
-                 alternate-views-entry :layer
-                 (first-where #(= (:id %) layer) layers)))
-              alternate-views)
-             timeline
-             (mapv
-              (fn [{:keys [layer] :as timeline-entry}]
-                (assoc
-                 timeline-entry :layer
-                 (first-where #(= (:id %) layer) layers)))
-              timeline)]
-         (assoc
-          m k
-          (assoc
-           v
-           :alternate-views alternate-views
-           :timeline        timeline))))
-     {} rich-layers))
-     (assoc-in
-      [:map :rich-layer-children]
-      (reduce-kv
-       (fn [m k v]
-         (let [parents
-               (set
-                (map
-                 (fn [parent]
-                   (first-where
-                    #(= (:id %) parent)
-                    layers))
-                 v))
-               child (first-where #(= (:id %) k) layers)]
-           (assoc m child parents)))
-       {} rich-layer-children))))
+  [{{:keys [layers rich-layer-children]} :map :as db} _]
+  (assoc-in
+   db [:map :rich-layer-children]
+   (reduce-kv
+    (fn [m k v]
+      (let [parents
+            (set
+             (map
+              (fn [parent]
+                (first-where
+                 #(= (:id %) parent)
+                 layers))
+              v))
+            child (first-where #(= (:id %) k) layers)]
+        (assoc m child parents)))
+    {} rich-layer-children)))
 
 (defn update-layers [db [_ layers]]
   (let [{:keys [legend-ids opacity-ids]} db
@@ -524,37 +497,19 @@
    (set (map :layer timeline))))
 
 (defn update-rich-layers [db [_ rich-layers]]
-  (let [db-rich-layers (get-in db [:map :rich-layers]) ; existing state, for merges
-
-        rich-layers-new (mapv ->rich-layer-new rich-layers)
-        rich-layers
-        (reduce
-         (fn [acc {:keys [layer] :as rich-layer}]
-           (let [{db-controls :controls :as db-rich-layer} (get db-rich-layers layer)
-                 {:keys [controls] :as rich-layer} (->rich-layer rich-layer)
-                 ; Merge controls and db-controls
-                 controls
-                 (mapv
-                  (fn [{:keys [cql-property] :as control}]
-                    (let [db-control (first-where #(= (:cql-property %) cql-property) db-controls)]
-                      (merge control db-control)))
-                  controls)
-                 rich-layer (merge rich-layer db-rich-layer)
-                 rich-layer (assoc rich-layer :controls controls)]
-             (assoc acc layer rich-layer)))
-         {} rich-layers)
+  (let [rich-layers-new (mapv ->rich-layer-new rich-layers)
 
         rich-layer-children
-        (reduce-kv
-         (fn [rich-layer-children k v]
-           (let [children (rich-layer->children v)]
+        (reduce
+         (fn [rich-layer-children {:keys [layer-id] :as rich-layer}]
+           (let [children (rich-layer->children rich-layer)]
              (reduce
               (fn [rich-layer-children child]
                 (if (get rich-layer-children child)
-                  (update rich-layer-children child conj k)
-                  (assoc rich-layer-children child #{k})))
+                  (update rich-layer-children child conj layer-id)
+                  (assoc rich-layer-children child #{layer-id})))
               rich-layer-children children)))
-         {} rich-layers)
+         {} rich-layers-new)
         
         layer-lookup
         (reduce
@@ -563,7 +518,6 @@
          {} rich-layers-new)]
     (->
      db
-     (assoc-in [:map :rich-layers] rich-layers)
      (assoc-in [:map :rich-layers-new :rich-layers] rich-layers-new)
      (assoc-in [:map :rich-layers-new :layer-lookup] layer-lookup)
      (assoc-in [:map :rich-layer-children] rich-layer-children))))
@@ -600,7 +554,7 @@
 (defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))
         has-legend? (get-in db [:map :legends id])
-        rich-layer (get-in db [:map :rich-layers id])
+        rich-layer  (enhance-rich-layer (layer->rich-layer layer db) db)
         has-cql-filter-values? (get-in rich-layer [:controls :values])]
     {:db         db
      :dispatch-n [[:maybe-autosave]
@@ -901,7 +855,7 @@
   (let [layers (get-in db [:map :active-layers])
         layers (vec (remove #(= % layer) layers))
         {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
-        rich-layer (get-in db [:map :rich-layers (:id layer)])
+        rich-layer (layer->rich-layer layer db)
         db     (->
                 db
                 (assoc-in [:map :active-layers] layers)
