@@ -4,6 +4,7 @@
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
             [clojure.set :as set]
+            [clojure.walk :refer [keywordize-keys]]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
@@ -712,15 +713,18 @@
    {:method          :get
     :uri             (get-in db [:config :urls :cql-filter-values-url])
     :params          {:rich-layer-id id}
-    :response-format (ajax/json-response-format {:keywords? true})
+    :response-format (ajax/json-response-format)
     :on-success      [:map.rich-layer/get-cql-filter-values-success rich-layer]
     :on-failure      [:ajax/default-err-handler]}})
 
-(defn rich-layer-get-cql-filter-values-success [db [_ {:keys [id] :as _rich-layer} response]]
-  (reduce
-   (fn [db {:keys [cql_property values]}]
-     (assoc-in db [:map :rich-layers :async-datas id :controls cql_property :values] values))
-   db response))
+(defn rich-layer-get-cql-filter-values-success [db [_ {:keys [id] :as _rich-layer} {:strs [values filter_combinations]}]]
+  (let [values (keywordize-keys values)]
+    (as-> db db
+     (reduce
+      (fn [db {:keys [cql_property values]}]
+        (assoc-in db [:map :rich-layers :async-datas id :controls cql_property :values] values))
+      db values)
+      (assoc-in db [:map :rich-layers :async-datas id :filter-combinations] filter_combinations))))
 
 (defn rich-layer-alternate-views-selected [{:keys [db]} [_ {:keys [id] :as rich-layer} alternate-views-selected]]
   (let [{{old-timeline-value :value

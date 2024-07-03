@@ -1407,15 +1407,33 @@ def cql_filter_values(request):
     r = http_session().get(url=rich_layer.layer.server_url, params=r_params)
     r_data = r.json()
     
+    features_properties = [
+        {
+            cql_property: feature["properties"][cql_property]
+            for cql_property in cql_properties
+        }
+        for feature in r_data["features"]
+    ]
+    
+    filter_combinations = [
+        dict(y) for y in set(
+            tuple(x.items())
+            for x in features_properties
+        )
+    ]
+    
     cql_filter_values = [
         {
             'cql_property': cql_property,
             'values': sorted(set([
-                feature["properties"][cql_property]
-                for feature in r_data["features"]
+                filter_combination[cql_property]
+                for filter_combination in filter_combinations
             ]))
         }
         for cql_property in cql_properties
     ]
     
-    return Response(cql_filter_values)
+    return Response({
+        'values': cql_filter_values,
+        'filter_combinations': filter_combinations
+    })
