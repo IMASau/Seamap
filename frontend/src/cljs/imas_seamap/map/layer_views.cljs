@@ -243,8 +243,7 @@
            :icon        "info-sign"}]))]))
 
 (defn- alternate-view-select
-  [{:keys [layer]
-    {{:keys [alternate-views alternate-views-selected] :as rich-layer} :rich-layer} :layer-state}]
+  [{{{:keys [alternate-views alternate-views-selected] :as rich-layer} :rich-layer} :layer-state}]
   [components/form-group
    {:label    "Alternate View"}
    [:div
@@ -465,7 +464,7 @@
      [layer-control
       {:tooltip  tooltip
        :icon     icon
-       :on-click #(re-frame/dispatch [:map.rich-layer/configure layer])}])
+       :on-click #(re-frame/dispatch [:map.rich-layer/configure rich-layer])}])
 
    [layer-control
     {:tooltip  (if tma? "Layer info" "Layer info / Download data")
