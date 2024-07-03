@@ -426,11 +426,14 @@
         layer  (first-where #(= (:id %) layer-id) layers)]
     (assoc timeline :layer layer)))
 
-(defn- ->control [{:keys [cql-property] :as control} {:keys [id] :as _rich-layer} db]
-  (assoc
-   control
-   :values (get-in db [:map :rich-layers-new :async-datas id :controls cql-property :values])
-   :value  (get-in db [:map :rich-layers-new :states id :controls cql-property :value])))
+(defn- ->control [{:keys [cql-property controller-type] :as control} {:keys [id] :as _rich-layer} db]
+  (let [values (get-in db [:map :rich-layers-new :async-datas id :controls cql-property :values])
+        value  (get-in db [:map :rich-layers-new :states id :controls cql-property :value])
+        value  (if (and (not value) (= controller-type "slider")) (apply max values) value)]
+    (assoc
+     control
+     :values values
+     :value  value)))
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
