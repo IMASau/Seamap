@@ -843,22 +843,23 @@
   {:db       (assoc-in db [:map :rich-layers-new :states id :controls cql-property :value] value)
    :dispatch [:maybe-autosave]})
 
-(defn rich-layer-reset-filters [{:keys [db]} [_ layer]]
+(defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
   (merge
-   {:db         (-> db
-                    (assoc-in [:map :rich-layers (:id layer) :alternate-views-selected] nil)
-                    (assoc-in [:map :rich-layers (:id layer) :timeline-selected] nil)
-                    (update-in
-                     [:map :rich-layers (:id layer) :controls]
-                     #(mapv
-                       (fn [{:keys [controller-type values] :as control}]
-                         (if (= controller-type "slider")
-                           (assoc control :value (apply max values))
-                           (assoc control :value nil)))
-                       %)))
-    :dispatch-n [(when-not (get-in db [:map :legends (:id layer)])
-                   [:map.layer/get-legend layer])
-                 [:maybe-autosave]]}))
+   {:db
+    (-> db
+        (update-in [:map :rich-layers-new :states id] dissoc :alternate-views-selected)
+        (update-in [:map :rich-layers-new :states id] dissoc :timeline-selected)
+        (update-in
+         [:map :rich-layers-new :states id :controls]
+         (fn [controls-state]
+           (reduce
+            (fn [controls-state {:keys [cql-property]}]
+              (update controls-state cql-property dissoc :value))
+            controls-state controls))))
+    :dispatch-n
+    [(when-not (get-in db [:map :legends (:id layer)])
+       [:map.layer/get-legend layer])
+     [:maybe-autosave]]}))
 
 (defn rich-layer-configure
   "Opens a layer to the configuration tab."
@@ -919,7 +920,7 @@
                   (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
     {:db         db
      :dispatch-n [[:map/popup-closed]
-                  (when rich-layer [:map.rich-layer/reset-filters layer])
+                  (when rich-layer [:map.rich-layer/reset-filters rich-layer])
                   [:map.layer.selection/maybe-clear]
                   [:maybe-autosave]]}))
 

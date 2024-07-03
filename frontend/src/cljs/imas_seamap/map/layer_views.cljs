@@ -41,8 +41,8 @@
 
 (defn- layer-header-text
   "Layer name, with some other fancy stuff on top."
-  [{{:keys [name tooltip] :as layer} :layer
-    {{:keys [alternate-views-selected timeline-selected displayed-layer slider-label controls]} :rich-layer} :layer-state}]
+  [{{:keys [name tooltip]} :layer
+    {{:keys [alternate-views-selected timeline-selected displayed-layer slider-label controls] :as rich-layer} :rich-layer} :layer-state}]
   (let [filters-text
         (remove
          nil?
@@ -65,7 +65,7 @@
              :on-click
              #(do
                 (.stopPropagation %)
-                (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
+                (re-frame/dispatch [:map.rich-layer/reset-filters rich-layer]))}]])
          (reagent/as-element
           [:div {:style {:max-width "320px"}}
            tooltip]))
@@ -77,9 +77,9 @@
 (defn- layer-card-header-text
   "Layer name, with some other fancy stuff on top. Clicking it will expand the
    layer's details."
-  [{{:keys [name tooltip] :as layer} :layer
+  [{{:keys [name tooltip]} :layer
     {:keys [expanded?]
-     {:keys [alternate-views-selected timeline-selected displayed-layer slider-label controls]} :rich-layer} :layer-state}]
+     {:keys [alternate-views-selected timeline-selected displayed-layer slider-label controls] :as rich-layer} :rich-layer} :layer-state}]
   (let [filters-text
         (remove
          nil?
@@ -103,7 +103,7 @@
              :on-click
              #(do
                 (.stopPropagation %)
-                (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
+                (re-frame/dispatch [:map.rich-layer/reset-filters rich-layer]))}]])
 
          (seq tooltip)
          (reagent/as-element
