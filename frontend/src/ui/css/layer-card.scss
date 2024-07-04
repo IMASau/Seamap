@@ -6,17 +6,6 @@
     position: relative;
     transition: background-color 200ms;
 
-    &::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        transition: box-shadow 200ms;
-        pointer-events: none;
-    }
-
     input[type="range"] {
         cursor: pointer;
         accent-color: var(--deep-blue);
@@ -48,6 +37,7 @@
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
+        transition: box-shadow 200ms;
 
         .layer-header-text {
             font-size: 14px;
@@ -71,15 +61,15 @@
     .bp3-collapse-body {
         background-color: var(--color-7);
         padding: 12px 24px;
-        transition: background-color 200ms;
+        transition: background-color 200ms, box-shadow 200ms !important;
     }
 }
 
 .SelectionListPortal .layer-card, .layer-card:hover {
     background-color: rgb(197, 213, 234);
     .bp3-collapse-body { background-color: rgba(241, 243, 246); }
-
-    &::after {
+    .layer-header,
+    .bp3-collapse-body {
         box-shadow: 0 0 0 1px rgb(16 22 26 / 10%) inset, 0 2px 4px rgb(16 22 26 / 20%) inset, 0 8px 24px rgb(16 22 26 / 20%) inset;
     }
 }
