@@ -426,13 +426,37 @@
         layer  (first-where #(= (:id %) layer-id) layers)]
     (assoc timeline :layer layer)))
 
-(defn- ->control [{:keys [cql-property controller-type] :as control} {:keys [id] :as _rich-layer} db]
+(defn control->value [{:keys [cql-property controller-type] :as _control} {:keys [id] :as _rich-layer} db]
   (let [values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])
-        value  (get-in db [:map :rich-layers :states id :controls cql-property :value])
-        value  (if (and (not value) (= controller-type "slider")) (apply max values) value)]
+        value  (get-in db [:map :rich-layers :states id :controls cql-property :value])]
+    (if (and (not value) (= controller-type "slider")) (apply max values) value)))
+
+(defn remove-incompatible-combinations
+  "Removes filter combinations that are incompatible with the current
+   filter values."
+  [filter-combinations {:keys [cql-property controller-type value]}]
+  (if value
+    (case controller-type
+      "multi-dropdown"
+      (filterv #(or (not (seq value)) (some #{(get % cql-property)} (set value))) filter-combinations)
+
+      (filterv #(= (get % cql-property) value) filter-combinations))
+    filter-combinations))
+
+(defn- ->control [{:keys [cql-property] :as control} {:keys [id controls] :as rich-layer} db]
+  (let [values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])
+        value  (control->value control rich-layer db)
+        other-controls
+        (->>
+         controls
+         (remove #(= cql-property (:cql-property %)))
+         (map #(assoc % :value (control->value % rich-layer db))))
+        filter-combinations (get-in db [:map :rich-layers :async-datas id :filter-combinations])
+        valid-filter-combinations (reduce #(remove-incompatible-combinations %1 %2) filter-combinations other-controls)
+        valid-values (set (map #(get % cql-property) valid-filter-combinations))]
     (assoc
      control
-     :values values
+     :values (mapv #(hash-map :value % :valid? (boolean (some #{%} valid-values))) values)
      :value  value)))
 
 (defn enhance-rich-layer
@@ -468,12 +492,12 @@
                                           (case (count value)
                                             0 nil
                                             1 (str cql-property "=" (first value))
-                                            2 (str
-                                               "("
-                                               (apply
-                                                str
-                                                (interpose " OR " (map #(str cql-property "=" %) value)))
-                                               ")"))
+                                            (str
+                                             "("
+                                             (apply
+                                              str
+                                              (interpose " OR " (map #(str cql-property "=" %) value)))
+                                             ")"))
 
                                           (when value (str cql-property "=" value)))))
                                      (remove nil?))))]

@@ -146,11 +146,13 @@
               (merge
                {:id     (id option)
                 :text   (text option)
-                :option option}
+                :option option} ; TODO add isDisabled
                (when breadcrumbs {:breadcrumbs (breadcrumbs option)}))
               option))]
     (let [options (map option->select-option options)
-          value   (:id (option->select-option value))]
+          value   (if isMulti
+                    (mapv #(:id (option->select-option %)) value)
+                    (:id (option->select-option value)))]
       [ui-controls/Select
        {:value        value
         :options      options

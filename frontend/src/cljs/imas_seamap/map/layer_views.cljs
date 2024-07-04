@@ -313,14 +313,14 @@
    [:div
     {:on-click #(.stopPropagation %)}
     [components/select
-     {:value        value
+     {:value        (first-where #(= (:value %) value) values)
       :options      values
-      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected rich-layer control %])
+      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected rich-layer control (:value %)])
       :isSearchable true
       :isClearable  true
       :keyfns
-      {:id   identity
-       :text str}}]]])
+      {:id   #(-> % :value)
+       :text #(-> % :value str)}}]]])
 
 (defmethod cql-control "multi-dropdown"
   [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
@@ -334,21 +334,23 @@
    [:div
     {:on-click #(.stopPropagation %)}
     [components/select
-     {:value        value
+     {:value        (filterv #(some #{(:value %)} (set value)) values)
       :options      values
-      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected rich-layer control %])
+      :onChange     #(do
+                       (js/console.log %)
+                       (re-frame/dispatch [:map.rich-layer/control-selected rich-layer control (mapv :value %)]))
       :isSearchable true
       :isClearable  true
       :isMulti      true
       :keyfns
-      {:id   identity
-       :text str}}]]])
+      {:id   #(-> % :value)
+       :text #(-> % :value str)}}]]])
 
 (defmethod cql-control "slider"
   [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
   (let [gaps (:gaps
               (reduce
-               (fn [{:keys [gaps prev]} val]
+               (fn [{:keys [gaps prev]} {val :value}]
                  {:gaps (if prev
                           (conj gaps (- val prev))
                           gaps)
@@ -369,15 +371,15 @@
         label]]}
      [:input
       {:type     "range"
-       :min      (apply min values)
-       :max      (apply max values)
+       :min      (apply min (map :value values))
+       :max      (apply max (map :value values))
        :step     0.01
        :value    (or value 0)
        :on-click #(.stopPropagation %)
        :on-input
        (fn [e]
          (let [value (-> e .-target .-value)
-               nearest-value (round-to-nearest value values)]
+               nearest-value (round-to-nearest value (map :value values))]
            (re-frame/dispatch [:map.rich-layer/control-selected rich-layer control nearest-value])))}]
      [:div.time-range
       (map-indexed
@@ -385,7 +387,7 @@
          [:div
           {:key   i
            :style (when (odd? i) {:flex v})}
-          (when (even? i) v)])
+          (when (even? i) (:value v))])
        labels-with-gaps)]]))
 
 (defmethod cql-control :default
