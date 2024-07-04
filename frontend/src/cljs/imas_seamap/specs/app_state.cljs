@@ -166,36 +166,104 @@
              :id    integer?
              :layer :map/layer)))
 
+; Rich layer data
+(s/def :map.rich-layers.rich-layer/id integer?)
+(s/def :map.rich-layers.rich-layer/layer-id :map.layer/id)
+(s/def :map.rich-layers.rich-layer/tab-label string?)
+(s/def :map.rich-layers.rich-layer/slider-label string?)
+(s/def :map.rich-layers.rich-layer/icon string?)
+(s/def :map.rich-layers.rich-layer/tooltip string?)
+(s/def :map.rich-layers.rich-layer.alternate-view/layer :map/layer-id)
+(s/def :map.rich-layers.rich-layer.alternate-view/sort_key (s/nilable string?))
+(s/def :map.rich-layers.rich-layer/alternate-view
+  (s/keys :req-un [:map.rich-layers.rich-layer.alternate-view/layer
+                   :map.rich-layers.rich-layer.alternate-view/sort_key]))
+(s/def :map.rich-layers.rich-layer/alternate-views
+  (s/coll-of :map.rich-layers.rich-layer/alternate-views :kind vector?))
+(s/def :map.rich-layers.rich-layer.timeline1/layer :map/layer-id)
+(s/def :map.rich-layers.rich-layer.timeline1/value number?)
+(s/def :map.rich-layers.rich-layer.timeline1/label string?)
+(s/def :map.rich-layers.rich-layer/timeline1
+  (s/keys :req-un [:map.rich-layers.rich-layer.timeline1/layer
+                   :map.rich-layers.rich-layer.timeline1/value
+                   :map.rich-layers.rich-layer.timeline1/label]))
+(s/def :map.rich-layers.rich-layer/timelines
+  (s/coll-of :map.rich-layers.rich-layer/timeline1 :kind vector?))
+(s/def :map.rich-layers.rich-layer.control/label string?)
+(s/def :map.rich-layers.rich-layer.control/icon (s/nilable string?))
+(s/def :map.rich-layers.rich-layer.control/tooltip (s/nilable string?))
+(s/def :map.rich-layers.rich-layer.control/cql-property string?)
+(s/def :map.rich-layers.rich-layer.control/data-type #{"string" "number"})
+(s/def :map.rich-layers.rich-layer.control/controller-type #{"slider" "dropdown" "multi-dropdown"})
+(s/def :map.rich-layers.rich-layer/control
+  (s/keys :req-un [:map.rich-layers.rich-layer.control/label
+                   :map.rich-layers.rich-layer.control/icon
+                   :map.rich-layers.rich-layer.control/tooltip
+                   :map.rich-layers.rich-layer.control/cql-property
+                   :map.rich-layers.rich-layer.control/data-type
+                   :map.rich-layers.rich-layer.control/controller-type]))
+(s/def :map.rich-layers.rich-layer/controls
+  (s/coll-of :map.rich-layers.rich-layer/control :kind vector?))
 
-(s/def :map.rich-layer.alternate-views.entry/sort_key (s/nilable string?))
-(s/def :map.rich-layer.alternate-views.entry/layer :map/layer)
-(s/def :map.rich-layer.alternate-views/entry
-  (s/keys :req-un [:map.rich-layer.alternate-views.entry/sort_key
-                   :map.rich-layer.alternate-views.entry/layer]))
+(s/def :map.rich-layers/rich-layer
+  (s/keys :req-un [:map.rich-layers.rich-layer/id
+                   :map.rich-layers.rich-layer/layer-id
+                   :map.rich-layers.rich-layer/tab-label
+                   :map.rich-layers.rich-layer/slider-label
+                   :map.rich-layers.rich-layer/icon
+                   :map.rich-layers.rich-layer/tooltip
+                   :map.rich-layers.rich-layer/alternate-views
+                   :map.rich-layers.rich-layer/timelines
+                   :map.rich-layers.rich-layer/controls]))
+(s/def :map.rich-layers/rich-layers
+  (s/coll-of :map.rich-layers/rich-layer :kind vector?))
 
-(s/def :map.rich-layer.timeline.entry/year integer?)
-(s/def :map.rich-layer.timeline.entry/layer :map/layer)
-(s/def :map.rich-layer.timeline/entry
-  (s/keys :req-un [:map.rich-layer.timeline.entry/year
-                   :map.rich-layer.timeline.entry/layer]))
+; Rich layer state
+(s/def :map.rich-layers.state/tab string?)
+(s/def :map.rich-layers.state/alternate-views-selected :map.rich-layers.rich-layer.alternate-view/layer)
+(s/def :map.rich-layers.state/timeline-selected :map.rich-layers.rich-layer.timeline1/layer)
+(s/def :map.rich-layers.state.control/value
+  (s/or :multi-dropdown (s/coll-of (s/or string? number?) :kind vector?)
+        :default        (s/nilable (s/or string? number?))))
+(s/def :map.rich-layers.state/control
+  (s/keys :req-un [:map.rich-layers.state.control/value]))
+(s/def :map.rich-layers.state/controls
+  (s/map-of :map.rich-layers.rich-layer.control/cql-property :map.rich-layers.state/control))
+(s/def :map.rich-layers/state
+  (s/keys :req-un [:map.rich-layers.state/tab
+                   :map.rich-layers.state/alternate-views-selected
+                   :map.rich-layers.state/timeline-selected
+                   :map.rich-layers.state/controls]))
+(s/def :map.rich-layers/states
+  (s/map-of :map.rich-layers.rich-layer/id :map.rich-layers.state))
 
-(s/def :map.rich-layer/alternate-views
-  (s/coll-of :map.rich-layer.alternate-views/entry
-             :kind vector?))
-(s/def :map.rich-layer/alternate-views-selected (s/nilable :map.layer/id))
-(s/def :map.rich-layer/timeline
-  (s/coll-of :map.rich-layer.timeline/entry
-             :kind vector?))
-(s/def :map.rich-layer/timeline-selected (s/nilable :map.layer/id))
-(s/def :map.rich-layer/tab #{"legend" "filters"})
-(s/def :map/rich-layer
-  (s/keys :req-un [:map.rich-layer/alternate-views
-                   :map.rich-layer/alternate-views-selected
-                   :map.rich-layer/timeline
-                   :map.rich-layer/timeline-selected
-                   :map.rich-layer/tab]))
+; Rich layer async data
+(s/def :map.rich-layers.async-data.control/value :map.rich-layers.state.control/value)
+(s/def :map.rich-layers.async-data.control/values
+  (s/coll-of :map.rich-layers.async-data.control/value :kind vector?))
+(s/def :map.rich-layers.async-data/control
+  (s/keys :req-un [:map.rich-layers.async-data.control/values]))
+(s/def :map.rich-layers.async-data/controls
+  (s/map-of :map.rich-layers.rich-layer.control/cql-property :map.rich-layers.async-data/control))
+(s/def :map.rich-layers.async-data/filter-combination
+  (s/map-of :map.rich-layers.rich-layer.control/cql-property :map.rich-layers.state.control/value))
+(s/def :map.rich-layers.async-data/filter-combinations
+  (s/coll-of :map.rich-layers.async-data/filter-combination :kind vector?))
+(s/def :map.rich-layers/async-data
+  (s/keys :req-un [:map.rich-layers.async-data/controls
+                   :map.rich-layers.async-data/filter-combinations]))
+(s/def :map.rich-layers/async-datas
+  (s/map-of :map.rich-layers.rich-layer/id :map.rich-layers.async-data))
+
+; Rich layer lookup
+(s/def :map.rich-layers/layer-lookup
+  (s/map-of :map.layer/id :map.rich-layers.rich-layer/id))
+
 (s/def :map/rich-layers
-  (s/map-of :map.layer/id :map/rich-layer))
+  (s/keys :req-un [:map.rich-layers/rich-layers
+                   :map.rich-layers/states
+                   :map.rich-layers/async-datas
+                   :map.rich-layers/layer-lookup]))
 
 
 (s/def :map/legends
