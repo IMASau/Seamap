@@ -319,8 +319,9 @@
       :isSearchable true
       :isClearable  true
       :keyfns
-      {:id   #(-> % :value)
-       :text #(-> % :value str)}}]]])
+      {:id   :value
+       :text #(-> % :value str)
+       :is-disabled? #(-> % :valid? not)}}]]])
 
 (defmethod cql-control "multi-dropdown"
   [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
@@ -343,8 +344,9 @@
       :isClearable  true
       :isMulti      true
       :keyfns
-      {:id   #(-> % :value)
-       :text #(-> % :value str)}}]]])
+      {:id   :value
+       :text #(-> % :value str)
+       :is-disabled? #(-> % :valid? not)}}]]])
 
 (defmethod cql-control "slider"
   [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
@@ -379,14 +381,17 @@
        :on-input
        (fn [e]
          (let [value (-> e .-target .-value)
-               nearest-value (round-to-nearest value (map :value values))]
+               nearest-value (round-to-nearest value (map :value (filter :valid? values)))]
            (re-frame/dispatch [:map.rich-layer/control-selected rich-layer control nearest-value])))}]
      [:div.time-range
       (map-indexed
        (fn [i v]
          [:div
-          {:key   i
-           :style (when (odd? i) {:flex v})}
+          (merge
+           {:key   i
+            :style (when (odd? i) {:flex v})}
+           (when (and (even? i) (-> v :valid? not))
+             {:class "disabled"}))
           (when (even? i) (:value v))])
        labels-with-gaps)]]))
 

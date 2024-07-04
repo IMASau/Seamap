@@ -37,6 +37,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            &.disabled { color: rgb(203, 203, 203); }
         }
     }
 

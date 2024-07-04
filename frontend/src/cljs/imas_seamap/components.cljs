@@ -142,11 +142,12 @@
   [{:keys [value options onChange isSearchable isClearable isDisabled isMulti keyfns]}]
   (letfn [(option->select-option
             [option]
-            (if-let [{:keys [id text breadcrumbs]} keyfns]
+            (if-let [{:keys [id text breadcrumbs is-disabled?]} keyfns]
               (merge
                {:id     (id option)
                 :text   (text option)
-                :option option} ; TODO add isDisabled
+                :option option}
+               (when is-disabled? {:isDisabled (is-disabled? option)})
                (when breadcrumbs {:breadcrumbs (breadcrumbs option)}))
               option))]
     (let [options (map option->select-option options)
