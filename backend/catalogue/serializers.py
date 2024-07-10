@@ -137,6 +137,13 @@ class PressureSerializer(serializers.ModelSerializer):
         exclude = ('region_report',)
 
 
+# Not really catalogue viewsets - are they better put somewhere else (e.g. sql app?)
+class SquidleAnnotationsDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.SquidleAnnotationsData
+        exclude = ('id',)
+
+
 # SQL Views
 
 class AmpDepthZonesSerializer(serializers.ModelSerializer):
