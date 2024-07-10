@@ -3,10 +3,10 @@
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 
 from django.core.validators import MinValueValidator, RegexValidator
+import django.utils.timezone
 from django.db import models
 from six import python_2_unicode_compatible
 from uuid import uuid4
-from datetime import datetime
 import requests
 
 
@@ -150,7 +150,7 @@ class SaveState(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     hashstate = models.CharField(max_length = 8000)
     description = models.TextField(blank=True, null=True)
-    time_created = models.DateTimeField(default=datetime.now())
+    time_created = models.DateTimeField(default=django.utils.timezone.now)
 
     def __str__(self):
         return self.description or '{id} ({time_created})'.format(
@@ -226,6 +226,24 @@ class Pressure(models.Model):
         return f'{self.region_report}: {self.layer}'
 
 
+# Not really catalogue tables - are they better put somewhere else (e.g. sql app?)
+
+@python_2_unicode_compatible
+class SquidleAnnotationsData(models.Model):
+    network = models.CharField(max_length=255, db_column='NETNAME')
+    park = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='RESNAME')
+    depth_zone = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='ZONENAME')
+    highlights = models.BooleanField(db_column='HIGHLIGHTS')
+    annotations_data = models.TextField(db_column='ANNOTATIONS_DATA')
+    
+    def __str__(self):
+        return f'{self.network}{(" > " + self.park) if self.park else ""} > {self.depth_zone if self.depth_zone else "All Depths"} {"(Highlights)" if self.highlights else "(No Highlights)"}'
+    
+    class Meta:
+        db_table = 'squidle_annotations_data'
+        unique_together = (('network', 'park', 'depth_zone'),)
+
+
 # SQL Views
 
 @python_2_unicode_compatible
@@ -237,7 +255,7 @@ class AmpDepthZones(models.Model):
     max = models.IntegerField(db_column='MAX')
 
     def __str__(self):
-        return self.network + (f' > {self.park}' if self.park else '') + f': {self.zonename}'
+        return self.netname + (f' > {self.resname}' if self.resname else '') + f': {self.zonename}'
     
     def save(self, **kwargs):
         raise NotImplementedError()
