@@ -1,5 +1,6 @@
 class RegionReport {
     postId = null;
+    squidleAnnotationsDataUrl = null;
     pressurePreviewUrlBase = null;
     mapUrlBase = null;
     squidleCaption = null;
@@ -44,6 +45,7 @@ class RegionReport {
         habitatObservationsUrlBase: habitatObservationsUrlBase,
         researchEffortUrlBase: researchEffortUrlBase,
         regionReportDataUrlBase: regionReportDataUrlBase,
+        squidleAnnotationsDataUrl: squidleAnnotationsDataUrl,
         pressurePreviewUrlBase: pressurePreviewUrlBase,
         mapUrlBase: mapUrlBase,
         networkName: networkName,
@@ -118,6 +120,7 @@ class RegionReport {
         }
 
         this.postId = postId;
+        this.squidleAnnotationsDataUrl = squidleAnnotationsDataUrl;
         this.pressurePreviewUrlBase = pressurePreviewUrlBase;
         this.mapUrlBase = mapUrlBase;
         this.squidleCaption = squidleCaption;
@@ -1141,96 +1144,6 @@ class RegionReport {
             dataType: "json",
             success: pose => {
                 if (pose.objects.length > 0) {
-
-                    // annotations filters
-                    const annotationsFilters = [{
-                        name: 'point',
-                        op: 'has',
-                        val: {
-                            name: 'media',
-                            op: 'has',
-                            val: {
-                                name: 'poses',
-                                op: 'any',
-                                val: {
-                                    name: "geom",
-                                    op: "geo_in_mpolyh_xy",
-                                    val: this.boundary
-                                }
-                            }
-                        }
-                    }];
-
-                    if (minDepth) {
-                        annotationsFilters.push({
-                            name: 'point',
-                            op: 'has',
-                            val: {
-                                name: 'media',
-                                op: 'has',
-                                val: {
-                                    name: 'poses',
-                                    op: 'any',
-                                    val: {
-                                        name: 'dep',
-                                        op: 'gt',
-                                        val: minDepth
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    if (maxDepth) {
-                        annotationsFilters.push({
-                            name: 'point',
-                            op: 'has',
-                            val: {
-                                name: 'media',
-                                op: 'has',
-                                val: {
-                                    name: 'poses',
-                                    op: 'any',
-                                    val: {
-                                        name: 'dep',
-                                        op: 'lte',
-                                        val: maxDepth
-                                    }
-                                }
-                            }
-                        });
-                    }
-
-                    if (this.imageryFilterHighlights) {
-                        // highlights filter likely to change
-                        annotationsFilters.push({
-                            name: 'point',
-                            op: 'has',
-                            val: {
-                                name: 'media',
-                                op: 'has',
-                                val: {
-                                    name: 'annotations',
-                                    op: 'any',
-                                    val: {
-                                        name: 'annotations',
-                                        op: 'any',
-                                        val: {
-                                            name: 'tags',
-                                            op: 'any',
-                                            val: {
-                                                name: 'id',
-                                                op: 'eq',
-                                                val: '348'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    }
-
-                    const annotationsUrl = `https://squidle.org/iframe/api/annotation/tally/label?template=models/annotation/tally_chart_mini.html&results_per_page=10&q=${JSON.stringify({ filters: annotationsFilters })}`;
-
                     // populate imagery grid
                     imageryElement.innerHTML = `
                         <div class="images">
@@ -1238,7 +1151,33 @@ class RegionReport {
                             <div class="caption">${this.squidleCaption}</div>
                             <a href="#!" onclick="regionReport.refreshImagery()">Refresh imagery</a>
                         </div>
-                        <iframe src='${annotationsUrl}'></iframe>`;
+                        <div id="region-report-annotations-${this.postId}"></div>`;
+
+                    const params = {
+                        network: this.network,
+                        depth_zone: this.imageryFilterDepth,
+                        highlights: this.imageryFilterHighlights
+                    };
+                    if (this.park) params.park = this.park;
+
+                    $.ajax(this.squidleAnnotationsDataUrl, {
+                        dataType: "json",
+                        data: params,
+                        success: annotations => {
+                            const annotationsElement = document.getElementById(`region-report-annotations-${this.postId}`);
+                            const annotationsData = annotations[0]?.annotations_data;
+                            annotationsElement.innerHTML =
+                                annotationsData
+                                || `
+                                    <div class="bp3-non-ideal-state">
+                                        <div class="bp3-non-ideal-state-visual">
+                                            <span class="bp3-icon bp3-icon-info-sign"></span>
+                                        </div>
+                                        <h4 class="bp3-heading">No Data</h4>
+                                        <div>No public image annotations were found for this region.</div>
+                                    </div>`;
+                        }
+                    })
 
                     const imageryGrid = document.getElementById(`region-report-imagery-grid-${this.postId}`);
                     pose.objects.forEach((poseObject, index) => {

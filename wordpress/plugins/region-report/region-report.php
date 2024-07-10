@@ -153,6 +153,17 @@ add_action( 'admin_init', function () {
     );
     register_setting(
         'region_report',
+        'region_report_squidle_annotations_data_url',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle annotations data URL',
+            'sanitize_callback' => 'sanitize_text_field',
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
         'region_report_pressure_preview_url_base',
         [
             'type'              => 'string',
@@ -255,6 +266,22 @@ add_action( 'admin_init', function () {
             <input
                 type="text"
                 name="region_report_region_report_data_url_base"
+                value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>"
+            >
+            <?php
+        },
+        'region_report',
+        'region_report_url_bases'
+    );
+    add_settings_field(
+        'region_report_region_report_squidle_annotations_data_url_field',
+        'Region report data URL base',
+        function () {
+            $setting = get_option('region_report_region_report_squidle_annotations_data_url');
+            ?>
+            <input
+                type="text"
+                name="region_report_region_report_squidle_annotations_data_url"
                 value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>"
             >
             <?php

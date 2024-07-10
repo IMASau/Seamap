@@ -6,6 +6,7 @@
     $habitat_observations_url_base = get_option('region_report_habitat_observations_url_base');
     $research_effort_url_base = get_option('region_report_research_effort_url_base');
     $region_report_data_url_base = get_option('region_report_region_report_data_url_base');
+    $squidle_annotations_data_url = get_option('region_report_squidle_annotations_data_url');
     $pressure_preview_url_base = get_option('region_report_pressure_preview_url_base');
     $map_url_base = get_option('region_report_map_url_base');
 
@@ -215,6 +216,7 @@
         habitatObservationsUrlBase: <?php echo json_encode($habitat_observations_url_base); ?>,
         researchEffortUrlBase: <?php echo json_encode($research_effort_url_base); ?>,
         regionReportDataUrlBase: <?php echo json_encode($region_report_data_url_base); ?>,
+        squidleAnnotationsDataUrl: <?php echo json_encode($squidle_annotations_data_url); ?>,
         pressurePreviewUrlBase: <?php echo json_encode($pressure_preview_url_base); ?>,
         mapUrlBase: <?php echo json_encode($map_url_base); ?>,
         networkName: "<?php echo $network_name; ?>",
