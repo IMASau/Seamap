@@ -88,7 +88,7 @@ class Command(BaseCommand):
         self.start_http_session()
         self.network_boundary_layer = KeyedLayer.objects.get(keyword='data-report-boundary-network-simplified').layer
         self.park_boundary_layer = KeyedLayer.objects.get(keyword='data-report-boundary-simplified').layer
-        self.api = SQAPI(host="https://squidle.org", api_key="28b75565b86a7218d211ad857d28477868b4924c1be1c75ebc9d2f9a")
+        self.api = SQAPI(host="https://squidle.org")
 
         amp_depth_zones = AmpDepthZones.objects.all().values('netname', 'resname', 'zonename', 'min', 'max').distinct()
         network_region_depth_zones = {}
