@@ -68,6 +68,9 @@ class Command(BaseCommand):
             r.filter("point", "has", qf("media", "has", qf("poses", "any", qf("dep", "gt", min))))
         if max:
             r.filter("point", "has", qf("media", "has", qf("poses", "any", qf("dep", "lte", max))))
+        
+        for additional_filter in self.additional_filters:
+            r._filters.append(additional_filter)
 
         data = r.execute().text
         tree = PyQuery(data)
@@ -90,6 +93,7 @@ class Command(BaseCommand):
         self.start_http_session()
         self.network_boundary_layer = KeyedLayer.objects.get(keyword='data-report-boundary-network-simplified').layer
         self.park_boundary_layer = KeyedLayer.objects.get(keyword='data-report-boundary-simplified').layer
+        self.api = SQAPI(host="https://squidle.org", api_key=settings.SQUIDLE_API_KEY)
         additional_filters = self.http_session.get(f"{settings.WORDPRESS_URL}wp-json/wp/v2/region_report?acf_format=standard").json()[0]['region_report_squidle_annotations_filters']
         self.additional_filters = json.loads(additional_filters) if additional_filters else []
 
