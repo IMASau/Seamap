@@ -37,6 +37,7 @@ class RegionReport {
     squidlePoseFilterMaxDepthTemplate = null;
     squidlePoseFilterHighlightsTemplate = null;
     squidleMediaUrlTemplate = null;
+    annotationsLinkUrlTemplate = null;
 
     constructor({
         postId: postId,
@@ -55,7 +56,8 @@ class RegionReport {
         squidlePoseFilterMinDepthTemplate: squidlePoseFilterMinDepthTemplate,
         squidlePoseFilterMaxDepthTemplate: squidlePoseFilterMaxDepthTemplate,
         squidlePoseFilterHighlightsTemplate: squidlePoseFilterHighlightsTemplate,
-        squidleMediaUrlTemplate: squidleMediaUrlTemplate
+        squidleMediaUrlTemplate: squidleMediaUrlTemplate,
+        annotationsLinkUrlTemplate: annotationsLinkUrlTemplate
     }) {
         L.Control.SingleLayers = L.Control.Layers.extend({
             onAdd: function (map) {
@@ -131,6 +133,7 @@ class RegionReport {
         this.squidlePoseFilterMaxDepthTemplate = squidlePoseFilterMaxDepthTemplate;
         this.squidlePoseFilterHighlightsTemplate = squidlePoseFilterHighlightsTemplate;
         this.squidleMediaUrlTemplate = squidleMediaUrlTemplate;
+        this.annotationsLinkUrlTemplate = annotationsLinkUrlTemplate;
 
         this.setupOverviewMap();
         this.setupImageryMap();
@@ -1165,10 +1168,24 @@ class RegionReport {
                         data: params,
                         success: annotations => {
                             const annotationsElement = document.getElementById(`region-report-annotations-${this.postId}`);
-                            const annotationsData = annotations[0]?.annotations_data;
-                            annotationsElement.innerHTML =
-                                annotationsData
-                                || `
+                            const annotationsData = annotations[0]?.annotations_data?.replace(`<i class="fa fa-info-circle"/>`, `<i class="fa fa-info-circle"></i>`);
+                            annotationsElement.innerHTML = annotationsData
+                                ? `
+                                    <a
+                                        href="${this.templateStringFill(this.annotationsLinkUrlTemplate, {
+                                            'network': this.network ?? '',
+                                            'park': this.park ?? '',
+                                            'depth_zone': this.imageryFilterDepth ?? '',
+                                            'highlights': this.imageryFilterHighlights ?? '',
+                                            'min_depth': minDepth ?? '',
+                                            'max_depth': maxDepth ?? ''
+                                        })}"
+                                        target="_blank"
+                                        class="annotations-link"
+                                    >
+                                        ${annotationsData}
+                                    </a>`
+                                : `
                                     <div class="bp3-non-ideal-state">
                                         <div class="bp3-non-ideal-state-visual">
                                             <span class="bp3-icon bp3-icon-info-sign"></span>

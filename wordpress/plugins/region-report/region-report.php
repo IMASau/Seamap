@@ -433,6 +433,17 @@ add_action( 'admin_init', function () {
             'default'           => null
         ]
     );
+    register_setting(
+        'region_report',
+        'region_report_annotations_link_url_template',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle media URL template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
 
     add_settings_section(
         'region_report_configurable_text',
@@ -603,6 +614,22 @@ add_action( 'admin_init', function () {
             ?>
             <textarea
                 name="region_report_squidle_media_url_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_annotations_link_url_template',
+        'Squidle media URL template',
+        function () {
+            $setting = get_option('region_report_annotations_link_url_template');
+            ?>
+            <textarea
+                name="region_report_annotations_link_url_template"
                 rows="6"
                 cols="80"
             ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>

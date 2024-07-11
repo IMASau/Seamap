@@ -226,7 +226,8 @@
         squidlePoseFilterMinDepthTemplate: <?php echo json_encode(get_option('region_report_squidle_pose_filter_min_depth_template')); ?>,
         squidlePoseFilterMaxDepthTemplate: <?php echo json_encode(get_option('region_report_squidle_pose_filter_max_depth_template')); ?>,
         squidlePoseFilterHighlightsTemplate: <?php echo json_encode(get_option('region_report_squidle_pose_filter_highlights_template')); ?>,
-        squidleMediaUrlTemplate: <?php echo json_encode($squidle_media_url_template); ?>
+        squidleMediaUrlTemplate: <?php echo json_encode($squidle_media_url_template); ?>,
+        annotationsLinkUrlTemplate: <?php echo json_encode(get_option('region_report_annotations_link_url_template')); ?>
     });
     regionReport.disablePrintCss("hcode-bootstrap-css");
     regionReport.disablePrintCss("hello-elementor-css");
