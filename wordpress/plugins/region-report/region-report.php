@@ -274,14 +274,14 @@ add_action( 'admin_init', function () {
         'region_report_url_bases'
     );
     add_settings_field(
-        'region_report_region_report_squidle_annotations_data_url_field',
-        'Region report data URL base',
+        'region_report_squidle_annotations_data_url_field',
+        'Squidle annotations data URL',
         function () {
-            $setting = get_option('region_report_region_report_squidle_annotations_data_url');
+            $setting = get_option('region_report_squidle_annotations_data_url');
             ?>
             <input
                 type="text"
-                name="region_report_region_report_squidle_annotations_data_url"
+                name="region_report_squidle_annotations_data_url"
                 value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>"
             >
             <?php
@@ -438,7 +438,18 @@ add_action( 'admin_init', function () {
         'region_report_annotations_link_url_template',
         [
             'type'              => 'string',
-            'description'       => 'Squidle media URL template',
+            'description'       => 'Annotations link URL template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_squidle_annotations_filters',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle annotations filters',
             'sanitize_callback' => null,
             'show_in_rest'      => true,
             'default'           => null
@@ -624,12 +635,28 @@ add_action( 'admin_init', function () {
     );
     add_settings_field(
         'region_report_annotations_link_url_template',
-        'Squidle media URL template',
+        'Annotations link URL template',
         function () {
             $setting = get_option('region_report_annotations_link_url_template');
             ?>
             <textarea
                 name="region_report_annotations_link_url_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_squidle_annotations_filters',
+        'Squidle annotations filters',
+        function () {
+            $setting = get_option('region_report_squidle_annotations_filters');
+            ?>
+            <textarea
+                name="region_report_squidle_annotations_filters"
                 rows="6"
                 cols="80"
             ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
@@ -675,5 +702,19 @@ add_action( 'admin_menu', function () {
             </div>
             <?php
         }
+    );
+} );
+
+add_action( 'rest_api_init', function () {
+    register_rest_field(
+        'region_report',
+        'region_report_squidle_annotations_filters',
+        [
+            'get_callback' => function ( $object ) {
+                $region_report_squidle_annotations_filters = get_option('region_report_squidle_annotations_filters');
+                return $region_report_squidle_annotations_filters;
+            },
+            'schema' => null
+        ]
     );
 } );
