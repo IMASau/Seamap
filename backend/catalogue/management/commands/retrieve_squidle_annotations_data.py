@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -18,6 +19,7 @@ class Command(BaseCommand):
     park_boundary_layer: Layer
     http_session: requests.Session
     api: SQAPI
+    additional_filters: list
 
     def start_http_session(self) -> None:
         retry_strategy = Retry(
@@ -88,7 +90,8 @@ class Command(BaseCommand):
         self.start_http_session()
         self.network_boundary_layer = KeyedLayer.objects.get(keyword='data-report-boundary-network-simplified').layer
         self.park_boundary_layer = KeyedLayer.objects.get(keyword='data-report-boundary-simplified').layer
-        self.api = SQAPI(host="https://squidle.org")
+        additional_filters = self.http_session.get(f"{settings.WORDPRESS_URL}wp-json/wp/v2/region_report?acf_format=standard").json()[0]['region_report_squidle_annotations_filters']
+        self.additional_filters = json.loads(additional_filters) if additional_filters else []
 
         amp_depth_zones = AmpDepthZones.objects.all().values('netname', 'resname', 'zonename', 'min', 'max').distinct()
         network_region_depth_zones = {}
