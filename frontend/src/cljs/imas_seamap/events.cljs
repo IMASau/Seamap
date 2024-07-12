@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.events
   (:require [ajax.core :as ajax]
+            [clojure.set :refer [rename-keys] :as set]
             [clojure.string :as string]
             [clojure.data.xml :as xml]
             [clojure.data.zip.xml :as zx]
@@ -844,8 +845,21 @@
 (defn settings-overlay [db [_ open?]]
   (assoc-in db [:display :settings-overlay] open?))
 
+(defn- ->dynamic-pill [dynamic-pill]
+  (->
+   dynamic-pill
+   (rename-keys
+    {:region_control :region-control})
+   (update
+    :region-control
+    rename-keys
+    {:cql_property    :cql-property
+     :data_type       :data-type
+     :controller_type :controller-type
+     :default_value   :default-value})))
+
 (defn update-dynamic-pills [db [_ dynamic-pills]]
-  (assoc-in db [:dynamic-pills :dynamic-pills] dynamic-pills))
+  (assoc-in db [:dynamic-pills :dynamic-pills] (mapv ->dynamic-pill dynamic-pills)))
 
 (defn right-sidebar-push [db [_ sidebar]]
   (update-in db [:display :right-sidebars] conj sidebar))

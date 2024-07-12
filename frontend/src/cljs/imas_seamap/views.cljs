@@ -664,8 +664,33 @@
       :id       "overlay-control"
       :icon     "help"}]]])
 
+(defmulti dynamic-pill-region-control #(get-in % [:region-control :controller-type]))
+
+(defmethod dynamic-pill-region-control "dropdown"
+  [{:keys [dynamic-pill]
+    {:keys [label icon tooltip value values is-default-value?] :as region-control} :region-control}]
+  [components/form-group
+   {:label
+    [b/tooltip
+     {:content tooltip}
+     [:<>
+      (when icon [b/icon {:icon icon}])
+      label]]}
+   [:div
+    {:on-click #(.stopPropagation %)}
+    [components/select
+     {:value        (first-where #(= (:value %) value) values)
+      :options      values
+      :onChange     js/console.log
+      :isSearchable true
+      :isClearable  (not is-default-value?)
+      :keyfns
+      {:id   :value
+       :text #(-> % :value str)
+       :is-disabled? #(-> % :valid? not)}}]]])
+
 (defn- dynamic-pill
-  [{:keys [id text icon tooltip expanded? active?] :as dynamic-pill}]
+  [{:keys [id text icon tooltip expanded? active?] region-control :region-control :as dynamic-pill}]
   (if active?
     [components/floating-pill-control-menu
      {:text           text
@@ -677,17 +702,9 @@
       :on-open-click  #(re-frame/dispatch [:ui/open-pill (str "dynamic-pill-" id)])
       :on-close-click #(re-frame/dispatch [:ui/open-pill nil])}
      [:div.state-of-knowledge-pill-content
-      [components/form-group
-       {:label "Region"}
-       [components/select
-        {:value        nil
-         :options      []
-         :onChange     js/console.log
-         :isSearchable true
-         :isClearable  true
-         :keyfns
-         {:id   identity
-          :text identity}}]]]]
+      [dynamic-pill-region-control
+       {:region-control region-control
+        :dynamic-pill   dynamic-pill}]]]
     [components/floating-pill-button
      {:text text
       :icon icon
