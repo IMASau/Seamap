@@ -94,6 +94,15 @@ class RichLayerTimelineSerializer(serializers.ModelSerializer):
         exclude = ('id', 'richlayer',)
 
 class RichLayerControlSerializer(serializers.ModelSerializer):
+    default_value = serializers.SerializerMethodField()
+    
+    def get_default_value(self, obj):
+        try: 
+            if obj.default_value and obj.data_type == 'number':
+                return float(obj.default_value)
+        except ValueError:
+            return obj.default_value
+    
     class Meta:
         model = models.RichLayerControl
         exclude = ('id', 'richlayer',)
