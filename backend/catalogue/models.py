@@ -255,13 +255,13 @@ class DynamicPill(models.Model):
     tooltip = EmptyStringToNoneField(max_length=255, null=True, blank=True)
     layers = models.ManyToManyField(Layer)
     # consider extracting control into a separate model, and adding as a one-to-one field?
-    cql_control_cql_property = models.CharField(max_length=255)
-    cql_control_label = models.CharField(max_length=255)
-    cql_control_data_type = models.CharField(max_length=255, choices=DATA_TYPE_CHOICES)
-    cql_control_controller_type = models.CharField(max_length=255, choices=CONTROLLER_TYPE_CHOICES)
-    cql_control_icon = EmptyStringToNoneField(max_length=255, null=True, blank=True)
-    cql_control_tooltip = EmptyStringToNoneField(max_length=255, null=True, blank=True)
-    cql_control_default_value = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    region_control_cql_property = models.CharField(max_length=255)
+    region_control_label = models.CharField(max_length=255)
+    region_control_data_type = models.CharField(max_length=255, choices=DATA_TYPE_CHOICES)
+    region_control_controller_type = models.CharField(max_length=255, choices=CONTROLLER_TYPE_CHOICES)
+    region_control_icon = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    region_control_tooltip = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    region_control_default_value = EmptyStringToNoneField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.text

@@ -67,13 +67,13 @@ admin.site.register(models.RegionReport, RegionReportAdmin)
 class DynamicPillForm(forms.ModelForm):
     class Meta:
         labels = {
-            'cql_control_cql_property': 'CQL Property',
-            'cql_control_label': 'Label',
-            'cql_control_data_type': 'Data Type',
-            'cql_control_controller_type': 'Controller Type',
-            'cql_control_icon': 'Icon',
-            'cql_control_tooltip': 'Tooltip',
-            'cql_control_default_value': 'Default Value',
+            'region_control_cql_property': 'CQL Property',
+            'region_control_label': 'Label',
+            'region_control_data_type': 'Data Type',
+            'region_control_controller_type': 'Controller Type',
+            'region_control_icon': 'Icon',
+            'region_control_tooltip': 'Tooltip',
+            'region_control_default_value': 'Default Value',
         }
 
 class DynamicPillAdmin(admin.ModelAdmin):
@@ -87,9 +87,9 @@ class DynamicPillAdmin(admin.ModelAdmin):
             }
         ),
         (
-            "CQL Region Control",
+            "Region Control",
             {
-                'fields': ['cql_control_cql_property','cql_control_label','cql_control_data_type','cql_control_controller_type','cql_control_icon','cql_control_tooltip','cql_control_default_value']
+                'fields': ['region_control_cql_property','region_control_label','region_control_data_type','region_control_controller_type','region_control_icon','region_control_tooltip','region_control_default_value']
             },
         ),
     ]
