@@ -141,6 +141,19 @@ class PressureSerializer(serializers.ModelSerializer):
         exclude = ('region_report',)
 
 class DynamicPillSerializer(serializers.ModelSerializer):
+    cql_control = serializers.SerializerMethodField()
+
+    def get_cql_control(self, obj):
+        return {
+            'cql_property': obj.cql_control_cql_property,
+            'label': obj.cql_control_label,
+            'data_type': obj.cql_control_data_type,
+            'controller_type': obj.cql_control_controller_type,
+            'icon': obj.cql_control_icon,
+            'tooltip': obj.cql_control_tooltip,
+            'default_value': obj.cql_control_default_value,
+        }
+
     class Meta:
         model = models.DynamicPill
-        fields = '__all__'
+        exclude = ('cql_control_cql_property', 'cql_control_label', 'cql_control_data_type', 'cql_control_controller_type', 'cql_control_icon', 'cql_control_tooltip', 'cql_control_default_value',)

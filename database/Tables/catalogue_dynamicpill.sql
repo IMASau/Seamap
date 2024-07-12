@@ -1,6 +1,13 @@
 CREATE TABLE [dbo].[catalogue_dynamicpill] (
-  [id]      INT           NOT NULL PRIMARY KEY IDENTITY(1,1),
-  [text]    NVARCHAR(MAX) NOT NULL,
-  [icon]    NVARCHAR(MAX) NULL,
-  [tooltip] NVARCHAR(MAX) NULL
+  [id]                          INT           NOT NULL PRIMARY KEY IDENTITY(1,1),
+  [text]                        NVARCHAR(255) NOT NULL,
+  [icon]                        NVARCHAR(255) NULL,
+  [tooltip]                     NVARCHAR(255) NULL,
+  [cql_control_cql_property]    NVARCHAR(255) NOT NULL,
+  [cql_control_label]           NVARCHAR(255) NOT NULL,
+  [cql_control_data_type]       NVARCHAR(255) NOT NULL,
+  [cql_control_controller_type] NVARCHAR(255) NOT NULL,
+  [cql_control_icon]            NVARCHAR(255) NULL,
+  [cql_control_tooltip]         NVARCHAR(255) NULL,
+  [cql_control_default_value]   NVARCHAR(255) NULL
 );

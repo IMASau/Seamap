@@ -1,6 +1,7 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+from django import forms
 from django.contrib import admin
 import catalogue.models as models
 
@@ -63,6 +64,33 @@ class RegionReportAdmin(admin.ModelAdmin):
     )
 admin.site.register(models.RegionReport, RegionReportAdmin)
 
+class DynamicPillForm(forms.ModelForm):
+    class Meta:
+        labels = {
+            'cql_control_cql_property': 'CQL Property',
+            'cql_control_label': 'Label',
+            'cql_control_data_type': 'Data Type',
+            'cql_control_controller_type': 'Controller Type',
+            'cql_control_icon': 'Icon',
+            'cql_control_tooltip': 'Tooltip',
+            'cql_control_default_value': 'Default Value',
+        }
+
 class DynamicPillAdmin(admin.ModelAdmin):
+    form = DynamicPillForm
     autocomplete_fields = ('layers',)
+    fieldsets = [
+        (
+            None,
+            {
+                'fields': ['text','icon','tooltip', 'layers']
+            }
+        ),
+        (
+            "CQL Region Control",
+            {
+                'fields': ['cql_control_cql_property','cql_control_label','cql_control_data_type','cql_control_controller_type','cql_control_icon','cql_control_tooltip','cql_control_default_value']
+            },
+        ),
+    ]
 admin.site.register(models.DynamicPill, DynamicPillAdmin)
