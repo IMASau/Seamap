@@ -62,11 +62,12 @@
   {:width 101 :height 101})
 
 (defmethod get-feature-info INFO-FORMAT-HTML
-  [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
-        layer-names (->> layers (map layer-name) reverse (string/join ","))]
+        layer-names (->> layers (map layer-name) reverse (string/join ","))
+        cql-filters (->> layers (map #(:cql-filter (enhance-rich-layer (layer->rich-layer % db) db))) (filter seq))]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get
@@ -88,17 +89,19 @@
        :FORMAT        "image/png"
        :INFO_FORMAT   "text/html"
        :SERVICE       "WMS"
-       :VERSION       "1.1.1"}
+       :VERSION       "1.1.1"
+       :CQL_FILTER    (apply str (interpose " " cql-filters))}
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/html" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
 (defmethod get-feature-info INFO-FORMAT-JSON
-  [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
-        layer-names (->> layers (map layer-name) reverse (string/join ","))]
+        layer-names (->> layers (map layer-name) reverse (string/join ","))
+        cql-filters (->> layers (map #(:cql-filter (enhance-rich-layer (layer->rich-layer % db) db))) (filter seq))]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get
@@ -120,7 +123,8 @@
        :FORMAT        "image/png"
        :INFO_FORMAT   "application/json"
        :SERVICE       "WMS"
-       :VERSION       "1.1.1"}
+       :VERSION       "1.1.1"
+       :CQL_FILTER    (apply str (interpose " " cql-filters))}
       :response-format (ajax/json-response-format)
       :on-success      [:map/got-featureinfo request-id point "application/json" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -137,11 +141,12 @@
     nil))
 
 (defmethod get-feature-info INFO-FORMAT-XML
-  [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
-        layer-names (->> layers (map layer-name) reverse (string/join ","))]
+        layer-names (->> layers (map layer-name) reverse (string/join ","))
+        cql-filters (->> layers (map #(:cql-filter (enhance-rich-layer (layer->rich-layer % db) db))) (filter seq))]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get
@@ -163,7 +168,8 @@
        :FORMAT        "image/png"
        :INFO_FORMAT   "text/xml"
        :SERVICE       "WMS"
-       :VERSION       "1.1.1"}
+       :VERSION       "1.1.1"
+       :CQL_FILTER    (apply str (interpose " " cql-filters))}
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
