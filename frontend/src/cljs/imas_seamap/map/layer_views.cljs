@@ -24,20 +24,14 @@
      (when errors? [b/icon {:icon "warning-sign" :size 18}])]))
 
 (defn- cql-control-filter-text
-  [{:keys [label value values controller-type]}]
+  [{:keys [label value controller-type is-default-value?]}]
   (case controller-type
-    "dropdown"
-    (when value (str "FILTER APPLIED: " label ": " value))
     "multi-dropdown"
-    (when (seq value)
+    (when-not is-default-value?
       (str
        "FILTER APPLIED: " label ": "
-       (if (= (count value) 1)
-         (first value)
-         (apply str (interpose ", " value)))))
-    "slider"
-    (when (and value (not= value (apply max values)))
-      (str "FILTER APPLIED: " label ": " value))))
+       (apply str (interpose ", " value)))) 
+    (when-not is-default-value? (str "FILTER APPLIED: " label ": " value))))
 
 (defn- layer-header-text
   "Layer name, with some other fancy stuff on top."
@@ -302,7 +296,7 @@
 (defmulti cql-control #(get-in % [:control :controller-type]))
 
 (defmethod cql-control "dropdown"
-  [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
+  [{{:keys [label icon tooltip value values is-default-value?] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
   [components/form-group
    {:label
     [b/tooltip
@@ -317,7 +311,7 @@
       :options      values
       :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected rich-layer control (:value %)])
       :isSearchable true
-      :isClearable  true
+      :isClearable  (not is-default-value?)
       :keyfns
       {:id   :value
        :text #(-> % :value str)

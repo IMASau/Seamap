@@ -446,12 +446,19 @@
     (assoc-in db [:map :keyed-layers] keyed-layers)))
 
 (defn ->rich-layer-control
-  [rich-layer-control]
-  (set/rename-keys
-   rich-layer-control
-   {:cql_property    :cql-property
-    :data_type       :data-type
-    :controller_type :controller-type}))
+  [{:keys [controller_type default_value] :as rich-layer-control}]
+  (let [default_value
+        (if (= controller_type "multi-dropdown")
+          (if default_value [default_value] [])
+          default_value)]
+    (->
+     rich-layer-control
+     (set/rename-keys
+      {:cql_property    :cql-property
+       :data_type       :data-type
+       :controller_type :controller-type
+       :default_value   :default-value})
+     (assoc :default-value default_value))))
 
 (defn- ->rich-layer
   [rich-layer]

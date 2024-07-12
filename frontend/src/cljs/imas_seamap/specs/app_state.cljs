@@ -195,13 +195,17 @@
 (s/def :map.rich-layers.rich-layer.control/cql-property string?)
 (s/def :map.rich-layers.rich-layer.control/data-type #{"string" "number"})
 (s/def :map.rich-layers.rich-layer.control/controller-type #{"slider" "dropdown" "multi-dropdown"})
+(s/def :map.rich-layers.rich-layer.control/default-value
+  (s/or :multi-dropdown (s/coll-of (s/or string? number?) :kind vector?)
+        :default        (s/nilable (s/or string? number?))))
 (s/def :map.rich-layers.rich-layer/control
   (s/keys :req-un [:map.rich-layers.rich-layer.control/label
                    :map.rich-layers.rich-layer.control/icon
                    :map.rich-layers.rich-layer.control/tooltip
                    :map.rich-layers.rich-layer.control/cql-property
                    :map.rich-layers.rich-layer.control/data-type
-                   :map.rich-layers.rich-layer.control/controller-type]))
+                   :map.rich-layers.rich-layer.control/controller-type
+                   :map.rich-layers.rich-layer.control/default-value]))
 (s/def :map.rich-layers.rich-layer/controls
   (s/coll-of :map.rich-layers.rich-layer/control :kind vector?))
 

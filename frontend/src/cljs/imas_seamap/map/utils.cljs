@@ -426,10 +426,21 @@
         layer  (first-where #(= (:id %) layer-id) layers)]
     (assoc timeline :layer layer)))
 
-(defn control->value [{:keys [cql-property controller-type] :as _control} {:keys [id] :as _rich-layer} db]
-  (let [values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])
-        value  (get-in db [:map :rich-layers :states id :controls cql-property :value])]
-    (if (and (not value) (= controller-type "slider")) (apply max values) value)))
+(defn control->value [{:keys [cql-property controller-type default-value] :as _control} {:keys [id] :as _rich-layer} db]
+  (let [value  (get-in db [:map :rich-layers :states id :controls cql-property :value])
+        values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])]
+    (or
+     value
+     default-value
+     (when (= controller-type "slider") (apply max values)))))
+
+(defn control-is-default-value? [{:keys [cql-property controller-type default-value] :as control} {:keys [id] :as rich-layer} db]
+  (let [value  (control->value control rich-layer db)
+        values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])]
+    (boolean
+     (or
+      (= value default-value)
+      (and (not default-value) (= controller-type "slider") (= value (apply max values)))))))
 
 (defn remove-incompatible-combinations
   "Removes filter combinations that are incompatible with the current
@@ -457,7 +468,8 @@
     (assoc
      control
      :values (mapv #(hash-map :value % :valid? (boolean (some #{%} valid-values))) values)
-     :value  value)))
+     :value  value
+     :is-default-value? (control-is-default-value? control rich-layer db))))
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
