@@ -161,6 +161,7 @@
           bathymetry-statistics
           habitat-observations
           cql-filter-values
+          dynamic-pill-cql-property-values
           layer-previews
           story-maps
           region-report-pages]}
@@ -188,6 +189,7 @@
       :bathymetry-statistics-url   (str api-url-base bathymetry-statistics)
       :habitat-observations-url    (str api-url-base habitat-observations)
       :cql-filter-values-url       (str api-url-base cql-filter-values)
+      :dynamic-pill-cql-property-values-url (str api-url-base dynamic-pill-cql-property-values)
       :layer-previews-url          (str media-url-base layer-previews)
       :story-maps-url              (str wordpress-url-base story-maps)
       :region-report-pages-url     (str wordpress-url-base region-report-pages)})))
@@ -876,16 +878,31 @@
 (defn open-pill [db [_ pill-id]]
   (assoc-in db [:display :open-pill] pill-id))
 
-(defn dynamic-pill-active [{:keys [db]} [_ {:keys [id] :as _dynamic-pill} active?]]
-  {:db (assoc-in db [:dynamic-pills :states id :active?] active?)
-   :dispatch-n
-   [(if active?
-      [:ui.right-sidebar/bring-to-front
-       {:id     (str "dynamic-pill-" id)
-        :type   :dynamic-pill
-        :params {:dynamic-pill-id id}}]
-      [:ui.right-sidebar/remove
-       {:id     (str "dynamic-pill-" id)
-        :type   :dynamic-pill
-        :params {:dynamic-pill-id id}}])
-    [:maybe-autosave]]})
+(defn dynamic-pill-active [{:keys [db]} [_ {:keys [id] :as dynamic-pill} active?]]
+  (let [cql-property-values (get-in db [:map :dynamic-pills :async-datas id :region-control :values])]
+    {:db (assoc-in db [:dynamic-pills :states id :active?] active?)
+     :dispatch-n
+     [(if active?
+        [:ui.right-sidebar/bring-to-front
+         {:id     (str "dynamic-pill-" id)
+          :type   :dynamic-pill
+          :params {:dynamic-pill-id id}}]
+        [:ui.right-sidebar/remove
+         {:id     (str "dynamic-pill-" id)
+          :type   :dynamic-pill
+          :params {:dynamic-pill-id id}}])
+      (when (and active? (not cql-property-values))
+        [:dynamic-pill/get-cql-property-values dynamic-pill])
+      [:maybe-autosave]]}))
+
+(defn dynamic-pill-get-cql-property-values [{:keys [db]} [_ {:keys [id] :as dynamic-pill}]]
+  {:http-xhrio
+   {:method          :get
+    :uri             (get-in db [:config :urls :dynamic-pill-cql-property-values-url])
+    :params          {:dynamic-pill-id id}
+    :response-format (ajax/json-response-format)
+    :on-success      [:dynamic-pill/get-cql-property-values-success dynamic-pill]
+    :on-failure      [:ajax/default-err-handler]}})
+
+(defn dynamic-pill-get-cql-property-values-success [db [_ {:keys [id] :as _dynamic-pill} values]]
+  (assoc-in db [:dynamic-pills :async-datas id :region-control :values] values))

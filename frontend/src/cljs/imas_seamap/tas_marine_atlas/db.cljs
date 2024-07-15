@@ -84,7 +84,8 @@
                                  :layer-previews        "layer_previews/"
                                  :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"
                                  :data-in-region        "habitat/datainregion"
-                                 :cql-filter-values     "habitat/cqlfiltervalues"}
+                                 :cql-filter-values     "habitat/cqlfiltervalues"
+                                 :dynamic-pill-cql-property-values "habitat/dynamicpillcqlpropertyvalues"}
                      :urls      nil
                      :url-base {:api-url-base       "http://localhost:8000/api/"
                                 :media-url-base     "http://localhost:8000/media/"

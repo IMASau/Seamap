@@ -159,10 +159,19 @@
 (defn open-pill [db _]
   (get-in db [:display :open-pill]))
 
-(defn- ->dynamic-pill [{:keys [id] :as dynamic-pill} db]
+(defn- ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} db]
+  (js/console.log "region-control" region-control)
+  (js/console.log "async-datas" (get-in db [:dynamic-pills :async-datas id]))
   (->
    dynamic-pill
    (merge (get-in db [:dynamic-pills :states id]))
+   (merge (get-in db [:dynamic-pills :async-datas id]))
+   (assoc
+    :region-control
+    (->
+     region-control
+     (merge (get-in db [:dynamic-pills :states id :region-control]))
+     (merge (get-in db [:dynamic-pills :async-datas id :region-control]))))
    (assoc
     :expanded?
     (=

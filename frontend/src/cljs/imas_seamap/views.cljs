@@ -679,15 +679,37 @@
    [:div
     {:on-click #(.stopPropagation %)}
     [components/select
-     {:value        (first-where #(= (:value %) value) values)
+     {:value        value
       :options      values
       :onChange     js/console.log
       :isSearchable true
       :isClearable  (not is-default-value?)
       :keyfns
-      {:id   :value
-       :text #(-> % :value str)
-       :is-disabled? #(-> % :valid? not)}}]]])
+      {:id   identity
+       :text identity}}]]])
+
+(defmethod dynamic-pill-region-control "multi-dropdown"
+  [{:keys [dynamic-pill]
+    {:keys [label icon tooltip value values is-default-value?] :as region-control} :region-control}]
+  [components/form-group
+   {:label
+    [b/tooltip
+     {:content tooltip}
+     [:<>
+      (when icon [b/icon {:icon icon}])
+      label]]}
+   [:div
+    {:on-click #(.stopPropagation %)}
+    [components/select
+     {:value        value
+      :options      values
+      :onChange     js/console.log
+      :isSearchable true
+      :isClearable  (not is-default-value?)
+      :isMulti      true
+      :keyfns
+      {:id   identity
+       :text identity}}]]])
 
 (defn- dynamic-pill
   [{:keys [id text icon tooltip expanded? active?] region-control :region-control :as dynamic-pill}]

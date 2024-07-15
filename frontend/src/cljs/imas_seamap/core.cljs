@@ -266,6 +266,8 @@
     :left-drawer/close                    [events/left-drawer-close]
     :left-drawer/tab                      [events/left-drawer-tab]
     :dynamic-pill/active                  [events/dynamic-pill-active]
+    :dynamic-pill/get-cql-property-values [events/dynamic-pill-get-cql-property-values]
+    :dynamic-pill/get-cql-property-values-success events/dynamic-pill-get-cql-property-values-success
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close
