@@ -268,6 +268,7 @@
     :dynamic-pill/active                  [events/dynamic-pill-active]
     :dynamic-pill.region-control/get-values [events/dynamic-pill-region-control-get-values]
     :dynamic-pill.region-control/get-values-success events/dynamic-pill-region-control-get-values-success
+    :dynamic-pill.region-control/value    [events/dynamic-pill-region-control-value]
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close

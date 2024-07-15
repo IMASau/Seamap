@@ -160,8 +160,6 @@
   (get-in db [:display :open-pill]))
 
 (defn- ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} db]
-  (js/console.log "region-control" region-control)
-  (js/console.log "async-datas" (get-in db [:dynamic-pills :async-datas id]))
   (->
    dynamic-pill
    (merge (get-in db [:dynamic-pills :states id]))

@@ -668,7 +668,7 @@
 
 (defmethod dynamic-pill-region-control "dropdown"
   [{:keys [dynamic-pill]
-    {:keys [label icon tooltip value values is-default-value?] :as region-control} :region-control}]
+    {:keys [label icon tooltip value values is-default-value?]} :region-control}]
   [components/form-group
    {:label
     [b/tooltip
@@ -681,7 +681,7 @@
     [components/select
      {:value        value
       :options      values
-      :onChange     js/console.log
+      :onChange     #(re-frame/dispatch [:dynamic-pill.region-control/value dynamic-pill %])
       :isSearchable true
       :isClearable  (not is-default-value?)
       :keyfns
@@ -690,7 +690,7 @@
 
 (defmethod dynamic-pill-region-control "multi-dropdown"
   [{:keys [dynamic-pill]
-    {:keys [label icon tooltip value values is-default-value?] :as region-control} :region-control}]
+    {:keys [label icon tooltip value values is-default-value?]} :region-control}]
   [components/form-group
    {:label
     [b/tooltip
@@ -703,7 +703,7 @@
     [components/select
      {:value        value
       :options      values
-      :onChange     js/console.log
+      :onChange     #(re-frame/dispatch [:dynamic-pill.region-control/value dynamic-pill %])
       :isSearchable true
       :isClearable  (not is-default-value?)
       :isMulti      true

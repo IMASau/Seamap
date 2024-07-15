@@ -898,7 +898,7 @@
 (defn dynamic-pill-region-control-get-values [{:keys [db]} [_ {:keys [id] :as dynamic-pill}]]
   {:http-xhrio
    {:method          :get
-    :uri             (get-in db [:config :urls :dynamic-pill-region-control-values])
+    :uri             (get-in db [:config :urls :dynamic-pill-region-control-values-url])
     :params          {:dynamic-pill-id id}
     :response-format (ajax/json-response-format)
     :on-success      [:dynamic-pill.region-control/get-values-success dynamic-pill]
@@ -906,3 +906,7 @@
 
 (defn dynamic-pill-region-control-get-values-success [db [_ {:keys [id] :as _dynamic-pill} values]]
   (assoc-in db [:dynamic-pills :async-datas id :region-control :values] values))
+
+(defn dynamic-pill-region-control-value [{:keys [db]} [_ {:keys [id] :as _dynamic-pill} value]]
+  {:db (assoc-in db [:dynamic-pills :states id :region-control :value] value)
+   :dispatch [:maybe-autosave]})
