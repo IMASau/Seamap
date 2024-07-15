@@ -337,3 +337,35 @@
   "Returns true when string is a url."
   [value]
   (re-find #"^https?://(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?://(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,}$" value))
+
+(defn control->cql-filter [{:keys [cql-property controller-type data-type] :as _control} value]
+  (if (= controller-type "multi-dropdown")
+    (case (count value)
+      0 nil
+      1 (str cql-property "=" (when (= data-type "string") "'") (first value) (when (= data-type "string") "'"))
+      (str
+       "("
+       (apply
+        str
+        (interpose " OR " (map #(str cql-property "=" (when (= data-type "string") "'") % (when (= data-type "string") "'")) value)))
+       ")"))
+    (when value (str cql-property "=" (when (= data-type "string") "'") value (when (= data-type "string") "'")))))
+
+(defn- ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} db]
+  (let [value (get-in db [:dynamic-pills :states id :region-control :value])]
+    (->
+     dynamic-pill
+     (merge (get-in db [:dynamic-pills :states id]))
+     (merge (get-in db [:dynamic-pills :async-datas id]))
+     (assoc
+      :region-control
+      (->
+       region-control
+       (merge (get-in db [:dynamic-pills :states id :region-control]))
+       (merge (get-in db [:dynamic-pills :async-datas id :region-control]))))
+     (assoc
+      :expanded?
+      (=
+       (get-in db [:display :open-pill])
+       (str "dynamic-pill-" id)))
+     (assoc :cql-filter (control->cql-filter region-control value)))))

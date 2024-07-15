@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.subs
     (:require [clojure.set :refer [rename-keys] :as set]
-              [imas-seamap.utils :refer [first-where]]
+              [imas-seamap.utils :refer [first-where ->dynamic-pill]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
               #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -158,23 +158,6 @@
 
 (defn open-pill [db _]
   (get-in db [:display :open-pill]))
-
-(defn- ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} db]
-  (->
-   dynamic-pill
-   (merge (get-in db [:dynamic-pills :states id]))
-   (merge (get-in db [:dynamic-pills :async-datas id]))
-   (assoc
-    :region-control
-    (->
-     region-control
-     (merge (get-in db [:dynamic-pills :states id :region-control]))
-     (merge (get-in db [:dynamic-pills :async-datas id :region-control]))))
-   (assoc
-    :expanded?
-    (=
-     (get-in db [:display :open-pill])
-     (str "dynamic-pill-" id)))))
 
 (defn dynamic-pills [{{:keys [dynamic-pills]} :dynamic-pills {:keys [active-layers]} :map :as db} _]
   (let [dynamic-pills (mapv #(->dynamic-pill % db) dynamic-pills)]

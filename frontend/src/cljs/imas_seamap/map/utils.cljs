@@ -6,7 +6,7 @@
             [clojure.string :as string]
             [clojure.set :as set]
             [goog.dom.xml :as gxml]
-            [imas-seamap.utils :refer [merge-in select-values first-where url?]]
+            [imas-seamap.utils :refer [merge-in select-values first-where url? ->dynamic-pill control->cql-filter]]
             ["proj4" :as proj4]
             [reagent.dom.server :refer [render-to-string]]
             [imas-seamap.interop.leaflet :as leaflet]
@@ -469,7 +469,8 @@
      control
      :values (mapv #(hash-map :value % :valid? (boolean (some #{%} valid-values))) values)
      :value  value
-     :is-default-value? (control-is-default-value? control rich-layer db))))
+     :is-default-value? (control-is-default-value? control rich-layer db)
+     :cql-filter (control->cql-filter control value))))
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
@@ -492,27 +493,12 @@
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
 
         controls                  (mapv #(->control % rich-layer db) controls)
-        cql-filter                (apply
-                                   str
-                                   (interpose
-                                    " AND "
-                                    (->>
-                                     controls
-                                     (mapv
-                                      (fn [{:keys [cql-property value controller-type]}]
-                                        (if (= controller-type "multi-dropdown")
-                                          (case (count value)
-                                            0 nil
-                                            1 (str cql-property "=" (first value))
-                                            (str
-                                             "("
-                                             (apply
-                                              str
-                                              (interpose " OR " (map #(str cql-property "=" %) value)))
-                                             ")"))
-
-                                          (when value (str cql-property "=" value)))))
-                                     (remove nil?))))]
+        cql-filter                (->>
+                                   controls
+                                   (map :cql-filter)
+                                   (filter identity)
+                                   (interpose " AND ")
+                                   (apply str))]
     (when rich-layer
       (->
        rich-layer
@@ -554,8 +540,21 @@
         (set/union parents)))) ; add the layer's rich-layer parents into the set (if any exist)
    #{} layers))
 
+(defn layer->dynamic-pills
+  "Returns the dynamic pills for a layer."
+  [{:keys [id] :as _layer} db]
+  (let [dynamic-pills (get-in db [:dynamic-pills :dynamic-pills])]
+    (filter
+     (fn [{:keys [layers] :as _dynamic-pill}]
+       (some #{id} (set layers)))
+     dynamic-pills)))
+
+(defn- debug [obj] (do (js/console.log obj) obj))
+
 (defn layer->cql-filter
   "Returns the CQL filter for a layer."
   [layer db]
-  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db))]
-    rich-layer-cql-filter))
+  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db))
+        dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db)))
+        cql-filters (conj dynamic-pills-cql-filters rich-layer-cql-filter)]
+    (apply str (interpose " AND " cql-filters))))
