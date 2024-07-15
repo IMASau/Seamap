@@ -94,7 +94,7 @@ class Layer(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     def geojson(self, out_fields: str=None):
         url = f"{self.server_url}/query"
         params = {
@@ -114,7 +114,50 @@ class Layer(models.Model):
         r = requests.get(url=url, params=params, verify=False)
 
         return r.json()
-    
+
+    def cql_property_values(self, cql_properties: list) -> dict:
+        params = {
+            'service': 'WFS',
+            'version': '2.0.0',
+            'request': 'GetFeature',
+            'typeNames': self.layer_name,
+            'outputFormat': 'application/json',
+            'propertyName': f"({','.join(cql_properties)})",
+        }
+        r = requests.get(url=self.server_url, params=params, verify=False)
+        data = r.json()
+
+        features_cql_properties = [
+            {
+                cql_property: feature["properties"][cql_property]
+                for cql_property in cql_properties
+            }
+            for feature in data["features"]
+        ]
+
+        value_combinations = [
+            dict(y) for y in set(
+                tuple(x.items())
+                for x in features_cql_properties
+            )
+        ]
+
+        values = [
+            {
+                'cql_property': cql_property,
+                'values': sorted(set(
+                    value_combination[cql_property]
+                    for value_combination in value_combinations
+                ))
+            }
+            for cql_property in cql_properties
+        ]
+        
+        return {
+            'values': values,
+            'value_combinations': value_combinations
+        }
+        
     def bounds(self):
         return {
             'north': float(self.maxy),
@@ -206,7 +249,7 @@ CONTROLLER_TYPE_CHOICES = [
 class EmptyStringToNoneField(models.CharField):
     def get_prep_value(self, value):
         if value == '':
-            return None  
+            return None
         return value
 
 @python_2_unicode_compatible

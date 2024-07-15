@@ -1395,45 +1395,10 @@ def cql_filter_values(request):
 
     rich_layer = RichLayer.objects.get(id=params['rich-layer-id'])
     cql_properties = rich_layer.controls.values_list('cql_property', flat=True)
-
-    r_params = {
-        'service': 'WFS',
-        'version': '2.0.0',
-        'request': 'GetFeature',
-        'typeNames': rich_layer.layer.layer_name,
-        'outputFormat': 'application/json',
-        'propertyName': f"({','.join(cql_properties)})",
-    }
-    r = http_session().get(url=rich_layer.layer.server_url, params=r_params)
-    r_data = r.json()
     
-    features_properties = [
-        {
-            cql_property: feature["properties"][cql_property]
-            for cql_property in cql_properties
-        }
-        for feature in r_data["features"]
-    ]
-    
-    filter_combinations = [
-        dict(y) for y in set(
-            tuple(x.items())
-            for x in features_properties
-        )
-    ]
-    
-    cql_filter_values = [
-        {
-            'cql_property': cql_property,
-            'values': sorted(set([
-                filter_combination[cql_property]
-                for filter_combination in filter_combinations
-            ]))
-        }
-        for cql_property in cql_properties
-    ]
+    cql_property_values = rich_layer.layer.cql_property_values(cql_properties)
     
     return Response({
-        'values': cql_filter_values,
-        'filter_combinations': filter_combinations
+        'values': cql_property_values['values'],
+        'filter_combinations': cql_property_values['value_combinations']
     })
