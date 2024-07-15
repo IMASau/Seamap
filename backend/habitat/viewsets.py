@@ -14,6 +14,7 @@ import requests
 from requests.adapters import HTTPAdapter, Retry
 from shapely.geometry import box
 
+from catalogue import models
 from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure, RichLayer
 from catalogue.serializers import RegionReportSerializer, LayerSerializer, PressureSerializer, RichLayerSerializer
 from collections import defaultdict, namedtuple
@@ -1402,3 +1403,19 @@ def cql_filter_values(request):
         'values': cql_property_values['values'],
         'filter_combinations': cql_property_values['value_combinations']
     })
+
+@action(detail=False)
+@cache_page(60 * 15)
+@api_view()
+def dynamic_pill_cql_property_values(request):
+    for required in ['dynamic-pill-id']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+    params = {k: v or None for k, v in request.query_params.items()}
+
+    dynamic_pill = models.DynamicPill.objects.get(id=params['dynamic-pill-id'])
+    
+    layer = dynamic_pill.layers.all()[0]
+    if layer:
+        cql_property_values = layer.cql_property_values([dynamic_pill.region_control_cql_property])
+        return Response(cql_property_values['values'][0]['values'])
