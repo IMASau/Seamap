@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [clojure.set :as set]
             [imas-seamap.utils :refer [map-on-key ids->layers]]
-            [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers enhance-rich-layer rich-layer-children->parents rich-layer->displayed-layer layer->rich-layer]]
+            [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers enhance-rich-layer rich-layer-children->parents rich-layer->displayed-layer layer->rich-layer layer->cql-filter]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
@@ -100,7 +100,8 @@
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
      :catalogue-layers catalogue-layers
-     :rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)}))
+     :rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)
+     :cql-filter-fn   #(layer->cql-filter % db)}))
 
 (defn map-base-layers [{:keys [map]} _]
   (select-keys map [:grouped-base-layers :active-base-layer]))

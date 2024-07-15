@@ -553,3 +553,9 @@
         (conj val)             ; add the layer into the set
         (set/union parents)))) ; add the layer's rich-layer parents into the set (if any exist)
    #{} layers))
+
+(defn layer->cql-filter
+  "Returns the CQL filter for a layer."
+  [layer db]
+  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db))]
+    rich-layer-cql-filter))

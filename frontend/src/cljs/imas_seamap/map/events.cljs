@@ -8,7 +8,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -67,7 +67,7 @@
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
-        cql-filters (->> layers (map #(:cql-filter (enhance-rich-layer (layer->rich-layer % db) db))) (filter seq))]
+        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter seq))]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get
@@ -101,7 +101,7 @@
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
-        cql-filters (->> layers (map #(:cql-filter (enhance-rich-layer (layer->rich-layer % db) db))) (filter seq))]
+        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter seq))]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get
@@ -146,7 +146,7 @@
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
-        cql-filters (->> layers (map #(:cql-filter (enhance-rich-layer (layer->rich-layer % db) db))) (filter seq))]
+        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter seq))]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get

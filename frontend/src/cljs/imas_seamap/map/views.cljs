@@ -273,7 +273,7 @@
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
-        {:keys [layer-opacities visible-layers rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+        {:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
@@ -345,7 +345,7 @@
                :displayed-layer displayed-layer
                :boundary-filter boundary-filter
                :layer-opacities layer-opacities
-               :cql-filter      (:cql-filter (rich-layer-fn layer))}]]))
+               :cql-filter      (cql-filter-fn layer)}]]))
         visible-layers)
        
        (when query
