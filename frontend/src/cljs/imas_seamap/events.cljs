@@ -161,7 +161,7 @@
           bathymetry-statistics
           habitat-observations
           cql-filter-values
-          dynamic-pill-cql-property-values
+          dynamic-pill-region-control-values
           layer-previews
           story-maps
           region-report-pages]}
@@ -189,7 +189,7 @@
       :bathymetry-statistics-url   (str api-url-base bathymetry-statistics)
       :habitat-observations-url    (str api-url-base habitat-observations)
       :cql-filter-values-url       (str api-url-base cql-filter-values)
-      :dynamic-pill-cql-property-values-url (str api-url-base dynamic-pill-cql-property-values)
+      :dynamic-pill-region-control-values-url (str api-url-base dynamic-pill-region-control-values)
       :layer-previews-url          (str media-url-base layer-previews)
       :story-maps-url              (str wordpress-url-base story-maps)
       :region-report-pages-url     (str wordpress-url-base region-report-pages)})))
@@ -892,17 +892,17 @@
           :type   :dynamic-pill
           :params {:dynamic-pill-id id}}])
       (when (and active? (not cql-property-values))
-        [:dynamic-pill/get-cql-property-values dynamic-pill])
+        [:dynamic-pill.region-control/get-values dynamic-pill])
       [:maybe-autosave]]}))
 
-(defn dynamic-pill-get-cql-property-values [{:keys [db]} [_ {:keys [id] :as dynamic-pill}]]
+(defn dynamic-pill-region-control-get-values [{:keys [db]} [_ {:keys [id] :as dynamic-pill}]]
   {:http-xhrio
    {:method          :get
-    :uri             (get-in db [:config :urls :dynamic-pill-cql-property-values-url])
+    :uri             (get-in db [:config :urls :dynamic-pill-region-control-values])
     :params          {:dynamic-pill-id id}
     :response-format (ajax/json-response-format)
-    :on-success      [:dynamic-pill/get-cql-property-values-success dynamic-pill]
+    :on-success      [:dynamic-pill.region-control/get-values-success dynamic-pill]
     :on-failure      [:ajax/default-err-handler]}})
 
-(defn dynamic-pill-get-cql-property-values-success [db [_ {:keys [id] :as _dynamic-pill} values]]
+(defn dynamic-pill-region-control-get-values-success [db [_ {:keys [id] :as _dynamic-pill} values]]
   (assoc-in db [:dynamic-pills :async-datas id :region-control :values] values))

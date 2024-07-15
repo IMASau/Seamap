@@ -107,7 +107,7 @@
                                  :bathymetry-statistics "habitat/bathymetrystatistics"
                                  :habitat-observations  "habitat/habitatobservations"
                                  :cql-filter-values     "habitat/cqlfiltervalues"
-                                 :dynamic-pill-cql-property-values "habitat/dynamicpillcqlpropertyvalues"
+                                 :dynamic-pill-region-control-values "habitat/dynamicpillregioncontrolvalues"
                                  :layer-previews        "layer_previews/"
                                  :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"
                                  :region-report-pages   "region-reports/"}

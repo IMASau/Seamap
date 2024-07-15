@@ -1407,7 +1407,7 @@ def cql_filter_values(request):
 @action(detail=False)
 @cache_page(60 * 15)
 @api_view()
-def dynamic_pill_cql_property_values(request):
+def dynamic_pill_region_control_values(request):
     for required in ['dynamic-pill-id']:
         if required not in request.query_params:
             raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
