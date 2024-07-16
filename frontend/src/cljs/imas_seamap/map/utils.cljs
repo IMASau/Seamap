@@ -526,7 +526,7 @@
    default if no alternate view or timeline selected). If layer is not a
    rich-layer, then the layer is just returned."
   [layer db]
-  (let [rich-layer (layer->rich-layer layer db)]
+  (let [rich-layer (enhance-rich-layer (layer->rich-layer layer db) db)]
     (or (:displayed-layer rich-layer) layer)))
 
 (defn rich-layer-children->parents
