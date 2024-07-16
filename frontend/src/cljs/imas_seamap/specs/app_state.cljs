@@ -594,22 +594,58 @@
 (s/def :dynamic-pills.dynamic-pill/icon (s/nilable string?))
 (s/def :dynamic-pills.dynamic-pill/tooltip (s/nilable string?))
 (s/def :dynamic-pills.dynamic-pill/layers (s/coll-of :map.layer/id :kind vector?))
+(s/def :dynamic-pills.dynamic-pill.region-control/label string?)
+(s/def :dynamic-pills.dynamic-pill.region-control/icon (s/nilable string?))
+(s/def :dynamic-pills.dynamic-pill.region-control/tooltip (s/nilable string?))
+(s/def :dynamic-pills.dynamic-pill.region-control/cql-property string?)
+(s/def :dynamic-pills.dynamic-pill.region-control/data-type #{"string" "number"})
+(s/def :dynamic-pills.dynamic-pill.region-control/controller-type #{"slider" "dropdown" "multi-dropdown"})
+(s/def :dynamic-pills.dynamic-pill.region-control/default-value
+  (s/or :multi-dropdown (s/coll-of (s/or string? number?) :kind vector?)
+        :default        (s/nilable (s/or string? number?))))
+(s/def :dynamic-pills.dynamic-pill/region-control
+  (s/keys :req-un [:dynamic-pills.dynamic-pill.region-control/label
+                   :dynamic-pills.dynamic-pill.region-control/icon
+                   :dynamic-pills.dynamic-pill.region-control/tooltip
+                   :dynamic-pills.dynamic-pill.region-control/cql-property
+                   :dynamic-pills.dynamic-pill.region-control/data-type
+                   :dynamic-pills.dynamic-pill.region-control/controller-type
+                   :dynamic-pills.dynamic-pill.region-control/default-value]))
 (s/def :dynamic-pills/dynamic-pill
   (s/keys :req-un [:dynamic-pills.dynamic-pill/id
                    :dynamic-pills.dynamic-pill/text
                    :dynamic-pills.dynamic-pill/icon
                    :dynamic-pills.dynamic-pill/tooltip
-                   :dynamic-pills.dynamic-pill/layers]))
+                   :dynamic-pills.dynamic-pill/layers
+                   :dynamic-pills.dynamic-pill/region-control]))
 (s/def :dynamic-pills/dynamic-pills (s/coll-of :dynamic-pills/dynamic-pill :kind vector?))
 
 (s/def :dynamic-pills.state/active? (s/nilable boolean?))
+(s/def :dynamic-pills.state.region-control/value
+  (s/or :multi-dropdown (s/coll-of (s/or string? number?) :kind vector?)
+        :default        (s/nilable (s/or string? number?))))
+(s/def :dynamic-pills.state/region-control
+  (s/keys :req-un [:dynamic-pills.state.region-control/value]))
 (s/def :dynamic-pills/state
-  (s/keys :req-un [:dynamic-pills.state/active?]))
+  (s/keys :req-un [:dynamic-pills.state/active?
+                   :dynamic-pills.state/region-control]))
 (s/def :dynamic-pills/states (s/map-of :dynamic-pills.dynamic-pill/id :dynamic-pills/state))
+
+; Dynamic pill async data
+(s/def :dynamic-pills.async-data.region-control/value :dynamic-pills.state.region-control/value)
+(s/def :dynamic-pills.async-data.region-control/values
+  (s/coll-of :dynamic-pills.async-data.region-control/value :kind vector?))
+(s/def :dynamic-pills.async-data/region-control
+  (s/keys :req-un [:dynamic-pills.async-data.region-control/values]))
+(s/def :dynamic-pills/async-data
+  (s/keys :req-un [:dynamic-pills.async-data/region-control]))
+(s/def :dynamic-pills/async-datas
+  (s/map-of :dynamic-pills.dynamic-pill/id :dynamic-pills/async-data))
 
 (s/def ::dynamic-pills
   (s/keys :req-un [:dynamic-pills/dynamic-pills
-                   :dynamic-pills/states]))
+                   :dynamic-pills/states
+                   :dynamic-pills/async-datas]))
 
 (s/def :seamap/app-state
   (s/keys :req-un [::config
