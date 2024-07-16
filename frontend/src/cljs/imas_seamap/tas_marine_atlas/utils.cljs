@@ -104,6 +104,7 @@
     [:map :rich-layers :layer-lookup]
     [:story-maps :featured-maps]
     [:dynamic-pills :dynamic-pills]
+    [:dynamic-pills :async-datas]
     :habitat-colours
     :habitat-titles
     :sorting

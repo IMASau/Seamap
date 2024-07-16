@@ -85,7 +85,8 @@
                      :right-sidebars        []
                      :open-pill             nil}
    :dynamic-pills {:dynamic-pills []
-                   :states        {}}
+                   :states        {}
+                   :async-datas   {}}
    :autosave?       false
    :config          {:url-paths {:layer                 "layers/"
                                  :base-layer            "baselayers/"

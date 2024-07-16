@@ -279,6 +279,7 @@
     [:state-of-knowledge :region-reports]
     [:story-maps :featured-maps]
     [:dynamic-pills :dynamic-pills]
+    [:dynamic-pills :async-datas]
     :habitat-colours
     :habitat-titles
     :sorting
@@ -351,7 +352,7 @@
        ")"))
     (when value (str cql-property "=" (when (= data-type "string") "'") value (when (= data-type "string") "'")))))
 
-(defn- ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} db]
+(defn ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} db]
   (let [value (get-in db [:dynamic-pills :states id :region-control :value])]
     (->
      dynamic-pill
