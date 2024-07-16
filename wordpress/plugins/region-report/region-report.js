@@ -1183,6 +1183,12 @@ class RegionReport {
                                         target="_blank"
                                         class="annotations-link"
                                     >
+                                        <h4>
+                                            Dominant Annotations for the Region <span class="tooltip-parent">
+                                                <i class="fa fa-info-circle"></i>
+                                                <div class="tooltip">Publicly available, finalised annotations from imagery scored in this region</div>
+                                            </span>
+                                        </h4>
                                         ${annotationsData}
                                     </a>`
                                 : `

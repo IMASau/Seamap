@@ -67,7 +67,7 @@ body {
         @media print { max-width: 100%; }
     }
     
-    h2, h3 {
+    h2, h3, h4 {
         margin: 0;
         font-family: $headings-font-family;
         color: var(--color-2);
@@ -85,6 +85,12 @@ body {
         font-size: 20px;
         margin-bottom: 20px;
     }
+
+    h4 {
+        font-size: 18px;
+        margin-bottom: 0;
+    }
+
     table tbody>tr:nth-child(odd)>td, table tbody>tr:nth-child(odd)>th, table tbody tr:hover>td, table tbody tr:hover>th { background-color: initial; }
     table caption+thead tr:first-child td, table caption+thead tr:first-child th, table colgroup+thead tr:first-child td, table colgroup+thead tr:first-child th, table thead:first-child tr:first-child td, table thead:first-child tr:first-child th { border: 0; }
 
@@ -420,7 +426,10 @@ body {
                 flex-direction: row;
                 gap: 16px;
                 height: 410px;
-                >* { flex: 1; }
+                >* {
+                    flex: 1;
+                    min-width: 0;
+                }
 
                 .images {
                     display: flex;
@@ -472,6 +481,13 @@ body {
                 .annotations-link {
                     color: initial;
                     text-decoration: none;
+
+                    .tally-chart .tally-chart-name {
+                        font-size: 13px;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                    }
                 }
             }
         }
@@ -665,9 +681,9 @@ body {
             border-radius: 2px;
             padding: 8px 9.6px;
             white-space: nowrap;
-            bottom: -100%;
+            bottom: 0;
             left: 50%;
-            transform: translate(-50%, calc(-100% - 6px));
+            transform: translate(-50%, calc(-100% + 6px));
             box-shadow: 0 0 0 1px rgb(16 22 26 / 10%), 0 2px 4px rgb(16 22 26 / 20%), 0 8px 24px rgb(16 22 26 / 20%);
             opacity: 0;
             pointer-events: none;
