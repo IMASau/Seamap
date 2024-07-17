@@ -43,6 +43,10 @@ class RichLayerControlInline(admin.TabularInline):
     extra = 0
 
 class RichLayerAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        return super(RichLayerAdmin, self).get_queryset(request) \
+            .select_related('layer')
+
     inlines = (RichLayerAlternateViewInline, RichLayerTimelineInline, RichLayerControlInline,)
     autocomplete_fields = ('layer',)
 admin.site.register(models.RichLayer, RichLayerAdmin)

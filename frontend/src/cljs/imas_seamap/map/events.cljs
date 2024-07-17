@@ -500,8 +500,11 @@
         
         layer-lookup
         (reduce
-         (fn [layer-lookup {:keys [id layer-id]}]
-           (assoc layer-lookup layer-id id))
+         (fn [layer-lookup {:keys [id layer-id] :as rich-layer}]
+           (let [children (rich-layer->children rich-layer)]
+             (as-> layer-lookup layer-lookup
+               (assoc layer-lookup layer-id id)
+               (reduce #(assoc %1 %2 id) layer-lookup children))))
          {} rich-layers)]
     (->
      db
