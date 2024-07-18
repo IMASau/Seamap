@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'catalogue',
     'habitat',
     'sql',
+    'carbonabatementsidebar',
 )
 
 MIDDLEWARE = (
@@ -127,8 +128,10 @@ CORS_ORIGIN_WHITELIST = []
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = 'static/'
-# Just need this to keep it quiet; it isn't used:
 STATIC_ROOT = 'static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'carbonabatementsidebar/frontend/dist'),
+]
 
 SQL_ROOT = os.path.join(BASE_DIR, "../database")
 

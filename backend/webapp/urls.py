@@ -12,6 +12,7 @@ import catalogue.viewsets as viewsets
 
 from catalogue.views import SaveStateView
 import habitat.viewsets as habitat_viewsets
+import carbonabatementsidebar.views
 
 router = DefaultRouter()
 router.register(r'classifications', viewsets.ClassificationViewset)
@@ -44,6 +45,7 @@ urlpatterns = [
     re_path(r'^api/', include(router.urls)),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
+    re_path(r'^carbonabatementsidebar', carbonabatementsidebar.views.carbon_abatement_sidebar, name='carbon_abatement_sidebar')
 ] \
 + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) \
 + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
