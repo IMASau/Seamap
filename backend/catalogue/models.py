@@ -296,6 +296,7 @@ class DynamicPill(models.Model):
     text = models.CharField(max_length=255)
     icon = EmptyStringToNoneField(max_length=255, null=True, blank=True)
     tooltip = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    url = models.URLField(max_length=255)
     layers = models.ManyToManyField(Layer)
     # consider extracting control into a separate model, and adding as a one-to-one field?
     region_control_cql_property = models.CharField(max_length=255)

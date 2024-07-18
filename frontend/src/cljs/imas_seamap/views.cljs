@@ -875,14 +875,16 @@
 (defmethod right-drawer :dynamic-pill
   [{{:keys [dynamic-pill-id]} :params}]
   (let [{dynamic-pills :mapped} @(re-frame/subscribe [:dynamic-pills])
-        {:keys [text icon] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)]
+        {:keys [text icon cql-filter url] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)]
     [components/drawer
      {:title       [:<> [b/icon {:icon icon}] text]
       :position    "right"
       :size        "368px"
       :isOpen      true
       :onClose     #(re-frame/dispatch [:dynamic-pill/active dynamic-pill false])
-      :hasBackdrop false}]))
+      :className   "dynamic-pill-drawer"
+      :hasBackdrop false}
+     (when url [:iframe {:src (str url (when cql-filter (str "?cql_filter=" cql-filter)))}])]))
 
 (defmethod right-drawer :default []
   nil)

@@ -87,7 +87,7 @@ class DynamicPillAdmin(admin.ModelAdmin):
         (
             None,
             {
-                'fields': ['text','icon','tooltip', 'layers']
+                'fields': ['text','icon','tooltip', 'url', 'layers']
             }
         ),
         (

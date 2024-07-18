@@ -108,3 +108,12 @@ $floating-pill-height: 32px;
 	flex: 1;
 	font-size: 13px;
 }
+
+.dynamic-pill-drawer > .drawer-children {
+    display: flex;
+    flex-direction: column;
+	> iframe {
+		height: 100%;
+		border: none;
+	}
+}
