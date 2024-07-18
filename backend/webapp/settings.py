@@ -126,9 +126,9 @@ CORS_ORIGIN_WHITELIST = []
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 # Just need this to keep it quiet; it isn't used:
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = 'static/'
 
 SQL_ROOT = os.path.join(BASE_DIR, "../database")
 

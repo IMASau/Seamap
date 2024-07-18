@@ -44,4 +44,6 @@ urlpatterns = [
     re_path(r'^api/', include(router.urls)),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] \
++ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) \
++ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
