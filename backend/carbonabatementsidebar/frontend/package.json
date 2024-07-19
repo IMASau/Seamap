@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && mv ./dist/.vite ./dist/vite && mkdir -p ../static/carbonabatementsidebar && cp -r ./dist/. ../static/carbonabatementsidebar",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

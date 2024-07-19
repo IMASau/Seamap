@@ -10,11 +10,11 @@ def carbon_abatement_sidebar(request):
     context = {
         'STATIC_URL': settings.STATIC_URL
     }
-    if not settings.DEBUG:
+    if settings.DEBUG:
         context.update({'DEBUG': True})
         return render(request, 'index.html', context)
     else:
-        with open(f'{settings.BASE_DIR}/carbonabatementsidebar/frontend/dist/carbonabatementsidebar/.vite/manifest.json') as f:
+        with open(f'{settings.STATIC_ROOT}/carbonabatementsidebar/vite/manifest.json') as f:
             manifest = json.load(f)
         context.update({
             'main_js': f'carbonabatementsidebar/{manifest["src/main.tsx"]["file"]}',

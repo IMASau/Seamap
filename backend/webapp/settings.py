@@ -129,9 +129,6 @@ CORS_ORIGIN_WHITELIST = []
 
 STATIC_URL = 'static/'
 STATIC_ROOT = 'static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'carbonabatementsidebar/frontend/dist'),
-]
 
 SQL_ROOT = os.path.join(BASE_DIR, "../database")
 
