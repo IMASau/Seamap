@@ -111,7 +111,6 @@ jobs:
       - run: tar -c -z -v -C resources/public -f frontend.tgz .
 
       - name: Upload Release Asset
-        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -120,3 +119,40 @@ jobs:
           asset_path: "frontend/frontend.tgz"
           asset_name: frontend.tgz
           asset_content_type: application/gzip
+
+  build-carbon-abatement-sidebar:
+    name: Build Carbon Abatement Sidebar
+    needs: create-release
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js 20
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'yarn'
+        cache-dependency-path: 'backend/carbonabatementsidebar/frontend/yarn.lock'
+
+    - name: Install Dependencies and Build
+      working-directory: 'backend/carbonabatementsidebar/frontend'
+      run: |
+        yarn install
+        yarn build
+
+    - name: Ensure static archive is group-writeable for safe extraction
+      run: chmod -R g+w backend/carbonabatementsidebar/static
+
+    - name: Zip Static Files
+      run: tar -czv -C backend/carbonabatementsidebar/static -f backend/carbonabatementsidebar/static.tgz .
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: backend/carbonabatementsidebar/static.tgz
+        asset_name: carbonabatementsidebar/static.tgz
+        asset_content_type: application/gzip
