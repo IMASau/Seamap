@@ -2,11 +2,13 @@ from django.conf import settings
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.clickjacking import xframe_options_exempt
+from csp.decorators import csp_update
 import json
 import os
 
 @never_cache
 @xframe_options_exempt
+@csp_update(FRAME_ANCESTORS=settings.CORS_ORIGIN_WHITELIST)
 def carbon_abatement_sidebar(request):
     context = {
         'STATIC_URL': settings.STATIC_URL
