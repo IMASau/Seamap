@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.utils
   (:require [cemerick.url :as url]
-            [clojure.set :refer [index rename-keys]]
+            [clojure.set :refer [index rename-keys] :as set]
             [clojure.string :as string]
             [clojure.walk :refer [keywordize-keys]]
             [goog.crypt.base64 :as b64]
@@ -201,7 +201,14 @@
 
 (defn append-query-params
   [url params]
-  (let [params (map (fn [[key val]] (str (name key) "=" val)) params)
+  (let [params (map
+                (fn [[key val]]
+                  (str
+                   (name key) "="
+                   (if (sequential? val)
+                     (js/JSON.stringify (clj->js val))
+                     val)))
+                params)
         params (apply str (interpose "&" params))]
     (str url "?" params)))
 
@@ -351,22 +358,3 @@
         (interpose " OR " (map #(str cql-property "=" (when (= data-type "string") "'") % (when (= data-type "string") "'")) value)))
        ")"))
     (when value (str cql-property "=" (when (= data-type "string") "'") value (when (= data-type "string") "'")))))
-
-(defn ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} db]
-  (let [value (get-in db [:dynamic-pills :states id :region-control :value])]
-    (->
-     dynamic-pill
-     (merge (get-in db [:dynamic-pills :states id]))
-     (merge (get-in db [:dynamic-pills :async-datas id]))
-     (assoc
-      :region-control
-      (->
-       region-control
-       (merge (get-in db [:dynamic-pills :states id :region-control]))
-       (merge (get-in db [:dynamic-pills :async-datas id :region-control]))))
-     (assoc
-      :expanded?
-      (=
-       (get-in db [:display :open-pill])
-       (str "dynamic-pill-" id)))
-     (assoc :cql-filter (control->cql-filter region-control value)))))

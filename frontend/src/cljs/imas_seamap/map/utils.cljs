@@ -6,7 +6,7 @@
             [clojure.string :as string]
             [clojure.set :as set]
             [goog.dom.xml :as gxml]
-            [imas-seamap.utils :refer [merge-in select-values first-where url? ->dynamic-pill control->cql-filter]]
+            [imas-seamap.utils :refer [merge-in select-values first-where url? control->cql-filter ids->layers]]
             ["proj4" :as proj4]
             [reagent.dom.server :refer [render-to-string]]
             [imas-seamap.interop.leaflet :as leaflet]
@@ -549,7 +549,34 @@
        (some #{id} (set layers)))
      dynamic-pills)))
 
-(defn- debug [obj] (do (js/console.log obj) obj))
+(defn ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} {{:keys [active-layers layers]} :map :as db}]
+  (let [value (get-in db [:dynamic-pills :states id :region-control :value])
+        active-layers
+        (ids->layers
+         (set/intersection
+          (set (:layers dynamic-pill))
+          (set (map :id active-layers)))
+         layers)
+        displayed-layers
+        (map #(rich-layer->displayed-layer % db) active-layers)]
+    (->
+     dynamic-pill
+     (merge (get-in db [:dynamic-pills :states id]))
+     (merge (get-in db [:dynamic-pills :async-datas id]))
+     (assoc
+      :region-control
+      (->
+       region-control
+       (merge (get-in db [:dynamic-pills :states id :region-control]))
+       (merge (get-in db [:dynamic-pills :async-datas id :region-control]))))
+     (assoc
+      :expanded?
+      (=
+       (get-in db [:display :open-pill])
+       (str "dynamic-pill-" id)))
+     (assoc :active-layers active-layers)
+     (assoc :displayed-layers displayed-layers)
+     (assoc :cql-filter (control->cql-filter region-control value)))))
 
 (defn layer->cql-filter
   "Returns the CQL filter for a layer."

@@ -12,7 +12,7 @@
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer [handler-fn handler-dispatch first-where] :include-macros true]
+            [imas-seamap.utils :refer [handler-fn handler-dispatch first-where append-query-params] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
@@ -875,7 +875,14 @@
 (defmethod right-drawer :dynamic-pill
   [{{:keys [dynamic-pill-id]} :params}]
   (let [{dynamic-pills :mapped} @(re-frame/subscribe [:dynamic-pills])
-        {:keys [text icon cql-filter url] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)]
+        {:keys [text icon cql-filter url displayed-layers region-control] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)
+        url
+        (when url
+          (append-query-params
+           url
+           {:cql_property  (:cql-property region-control)
+            :cql_filter    cql-filter
+            :layers        (map :layer_name displayed-layers)}))]
     [components/drawer
      {:title       [:<> [b/icon {:icon icon}] text]
       :position    "right"
@@ -884,7 +891,7 @@
       :onClose     #(re-frame/dispatch [:dynamic-pill/active dynamic-pill false])
       :className   "dynamic-pill-drawer"
       :hasBackdrop false}
-     (when url [:iframe {:src (str url (when cql-filter (str "?cql_filter=" cql-filter)))}])]))
+     (when url [:iframe {:src url}])]))
 
 (defmethod right-drawer :default []
   nil)
