@@ -875,14 +875,16 @@
 (defmethod right-drawer :dynamic-pill
   [{{:keys [dynamic-pill-id]} :params}]
   (let [{dynamic-pills :mapped} @(re-frame/subscribe [:dynamic-pills])
-        {:keys [text icon cql-filter url displayed-layers region-control] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)
+        {:keys [text icon url displayed-layers region-control] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)
         url
         (when url
           (append-query-params
            url
-           {:cql_property  (:cql-property region-control)
-            :cql_filter    cql-filter
-            :layers        (map :layer_name displayed-layers)}))]
+           (merge
+            {:region-type (:cql-property region-control)
+             :layers      (map :layer_name displayed-layers)}
+            (when (seq (:value region-control))
+              {:regions (:value region-control)}))))]
     [components/drawer
      {:title       [:<> [b/icon {:icon icon}] text]
       :position    "right"
@@ -891,7 +893,7 @@
       :onClose     #(re-frame/dispatch [:dynamic-pill/active dynamic-pill false])
       :className   "dynamic-pill-drawer"
       :hasBackdrop false}
-     (when url [:iframe {:src url}])]))
+     (when (and (seq displayed-layers) url) [:iframe {:src url}])]))
 
 (defmethod right-drawer :default []
   nil)
