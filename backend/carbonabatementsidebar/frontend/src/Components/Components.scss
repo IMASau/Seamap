@@ -1,0 +1,31 @@
+.abatement-section {
+    >.abatement-section-heading {
+        display: flex;
+        flex: 0 0;
+        align-items: center;
+        background-color: var(--color-5);
+        color: var(--color-2);
+        gap: 4px;
+        min-height: 54px;
+        padding-left: 12px;
+        font-family: var(--headings-font-family);
+
+        >h1 {
+            flex: 1;
+            font-size: 20px;
+            color: inherit;
+
+            &::before {
+                margin-right: 6px;
+            }
+        }
+
+        >.bp5-icon {
+            aspect-ratio: 1;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+}
