@@ -1,4 +1,5 @@
 import { RegionType, carbonPrices, CarbonPrice, abatements, Abatement, } from '../types';
+import CarbonAbatementRegion from '../CarbonAbatementSection/CarbonAbatementSection';
 
 import './App.scss'
 
@@ -32,7 +33,16 @@ export default function App() {
 
     return (
         <>
-            Testing
+            {layers.map(layer => {
+                const abatement = layerToAbatement(layer);
+                const carbonPrice = layerToCarbonPrice(layer);
+
+                if (abatement === "CarbonAbatement") {
+                    return <CarbonAbatementRegion key={layer} regionType={regionType} carbonPrice={carbonPrice} regions={regions} />
+                } else {
+                    throw new Error(`Unknown abatement type: '${abatement}'`);
+                }
+            })}
         </>
     )
 }
