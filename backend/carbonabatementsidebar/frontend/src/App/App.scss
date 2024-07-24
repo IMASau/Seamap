@@ -1,3 +1,99 @@
+@font-face {
+    font-family: "Poppins";
+    src: url("../font/Poppins/Poppins-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Poppins";
+    src: url("../font/Poppins/Poppins-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+}
+
+$seamap-color-1: #0e0e1e;
+$seamap-color-2: rgb(28, 50, 98);
+$seamap-color-3: rgb(45, 101, 154);
+$seamap-color-4: rgb(84, 142, 196);
+$seamap-color-5: rgb(126, 186, 231);
+$seamap-color-6: rgb(200, 220, 240);
+$seamap-color-7: white;
+$seamap-color-8: #5f9acb;
+
+$seamap-color-2-darker: rgb(25, 44, 86);
+$seamap-color-3-darker: rgb(39, 91, 141);
+
+:root {
+    --color-1: #{$seamap-color-1};
+    --color-2: #{$seamap-color-2};
+    --color-3: #{$seamap-color-3};
+    --color-4: #{$seamap-color-4};
+    --color-5: #{$seamap-color-5};
+    --color-6: #{$seamap-color-6};
+    --color-7: #{$seamap-color-7};
+    --color-8: #{$seamap-color-8};
+
+    --color-2-darker: #{$seamap-color-2-darker};
+    --color-3-darker: #{$seamap-color-3-darker};
+
+    --headings-font-family: "Poppins", "system-ui", sans-serif;
+}
+
 body {
-    background-color: red;
+    margin: 0;
+}
+
+:focus, :focus-visible { outline: none !important; }
+
+h1, h2, h3, h4, h5 {
+    font-weight: inherit;
+}
+
+table {
+    border-collapse: collapse;
+}
+table, th, td {
+    border: 1px solid;
+}
+
+body {
+    .bp5-tab {
+        color: var(--color-2);
+        font-size: 14px;
+        font-family: var(--headings-font-family);
+        font-weight: 600;
+
+        >*::before, >.bp5-icon:first-child {
+            margin-right: 3px;
+        }
+
+        &[aria-selected="true"],
+        &:not([aria-disabled="true"]):hover {
+            color: var(--color-3-darker);
+        }
+    }
+
+    .bp5-tab-list {
+        align-items: stretch;
+        height: 40px;
+        column-gap: 0;
+
+        >* {
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            &:not(:last-child) { margin-right: initial; }
+        }
+
+        .bp5-tab-indicator-wrapper .bp5-tab-indicator {
+            background-color: var(--color-3-darker);
+            height: 2px;
+            margin: 0 8px 8px 8px;
+        }
+    }
+
+    .bp5-tab-panel {
+        margin: 0;
+    }    
 }
