@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Spinner, Tab, Tabs } from '@blueprintjs/core';
 
 import { RegionType, CarbonPrice, CarbonAbatement } from '../types';
-import { AbatementSection } from '../Components/Components';
+import { AbatementSection, AbatementTable } from '../Components/Components';
 
 
 export default function CarbonAbatementSection({ regionType, carbonPrice, regions }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[]}) {
@@ -33,7 +33,16 @@ export default function CarbonAbatementSection({ regionType, carbonPrice, region
                             title="Breakdown"
                             panel={
                                 loaded
-                                    ? <>Testing</>
+                                    ? <AbatementTable
+                                        regionType={regionType}
+                                        abatementData={abatementData}
+                                        metricHeading="Carbon (MtCO₂)"
+                                        metricToString={row =>
+                                            row.carbon_abatement.toLocaleString(
+                                                undefined,
+                                                { minimumFractionDigits: 2, maximumFractionDigits: 2}
+                                            )
+                                        } />
                                     : <Spinner />
                             }
                         />

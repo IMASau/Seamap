@@ -28,4 +28,46 @@
             align-items: center;
         }
     }
+
+    >.abatement-section-content>.bp5-tabs>.bp5-tab-panel {
+        margin: 0 8px 20px 8px;
+
+        >.abatement-table {
+            border: 0;
+            border-collapse: separate;
+            font-size: 11px;
+            border-spacing: 0;
+            margin: 0;
+            width: 100%;
+
+            thead {
+                position: sticky;
+                top: 0;
+                background-color: var(--color-7);
+            }
+
+            th {
+                vertical-align: bottom;
+                white-space: nowrap;
+                font-weight: bold;
+            }
+
+            td {
+                vertical-align: top;
+                overflow-wrap: anywhere;
+            }
+
+            td, th {
+                border: 0;
+                font-size: inherit;
+                padding: 4px 6px 4px 0;
+                text-align: left;
+            }
+
+            tr:not(:last-child)>td,
+            th {
+                border-bottom: 1px solid rgba(0,0,0,.15);
+            }
+        }
+    }
 }
