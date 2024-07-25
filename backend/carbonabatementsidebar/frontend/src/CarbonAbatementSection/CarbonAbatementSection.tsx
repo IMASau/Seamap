@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Spinner, Tab, Tabs } from '@blueprintjs/core';
 
 import { RegionType, CarbonPrice, CarbonAbatement } from '../types';
-import { AbatementSection, AbatementTable } from '../Components/Components';
+import { AbatementChart, AbatementSection, AbatementTable } from '../Components/Components';
 
 
 export default function CarbonAbatementSection({ regionType, carbonPrice, regions }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[]}) {
@@ -27,7 +27,7 @@ export default function CarbonAbatementSection({ regionType, carbonPrice, region
 
     return (
         <AbatementSection title="Carbon Abatement">
-            <Tabs id="carbon-abatement-tabs">
+            <Tabs id="carbon-abatement-tabs" onChange={() => setTimeout(() => window.dispatchEvent(new Event('resize')), 0)}> {/* Hack for Vega chart resizing */}
                         <Tab
                             id="breakdown"
                             title="Breakdown"
@@ -51,7 +51,10 @@ export default function CarbonAbatementSection({ regionType, carbonPrice, region
                             title="Chart"
                             panel={
                                 loaded
-                                    ? <>Chart in progress...</>
+                            ? <AbatementChart
+                                abatementData={abatementData}
+                                metricField="carbon_abatement"
+                            />
                                     : <Spinner />
                             }
                         />
