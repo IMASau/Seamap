@@ -1,5 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import 'core-js/actual/structured-clone';
+
 import App from './App/App.tsx'
 
 import '@blueprintjs/core/lib/css/blueprint.css';

@@ -11,8 +11,12 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^5.10.5",
+    "core-js": "^3.37.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-vega": "^7.6.0",
+    "vega": "^5.30.0",
+    "vega-lite": "^5.19.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
