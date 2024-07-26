@@ -438,7 +438,7 @@
 
 (defn update-categories [db [_ categories]]
   (let [categories           (mapv #(update % :name (comp keyword string/lower-case)) categories)
-        categories           (sort-by-sort-key categories)]
+        categories           (vec (sort-by-sort-key categories))]
     (-> db
         (assoc-in [:map :categories] categories)
         (assoc-in [:sorting :category] (->sort-map categories)))))

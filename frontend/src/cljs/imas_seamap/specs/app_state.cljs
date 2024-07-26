@@ -31,7 +31,7 @@
 (s/def :map.layer/id integer?)
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
-(s/def :map.layer/legend_url string?)
+(s/def :map.layer/legend_url (s/nilable string?))
 (s/def :map.layer/layer_name string?)
 (s/def :map.layer/detail_layer (s/nilable string?))
 (s/def :map.layer/category :map.category/name)
@@ -45,7 +45,6 @@
                    :map.layer.bounding_box/east
                    :map.layer.bounding_box/north]))
 (s/def :map.layer/metadata_url string?)
-(s/def :map.layer/description string?)
 (s/def :map.layer/server_type keyword?)
 (s/def :map.layer/info_format_type integer?)
 (s/def :map.layer/keywords (s/nilable string?))
@@ -60,7 +59,6 @@
                    :map.layer/category
                    :map.layer/bounding_box
                    :map.layer/metadata_url
-                   :map.layer/description
                    :map.layer/server_type
                    :map.layer/info_format_type
                    :map.layer/keywords
@@ -130,7 +128,7 @@
 (s/def :map/hidden-layers (s/coll-of :map/layer
                                      :kind set?))
 
-(s/def :map/preview-layer :map/layer)
+(s/def :map/preview-layer (s/nilable :map/layer))
 
 (s/def :map.layer.organisation/name string?)
 (s/def :map.layer.organisation/logo (s/nilable string?))
@@ -163,8 +161,8 @@
 (s/def :map/keyed-layers
   (s/map-of keyword?
             (s/or
-             :id    integer?
-             :layer :map/layer)))
+             :ids    (s/coll-of integer? :kind vector?)
+             :layers (s/coll-of :map/layer :kind vector?))))
 
 ; Rich layer data
 (s/def :map.rich-layers.rich-layer/id integer?)
@@ -173,21 +171,21 @@
 (s/def :map.rich-layers.rich-layer/slider-label string?)
 (s/def :map.rich-layers.rich-layer/icon string?)
 (s/def :map.rich-layers.rich-layer/tooltip string?)
-(s/def :map.rich-layers.rich-layer.alternate-view/layer :map/layer-id)
+(s/def :map.rich-layers.rich-layer.alternate-view/layer :map.layer/id)
 (s/def :map.rich-layers.rich-layer.alternate-view/sort_key (s/nilable string?))
 (s/def :map.rich-layers.rich-layer/alternate-view
   (s/keys :req-un [:map.rich-layers.rich-layer.alternate-view/layer
                    :map.rich-layers.rich-layer.alternate-view/sort_key]))
 (s/def :map.rich-layers.rich-layer/alternate-views
   (s/coll-of :map.rich-layers.rich-layer/alternate-views :kind vector?))
-(s/def :map.rich-layers.rich-layer.timeline1/layer :map/layer-id)
+(s/def :map.rich-layers.rich-layer.timeline1/layer :map.layer/id)
 (s/def :map.rich-layers.rich-layer.timeline1/value number?)
 (s/def :map.rich-layers.rich-layer.timeline1/label string?)
 (s/def :map.rich-layers.rich-layer/timeline1
   (s/keys :req-un [:map.rich-layers.rich-layer.timeline1/layer
                    :map.rich-layers.rich-layer.timeline1/value
                    :map.rich-layers.rich-layer.timeline1/label]))
-(s/def :map.rich-layers.rich-layer/timelines
+(s/def :map.rich-layers.rich-layer/timeline
   (s/coll-of :map.rich-layers.rich-layer/timeline1 :kind vector?))
 (s/def :map.rich-layers.rich-layer.control/label string?)
 (s/def :map.rich-layers.rich-layer.control/icon (s/nilable string?))
@@ -196,8 +194,8 @@
 (s/def :map.rich-layers.rich-layer.control/data-type #{"string" "number"})
 (s/def :map.rich-layers.rich-layer.control/controller-type #{"slider" "dropdown" "multi-dropdown"})
 (s/def :map.rich-layers.rich-layer.control/default-value
-  (s/or :multi-dropdown (s/coll-of (s/or string? number?) :kind vector?)
-        :default        (s/nilable (s/or string? number?))))
+  (s/or :multi-dropdown (s/coll-of (s/or :string string? :number number?) :kind vector?)
+        :default        (s/nilable (s/or :string string? :number number?))))
 (s/def :map.rich-layers.rich-layer/control
   (s/keys :req-un [:map.rich-layers.rich-layer.control/label
                    :map.rich-layers.rich-layer.control/icon
@@ -217,7 +215,7 @@
                    :map.rich-layers.rich-layer/icon
                    :map.rich-layers.rich-layer/tooltip
                    :map.rich-layers.rich-layer/alternate-views
-                   :map.rich-layers.rich-layer/timelines
+                   :map.rich-layers.rich-layer/timeline
                    :map.rich-layers.rich-layer/controls]))
 (s/def :map.rich-layers/rich-layers
   (s/coll-of :map.rich-layers/rich-layer :kind vector?))
@@ -227,10 +225,10 @@
 (s/def :map.rich-layers.state/alternate-views-selected :map.rich-layers.rich-layer.alternate-view/layer)
 (s/def :map.rich-layers.state/timeline-selected :map.rich-layers.rich-layer.timeline1/layer)
 (s/def :map.rich-layers.state.control/value
-  (s/or :multi-dropdown (s/coll-of (s/or string? number?) :kind vector?)
-        :default        (s/nilable (s/or string? number?))))
+  (s/or :multi-dropdown (s/coll-of (s/or :string string? :number number?) :kind vector?)
+        :default        (s/nilable (s/or :string string? :number number?))))
 (s/def :map.rich-layers.state/control
-  (s/keys :req-un [:map.rich-layers.state.control/value]))
+  (s/keys :opt-un [:map.rich-layers.state.control/value]))
 (s/def :map.rich-layers.state/controls
   (s/map-of :map.rich-layers.rich-layer.control/cql-property :map.rich-layers.state/control))
 (s/def :map.rich-layers/state
@@ -239,7 +237,7 @@
                    :map.rich-layers.state/timeline-selected
                    :map.rich-layers.state/controls]))
 (s/def :map.rich-layers/states
-  (s/map-of :map.rich-layers.rich-layer/id :map.rich-layers.state))
+  (s/map-of :map.rich-layers.rich-layer/id :map.rich-layers/state))
 
 ; Rich layer async data
 (s/def :map.rich-layers.async-data.control/value :map.rich-layers.state.control/value)
@@ -257,7 +255,7 @@
   (s/keys :req-un [:map.rich-layers.async-data/controls
                    :map.rich-layers.async-data/filter-combinations]))
 (s/def :map.rich-layers/async-datas
-  (s/map-of :map.rich-layers.rich-layer/id :map.rich-layers.async-data))
+  (s/map-of :map.rich-layers.rich-layer/id :map.rich-layers/async-data))
 
 ; Rich layer lookup
 (s/def :map.rich-layers/layer-lookup
@@ -325,13 +323,13 @@
 (s/def :transect/habitat ::transect-results-format)
 (s/def :transect/bathymetry ::transect-results-format)
 (s/def :transect/mouse-percentage (s/nilable number?))
-(s/def ::transect (s/keys :req-un [:transect/query :transect/distance :transect/show? :transect/habitat :transect/bathymetry]
-                          :opt-un [:transect/mouse-percentage]))
+(s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]
+                          :opt-un [:transect/mouse-percentage :transect/distance]))
 
 (s/def :display.mouse-pos/x number?)
 (s/def :display.mouse-pos/y number?)
 (s/def :display/mouse-pos
-  (s/nilable (s/keys :req-un [:display.mouse-pos/x
+  (s/nilable (s/keys :opt-un [:display.mouse-pos/x
                               :display.mouse-pos/y])))
 
 ;;; catalogue
@@ -355,11 +353,9 @@
 (s/def :display/drawer-panel
   (s/keys :req-un [:display.drawer-panel/panel
                    :display.drawer-panel/props]))
-(s/def :display/drawer-panels (s/coll-of :display/drawer-panel
-                                         :kind vector?))
 
 (s/def :display.right-sidebar/id string?)
-(s/def :display.right-sidebar/type (s/keys :req-un [:state-of-knowledge :story-map]))
+(s/def :display.right-sidebar/type #{:state-of-knowledge :story-map :dynamic-pill})
 (s/def :display/right-sidebar
   (s/keys :req-un [:display.right-sidebar/id
                    :display.right-sidebar/type]))
@@ -519,12 +515,9 @@
                    :state-of-knowledge.statistics/habitat-observations]))
 
 (s/def :state-of-knowledge/open? boolean?)
-(s/def :state-of-knowledge/pill-open? boolean?)
 (s/def ::state-of-knowledge
   (s/keys :req-un [:state-of-knowledge/boundaries
-                   :state-of-knowledge/statistics
-                   :state-of-knowledge/open?
-                   :state-of-knowledge/pill-open?]))
+                   :state-of-knowledge/statistics]))
 
 
 ;; story-maps
@@ -554,9 +547,9 @@
 (s/def :story-maps/featured-map (s/nilable :story-maps/story-map))
 (s/def :story-maps/open? boolean?)
 (s/def ::story-maps
-  (s/def :req-un [:story-maps/featured-maps
-                  :story-maps/featured-map
-                  :story-maps/open?]))
+  (s/keys :req-un [:story-maps/featured-maps
+                   :story-maps/featured-map
+                   :story-maps/open?]))
 
 
 ;; display
@@ -567,8 +560,6 @@
                    :display/welcome-overlay
                    :display/sidebar
                    :display/left-drawer
-                   :display/state-of-knowledge
-                   :display/drawer-panels
                    :display/right-sidebars
                    :display/open-pill]))
 
@@ -601,8 +592,8 @@
 (s/def :dynamic-pills.dynamic-pill.region-control/data-type #{"string" "number"})
 (s/def :dynamic-pills.dynamic-pill.region-control/controller-type #{"slider" "dropdown" "multi-dropdown"})
 (s/def :dynamic-pills.dynamic-pill.region-control/default-value
-  (s/or :multi-dropdown (s/coll-of (s/or string? number?) :kind vector?)
-        :default        (s/nilable (s/or string? number?))))
+  (s/or :multi-dropdown (s/coll-of (s/or :string string? :number number?) :kind vector?)
+        :default        (s/nilable (s/or :string string? :number number?))))
 (s/def :dynamic-pills.dynamic-pill/region-control
   (s/keys :req-un [:dynamic-pills.dynamic-pill.region-control/label
                    :dynamic-pills.dynamic-pill.region-control/icon
@@ -622,8 +613,8 @@
 
 (s/def :dynamic-pills.state/active? (s/nilable boolean?))
 (s/def :dynamic-pills.state.region-control/value
-  (s/or :multi-dropdown (s/coll-of (s/or string? number?) :kind vector?)
-        :default        (s/nilable (s/or string? number?))))
+  (s/or :multi-dropdown (s/coll-of (s/or :string string? :number number?) :kind vector?)
+        :default        (s/nilable (s/or :string string? :number number?))))
 (s/def :dynamic-pills.state/region-control
   (s/keys :req-un [:dynamic-pills.state.region-control/value]))
 (s/def :dynamic-pills/state
