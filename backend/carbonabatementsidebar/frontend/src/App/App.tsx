@@ -1,5 +1,5 @@
-import { RegionType, carbonPrices, CarbonPrice, abatements, Abatement, } from '../types';
-import CarbonAbatementRegion from '../CarbonAbatementSection/CarbonAbatementSection';
+import { RegionType, carbonPrices, CarbonPrice, abatements, Abatement, Filters, } from '../types';
+import CarbonAbatementSection from '../CarbonAbatementSection/CarbonAbatementSection';
 
 import './App.scss'
 
@@ -30,15 +30,24 @@ export default function App() {
     const regionType: RegionType = urlParams.get('region-type') as RegionType;
     const regions: string[] = JSON.parse(urlParams.get('regions')!);
     const layers: string[] = JSON.parse(urlParams.get('layers')!);
+    const filters: Filters[] = JSON.parse(urlParams.get('filters')!);
 
     return (
         <>
-            {layers.map(layer => {
+            {layers.map((layer, i) => {
                 const abatement = layerToAbatement(layer);
                 const carbonPrice = layerToCarbonPrice(layer);
 
                 if (abatement === "CarbonAbatement") {
-                    return <CarbonAbatementRegion key={layer} regionType={regionType} carbonPrice={carbonPrice} regions={regions} />
+                    return (
+                        <CarbonAbatementSection
+                            key={layer}
+                            regionType={regionType}
+                            carbonPrice={carbonPrice}
+                            regions={regions}
+                            filters={filters[i]}
+                        />
+                    );
                 } else {
                     throw new Error(`Unknown abatement type: '${abatement}'`);
                 }

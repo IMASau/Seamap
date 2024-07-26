@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Spinner, Tab, Tabs } from '@blueprintjs/core';
 
-import { RegionType, CarbonPrice, CarbonAbatement } from '../types';
+import { RegionType, CarbonPrice, CarbonAbatement, Filters } from '../types';
 import { AbatementChart, AbatementScenarioMessage, AbatementSection, AbatementTable } from '../Components/Components';
 
 
@@ -24,7 +24,7 @@ function carbonPriceToScenario(carbonPrice: CarbonPrice): string {
 }
 
 
-export default function CarbonAbatementSection({ regionType, carbonPrice, regions }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[] }) {
+export default function CarbonAbatementSection({ regionType, carbonPrice, regions, filters }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], filters: Filters }) {
     const [abatementData, setAbatementData] = useState<CarbonAbatement[]>([]);
     const [loaded, setLoaded] = useState(false);
 
@@ -34,6 +34,7 @@ export default function CarbonAbatementSection({ regionType, carbonPrice, region
             url.searchParams.append('carbon-price', carbonPrice);
             url.searchParams.append('region-type', regionType);
             if (regions) url.searchParams.append('regions', JSON.stringify(regions));
+            Object.entries(filters).forEach(([k, v]) => url.searchParams.append(k, v.toString()));
 
             const response = await fetch(url);
             const data = await response.json();

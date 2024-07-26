@@ -434,6 +434,12 @@
      default-value
      (when (= controller-type "slider") (apply max values)))))
 
+(defn control->value-map
+  "Returns a map of the control's cql-property to its value."
+  [{:keys [cql-property] :as control} rich-layer db]
+  (let [value (control->value control rich-layer db)]
+    {cql-property value}))
+
 (defn control-is-default-value? [{:keys [cql-property controller-type default-value] :as control} {:keys [id] :as rich-layer} db]
   (let [value  (control->value control rich-layer db)
         values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])]
@@ -471,6 +477,17 @@
      :value  value
      :is-default-value? (control-is-default-value? control rich-layer db)
      :cql-filter (control->cql-filter control value))))
+
+(defn rich-layer->controls-value-map
+  "Returns a map of the rich layer's controls' CQL propeties to their values.
+
+   * `rich-layer: :map.rich-layers/rich-layer`: Rich layer to get the controls from
+   * `db: :seamap/app-state`: Seamap app state
+
+   Example: `rich-layer` -> `{\"cql-property1\" 100 \"cql-property2\" 200}`"
+  [rich-layer db]
+  (s/assert :map.rich-layers/rich-layer rich-layer)
+  (apply merge (map #(control->value-map % rich-layer db) (:controls rich-layer))))
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
@@ -558,7 +575,8 @@
           (set (map :id active-layers)))
          layers)
         displayed-layers
-        (map #(rich-layer->displayed-layer % db) active-layers)]
+        (map #(rich-layer->displayed-layer % db) active-layers)
+        displayed-rich-layer-filters (mapv #(rich-layer->controls-value-map (layer->rich-layer % db) db) displayed-layers)]
     (->
      dynamic-pill
      (merge (get-in db [:dynamic-pills :states id]))
@@ -576,7 +594,8 @@
        (str "dynamic-pill-" id)))
      (assoc :active-layers active-layers)
      (assoc :displayed-layers displayed-layers)
-     (assoc :cql-filter (control->cql-filter region-control value)))))
+     (assoc :cql-filter (control->cql-filter region-control value))
+     (assoc :displayed-rich-layer-filters displayed-rich-layer-filters))))
 
 (defn layer->cql-filter
   "Returns the CQL filter for a layer."

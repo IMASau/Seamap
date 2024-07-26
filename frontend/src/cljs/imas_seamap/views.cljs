@@ -875,14 +875,15 @@
 (defmethod right-drawer :dynamic-pill
   [{{:keys [dynamic-pill-id]} :params}]
   (let [{dynamic-pills :mapped} @(re-frame/subscribe [:dynamic-pills])
-        {:keys [text icon url displayed-layers region-control] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)
+        {:keys [text icon url displayed-layers region-control displayed-rich-layer-filters] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)
         url
         (when url
           (append-query-params
            url
            (merge
             {:region-type (:cql-property region-control)
-             :layers      (map :layer_name displayed-layers)}
+             :layers      (map :layer_name displayed-layers)
+             :filters     displayed-rich-layer-filters}
             (when (seq (:value region-control))
               {:regions (:value region-control)}))))]
     [components/drawer

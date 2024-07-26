@@ -331,9 +331,7 @@
     [components/select
      {:value        (filterv #(some #{(:value %)} (set value)) values)
       :options      values
-      :onChange     #(do
-                       (js/console.log %)
-                       (re-frame/dispatch [:map.rich-layer/control-selected rich-layer control (mapv :value %)]))
+      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected rich-layer control (mapv :value %)])
       :isSearchable true
       :isClearable  true
       :isMulti      true

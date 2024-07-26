@@ -11,7 +11,7 @@ from rest_framework.serializers import ValidationError
 
 @api_view()
 def carbon_abatement(request):
-    for required in ['region-type', 'carbon-price']:
+    for required in ['region-type', 'carbon-price', 'dr', 'ec', 'ac']:
         if required not in request.query_params:
             raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
     params = {k: v or None for k, v in request.query_params.items()}
@@ -40,11 +40,10 @@ def carbon_abatement(request):
     }
     serializer = abatement_serializers[params['region-type']]
 
-    data = model.objects.all().order_by('region')
-    min_dr = data.order_by('dr').first().dr
-    min_ec = data.order_by('ec').first().ec
-    min_ac = data.order_by('ac').first().ac
-    data = data.filter(dr=min_dr, ec=min_ec, ac=min_ac)
+    data = model.objects \
+        .filter(dr=params['dr'], ec=params['ec'], ac=params['ac']) \
+        .order_by('region')
+    data = data
     if 'regions' in params:
         data = data.filter(region__in=params['regions'])
 

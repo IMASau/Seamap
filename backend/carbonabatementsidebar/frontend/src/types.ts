@@ -6,6 +6,12 @@ export type CarbonPrice = "cp35" | "cp50" | "cp65" | "cp80" | "cpmax";
 export const abatements = ["CarbonAbatement", "AbatementArea"];
 export type Abatement = "CarbonAbatement" | "AbatementArea";
 
+export interface Filters {
+    dr: number;
+    ec: number;
+    ac: number;
+}
+
 export interface AbatementData {
     region: string;
 }
