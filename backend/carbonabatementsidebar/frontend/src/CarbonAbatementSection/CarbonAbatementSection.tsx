@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Spinner, Tab, Tabs } from '@blueprintjs/core';
 
-import { RegionType, CarbonPrice, CarbonAbatement, Filters } from '../types';
+import { RegionType, CarbonPrice, CarbonAbatement, AbatementFilters } from '../types';
 import { AbatementChart, AbatementScenarioMessage, AbatementSection, AbatementTable } from '../Components/Components';
 
 
 function carbonPriceToScenario(carbonPrice: CarbonPrice): string {
     if (carbonPrice === 'cpmax') {
-        return "maximum potential cumulative abatement";
+        return "Maximum potential cumulative abatement";
     } else {
         let carbonPriceValue;
         if (carbonPrice === 'cp35') {
@@ -19,12 +19,12 @@ function carbonPriceToScenario(carbonPrice: CarbonPrice): string {
         } else if (carbonPrice === 'cp80') {
             carbonPriceValue = 80;
         }
-        return `carbon price $${carbonPriceValue}/tCO2`;
+        return `Carbon price $${carbonPriceValue}/tCO2`;
     }
 }
 
 
-export default function CarbonAbatementSection({ regionType, carbonPrice, regions, filters }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], filters: Filters }) {
+export default function CarbonAbatementSection({ regionType, carbonPrice, regions, abatementFilters }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], abatementFilters: AbatementFilters }) {
     const [abatementData, setAbatementData] = useState<CarbonAbatement[]>([]);
     const [loaded, setLoaded] = useState(false);
 
@@ -34,7 +34,7 @@ export default function CarbonAbatementSection({ regionType, carbonPrice, region
             url.searchParams.append('carbon-price', carbonPrice);
             url.searchParams.append('region-type', regionType);
             if (regions) url.searchParams.append('regions', JSON.stringify(regions));
-            Object.entries(filters).forEach(([k, v]) => url.searchParams.append(k, v.toString()));
+            Object.entries(abatementFilters).forEach(([k, v]) => url.searchParams.append(k, v.toString()));
 
             const response = await fetch(url);
             const data = await response.json();
@@ -54,7 +54,10 @@ export default function CarbonAbatementSection({ regionType, carbonPrice, region
                     panel={
                         loaded
                             ? <>
-                                <AbatementScenarioMessage scenario={carbonPriceToScenario(carbonPrice)} />
+                                <AbatementScenarioMessage
+                                    scenario={carbonPriceToScenario(carbonPrice)}
+                                    abatementFilters={abatementFilters}
+                                />
                                 <AbatementTable
                                 regionType={regionType}
                                 abatementData={abatementData}
@@ -75,7 +78,10 @@ export default function CarbonAbatementSection({ regionType, carbonPrice, region
                     panel={
                         loaded
                             ? <>
-                                <AbatementScenarioMessage scenario={carbonPriceToScenario(carbonPrice)} />
+                                <AbatementScenarioMessage
+                                    scenario={carbonPriceToScenario(carbonPrice)}
+                                    abatementFilters={abatementFilters}
+                                />
                                 <AbatementChart
                                     abatementData={abatementData}
                                     metricField="carbon_abatement"

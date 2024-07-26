@@ -1,5 +1,5 @@
 import { VegaLite, VisualizationSpec } from 'react-vega';
-import { AbatementData, RegionType } from '../types';
+import { AbatementData, AbatementFilters, RegionType } from '../types';
 
 import './Components.scss'
 
@@ -124,8 +124,18 @@ export function AbatementSection({ title, children }: { title: string, children:
     )
 }
 
-export function AbatementScenarioMessage({ scenario }: { scenario: string }) {
-    return <div className="abatement-scenario-message">Scenarios shown for current selection: <b>{scenario}</b></div>;
+export function AbatementScenarioMessage({ scenario, abatementFilters }: { scenario: string, abatementFilters: AbatementFilters }) {
+    return (
+        <div className="abatement-scenario-message">
+            Scenarios shown for current selection:
+            <ul>
+                <li><b>{scenario}</b></li>
+                <li><b>Discount rate of {abatementFilters.dr}% for net present values</b></li>
+                <li><b>Establishment cost of ${abatementFilters.ec}/ha</b></li>
+                <li><b>Abatement cost of ${abatementFilters.ac}/ha</b></li>
+            </ul>
+        </div>
+    );
 }
 
 export function AbatementTable<T extends AbatementData>({ regionType, abatementData, metricHeading, metricToString }: { regionType: RegionType, abatementData: T[], metricHeading: string, metricToString: (row: T) => string}) {

@@ -1,4 +1,4 @@
-import { RegionType, carbonPrices, CarbonPrice, abatements, Abatement, Filters, } from '../types';
+import { RegionType, carbonPrices, CarbonPrice, abatements, Abatement, AbatementFilters, } from '../types';
 import CarbonAbatementSection from '../CarbonAbatementSection/CarbonAbatementSection';
 
 import './App.scss'
@@ -30,7 +30,7 @@ export default function App() {
     const regionType: RegionType = urlParams.get('region-type') as RegionType;
     const regions: string[] = JSON.parse(urlParams.get('regions')!);
     const layers: string[] = JSON.parse(urlParams.get('layers')!);
-    const filters: Filters[] = JSON.parse(urlParams.get('filters')!);
+    const abatementFilters: AbatementFilters[] = JSON.parse(urlParams.get('filters')!);
 
     return (
         <>
@@ -45,7 +45,7 @@ export default function App() {
                             regionType={regionType}
                             carbonPrice={carbonPrice}
                             regions={regions}
-                            filters={filters[i]}
+                            abatementFilters={abatementFilters[i]}
                         />
                     );
                 } else {
