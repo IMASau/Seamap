@@ -124,6 +124,10 @@ export function AbatementSection({ title, children }: { title: string, children:
     )
 }
 
+export function AbatementScenarioMessage({ scenario }: { scenario: string }) {
+    return <div className="abatement-scenario-message">Scenarios shown for current selection: <b>{scenario}</b></div>;
+}
+
 export function AbatementTable<T extends AbatementData>({ regionType, abatementData, metricHeading, metricToString }: { regionType: RegionType, abatementData: T[], metricHeading: string, metricToString: (row: T) => string}) {
     return (
         <table className="abatement-table">

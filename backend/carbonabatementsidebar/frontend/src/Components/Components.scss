@@ -32,6 +32,12 @@
     >.abatement-section-content>.bp5-tabs>.bp5-tab-panel {
         margin: 0 8px 20px 8px;
 
+        >.abatement-scenario-message {
+            font-style: italic;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+
         >.abatement-table {
             border: 0;
             border-collapse: separate;
