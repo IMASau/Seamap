@@ -2,6 +2,7 @@ import { RegionType, carbonPrices, CarbonPrice, abatements, Abatement, Abatement
 import CarbonAbatementSection from '../CarbonAbatementSection/CarbonAbatementSection';
 
 import './App.scss'
+import AbatementAreaSection from '../AbatementAreaSection/AbatementAreaSection';
 
 
 function layerToCarbonPrice(layer: string): CarbonPrice {
@@ -33,7 +34,7 @@ export default function App() {
     const abatementFilters: AbatementFilters[] = JSON.parse(urlParams.get('filters')!);
 
     return (
-        <>
+        <div className="abatement-sidebar">
             {layers.map((layer, i) => {
                 const abatement = layerToAbatement(layer);
                 const carbonPrice = layerToCarbonPrice(layer);
@@ -48,10 +49,20 @@ export default function App() {
                             abatementFilters={abatementFilters[i]}
                         />
                     );
+                } else if (abatement === "AbatementArea") {
+                    return (
+                        <AbatementAreaSection
+                            key={layer}
+                            regionType={regionType}
+                            carbonPrice={carbonPrice}
+                            regions={regions}
+                            abatementFilters={abatementFilters[i]}
+                        />
+                    );
                 } else {
                     throw new Error(`Unknown abatement type: '${abatement}'`);
                 }
             })}
-        </>
+        </div>
     )
 }

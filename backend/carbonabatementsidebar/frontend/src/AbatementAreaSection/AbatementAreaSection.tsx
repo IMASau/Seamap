@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Spinner, Tab, Tabs } from '@blueprintjs/core';
 
-import { RegionType, CarbonPrice, CarbonAbatement, AbatementFilters } from '../types';
+import { RegionType, CarbonPrice, AbatementArea, AbatementFilters } from '../types';
 import { AbatementChart, AbatementScenarioMessage, AbatementSection, AbatementTable } from '../Components/Components';
-
 
 function carbonPriceToScenario(carbonPrice: CarbonPrice): string {
     if (carbonPrice === 'cpmax') {
-        return "Maximum potential cumulative abatement";
+        return "Maximum potential area of abatement";
     } else {
         let carbonPriceValue;
         if (carbonPrice === 'cp35') {
@@ -23,13 +22,13 @@ function carbonPriceToScenario(carbonPrice: CarbonPrice): string {
     }
 }
 
-export default function CarbonAbatementSection({ regionType, carbonPrice, regions, abatementFilters }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], abatementFilters: AbatementFilters }) {
-    const [abatementData, setAbatementData] = useState<CarbonAbatement[]>([]);
+export default function AbatementAreaSection({ regionType, carbonPrice, regions, abatementFilters }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], abatementFilters: AbatementFilters }) {
+    const [abatementData, setAbatementData] = useState<AbatementArea[]>([]);
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
         const fetchAbatementData = async () => {
-            const url = new URL('http://localhost:8000/api/carbonabatementsidebar/carbonabatement');
+            const url = new URL('http://localhost:8000/api/carbonabatementsidebar/abatementarea');
             url.searchParams.append('carbon-price', carbonPrice);
             url.searchParams.append('region-type', regionType);
             if (regions) url.searchParams.append('regions', JSON.stringify(regions));
@@ -45,7 +44,7 @@ export default function CarbonAbatementSection({ regionType, carbonPrice, region
     }, []);
 
     return (
-        <AbatementSection title="Carbon Abatement">
+        <AbatementSection title="Abatement Area">
             <Tabs id="carbon-abatement-tabs" onChange={() => setTimeout(() => window.dispatchEvent(new Event('resize')), 0)}> {/* Hack for Vega chart resizing */}
                 <Tab
                     id="breakdown"
@@ -60,11 +59,11 @@ export default function CarbonAbatementSection({ regionType, carbonPrice, region
                                 <AbatementTable
                                     regionType={regionType}
                                     abatementData={abatementData}
-                                    metricHeading="Carbon (MtCO₂)"
+                                    metricHeading="Area (ha)"
                                     metricToString={row =>
-                                        row.carbon_abatement.toLocaleString(
+                                        row.abatement_area.toLocaleString(
                                             undefined,
-                                            { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                                            { maximumFractionDigits: 0 }
                                         )
                                     }
                                 />
@@ -84,7 +83,7 @@ export default function CarbonAbatementSection({ regionType, carbonPrice, region
                                 />
                                 <AbatementChart
                                     abatementData={abatementData}
-                                    metricField="carbon_abatement"
+                                    metricField="abatement_area"
                                 />
                             </>
                             : <Spinner />

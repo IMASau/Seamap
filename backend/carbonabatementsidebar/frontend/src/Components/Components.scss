@@ -1,4 +1,9 @@
 .abatement-section {
+    min-height: 423px;
+    border-bottom: 2px solid var(--color-4);
+
+    &:last-child { flex: 1; }
+
     >.abatement-section-heading {
         display: flex;
         flex: 0 0;
