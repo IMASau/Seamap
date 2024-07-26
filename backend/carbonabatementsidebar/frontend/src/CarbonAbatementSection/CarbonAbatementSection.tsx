@@ -2,10 +2,29 @@ import { useEffect, useState } from 'react';
 import { Spinner, Tab, Tabs } from '@blueprintjs/core';
 
 import { RegionType, CarbonPrice, CarbonAbatement } from '../types';
-import { AbatementChart, AbatementSection, AbatementTable } from '../Components/Components';
+import { AbatementChart, AbatementScenarioMessage, AbatementSection, AbatementTable } from '../Components/Components';
 
 
-export default function CarbonAbatementSection({ regionType, carbonPrice, regions }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[]}) {
+function carbonPriceToScenario(carbonPrice: CarbonPrice): string {
+    if (carbonPrice === 'cpmax') {
+        return "maximum potential cumulative abatement";
+    } else {
+        let carbonPriceValue;
+        if (carbonPrice === 'cp35') {
+            carbonPriceValue = 35;
+        } else if (carbonPrice === 'cp50') {
+            carbonPriceValue = 50;
+        } else if (carbonPrice === 'cp65') {
+            carbonPriceValue = 65;
+        } else if (carbonPrice === 'cp80') {
+            carbonPriceValue = 80;
+        }
+        return `carbon price $${carbonPriceValue}/tCO2`;
+    }
+}
+
+
+export default function CarbonAbatementSection({ regionType, carbonPrice, regions }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[] }) {
     const [abatementData, setAbatementData] = useState<CarbonAbatement[]>([]);
     const [loaded, setLoaded] = useState(false);
 
@@ -28,37 +47,43 @@ export default function CarbonAbatementSection({ regionType, carbonPrice, region
     return (
         <AbatementSection title="Carbon Abatement">
             <Tabs id="carbon-abatement-tabs" onChange={() => setTimeout(() => window.dispatchEvent(new Event('resize')), 0)}> {/* Hack for Vega chart resizing */}
-                        <Tab
-                            id="breakdown"
-                            title="Breakdown"
-                            panel={
-                                loaded
-                                    ? <AbatementTable
-                                        regionType={regionType}
-                                        abatementData={abatementData}
-                                        metricHeading="Carbon (MtCO₂)"
-                                        metricToString={row =>
-                                            row.carbon_abatement.toLocaleString(
-                                                undefined,
-                                                { minimumFractionDigits: 2, maximumFractionDigits: 2}
-                                            )
-                                        } />
-                                    : <Spinner />
-                            }
-                        />
-                        <Tab
-                            id="chart"
-                            title="Chart"
-                            panel={
-                                loaded
-                            ? <AbatementChart
+                <Tab
+                    id="breakdown"
+                    title="Breakdown"
+                    panel={
+                        loaded
+                            ? <>
+                                <AbatementScenarioMessage scenario={carbonPriceToScenario(carbonPrice)} />
+                                <AbatementTable
+                                regionType={regionType}
                                 abatementData={abatementData}
-                                metricField="carbon_abatement"
-                            />
-                                    : <Spinner />
-                            }
-                        />
-                    </Tabs>
+                                metricHeading="Carbon (MtCO₂)"
+                                metricToString={row =>
+                                    row.carbon_abatement.toLocaleString(
+                                        undefined,
+                                        { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                                    )
+                                } />
+                            </>
+                            : <Spinner />
+                    }
+                />
+                <Tab
+                    id="chart"
+                    title="Chart"
+                    panel={
+                        loaded
+                            ? <>
+                                <AbatementScenarioMessage scenario={carbonPriceToScenario(carbonPrice)} />
+                                <AbatementChart
+                                    abatementData={abatementData}
+                                    metricField="carbon_abatement"
+                                />
+                            </>
+                            : <Spinner />
+                    }
+                />
+            </Tabs>
         </AbatementSection>
     )
 }
