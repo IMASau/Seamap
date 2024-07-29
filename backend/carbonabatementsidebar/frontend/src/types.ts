@@ -23,3 +23,16 @@ export interface RegionCarbonAbatement extends RegionAbatementData {
 export interface RegionAbatementArea extends RegionAbatementData {
     abatement_area: number;
 }
+
+export interface CarbonPriceAbatementData {
+    carbon_price: CarbonPrice;
+    carbonPriceString: string;
+}
+
+export interface CarbonPriceCarbonAbatement extends CarbonPriceAbatementData {
+    carbon_abatement: number;
+}
+
+export interface CarbonPriceAbatementArea extends CarbonPriceAbatementData {
+    abatement_area: number;
+}

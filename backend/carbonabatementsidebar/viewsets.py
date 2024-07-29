@@ -105,7 +105,7 @@ def carbon_price_carbon_abatement(request):
         'ID_Primary': models.CarbonAbatementByPrimaryCompartment
     }
     model = abatement_models[params['region-type']]
-    
+
     data = model.objects.get(region=params['region'], dr=params['dr'], ec=params['ec'], ac=params['ac'])
 
     return Response([
@@ -131,7 +131,7 @@ def carbon_price_abatement_area(request):
         'ID_Primary': models.AbatementAreaByPrimaryCompartment
     }
     model = abatement_models[params['region-type']]
-    
+
     data = model.objects.get(region=params['region'], dr=params['dr'], ec=params['ec'], ac=params['ac'])
 
     return Response([

@@ -11,7 +11,7 @@ export default function AbatementAreaSection({ apiUrl, regionType, carbonPrice, 
 
     useEffect(() => {
         const fetchAbatementData = async () => {
-            const url = new URL(`${apiUrl}carbonabatementsidebar/abatementarea`,  window.location.origin);
+            const url = new URL(`${apiUrl}/carbonabatementsidebar/abatementarea`,  window.location.origin);
             url.searchParams.append('carbon-price', carbonPrice);
             url.searchParams.append('region-type', regionType);
             if (regions) url.searchParams.append('regions', JSON.stringify(regions));

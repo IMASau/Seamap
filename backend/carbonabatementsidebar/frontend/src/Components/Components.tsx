@@ -1,5 +1,5 @@
 import { VegaLite, VisualizationSpec } from 'react-vega';
-import { RegionAbatementData, AbatementFilters, RegionType, CarbonPrice, Abatement } from '../types';
+import { RegionAbatementData, AbatementFilters, RegionType, CarbonPriceAbatementData, CarbonPrice, Abatement } from '../types';
 
 import './Components.scss'
 
@@ -164,18 +164,18 @@ function regionAbatementScenarioToString(carbonPrice: CarbonPrice, abatement: Ab
 }
 
 export function carbonPriceTocarbonPriceString(carbonPrice: CarbonPrice): string {
-        if (carbonPrice === 'cp35') {
+    if (carbonPrice === 'cp35') {
         return "35";
-        } else if (carbonPrice === 'cp50') {
+    } else if (carbonPrice === 'cp50') {
         return "50";
-        } else if (carbonPrice === 'cp65') {
+    } else if (carbonPrice === 'cp65') {
         return "65";
-        } else if (carbonPrice === 'cp80') {
+    } else if (carbonPrice === 'cp80') {
         return "80";
     } else if (carbonPrice === 'cpmax') {
         return "Max";
-        } else {
-            throw new Error(`Unknown carbon price: '${carbonPrice}'`);
+    } else {
+        throw new Error(`Unknown carbon price: '${carbonPrice}'`);
     }
 }
 
@@ -211,5 +211,56 @@ export function AbatementTable<T extends RegionAbatementData>({ regionType, abat
                 ))}
             </tbody>
         </table>
+    );
+}
+
+export function CarbonPriceAbatementTable<T extends CarbonPriceAbatementData>({ abatementData, metricHeading, metricToString }: { abatementData: T[], metricHeading: string, metricToString: (row: T) => string}) {
+    return (
+        <table className="abatement-table">
+            <thead>
+                <tr>
+                    <th>Carbon Price ($/tCO2)</th>
+                    <th>{metricHeading}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {abatementData.map((row) => (
+                    <tr key={row.carbon_price}>
+                        <td>{row.carbonPriceString}</td>
+                        <td>{metricToString(row)}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+}
+
+export function CarbonPriceAbatementScenarioMessage({ regionType, region, abatementFilters }: { regionType: RegionType, region: string, abatementFilters: AbatementFilters }) {
+    return (
+        <div className="abatement-scenario-message">
+            Scenarios shown for current selection:
+            <ul>
+                <li><b>{regionTypeToString(regionType)} of {region}</b></li>
+                <li><b>Discount rate of {abatementFilters.dr}% for net present values</b></li>
+                <li><b>Establishment cost of ${abatementFilters.ec}/ha</b></li>
+                <li><b>Abatement cost of ${abatementFilters.ac}/ha</b></li>
+            </ul>
+        </div>
+    );
+}
+
+export function CarbonPriceAbatementChart({ abatementData, metricField }: { abatementData: CarbonPriceAbatementData[], metricField: string }) {
+    return (
+        <VegaLite
+            className="abatement-chart"
+            spec={donutChartSpec({
+                thetaField: metricField,
+                colorField: 'carbonPriceString',
+                sortField: 'carbonPriceString',
+                legendTitle: "Carbon Price ($/tCO2)",
+            })}
+            data={{ values: abatementData }}
+            actions={false}
+        />
     );
 }
