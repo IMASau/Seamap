@@ -13,10 +13,10 @@
 <body>
   {% csrf_token %}
   <div id="root"></div>
-  {% if DEBUG %}
   <script>
     window.apiUrl = "{{ api_url }}";
   </script>
+  {% if DEBUG %}
   <script type="module">
     import RefreshRuntime from 'http://localhost:5173/@react-refresh'
     RefreshRuntime.injectIntoGlobalHook(window)
