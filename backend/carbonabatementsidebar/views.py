@@ -10,8 +10,10 @@ import os
 @xframe_options_exempt
 @csp_update(FRAME_ANCESTORS=settings.CORS_ORIGIN_WHITELIST)
 def carbon_abatement_sidebar(request):
+    url_root = settings.URL_ROOT if hasattr(settings, 'URL_ROOT') else ''
     context = {
-        'STATIC_URL': settings.STATIC_URL
+        'STATIC_URL': settings.STATIC_URL,
+        'api_url': os.path.join(url_root, 'api'),
     }
     if settings.DEBUG:
         context.update({'DEBUG': True})

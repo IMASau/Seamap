@@ -4,6 +4,7 @@ import { Spinner, Tab, Tabs } from '@blueprintjs/core';
 import { RegionType, CarbonPrice, AbatementArea, AbatementFilters } from '../types';
 import { AbatementChart, AbatementScenarioMessage, AbatementSection, AbatementTable } from '../Components/Components';
 
+
 function carbonPriceToScenario(carbonPrice: CarbonPrice): string {
     if (carbonPrice === 'cpmax') {
         return "Maximum potential area of abatement";
@@ -22,13 +23,13 @@ function carbonPriceToScenario(carbonPrice: CarbonPrice): string {
     }
 }
 
-export default function AbatementAreaSection({ regionType, carbonPrice, regions, abatementFilters }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], abatementFilters: AbatementFilters }) {
+export default function AbatementAreaSection({ apiUrl, regionType, carbonPrice, regions, abatementFilters }: { apiUrl: string, regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], abatementFilters: AbatementFilters }) {
     const [abatementData, setAbatementData] = useState<AbatementArea[]>([]);
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
         const fetchAbatementData = async () => {
-            const url = new URL('http://localhost:8000/api/carbonabatementsidebar/abatementarea');
+            const url = new URL(`${apiUrl}carbonabatementsidebar/abatementarea`,  window.location.origin);
             url.searchParams.append('carbon-price', carbonPrice);
             url.searchParams.append('region-type', regionType);
             if (regions) url.searchParams.append('regions', JSON.stringify(regions));

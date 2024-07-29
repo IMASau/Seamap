@@ -26,7 +26,7 @@ function layerToAbatement(layer: string): Abatement {
     throw new Error(`Could not find abatement in layer name: ${layer}`);
 }
 
-export default function App() {
+export default function App({ apiUrl }: {apiUrl: string}) {
     const urlParams = new URLSearchParams(window.location.search);
     const regionType: RegionType = urlParams.get('region-type') as RegionType;
     const regions: string[] = JSON.parse(urlParams.get('regions')!);
@@ -43,6 +43,7 @@ export default function App() {
                     return (
                         <CarbonAbatementSection
                             key={layer}
+                            apiUrl={apiUrl}
                             regionType={regionType}
                             carbonPrice={carbonPrice}
                             regions={regions}
@@ -53,6 +54,7 @@ export default function App() {
                     return (
                         <AbatementAreaSection
                             key={layer}
+                            apiUrl={apiUrl}
                             regionType={regionType}
                             carbonPrice={carbonPrice}
                             regions={regions}

@@ -23,13 +23,13 @@ function carbonPriceToScenario(carbonPrice: CarbonPrice): string {
     }
 }
 
-export default function CarbonAbatementSection({ regionType, carbonPrice, regions, abatementFilters }: { regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], abatementFilters: AbatementFilters }) {
+export default function CarbonAbatementSection({ apiUrl, regionType, carbonPrice, regions, abatementFilters }: { apiUrl: string, regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], abatementFilters: AbatementFilters }) {
     const [abatementData, setAbatementData] = useState<CarbonAbatement[]>([]);
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
         const fetchAbatementData = async () => {
-            const url = new URL('http://localhost:8000/api/carbonabatementsidebar/carbonabatement');
+            const url = new URL(`${apiUrl}/carbonabatementsidebar/carbonabatement`,  window.location.origin);
             url.searchParams.append('carbon-price', carbonPrice);
             url.searchParams.append('region-type', regionType);
             if (regions) url.searchParams.append('regions', JSON.stringify(regions));
