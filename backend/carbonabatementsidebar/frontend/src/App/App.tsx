@@ -1,8 +1,10 @@
 import { RegionType, carbonPrices, CarbonPrice, abatements, Abatement, AbatementFilters, } from '../types';
 import CarbonAbatementSection from '../CarbonAbatementSection/CarbonAbatementSection';
+import AbatementAreaSection from '../AbatementAreaSection/AbatementAreaSection';
+import CarbonPriceCarbonAbatementSection from '../CarbonPriceCarbonAbatementSection/CarbonPriceCarbonAbatementSection';
+import CarbonPriceAbatementAreaSection from '../CarbonPriceAbatementAreaSection/CarbonPriceAbatementAreaSection';
 
 import './App.scss'
-import AbatementAreaSection from '../AbatementAreaSection/AbatementAreaSection';
 
 
 function layerToCarbonPrice(layer: string): CarbonPrice {
@@ -39,7 +41,17 @@ export default function App({ apiUrl }: {apiUrl: string}) {
                 const abatement = layerToAbatement(layer);
                 const carbonPrice = layerToCarbonPrice(layer);
 
-                if (abatement === "CarbonAbatement") {
+                if (abatement === "CarbonAbatement" && regions?.length === 1) {
+                    return (
+                        <CarbonPriceCarbonAbatementSection
+                            key={layer}
+                            apiUrl={apiUrl}
+                            regionType={regionType}
+                            region={regions[0]}
+                            abatementFilters={abatementFilters[i]}
+                        />
+                    );
+                } else if (abatement === "CarbonAbatement" && regions?.length !== 1) {
                     return (
                         <CarbonAbatementSection
                             key={layer}
@@ -50,7 +62,17 @@ export default function App({ apiUrl }: {apiUrl: string}) {
                             abatementFilters={abatementFilters[i]}
                         />
                     );
-                } else if (abatement === "AbatementArea") {
+                } else if (abatement === "AbatementArea" && regions?.length === 1) {
+                    return (
+                        <CarbonPriceAbatementAreaSection
+                            key={layer}
+                            apiUrl={apiUrl}
+                            regionType={regionType}
+                            region={regions[0]}
+                            abatementFilters={abatementFilters[i]}
+                        />
+                    );
+                } else if (abatement === "AbatementArea" && regions?.length !== 1) {
                     return (
                         <AbatementAreaSection
                             key={layer}
