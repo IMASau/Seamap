@@ -8,7 +8,7 @@ import os
 
 @never_cache
 @xframe_options_exempt
-@csp_update(FRAME_ANCESTORS=settings.CORS_ORIGIN_WHITELIST, SCRIPT_SRC=("'unsafe-eval'"))
+@csp_update(FRAME_ANCESTORS=settings.CORS_ORIGIN_WHITELIST, SCRIPT_SRC=("'unsafe-eval'", "''unsafe-inline'"))
 def carbon_abatement_sidebar(request):
     url_root = settings.URL_ROOT if hasattr(settings, 'URL_ROOT') else ''
     context = {
