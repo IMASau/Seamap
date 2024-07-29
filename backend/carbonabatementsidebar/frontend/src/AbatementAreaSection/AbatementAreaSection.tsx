@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Spinner, Tab, Tabs } from '@blueprintjs/core';
 
-import { RegionType, CarbonPrice, AbatementArea, AbatementFilters } from '../types';
+import { RegionType, CarbonPrice, RegionAbatementArea, AbatementFilters } from '../types';
 import { AbatementChart, AbatementScenarioMessage, AbatementSection, AbatementTable } from '../Components/Components';
 
 
@@ -24,7 +24,7 @@ function carbonPriceToScenario(carbonPrice: CarbonPrice): string {
 }
 
 export default function AbatementAreaSection({ apiUrl, regionType, carbonPrice, regions, abatementFilters }: { apiUrl: string, regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], abatementFilters: AbatementFilters }) {
-    const [abatementData, setAbatementData] = useState<AbatementArea[]>([]);
+    const [abatementData, setAbatementData] = useState<RegionAbatementArea[]>([]);
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {

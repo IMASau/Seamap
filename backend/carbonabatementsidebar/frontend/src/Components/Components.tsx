@@ -1,5 +1,5 @@
 import { VegaLite, VisualizationSpec } from 'react-vega';
-import { AbatementData, AbatementFilters, RegionType } from '../types';
+import { RegionAbatementData, AbatementFilters, RegionType } from '../types';
 
 import './Components.scss'
 
@@ -97,7 +97,7 @@ export function donutChartSpec({ thetaField, colorField, sortField, legendTitle 
     };
 }
 
-export function AbatementChart({ abatementData, metricField }: { abatementData: AbatementData[], metricField: string }) {
+export function AbatementChart({ abatementData, metricField }: { abatementData: RegionAbatementData[], metricField: string }) {
     return (
         <VegaLite
             className="abatement-chart"
@@ -138,7 +138,7 @@ export function AbatementScenarioMessage({ scenario, abatementFilters }: { scena
     );
 }
 
-export function AbatementTable<T extends AbatementData>({ regionType, abatementData, metricHeading, metricToString }: { regionType: RegionType, abatementData: T[], metricHeading: string, metricToString: (row: T) => string}) {
+export function AbatementTable<T extends RegionAbatementData>({ regionType, abatementData, metricHeading, metricToString }: { regionType: RegionType, abatementData: T[], metricHeading: string, metricToString: (row: T) => string}) {
     return (
         <table className="abatement-table">
             <thead>

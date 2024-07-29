@@ -12,14 +12,14 @@ export interface AbatementFilters {
     ac: number;
 }
 
-export interface AbatementData {
+export interface RegionAbatementData {
     region: string;
 }
 
-export interface CarbonAbatement extends AbatementData {
+export interface RegionCarbonAbatement extends RegionAbatementData {
     carbon_abatement: number;
 }
 
-export interface AbatementArea extends AbatementData {
+export interface RegionAbatementArea extends RegionAbatementData {
     abatement_area: number;
 }
