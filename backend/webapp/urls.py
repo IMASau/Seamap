@@ -48,6 +48,8 @@ urlpatterns = [
     re_path(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
     re_path(r'^api/carbonabatementsidebar/carbonabatement$', carbonabatementsidebar.viewsets.carbon_abatement, name='carbon_abatement'),
     re_path(r'^api/carbonabatementsidebar/abatementarea$', carbonabatementsidebar.viewsets.abatement_area, name='abatement_area'),
+    re_path(r'^api/carbonabatementsidebar/carbonpricecarbonabatement$', carbonabatementsidebar.viewsets.carbon_price_carbon_abatement, name='carbon_price_carbon_abatement'),
+    re_path(r'^api/carbonabatementsidebar/carbonpriceabatementarea$', carbonabatementsidebar.viewsets.carbon_price_abatement_area, name='carbon_price_abatement_area'),
     re_path(r'^carbonabatementsidebar$', carbonabatementsidebar.views.carbon_abatement_sidebar, name='carbon_abatement_sidebar'),
 ] \
 + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) \

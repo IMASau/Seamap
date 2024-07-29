@@ -89,3 +89,55 @@ def abatement_area(request):
         data = data.filter(region__in=params['regions'])
 
     return Response(serializer(data, many=True, context={'carbon_price': params['carbon-price']}).data)
+
+@api_view()
+def carbon_price_carbon_abatement(request):
+    for required in ['region', 'region-type', 'dr', 'ec', 'ac']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+    params = {k: v or None for k, v in request.query_params.items()}
+    if params['region-type'] not in ['STE_NAME11', 'sa2int', 'ID_Primary']:
+        raise ValidationError({"message": f"'{params['region-type']}' is not a valid value for 'region-type'"})
+
+    abatement_models = {
+        'STE_NAME11': models.CarbonAbatementByState,
+        'sa2int': models.CarbonAbatementBySa2,
+        'ID_Primary': models.CarbonAbatementByPrimaryCompartment
+    }
+    model = abatement_models[params['region-type']]
+    
+    data = model.objects.get(region=params['region'], dr=params['dr'], ec=params['ec'], ac=params['ac'])
+
+    return Response([
+        { 'carbon_price' : 'cp35', 'carbon_abatement' : data.cp35  / 1000000 },
+        { 'carbon_price' : 'cp50', 'carbon_abatement' : data.cp50  / 1000000 },
+        { 'carbon_price' : 'cp65', 'carbon_abatement' : data.cp65  / 1000000 },
+        { 'carbon_price' : 'cp80', 'carbon_abatement' : data.cp80  / 1000000 },
+        { 'carbon_price' : 'cpmax', 'carbon_abatement' : data.cpmax  / 1000000 },
+    ])
+
+@api_view()
+def carbon_price_abatement_area(request):
+    for required in ['region', 'region-type', 'dr', 'ec', 'ac']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+    params = {k: v or None for k, v in request.query_params.items()}
+    if params['region-type'] not in ['STE_NAME11', 'sa2int', 'ID_Primary']:
+        raise ValidationError({"message": f"'{params['region-type']}' is not a valid value for 'region-type'"})
+
+    abatement_models = {
+        'STE_NAME11': models.AbatementAreaByState,
+        'sa2int': models.AbatementAreaBySa2,
+        'ID_Primary': models.AbatementAreaByPrimaryCompartment
+    }
+    model = abatement_models[params['region-type']]
+    
+    data = model.objects.get(region=params['region'], dr=params['dr'], ec=params['ec'], ac=params['ac'])
+
+    return Response([
+        { 'carbon_price' : 'cp35', 'abatement_area' : data.cp35 },
+        { 'carbon_price' : 'cp50', 'abatement_area' : data.cp50 },
+        { 'carbon_price' : 'cp65', 'abatement_area' : data.cp65 },
+        { 'carbon_price' : 'cp80', 'abatement_area' : data.cp80 },
+        { 'carbon_price' : 'cpmax', 'abatement_area' : data.cpmax },
+    ])
