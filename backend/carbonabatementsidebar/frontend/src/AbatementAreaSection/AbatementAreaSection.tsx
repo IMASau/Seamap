@@ -5,24 +5,6 @@ import { RegionType, CarbonPrice, RegionAbatementArea, AbatementFilters } from '
 import { AbatementChart, AbatementScenarioMessage, AbatementSection, AbatementTable } from '../Components/Components';
 
 
-function carbonPriceToScenario(carbonPrice: CarbonPrice): string {
-    if (carbonPrice === 'cpmax') {
-        return "Maximum potential area of abatement";
-    } else {
-        let carbonPriceValue;
-        if (carbonPrice === 'cp35') {
-            carbonPriceValue = 35;
-        } else if (carbonPrice === 'cp50') {
-            carbonPriceValue = 50;
-        } else if (carbonPrice === 'cp65') {
-            carbonPriceValue = 65;
-        } else if (carbonPrice === 'cp80') {
-            carbonPriceValue = 80;
-        }
-        return `Carbon price $${carbonPriceValue}/tCO2`;
-    }
-}
-
 export default function AbatementAreaSection({ apiUrl, regionType, carbonPrice, regions, abatementFilters }: { apiUrl: string, regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], abatementFilters: AbatementFilters }) {
     const [abatementData, setAbatementData] = useState<RegionAbatementArea[]>([]);
     const [loaded, setLoaded] = useState(false);
@@ -54,7 +36,8 @@ export default function AbatementAreaSection({ apiUrl, regionType, carbonPrice, 
                         loaded
                             ? <>
                                 <AbatementScenarioMessage
-                                    scenario={carbonPriceToScenario(carbonPrice)}
+                                    carbonPrice={carbonPrice}
+                                    abatement={"AbatementArea"}
                                     abatementFilters={abatementFilters}
                                 />
                                 <AbatementTable
@@ -79,7 +62,8 @@ export default function AbatementAreaSection({ apiUrl, regionType, carbonPrice, 
                         loaded
                             ? <>
                                 <AbatementScenarioMessage
-                                    scenario={carbonPriceToScenario(carbonPrice)}
+                                    carbonPrice={carbonPrice}
+                                    abatement={"AbatementArea"}
                                     abatementFilters={abatementFilters}
                                 />
                                 <AbatementChart
