@@ -97,7 +97,20 @@ export function donutChartSpec({ thetaField, colorField, sortField, legendTitle 
     };
 }
 
-export function AbatementChart({ abatementData, metricField }: { abatementData: RegionAbatementData[], metricField: string }) {
+function regionTypeToString(regionType: RegionType): string {
+    if (regionType === 'STE_NAME11') {
+        return 'State';
+    } else if (regionType === 'sa2int') {
+        return 'Statistical Area';
+    } else if (regionType === 'ID_Primary') {
+        return 'Primary Sediment Compartment';
+    } else {
+        throw new Error(`Unknown region type: '${regionType}'`);
+    }
+
+}
+
+export function AbatementChart({ regionType, abatementData, metricField }: { regionType: RegionType, abatementData: RegionAbatementData[], metricField: string }) {
     return (
         <VegaLite
             className="abatement-chart"
@@ -105,7 +118,7 @@ export function AbatementChart({ abatementData, metricField }: { abatementData: 
                 thetaField: metricField,
                 colorField: 'region',
                 sortField: 'region',
-                legendTitle: 'Region',
+                legendTitle: regionTypeToString(regionType),
             })}
             data={{ values: abatementData }}
             actions={false}
@@ -150,23 +163,19 @@ function regionAbatementScenarioToString(carbonPrice: CarbonPrice, abatement: Ab
     }
 }
 
-function regionAbatementScenarioToShort(carbonPrice: CarbonPrice): string {
-    if (carbonPrice === 'cpmax') {
-        return "Maximum";
-    } else {
-        let carbonPriceValue;
+export function carbonPriceTocarbonPriceString(carbonPrice: CarbonPrice): string {
         if (carbonPrice === 'cp35') {
-            carbonPriceValue = 35;
+        return "35";
         } else if (carbonPrice === 'cp50') {
-            carbonPriceValue = 50;
+        return "50";
         } else if (carbonPrice === 'cp65') {
-            carbonPriceValue = 65;
+        return "65";
         } else if (carbonPrice === 'cp80') {
-            carbonPriceValue = 80;
+        return "80";
+    } else if (carbonPrice === 'cpmax') {
+        return "Max";
         } else {
             throw new Error(`Unknown carbon price: '${carbonPrice}'`);
-        }
-        return `$${carbonPriceValue}/tCO2`;
     }
 }
 
@@ -189,7 +198,7 @@ export function AbatementTable<T extends RegionAbatementData>({ regionType, abat
         <table className="abatement-table">
             <thead>
                 <tr>
-                    <th>{regionType}</th>
+                    <th>{regionTypeToString(regionType)}</th>
                     <th>{metricHeading}</th>
                 </tr>
             </thead>

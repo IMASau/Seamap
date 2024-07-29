@@ -67,6 +67,7 @@ export default function CarbonAbatementSection({ apiUrl, regionType, carbonPrice
                                     abatementFilters={abatementFilters}
                                 />
                                 <AbatementChart
+                                    regionType={regionType}
                                     abatementData={abatementData}
                                     metricField="carbon_abatement"
                                 />
