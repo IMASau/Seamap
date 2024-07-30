@@ -10,10 +10,13 @@ import subprocess
 import tempfile
 import zipfile
 import logging
+import requests
+from requests.adapters import HTTPAdapter, Retry
 from shapely.geometry import box
 
-from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure
-from catalogue.serializers import RegionReportSerializer, LayerSerializer, PressureSerializer
+from catalogue import models
+from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure, RichLayer
+from catalogue.serializers import RegionReportSerializer, LayerSerializer, PressureSerializer, RichLayerSerializer
 from collections import defaultdict, namedtuple
 
 from django.conf import settings
@@ -21,6 +24,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.db import connections, ProgrammingError
 from django.db.models.functions import Coalesce
 from django.http import FileResponse
+from django.views.decorators.cache import cache_page
 from rest_framework.decorators import action, api_view, renderer_classes
 from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer, JSONRenderer
 from rest_framework import status
@@ -732,6 +736,17 @@ SELECT DISTINCT layer_id FROM (
 ) AS [T1];
 """
 
+def http_session():
+    retry_strategy = Retry(
+        total=3,
+        status_forcelist=[ 500, 502, 503, 504 ]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    http = requests.Session()
+    http.mount("https://", adapter)
+    http.mount("http://", adapter)
+    return http
+
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
     parts = bounds_str.split(',')[:4]  # There may be a trailing SRID URN we ignore for now
@@ -1368,3 +1383,39 @@ def data_in_region(request):
         layer_ids = [row[0] for row in cursor.fetchall()]
     
     return Response(layer_ids)
+
+@action(detail=False)
+@cache_page(60 * 15)
+@api_view()
+def cql_filter_values(request):
+    for required in ['rich-layer-id']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+    
+    params = {k: v or None for k, v in request.query_params.items()}
+
+    rich_layer = RichLayer.objects.get(id=params['rich-layer-id'])
+    cql_properties = rich_layer.controls.values_list('cql_property', flat=True)
+    
+    cql_property_values = rich_layer.layer.cql_property_values(cql_properties)
+    
+    return Response({
+        'values': cql_property_values['values'],
+        'filter_combinations': cql_property_values['value_combinations']
+    })
+
+@action(detail=False)
+@cache_page(60 * 15)
+@api_view()
+def dynamic_pill_region_control_values(request):
+    for required in ['dynamic-pill-id']:
+        if required not in request.query_params:
+            raise ValidationError({"message": "Required parameter '{}' is missing".format(required)})
+    params = {k: v or None for k, v in request.query_params.items()}
+
+    dynamic_pill = models.DynamicPill.objects.get(id=params['dynamic-pill-id'])
+    
+    layer = dynamic_pill.layers.all()[0]
+    if layer:
+        cql_property_values = layer.cql_property_values([dynamic_pill.region_control_cql_property])
+        return Response(cql_property_values['values'][0]['values'])

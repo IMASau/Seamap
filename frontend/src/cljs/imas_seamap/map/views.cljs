@@ -183,7 +183,7 @@
 (defmulti layer-component (comp :layer_type :displayed-layer))
 
 (defmethod layer-component :wms
-  [{:keys [boundary-filter layer-opacities layer] {:keys [server_url layer_name style]} :displayed-layer}]
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
   [leaflet/wms-layer
    (merge
     {:url              server_url
@@ -198,7 +198,8 @@
      :tiled            true
      :format           "image/png"}
     (when style {:styles style})
-    (boundary-filter layer))])
+    (boundary-filter layer)
+    (when cql-filter {:cql_filter cql-filter}))])
 
 (defmethod layer-component :tile
   [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
@@ -241,7 +242,7 @@
        :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}])) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
 
 (defmethod layer-component :wms-non-tiled
-  [{:keys [boundary-filter layer-opacities layer] {:keys [server_url layer_name style]} :displayed-layer}]
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
   [leaflet/non-tiled-layer
    (merge
     {:url              server_url
@@ -257,7 +258,8 @@
      :format           "image/png"
      :cross-origin     "anonymous"}
     (when style {:styles style})
-    (boundary-filter layer))])
+    (boundary-filter layer)
+    (when cql-filter {:cql_filter cql-filter}))])
 
 (defmulti basemap-layer-component :layer_type)
 
@@ -271,7 +273,7 @@
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
-        {:keys [layer-opacities visible-layers rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+        {:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
@@ -336,13 +338,14 @@
             ;; Panes are given a name based on a uuid and time because if a pane is given the
             ;; same name as a previously existing pane leaflet complains about a new pane being
             ;; made with the same name as an existing pane (causing leaflet to no longer work).
-            ^{:key (str id (boundary-filter displayed-layer) (+ i 1 (count (:layers active-base-layer))))}
+            ^{:key (str id (+ i 1 (count (:layers active-base-layer))))}
             [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
              [layer-component
               {:layer           layer
                :displayed-layer displayed-layer
                :boundary-filter boundary-filter
-               :layer-opacities layer-opacities}]]))
+               :layer-opacities layer-opacities
+               :cql-filter      (cql-filter-fn layer)}]]))
         visible-layers)
        
        (when query

@@ -1,0 +1,36 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Carbon Abatement</title>
+  {% if not DEBUG %}
+  <link rel="stylesheet" href="{% static main_css %}" />
+  {% endif %}
+</head>
+
+<body>
+  {% csrf_token %}
+  <div id="root"></div>
+  <script>
+    window.apiUrl = "{{ api_url }}";
+    window.abatementTypes = "{{ abatement_types | escapejs }}";
+    window.carbonPrices = "{{ carbon_prices | escapejs }}";
+  </script>
+  {% if DEBUG %}
+  <script type="module">
+    import RefreshRuntime from 'http://localhost:5173/@react-refresh'
+    RefreshRuntime.injectIntoGlobalHook(window)
+    window.$RefreshReg$ = () => { }
+    window.$RefreshSig$ = () => (type) => type
+    window.__vite_plugin_react_preamble_installed__ = true
+  </script>
+  <script type="module" src="http://localhost:5173/@vite/client"></script>
+  <script type="module" src="http://localhost:5173/src/main.tsx"></script>
+  {% else %}
+  <script type="module" src="{% static main_js %}"></script>
+  {% endif %}
+</body>
+
+</html>

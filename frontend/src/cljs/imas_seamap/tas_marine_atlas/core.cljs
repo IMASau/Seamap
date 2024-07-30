@@ -64,8 +64,10 @@
     :ui.catalogue/nodes                   subs/catalogue-nodes
     :ui/preview-layer-url                 subs/preview-layer-url
     :ui/sidebar                           subs/sidebar-state
+    :ui/right-sidebar                     subs/right-sidebar
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
+    :dynamic-pills                        subs/dynamic-pills
     :app/loading?                         subs/app-loading?
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
@@ -91,6 +93,7 @@
     :initialise-db                        [events/initialise-db]
     :initialise-layers                    [tmaevents/initialise-layers]
     :loading-failed                       events/loading-failed
+    :update-dynamic-pills                 events/update-dynamic-pills
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
@@ -121,6 +124,7 @@
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map.feature/show                     mevents/show-popup
     :map/clicked                          [mevents/map-click-dispatcher]
+    :map/feature-info-dispatcher          [mevents/feature-info-dispatcher]
     :map/get-feature-info                 [mevents/get-feature-info]
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
@@ -199,6 +203,10 @@
     :ui.sidebar/open                      [events/sidebar-open]
     :ui.sidebar/close                     events/sidebar-close
     :ui.sidebar/toggle                    events/sidebar-toggle
+    :ui.right-sidebar/push                events/right-sidebar-push
+    :ui.right-sidebar/pop                 events/right-sidebar-pop
+    :ui.right-sidebar/bring-to-front      events/right-sidebar-bring-to-front
+    :ui.right-sidebar/remove              events/right-sidebar-remove
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
@@ -206,6 +214,7 @@
     :left-drawer/open                     [events/left-drawer-open]
     :left-drawer/close                    [events/left-drawer-close]
     :left-drawer/tab                      [events/left-drawer-tab]
+    :dynamic-pill/active                  [events/dynamic-pill-active]
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close

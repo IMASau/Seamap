@@ -4,10 +4,11 @@
 (ns imas-seamap.map.events
   (:require [clojure.string :as string]
             [clojure.set :as set]
+            [clojure.walk :refer [keywordize-keys]]
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -61,11 +62,12 @@
   {:width 101 :height 101})
 
 (defmethod get-feature-info INFO-FORMAT-HTML
-  [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
-        layer-names (->> layers (map layer-name) reverse (string/join ","))]
+        layer-names (->> layers (map layer-name) reverse (string/join ","))
+        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter seq))]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get
@@ -87,17 +89,19 @@
        :FORMAT        "image/png"
        :INFO_FORMAT   "text/html"
        :SERVICE       "WMS"
-       :VERSION       "1.1.1"}
+       :VERSION       "1.1.1"
+       :CQL_FILTER    (apply str (interpose " " cql-filters))}
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/html" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
 (defmethod get-feature-info INFO-FORMAT-JSON
-  [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
-        layer-names (->> layers (map layer-name) reverse (string/join ","))]
+        layer-names (->> layers (map layer-name) reverse (string/join ","))
+        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter seq))]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get
@@ -119,7 +123,8 @@
        :FORMAT        "image/png"
        :INFO_FORMAT   "application/json"
        :SERVICE       "WMS"
-       :VERSION       "1.1.1"}
+       :VERSION       "1.1.1"
+       :CQL_FILTER    (apply str (interpose " " cql-filters))}
       :response-format (ajax/json-response-format)
       :on-success      [:map/got-featureinfo request-id point "application/json" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -136,11 +141,12 @@
     nil))
 
 (defmethod get-feature-info INFO-FORMAT-XML
-  [_ [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
-        layer-names (->> layers (map layer-name) reverse (string/join ","))]
+        layer-names (->> layers (map layer-name) reverse (string/join ","))
+        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter seq))]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get
@@ -162,7 +168,8 @@
        :FORMAT        "image/png"
        :INFO_FORMAT   "text/xml"
        :SERVICE       "WMS"
-       :VERSION       "1.1.1"}
+       :VERSION       "1.1.1"
+       :CQL_FILTER    (apply str (interpose " " cql-filters))}
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -197,8 +204,7 @@
   {:dispatch [:map/got-featureinfo request-id point nil nil layers]})
 
 (defn feature-info-dispatcher [{:keys [db]} [_ leaflet-props point]]
-  (let [rich-layers    (get-in db [:map :rich-layers])
-        visible-layers (map #(rich-layer->displayed-layer % rich-layers) (visible-layers (:map db)))
+  (let [visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers (:map db)))
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         per-request    (group-by (juxt :server_url :info_format_type) secure-layers)
         request-id     (gensym)
@@ -218,6 +224,7 @@
                            :responses         []}
                           :feature
                           {:status   :feature-info/waiting
+                           :leaflet-props leaflet-props
                            :location point
                            :show?    false}))] 
     (merge
@@ -260,7 +267,7 @@
   just want to issue a (or multiple) getFeatureInfo requests, but if
   we're in calculating-region-statistics mode we want to issue a
   different request, and it's cleaner to handle those separately."
-  [{:keys [db] :as ctx} event-v]
+  [{:keys [db]} [_ leaflet-props point]]
   (let [visible-layers (visible-layers (:map db))]
     (cond
       (get-in db [:map :controls :ignore-click])
@@ -273,7 +280,7 @@
        (not (get-in db [:map :controls :transect]))            ; we aren't drawing a transect;
        (not (get-in db [:map :controls :download :selecting])) ; we aren't selecting a region; and
        (seq visible-layers))                                   ; there are visible layers
-      (feature-info-dispatcher ctx event-v))))
+      {:dispatch [:map/feature-info-dispatcher leaflet-props point]})))
 
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))
@@ -285,7 +292,7 @@
                            vec)
         had-insecure? (get-in db [:feature-query :had-insecure?])]
     (when (seq responses)
-      {:location point :had-insecure? had-insecure? :responses responses :show? true})))
+      {:location point :leaflet-props (get-in db [:feature :leaflet-props]) :had-insecure? had-insecure? :responses responses :show? true})))
 
 (defn got-feature-info [db [_ request-id point info-format layers response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
@@ -379,49 +386,22 @@
 (defn join-rich-layers
   "Using layers and rich-layers, replaces layer IDs in rich-layer data with layer
    objects."
-  [{{:keys [layers rich-layers rich-layer-children]} :map :as db} _]
-  (->
-   db
-   (assoc-in
-    [:map :rich-layers]
-    (reduce-kv
-     (fn [m k {:keys [alternate-views timeline] :as v}]
-       (let [alternate-views
-             (mapv
-              (fn [{:keys [layer] :as alternate-views-entry}]
-                (assoc
-                 alternate-views-entry :layer
-                 (first-where #(= (:id %) layer) layers)))
-              alternate-views)
-             timeline
-             (mapv
-              (fn [{:keys [layer] :as timeline-entry}]
-                (assoc
-                 timeline-entry :layer
-                 (first-where #(= (:id %) layer) layers)))
-              timeline)]
-         (assoc
-          m k
-          (assoc
-           v
-           :alternate-views alternate-views
-           :timeline        timeline))))
-     {} rich-layers))
-     (assoc-in
-      [:map :rich-layer-children]
-      (reduce-kv
-       (fn [m k v]
-         (let [parents
-               (set
-                (map
-                 (fn [parent]
-                   (first-where
-                    #(= (:id %) parent)
-                    layers))
-                 v))
-               child (first-where #(= (:id %) k) layers)]
-           (assoc m child parents)))
-       {} rich-layer-children))))
+  [{{:keys [layers rich-layer-children]} :map :as db} _]
+  (assoc-in
+   db [:map :rich-layer-children]
+   (reduce-kv
+    (fn [m k v]
+      (let [parents
+            (set
+             (map
+              (fn [parent]
+                (first-where
+                 #(= (:id %) parent)
+                 layers))
+              v))
+            child (first-where #(= (:id %) k) layers)]
+        (assoc m child parents)))
+    {} rich-layer-children)))
 
 (defn update-layers [db [_ layers]]
   (let [{:keys [legend-ids opacity-ids]} db
@@ -458,7 +438,7 @@
 
 (defn update-categories [db [_ categories]]
   (let [categories           (mapv #(update % :name (comp keyword string/lower-case)) categories)
-        categories           (sort-by-sort-key categories)]
+        categories           (vec (sort-by-sort-key categories))]
     (-> db
         (assoc-in [:map :categories] categories)
         (assoc-in [:sorting :category] (->sort-map categories)))))
@@ -471,17 +451,31 @@
                           (reduce-kv (fn [m k v] (assoc m k (mapv :layer v))) {}))]
     (assoc-in db [:map :keyed-layers] keyed-layers)))
 
+(defn ->rich-layer-control
+  [{:keys [controller_type default_value] :as rich-layer-control}]
+  (let [default_value
+        (if (= controller_type "multi-dropdown")
+          (if default_value [default_value] [])
+          default_value)]
+    (->
+     rich-layer-control
+     (set/rename-keys
+      {:cql_property    :cql-property
+       :data_type       :data-type
+       :controller_type :controller-type
+       :default_value   :default-value})
+     (assoc :default-value default_value))))
+
 (defn- ->rich-layer
-  [{:keys [alternate_views timeline tab_label slider_label icon tooltip]}]
-  {:alternate-views          alternate_views
-   :alternate-views-selected nil
-   :timeline                 timeline
-   :timeline-selected        nil
-   :tab                      "legend"
-   :tab-label                tab_label
-   :slider-label             slider_label
-   :icon                     icon
-   :tooltip                  tooltip})
+  [rich-layer]
+  (->
+   rich-layer
+   (set/rename-keys
+    {:alternate_views :alternate-views
+     :tab_label       :tab-label
+     :slider_label    :slider-label
+     :layer           :layer-id})
+   (update :controls #(mapv ->rich-layer-control %))))
 
 (defn- rich-layer->children
   [{:keys [alternate-views timeline]}]
@@ -490,30 +484,32 @@
    (set (map :layer timeline))))
 
 (defn update-rich-layers [db [_ rich-layers]]
-  (let [db-rich-layers (get-in db [:map :rich-layers]) ; existing state, for merges
-
-        rich-layers
-        (reduce
-         (fn [acc {:keys [layer] :as rich-layer}]
-           (let [db-rich-layer (get db-rich-layers layer)
-                 rich-layer (merge (->rich-layer rich-layer) db-rich-layer)]
-             (assoc acc layer rich-layer)))
-         {} rich-layers)
+  (let [rich-layers (mapv ->rich-layer rich-layers)
 
         rich-layer-children
-        (reduce-kv
-         (fn [rich-layer-children k v]
-           (let [children (rich-layer->children v)]
+        (reduce
+         (fn [rich-layer-children {:keys [layer-id] :as rich-layer}]
+           (let [children (rich-layer->children rich-layer)]
              (reduce
               (fn [rich-layer-children child]
                 (if (get rich-layer-children child)
-                  (update rich-layer-children child conj k)
-                  (assoc rich-layer-children child #{k})))
+                  (update rich-layer-children child conj layer-id)
+                  (assoc rich-layer-children child #{layer-id})))
               rich-layer-children children)))
+         {} rich-layers)
+        
+        layer-lookup
+        (reduce
+         (fn [layer-lookup {:keys [id layer-id] :as rich-layer}]
+           (let [children (rich-layer->children rich-layer)]
+             (as-> layer-lookup layer-lookup
+               (assoc layer-lookup layer-id id)
+               (reduce #(assoc %1 %2 id) layer-lookup children))))
          {} rich-layers)]
     (->
      db
-     (assoc-in [:map :rich-layers] rich-layers)
+     (assoc-in [:map :rich-layers :rich-layers] rich-layers)
+     (assoc-in [:map :rich-layers :layer-lookup] layer-lookup)
      (assoc-in [:map :rich-layer-children] rich-layer-children))))
 
 (defn update-region-reports [db [_ region-reports]]
@@ -546,17 +542,26 @@
                   [:maybe-autosave]]}))
 
 (defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
-  (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))]
+  (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))
+        has-legend? (get-in db [:map :legends id])
+        rich-layer  (enhance-rich-layer (layer->rich-layer layer db) db)
+        has-cql-filter-values? (get-in rich-layer [:controls :values])]
     {:db         db
      :dispatch-n [[:maybe-autosave]
-                  (when-not (get-in db [:map :legends id]) [:map.layer/get-legend layer])]})) ; Retrieve layer legend data for display if we don't already have it or aren't already retrieving it
+                  ;; Retrieve layer legend data for display if we don't already have it or aren't
+                  ;; already retrieving it
+                  (when-not has-legend?
+                    [:map.layer/get-legend layer])
+                  ;; Retrieve rich layer cql filter data if we don't already have it
+                  (when (and rich-layer (not has-cql-filter-values?))
+                    [:map.rich-layer/get-cql-filter-values rich-layer])]}))
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ layer]]
-  (let [layer-active?  ((set (get-in db [:map :active-layers])) layer) 
-        displayed-layer (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]) (get-in db [:map :rich-layers]))) ; try rich-layer displayed layer
-        bounding_box    (:bounding_box (or displayed-layer layer))]                                         ; if rich-layer displayed layer does not exist, use base layer
+  (let [layer-active?  ((set (get-in db [:map :active-layers])) layer)
+        displayed-layer (rich-layer->displayed-layer layer db)
+        bounding_box    (:bounding_box displayed-layer)]
     {:db         db
      :dispatch-n [(when-not layer-active? [:map/add-layer layer])
                   [:map/update-map-view {:bounds bounding_box}]
@@ -611,25 +616,35 @@
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
         legends-shown (init-layer-legend-status layers legend-ids)
-        rich-layers   (get-in db [:map :rich-layers])
-        legends-get   (map
-                       (fn [{:keys [id] :as layer}]
-                         (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer rich-layers))]
-                           (or displayed-layer layer)))
-                       legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
                           (assoc-in [:story-maps :featured-map] featured-map)
-                          (assoc :initialised true))]
+                          (assoc :initialised true))
+
+        feature-location      (get-in db [:feature :location])
+        feature-leaflet-props (get-in db [:feature :leaflet-props])
+        rich-layers (get-in db [:map :rich-layers :rich-layers])
+        cql-get
+        (->>
+         legend-ids
+         (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
+
+        dynamic-pills (get-in db [:dynamic-pills :dynamic-pills])
+        active-dynamic-pills (filter #(get-in db [:dynamic-pills :states (:id %) :active?]) dynamic-pills)]
     {:db         db
      :dispatch-n (concat
                   [[:ui/hide-loading]
                    (when (and (seq startup-layers) initial-bounds?)
                      [:map/update-map-view {:bounds (:bounding_box (first startup-layers)) :instant? true}])
+                   (when (and feature-location feature-leaflet-props)
+                     [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                    [:maybe-autosave]]
-                  (mapv #(vector :map.layer/get-legend %) legends-get))}))
+                  (mapv #(vector :map.layer/get-legend %) legends-get)
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) cql-get)
+                  (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills))}))
 
 (defn update-leaflet-map [db [_ leaflet-map]]
   (when (not= leaflet-map (get-in db [:map :leaflet-map]))
@@ -702,30 +717,46 @@
      (get-in db [:map :controls :download :bbox])      [:map.layer.selection/clear]
      :default                                          [:map.layer.selection/enable])})
 
-(defn rich-layer-tab [{:keys [db]} [_ layer tab]]
+(defn rich-layer-tab [{:keys [db]} [_ {:keys [id] :as rich-layer} tab]]
   {:db       (assoc-in
-              db [:map :rich-layers (:id layer) :tab]
+              db [:map :rich-layers :states id :tab]
               tab)
-   :dispatch [:maybe-autosave]})
+   :dispatch-n [(when
+                 (and
+                  (= tab "filters")                                                                   ; If we're switching to the filters tab
+                  (nil? (:values (first (get-in db [:map :rich-layers :async-datas id :controls]))))) ; and we don't have any filter values
+                  [:map.rich-layer/get-cql-filter-values rich-layer])                                 ; then get them
+                [:maybe-autosave]]})
 
-(defn rich-layer-alternate-views-selected [{:keys [db]} [_ layer alternate-views-selected]]
-  (let [rich-layers (get-in db [:map :rich-layers])
-        rich-layer  (get rich-layers (:id layer))
+(defn rich-layer-get-cql-filter-values [{:keys [db]} [_ {:keys [id] :as rich-layer}]]
+  {:http-xhrio
+   {:method          :get
+    :uri             (get-in db [:config :urls :cql-filter-values-url])
+    :params          {:rich-layer-id id}
+    :response-format (ajax/json-response-format)
+    :on-success      [:map.rich-layer/get-cql-filter-values-success rich-layer]
+    :on-failure      [:ajax/default-err-handler]}})
 
-        {{old-timeline-value :value
+(defn rich-layer-get-cql-filter-values-success [db [_ {:keys [id] :as _rich-layer} {:strs [values filter_combinations]}]]
+  (let [values (keywordize-keys values)]
+    (as-> db db
+     (reduce
+      (fn [db {:keys [cql_property values]}]
+        (assoc-in db [:map :rich-layers :async-datas id :controls cql_property :values] values))
+      db values)
+      (assoc-in db [:map :rich-layers :async-datas id :filter-combinations] filter_combinations))))
+
+(defn rich-layer-alternate-views-selected [{:keys [db]} [_ {:keys [id] :as rich-layer} alternate-views-selected]]
+  (let [{{old-timeline-value :value
           old-timeline-label :label}
          :timeline-selected
          old-slider-label :slider-label}
-        (enhance-rich-layer rich-layer rich-layers)
+        (enhance-rich-layer rich-layer db)
 
-        db (assoc-in db [:map :rich-layers (:id layer) :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
-
-        rich-layers (get-in db [:map :rich-layers])
-        rich-layer  (get rich-layers (:id layer))
-
+        db (assoc-in db [:map :rich-layers :states id :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
         {:keys [timeline]
          new-slider-label :slider-label}
-        (enhance-rich-layer rich-layer rich-layers)
+        (enhance-rich-layer rich-layer db)
 
         ; Find a value on the new alternate view's timeline that matches the old
         ; selected value.
@@ -737,41 +768,57 @@
             (= label old-timeline-label)
             (= old-slider-label new-slider-label)))
          timeline)]
-    {:db (assoc-in db [:map :rich-layers (:id layer) :timeline-selected] (get-in new-timeline-selected [:layer :id]))
+    {:db (assoc-in db [:map :rich-layers :states id :timeline-selected] (get-in new-timeline-selected [:layer :id]))
      :dispatch-n
      [(when
        (and alternate-views-selected (not (get-in db [:map :legends (get-in alternate-views-selected [:layer :id])])))
         [:map.layer/get-legend (:layer alternate-views-selected)])
       [:maybe-autosave]]}))
 
-(defn rich-layer-timeline-selected [{:keys [db]} [_ layer timeline-selected]]
-  (let [timeline-selected (when (not= layer (:layer timeline-selected)) timeline-selected)]
-    {:db (assoc-in db [:map :rich-layers (:id layer) :timeline-selected] (get-in timeline-selected [:layer :id]))
+(defn rich-layer-timeline-selected [{:keys [db]} [_ {:keys [id layer] :as _rich-layer} timeline-selected]]
+  (let [timeline-selected (when (not= (:layer timeline-selected) layer) timeline-selected)]
+    {:db (assoc-in db [:map :rich-layers :states id :timeline-selected] (get-in timeline-selected [:layer :id]))
      :dispatch-n
      [(when
        (and timeline-selected (not (get-in db [:map :legends (get-in timeline-selected [:layer :id])])))
         [:map.layer/get-legend (:layer timeline-selected)])
       [:maybe-autosave]]}))
 
-(defn rich-layer-reset-filters [{:keys [db]} [_ layer]]
+(defn rich-layer-control-selected [{:keys [db]} [_ {:keys [id] :as _rich-layer} {:keys [cql-property] :as _control} value]]
+  {:db       (assoc-in db [:map :rich-layers :states id :controls cql-property :value] value)
+   :dispatch [:maybe-autosave]})
+
+(defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
   (merge
-   {:db         (-> db
-                    (assoc-in [:map :rich-layers (:id layer) :alternate-views-selected] nil)
-                    (assoc-in [:map :rich-layers (:id layer) :timeline-selected] nil))
-    :dispatch-n [(when-not (get-in db [:map :legends (:id layer)])
-                   [:map.layer/get-legend layer])
-                 [:maybe-autosave]]}))
+   {:db
+    (-> db
+        (update-in [:map :rich-layers :states id] dissoc :alternate-views-selected)
+        (update-in [:map :rich-layers :states id] dissoc :timeline-selected)
+        (update-in
+         [:map :rich-layers :states id :controls]
+         (fn [controls-state]
+           (reduce
+            (fn [controls-state {:keys [cql-property]}]
+              (update controls-state cql-property dissoc :value))
+            controls-state controls))))
+    :dispatch-n
+    [(when-not (get-in db [:map :legends (:id layer)])
+       [:map.layer/get-legend layer])
+     [:maybe-autosave]]}))
 
 (defn rich-layer-configure
   "Opens a layer to the configuration tab."
-  [{:keys [db]} [_ layer]]
-  (let [legends (get-in db [:layer-state :legend-shown])]
-    {:db         (assoc-in db [:map :rich-layers (:id layer) :tab] "filters")
-     :dispatch-n [[:map/add-layer layer]
-                  [:left-drawer/tab "active-layers"]
-                  [:map/update-preview-layer nil]
-                  (when-not (legends layer) [:map.layer.legend/toggle layer])
-                  [:maybe-autosave]]}))
+  [{:keys [db]} [_ {:keys [id layer-id] :as _rich-layer}]]
+  (let [layers  (get-in db [:map :layers])
+        layer   (first-where #(= (:id %) layer-id) layers)
+        legends (get-in db [:layer-state :legend-shown])]
+    {:db (assoc-in db [:map :rich-layers :states id :tab] "filters")
+     :dispatch-n
+     [[:map/add-layer layer]
+      [:left-drawer/tab "active-layers"]
+      [:map/update-preview-layer nil]
+      (when-not (legends layer) [:map.layer.legend/toggle layer])
+      [:maybe-autosave]]}))
 
 (defn add-layer
   "Adds a layer to the list of active layers.
@@ -805,7 +852,7 @@
   (let [layers (get-in db [:map :active-layers])
         layers (vec (remove #(= % layer) layers))
         {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
-        rich-layer (get-in db [:map :rich-layers (:id layer)])
+        rich-layer (layer->rich-layer layer db)
         db     (->
                 db
                 (assoc-in [:map :active-layers] layers)
@@ -821,7 +868,7 @@
                   (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
     {:db         db
      :dispatch-n [[:map/popup-closed]
-                  (when rich-layer [:map.rich-layer/reset-filters layer])
+                  (when rich-layer [:map.rich-layer/reset-filters rich-layer])
                   [:map.layer.selection/maybe-clear]
                   [:maybe-autosave]]}))
 

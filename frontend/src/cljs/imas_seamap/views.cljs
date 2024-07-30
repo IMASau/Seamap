@@ -12,7 +12,7 @@
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer [handler-fn handler-dispatch] :include-macros true]
+            [imas-seamap.utils :refer [handler-fn handler-dispatch first-where append-query-params] :include-macros true]
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
@@ -664,13 +664,82 @@
       :id       "overlay-control"
       :icon     "help"}]]])
 
+(defmulti dynamic-pill-region-control #(get-in % [:region-control :controller-type]))
+
+(defmethod dynamic-pill-region-control "dropdown"
+  [{:keys [dynamic-pill]
+    {:keys [label icon tooltip value values is-default-value?]} :region-control}]
+  [components/form-group
+   {:label
+    [b/tooltip
+     {:content tooltip}
+     [:<>
+      (when icon [b/icon {:icon icon}])
+      label]]}
+   [:div
+    {:on-click #(.stopPropagation %)}
+    [components/select
+     {:value        value
+      :options      values
+      :onChange     #(re-frame/dispatch [:dynamic-pill.region-control/value dynamic-pill %])
+      :isSearchable true
+      :isClearable  (not is-default-value?)
+      :keyfns
+      {:id   identity
+       :text identity}}]]])
+
+(defmethod dynamic-pill-region-control "multi-dropdown"
+  [{:keys [dynamic-pill]
+    {:keys [label icon tooltip value values is-default-value?]} :region-control}]
+  [components/form-group
+   {:label
+    [b/tooltip
+     {:content tooltip}
+     [:<>
+      (when icon [b/icon {:icon icon}])
+      label]]}
+   [:div
+    {:on-click #(.stopPropagation %)}
+    [components/select
+     {:value        value
+      :options      values
+      :onChange     #(re-frame/dispatch [:dynamic-pill.region-control/value dynamic-pill %])
+      :isSearchable true
+      :isClearable  (not is-default-value?)
+      :isMulti      true
+      :keyfns
+      {:id   identity
+       :text identity}}]]])
+
+(defn- dynamic-pill
+  [{:keys [id text icon tooltip expanded? active?] region-control :region-control :as dynamic-pill}]
+  (if active?
+    [components/floating-pill-control-menu
+     {:text           text
+      :id             "state-of-knowledge-pill"
+      :icon           icon
+      :expanded?      expanded?
+      :active?        active?
+      :tooltip        tooltip
+      :on-open-click  #(re-frame/dispatch [:ui/open-pill (str "dynamic-pill-" id)])
+      :on-close-click #(re-frame/dispatch [:ui/open-pill nil])}
+     [:div.state-of-knowledge-pill-content
+      [dynamic-pill-region-control
+       {:region-control region-control
+        :dynamic-pill   dynamic-pill}]]]
+    [components/floating-pill-button
+     {:text text
+      :icon icon
+      :on-click #(re-frame/dispatch [:dynamic-pill/active dynamic-pill true])}]))
+
 (defn- floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
         valid-boundaries         @(re-frame/subscribe [:sok/valid-boundaries])
         boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])
-        open-pill                @(re-frame/subscribe [:sok/open-pill])]
+        {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])
+        open-pill                @(re-frame/subscribe [:ui/open-pill])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
 
@@ -690,7 +759,10 @@
        [floating-zones-pill
         (merge
          valid-boundaries
-         {:expanded? (= open-pill "zones")})])]))
+         {:expanded? (= open-pill "zones")})])
+     (for [{:keys [id] :as dp} dynamic-pills]
+       ^{:key (str id)}
+       [dynamic-pill dp])]))
 
 (defn layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])
@@ -792,6 +864,41 @@
                 [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
         :panel (reagent/as-element [featured-maps])}]]]))
 
+(defmulti right-drawer :type)
+
+(defmethod right-drawer :state-of-knowledge []
+  [state-of-knowledge])
+
+(defmethod right-drawer :story-map []
+  [featured-map-drawer])
+
+(defmethod right-drawer :dynamic-pill
+  [{{:keys [dynamic-pill-id]} :params}]
+  (let [{dynamic-pills :mapped} @(re-frame/subscribe [:dynamic-pills])
+        {:keys [text icon url displayed-layers region-control displayed-rich-layer-filters] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)
+        url
+        (when url
+          (append-query-params
+           url
+           (merge
+            {:region-type (:cql-property region-control)
+             :layers      (map :layer_name displayed-layers)
+             :filters     displayed-rich-layer-filters}
+            (when (seq (:value region-control))
+              {:regions (:value region-control)}))))]
+    [components/drawer
+     {:title       [:<> [b/icon {:icon icon}] text]
+      :position    "right"
+      :size        "368px"
+      :isOpen      true
+      :onClose     #(re-frame/dispatch [:dynamic-pill/active dynamic-pill false])
+      :className   "dynamic-pill-drawer"
+      :hasBackdrop false}
+     (when (and (seq displayed-layers) url) [:iframe {:src url}])]))
+
+(defmethod right-drawer :default []
+  nil)
+
 (defn layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
         error? (reagent/atom false)]    ; keeps track of if previous url had an error in displaying
@@ -866,7 +973,7 @@
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
-        right-drawer-open? (or @(re-frame/subscribe [:sok/open?]) @(re-frame/subscribe [:sm.featured-map/open?]))
+        right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])]
     [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
@@ -907,9 +1014,8 @@
      [info-card]
      [loading-display]
      [left-drawer]
-     [state-of-knowledge]
-     [featured-map-drawer]
-     [layers-search-omnibar] 
+     [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
+     [layers-search-omnibar]
      [custom-leaflet-controls]
      [floating-pills]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))

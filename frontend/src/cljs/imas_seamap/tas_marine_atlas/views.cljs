@@ -123,6 +123,18 @@
       :id       "overlay-control"
       :icon     "help"}]]])
 
+(defn- floating-pills []
+  (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))
+        {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])]
+    [:div
+     {:class (str "floating-pills" (when collapsed " collapsed"))}
+     (for [{:keys [text icon tooltip]} dynamic-pills]
+       ^{:key text}
+       [components/floating-pill-button
+        {:text    text
+         :icon    icon
+         :tooltip tooltip}])]))
+
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
@@ -277,7 +289,7 @@
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         _                  (use-hotkeys hot-keys) ; We don't need the results of this, just need to ensure it's called!
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
-        right-drawer-open? @(re-frame/subscribe [:sm.featured-map/open?])]
+        right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))]
     [:div#main-wrapper.tas-marine-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper
@@ -317,5 +329,6 @@
      [featured-map-drawer]
      [layers-search-omnibar]
      [custom-leaflet-controls]
+     [floating-pills]
      [welcome-dialogue]]))
 

@@ -24,7 +24,10 @@
                      :preview-layer   nil
                      :viewport-only?  false
                      :keyed-layers    {}
-                     :rich-layers     {}
+                     :rich-layers     {:rich-layers  []
+                                       :states       {}
+                                       :async-datas  {}
+                                       :layer-lookup {}}
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}
@@ -50,8 +53,7 @@
                                                             :sediment       nil
                                                             :squidle        nil
                                                             :loading?       false
-                                                            :show-layers?   false}}
-                        :open-pill  nil}
+                                                            :show-layers?   false}}}
    :story-maps      {:featured-maps []
                      :featured-map  nil
                      :open?         false}
@@ -79,7 +81,12 @@
                      :catalogue             {:main {:tab      "cat"
                                                     :expanded #{}}}
                      :sidebar               {:collapsed false
-                                             :selected  "tab-activelayers"}}
+                                             :selected  "tab-activelayers"}
+                     :right-sidebars        []
+                     :open-pill             nil}
+   :dynamic-pills {:dynamic-pills []
+                   :states        {}
+                   :async-datas   {}}
    :autosave?       false
    :config          {:url-paths {:layer                 "layers/"
                                  :base-layer            "baselayers/"
@@ -93,12 +100,15 @@
                                  :keyed-layers          "keyedlayers/"
                                  :rich-layers           "richlayers/"
                                  :region-reports        "regionreports/"
+                                 :dynamic-pills         "dynamicpills/"
                                  :amp-boundaries        "habitat/ampboundaries"
                                  :imcra-boundaries      "habitat/imcraboundaries"
                                  :meow-boundaries       "habitat/meowboundaries"
                                  :habitat-statistics    "habitat/habitatstatistics"
                                  :bathymetry-statistics "habitat/bathymetrystatistics"
                                  :habitat-observations  "habitat/habitatobservations"
+                                 :cql-filter-values     "habitat/cqlfiltervalues"
+                                 :dynamic-pill-region-control-values "habitat/dynamicpillregioncontrolvalues"
                                  :layer-previews        "layer_previews/"
                                  :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"
                                  :region-report-pages   "region-reports/"}

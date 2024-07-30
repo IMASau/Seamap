@@ -56,10 +56,10 @@
 (defn featured-map-drawer []
   (let [{:keys [title content map-links] :as _story-map} @(re-frame/subscribe [:sm/featured-map])]
    [components/drawer
-    {:title       (or title "Featured Map") ; suitable default that shouldn't be seen anyway
+    {:title       (or title "")
      :position    "right"
      :size        "368px"
-     :isOpen      @(re-frame/subscribe [:sm.featured-map/open?])
+     :isOpen      true
      :onClose     #(re-frame/dispatch [:sm.featured-map/open false])
      :hasBackdrop false
      :className   "featured-map-drawer"}

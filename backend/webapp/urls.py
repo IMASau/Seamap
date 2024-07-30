@@ -12,6 +12,8 @@ import catalogue.viewsets as viewsets
 
 from catalogue.views import SaveStateView
 import habitat.viewsets as habitat_viewsets
+import carbonabatementsidebar.views
+import carbonabatementsidebar.viewsets
 
 router = DefaultRouter()
 router.register(r'classifications', viewsets.ClassificationViewset)
@@ -24,6 +26,7 @@ router.register(r'categories', viewsets.CategoryViewset)
 router.register(r'keyedlayers', viewsets.KeyedLayerViewset)
 router.register(r'richlayers', viewsets.RichLayerViewset)
 router.register(r'regionreports', viewsets.RegionReportViewset)
+router.register(r'dynamicpills', viewsets.DynamicPillViewset)
 
 urlpatterns = [
     re_path(r'^api/habitat/transect', habitat_viewsets.transect),
@@ -37,8 +40,17 @@ urlpatterns = [
     re_path(r'^api/habitat/habitatobservations', habitat_viewsets.habitat_observations),
     re_path(r'^api/habitat/regionreportdata', habitat_viewsets.region_report_data),
     re_path(r'^api/habitat/datainregion', habitat_viewsets.data_in_region),
+    re_path(r'^api/habitat/cqlfiltervalues', habitat_viewsets.cql_filter_values),
+    re_path(r'^api/habitat/dynamicpillregioncontrolvalues', habitat_viewsets.dynamic_pill_region_control_values),
     re_path(r'^api/savestates', SaveStateView.as_view()),
     re_path(r'^api/', include(router.urls)),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    re_path(r'^api/carbonabatementsidebar/carbonabatement$', carbonabatementsidebar.viewsets.carbon_abatement, name='carbon_abatement'),
+    re_path(r'^api/carbonabatementsidebar/abatementarea$', carbonabatementsidebar.viewsets.abatement_area, name='abatement_area'),
+    re_path(r'^api/carbonabatementsidebar/carbonpricecarbonabatement$', carbonabatementsidebar.viewsets.carbon_price_carbon_abatement, name='carbon_price_carbon_abatement'),
+    re_path(r'^api/carbonabatementsidebar/carbonpriceabatementarea$', carbonabatementsidebar.viewsets.carbon_price_abatement_area, name='carbon_price_abatement_area'),
+    re_path(r'^carbonabatementsidebar$', carbonabatementsidebar.views.carbon_abatement_sidebar, name='carbon_abatement_sidebar'),
+] \
++ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) \
++ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

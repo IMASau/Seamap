@@ -83,9 +83,6 @@
 (defn open? [db _]
   (boolean (get-in db [:state-of-knowledge :boundaries :active-boundary])))
 
-(defn open-pill [db _]
-  (get-in db [:state-of-knowledge :open-pill]))
-
 (defn boundary-layer-filter-fn [db _]
   (let [{:keys [active-boundary-layer] :as boundaries} (get-in db [:state-of-knowledge :boundaries])
         cql-filter (cql-filter boundaries)]

@@ -94,7 +94,7 @@ class Layer(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     def geojson(self, out_fields: str=None):
         url = f"{self.server_url}/query"
         params = {
@@ -114,7 +114,50 @@ class Layer(models.Model):
         r = requests.get(url=url, params=params, verify=False)
 
         return r.json()
-    
+
+    def cql_property_values(self, cql_properties: list) -> dict:
+        params = {
+            'service': 'WFS',
+            'version': '2.0.0',
+            'request': 'GetFeature',
+            'typeNames': self.layer_name,
+            'outputFormat': 'application/json',
+            'propertyName': f"({','.join(cql_properties)})",
+        }
+        r = requests.get(url=self.server_url, params=params, verify=False)
+        data = r.json()
+
+        features_cql_properties = [
+            {
+                cql_property: feature["properties"][cql_property]
+                for cql_property in cql_properties
+            }
+            for feature in data["features"]
+        ]
+
+        value_combinations = [
+            dict(y) for y in set(
+                tuple(x.items())
+                for x in features_cql_properties
+            )
+        ]
+
+        values = [
+            {
+                'cql_property': cql_property,
+                'values': sorted(set(
+                    value_combination[cql_property]
+                    for value_combination in value_combinations
+                ))
+            }
+            for cql_property in cql_properties
+        ]
+        
+        return {
+            'values': values,
+            'value_combinations': value_combinations
+        }
+        
     def bounds(self):
         return {
             'north': float(self.maxy),
@@ -181,22 +224,44 @@ class RichLayer(models.Model):
 
 @python_2_unicode_compatible
 class RichLayerAlternateView(models.Model):
-    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT)
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT, related_name='alternate_views')
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
 
 @python_2_unicode_compatible
 class RichLayerTimeline(models.Model):
-    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT)
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT, related_name='timeline')
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     value = models.FloatField(null=False)
     label = models.CharField(max_length=255)
 
+DATA_TYPE_CHOICES = [
+    ('string', 'string'),
+    ('number', 'number'),
+]
+
+CONTROLLER_TYPE_CHOICES = [
+    ('slider', 'slider'),
+    ('dropdown', 'dropdown'),
+    ('multi-dropdown', 'multi-dropdown'),
+]
+
 class EmptyStringToNoneField(models.CharField):
     def get_prep_value(self, value):
         if value == '':
-            return None  
+            return None
         return value
+
+@python_2_unicode_compatible
+class RichLayerControl(models.Model):
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT, related_name='controls')
+    cql_property = models.CharField(max_length=255)
+    label = models.CharField(max_length=255)
+    data_type = models.CharField(max_length=255, choices=DATA_TYPE_CHOICES)
+    controller_type = models.CharField(max_length=255, choices=CONTROLLER_TYPE_CHOICES)
+    icon = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    tooltip = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    default_value = EmptyStringToNoneField(max_length=255, null=True, blank=True)
 
 @python_2_unicode_compatible
 class RegionReport(models.Model):
@@ -224,3 +289,23 @@ class Pressure(models.Model):
 
     def __str__(self):
         return f'{self.region_report}: {self.layer}'
+
+
+@python_2_unicode_compatible
+class DynamicPill(models.Model):
+    text = models.CharField(max_length=255)
+    icon = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    tooltip = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    url = models.URLField(max_length=255)
+    layers = models.ManyToManyField(Layer)
+    # consider extracting control into a separate model, and adding as a one-to-one field?
+    region_control_cql_property = models.CharField(max_length=255)
+    region_control_label = models.CharField(max_length=255)
+    region_control_data_type = models.CharField(max_length=255, choices=DATA_TYPE_CHOICES)
+    region_control_controller_type = models.CharField(max_length=255, choices=CONTROLLER_TYPE_CHOICES)
+    region_control_icon = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    region_control_tooltip = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    region_control_default_value = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.text
