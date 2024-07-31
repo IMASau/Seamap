@@ -73,7 +73,7 @@ def mapserver_layer_query_url(layer):
     try:
         data = r.json()
     except Exception as e:
-        raise Exception(f"Cannot decode mapserver response into JSON:\n{r.text}") from e
+        raise Exception(f"Could not decode mapserver response into JSON") from e
 
     try:
         server_layers = data['layers']
@@ -89,7 +89,7 @@ def mapserver_layer_query_url(layer):
         )[0]  # get first layer if one layer, else filter the list
         assert server_layer
     except Exception as e:
-        raise Exception(f"No server layer found in the mapserver data JSON:\n{data}") from e
+        raise Exception(f"No server layer found in the mapserver data JSON") from e
     
     return f"{map_server_url}/{server_layer['id']}/query"
 
@@ -121,17 +121,17 @@ def get_geoserver_geojson(layer: Layer, server_url: str, result_offset: int = 0)
     try:
         data = r.json()
     except Exception as e:
-        raise Exception(f"Cannot decode geoserver response into JSON:\n{r.text}") from e
+        raise Exception(f"Could not decode geoserver response into JSON") from e
 
     try:
         assert not data.get('error')
     except AssertionError as e:
-        raise Exception(f"GeoJSON contains an error:\n{data}") from e
+        raise Exception(f"GeoJSON contains an error") from e
     
     try:
         assert data.get('features')
     except AssertionError as e:
-        raise Exception(f"No features found in the GeoJSON:\n{data}") from e
+        raise Exception(f"No features found in the GeoJSON") from e
 
     # We will use the presence of a 'next' link (not that
     # we use the link itself) to decide whether there is
@@ -158,17 +158,17 @@ def get_mapserver_geojson(server_url, result_offset=0):
     try:
         data = r.json()
     except Exception as e:
-        raise Exception(f"Cannot decode mapserver response into JSON:\n{r.text}") from e
+        raise Exception(f"Could not decode mapserver response into JSON") from e
 
     try:
         assert not data.get('error')
     except AssertionError as e:
-        raise Exception(f"GeoJSON contains an error:\n{data}") from e
+        raise Exception(f"GeoJSON contains an error") from e
 
     try:
         assert data.get('features')
     except AssertionError as e:
-        raise Exception(f"No features found in the GeoJSON:\n{data}") from e
+        raise Exception(f"No features found in the GeoJSON") from e
 
     return data, data.get('exceededTransferLimit', False)
 
@@ -188,17 +188,17 @@ def get_featureserver_geojson(server_url, result_offset=0):
     try:
         data = r.json()
     except Exception as e:
-        raise Exception(f"Cannot decode featureserver response into JSON:\n{r.text}") from e
+        raise Exception(f"Could not decode featureserver response into JSON") from e
 
     try:
         assert not data.get('error')
     except AssertionError as e:
-        raise Exception(f"GeoJSON contains an error:\n{data}") from e
+        raise Exception(f"GeoJSON contains an error") from e
 
     try:
         assert data.get('features')
     except AssertionError as e:
-        raise Exception(f"No features found in the GeoJSON:\n{data}") from e
+        raise Exception(f"No features found in the GeoJSON") from e
 
     return data, data.get('exceededTransferLimit', False)
 
@@ -309,7 +309,7 @@ class Command(BaseCommand):
         try:
             assert layer_id
         except AssertionError as e:
-            logging.error(f"No layer_id argument was specified:\n{options}")
+            logging.error(f"No layer_id argument was specified: {options}")
         else:
             try:
                 layer = Layer.objects.get(id=layer_id)
