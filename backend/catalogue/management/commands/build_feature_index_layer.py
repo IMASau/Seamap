@@ -58,8 +58,11 @@ def mapserver_layer_query_url(layer):
     string
         mapserver layer feature query URL
     """
-    match = re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url)
-    map_server_url = f'{match.group(1)}/rest/services/{match.group(2)}/MapServer'
+    if match := re.search(r'^(.+?)/rest/services/(.+?)/MapServer/(\d+).*$', layer.server_url):
+        return f'{match.group(1)}/rest/services/{match.group(2)}/MapServer/{match.group(3)}/query'
+    else:
+        match = re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url)
+        map_server_url = f'{match.group(1)}/rest/services/{match.group(2)}/MapServer'
 
     try:
         r = requests.get(url=f"{map_server_url}/layers", params={'dynamicLayers': '1=1', 'f': 'json'})
