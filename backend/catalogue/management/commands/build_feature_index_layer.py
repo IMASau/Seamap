@@ -6,7 +6,8 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connections
 from requests.adapters import HTTPAdapter, Retry
-from shapely.geometry import shape
+from shapely.geometry import shape, Polygon, LineString, MultiPolygon, MultiLineString
+from shapely.geometry.base import BaseGeometry
 import pyodbc
 import requests
 import traceback
@@ -201,6 +202,31 @@ def get_featureserver_geojson(server_url, result_offset=0):
 
     return data, data.get('exceededTransferLimit', False)
 
+def strip_z_values(geometry: BaseGeometry) -> BaseGeometry:
+    """
+    Remove Z values from any Shapely geometry type.
+
+    Args:
+        geometry (BaseGeometry): The Shapely geometry to process.
+
+    Returns:
+        BaseGeometry: A new Shapely geometry with Z values stripped.
+    """
+    if geometry.has_z:
+        if isinstance(geometry, Polygon):
+            coords_2d = [(x, y) for x, y, z in geometry.exterior.coords]
+            new_geom = Polygon(coords_2d)
+            return new_geom
+        elif isinstance(geometry, LineString):
+            coords_2d = [(x, y) for x, y, z in geometry.coords]
+            return LineString(coords_2d)
+        elif isinstance(geometry, MultiPolygon):
+            new_geoms = [Polygon([(x, y) for x, y, z in poly.exterior.coords]) for poly in geometry]
+            return MultiPolygon(new_geoms)
+        elif isinstance(geometry, MultiLineString):
+            new_geoms = [LineString([(x, y) for x, y, z in line.coords]) for line in geometry]
+            return MultiLineString(new_geoms)
+    return geometry
 
 def get_features(layer, server_url, result_offset=0):
     if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', server_url):
@@ -213,7 +239,7 @@ def get_features(layer, server_url, result_offset=0):
     features = [
         LayerFeature(
             layer.id,
-            shape(feature['geometry']).wkt
+            strip_z_values(shape(feature['geometry'])).wkt
         )
         for feature in geojson['features']
         if feature['geometry']
