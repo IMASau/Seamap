@@ -89,8 +89,7 @@ def mapserver_layer_query_url(layer):
     
     return f"{map_server_url}/{server_layer['id']}/query"
 
-
-def get_geoserver_geojson(layer, server_url, result_offset=0):
+def get_geoserver_geojson(layer: Layer, server_url: str, result_offset: int = 0):
     params = {
         'request':      'GetFeature',
         'service':      'WFS',
@@ -106,7 +105,14 @@ def get_geoserver_geojson(layer, server_url, result_offset=0):
     try:
         r = http_session().get(url=server_url, params=params)
     except Exception as e:
-        raise Exception(f"Cannot retrieve GeoJSON from geoserver ({server_url})") from e
+        try:
+            get_feature_is_supported = layer.get_feature_is_supported()
+        except Exception as e:
+            raise Exception(f"Unknown error retrieving GeoJSON from geoserver ({server_url})") from e
+        if get_feature_is_supported:
+            raise Exception(f"Unknown error retrieving GeoJSON from geoserver ({server_url})") from e
+        else:
+            raise Exception(f"GetFeature operation is not supported for {layer.layer_name} on geoserver ({server_url})") from e
 
     try:
         data = r.json()
