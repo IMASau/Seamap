@@ -3,10 +3,6 @@ from requests.adapters import HTTPAdapter, Retry
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-from django.db import connections
-from collections import namedtuple
 import logging
 import json
 from pyquery import PyQuery
@@ -80,6 +76,101 @@ class Command(BaseCommand):
             return None
 
 
+    def get_network_depth_zones(self) -> dict:
+        """
+        Retrieves and organizes AMP depth zones by network.
+
+        This function queries the `AmpDepthZones` model to retrieve all distinct depth zones
+        for each network, organizes them first by network and then by park, and returns a
+        structured dictionary.
+
+        Returns:
+            dict: A dictionary where the keys are network names and the values are dictionaries
+                of regions, which in turn contain lists of depth zones. The structure is as follows:
+                {
+                    'network_name': [
+                        {
+                            'zonename': str,
+                            'min': int,
+                            'max': int
+                        },
+                        ...
+                    ],
+                    ...
+                }
+                
+        Example:
+            >>> get_network_depth_zones()
+            {
+                'South-east': [
+                        {'zonename': 'mesophotic', 'min': 30, 'max': 70},
+                        ...
+                    ],
+                ...
+            }
+        """
+        amp_depth_zones = AmpDepthZones.objects.all().values('netname', 'zonename', 'min', 'max').distinct()  # [{'netname': 'South-east', 'zonename': 'mesophotic', 'min': 30, 'max': 70}, ...]
+        network_depth_zones = {} # {'South-east': [{'zonename': 'mesophotic', 'min': 30, 'max': 70}, ...], ...}
+        for amp_depth_zone in amp_depth_zones:
+            if amp_depth_zone['netname'] not in network_depth_zones:
+                network_depth_zones[amp_depth_zone['netname']] = []
+            network_depth_zones[amp_depth_zone['netname']].append({k: amp_depth_zone[k] for k in ['zonename', 'min', 'max']})
+
+
+    def get_park_depth_zones(self) -> dict:
+        """
+        Retrieves and organizes AMP depth zones by network and park.
+
+        This function queries the `AmpDepthZones` model to retrieve all distinct depth zones,
+        organizes them first by network and then by park, and returns a structured dictionary.
+
+        Returns:
+            dict: A dictionary where the keys are network names and the values are dictionaries
+                of regions, which in turn contain lists of depth zones. The structure is as follows:
+                {
+                    'network_name': {
+                        'park_name': [
+                            {
+                                'zonename': str,
+                                'min': int,
+                                'max': int
+                            },
+                            ...
+                        ],
+                        ...
+                    },
+                    ...
+                }
+                
+        Example:
+            >>> get_park_depth_zones()
+            {
+                'South-east': {
+                    'Beagle': [
+                        {'zonename': 'mesophotic', 'min': 30, 'max': 70},
+                        ...
+                    ],
+                    ...
+                },
+                ...
+            }
+        """
+        amp_depth_zones = AmpDepthZones.objects.all().values('netname', 'resname', 'zonename', 'min', 'max').distinct() # [{'netname': 'South-east', 'resname': 'Beagle', 'zonename': 'mesophotic', 'min': 30, 'max': 70}, ...]
+        network_depth_zones = {} # {'South-east': [{'resname': 'Beagle', 'zonename': 'mesophotic', 'min': 30, 'max': 70}, ...], ...}
+        for amp_depth_zone in amp_depth_zones:
+            if amp_depth_zone['netname'] not in network_depth_zones:
+                network_depth_zones[amp_depth_zone['netname']] = []
+            network_depth_zones[amp_depth_zone['netname']].append({k: amp_depth_zone[k] for k in ['resname', 'zonename', 'min', 'max']})
+        park_depth_zones = {} # {'South-east': {'Beagle': [{'zonename': 'mesophotic', 'min': 30, 'max': 70}, ...], ...}, ...}
+        for network, depth_zones in network_depth_zones.items():
+            if network not in park_depth_zones:
+                park_depth_zones[network] = {}
+            for depth_zone in depth_zones:
+                if depth_zone['resname'] not in park_depth_zones[network]:
+                    park_depth_zones[network][depth_zone['resname']] = []
+                park_depth_zones[network][depth_zone['resname']].append({k: depth_zone[k] for k in ['zonename', 'min', 'max']})
+
+
     def add_arguments(self, parser):
         parser.add_argument(
             '--skip_existing',
@@ -97,23 +188,9 @@ class Command(BaseCommand):
         additional_filters = self.http_session.get(f"{settings.WORDPRESS_URL}wp-json/wp/v2/region_report?acf_format=standard").json()[0]['region_report_squidle_annotations_filters']
         self.additional_filters = json.loads(additional_filters) if additional_filters else []
 
-        amp_depth_zones = AmpDepthZones.objects.all().values('netname', 'resname', 'zonename', 'min', 'max').distinct()
-        network_region_depth_zones = {}
-        for amp_depth_zone in amp_depth_zones:
-            if amp_depth_zone['netname'] not in network_region_depth_zones:
-                network_region_depth_zones[amp_depth_zone['netname']] = []
-            network_region_depth_zones[amp_depth_zone['netname']].append({k: amp_depth_zone[k] for k in ['resname', 'zonename', 'min', 'max']})
-        region_depth_zones = {}
-        for network, depth_zones in network_region_depth_zones.items():
-            if network not in region_depth_zones:
-                region_depth_zones[network] = {}
-            for depth_zone in depth_zones:
-                if depth_zone['resname'] not in region_depth_zones[network]:
-                    region_depth_zones[network][depth_zone['resname']] = []
-                region_depth_zones[network][depth_zone['resname']].append({k: depth_zone[k] for k in ['zonename', 'min', 'max']})
-
-        for network, region_depth_zone in region_depth_zones.items():
-            for park, depth_zones in region_depth_zone.items():
+        park_depth_zones = self.get_park_depth_zones()
+        for network, park_depth_zone in park_depth_zones.items():
+            for park, depth_zones in park_depth_zone.items():
                 try:
                     logging.info(f"Retrieving GeoJSON for {network} > {park}")
                     geojson = self.geojson_boundary(network, park)
@@ -158,13 +235,7 @@ class Command(BaseCommand):
                             except Exception as e:
                                 logging.error(f"Error processing {network} > {park} > All Depths ({'Highlights' if highlights else 'No Highlights'})", exc_info=e)
 
-        network_amp_depth_zones = AmpDepthZones.objects.all().values('netname', 'zonename', 'min', 'max').distinct()
-        network_depth_zones = {}
-        for network_amp_depth_zone in network_amp_depth_zones:
-            if network_amp_depth_zone['netname'] not in network_depth_zones:
-                network_depth_zones[network_amp_depth_zone['netname']] = []
-            network_depth_zones[network_amp_depth_zone['netname']].append({k: network_amp_depth_zone[k] for k in ['zonename', 'min', 'max']})
-
+        network_depth_zones = self.get_network_depth_zones()
         for network, depth_zones in network_depth_zones.items():
             try:
                 logging.info(f"Retrieving GeoJSON for {network}")
