@@ -118,6 +118,7 @@ class Command(BaseCommand):
             if amp_depth_zone['netname'] not in network_depth_zones:
                 network_depth_zones[amp_depth_zone['netname']] = []
             network_depth_zones[amp_depth_zone['netname']].append({k: amp_depth_zone[k] for k in ['zonename', 'min', 'max']})
+        return network_depth_zones
 
 
     def get_park_depth_zones(self) -> dict:
@@ -172,6 +173,7 @@ class Command(BaseCommand):
                 if depth_zone['resname'] not in park_depth_zones[network]:
                     park_depth_zones[network][depth_zone['resname']] = []
                 park_depth_zones[network][depth_zone['resname']].append({k: depth_zone[k] for k in ['zonename', 'min', 'max']})
+        return park_depth_zones
 
 
     def add_arguments(self, parser):
