@@ -1,6 +1,6 @@
 import requests
 from requests.adapters import HTTPAdapter, Retry
-
+from urllib.parse import parse_qs
 from django.conf import settings
 from django.core.management.base import BaseCommand
 import logging
@@ -16,6 +16,9 @@ class Command(BaseCommand):
     http_session: requests.Session
     api: SQAPI
     additional_filters: list
+    qsparams: dict
+    template: str
+    results_per_page: int
 
     def start_http_session(self) -> None:
         retry_strategy = Retry(
@@ -52,9 +55,9 @@ class Command(BaseCommand):
 
 
     def get_squidle_annotations(self, geojson: list, min: int, max: int, highlights: bool) -> str:
-        r = self.api.get("/api/annotation/tally/label")
-        r.template("models/annotation/tally_chart_mini.html")
-        r.results_per_page(10)
+        r = self.api.get("/api/annotation/tally/label", qsparams=self.qsparams)
+        r.template(self.template)
+        r.results_per_page(self.results_per_page)
 
         # filters
         r.filter("point", "has", qf("media", "has", qf("poses", "any", qf("geom", "geo_in_mpolyh_xy", geojson))))
@@ -64,14 +67,14 @@ class Command(BaseCommand):
             r.filter("point", "has", qf("media", "has", qf("poses", "any", qf("dep", "gt", min))))
         if max:
             r.filter("point", "has", qf("media", "has", qf("poses", "any", qf("dep", "lte", max))))
-        
+
         for additional_filter in self.additional_filters:
             r._filters.append(additional_filter)
 
         data = r.execute().text
         tree = PyQuery(data)
-        if tree("div.tally-chart-row"):
-            return str(tree("div.tally-chart"))
+        if tree("div.tally-chart-row") or tree("div.chart-container"):
+            return data
         else:
             return None
 
@@ -98,7 +101,7 @@ class Command(BaseCommand):
                     ],
                     ...
                 }
-                
+
         Example:
             >>> get_network_depth_zones()
             {
@@ -141,7 +144,7 @@ class Command(BaseCommand):
                     },
                     ...
                 }
-                
+
         Example:
             >>> get_park_depth_zones()
             {
@@ -185,8 +188,12 @@ class Command(BaseCommand):
         self.network_boundary_layer = KeyedLayer.objects.get(keyword='data-report-boundary-network-simplified').layer
         self.park_boundary_layer = KeyedLayer.objects.get(keyword='data-report-boundary-simplified').layer
         self.api = SQAPI(host="https://squidle.org", api_key=settings.SQUIDLE_API_KEY)
-        additional_filters = self.http_session.get(f"{settings.WORDPRESS_URL}wp-json/wp/v2/region_report?acf_format=standard").json()[0]['region_report_squidle_annotations_filters']
-        self.additional_filters = json.loads(additional_filters) if additional_filters else []
+
+        wordpress_data = self.http_session.get(f"{settings.WORDPRESS_URL}wp-json/wp/v2/region_report?acf_format=standard").json()[0]
+        self.additional_filters = json.loads(wordpress_data['region_report_squidle_annotations_filters']) if wordpress_data.get('region_report_squidle_annotations_filters') else []
+        self.qsparams = {k: v[0] for k, v in parse_qs(wordpress_data['region_report_squidle_query_string_parameters']).items()} if wordpress_data.get('region_report_squidle_query_string_parameters') else {}
+        self.template = self.qsparams.pop('template', 'models/annotation/tally_chart_translated.html')
+        self.results_per_page = int(self.qsparams.pop('results_per_page', '300'))
 
         park_depth_zones = self.get_park_depth_zones()
         for network, park_depth_zone in park_depth_zones.items():
