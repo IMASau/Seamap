@@ -483,11 +483,18 @@ body {
                     color: initial;
                     text-decoration: none;
 
-                    .tally-chart .tally-chart-name {
+                    .tally-chart .tally-chart-name,
+                    .chart-container .group-title {
                         font-size: 13px;
                         white-space: nowrap;
                         text-overflow: ellipsis;
                         overflow: hidden;
+                        width: 100%;
+                    }
+
+                    .chart-container .bar {
+                        height: 18px;
+                        margin-bottom: 2px;
                     }
                 }
             }
