@@ -28,7 +28,7 @@
                 :compiler-options {:pretty-print true}
                 :devtools
                 {:preloads         [devtools.preload
-                                    day8.re-frame.trace.preload
+                                    ; day8.re-frame.trace.preload
                                     imas-seamap.specs.preload]}}
 
           :min {:target            :browser
