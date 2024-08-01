@@ -29,7 +29,7 @@ def email_build_feature_index_summary(errors: list[LayerFeatureIndexError]) -> N
     """
     context = {'errors': errors}
     send_mail(
-        subject="Layer Preview Generation Summary",
+        subject="Build Feature Index Summary",
         message=render_to_string('email_generate_build_feature_index_summary.txt', context),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=settings.ADMINS,
