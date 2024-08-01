@@ -455,6 +455,17 @@ add_action( 'admin_init', function () {
             'default'           => null
         ]
     );
+    register_setting(
+        'region_report',
+        'region_report_squidle_query_string_parameters',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle query string parameters',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
 
     add_settings_section(
         'region_report_configurable_text',
@@ -665,6 +676,22 @@ add_action( 'admin_init', function () {
         'region_report',
         'region_report_url_templates'
     );
+    add_settings_field(
+        'region_report_squidle_query_string_parameters',
+        'Squidle query string parameters',
+        function () {
+            $setting = get_option('region_report_squidle_query_string_parameters');
+            ?>
+            <textarea
+                name="region_report_squidle_query_string_parameters"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
 } );
 
 add_action( 'admin_menu', function () {
@@ -713,6 +740,17 @@ add_action( 'rest_api_init', function () {
             'get_callback' => function ( $object ) {
                 $region_report_squidle_annotations_filters = get_option('region_report_squidle_annotations_filters');
                 return $region_report_squidle_annotations_filters;
+            },
+            'schema' => null
+        ]
+    );
+    register_rest_field(
+        'region_report',
+        'region_report_squidle_query_string_parameters',
+        [
+            'get_callback' => function ( $object ) {
+                $region_report_squidle_query_string_parameters = get_option('region_report_squidle_query_string_parameters');
+                return $region_report_squidle_query_string_parameters;
             },
             'schema' => null
         ]
