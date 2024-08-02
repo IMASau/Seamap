@@ -67,7 +67,7 @@ body {
         @media print { max-width: 100%; }
     }
     
-    h2, h3 {
+    h2, h3, h4 {
         margin: 0;
         font-family: $headings-font-family;
         color: var(--color-2);
@@ -85,6 +85,12 @@ body {
         font-size: 20px;
         margin-bottom: 20px;
     }
+
+    h4 {
+        font-size: 18px;
+        margin-bottom: 0;
+    }
+
     table tbody>tr:nth-child(odd)>td, table tbody>tr:nth-child(odd)>th, table tbody tr:hover>td, table tbody tr:hover>th { background-color: initial; }
     table caption+thead tr:first-child td, table caption+thead tr:first-child th, table colgroup+thead tr:first-child td, table colgroup+thead tr:first-child th, table thead:first-child tr:first-child td, table thead:first-child tr:first-child th { border: 0; }
 
@@ -114,11 +120,10 @@ body {
         font-weight: inherit;
     }
 
-    section {
-        padding: 0;
-        margin: 0;
-        margin-bottom: 20px;
-        page-break-inside: avoid;
+    select {
+        width: initial;
+        padding: initial;
+        font-size: inherit;
     }
     
     .entry-content>* {
@@ -128,6 +133,14 @@ body {
 
         &:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
             max-width: 100%;
+        }
+
+        >section,
+        >section>section {
+            padding: 0;
+            margin: 0;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
         }
     }
 
@@ -364,17 +377,17 @@ body {
         a { color: inherit; }
     }
 
-    .imagery-and-pressures {
+    .imagery {
+        page-break-inside: avoid;
         >.caption { margin-bottom: 32px; }
 
-        .imagery>:nth-child(2) {
+        >:nth-child(4) {
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             gap: 16px;
 
             .map {
                 height: 300px;
-                flex: 2;
 
                 .leaflet-div-icon {
                     background: none;
@@ -384,53 +397,111 @@ body {
                 }
             }
 
-            .images {
-                flex: 3;
-                a { color: inherit; }
-                .caption { margin-bottom: 8px; }
-        
-                .image-grid {
-                    display: grid;
-                    grid-template-columns: repeat(5, 1fr);
-        
-                    >* {
-                        user-select: none;
-                        aspect-ratio: 5 / 4;
-                        overflow: hidden;
-                        position: relative;
-                        padding: 4px;
-        
-                        img {
-                            object-fit: cover;
-                            width: 100%;
-                            height: 100% !important;
-                        }
-        
-                        .grid-number {
-                            background-color: rgb(0, 147, 36);
-                            color: white;
-                            font-weight: bold;
-                            position: absolute;
-                            left: 4px;
-                            top: 4px;
-                            width: 20px;
-                            aspect-ratio: 1;
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                        }
+            .imagery-controls {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+
+                >.imagery-depth {
+                    display: flex;
+                    flex-direction: row;
+                    gap: 8px;
+                    align-items: center;
+
+                    >label {
+                        font-size: 12px;
+                        color: var(--color-2);
+                    }
+                    >select {
+                        font-size: 12px;
+                        color: var(--color-2);
+                        padding: 4px 8px;
+                        border-radius: 6px;
                     }
                 }
             }
-        }
 
-        .pressures>:nth-child(2) {
-            flex: 1;
-            min-width: 0;
-            overflow-x: hidden;
-            gap: 16px;
-            display: flex;
-            flex-direction: column;
+            .imagery-annotations {
+                display: flex;
+                flex-direction: row;
+                gap: 16px;
+                height: 410px;
+                >* {
+                    flex: 1;
+                    min-width: 0;
+                }
+
+                .images {
+                    display: flex;
+                    flex-direction: column;
+                    a {
+                        flex: 0;
+                        color: inherit;
+                    }
+                    .caption {
+                        flex: 0;
+                        margin-bottom: 8px;
+                    }
+            
+                    .image-grid {
+                        flex: 1;
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        min-height: 0;
+            
+                        >* {
+                            user-select: none;
+                            overflow: hidden;
+                            position: relative;
+                            padding: 4px;
+            
+                            img {
+                                object-fit: cover;
+                                width: 100%;
+                                height: 100% !important;
+                            }
+            
+                            .grid-number {
+                                background-color: rgb(0, 147, 36);
+                                color: white;
+                                font-weight: bold;
+                                position: absolute;
+                                left: 4px;
+                                top: 4px;
+                                width: 20px;
+                                aspect-ratio: 1;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                            }
+                        }
+                    }
+                }
+
+                .annotations-link {
+                    color: initial;
+                    text-decoration: none;
+
+                    .tally-chart .tally-chart-name,
+                    .chart-container .group-title {
+                        font-size: 12px;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                        width: 100%;
+                    }
+
+                    .chart-container {
+                        margin: 0;
+                    }
+
+                    .chart-container .bar {
+                        height: 18px;
+                        margin-bottom: 2px;
+                    }
+                }
+            }
         }
     }
     
@@ -476,6 +547,9 @@ body {
     }
     
     .pressures {
+        page-break-inside: avoid;
+        >.caption { margin-bottom: 32px; }
+
         .tab-content {
             height: 390px;
             overflow: auto;
@@ -537,6 +611,7 @@ body {
         display: flex;
         flex-direction: row;
         gap: 16px;
+        margin-bottom: 16px;
 
         .region-report-tab {
             cursor: pointer;
@@ -619,9 +694,9 @@ body {
             border-radius: 2px;
             padding: 8px 9.6px;
             white-space: nowrap;
-            bottom: -100%;
+            bottom: 0;
             left: 50%;
-            transform: translate(-50%, calc(-100% - 6px));
+            transform: translate(-50%, calc(-100% + 6px));
             box-shadow: 0 0 0 1px rgb(16 22 26 / 10%), 0 2px 4px rgb(16 22 26 / 20%), 0 8px 24px rgb(16 22 26 / 20%);
             opacity: 0;
             pointer-events: none;
@@ -658,5 +733,21 @@ body {
                 }
             }
         }
+    }
+
+    input[type=checkbox]:disabled+* {
+        color: #ccc;
+    }
+
+    .leaflet-bottom.leaflet-left {
+        top: 0;
+    }
+
+    .leaflet-minimap-legend {
+        width: 200px;
+        height: 100%;
+        overflow-y: auto;
+        margin: 0;
+        background: rgba(255, 255, 255, 0.8);
     }
 }

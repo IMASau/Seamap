@@ -8,9 +8,7 @@ from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
 
-import catalogue.viewsets as viewsets
-
-from catalogue.views import SaveStateView
+from catalogue import views, viewsets
 import habitat.viewsets as habitat_viewsets
 
 router = DefaultRouter()
@@ -37,7 +35,8 @@ urlpatterns = [
     re_path(r'^api/habitat/habitatobservations', habitat_viewsets.habitat_observations),
     re_path(r'^api/habitat/regionreportdata', habitat_viewsets.region_report_data),
     re_path(r'^api/habitat/datainregion', habitat_viewsets.data_in_region),
-    re_path(r'^api/savestates', SaveStateView.as_view()),
+    re_path(r'^api/savestates', views.SaveStateView.as_view()),
+    re_path(r'^api/squidleannotationsdata', views.SquidleAnnotationsDataView.as_view()),
     re_path(r'^api/', include(router.urls)),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
