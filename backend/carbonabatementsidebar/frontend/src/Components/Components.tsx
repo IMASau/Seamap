@@ -2,7 +2,8 @@ import { VegaLite, VisualizationSpec } from 'react-vega';
 import { RegionAbatementData, AbatementFilters, RegionType, CarbonPriceAbatementData, CarbonPrice, Abatement } from '../types';
 
 import './Components.scss'
-import { Tab, Tabs } from '@blueprintjs/core';
+import { Tab, TabId, Tabs } from '@blueprintjs/core';
+import { useState } from 'react';
 
 
 export function donutChartSpec({ thetaField, colorField, sortField, legendTitle }: { thetaField: string, colorField: string, sortField?: string, legendTitle?: string }): VisualizationSpec {
@@ -127,14 +128,31 @@ export function AbatementChart({ regionType, abatementData, metricField }: { reg
     );
 }
 
-export function AbatementSection({ title, breakdown, chart }: { title: string, breakdown: React.JSX.Element, chart: React.JSX.Element }) {
+export function AbatementSection({ title, regionType, abatementType, breakdown, chart }: { title: string, regionType: RegionType, abatementType: Abatement, breakdown: React.JSX.Element, chart: React.JSX.Element }) {
+    const sectionId = `${regionType}_${abatementType}`;
+    const saveSidebarTab = (selectedTabId: TabId) => {
+        const carbonAbatementSidebarTabs = JSON.parse(window.localStorage.getItem('carbonAbatementSidebarTabs') || '{}');
+        carbonAbatementSidebarTabs[sectionId] = selectedTabId;
+        window.localStorage.setItem('carbonAbatementSidebarTabs', JSON.stringify(carbonAbatementSidebarTabs));
+    }
+
+    const [selectedTabId, setSelectedTabId] = useState<TabId>(JSON.parse(window.localStorage.getItem('carbonAbatementSidebarTabs') || '{}')[sectionId] || "breakdown");
+
     return (
         <div className="abatement-section">
             <div className="abatement-section-heading">
                 <h1>{title}</h1>
             </div>
             <div className="abatement-section-content">
-                <Tabs id="carbon-abatement-tabs" onChange={() => setTimeout(() => window.dispatchEvent(new Event('resize')), 0)}> {/* Hack for Vega chart resizing */}
+                <Tabs
+                    id="carbon-abatement-tabs"
+                    onChange={selectedTabId => {
+                        setSelectedTabId(selectedTabId);
+                        saveSidebarTab(selectedTabId);
+                        setTimeout(() => window.dispatchEvent(new Event('resize'))); // Hack for Vega chart resizing
+                    }}
+                    selectedTabId={selectedTabId}
+                >
                     <Tab
                         id="breakdown"
                         title="Breakdown"

@@ -29,6 +29,8 @@ export default function AbatementAreaSection({ apiUrl, regionType, carbonPrice, 
     return (
         <AbatementSection
             title="Abatement Area"
+            regionType={regionType}
+            abatementType="AbatementArea"
             breakdown={
                 loaded
                     ? <>
