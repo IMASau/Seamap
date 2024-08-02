@@ -485,11 +485,12 @@ body {
 
                     .tally-chart .tally-chart-name,
                     .chart-container .group-title {
-                        font-size: 13px;
+                        font-size: 12px;
                         white-space: nowrap;
                         text-overflow: ellipsis;
                         overflow: hidden;
                         width: 100%;
+                        margin: 0;
                     }
 
                     .chart-container .bar {

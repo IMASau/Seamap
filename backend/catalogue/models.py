@@ -264,3 +264,22 @@ class AmpDepthZones(models.Model):
         db_table = 'VW_AMP_DEPTHZONES'
         managed = False
         unique_together = (('netname', 'resname', 'zonename'),)
+
+@python_2_unicode_compatible
+class SquidleAnnotationsDataView(models.Model):
+    network = models.CharField(max_length=255, db_column='NETNAME')
+    park = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='RESNAME')
+    depth_zone = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='ZONENAME')
+    highlights = models.BooleanField(db_column='HIGHLIGHTS')
+    annotations_data = models.TextField(db_column='ANNOTATIONS_DATA')
+
+    def __str__(self):
+        return f'{self.network}{(" > " + self.park) if self.park else ""} > {self.depth_zone if self.depth_zone else "All Depths"} {"(Highlights)" if self.highlights else "(No Highlights)"}'
+
+    def save(self, **kwargs):
+        raise NotImplementedError()
+
+    class Meta:
+        db_table = 'VW_squidle_annotations_data'
+        managed = False
+        unique_together = (('network', 'park', 'depth_zone'),)

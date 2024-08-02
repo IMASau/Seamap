@@ -1163,14 +1163,12 @@ class RegionReport {
                     };
                     if (this.park) params.park = this.park;
 
+                    const annotationsElement = document.getElementById(`region-report-annotations-${this.postId}`);
                     $.ajax(this.squidleAnnotationsDataUrl, {
                         dataType: "json",
                         data: params,
                         success: annotations => {
-                            const annotationsElement = document.getElementById(`region-report-annotations-${this.postId}`);
-                            const annotationsData = annotations[0]?.annotations_data?.replace(`<i class="fa fa-info-circle"/>`, `<i class="fa fa-info-circle"></i>`);
-                            annotationsElement.innerHTML = annotationsData
-                                ? `
+                            annotationsElement.innerHTML = `
                                     <a
                                         href="${this.templateStringFill(this.annotationsLinkUrlTemplate, {
                                             'network': this.network ?? '',
@@ -1189,16 +1187,18 @@ class RegionReport {
                                                 <div class="tooltip">Publicly available, finalised annotations from imagery scored in this region</div>
                                             </span>
                                         </h4>
-                                        ${annotationsData}
-                                    </a>`
-                                : `
-                                    <div class="bp3-non-ideal-state">
-                                        <div class="bp3-non-ideal-state-visual">
-                                            <span class="bp3-icon bp3-icon-info-sign"></span>
-                                        </div>
-                                        <h4 class="bp3-heading">No Data</h4>
-                                        <div>No public image annotations were found for this region.</div>
-                                    </div>`;
+                                        ${annotations.annotations_data}
+                                    </a>`;
+                        },
+                        error: () => {
+                            annotationsElement.innerHTML = `
+                                <div class="bp3-non-ideal-state">
+                                    <div class="bp3-non-ideal-state-visual">
+                                        <span class="bp3-icon bp3-icon-info-sign"></span>
+                                    </div>
+                                    <h4 class="bp3-heading">No Data</h4>
+                                    <div>No public image annotations were found for this region.</div>
+                                </div>`;
                         }
                     })
 
