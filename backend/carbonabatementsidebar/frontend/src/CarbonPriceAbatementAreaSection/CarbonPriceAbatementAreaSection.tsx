@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Spinner, Tab, Tabs } from '@blueprintjs/core';
+import { Spinner } from '@blueprintjs/core';
 
 import { RegionType, AbatementFilters, CarbonPriceAbatementArea } from '../types';
 import { AbatementSection, CarbonPriceAbatementChart, CarbonPriceAbatementScenarioMessage, CarbonPriceAbatementTable, carbonPriceTocarbonPriceString } from '../Components/Components';
@@ -29,53 +29,44 @@ export default function CarbonPriceAbatementAreaSection({ apiUrl, regionType, re
     }, []);
 
     return (
-        <AbatementSection title="Abatement Area">
-            <Tabs id="carbon-abatement-tabs" onChange={() => setTimeout(() => window.dispatchEvent(new Event('resize')), 0)}> {/* Hack for Vega chart resizing */}
-                <Tab
-                    id="breakdown"
-                    title="Breakdown"
-                    panel={
-                        loaded
-                            ? <>
-                                <CarbonPriceAbatementScenarioMessage
-                                    regionType={regionType}
-                                    region={region}
-                                    abatementFilters={abatementFilters}
-                                />
-                                <CarbonPriceAbatementTable
-                                    abatementData={abatementData}
-                                    metricHeading="Area (ha)"
-                                    metricToString={row =>
-                                        row.abatement_area.toLocaleString(
-                                            undefined,
-                                            { maximumFractionDigits: 0 }
-                                        )
-                                    }
-                                />
-                            </>
-                            : <Spinner />
-                    }
-                />
-                <Tab
-                    id="chart"
-                    title="Chart"
-                    panel={
-                        loaded
-                            ? <>
-                                <CarbonPriceAbatementScenarioMessage
-                                    regionType={regionType}
-                                    region={region}
-                                    abatementFilters={abatementFilters}
-                                />
-                                <CarbonPriceAbatementChart
-                                    abatementData={abatementData}
-                                    metricField="abatement_area"
-                                />
-                            </>
-                            : <Spinner />
-                    }
-                />
-            </Tabs>
-        </AbatementSection>
-    )
+        <AbatementSection
+            title="Abatement Area"
+            breakdown={
+                loaded
+                    ? <>
+                        <CarbonPriceAbatementScenarioMessage
+                            regionType={regionType}
+                            region={region}
+                            abatementFilters={abatementFilters}
+                        />
+                        <CarbonPriceAbatementTable
+                            abatementData={abatementData}
+                            metricHeading="Area (ha)"
+                            metricToString={row =>
+                                row.abatement_area.toLocaleString(
+                                    undefined,
+                                    { maximumFractionDigits: 0 }
+                                )
+                            }
+                        />
+                    </>
+                    : <Spinner />
+            }
+            chart={
+                loaded
+                    ? <>
+                        <CarbonPriceAbatementScenarioMessage
+                            regionType={regionType}
+                            region={region}
+                            abatementFilters={abatementFilters}
+                        />
+                        <CarbonPriceAbatementChart
+                            abatementData={abatementData}
+                            metricField="abatement_area"
+                        />
+                    </>
+                    : <Spinner />
+            }
+        />
+    );
 }

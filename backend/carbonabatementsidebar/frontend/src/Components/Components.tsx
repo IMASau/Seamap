@@ -2,6 +2,7 @@ import { VegaLite, VisualizationSpec } from 'react-vega';
 import { RegionAbatementData, AbatementFilters, RegionType, CarbonPriceAbatementData, CarbonPrice, Abatement } from '../types';
 
 import './Components.scss'
+import { Tab, Tabs } from '@blueprintjs/core';
 
 
 export function donutChartSpec({ thetaField, colorField, sortField, legendTitle }: { thetaField: string, colorField: string, sortField?: string, legendTitle?: string }): VisualizationSpec {
@@ -126,13 +127,26 @@ export function AbatementChart({ regionType, abatementData, metricField }: { reg
     );
 }
 
-export function AbatementSection({ title, children }: { title: string, children: React.ReactNode }) {
+export function AbatementSection({ title, breakdown, chart }: { title: string, breakdown: React.JSX.Element, chart: React.JSX.Element }) {
     return (
         <div className="abatement-section">
             <div className="abatement-section-heading">
                 <h1>{title}</h1>
             </div>
-            <div className="abatement-section-content">{children}</div>
+            <div className="abatement-section-content">
+                <Tabs id="carbon-abatement-tabs" onChange={() => setTimeout(() => window.dispatchEvent(new Event('resize')), 0)}> {/* Hack for Vega chart resizing */}
+                    <Tab
+                        id="breakdown"
+                        title="Breakdown"
+                        panel={breakdown}
+                    />
+                    <Tab
+                        id="chart"
+                        title="Chart"
+                        panel={chart}
+                    />
+                </Tabs>
+            </div>
         </div>
     )
 }
