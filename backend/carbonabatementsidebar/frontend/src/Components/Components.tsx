@@ -45,12 +45,16 @@ export function donutChartSpec({ thetaField, colorField, sortField, legendTitle 
                         window: [{
                             op: 'sum',
                             field: thetaField,
-                            as: 'Cumulat'
+                            as: 'cumulative'
                         }],
                         frame: [null, 0]
                     },
                     {
-                        calculate: `(360 * ((datum.Cumulat - (datum.${thetaField} * 0.5)) / datum.total)) - 90`,
+                        calculate: `datum.${thetaField} / datum.total`,
+                        as: 'percentage'
+                    },
+                    {
+                        calculate: `(360 * ((datum.cumulative - (datum.${thetaField} * 0.5)) / datum.total)) - 90`,
                         as: 'angle'
                     }
                 ],
@@ -60,7 +64,7 @@ export function donutChartSpec({ thetaField, colorField, sortField, legendTitle 
                     angle: { expr: 'datum.angle' }
                 },
                 encoding: {
-                    text: { value: '—' },
+                    text: { value: {expr: 'if(datum.percentage > 0.05, "—", "")'} },
                     color: {
                         field: colorField,
                         type: 'nominal',
@@ -80,7 +84,8 @@ export function donutChartSpec({ thetaField, colorField, sortField, legendTitle 
                     {
                         calculate: `datum.${thetaField} / datum.total`,
                         as: 'percentage'
-                    }
+                    },
+                    { filter: "datum.percentage > 0.05"}
                 ],
                 mark: {
                     type: 'text',
@@ -191,7 +196,7 @@ function regionAbatementScenarioToString(carbonPrice: CarbonPrice, abatement: Ab
         } else {
             throw new Error(`Unknown carbon price: '${carbonPrice}'`);
         }
-        return `Carbon price $${carbonPriceValue}/tCO2`;
+        return `Carbon price $${carbonPriceValue}/tCO₂`;
     }
 }
 
@@ -251,7 +256,7 @@ export function CarbonPriceAbatementTable<T extends CarbonPriceAbatementData>({ 
         <table className="abatement-table">
             <thead>
                 <tr>
-                    <th>Carbon Price ($/tCO2)</th>
+                    <th>Carbon Price ($/tCO₂)</th>
                     <th>{metricHeading}</th>
                 </tr>
             </thead>
@@ -289,7 +294,7 @@ export function CarbonPriceAbatementChart({ abatementData, metricField }: { abat
                 thetaField: metricField,
                 colorField: 'carbonPriceString',
                 sortField: 'carbonPriceString',
-                legendTitle: "Carbon Price ($/tCO2)",
+                legendTitle: "Carbon Price ($/tCO₂)",
             })}
             data={{ values: abatementData }}
             actions={false}
