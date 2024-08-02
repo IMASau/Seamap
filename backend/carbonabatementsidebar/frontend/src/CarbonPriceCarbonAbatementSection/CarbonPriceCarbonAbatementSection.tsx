@@ -43,7 +43,7 @@ export default function CarbonPriceCarbonAbatementSection({ apiUrl, regionType, 
                         />
                         <CarbonPriceAbatementTable
                             abatementData={abatementData}
-                            metricHeading="Carbon (MtCO₂)"
+                            metricHeading="Carbon Abatement (MtCO₂)"
                             metricToString={row =>
                                 row.carbon_abatement.toLocaleString(
                                     undefined,

@@ -224,7 +224,7 @@ export function AbatementScenarioMessage({ carbonPrice, abatement, abatementFilt
                 <li><b>{regionAbatementScenarioToString(carbonPrice, abatement)}</b></li>
                 <li><b>Discount rate of {abatementFilters.dr}% for net present values</b></li>
                 <li><b>Establishment cost of ${abatementFilters.ec}/ha</b></li>
-                <li><b>Abatement cost of ${abatementFilters.ac}/ha</b></li>
+                <li><b>5-yearly abatement cost of ${abatementFilters.ac}/ha</b></li>
             </ul>
         </div>
     );
@@ -280,7 +280,7 @@ export function CarbonPriceAbatementScenarioMessage({ regionType, region, abatem
                 <li><b>{regionTypeToString(regionType)} of {region}</b></li>
                 <li><b>Discount rate of {abatementFilters.dr}% for net present values</b></li>
                 <li><b>Establishment cost of ${abatementFilters.ec}/ha</b></li>
-                <li><b>Abatement cost of ${abatementFilters.ac}/ha</b></li>
+                <li><b>5-yearly abatement cost of ${abatementFilters.ac}/ha</b></li>
             </ul>
         </div>
     );
