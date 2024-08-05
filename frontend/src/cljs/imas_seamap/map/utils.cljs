@@ -603,5 +603,6 @@
   [layer db]
   (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db))
         dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db)))
-        cql-filters (conj dynamic-pills-cql-filters rich-layer-cql-filter)]
-    (apply str (interpose " AND " cql-filters))))
+        cql-filters (if rich-layer-cql-filter (conj dynamic-pills-cql-filters rich-layer-cql-filter) dynamic-pills-cql-filters)
+        cql-filter (apply str (interpose " AND " cql-filters))]
+    (when (seq cql-filter) cql-filter)))

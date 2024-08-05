@@ -67,30 +67,33 @@
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
-        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter seq))]
+        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
+        cql-filter (apply str (interpose " OR " cql-filters))
+        cql-filter (when (seq cql-filter) cql-filter)]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get
       :uri             (-> layers first :server_url)
       :params
-      {:REQUEST       "GetFeatureInfo"
-       :LAYERS        layer-names
-       :QUERY_LAYERS  layer-names
-       :WIDTH         (:width feature-info-image-size)
-       :HEIGHT        (:height feature-info-image-size)
-       :BBOX          bbox
-       :FEATURE_COUNT 1000
-       :STYLES        ""
-       :X             50
-       :Y             50
-       :TRANSPARENT   true
-       :CRS           "EPSG:3112"
-       :SRS           "EPSG:3112"
-       :FORMAT        "image/png"
-       :INFO_FORMAT   "text/html"
-       :SERVICE       "WMS"
-       :VERSION       "1.1.1"
-       :CQL_FILTER    (apply str (interpose " " cql-filters))}
+      (merge
+       {:REQUEST       "GetFeatureInfo"
+        :LAYERS        layer-names
+        :QUERY_LAYERS  layer-names
+        :WIDTH         (:width feature-info-image-size)
+        :HEIGHT        (:height feature-info-image-size)
+        :BBOX          bbox
+        :FEATURE_COUNT 1000
+        :STYLES        ""
+        :X             50
+        :Y             50
+        :TRANSPARENT   true
+        :CRS           "EPSG:3112"
+        :SRS           "EPSG:3112"
+        :FORMAT        "image/png"
+        :INFO_FORMAT   "text/html"
+        :SERVICE       "WMS"
+        :VERSION       "1.1.1"}
+       (when cql-filter {:CQL_FILTER cql-filter}))
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/html" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -101,30 +104,33 @@
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
-        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter seq))]
+        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
+        cql-filter (apply str (interpose " OR " cql-filters))
+        cql-filter (when (seq cql-filter) cql-filter)]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get
       :uri             (-> layers first :server_url)
       :params
-      {:REQUEST       "GetFeatureInfo"
-       :LAYERS        layer-names
-       :QUERY_LAYERS  layer-names
-       :WIDTH         (:width feature-info-image-size)
-       :HEIGHT        (:height feature-info-image-size)
-       :BBOX          bbox
-       :FEATURE_COUNT 1000
-       :STYLES        ""
-       :X             50
-       :Y             50
-       :TRANSPARENT   true
-       :CRS           "EPSG:3112"
-       :SRS           "EPSG:3112"
-       :FORMAT        "image/png"
-       :INFO_FORMAT   "application/json"
-       :SERVICE       "WMS"
-       :VERSION       "1.1.1"
-       :CQL_FILTER    (apply str (interpose " " cql-filters))}
+      (merge
+       {:REQUEST       "GetFeatureInfo"
+        :LAYERS        layer-names
+        :QUERY_LAYERS  layer-names
+        :WIDTH         (:width feature-info-image-size)
+        :HEIGHT        (:height feature-info-image-size)
+        :BBOX          bbox
+        :FEATURE_COUNT 1000
+        :STYLES        ""
+        :X             50
+        :Y             50
+        :TRANSPARENT   true
+        :CRS           "EPSG:3112"
+        :SRS           "EPSG:3112"
+        :FORMAT        "image/png"
+        :INFO_FORMAT   "application/json"
+        :SERVICE       "WMS"
+        :VERSION       "1.1.1"}
+       (when cql-filter {:CQL_FILTER cql-filter}))
       :response-format (ajax/json-response-format)
       :on-success      [:map/got-featureinfo request-id point "application/json" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -146,30 +152,33 @@
                   (bounds->projected wgs84->epsg3112)
                   (bounds->str 3112))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
-        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter seq))]
+        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
+        cql-filter (apply str (interpose " OR " cql-filters))
+        cql-filter (when (seq cql-filter) cql-filter)]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
      {:method          :get
       :uri             (-> layers first :server_url)
       :params
-      {:REQUEST       "GetFeatureInfo"
-       :LAYERS        layer-names
-       :QUERY_LAYERS  layer-names
-       :WIDTH         (:width feature-info-image-size)
-       :HEIGHT        (:height feature-info-image-size)
-       :BBOX          bbox
-       :FEATURE_COUNT 1000
-       :STYLES        ""
-       :X             50
-       :Y             50
-       :TRANSPARENT   true
-       :CRS           "EPSG:3112"
-       :SRS           "EPSG:3112"
-       :FORMAT        "image/png"
-       :INFO_FORMAT   "text/xml"
-       :SERVICE       "WMS"
-       :VERSION       "1.1.1"
-       :CQL_FILTER    (apply str (interpose " " cql-filters))}
+      (merge
+       {:REQUEST       "GetFeatureInfo"
+        :LAYERS        layer-names
+        :QUERY_LAYERS  layer-names
+        :WIDTH         (:width feature-info-image-size)
+        :HEIGHT        (:height feature-info-image-size)
+        :BBOX          bbox
+        :FEATURE_COUNT 1000
+        :STYLES        ""
+        :X             50
+        :Y             50
+        :TRANSPARENT   true
+        :CRS           "EPSG:3112"
+        :SRS           "EPSG:3112"
+        :FORMAT        "image/png"
+        :INFO_FORMAT   "text/xml"
+        :SERVICE       "WMS"
+        :VERSION       "1.1.1"}
+       (when cql-filter {:CQL_FILTER cql-filter}))
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
