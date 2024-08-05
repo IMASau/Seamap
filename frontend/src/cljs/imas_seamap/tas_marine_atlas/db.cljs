@@ -42,8 +42,7 @@
                      :error-count   {}
                      :legend-shown  #{}
                      :opacity       {}}
-   :filters         {:layers       {:text       ""
-                                    :timeout-id nil}
+   :filters         {:layers       ""
                      :other-layers ""}
    :transect        {:query      nil
                      :show?      false

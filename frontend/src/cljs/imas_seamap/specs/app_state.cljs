@@ -567,11 +567,7 @@
 
 
 ;; filters
-(s/def :filters.layers/text string?)
-(s/def :filters.layers/timeout-id (s/nilable integer?))
-(s/def :filters/layers
-  (s/keys :req-un [:filters.layers/text
-                   :filters.layers/timeout-id]))
+(s/def :filters/layers       string?)
 (s/def :filters/other-layers string?)
 (s/def ::filters (s/keys :req-un [:filters/layers :filters/other-layers]))
 

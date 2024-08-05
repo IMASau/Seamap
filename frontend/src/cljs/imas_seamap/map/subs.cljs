@@ -50,7 +50,7 @@
                    {:keys [layers active-layers bounds categories rich-layer-children] :as db-map} :map
                    :as db} _]
   (let [categories      (map-on-key categories :name)
-        filter-text     (get-in filters [:layers :text])
+        filter-text     (:layers filters)
         rich-layers (get-in db [:map :rich-layers :rich-layers])
 
         rlc-ids ; rich-layer-children
@@ -127,7 +127,7 @@
   {:habitat-layer (region-stats-habitat-layer db)})
 
 (defn map-layers-filter [db _]
-  (get-in db [:filters :layers :text]))
+  (get-in db [:filters :layers]))
 
 (defn map-other-layers-filter [db _]
   (get-in db [:filters :other-layers]))
