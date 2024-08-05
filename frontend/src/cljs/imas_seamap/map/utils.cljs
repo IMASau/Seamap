@@ -14,14 +14,15 @@
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
-(def ^:private EPSG-3112
-  (proj4
-   "+proj=lcc +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=134 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+(def ^:private projections
+  {"EPSG:4326" (proj4 "+proj=longlat +datum=WGS84 +no_defs +type=crs")
+   "EPSG:3857" (proj4 "+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs")
+   "EPSG:3112" (proj4 "+proj=lcc +lat_0=0 +lon_0=134 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs")})
 
-(defn wgs84->epsg3112 [pt]
-  ;; pt is a vector of [lon lat]
-  (js->clj
-   (EPSG-3112.forward (clj->js pt))))
+(defn project-coords
+  [coords crs]
+  (let [projection (get projections crs)]
+    (-> coords clj->js projection.forward js->clj)))
 
 (defn bounds->projected [project-fn {:keys [north south east west] :as _bounds}]
   (let [[x0 y0] (project-fn [west south])
@@ -37,8 +38,8 @@
 (defn bounds->str
   ([bounds] (bounds->str 4326 bounds))
   ([epsg-code {:keys [north south east west] :as _bounds}]
-   (assert (integer? epsg-code))
-   (string/join "," [west south east north (str "EPSG:" epsg-code)])))
+   (assert (or (integer? epsg-code) (string? epsg-code)))
+   (string/join "," [west south east north (if (integer? epsg-code) (str "EPSG:" epsg-code) epsg-code)])))
 
 (defn bounds->geojson [{:keys [north south east west]}]
   {:type "Polygon"
@@ -116,7 +117,7 @@
   (if-not bounds
     ((get-method download-link :wfs) layer bounds download-type)
     (let [base-url (str api-url-base "habitat/subset/")
-          bounds-arg (->> bounds (bounds->projected wgs84->epsg3112) (bounds->str 3112))]
+          bounds-arg (->> bounds (bounds->projected #(project-coords % "EPSG:3112")) (bounds->str 3112))]
       (-> (url/url base-url)
           (assoc :query {:layer_id id
                          :bounds   bounds-arg

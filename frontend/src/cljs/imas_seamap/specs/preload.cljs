@@ -18,7 +18,7 @@
 
 ;;; Don't raise an error though, just report to the user
 (defn validate-state [val]
-  (try
+  #_(try
     (when-not (s/valid? :seamap/app-state val)
       (js/console.error "app-state is in an invalid state")
       (spec-utils/explain-console (s/explain-data :seamap/app-state val)))

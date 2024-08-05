@@ -593,7 +593,7 @@
                     :uri             (str api-url-base "habitat/transect/")
                     :params          {:layers layer-names
                                       :line   (->> linestring
-                                                   (map mutils/wgs84->epsg3112)
+                                                   (map #(mutils/project-coords % "EPSG:3112"))
                                                    coords->linestring)}
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success      [:transect.query.habitat/success query-id]

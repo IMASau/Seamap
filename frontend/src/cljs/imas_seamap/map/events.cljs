@@ -8,7 +8,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str wgs84->epsg3112 feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -64,8 +64,8 @@
 (defmethod get-feature-info INFO-FORMAT-HTML
   [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
-                  (bounds->projected wgs84->epsg3112)
-                  (bounds->str 3112))
+                  (bounds->projected #(project-coords % (-> layers first :crs)))
+                  (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose " OR " cql-filters))
@@ -87,8 +87,8 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
-        :CRS           "EPSG:3112"
-        :SRS           "EPSG:3112"
+        :CRS           (-> layers first :crs)
+        :SRS           (-> layers first :crs)
         :FORMAT        "image/png"
         :INFO_FORMAT   "text/html"
         :SERVICE       "WMS"
@@ -101,8 +101,8 @@
 (defmethod get-feature-info INFO-FORMAT-JSON
   [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
-                  (bounds->projected wgs84->epsg3112)
-                  (bounds->str 3112))
+                  (bounds->projected #(project-coords % (-> layers first :crs)))
+                  (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose " OR " cql-filters))
@@ -124,8 +124,8 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
-        :CRS           "EPSG:3112"
-        :SRS           "EPSG:3112"
+        :CRS           (-> layers first :crs)
+        :SRS           (-> layers first :crs)
         :FORMAT        "image/png"
         :INFO_FORMAT   "application/json"
         :SERVICE       "WMS"
@@ -149,8 +149,8 @@
 (defmethod get-feature-info INFO-FORMAT-XML
   [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
-                  (bounds->projected wgs84->epsg3112)
-                  (bounds->str 3112))
+                  (bounds->projected #(project-coords % (-> layers first :crs)))
+                  (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose " OR " cql-filters))
@@ -172,8 +172,8 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
-        :CRS           "EPSG:3112"
-        :SRS           "EPSG:3112"
+        :CRS           (-> layers first :crs)
+        :SRS           (-> layers first :crs)
         :FORMAT        "image/png"
         :INFO_FORMAT   "text/xml"
         :SERVICE       "WMS"
@@ -247,7 +247,7 @@
   (let [visible-layers (visible-layers (:map db))
         boundary       (first-where #(= (:category %) :boundaries) visible-layers)
         habitat        (region-stats-habitat-layer db)
-        [x y]          (wgs84->epsg3112 ((juxt :lng :lat) point))
+        [x y]          (project-coords ((juxt :lng :lat) point) "EPSG:3112")
         request-id     (gensym)]
     (when (and boundary habitat)
       {:http-xhrio {:method          :get

@@ -66,6 +66,13 @@ class HabitatDescriptor(models.Model):
         return self.name
 
 
+CRS_CHOICES = [
+    ('EPSG:4326', 'EPSG:4326'),
+    ('EPSG:3857', 'EPSG:3857'),
+    ('EPSG:3112', 'EPSG:3112'),
+]
+
+
 @python_2_unicode_compatible
 class Layer(models.Model):
     name = models.CharField(max_length = 200)
@@ -91,6 +98,7 @@ class Layer(models.Model):
     layer_type = models.CharField(max_length=10)
     tooltip = models.TextField(null=True, blank=True)
     metadata_summary = models.TextField(null=True, blank=True)
+    crs = models.CharField(max_length=10, choices=CRS_CHOICES, default='EPSG:3112')
 
     def __str__(self):
         return self.name
