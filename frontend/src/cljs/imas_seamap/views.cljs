@@ -209,7 +209,7 @@
 
 (defn- layer-search-filter []
   [b/text-input
-   {:value         @(re-frame/subscribe [:map.layers/filter])
+   {:default-value @(re-frame/subscribe [:map.layers/filter])
     :placeholder   "Search Layers..."
     :type          "search"
     :right-element (reagent/as-element

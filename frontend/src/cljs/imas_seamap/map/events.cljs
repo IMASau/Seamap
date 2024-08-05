@@ -330,7 +330,7 @@
    :put-hash ""})
 
 (defn map-set-layer-filter [{:keys [db]} [_ filter-text]]
-  (let [db (assoc-in db [:filters :layers] filter-text)]
+  (let [db (assoc-in db [:filters :layers :text] filter-text)]
     {:db       db
      :dispatch [:maybe-autosave]}))
 

@@ -81,7 +81,7 @@
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
                                       [:display :right-sidebars]
-                                      [:filters :layers]
+                                      [:filters :layers :text]
                                       :layer-state
                                       [:transect :show?]
                                       [:transect :query]
@@ -112,7 +112,7 @@
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
                  [:display :right-sidebars]
-                 [:filters :layers]
+                 [:filters :layers :text]
                  [:state-of-knowledge :boundaries :active-boundary]
                  [:state-of-knowledge :boundaries :active-boundary-layer]
                  [:state-of-knowledge :boundaries :amp :active-network]

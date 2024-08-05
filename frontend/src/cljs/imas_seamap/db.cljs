@@ -62,7 +62,8 @@
                      :error-count   {}
                      :legend-shown  #{}
                      :opacity       {}}
-   :filters         {:layers       ""
+   :filters         {:layers       {:text       ""
+                                    :timeout-id nil}
                      :other-layers ""}
    :transect        {:query      nil
                      :show?      false

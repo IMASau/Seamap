@@ -31,7 +31,7 @@
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
                                       [:display :right-sidebars]
-                                      [:filters :layers]
+                                      [:filters :layers :text]
                                       :layer-state
                                       [:transect :show?]
                                       [:transect :query]
@@ -57,7 +57,7 @@
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
                  [:display :right-sidebars]
-                 [:filters :layers]
+                 [:filters :layers :text]
                  [:story-maps :featured-map]
                  [:story-maps :open?]
                  [:transect :show?]
