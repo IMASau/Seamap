@@ -208,17 +208,30 @@
       :text     text}]))
 
 (defn- layer-search-filter []
-  [b/text-input
-   {:default-value @(re-frame/subscribe [:map.layers/filter])
-    :placeholder   "Search Layers..."
-    :type          "search"
-    :right-element (reagent/as-element
-                    [b/icon
-                     {:icon "search-template"
-                      :size "22px"}])
-    :id            "layer-search"
-    :class         "layer-search"
-    :on-change     #(re-frame/dispatch [:map.layers/filter (.. % -target -value)])}])
+  (let [timeout-id (reagent/atom nil)] ; To store the timeout ID for the filter event dispatch
+    (fn []
+      [b/text-input
+       {:default-value @(re-frame/subscribe [:map.layers/filter])
+        :placeholder   "Search Layers..."
+        :type          "search"
+        :right-element (reagent/as-element
+                        [b/icon
+                         {:icon "search-template"
+                          :size "22px"}])
+        :id            "layer-search"
+        :class         "layer-search"
+        :on-change
+        (fn [e]
+          (let [value (.. e -target -value)] ; Get the current value of the input field
+            ;; Clear the existing timeout if it exists
+            (when @timeout-id
+              (js/clearTimeout @timeout-id))
+            ;; Set a new timeout to dispatch the filter event after 200ms
+            (reset!
+             timeout-id
+             (js/setTimeout
+              #(re-frame/dispatch [:map.layers/filter value]) ; Dispatch the filter event with the new value
+              200))))}])))
 
 (defn- active-layer-selection-list
   [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn rich-layer-fn tma?]}]
