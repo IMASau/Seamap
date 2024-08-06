@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'corsheaders',
     'django_extensions',
     'rest_framework',
+    'tinymce',
     'catalogue',
     'habitat',
     'sql',

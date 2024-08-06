@@ -3,7 +3,7 @@
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 from django.conf import settings
 from django.contrib import admin
-from django.urls import include, re_path
+from django.urls import include, path, re_path
 from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
@@ -29,6 +29,7 @@ router.register(r'regionreports', viewsets.RegionReportViewset)
 router.register(r'dynamicpills', viewsets.DynamicPillViewset)
 
 urlpatterns = [
+    path('tinymce/', include('tinymce.urls')),
     re_path(r'^api/habitat/transect', habitat_viewsets.transect),
     re_path(r'^api/habitat/regions', habitat_viewsets.regions, name='habitat-regions'),
     re_path(r'^api/habitat/subset', habitat_viewsets.subset),
