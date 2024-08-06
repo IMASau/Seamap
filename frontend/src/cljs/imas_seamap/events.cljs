@@ -58,7 +58,8 @@
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
-     :dispatch [:welcome-layer/open]
+     :dispatch-n [[:welcome-layer/open]
+                  [:display.outage-message/open]]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
@@ -97,7 +98,8 @@
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
-     :dispatch [:welcome-layer/open]
+     :dispatch-n [[:welcome-layer/open]
+                  [:display.outage-message/open]]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
@@ -136,7 +138,8 @@
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
-     :dispatch [:welcome-layer/open]
+     :dispatch-n [[:welcome-layer/open]
+                  [:display.outage-message/open]]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
@@ -953,3 +956,28 @@
 (defn update-site-configuration-error-handler [db [_ err]]
   (js/console.error "Error fetching site configuration" err)
   db)
+
+(defn display-outage-message-open
+  "Updates the app state to open the outage message overlay. Only opens the outage
+   message overlay if the user has not seen the message before.
+   
+   Arguments:
+   * `db`: Current app state database.
+   * `cookies`: Site cookies, including the \"outage-message-last-seen\" cookie,
+     which is used to track when the user last saw the outage message."
+  [{:keys [db] cookies :cookie/get} _]
+  (let [outage-message-last-seen (:outage-message-last-seen cookies)]
+    (js/console.log "outage-message-last-seen" outage-message-last-seen)
+    {:db (assoc-in db [:display :outage-message-open?] true)}))
+
+(defn display-outage-message-close
+  "Updates the app state to close the outage message overlay. Also sets the
+   \"outage-message-last-seen\" cookie to the current time, so the user does not
+   see the message again until the next time the outage message is updated.
+   
+   Arguments:
+   * `db`: Current app state database."
+  [{:keys [db]} _]
+  {:db         (assoc-in db [:display :outage-message-open?] false)
+   :cookie/set {:name  :outage-message-last-seen
+                :value (js/Date.now)}})

@@ -71,6 +71,7 @@
     :transect/info                        subs/transect-info
     :transect/results                     subs/transect-results
     :transect.plot/show?                  subs/transect-show?
+    :display.outage-message/open?         subs/display-outage-message-open?
     :help-layer/open?                     subs/help-layer-open?
     :welcome-layer/open?                  subs/welcome-layer-open?
     :left-drawer/open?                    subs/left-drawer-open?
@@ -111,6 +112,8 @@
     :update-dynamic-pills                 events/update-dynamic-pills
     :update-site-configuration            events/update-site-configuration
     :update-site-configuration/error-handler events/update-site-configuration-error-handler
+    :display.outage-message/open          [events/display-outage-message-open (re-frame/inject-cofx :cookie/get [:outage-message-last-seen])]
+    :display.outage-message/close         [events/display-outage-message-close]
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close

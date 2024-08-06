@@ -374,6 +374,7 @@
                                           :kind vector?))
 
 (s/def :display/open-pill (s/nilable string?))
+(s/def :display/outage-message-open? boolean?)
 
 
 ;; state of knowledge
@@ -572,7 +573,8 @@
                    :display/sidebar
                    :display/left-drawer
                    :display/right-sidebars
-                   :display/open-pill]))
+                   :display/open-pill
+                   :display/outage-message-open?]))
 
 
 ;; filters

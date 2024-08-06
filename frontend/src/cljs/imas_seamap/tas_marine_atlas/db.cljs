@@ -66,7 +66,8 @@
                      :sidebar               {:collapsed false
                                              :selected  "tab-activelayers"}
                      :right-sidebars        []
-                     :open-pill             nil}
+                     :open-pill             nil
+                     :outage-message-open?  false}
    :dynamic-pills {:dynamic-pills []
                    :states        {}
                    :async-datas   {}}

@@ -171,3 +171,16 @@
       (fn [mapped {:keys [id] :as dynamic-pill}]
         (assoc mapped id dynamic-pill))
       {} dynamic-pills)}))
+
+(defn display-outage-message-open?
+  "Should the outage message be displayed?
+   
+   Returns:
+   * `true` if the outage message should be open (e.g. if the user hasn't seen the
+     latest updates), we have a message to display (so not empty), and the welcome
+     overlay is not open."
+  [db _]
+  (and
+   (get-in db [:display :outage-message-open?])
+   (get-in db [:site-configuration :outage-message])
+   (not (get-in db [:display :welcome-overlay]))))
