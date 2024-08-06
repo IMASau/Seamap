@@ -69,6 +69,7 @@
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
     :dynamic-pills                        subs/dynamic-pills
+    :site-configuration/outage-message    subs/site-configuration-outage-message
     :app/loading?                         subs/app-loading?
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg

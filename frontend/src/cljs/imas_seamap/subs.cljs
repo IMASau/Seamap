@@ -184,3 +184,8 @@
    (get-in db [:display :outage-message-open?])
    (get-in db [:site-configuration :outage-message])
    (not (get-in db [:display :welcome-overlay]))))
+
+(defn site-configuration-outage-message
+  "Get the outage message from the site configuration."
+  [db _]
+  (get-in db [:site-configuration :outage-message]))

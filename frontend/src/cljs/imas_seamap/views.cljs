@@ -365,6 +365,24 @@
         Park Authority (GBRMPA), the National Environmental Science
         Program (NESP), and all State Governments."]]]))
 
+(defn outage-message-dialogue []
+  (let [open? @(re-frame/subscribe [:display.outage-message/open?])
+        outage-message @(re-frame/subscribe [:site-configuration/outage-message])]
+    [b/dialogue
+     {:title "Important Notice"
+      :class    "welcome-splash"
+      :is-open  open?
+      :on-close #(re-frame/dispatch [:display.outage-message/close])}
+     [:div.bp3-dialog-body
+      [:div
+       {:ref #(when % (set! (.-innerHTML %) outage-message))}
+       outage-message]
+      [b/button
+       {:text       "I Understand"
+        :intent     b/INTENT-PRIMARY
+        :auto-focus true
+        :on-click   #(re-frame/dispatch [:display.outage-message/close])}]]]))
+
 (defn settings-overlay []
   [b/dialogue
    {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])
@@ -1023,6 +1041,7 @@
        :helperText "Draw a transect to show a depth profile of habitat data"
        :helperPosition "top"}]
      [welcome-dialogue]
+     [outage-message-dialogue]
      [settings-overlay]
      [info-card]
      [loading-display]

@@ -966,9 +966,10 @@
    * `cookies`: Site cookies, including the \"outage-message-last-seen\" cookie,
      which is used to track when the user last saw the outage message."
   [{:keys [db] cookies :cookie/get} _]
-  (let [outage-message-last-seen (:outage-message-last-seen cookies)]
-    (js/console.log "outage-message-last-seen" outage-message-last-seen)
-    {:db (assoc-in db [:display :outage-message-open?] true)}))
+  (let [last-seen (:outage-message-last-seen cookies)
+        last-modified (get-in db [:site-configuration :last-modified])
+        user-seen? (and last-seen last-modified (>= last-seen (js/Date.parse last-modified)))] ; user has seen the message if the time they last saw it is greater than or equal to the last modified time
+    {:db (assoc-in db [:display :outage-message-open?] (not user-seen?))}))
 
 (defn display-outage-message-close
   "Updates the app state to close the outage message overlay. Also sets the
