@@ -9,6 +9,7 @@
             [clojure.data.zip.xml :as zx]
             [clojure.zip :as zip]
             [goog.dom :as gdom]
+            [cljs.spec.alpha :as s]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
             [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers first-where]]
@@ -141,7 +142,8 @@
 
 (defn construct-urls [db _]
   (let [{:keys
-         [layer
+         [site-configuration
+          layer
           base-layer
           base-layer-group
           organisation
@@ -169,7 +171,8 @@
         {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
      db [:config :urls]
-     {:layer-url                   (str api-url-base layer)
+     {:site-configuration-url      (str api-url-base site-configuration)
+      :layer-url                   (str api-url-base layer)
       :base-layer-url              (str api-url-base base-layer)
       :base-layer-group-url        (str api-url-base base-layer-group)
       :organisation-url            (str api-url-base organisation)
@@ -312,7 +315,8 @@
   {:dispatch (conj dispatch (-> save-state first :hashstate))})
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url
+  (let [{:keys [site-configuration-url
+                layer-url
                 base-layer-url
                 base-layer-group-url
                 organisation-url
@@ -329,6 +333,12 @@
                 story-maps-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
+                   :uri             site-configuration-url
+                   :params          {:name "Seamap Australia"}
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-site-configuration]
+                   :on-failure      [:update-site-configuration/error-handler]}
+                  {:method          :get
                    :uri             layer-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-layers]
@@ -914,3 +924,31 @@
 (defn dynamic-pill-region-control-value [{:keys [db]} [_ {:keys [id] :as _dynamic-pill} value]]
   {:db (assoc-in db [:dynamic-pills :states id :region-control :value] value)
    :dispatch [:maybe-autosave]})
+
+(defn ->site-configuration
+    "Transforms site configuration map to conform to the
+     `:imas-seamap.specs.app-state/site-configuration` spec.
+
+    Arguments:
+    * `site-configuration`: A map representing the site configuration
+  
+    Returns:
+    * The transformed and validated site configuration map
+  
+    Example:
+    `(->site-configuration {:outage_message \"...\"})
+     ; => {:outage-message \"...\"}`"
+  [site-configuration]
+  (let [site-configuration
+        (rename-keys
+         site-configuration
+         {:outage_message :outage-message})]
+    (s/assert :imas-seamap.specs.app-state/site-configuration site-configuration)
+    site-configuration))
+
+(defn update-site-configuration [db [_ site-configuration]]
+  (assoc db :site-configuration (->site-configuration site-configuration)))
+
+(defn update-site-configuration-error-handler [db [_ err]]
+  (js/console.error "Error fetching site configuration" err)
+  db)

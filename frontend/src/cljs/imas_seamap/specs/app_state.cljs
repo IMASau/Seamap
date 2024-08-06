@@ -328,6 +328,13 @@
 (s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]
                           :opt-un [:transect/mouse-percentage :transect/distance]))
 
+;;; Site Configuration
+(s/def :site-configuration/outage-message string?)
+(s/def ::site-configuration
+  (s/nilable
+   (s/keys :req-un [:site-configuration/outage-message])))
+
+;;; display
 (s/def :display.mouse-pos/x number?)
 (s/def :display.mouse-pos/y number?)
 (s/def :display/mouse-pos
@@ -642,6 +649,7 @@
 
 (s/def :seamap/app-state
   (s/keys :req-un [::config
+                   ::site-configuration
                    ::display
                    ::state-of-knowledge
                    ::story-maps

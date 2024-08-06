@@ -31,6 +31,7 @@
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}
+   :site-configuration nil
    :story-maps      {:featured-maps []
                      :featured-map  nil
                      :open?         false}
@@ -70,7 +71,8 @@
                    :states        {}
                    :async-datas   {}}
    :autosave?       false
-   :config          {:url-paths {:layer                 "layers/"
+   :config          {:url-paths {:site-configuration    "siteconfiguration/"
+                                 :layer                 "layers/"
                                  :base-layer            "baselayers/"
                                  :base-layer-group      "baselayergroups/"
                                  :organisation          "organisations/"

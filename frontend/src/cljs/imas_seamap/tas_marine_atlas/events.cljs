@@ -99,7 +99,8 @@
 
 (defn construct-urls [db _]
   (let [{:keys
-         [layer
+         [site-configuration
+          layer
           base-layer
           base-layer-group
           organisation
@@ -119,7 +120,8 @@
         {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
      db [:config :urls]
-     {:layer-url                 (str api-url-base layer)
+     {:site-configuration-url    (str api-url-base site-configuration)
+      :layer-url                 (str api-url-base layer)
       :base-layer-url            (str api-url-base base-layer)
       :base-layer-group-url      (str api-url-base base-layer-group)
       :organisation-url          (str api-url-base organisation)
@@ -223,7 +225,8 @@
   (assoc-in db [:display :welcome-overlay] false))
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url
+  (let [{:keys [site-configuration-url
+                layer-url
                 base-layer-url
                 base-layer-group-url
                 organisation-url
@@ -236,6 +239,12 @@
                 story-maps-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
+                   :uri             site-configuration-url
+                   :params          {:name "Tasmania Marine Atlas"}
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-site-configuration]
+                   :on-failure      [:update-site-configuration/error-handler]}
+                  {:method          :get
                    :uri             layer-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-layers]

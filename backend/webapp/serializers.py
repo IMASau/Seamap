@@ -9,4 +9,4 @@ from rest_framework import serializers
 class SiteConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.SiteConfiguration
-        exclude = ('id',)
+        exclude = ('id', 'name', )

@@ -94,6 +94,8 @@
     :initialise-layers                    [tmaevents/initialise-layers]
     :loading-failed                       events/loading-failed
     :update-dynamic-pills                 events/update-dynamic-pills
+    :update-site-configuration            events/update-site-configuration
+    :update-site-configuration/error-handler events/update-site-configuration-error-handler
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
