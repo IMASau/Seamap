@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'rest_framework',
     'tinymce',
+    'webapp',
     'catalogue',
     'habitat',
     'sql',
