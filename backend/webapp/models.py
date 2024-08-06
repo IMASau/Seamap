@@ -18,6 +18,7 @@ class EmptyHTMLToNoneField(tinymce.models.HTMLField):
 @python_2_unicode_compatible
 class SiteConfiguration(models.Model):
     name = models.CharField(max_length=255)
+    last_modified = models.DateTimeField(auto_now=True)
     outage_message = EmptyHTMLToNoneField(blank=True, null=True)
 
     def __str__(self):

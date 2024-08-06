@@ -6,4 +6,6 @@ from django.contrib import admin
 from webapp import models
 
 
-admin.site.register(models.SiteConfiguration)
+class SiteConfigurationAdmin(admin.ModelAdmin):
+    readonly_fields = ('last_modified',)
+admin.site.register(models.SiteConfiguration, SiteConfigurationAdmin)

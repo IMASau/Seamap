@@ -942,7 +942,8 @@
   (let [site-configuration
         (rename-keys
          site-configuration
-         {:outage_message :outage-message})]
+         {:outage_message :outage-message
+          :last_modified  :last-modified})]
     (s/assert :imas-seamap.specs.app-state/site-configuration site-configuration)
     site-configuration))
 
