@@ -58,6 +58,17 @@ table, th, td {
 }
 
 body {
+    .bp5-tabs {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        >.bp5-tab-panel {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+        }
+    }
     .bp5-tab {
         color: var(--color-2);
         font-size: 14px;
@@ -102,4 +113,9 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+
+    >* {
+        flex: 1;
+        min-height: 0;
+    }
 }

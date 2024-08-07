@@ -1,4 +1,6 @@
 .abatement-section {
+    display: flex;
+    flex-direction: column;
     min-height: 423px;
     border-bottom: 2px solid var(--color-4);
 
@@ -34,57 +36,65 @@
         }
     }
 
-    >.abatement-section-content>.bp5-tabs>.bp5-tab-panel {
-        margin: 0 8px 20px 8px;
+    >.abatement-section-content {
+        min-height: 0;
 
-        >.abatement-scenario-message {
-            font-style: italic;
-            font-size: 11px;
-            margin-bottom: 8px;
+        >.bp5-tabs {
+            height: 100%;
 
-            >ul { margin: 4px 0; }
-        }
-
-        >.abatement-table {
-            border: 0;
-            border-collapse: separate;
-            font-size: 11px;
-            border-spacing: 0;
-            margin: 0;
-            width: 100%;
-
-            thead {
-                position: sticky;
-                top: 0;
-                background-color: var(--color-7);
+            >.bp5-tab-panel {
+                margin: 0 8px 20px 8px;
+        
+                >.abatement-scenario-message {
+                    font-style: italic;
+                    font-size: 11px;
+                    margin-bottom: 8px;
+        
+                    >ul { margin: 4px 0; }
+                }
+        
+                >.abatement-table {
+                    border: 0;
+                    border-collapse: separate;
+                    font-size: 11px;
+                    border-spacing: 0;
+                    margin: 0;
+                    width: 100%;
+        
+                    thead {
+                        position: sticky;
+                        top: 0;
+                        background-color: var(--color-7);
+                    }
+        
+                    th {
+                        vertical-align: bottom;
+                        white-space: nowrap;
+                        font-weight: bold;
+                    }
+        
+                    td {
+                        vertical-align: top;
+                        overflow-wrap: anywhere;
+                    }
+        
+                    td, th {
+                        border: 0;
+                        font-size: inherit;
+                        padding: 4px 6px 4px 0;
+                        text-align: left;
+                    }
+        
+                    tr:not(:last-child)>td,
+                    th {
+                        border-bottom: 1px solid rgba(0,0,0,.15);
+                    }
+                }
+        
+                >.abatement-chart {
+                    width: 100%;
+                }
             }
-
-            th {
-                vertical-align: bottom;
-                white-space: nowrap;
-                font-weight: bold;
-            }
-
-            td {
-                vertical-align: top;
-                overflow-wrap: anywhere;
-            }
-
-            td, th {
-                border: 0;
-                font-size: inherit;
-                padding: 4px 6px 4px 0;
-                text-align: left;
-            }
-
-            tr:not(:last-child)>td,
-            th {
-                border-bottom: 1px solid rgba(0,0,0,.15);
-            }
-        }
-
-        >.abatement-chart {
-            width: 100%;
         }
     }
 }
