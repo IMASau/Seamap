@@ -5,18 +5,16 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from csp.decorators import csp_update
 import json
 import os
+import catalogue.models
 
 
 carbon_prices = ['cp35', 'cp50', 'cp65', 'cp80', 'cpmax']
 abatement_types = ['CarbonAbatement', 'AbatementArea']
 
 def layer_to_carbon_price(layer: str) -> str:
-    for carbon_price in carbon_prices:
-        if carbon_price in layer:
-            return carbon_price
-    if 'max' in layer:
-        return 'cpmax'
-    raise ValueError(f"Could not find carbon price in layer name: {layer}")
+    layer = catalogue.models.Layer.objects.get(layer_name=layer)
+    cql_property_values = layer.cql_property_values(['cp'])
+    return f"cp{cql_property_values['values'][0]['values'][0]}"
 
 def layer_to_abatement_type(layer: str) -> str:
     for abatement_type in abatement_types:
