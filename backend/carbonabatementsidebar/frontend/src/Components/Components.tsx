@@ -15,14 +15,28 @@ export function donutChartSpec({ thetaField, colorField, sortField, legendTitle 
                 type: 'quantitative',
                 stack: true,
             },
+            order: { field: sortField, sort: 'descending' },
             color: {
                 field: colorField,
                 type: 'nominal',
                 legend: { title: legendTitle || colorField },
-                sort: sortField ? { field: sortField } : undefined,
+                sort: sortField ? { field: sortField, order: "descending" } : undefined,
             },
         },
         data: { name: 'values', },
+        transform: [
+            {
+                joinaggregate: [{
+                    op: 'sum',
+                    field: thetaField,
+                    as: 'total'
+                }]
+            },
+            {
+                calculate: `datum.${thetaField} / datum.total`,
+                as: 'percentage'
+            }
+        ],
         layer: [
             {
                 mark: {
@@ -30,63 +44,23 @@ export function donutChartSpec({ thetaField, colorField, sortField, legendTitle 
                     innerRadius: 40,
                     outerRadius: 80,
                 },
-            },
-            {
-                transform: [
-                    {
-                        joinaggregate: [{
-                            op: 'sum',
-                            field: thetaField,
-                            as: 'total'
-                        }]
-                    },
-                    {
-                        sort: [{ field: colorField }],
-                        window: [{
-                            op: 'sum',
-                            field: thetaField,
-                            as: 'cumulative'
-                        }],
-                        frame: [null, 0]
-                    },
-                    {
-                        calculate: `datum.${thetaField} / datum.total`,
-                        as: 'percentage'
-                    },
-                    {
-                        calculate: `(360 * ((datum.cumulative - (datum.${thetaField} * 0.5)) / datum.total)) - 90`,
-                        as: 'angle'
-                    }
-                ],
-                mark: {
-                    type: 'text',
-                    radius: 85,
-                    angle: { expr: 'datum.angle' }
-                },
                 encoding: {
-                    text: { value: {expr: 'if(datum.percentage > 0.05, "—", "")'} },
-                    color: {
-                        field: colorField,
-                        type: 'nominal',
-                        legend: null
-                    }
+                    tooltip: [
+                        {
+                            field: colorField,
+                            title: legendTitle,
+                            type: 'nominal'
+                        },
+                        {
+                            field: 'percentage',
+                            format: '.2%',
+                            title: '%',
+                            type: 'quantitative'
+                        }
+                    ]
                 }
             },
             {
-                transform: [
-                    {
-                        joinaggregate: [{
-                            op: 'sum',
-                            field: thetaField,
-                            as: 'total'
-                        }]
-                    },
-                    {
-                        calculate: `datum.${thetaField} / datum.total`,
-                        as: 'percentage'
-                    },
-                    { filter: "datum.percentage > 0.05"}
-                ],
                 mark: {
                     type: 'text',
                     radius: 100,
@@ -94,8 +68,7 @@ export function donutChartSpec({ thetaField, colorField, sortField, legendTitle 
                 },
                 encoding: {
                     text: {
-                        field: 'percentage',
-                        type: 'nominal',
+                        value: {expr: 'if(datum.percentage > 0.05, (round(datum.percentage * 10000) / 100) + "%", "")'},
                         format: '.2%',
                     }
                 }
@@ -135,7 +108,7 @@ export function AbatementChart({ regionType, abatementData, metricField }: { reg
             spec={donutChartSpec({
                 thetaField: metricField,
                 colorField: 'region',
-                sortField: 'region',
+                sortField: metricField,
                 legendTitle: regionTypeToLegendTitle(regionType),
             })}
             data={{ values: abatementData }}
