@@ -6,7 +6,7 @@ import { Tab, TabId, Tabs } from '@blueprintjs/core';
 import { useState } from 'react';
 
 
-export function donutChartSpec({ thetaField, colorField, sortField, legendTitle }: { thetaField: string, colorField: string, sortField?: string, legendTitle?: string }): VisualizationSpec {
+export function donutChartSpec({ thetaField, colorField, sortField, legendTitle }: { thetaField: string, colorField: string, sortField?: string, legendTitle?: string | string[] }): VisualizationSpec {
     return {
         width: 'container',
         encoding: {
@@ -114,7 +114,18 @@ function regionTypeToString(regionType: RegionType): string {
     } else {
         throw new Error(`Unknown region type: '${regionType}'`);
     }
+}
 
+function regionTypeToLegendTitle(regionType: RegionType): string | string[] {
+    if (regionType === 'STE_NAME11') {
+        return 'State';
+    } else if (regionType === 'sa2int') {
+        return 'Statistical Area';
+    } else if (regionType === 'ID_Primary') {
+        return ['Primary Sediment', 'Compartment'];
+    } else {
+        throw new Error(`Unknown region type: '${regionType}'`);
+    }
 }
 
 export function AbatementChart({ regionType, abatementData, metricField }: { regionType: RegionType, abatementData: RegionAbatementData[], metricField: string }) {
@@ -125,7 +136,7 @@ export function AbatementChart({ regionType, abatementData, metricField }: { reg
                 thetaField: metricField,
                 colorField: 'region',
                 sortField: 'region',
-                legendTitle: regionTypeToString(regionType),
+                legendTitle: regionTypeToLegendTitle(regionType),
             })}
             data={{ values: abatementData }}
             actions={false}
