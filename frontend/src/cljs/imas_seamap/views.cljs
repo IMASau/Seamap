@@ -916,7 +916,7 @@
              :layers      (map :layer_name displayed-layers)
              :filters     displayed-rich-layer-filters}
             (when (seq (:value region-control))
-              {:regions (:value region-control)}))))]
+              {:regions (if (= (:controller-type region-control) "multi-dropdown") (:value region-control) [(:value region-control)])}))))]
     [components/drawer
      {:title       [:<> [b/icon {:icon icon}] text]
       :position    "right"
