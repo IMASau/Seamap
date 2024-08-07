@@ -901,11 +901,13 @@
 (defn pan-to-popup
   "Based on a known location and size of the popup, we can find out if it will be
    outside of the bounds of the map. Knowing this we can pan the map to fix this."
-  [{{{{popup-x :x popup-y :y popup-lat :lat popup-lng :lng} :location} :feature
+  [{{:keys [feature]
     {{map-width :x map-height :y} :size [map-lat map-lng] :center}
     :map :as db} :db}
    [_ {popup-width :x popup-height :y :as _popup-dimensions}]]
-  (let [view-left       (+ (if (get-in db [:display :left-drawer]) 368 0) 52)
+  (let [{{popup-x :x popup-y :y popup-lat :lat popup-lng :lng} :location} feature
+        
+        view-left       (+ (if (get-in db [:display :left-drawer]) 368 0) 52)
         view-right      (if (or
                              (boolean (get-in db [:state-of-knowledge :boundaries :active-boundary]))
                              (get-in db [:story-maps :open?]))
@@ -925,7 +927,7 @@
         map-lng         (cond-> map-lng
                           (pos? overflow-left) (- (* overflow-left x-to-lng))
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
-    {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))
+    (when feature {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))) ; only pan if still popup exists, otherwise the calculations are incorrect! ISA-491
 
 (defn ^:private layer-legend-dispatch
   "We support 3 types: geoserver (using json vector format), ESRI
