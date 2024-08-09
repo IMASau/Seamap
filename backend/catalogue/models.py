@@ -8,6 +8,7 @@ from six import python_2_unicode_compatible
 from uuid import uuid4
 from datetime import datetime
 import requests
+import xml.etree.ElementTree as ET 
 
 
 @python_2_unicode_compatible
@@ -94,6 +95,73 @@ class Layer(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def get_geoserver_wfs_capabilities(self) -> ET.ElementTree:
+        """Retrieves the WFS GetCapabilities document from the GeoServer layer.
+
+        This function sends a GetCapabilities request to the GeoServer specified by the
+        instance's `server_url` and parses the returned XML document into an ElementTree.
+        It ensures the server type is 'geoserver' before making the request.
+
+        Returns:
+            xml.etree.ElementTree.ElementTree: The parsed GetCapabilities document.
+
+        Raises:
+            Exception: If the server type is not 'geoserver'.
+            Exception: If the capabilities document cannot be retrieved or parsed.
+        """
+        if self.server_type.name != 'geoserver':
+            raise Exception(f"Cannot retrieve WFS capabilities from non-GeoServer server type '{self.server_type.name}'")
+
+        params = {
+            'request': 'GetCapabilities',
+            'service': 'WFS'
+        }
+        r = requests.get(url=self.server_url, params=params, verify=False)
+        if r.status_code != 200:
+            raise Exception(f"Cannot retrieve WFS capabilities from geoserver ({self.server_url})")
+
+        return ET.ElementTree(ET.fromstring(r.text))
+
+    def get_feature_is_supported(self) -> bool:
+        """Determines if the layer supports the WFS GetFeature request.
+
+        This function checks the layer's WFS capabilities document to see if the
+        GetFeature operation is supported.
+
+        Returns:
+            bool: True if the GetFeature operation is supported, False otherwise.
+
+        Raises:
+            Exception: If the server type is not 'geoserver'.
+            Exception: If the capabilities document cannot be retrieved or parsed.
+        """
+        root = self.get_geoserver_wfs_capabilities().getroot()
+        namespaces = {
+            'wfs': 'http://www.opengis.net/wfs/2.0',
+            'ows': 'http://www.opengis.net/ows/1.1'
+        }
+
+        # Check if GetFeature operation is supported
+        operations_metadata = root.find('ows:OperationsMetadata', namespaces)
+        feature_type_list = root.find('wfs:FeatureTypeList', namespaces)
+        if operations_metadata is not None:
+            for operation in operations_metadata.findall('ows:Operation', namespaces):
+                if operation.attrib.get('name') == 'GetFeature':
+                    break
+            else:
+                return False
+        else:
+            return False
+
+        # Check if the specific feature type is listed
+        feature_type_list = root.find('wfs:FeatureTypeList', namespaces)
+        if feature_type_list is not None:
+            for feature_type in feature_type_list.findall('wfs:FeatureType', namespaces):
+                name_element = feature_type.find('wfs:Name', namespaces)
+                if name_element is not None and name_element.text == self.layer_name:
+                    return True
+        return False
     
     def geojson(self, out_fields: str=None):
         url = f"{self.server_url}/query"
