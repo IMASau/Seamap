@@ -16,11 +16,8 @@ def layer_to_carbon_price(layer: str) -> str:
     cql_property_values = layer.cql_property_values(['cp'])
     return f"cp{cql_property_values['values'][0]['values'][0]}"
 
-def layer_to_abatement_type(layer: str) -> str:
-    for abatement_type in abatement_types:
-        if abatement_type in layer:
-            return abatement_type
-    raise ValueError(f"Could not find abatement type in layer name: {layer}")
+def layer_metadata_to_abatement_type(layer_metadata: str) -> str:
+    return json.loads(layer_metadata)['abatement_type']
 
 @never_cache
 @xframe_options_exempt
@@ -28,11 +25,12 @@ def layer_to_abatement_type(layer: str) -> str:
 def carbon_abatement_sidebar(request):
     url_root = settings.URL_ROOT if hasattr(settings, 'URL_ROOT') else ''
     layers = json.loads(request.GET['layers']) if 'layers' in request.GET else []
+    layers_metadatas = json.loads(request.GET['metadata']) if 'metadata' in request.GET else []
     
     context = {
         'STATIC_URL': settings.STATIC_URL,
         'api_url': os.path.join(url_root, 'api'),
-        'abatement_types': json.dumps([layer_to_abatement_type(layer) for layer in layers]),
+        'abatement_types': json.dumps([layer_metadata_to_abatement_type(layer_metadata) for layer_metadata in layers_metadatas]),
         'carbon_prices': json.dumps([layer_to_carbon_price(layer) for layer in layers]),
     }
     if settings.DEBUG:
