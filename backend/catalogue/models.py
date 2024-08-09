@@ -105,15 +105,35 @@ class Layer(models.Model):
 
     def geojson(self, out_fields: str=None):
         url = f"{self.server_url}/query"
+
+        result_record_count = 50
+        result_offset = 0
+        
         params = {
-            'where':     '1=1',
-            'outFields': out_fields,
-            'f':         'geojson'
+            'where':             '1=1',
+            'outFields':         out_fields,
+            'f':                 'geojson',
+            'resultRecordCount': result_record_count,
+            'recordOffset':      result_offset
         }
 
         r = requests.get(url=url, params=params, verify=False)
+        geojson = r.json()
 
-        return r.json()
+        while r.json()['features']:
+            result_offset += result_record_count
+            params = {
+                'where':             '1=1',
+                'outFields':         out_fields,
+                'f':                 'geojson',
+                'resultRecordCount': result_record_count,
+                'resultOffset':      result_offset
+            }
+            r = requests.get(url=url, params=params, verify=False)
+            print(r.url)
+            geojson['features'] += r.json()['features']
+
+        return geojson
 
     def server_info(self):
         url = self.server_url

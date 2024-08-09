@@ -17,7 +17,7 @@ pytz==2022.2.1
 six==1.16.0
 sqlparse==0.5.0
 requests==2.31.0
-shapely==2.0.4
+shapely==1.8.5.post1
 geopandas==0.9.0
 cartopy==0.22.0
 geoplot==0.5.1
