@@ -95,7 +95,7 @@ function regionTypeToLegendTitle(regionType: RegionType): string | string[] {
     } else if (regionType === 'sa2int') {
         return 'Statistical Area';
     } else if (regionType === 'ID_Primary') {
-        return ['Primary Sediment', 'Compartment'];
+        return ['Primary', 'Sediment', 'Compartment'];
     } else {
         throw new Error(`Unknown region type: '${regionType}'`);
     }
