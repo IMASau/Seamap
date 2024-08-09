@@ -21,7 +21,7 @@ def layer_metadata_to_abatement_type(layer_metadata: str) -> str:
 
 @never_cache
 @xframe_options_exempt
-@csp_update(FRAME_ANCESTORS=settings.CORS_ORIGIN_WHITELIST, SCRIPT_SRC=("'unsafe-eval'", "'unsafe-inline'"))
+@csp_update(FRAME_ANCESTORS=settings.CORS_ORIGIN_WHITELIST, SCRIPT_SRC=("'unsafe-eval'", "'unsafe-inline'"), STYLE_SRC=("'self'", "'unsafe-inline'"))
 def carbon_abatement_sidebar(request):
     url_root = settings.URL_ROOT if hasattr(settings, 'URL_ROOT') else ''
     layers = json.loads(request.GET['layers']) if 'layers' in request.GET else []
