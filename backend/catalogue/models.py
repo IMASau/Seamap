@@ -325,7 +325,11 @@ class DynamicPill(models.Model):
     icon = EmptyStringToNoneField(max_length=255, null=True, blank=True)
     tooltip = EmptyStringToNoneField(max_length=255, null=True, blank=True)
     url = models.URLField(max_length=255)
-    layers = models.ManyToManyField(Layer)
+    layers = models.ManyToManyField(
+        Layer,
+        through='DynamicPillLayer',
+        through_fields=('dynamic_pill', 'layer')
+    )
     # consider extracting control into a separate model, and adding as a one-to-one field?
     region_control_cql_property = models.CharField(max_length=255)
     region_control_label = models.CharField(max_length=255)
@@ -337,3 +341,13 @@ class DynamicPill(models.Model):
 
     def __str__(self):
         return self.text
+
+
+@python_2_unicode_compatible
+class DynamicPillLayer(models.Model):
+    layer = models.ForeignKey(Layer, on_delete=models.CASCADE, db_column='layer_id')
+    dynamic_pill = models.ForeignKey(DynamicPill, on_delete=models.CASCADE, related_name='dynamicpill_layers', db_column='dynamicpill_id')
+    metadata = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    
+    class Meta:
+        db_table = 'catalogue_dynamicpill_layers'

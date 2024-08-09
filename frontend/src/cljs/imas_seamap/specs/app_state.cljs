@@ -597,7 +597,12 @@
 (s/def :dynamic-pills.dynamic-pill/text string?)
 (s/def :dynamic-pills.dynamic-pill/icon (s/nilable string?))
 (s/def :dynamic-pills.dynamic-pill/tooltip (s/nilable string?))
-(s/def :dynamic-pills.dynamic-pill/layers (s/coll-of :map.layer/id :kind vector?))
+(s/def :dynamic-pills.dynamic-pill.layer/layer :map.layer/id)
+(s/def :dynamic-pills.dynamic-pill.layer/metadata (s/nilable string?))
+(s/def :dynamic-pills.dynamic-pill/layer
+  (s/keys :req-un [:dynamic-pills.dynamic-pill.layer/layer
+                   :dynamic-pills.dynamic-pill.layer/metadata]))
+(s/def :dynamic-pills.dynamic-pill/layers (s/coll-of :dynamic-pills.dynamic-pill/layer :kind vector?))
 (s/def :dynamic-pills.dynamic-pill.region-control/label string?)
 (s/def :dynamic-pills.dynamic-pill.region-control/icon (s/nilable string?))
 (s/def :dynamic-pills.dynamic-pill.region-control/tooltip (s/nilable string?))

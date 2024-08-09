@@ -906,7 +906,7 @@
 (defmethod right-drawer :dynamic-pill
   [{{:keys [dynamic-pill-id]} :params}]
   (let [{dynamic-pills :mapped} @(re-frame/subscribe [:dynamic-pills])
-        {:keys [text icon url displayed-layers region-control displayed-rich-layer-filters] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)
+        {:keys [text icon url displayed-layers region-control displayed-rich-layer-filters active-layers-metadata] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)
         url
         (when url
           (append-query-params
@@ -914,7 +914,8 @@
            (merge
             {:region-type (:cql-property region-control)
              :layers      (map :layer_name displayed-layers)
-             :filters     displayed-rich-layer-filters}
+             :filters     displayed-rich-layer-filters
+             :metadata    active-layers-metadata}
             (when (seq (:value region-control))
               {:regions (if (= (:controller-type region-control) "multi-dropdown") (:value region-control) [(:value region-control)])}))))]
     [components/drawer

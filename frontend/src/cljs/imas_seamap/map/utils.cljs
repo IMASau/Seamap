@@ -573,12 +573,13 @@
         active-layers
         (ids->layers
          (set/intersection
-          (set (:layers dynamic-pill))
+          (set (map :layer (:layers dynamic-pill)))
           (set (map :id active-layers)))
          layers)
         displayed-layers
         (map #(rich-layer->displayed-layer % db) active-layers)
-        displayed-rich-layer-filters (mapv #(rich-layer->controls-value-map (layer->rich-layer % db) db) displayed-layers)]
+        displayed-rich-layer-filters (mapv #(rich-layer->controls-value-map (layer->rich-layer % db) db) displayed-layers)
+        active-layers-metadata (map (fn [layer] (:metadata (first-where #(= (:layer %) (:id layer)) (:layers dynamic-pill)))) active-layers)] ; get the metadata for the active layers, forming a list of the same arity
     (->
      dynamic-pill
      (merge (get-in db [:dynamic-pills :states id]))
@@ -595,6 +596,7 @@
        (get-in db [:display :open-pill])
        (str "dynamic-pill-" id)))
      (assoc :active-layers active-layers)
+     (assoc :active-layers-metadata active-layers-metadata)
      (assoc :displayed-layers displayed-layers)
      (assoc :cql-filter (control->cql-filter region-control value))
      (assoc :displayed-rich-layer-filters displayed-rich-layer-filters))))

@@ -80,14 +80,18 @@ class DynamicPillForm(forms.ModelForm):
             'region_control_default_value': 'Default Value',
         }
 
+class DynamicPillLayerInline(admin.TabularInline):
+    model = models.DynamicPill.layers.through
+    autocomplete_fields = ('layer',)
+    extra = 0
+
 class DynamicPillAdmin(admin.ModelAdmin):
     form = DynamicPillForm
-    autocomplete_fields = ('layers',)
     fieldsets = [
         (
             None,
             {
-                'fields': ['text','icon','tooltip', 'url', 'layers']
+                'fields': ['text','icon','tooltip', 'url']
             }
         ),
         (
@@ -97,4 +101,5 @@ class DynamicPillAdmin(admin.ModelAdmin):
             },
         ),
     ]
+    inlines = (DynamicPillLayerInline,)
 admin.site.register(models.DynamicPill, DynamicPillAdmin)

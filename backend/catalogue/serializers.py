@@ -140,8 +140,15 @@ class PressureSerializer(serializers.ModelSerializer):
         model = models.Pressure
         exclude = ('region_report',)
 
+
+class DynamicPillLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DynamicPillLayer
+        fields = ('layer', 'metadata')
+
 class DynamicPillSerializer(serializers.ModelSerializer):
     region_control = serializers.SerializerMethodField()
+    layers = serializers.SerializerMethodField()
 
     def get_region_control(self, obj):
         return {
@@ -153,6 +160,10 @@ class DynamicPillSerializer(serializers.ModelSerializer):
             'tooltip': obj.region_control_tooltip,
             'default_value': obj.region_control_default_value,
         }
+    
+    def get_layers(self, obj):
+        dynamic_pill_layers = models.DynamicPillLayer.objects.filter(dynamic_pill=obj)
+        return DynamicPillLayerSerializer(dynamic_pill_layers, many=True).data
 
     class Meta:
         model = models.DynamicPill
