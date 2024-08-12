@@ -897,7 +897,10 @@
 
 (defn dynamic-pill-active [{:keys [db]} [_ {:keys [id] :as dynamic-pill} active?]]
   (let [cql-property-values (get-in db [:map :dynamic-pills :async-datas id :region-control :values])]
-    {:db (assoc-in db [:dynamic-pills :states id :active?] active?)
+    {:db
+     (if active?
+       (assoc-in db [:dynamic-pills :states id :active?] true)
+       (update-in db [:dynamic-pills :states] dissoc id)) ; clear state when deactivated
      :dispatch-n
      [(if active?
         [:ui.right-sidebar/bring-to-front
