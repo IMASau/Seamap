@@ -222,9 +222,9 @@ export function AbatementScenarioMessage({ carbonPrice, abatement, abatementFilt
             Scenarios shown for current selection:
             <ul>
                 <li><b>{regionAbatementScenarioToString(carbonPrice, abatement)}</b></li>
-                <li><b>Discount rate of {abatementFilters.dr}% for net present values</b></li>
-                <li><b>Establishment cost of ${abatementFilters.ec}/ha</b></li>
-                <li><b>5-yearly abatement cost of ${abatementFilters.ac}/ha</b></li>
+                <li><b>Discount rate of {abatementFilters.dr.toLocaleString()}% for net present values</b></li>
+                <li><b>Establishment cost of ${abatementFilters.ec.toLocaleString()}/ha</b></li>
+                <li><b>5-yearly abatement cost of ${abatementFilters.ac.toLocaleString()}/ha</b></li>
             </ul>
         </div>
     );
