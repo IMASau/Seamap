@@ -565,7 +565,7 @@
   (let [dynamic-pills (get-in db [:dynamic-pills :dynamic-pills])]
     (filter
      (fn [{:keys [layers] :as _dynamic-pill}]
-       (some #{id} (set layers)))
+       (some #{id} (set (map :layer layers))))
      dynamic-pills)))
 
 (defn ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} {{:keys [active-layers layers]} :map :as db}]

@@ -8,7 +8,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords]]
+            [imas-seamap.map.utils :refer [layer-name bounds->str feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords layer->dynamic-pills ->dynamic-pill]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -858,28 +858,46 @@
 
 (defn remove-layer
   [{:keys [db]} [_ layer]]
-  (let [layers (get-in db [:map :active-layers])
-        layers (vec (remove #(= % layer) layers))
-        {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
-        rich-layer (layer->rich-layer layer db)
-        db     (->
-                db
-                (assoc-in [:map :active-layers] layers)
-                (update-in [:map :hidden-layers] #(disj % layer))
-                (cond->
-                 ((set habitat) layer)
-                  (assoc-in [:state-of-knowledge :statistics :habitat :show-layers?] false)
+  (letfn [(dynamic-pill-active?
+           [db dynamic-pill]
+           "Checks if a dynamic pill has any current active layers.
+            
+            Args:
+            * `db: :seamap/app-state`: Seamap app state
+            * `dynamic-pill: :dynamic-pills/dynamic-pill`: Dynamic pill to check for active
+              layers
+            
+            Returns: `true` if the dynamic pill has any active layers, `false` otherwise."
+           (s/assert :dynamic-pills/dynamic-pill dynamic-pill)
+           (-> (->dynamic-pill dynamic-pill db) :active-layers seq boolean))]
+    (let [layers (get-in db [:map :active-layers])
+          layers (vec (remove #(= % layer) layers))
+          {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
+          rich-layer (layer->rich-layer layer db)
+          db     (->
+                  db
+                  (assoc-in [:map :active-layers] layers)
+                  (update-in [:map :hidden-layers] #(disj % layer))
+                  (cond->
+                   ((set habitat) layer)
+                    (assoc-in [:state-of-knowledge :statistics :habitat :show-layers?] false)
 
-                  ((set bathymetry) layer)
-                  (assoc-in [:state-of-knowledge :statistics :bathymetry :show-layers?] false)
+                    ((set bathymetry) layer)
+                    (assoc-in [:state-of-knowledge :statistics :bathymetry :show-layers?] false)
 
-                  ((set habitat-obs) layer)
-                  (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))]
-    {:db         db
-     :dispatch-n [[:map/popup-closed]
-                  (when rich-layer [:map.rich-layer/reset-filters rich-layer])
-                  [:map.layer.selection/maybe-clear]
-                  [:maybe-autosave]]}))
+                    ((set habitat-obs) layer)
+                    (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))
+          dynamic-pills (layer->dynamic-pills layer db)
+          deactivated-dynamic-pills (filter #(not (dynamic-pill-active? db %)) dynamic-pills)]
+      {:db db
+       :dispatch-n
+       (concat
+        [[:map/popup-closed]
+         (when rich-layer [:map.rich-layer/reset-filters rich-layer])
+         [:map.layer.selection/maybe-clear]
+         [:maybe-autosave]]
+        (when (seq deactivated-dynamic-pills)
+          (map #(vector :dynamic-pill/active % false) deactivated-dynamic-pills)))})))
 
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ layer]]
