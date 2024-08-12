@@ -4,9 +4,53 @@ import { RegionAbatementData, AbatementFilters, RegionType, CarbonPriceAbatement
 import './Components.scss'
 import { Tab, TabId, Tabs } from '@blueprintjs/core';
 import { useState } from 'react';
+import { LayerSpec, UnitSpec } from 'vega-lite/build/src/spec';
+import { Field } from 'vega-lite/build/src/channeldef';
 
 
-export function donutChartSpec({ thetaField, colorField, sortField, legendTitle }: { thetaField: string, colorField: string, sortField?: string, legendTitle?: string | string[] }): VisualizationSpec {
+export function donutChartSpec({ thetaField, colorField, sortField, percentageField, legendTitle }: { thetaField: string, colorField: string, sortField?: string, percentageField?: string, legendTitle?: string | string[] }): VisualizationSpec {
+    const layer: (LayerSpec<Field> | UnitSpec<Field>)[] = [
+        {
+            mark: {
+                type: 'arc',
+                innerRadius: 40,
+                outerRadius: 80,
+            },
+            encoding: {
+                tooltip: percentageField
+                    ? [
+                        {
+                            field: colorField,
+                            title: legendTitle,
+                            type: 'nominal'
+                        },
+                        {
+                            field: percentageField,
+                            format: '.2%',
+                            title: '%',
+                            type: 'quantitative'
+                        }
+                    ]
+                    : undefined
+            }
+        }
+    ];
+    if (percentageField) {
+        layer.push({
+            mark: {
+                type: 'text',
+                radius: 100,
+                fill: 'black',
+            },
+            encoding: {
+                text: {
+                    value: { expr: `if(datum.${percentageField} > 0.05, (round(datum.${percentageField} * 10000) / 100) + "%", "")` },
+                    format: '.2%',
+                }
+            }
+        });
+    }
+
     return {
         width: 'container',
         encoding: {
@@ -15,65 +59,16 @@ export function donutChartSpec({ thetaField, colorField, sortField, legendTitle 
                 type: 'quantitative',
                 stack: true,
             },
-            order: { field: sortField, sort: 'descending' },
+            order: { field: sortField, sort: 'ascending' },
             color: {
                 field: colorField,
                 type: 'nominal',
                 legend: { title: legendTitle || colorField },
-                sort: sortField ? { field: sortField, order: "descending" } : undefined,
+                sort: sortField ? { field: sortField, order: 'ascending' } : undefined,
             },
         },
         data: { name: 'values', },
-        transform: [
-            {
-                joinaggregate: [{
-                    op: 'sum',
-                    field: thetaField,
-                    as: 'total'
-                }]
-            },
-            {
-                calculate: `datum.${thetaField} / datum.total`,
-                as: 'percentage'
-            }
-        ],
-        layer: [
-            {
-                mark: {
-                    type: 'arc',
-                    innerRadius: 40,
-                    outerRadius: 80,
-                },
-                encoding: {
-                    tooltip: [
-                        {
-                            field: colorField,
-                            title: legendTitle,
-                            type: 'nominal'
-                        },
-                        {
-                            field: 'percentage',
-                            format: '.2%',
-                            title: '%',
-                            type: 'quantitative'
-                        }
-                    ]
-                }
-            },
-            {
-                mark: {
-                    type: 'text',
-                    radius: 100,
-                    fill: 'black',
-                },
-                encoding: {
-                    text: {
-                        value: {expr: 'if(datum.percentage > 0.05, (round(datum.percentage * 10000) / 100) + "%", "")'},
-                        format: '.2%',
-                    }
-                }
-            }
-        ]
+        layer: layer
     };
 }
 
@@ -102,16 +97,37 @@ function regionTypeToLegendTitle(regionType: RegionType): string | string[] {
 }
 
 export function AbatementChart({ regionType, abatementData, metricField }: { regionType: RegionType, abatementData: RegionAbatementData[], metricField: string }) {
+    const totalAbatement = abatementData.map(row => (row as any)[metricField]).reduce((a, b) => a + b);
+    const data = abatementData.map(row => {
+        const percentage = (row as any)[metricField] / totalAbatement;
+        return { ...row, percentage, sort: 0 };
+    });
+
+    data.sort((a, b) => b['percentage'] - a['percentage']);
+    data.map((row, index) => row['sort'] = index);
+    const filtered = data.filter(row => row['percentage'] > 0.005); // filter out rows with less than 0.25% of total abatement
+    // Add a row for the sum of the filtered-out rows as "Other" region
+    const otherValue = data.filter(row => row['percentage'] <= 0.005).map(row => (row as any)[metricField]).reduce((a, b) => a + b);
+    const otherPercentage = otherValue / totalAbatement;
+    const other = {
+        region: 'Other',
+        [metricField]: otherValue,
+        percentage: otherPercentage,
+        sort: filtered.length,
+    };
+    filtered.push(other);
+
     return (
         <VegaLite
             className="abatement-chart"
             spec={donutChartSpec({
                 thetaField: metricField,
                 colorField: 'region',
-                sortField: metricField,
+                sortField: 'sort',
+                percentageField: 'percentage',
                 legendTitle: regionTypeToLegendTitle(regionType),
             })}
-            data={{ values: abatementData }}
+            data={{ values: filtered }}
             actions={false}
         />
     );
@@ -214,7 +230,7 @@ export function AbatementScenarioMessage({ carbonPrice, abatement, abatementFilt
     );
 }
 
-export function AbatementTable<T extends RegionAbatementData>({ regionType, abatementData, metricHeading, metricToString }: { regionType: RegionType, abatementData: T[], metricHeading: string, metricToString: (row: T) => string}) {
+export function AbatementTable<T extends RegionAbatementData>({ regionType, abatementData, metricHeading, metricToString }: { regionType: RegionType, abatementData: T[], metricHeading: string, metricToString: (row: T) => string }) {
     return (
         <table className="abatement-table">
             <thead>
@@ -235,7 +251,7 @@ export function AbatementTable<T extends RegionAbatementData>({ regionType, abat
     );
 }
 
-export function CarbonPriceAbatementTable<T extends CarbonPriceAbatementData>({ abatementData, metricHeading, metricToString }: { abatementData: T[], metricHeading: string, metricToString: (row: T) => string}) {
+export function CarbonPriceAbatementTable<T extends CarbonPriceAbatementData>({ abatementData, metricHeading, metricToString }: { abatementData: T[], metricHeading: string, metricToString: (row: T) => string }) {
     return (
         <table className="abatement-table">
             <thead>
@@ -271,6 +287,32 @@ export function CarbonPriceAbatementScenarioMessage({ regionType, region, abatem
 }
 
 export function CarbonPriceAbatementChart({ abatementData, metricField }: { abatementData: CarbonPriceAbatementData[], metricField: string }) {
+    const totalAbatement = abatementData.map(row => (row as any)[metricField]).reduce((a, b) => a + b);
+    const data = abatementData.map(row => {
+        const percentage = (row as any)[metricField] / totalAbatement;
+        return {
+            ...row,
+            carbon_price: (row.carbon_price as string),
+            percentage,
+            sort: 0
+        };
+    });
+
+    data.sort((a, b) => b['percentage'] - a['percentage']);
+    data.map((row, index) => row['sort'] = index);
+    const filtered = data.filter(row => row['percentage'] > 0.005); // filter out rows with less than 0.25% of total abatement
+    // Add a row for the sum of the filtered-out rows as "Other" region
+    const otherValue = data.filter(row => row['percentage'] <= 0.005).map(row => (row as any)[metricField]).reduce((a, b) => a + b);
+    const otherPercentage = otherValue / totalAbatement;
+    const other = {
+        carbon_price: 'Other',
+        carbonPriceString: 'Other',
+        [metricField]: otherValue,
+        percentage: otherPercentage,
+        sort: filtered.length,
+    };
+    filtered.push(other);
+
     return (
         <VegaLite
             className="abatement-chart"
