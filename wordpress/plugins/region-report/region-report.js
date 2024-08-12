@@ -1168,8 +1168,9 @@ class RegionReport {
                         dataType: "json",
                         data: params,
                         success: annotations => {
-                            annotationsElement.innerHTML = `
-                                    <a
+                            annotationsElement.innerHTML =
+                                annotations.annotations_data
+                                    ? `<a
                                         href="${this.templateStringFill(this.annotationsLinkUrlTemplate, {
                                             'network': this.network ?? '',
                                             'park': this.park ?? '',
@@ -1188,7 +1189,14 @@ class RegionReport {
                                             </span>
                                         </h4>
                                         ${annotations.annotations_data}
-                                    </a>`;
+                                    </a>`
+                                : `<div class="bp3-non-ideal-state">
+                                    <div class="bp3-non-ideal-state-visual">
+                                        <span class="bp3-icon bp3-icon-info-sign"></span>
+                                    </div>
+                                    <h4 class="bp3-heading">No Data</h4>
+                                    <div>No public image annotations were found for this region.</div>
+                                </div>`;
                         },
                         error: () => {
                             annotationsElement.innerHTML = `
