@@ -98,8 +98,7 @@
     :update-dynamic-pills                 events/update-dynamic-pills
     :update-site-configuration            events/update-site-configuration
     :update-site-configuration/error-handler events/update-site-configuration-error-handler
-    :display.outage-message/open          [events/display-outage-message-open (re-frame/inject-cofx :cookie/get [:outage-message-last-seen])]
-    :display.outage-message/close         [events/display-outage-message-close]
+    :display.outage-message/open          events/display-outage-message-open
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close

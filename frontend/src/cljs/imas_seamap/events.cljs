@@ -59,7 +59,7 @@
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
      :dispatch-n [[:welcome-layer/open]
-                  [:display.outage-message/open]]
+                  [:display.outage-message/open true]]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
@@ -99,7 +99,7 @@
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
      :dispatch-n [[:welcome-layer/open]
-                  [:display.outage-message/open]]
+                  [:display.outage-message/open true]]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
@@ -139,7 +139,7 @@
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
      :dispatch-n [[:welcome-layer/open]
-                  [:display.outage-message/open]]
+                  [:display.outage-message/open true]]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
@@ -961,27 +961,12 @@
   db)
 
 (defn display-outage-message-open
-  "Updates the app state to open the outage message overlay. Only opens the outage
-   message overlay if the user has not seen the message before.
+  "Updates the app state to open the outage message overlay
    
    Arguments:
    * `db`: Current app state database.
-   * `cookies`: Site cookies, including the \"outage-message-last-seen\" cookie,
-     which is used to track when the user last saw the outage message."
-  [{:keys [db] cookies :cookie/get} _]
-  (let [last-seen (:outage-message-last-seen cookies)
-        last-modified (get-in db [:site-configuration :last-modified])
-        user-seen? (and last-seen last-modified (>= last-seen (js/Date.parse last-modified)))] ; user has seen the message if the time they last saw it is greater than or equal to the last modified time
-    {:db (assoc-in db [:display :outage-message-open?] (not user-seen?))}))
-
-(defn display-outage-message-close
-  "Updates the app state to close the outage message overlay. Also sets the
-   \"outage-message-last-seen\" cookie to the current time, so the user does not
-   see the message again until the next time the outage message is updated.
-   
-   Arguments:
-   * `db`: Current app state database."
-  [{:keys [db]} _]
-  {:db         (assoc-in db [:display :outage-message-open?] false)
-   :cookie/set {:name  :outage-message-last-seen
-                :value (js/Date.now)}})
+   * `open?`: Boolean value indicating whether the outage message overlay should be
+     opened."
+  [db [_ open?]]
+  (s/assert open? boolean?)
+  (assoc-in db [:display :outage-message-open?] open?))
