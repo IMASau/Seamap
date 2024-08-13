@@ -96,26 +96,127 @@ function regionTypeToLegendTitle(regionType: RegionType): string | string[] {
     }
 }
 
-export function AbatementChart({ regionType, abatementData, metricField }: { regionType: RegionType, abatementData: RegionAbatementData[], metricField: string }) {
-    const totalAbatement = abatementData.map(row => (row as any)[metricField]).reduce((a, b) => a + b);
-    const data = abatementData.map(row => {
-        const percentage = (row as any)[metricField] / totalAbatement;
-        return { ...row, percentage, sort: 0 };
-    });
 
-    data.sort((a, b) => b['percentage'] - a['percentage']);
-    data.map((row, index) => row['sort'] = index);
-    const filtered = data.filter(row => row['percentage'] > 0.005); // filter out rows with less than 0.25% of total abatement
-    // Add a row for the sum of the filtered-out rows as "Other" region
-    const otherValue = data.filter(row => row['percentage'] <= 0.005).map(row => (row as any)[metricField]).reduce((a, b) => a + b);
-    const otherPercentage = otherValue / totalAbatement;
-    const other = {
-        region: 'Other',
-        [metricField]: otherValue,
-        percentage: otherPercentage,
-        sort: filtered.length,
-    };
-    filtered.push(other);
+interface DataRow {
+    [key: string]: any;
+}
+
+
+interface SortAndPercentageDataRow extends DataRow {
+    percentage: number;
+    sort: number;
+}
+
+
+/**
+ * Sorts an array of objects by a specified numeric field and calculates the
+ * percentage of each object's value relative to the total sum of the field values.
+ *
+ * @param {DataRow[]} data - The array of objects to be sorted and processed. Each
+ *  object should have at least one numeric field specified by `valueField`.
+ * @param {string} valueField - The key in each object to be used for sorting and
+ *  calculating percentages.
+ * @returns {SortAndPercentageDataRow[]} A new array of objects where each object
+ *  includes the original properties, the calculated percentage of its `valueField`
+ *  relative to the total, and its sort index.
+ *
+ * @example
+ * const data = [
+ *   { name: 'A', value: 10 },
+ *   { name: 'B', value: 30 },
+ *   { name: 'C', value: 20 }
+ * ];
+ * const result = sortAndPercentage(data, 'value');
+ * console.log(result);
+ * // Output:
+ * // [
+ * //   { name: 'B', value: 30, percentage: 0.5, sort: 0 },
+ * //   { name: 'C', value: 20, percentage: 0.3333, sort: 1 },
+ * //   { name: 'A', value: 10, percentage: 0.1667, sort: 2 }
+ * // ]
+ */
+function sortAndPercentage(data: DataRow[], valueField: string): SortAndPercentageDataRow[] {
+    const totalValue = data.map(row => row[valueField]).reduce((a, b) => a + b); // sum of all values in the data
+
+    return data.slice() // shallow copy the data
+        .sort((a, b) => b[valueField] - a[valueField]) // sort by value
+        .map(
+            (row, index) => {
+                const percentage = row[valueField] / totalValue; // percentage of total value
+
+                // return new row with percentage and sort index
+                return {
+                    ...row,
+                    percentage,
+                    sort: index
+                };
+            }
+        );
+}
+
+
+/**
+ * Merges rows in an array based on a specified percentage threshold, combining
+ * rows that fall below the threshold into a single "Other" row.
+ *
+ * @param {SortAndPercentageDataRow[]} data - The array of objects to be processed.
+ *  Each object should have properties for sorting, percentage calculation, and the
+ *  fields specified by `keyField` and `valueField`.
+ * @param {string} keyField - The name of the field used to identify rows. The
+ *  "Other" row will use this field to set its value.
+ * @param {string} valueField - The name of the field used to aggregate values.
+ *  This field is used to calculate the sum of values and percentages.
+ * @param {number} percentageThreshold - The threshold percentage (0 to 1) used to
+ *  determine which rows are merged into the "Other" row.
+ * @returns {SortAndPercentageDataRow[]} A new array of objects where rows below
+ *  the percentage threshold are merged into a single "Other" row.
+ *
+ * @example
+ * const data = [
+ *   { name: 'A', value: 124, percentage: 0.496, sort: 0 },
+ *   { name: 'B', value: 124, percentage: 0.496, sort: 1 },
+ *   { name: 'C', value: 1, percentage: 0.004, sort: 2 },
+ *   { name: 'D', value: 1, percentage: 0.004, sort: 3 }
+ * ];
+ * const result = mergeRowsToOther(data, 'name', 'value', 0.005);
+ * console.log(result);
+ * // Output:
+ * // [
+ * //   { name: 'A', value: 124, percentage: 0.496, sort: 0 },
+ * //   { name: 'B', value: 124, percentage: 0.496, sort: 1 },
+ * //   { name: 'Other', value: 2, percentage: 0.008, sort: 2 }
+ * // ]
+ */
+function mergeRowsToOther(data: SortAndPercentageDataRow[], keyField: string, valueField: string, percentageThreshold: number): SortAndPercentageDataRow[] {
+    const totalValue = data.map(row => row[valueField]).reduce((a, b) => a + b); // sum of all values in the data
+
+    const filtered = data.filter(row => row[valueField] / totalValue > percentageThreshold); // filter out rows with less than `percentageThreshold` of total value
+    const others = data.filter(row => row[valueField] / totalValue <= percentageThreshold); // "other" rows with less than `percentageThreshold` of total value
+
+    // if we have "others" merge their values, and insert a new row for "other"
+    if (others.length > 0) {
+        const otherValue = others.map(row => row[valueField]).reduce((a, b) => a + b); // sum of all "other" values
+
+        // create a new row for "other" with the sum of all "other" values
+        const other = {
+            [keyField]: 'Other',
+            [valueField]: otherValue,
+            percentage: otherValue / totalValue,
+            sort: filtered.length
+        };
+        filtered.push(other);
+    }
+
+    return filtered;
+}
+
+export function AbatementChart({ regionType, abatementData, metricField }: { regionType: RegionType, abatementData: RegionAbatementData[], metricField: string }) {
+    const data = mergeRowsToOther(
+        sortAndPercentage(abatementData, metricField), // sort and calculate percentage
+        'region',
+        metricField,
+        0.005
+    ); // merge rows with less than 0.5% of total abatement
 
     return (
         <VegaLite
@@ -127,7 +228,7 @@ export function AbatementChart({ regionType, abatementData, metricField }: { reg
                 percentageField: 'percentage',
                 legendTitle: regionTypeToLegendTitle(regionType),
             })}
-            data={{ values: filtered }}
+            data={{ values: data }}
             actions={false}
         />
     );
@@ -287,31 +388,12 @@ export function CarbonPriceAbatementScenarioMessage({ regionType, region, abatem
 }
 
 export function CarbonPriceAbatementChart({ abatementData, metricField }: { abatementData: CarbonPriceAbatementData[], metricField: string }) {
-    const totalAbatement = abatementData.map(row => (row as any)[metricField]).reduce((a, b) => a + b);
-    const data = abatementData.map(row => {
-        const percentage = (row as any)[metricField] / totalAbatement;
-        return {
-            ...row,
-            carbon_price: (row.carbon_price as string),
-            percentage,
-            sort: 0
-        };
-    });
-
-    data.sort((a, b) => b['percentage'] - a['percentage']);
-    data.map((row, index) => row['sort'] = index);
-    const filtered = data.filter(row => row['percentage'] > 0.005); // filter out rows with less than 0.25% of total abatement
-    // Add a row for the sum of the filtered-out rows as "Other" region
-    const otherValue = data.filter(row => row['percentage'] <= 0.005).map(row => (row as any)[metricField]).reduce((a, b) => a + b);
-    const otherPercentage = otherValue / totalAbatement;
-    const other = {
-        carbon_price: 'Other',
-        carbonPriceString: 'Other',
-        [metricField]: otherValue,
-        percentage: otherPercentage,
-        sort: filtered.length,
-    };
-    filtered.push(other);
+    const data = mergeRowsToOther(
+        sortAndPercentage(abatementData, metricField), // sort and calculate percentage
+        'carbonPriceString',
+        metricField,
+        0.005
+    ); // merge rows with less than 0.5% of total abatement
 
     return (
         <VegaLite
@@ -320,9 +402,10 @@ export function CarbonPriceAbatementChart({ abatementData, metricField }: { abat
                 thetaField: metricField,
                 colorField: 'carbonPriceString',
                 sortField: 'carbonPriceString',
+                percentageField: 'percentage',
                 legendTitle: "Carbon Price ($/tCO₂)",
             })}
-            data={{ values: abatementData }}
+            data={{ values: data }}
             actions={false}
         />
     );
