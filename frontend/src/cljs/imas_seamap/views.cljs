@@ -372,7 +372,7 @@
      {:title "Important Notice"
       :class    "welcome-splash"
       :is-open  open?
-      :on-close #(re-frame/dispatch [:display.outage-message/close])}
+      :on-close #(re-frame/dispatch [:display.outage-message/open false])}
      [:div.bp3-dialog-body
       [:div
        {:ref #(when % (set! (.-innerHTML %) outage-message))}
@@ -381,7 +381,7 @@
        {:text       "I Understand"
         :intent     b/INTENT-PRIMARY
         :auto-focus true
-        :on-click   #(re-frame/dispatch [:display.outage-message/close])}]]]))
+        :on-click   #(re-frame/dispatch [:display.outage-message/open false])}]]]))
 
 (defn settings-overlay []
   [b/dialogue
