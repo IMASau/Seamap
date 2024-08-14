@@ -534,13 +534,45 @@ class RegionReport {
              </div>`;
     }
 
+
+    /**
+     * Rounds a number up to the nearest multiple of a given value.
+     *
+     * @param {number} value - The number to be rounded down.
+     * @param {number} multiple - The multiple to which the value should be rounded
+     *  down.
+     * @returns {number} The largest number less than or equal to `value` that is a
+     *  multiple of `multiple`.
+     *
+     * @example
+     * console.log(floorToNearestMultiple(17, 5));
+     * // Output: 15
+     */
+    floorToNearestMultiple(value, multiple) {
+        return Math.floor(value / multiple) * multiple;
+    }
+
+
+    /**
+     * Rounds a number up to the nearest multiple of a given value.
+     *
+     * @param {number} value - The number to be rounded up.
+     * @param {number} multiple - The multiple to which the value should be rounded up.
+     * @returns {number} The smallest number greater than or equal to `value` that is
+     *  a multiple of `multiple`.
+     *
+     * @example
+     * console.log(ceilToNearestMultiple(17, 5));
+     * // Output: 20
+     */
+    ceilToNearestMultiple(value, multiple) {
+        return Math.ceil(value / multiple) * multiple;
+    }
+
+
     vegaMultiHistogram(values, tickStep, title) {
-        let start = Math.min(...values.map(e => e.year));
-        if (start % tickStep != 0)
-            start -= start % tickStep;
-        let end = new Date().getFullYear();
-        if (end % tickStep != 0)
-            end += tickStep - end % tickStep;
+        let start = this.floorToNearestMultiple(Math.min(...values.map(e => e.year)) - 1, tickStep);
+        let end = this.ceilToNearestMultiple(new Date().getFullYear() + 1, tickStep);
 
         const filledValues = Array.from(
             { length: end - start },
@@ -573,7 +605,7 @@ class RegionReport {
                     title: "Year",
                     axis: {
                         values: Array.from(
-                            { length: (end - start) / tickStep },
+                            { length: Math.floor((end - start) / tickStep) + 1},
                             (_, i) => i * tickStep + start
                         ),
                         format: "r",
@@ -583,8 +615,8 @@ class RegionReport {
                     },
                     scale: {
                         domain: [
-                            start - 0.5,
-                            new Date().getFullYear() + 0.5
+                            start,
+                            end
                         ]
                     }
                 },
