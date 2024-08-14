@@ -1,4 +1,5 @@
 import logging
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connections
 
@@ -51,8 +52,9 @@ class Command(BaseCommand):
         try:
             with connections['transects'].cursor() as cursor:
                 cursor.execute(SQL_REENABLE_SPATIAL_INDEX)
-                cursor.execute(SQL_GET_FEATURE_INDEX_LOG_LATEST)
-                errors = [LayerFeatureIndexError(*row) for row in cursor.fetchall()]
-                email_build_feature_index_summary(errors)
+                if settings.IS_PRODUCTION:
+                    cursor.execute(SQL_GET_FEATURE_INDEX_LOG_LATEST)
+                    errors = [LayerFeatureIndexError(*row) for row in cursor.fetchall()]
+                    email_build_feature_index_summary(errors)
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
