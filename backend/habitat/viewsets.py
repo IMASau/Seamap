@@ -30,6 +30,7 @@ from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer, JSONRen
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.request import Request
 from rest_framework.serializers import ValidationError
 
 
@@ -1419,3 +1420,11 @@ def dynamic_pill_region_control_values(request):
     if layer:
         cql_property_values = layer.cql_property_values([dynamic_pill.region_control_cql_property])
         return Response(cql_property_values['values'][0]['values'])
+
+
+@action(methods=['GET'], detail=False)
+@cache_page(60 * 15)
+@api_view()
+def layer_legend(request: Request, layer_id: int):
+    layer = models.Layer.objects.get(id=layer_id)
+    return Response(layer.get_legend())

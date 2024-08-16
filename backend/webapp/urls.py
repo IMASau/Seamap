@@ -44,6 +44,7 @@ urlpatterns = [
     re_path(r'^api/habitat/datainregion', habitat_viewsets.data_in_region),
     re_path(r'^api/habitat/cqlfiltervalues', habitat_viewsets.cql_filter_values),
     re_path(r'^api/habitat/dynamicpillregioncontrolvalues', habitat_viewsets.dynamic_pill_region_control_values),
+    re_path(r'^api/layerlegend/(?P<layer_id>[^/.]+)', habitat_viewsets.layer_legend, name='layer_legend'),
     re_path(r'^api/savestates', SaveStateView.as_view()),
     re_path(r'^api/', include(router.urls)),
     re_path(r'^admin/', admin.site.urls),
