@@ -414,11 +414,10 @@ class Layer(models.Model):
                 'width': '100%',
             }
             
-            # Set background color to 'fill' if present
+            # Populate optional properties in the legend key
             if 'fill' in symbolizer:
                 style['backgroundColor'] = symbolizer['fill']
-
-            # Set border to stroke width and color if present
+            # Add a border if either stroke-width or stroke is present
             if ('stroke-width' in symbolizer) or ('stroke' in symbolizer):
                 style['border'] = f"{symbolizer.get('stroke-width', 2)}px solid {symbolizer.get('stroke', 'black')}"
 
@@ -430,21 +429,15 @@ class Layer(models.Model):
                 'width': f"{symbolizer['size']}px",
             }
 
+            # Populate optional properties in the legend key
             graphic = symbolizer['graphics'][0]
-
-            # Set background color to 'fill' if present
             if 'fill' in graphic:
                 style['backgroundColor'] = graphic['fill']
-
-            # Set border to stroke width and color if present
+            # Add a border if either stroke-width or stroke is present
             if ('stroke-width' in graphic) or ('stroke' in graphic):
                 style['border'] = f"{graphic.get('stroke-width', 2)}px solid {graphic.get('stroke', 'black')}"
-
-            # Custom style for circle markers
             if 'mark' in graphic and graphic['mark'] == 'circle':
                 style['borderRadius'] = '100%'
-
-            # Set opacity if present
             if 'fill-opacity' in graphic:
                 style['opacity'] = graphic['fill-opacity']
 
