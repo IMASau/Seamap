@@ -274,6 +274,16 @@ class Layer(models.Model):
             # ...return a list containing a single legend key for the renderer
             return [self.feature_server_renderer_value_info_to_legend_key(renderer)]
 
+    def map_server_layer_data(self) -> dict:
+        """
+        Retrieves and returns the MapServer layer data.
+        
+        Returns:
+            dict: A dictionary of the MapServer layer data.
+        """
+        r = requests.get(url=self.server_url, params={ 'f': 'json' })
+        return r.json()
+
     def map_server_legend_item_to_legend_key(self, legend_item: dict) -> dict:
         """
         Converts a MapServer layer legend item into a legend key dictionary.
@@ -326,8 +336,6 @@ class Layer(models.Model):
         Note:
         - The method assumes that `self.server_url` points to a valid MapServer endpoint
             that returns data in the expected format.
-        - The method currently handles single-layer cases only. Support for group-layer cases
-            is indicated as a TODO item.
         """
         # First, try to get legend data in JSON format
         try:
@@ -336,12 +344,22 @@ class Layer(models.Model):
             map_server_layer_id = int(match.group('map_server_layer_id'))
             r = requests.get(url=legend_url, params={ 'f': 'json' })
             data = r.json()
+            layer_data = self.map_server_layer_data()
+
+            # group-layer case
+            if layer_data['type'] == 'Group Layer':
+                legend = []
+
+                # Extract legend data for each sub-layer, and merge into a single legend
+                for layer in layer_data['subLayers']:
+                    legend_layer = next((legend_layer for legend_layer in data['layers'] if legend_layer['layerId'] == layer['id']))
+                    legend += [self.map_server_legend_item_to_legend_key(legend_item) for legend_item in legend_layer['legend']]
+                return legend
 
             # single-layer case
-            legend_layer = next((layer for layer in data['layers'] if layer['layerId'] == map_server_layer_id))
-            return [self.map_server_legend_item_to_legend_key(legend_item) for legend_item in legend_layer['legend']]
-            # group-layer case
-            # TODO
+            else:
+                legend_layer = next((legend_layer for legend_layer in data['layers'] if legend_layer['layerId'] == map_server_layer_id))
+                return [self.map_server_legend_item_to_legend_key(legend_item) for legend_item in legend_layer['legend']]
 
         # If the legend data cannot be retrieved, return the legend graphic image URL
         except Exception as e:
