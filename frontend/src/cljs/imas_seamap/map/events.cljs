@@ -480,10 +480,11 @@
   (->
    rich-layer
    (set/rename-keys
-    {:alternate_views :alternate-views
-     :tab_label       :tab-label
-     :slider_label    :slider-label
-     :layer           :layer-id})
+    {:alternate_views      :alternate-views
+     :tab_label            :tab-label
+     :slider_label         :slider-label
+     :alternate_view_label :alternate-view-label
+     :layer                :layer-id})
    (update :controls #(mapv ->rich-layer-control %))))
 
 (defn- rich-layer->children

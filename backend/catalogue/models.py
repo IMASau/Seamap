@@ -650,6 +650,7 @@ class RichLayer(models.Model):
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     tab_label = models.CharField(max_length=255)
     slider_label = models.CharField(max_length=255)
+    alternate_view_label = models.CharField(max_length=255, default='Alternate View')
     icon = models.CharField(max_length=255)
     tooltip = models.CharField(max_length=255)
 

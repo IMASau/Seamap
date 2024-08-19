@@ -36,14 +36,14 @@
 (defn- layer-header-text
   "Layer name, with some other fancy stuff on top."
   [{{:keys [name tooltip]} :layer
-    {{:keys [alternate-views-selected timeline-selected displayed-layer slider-label controls] :as rich-layer} :rich-layer} :layer-state}]
+    {{:keys [alternate-views-selected timeline-selected displayed-layer slider-label alternate-view-label controls] :as rich-layer} :rich-layer} :layer-state}]
   (let [filters-text
         (remove
          nil?
          (conj
           (map cql-control-filter-text controls)
           (when alternate-views-selected
-            (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name])))
+            (str "FILTER APPLIED: " alternate-view-label ": " (get-in alternate-views-selected [:layer :name])))
           (when timeline-selected
             (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label])))))]
     [:div.layer-header-text
@@ -73,14 +73,14 @@
    layer's details."
   [{{:keys [name tooltip]} :layer
     {:keys [expanded?]
-     {:keys [alternate-views-selected timeline-selected displayed-layer slider-label controls] :as rich-layer} :rich-layer} :layer-state}]
+     {:keys [alternate-views-selected timeline-selected displayed-layer slider-label alternate-view-label controls] :as rich-layer} :rich-layer} :layer-state}]
   (let [filters-text
         (remove
          nil?
          (conj
           (map cql-control-filter-text controls)
           (when alternate-views-selected
-            (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name])))
+            (str "FILTER APPLIED: " alternate-view-label ": " (get-in alternate-views-selected [:layer :name])))
           (when timeline-selected
             (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label])))))]
     [:div.layer-header-text
@@ -237,9 +237,9 @@
            :icon        "info-sign"}]))]))
 
 (defn- alternate-view-select
-  [{{{:keys [alternate-views alternate-views-selected] :as rich-layer} :rich-layer} :layer-state}]
+  [{{{:keys [alternate-views alternate-views-selected alternate-view-label] :as rich-layer} :rich-layer} :layer-state}]
   [components/form-group
-   {:label    "Alternate View"}
+   {:label alternate-view-label}
    [:div
     {:on-click #(.stopPropagation %)}
     [components/select
