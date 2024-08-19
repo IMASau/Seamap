@@ -68,7 +68,7 @@
                   (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
-        cql-filter (apply str (interpose " OR " cql-filters))
+        cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
@@ -105,7 +105,7 @@
                   (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
-        cql-filter (apply str (interpose " OR " cql-filters))
+        cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
@@ -153,7 +153,7 @@
                   (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
-        cql-filter (apply str (interpose " OR " cql-filters))
+        cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
     {:http-xhrio
      ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
