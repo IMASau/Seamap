@@ -18,6 +18,8 @@ class SquidleAnnotationsDataView(RetrieveAPIView):
 
     def get_object(self):
         filters = {k: self.request.query_params[k] for k in self.request.query_params if k in ['network', 'park', 'depth_zone', 'highlights']}
+        if 'park' not in filters:
+            filters['park'] = None
         if 'highlights' in filters:
             if filters['highlights'] in ['true', 'True']:
                 filters['highlights'] = True
