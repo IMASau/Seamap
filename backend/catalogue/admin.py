@@ -11,6 +11,7 @@ admin.site.register(models.Organisation)
 admin.site.register(models.HabitatDescriptor)
 admin.site.register(models.BaseLayerGroup)
 admin.site.register(models.BaseLayer)
+admin.site.register(models.SquidleAnnotationsData)
 
 class LayerAdmin(admin.ModelAdmin):
     search_fields = ('name',)

@@ -235,9 +235,10 @@ class SquidleAnnotationsData(models.Model):
     depth_zone = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='ZONENAME')
     highlights = models.BooleanField(db_column='HIGHLIGHTS')
     annotations_data = models.TextField(db_column='ANNOTATIONS_DATA')
+    error = models.TextField()
     
     def __str__(self):
-        return f'{self.network}{(" > " + self.park) if self.park else ""} > {self.depth_zone if self.depth_zone else "All Depths"} {"(Highlights)" if self.highlights else "(No Highlights)"}'
+        return f'{"⚠️ " if self.error else ""}{self.network}{(" > " + self.park) if self.park else ""} > {self.depth_zone if self.depth_zone else "All Depths"} {"(Highlights)" if self.highlights else "(No Highlights)"}'
     
     class Meta:
         db_table = 'squidle_annotations_data'

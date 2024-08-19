@@ -4,5 +4,6 @@ CREATE TABLE [dbo].[squidle_annotations_data] (
   [RESNAME]          NVARCHAR(255) NULL,
   [ZONENAME]         NVARCHAR(255) NULL,
   [HIGHLIGHTS]       BIT           NOT NULL,
-  [ANNOTATIONS_DATA] NVARCHAR(MAX) NULL
+  [ANNOTATIONS_DATA] NVARCHAR(MAX) NULL,
+  [error]            NVARCHAR(MAX) NULL
 );
