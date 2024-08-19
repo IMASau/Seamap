@@ -68,6 +68,25 @@ class HabitatDescriptor(models.Model):
         return self.name
 
 
+INFO_FORMAT_TYPE_CHOICES = [
+    (1, '1 (text/html)'),
+    (2, '2 (application/json)'),
+    (3, '3 (none)'),
+    (4, '4 (feature)'),
+    (5, '5 (xml)'),
+    (6, '6 (raster)'),
+]
+
+
+LAYER_TYPE_CHOICES = [
+    ('wms', 'wms'),
+    ('tile', 'tile'),
+    ('feature', 'feature'),
+    ('raster', 'raster'),
+    ('wms-non-tiled', 'wms-non-tiled'),
+]
+
+
 CRS_CHOICES = [
     ('EPSG:4326', 'EPSG:4326'),
     ('EPSG:3857', 'EPSG:3857'),
@@ -94,10 +113,17 @@ class Layer(models.Model):
     metadata_url = models.URLField(max_length = 250)
     server_type = models.ForeignKey(ServerType, on_delete=models.PROTECT)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
-    info_format_type = models.IntegerField()
+    info_format_type = models.IntegerField(
+        choices=INFO_FORMAT_TYPE_CHOICES,
+        help_text="<p>Specifies format to retrieve GetFeatureInfo request (click-for-popup). Most IMAS-hosted layers will have a html styled popup configured (content.ftl file), but many external layers do not have this configured, so GFI requests text/html and unformatted text is returned. This column enables a flag to request GetFeatureInfo in 6 possible formats (allowed values: 1-6):</p><ul><li>1 = GetFeatureInfo as INFO_FORMAT=text/html (for “styled” popups)</li><li>2 = GetFeatureInfo as INFO_FORMAT=application/json (for unstyled popups that can be represented in tabular format – defaults to a grey/white striped table using raw json)</li><li>3 = no GetFeatureInfo (displays message “no info available – for unstyled data which can’t be represented in json)</li><li>4 = feature info specifically for ESRI FeatureServer vector layers: will have layer_type = <em>feature</em></li><li>5 = feature info specifically for List (+ maybe others) that return results in XML - will display similar to =2 in roughly styled table</li><li>6 = feature info for ESRI FeatureServer raster layers: will have layer_type =&nbsp;<em>raster</em></li></ul>"
+    )
     keywords = models.CharField(max_length = 400, null=True, blank=True)
     style = models.CharField(max_length=200, null=True, blank=True)
-    layer_type = models.CharField(max_length=10)
+    layer_type = models.CharField(
+        max_length=200,
+        choices=LAYER_TYPE_CHOICES,
+        help_text="<p>Seamap accommodates 4 different types of map layer:&nbsp;</p><p><strong>wms </strong>= standard OGC/MapServer wms or WMSServer; <strong>feature </strong>= vector-styled layer from ESRI ArcGIS server; <strong>raster&nbsp;</strong>= raster layer from ESRI ArcGIS server;&nbsp;<strong>tile </strong>= tile server;&nbsp;<strong>wms-non-tiled&nbsp;</strong>= special case where we want a WMS request to be made of a single image of the layer, rather than a series of tiles. This is less efficient but is used sometimes for layers that use a global render (eg heatmaps)</p><ul><li>wms and wms-non-tiled (/wms and /WMSServer) layers require a server_url and layer_name: eg <a class=\"external-link\" href=\"https://geoserver.imas.utas.edu.au/geoserver/wms\" rel=\"nofollow\">https://geoserver.imas.utas.edu.au/geoserver/wms</a>&nbsp;and seamap:SeamapAus_TAS_AbHab_substrata</li><li>feature layers (/FeatureServer and /MapServer that are a vector data type) <em>only&nbsp;</em>require a server_url (the layer is identified as a trailing /x numeral): eg <a class=\"external-link\" href=\"https://services3.arcgis.com/nbGeuo4JHMRYW4oj/arcgis/rest/services/Biologically_Important_Areas/FeatureServer/2\" rel=\"nofollow\">https://services3.arcgis.com/nbGeuo4JHMRYW4oj/arcgis/rest/services/Biologically_Important_Areas/FeatureServer/2</a></li><li>raster layers (most likely /MapServer, but will be of the type 'Raster Layer' at the ArcGIS endpoint) are configured as above, but must be specified as 'raster' types to draw correctly</li><li>tile layers&nbsp;<em>only</em> require a server_url, and must identify the x,y,z tile ordering in the server_url: eg <a rel=\"nofollow\">https://services1.arcgis.com/wfNKYeHsOyaFyPw3/ArcGIS/rest/services/AIS_2020_Vessel_Tracks/MapServer/tile/{z}/{y}/{x</a>}</li></ul>"
+    )
     tooltip = models.TextField(null=True, blank=True)
     metadata_summary = models.TextField(null=True, blank=True)
     crs = models.CharField(max_length=10, choices=CRS_CHOICES, default='EPSG:3112')
