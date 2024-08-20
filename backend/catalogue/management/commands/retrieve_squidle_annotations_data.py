@@ -11,6 +11,7 @@ from sqapi.api import SQAPI, query_filter as qf, SQAPIException
 from catalogue.models import AmpDepthZones, KeyedLayer, Layer, SquidleAnnotationsData
 
 class Command(BaseCommand):
+    skip_existing: bool
     network_boundary_layer: Layer
     park_boundary_layer: Layer
     http_session: requests.Session
@@ -182,9 +183,48 @@ class Command(BaseCommand):
             help='If true, skips retrieving squidle annotations data where we already have it',
         )
 
+    def update_squidle_annotations_data(self, network: str, park: str, depth_zone: dict, highlights: bool, geojson: list) -> None:
+        min_depth = depth_zone['min'] if depth_zone else None
+        max_depth = depth_zone['max'] if depth_zone else None
+        zonename = depth_zone['zonename'] if depth_zone else None
+        squidle_annotations_data_name = f'{network}{(" > " + park) if park else ""} > {zonename or "All Depths"} {"(Highlights)" if highlights else "(No Highlights)"}'
+        if self.skip_existing and SquidleAnnotationsData.objects.filter(network=network, park=park, depth_zone=zonename, highlights=highlights).exists():
+            logging.info(f"Skipping {squidle_annotations_data_name}")
+        else:
+            try:
+                logging.info(f"Processing {squidle_annotations_data_name}")
+                annotations_data = self.get_squidle_annotations(
+                    geojson,
+                    min_depth,
+                    max_depth,
+                    highlights
+                )
+            except SQAPIException as e:
+                logging.error(f"Error processing {squidle_annotations_data_name}", exc_info=e)
+                SquidleAnnotationsData.objects.update_or_create(
+                    network=network,
+                    park=park,
+                    depth_zone=zonename,
+                    highlights=highlights,
+                    defaults={
+                        "error": f"Reason: {e.reason}\nStatus code: {e.status_code}\nURL: {e.url}",
+                    }
+                )
+            else:
+                logging.info("Success!")
+                SquidleAnnotationsData.objects.update_or_create(
+                    network=network,
+                    park=park,
+                    depth_zone=zonename,
+                    highlights=highlights,
+                    defaults={
+                        "annotations_data": annotations_data,
+                        "error": None,
+                    }
+                )
 
     def handle(self, *args, **options):
-        skip_existing = options['skip_existing'].lower() in ['t', 'true'] if options['skip_existing'] != None else False
+        self.skip_existing = options['skip_existing'].lower() in ['t', 'true'] if options['skip_existing'] != None else False
 
         self.start_http_session()
         self.network_boundary_layer = KeyedLayer.objects.get(keyword='data-report-boundary-network-simplified').layer
@@ -208,67 +248,9 @@ class Command(BaseCommand):
                 else:
                     for depth_zone in depth_zones:
                         for highlights in [True, False]:
-                            if skip_existing and SquidleAnnotationsData.objects.filter(network=network, park=park, depth_zone=depth_zone['zonename'], highlights=highlights).exists():
-                                logging.info(f"Skipping {network} > {park} > {depth_zone['zonename']} ({'Highlights' if highlights else 'No Highlights'})")
-                            else:
-                                try:
-                                    logging.info(f"Processing {network} > {park} > {depth_zone['zonename']} ({'Highlights' if highlights else 'No Highlights'})")
-                                    annotations_data = self.get_squidle_annotations(geojson, depth_zone['min'], depth_zone['max'], highlights)
-                                except SQAPIException as e:
-                                    logging.error(f"Error processing {network} > {park} > {depth_zone['zonename']} ({'Highlights' if highlights else 'No Highlights'})", exc_info=e)
-                                    SquidleAnnotationsData.objects.update_or_create(
-                                        network=network,
-                                        park=park,
-                                        depth_zone=depth_zone['zonename'],
-                                        highlights=highlights,
-                                        defaults={
-                                            "annotations_data": None,
-                                            "error": f"Reason: {e.reason}\nStatus code: {e.status_code}\nURL: {e.url}",
-                                        }
-                                    )
-                                else:
-                                    logging.info("Success!")
-                                    SquidleAnnotationsData.objects.update_or_create(
-                                        network=network,
-                                        park=park,
-                                        depth_zone=depth_zone['zonename'],
-                                        highlights=highlights,
-                                        defaults={
-                                            "annotations_data": annotations_data,
-                                            "error": None,
-                                        }
-                                    )
+                            self.update_squidle_annotations_data(network, park, depth_zone, highlights, geojson)
                     for highlights in [True, False]:
-                        if skip_existing and SquidleAnnotationsData.objects.filter(network=network, park=park, depth_zone=None, highlights=highlights).exists():
-                            logging.info(f"Skipping {network} > {park} > All Depths ({'Highlights' if highlights else 'No Highlights'})")
-                        else:
-                            try:
-                                logging.info(f"Processing {network} > {park} > All Depths ({'Highlights' if highlights else 'No Highlights'})")
-                                annotations_data = self.get_squidle_annotations(geojson, None, None, highlights)
-                            except SQAPIException as e:
-                                logging.error(f"Error processing {network} > {park} > All Depths ({'Highlights' if highlights else 'No Highlights'})", exc_info=e)
-                                SquidleAnnotationsData.objects.update_or_create(
-                                    network=network,
-                                    park=park,
-                                    depth_zone=None,
-                                    highlights=highlights,
-                                        defaults={
-                                            "annotations_data": None,
-                                            "error": f"Reason: {e.reason}\nStatus code: {e.status_code}\nURL: {e.url}",
-                                        }
-                                    )
-                            else:
-                                logging.info("Success!")
-                                SquidleAnnotationsData.objects.update_or_create(
-                                    network=network,
-                                    park=park,
-                                    depth_zone=None,
-                                    highlights=highlights,
-                                    defaults={
-                                        "annotations_data": annotations_data,
-                                        "error": None,
-                                    }
-                                )
+                        self.update_squidle_annotations_data(network, park, None, highlights, geojson)
 
         network_depth_zones = self.get_network_depth_zones()
         for network, depth_zones in network_depth_zones.items():
@@ -280,64 +262,6 @@ class Command(BaseCommand):
             else:
                 for depth_zone in depth_zones:
                     for highlights in [True, False]:
-                        if skip_existing and SquidleAnnotationsData.objects.filter(network=network, park=None, depth_zone=depth_zone['zonename'], highlights=highlights).exists():
-                            logging.info(f"Skipping {network} > {depth_zone['zonename']} ({'Highlights' if highlights else 'No Highlights'})")
-                        else:
-                            try:
-                                logging.info(f"Processing {network} > {depth_zone['zonename']} ({'Highlights' if highlights else 'No Highlights'})")
-                                annotations_data = self.get_squidle_annotations(geojson, depth_zone['min'], depth_zone['max'], highlights)
-                            except SQAPIException as e:
-                                logging.error(f"Error processing {network} > {depth_zone['zonename']} ({'Highlights' if highlights else 'No Highlights'})", exc_info=e)
-                                SquidleAnnotationsData.objects.update_or_create(
-                                    network=network,
-                                    park=None,
-                                    depth_zone=depth_zone['zonename'],
-                                    highlights=highlights,
-                                    defaults={
-                                        "annotations_data": None,
-                                        "error": f"Reason: {e.reason}\nStatus code: {e.status_code}\nURL: {e.url}",
-                                    }
-                                )
-                            else:
-                                logging.info("Success!")
-                                SquidleAnnotationsData.objects.update_or_create(
-                                    network=network,
-                                    park=None,
-                                    depth_zone=depth_zone['zonename'],
-                                    highlights=highlights,
-                                    defaults={
-                                        "annotations_data": annotations_data,
-                                        "error": None,
-                                    }
-                                )
+                        self.update_squidle_annotations_data(network, None, depth_zone, highlights, geojson)
                 for highlights in [True, False]:
-                    if skip_existing and SquidleAnnotationsData.objects.filter(network=network, park=None, depth_zone=None, highlights=highlights).exists():
-                        logging.info(f"Skipping {network} > All Depths ({'Highlights' if highlights else 'No Highlights'})")
-                    else:
-                        try:
-                            logging.info(f"Processing {network} > All Depths ({'Highlights' if highlights else 'No Highlights'})")
-                            annotations_data = self.get_squidle_annotations(geojson, None, None, highlights)
-                        except SQAPIException as e:
-                            logging.error(f"Error processing {network} > All Depths ({'Highlights' if highlights else 'No Highlights'})", exc_info=e)
-                            SquidleAnnotationsData.objects.update_or_create(
-                                network=network,
-                                park=None,
-                                depth_zone=None,
-                                highlights=highlights,
-                                defaults={
-                                    "annotations_data": None,
-                                    "error": f"Reason: {e.reason}\nStatus code: {e.status_code}\nURL: {e.url}",
-                                }
-                            )
-                        else:
-                            logging.info("Success!")
-                            SquidleAnnotationsData.objects.update_or_create(
-                                network=network,
-                                park=None,
-                                depth_zone=None,
-                                highlights=highlights,
-                                defaults={
-                                    "annotations_data": annotations_data,
-                                    "error": None,
-                                }
-                            )
+                    self.update_squidle_annotations_data(network, None, None, highlights, geojson)
