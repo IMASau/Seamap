@@ -11,7 +11,6 @@ admin.site.register(models.Organisation)
 admin.site.register(models.HabitatDescriptor)
 admin.site.register(models.BaseLayerGroup)
 admin.site.register(models.BaseLayer)
-admin.site.register(models.SquidleAnnotationsData)
 
 class LayerAdmin(admin.ModelAdmin):
     search_fields = ('name',)
@@ -58,3 +57,8 @@ class RegionReportAdmin(admin.ModelAdmin):
         ('minx','maxx','miny','maxy',),
     )
 admin.site.register(models.RegionReport, RegionReportAdmin)
+
+class SquidleAnnotationsDataAdmin(admin.ModelAdmin):
+    readonly_fields = ('last_modified',)
+    ordering = ('-last_modified',)
+admin.site.register(models.SquidleAnnotationsData, SquidleAnnotationsDataAdmin)

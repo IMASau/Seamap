@@ -236,10 +236,11 @@ class SquidleAnnotationsData(models.Model):
     highlights = models.BooleanField(db_column='HIGHLIGHTS')
     annotations_data = models.TextField(db_column='ANNOTATIONS_DATA')
     error = models.TextField()
-    
+    last_modified = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return f'{"⚠️ " if self.error else ""}{self.network}{(" > " + self.park) if self.park else ""} > {self.depth_zone if self.depth_zone else "All Depths"} {"(Highlights)" if self.highlights else "(No Highlights)"}'
-    
+
     class Meta:
         db_table = 'squidle_annotations_data'
         unique_together = (('network', 'park', 'depth_zone'),)

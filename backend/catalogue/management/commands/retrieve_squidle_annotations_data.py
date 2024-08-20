@@ -227,6 +227,7 @@ class Command(BaseCommand):
                                         }
                                     )
                                 else:
+                                    logging.info("Success!")
                                     SquidleAnnotationsData.objects.update_or_create(
                                         network=network,
                                         park=park,
@@ -257,6 +258,7 @@ class Command(BaseCommand):
                                         }
                                     )
                             else:
+                                logging.info("Success!")
                                 SquidleAnnotationsData.objects.update_or_create(
                                     network=network,
                                     park=park,
@@ -297,6 +299,7 @@ class Command(BaseCommand):
                                     }
                                 )
                             else:
+                                logging.info("Success!")
                                 SquidleAnnotationsData.objects.update_or_create(
                                     network=network,
                                     park=None,
@@ -327,6 +330,7 @@ class Command(BaseCommand):
                                 }
                             )
                         else:
+                            logging.info("Success!")
                             SquidleAnnotationsData.objects.update_or_create(
                                 network=network,
                                 park=None,

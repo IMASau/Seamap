@@ -5,5 +5,6 @@ CREATE TABLE [dbo].[squidle_annotations_data] (
   [ZONENAME]         NVARCHAR(255) NULL,
   [HIGHLIGHTS]       BIT           NOT NULL,
   [ANNOTATIONS_DATA] NVARCHAR(MAX) NULL,
-  [error]            NVARCHAR(MAX) NULL
+  [error]            NVARCHAR(MAX) NULL,
+  [last_modified]    DATETIME      NOT NULL DEFAULT GETDATE()
 );
