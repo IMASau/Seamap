@@ -19,9 +19,10 @@ def convert_geometry(src):
 def extract(cnxn, source_name):
     cursor = cnxn.cursor()
     try:
-        resp = urllib.request.urlopen(config[source_name]['url'])
-        resp = [line.decode('utf-8') for line in resp.readlines()]
-        csv_reader = csv.reader(resp)
+        request = urllib.request.Request(config[source_name]['url'], headers={'User-Agent': 'SeamapETL/1.0'})
+        response = urllib.request.urlopen(request)
+        response = [line.decode('utf-8') for line in response.readlines()]
+        csv_reader = csv.reader(response)
 
         cursor.execute(f'TRUNCATE TABLE {config[source_name]["table"]}')
         columns = next(csv_reader)
