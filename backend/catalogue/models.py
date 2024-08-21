@@ -576,7 +576,7 @@ class Layer(models.Model):
 
         Returns:
             Union[str, list[dict]]: If a `legend_url` is set, returns the `legend_url` as a
-                string. For feature or raster layers with a valid FeatureServer or MapServer
+                string. For feature or map-server layers with a valid FeatureServer or MapServer
                 URL, returns a list of dictionaries representing the legend keys. For WMS
                 layers, returns the legend in the form of a list of dictionaries or a string URL
                 depending on whether the legend is successfully converted or not.
@@ -600,8 +600,8 @@ class Layer(models.Model):
         if self.legend_url:
             return self.legend_url
 
-        # If the layer is a feature or raster layer...
-        if self.layer_type in ['feature', 'raster']:
+        # If the layer is a feature or map-server layer...
+        if self.layer_type in ['feature', 'map-server']:
             # ...and has a FeatureServer URL, request legend data and transform
             if re.match(r'^(.+?)/services/(.+?)/FeatureServer/.+$', self.server_url):
                 return self.get_feature_server_legend()
