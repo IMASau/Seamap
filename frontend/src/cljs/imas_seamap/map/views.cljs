@@ -226,7 +226,7 @@
      :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
      :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}]) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
 
-(defmethod layer-component :raster
+(defmethod layer-component :map-server
   [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
   (let [layer-server-id (last (string/split server_url "/"))
         url (string/join "/" (butlast (string/split server_url "/")))]

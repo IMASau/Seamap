@@ -54,7 +54,7 @@
 (def ^:const INFO-FORMAT-NONE 3)
 (def ^:const INFO-FORMAT-FEATURE 4)
 (def ^:const INFO-FORMAT-XML 5)
-(def ^:const INFO-FORMAT-RASTER 6)
+(def ^:const INFO-FORMAT-MAP-SERVER 6)
 
 (defmulti get-feature-info #(second %2))
 
@@ -183,7 +183,7 @@
       :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
-(defmethod get-feature-info INFO-FORMAT-RASTER
+(defmethod get-feature-info INFO-FORMAT-MAP-SERVER
   [{:keys [db]} [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point}]]
   (let [layer-server-ids (mapv #(last (string/split (:server_url %) "/")) layers)
         url              (string/join "/" (butlast (string/split (-> layers first :server_url) "/")))
@@ -947,34 +947,6 @@
                           (pos? overflow-left) (- (* overflow-left x-to-lng))
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
     (when feature {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))) ; only pan if still popup exists, otherwise the calculations are incorrect! ISA-491
-
-(defn ^:private layer-legend-dispatch
-  "We support 3 types: geoserver (using json vector format), ESRI
-  map/feature server layers (using their own vector format), and
-  wms-other (just defaulting to image-based GetLegendGraphic). Because
-  of this we dispatch on capability, rather than server type, because
-  eg :wms doesn't convey enough information"
-  [{:keys [db]} [_ {:keys [layer_type server_url]}]]
-  (cond
-    (and
-      (= layer_type :feature)
-      (feature-server-url? server_url))
-    :arcgis-feature-server
-
-    (= layer_type :feature)
-    :map-server-vector
-
-    (= layer_type :raster)
-    :map-server-vector
-
-    (and (#{:wms :wms-non-tiled} layer_type)
-         (map-server-url? server_url))
-    :wms-image
-
-    (#{:wms :wms-non-tiled} layer_type)
-    :wms-geoserver
-
-    :else :unknown))
 
 (defn get-layer-legend
   [{:keys [db]} [_ {:keys [id] :as layer}]]
