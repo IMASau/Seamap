@@ -188,7 +188,7 @@ class Command(BaseCommand):
         max_depth = depth_zone['max'] if depth_zone else None
         zonename = depth_zone['zonename'] if depth_zone else None
         squidle_annotations_data_name = f'{network}{(" > " + park) if park else ""} > {zonename or "All Depths"} {"(Highlights)" if highlights else "(No Highlights)"}'
-        if self.skip_existing and SquidleAnnotationsData.objects.filter(network=network, park=park, depth_zone=zonename, highlights=highlights).exists():
+        if self.skip_existing and SquidleAnnotationsData.objects.filter(network=network, park=park, depth_zone=zonename, highlights=highlights).exists() and not SquidleAnnotationsData.objects.get(network=network, park=park, depth_zone=zonename, highlights=highlights).error:
             logging.info(f"Skipping {squidle_annotations_data_name}")
         else:
             try:
