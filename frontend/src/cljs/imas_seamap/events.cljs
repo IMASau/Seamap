@@ -159,6 +159,7 @@
           rich-layers
           region-reports
           dynamic-pills
+          layer-legend
           amp-boundaries
           imcra-boundaries
           meow-boundaries
@@ -188,6 +189,7 @@
       :rich-layers-url             (str api-url-base rich-layers)
       :region-reports-url          (str api-url-base region-reports)
       :dynamic-pills-url           (str api-url-base dynamic-pills)
+      :layer-legend-url            (str api-url-base layer-legend)
       :amp-boundaries-url          (str api-url-base amp-boundaries)
       :imcra-boundaries-url        (str api-url-base imcra-boundaries)
       :meow-boundaries-url         (str api-url-base meow-boundaries)

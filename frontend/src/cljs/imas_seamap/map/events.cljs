@@ -980,7 +980,7 @@
   [{:keys [db]} [_ {:keys [id] :as layer}]]
   {:db         (assoc-in db [:map :legends id] :map.legend/loading)
    :http-xhrio {:method          :get
-                :uri             (str "http://localhost:8000/api/layerlegend/" id)
+                :uri             (str (get-in db [:config :urls :layer-legend-url]) id)
                 :response-format (ajax/json-response-format {:keywords? true})
                 :on-success      [:map.layer/get-legend-success layer]
                 :on-failure      [:map.layer/get-legend-error layer]}})

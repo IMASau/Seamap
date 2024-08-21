@@ -112,6 +112,7 @@
           keyed-layers
           rich-layers
           dynamic-pills
+          layer-legend
           layer-previews
           story-maps
           data-in-region
@@ -133,6 +134,7 @@
       :keyed-layers-url          (str api-url-base keyed-layers)
       :rich-layers-url           (str api-url-base rich-layers)
       :dynamic-pills-url         (str api-url-base dynamic-pills)
+      :layer-legend-url          (str api-url-base layer-legend)
       :layer-previews-url        (str media-url-base layer-previews)
       :story-maps-url            (str wordpress-url-base story-maps)
       :data-in-region-url        (str api-url-base data-in-region)

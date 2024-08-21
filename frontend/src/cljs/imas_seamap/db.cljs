@@ -104,6 +104,7 @@
                                  :rich-layers           "richlayers/"
                                  :region-reports        "regionreports/"
                                  :dynamic-pills         "dynamicpills/"
+                                 :layer-legend          "layerlegend/"
                                  :amp-boundaries        "habitat/ampboundaries"
                                  :imcra-boundaries      "habitat/imcraboundaries"
                                  :meow-boundaries       "habitat/meowboundaries"
