@@ -19,7 +19,7 @@ def convert_geometry(src):
 def extract(cnxn, source_name):
     cursor = cnxn.cursor()
     try:
-        request = urllib.request.Request(config[source_name]['url'], headers={'User-Agent': 'SeamapETL/1.0'})
+        request = urllib.request.Request(config[source_name]['url'], headers={'User-Agent': 'SeamapETL/1.0'}) # Squidle geoserver requires a user agent (ISA-598)
         response = urllib.request.urlopen(request)
         response = [line.decode('utf-8') for line in response.readlines()]
         csv_reader = csv.reader(response)
