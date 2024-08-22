@@ -153,6 +153,10 @@ class Layer(models.Model):
     tooltip = models.TextField(null=True, blank=True)
     metadata_summary = models.TextField(null=True, blank=True)
     crs = models.CharField(max_length=10, choices=CRS_CHOICES, default='EPSG:3112')
+    regenerate_preview = models.BooleanField(
+        default=True,
+        help_text="Dictates if a layer should generate a new layer preview each week, even if a preview already exists. If no preview image exists for the layer, this property will be ignored."
+    )
 
     def __str__(self):
         return self.name
