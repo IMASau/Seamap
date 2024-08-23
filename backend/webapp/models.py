@@ -3,12 +3,10 @@
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 
 from django.db import models
-
-import tinymce.models
 from six import python_2_unicode_compatible
 
 
-class EmptyHTMLToNoneField(tinymce.models.HTMLField):
+class NullableTextField(models.TextField):
     def get_prep_value(self, value):
         if value == '':
             return None
@@ -17,9 +15,12 @@ class EmptyHTMLToNoneField(tinymce.models.HTMLField):
 
 @python_2_unicode_compatible
 class SiteConfiguration(models.Model):
-    name = models.CharField(max_length=255)
+    keyword = models.CharField(max_length=255)
+    value = NullableTextField(blank=True, null=True)
     last_modified = models.DateTimeField(auto_now=True)
-    outage_message = EmptyHTMLToNoneField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'webapp_siteconfigurationnew'
 
     def __str__(self):
-        return self.name
+        return self.keyword

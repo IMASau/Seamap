@@ -14,7 +14,7 @@ from catalogue.views import SaveStateView
 import habitat.viewsets as habitat_viewsets
 import carbonabatementsidebar.views
 import carbonabatementsidebar.viewsets
-import webapp.views
+import webapp.viewsets
 
 router = DefaultRouter()
 router.register(r'classifications', viewsets.ClassificationViewset)
@@ -45,11 +45,11 @@ urlpatterns = [
     re_path(r'^api/habitat/cqlfiltervalues', habitat_viewsets.cql_filter_values),
     re_path(r'^api/habitat/dynamicpillregioncontrolvalues', habitat_viewsets.dynamic_pill_region_control_values),
     re_path(r'^api/layerlegend/(?P<layer_id>[^/.]+)', habitat_viewsets.layer_legend, name='layer_legend'),
+    re_path(r'^api/siteconfiguration', webapp.viewsets.site_configuration, name='site_configuration'),
     re_path(r'^api/savestates', SaveStateView.as_view()),
     re_path(r'^api/', include(router.urls)),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
-    re_path(r'^api/siteconfiguration', webapp.views.SiteConfigurationView.as_view()),
     re_path(r'^api/carbonabatementsidebar/carbonabatement$', carbonabatementsidebar.viewsets.carbon_abatement, name='carbon_abatement'),
     re_path(r'^api/carbonabatementsidebar/abatementarea$', carbonabatementsidebar.viewsets.abatement_area, name='abatement_area'),
     re_path(r'^api/carbonabatementsidebar/carbonpricecarbonabatement$', carbonabatementsidebar.viewsets.carbon_price_carbon_abatement, name='carbon_price_carbon_abatement'),

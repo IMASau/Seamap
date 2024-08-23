@@ -933,30 +933,8 @@
   {:db (assoc-in db [:dynamic-pills :states id :region-control :value] value)
    :dispatch [:maybe-autosave]})
 
-(defn ->site-configuration
-    "Transforms site configuration map to conform to the
-     `:imas-seamap.specs.app-state/site-configuration` spec.
-
-    Arguments:
-    * `site-configuration`: A map representing the site configuration
-  
-    Returns:
-    * The transformed and validated site configuration map
-  
-    Example:
-    `(->site-configuration {:outage_message \"...\"})
-     ; => {:outage-message \"...\"}`"
-  [site-configuration]
-  (let [site-configuration
-        (rename-keys
-         site-configuration
-         {:outage_message :outage-message
-          :last_modified  :last-modified})]
-    (s/assert :imas-seamap.specs.app-state/site-configuration site-configuration)
-    site-configuration))
-
 (defn update-site-configuration [db [_ site-configuration]]
-  (assoc db :site-configuration (->site-configuration site-configuration)))
+  (assoc db :site-configuration site-configuration))
 
 (defn update-site-configuration-error-handler [db [_ err]]
   (js/console.error "Error fetching site configuration" err)

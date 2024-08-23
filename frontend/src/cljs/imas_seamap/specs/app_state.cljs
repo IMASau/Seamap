@@ -329,12 +329,8 @@
                           :opt-un [:transect/mouse-percentage :transect/distance]))
 
 ;;; Site Configuration
-(s/def :site-configuration/outage-message string?) ; html string
-(s/def :site-configuration/last-modified string?) ; date string
-(s/def ::site-configuration
-  (s/nilable
-   (s/keys :req-un [:site-configuration/outage-message
-                    :site-configuration/last-modified])))
+(s/def :site-configuration
+  (s/map-of keyword? string?))
 
 ;;; display
 (s/def :display.mouse-pos/x number?)
