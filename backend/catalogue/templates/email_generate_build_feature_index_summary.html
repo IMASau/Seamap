@@ -1,0 +1,14 @@
+<p>The build feature index run finished.</p>
+
+{% if errors %}
+    <p>
+        The following layers failed in the run:
+        <ul>
+            {% for error in errors %} 
+                <li>{{ error.name }} ({{ error.layer_id }}): {{ error.error|truncatechars:100 }}</li> 
+            {% endfor %} 
+        </ul>
+    </p>
+{% else %}
+    <p>All feature index built successfully!</p>
+{% endif %}

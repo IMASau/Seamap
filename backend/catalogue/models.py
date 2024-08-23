@@ -5,11 +5,12 @@
 import re
 from typing import Union
 from django.core.validators import MinValueValidator, RegexValidator
+import django.utils.timezone
 from django.db import models
 from six import python_2_unicode_compatible
 from uuid import uuid4
-from datetime import datetime
 import requests
+import xml.etree.ElementTree as ET 
 
 
 @python_2_unicode_compatible
@@ -160,7 +161,74 @@ class Layer(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def get_geoserver_wfs_capabilities(self) -> ET.ElementTree:
+        """Retrieves the WFS GetCapabilities document from the GeoServer layer.
 
+        This function sends a GetCapabilities request to the GeoServer specified by the
+        instance's `server_url` and parses the returned XML document into an ElementTree.
+        It ensures the server type is 'geoserver' before making the request.
+
+        Returns:
+            xml.etree.ElementTree.ElementTree: The parsed GetCapabilities document.
+
+        Raises:
+            Exception: If the server type is not 'geoserver'.
+            Exception: If the capabilities document cannot be retrieved or parsed.
+        """
+        if self.server_type.name != 'geoserver':
+            raise Exception(f"Cannot retrieve WFS capabilities from non-GeoServer server type '{self.server_type.name}'")
+
+        params = {
+            'request': 'GetCapabilities',
+            'service': 'WFS'
+        }
+        r = requests.get(url=self.server_url, params=params, verify=False)
+        if r.status_code != 200:
+            raise Exception(f"Cannot retrieve WFS capabilities from geoserver ({self.server_url})")
+
+        return ET.ElementTree(ET.fromstring(r.text))
+
+    def get_feature_is_supported(self) -> bool:
+        """Determines if the layer supports the WFS GetFeature request.
+
+        This function checks the layer's WFS capabilities document to see if the
+        GetFeature operation is supported.
+
+        Returns:
+            bool: True if the GetFeature operation is supported, False otherwise.
+
+        Raises:
+            Exception: If the server type is not 'geoserver'.
+            Exception: If the capabilities document cannot be retrieved or parsed.
+        """
+        root = self.get_geoserver_wfs_capabilities().getroot()
+        namespaces = {
+            'wfs': 'http://www.opengis.net/wfs/2.0',
+            'ows': 'http://www.opengis.net/ows/1.1'
+        }
+
+        # Check if GetFeature operation is supported
+        operations_metadata = root.find('ows:OperationsMetadata', namespaces)
+        feature_type_list = root.find('wfs:FeatureTypeList', namespaces)
+        if operations_metadata is not None:
+            for operation in operations_metadata.findall('ows:Operation', namespaces):
+                if operation.attrib.get('name') == 'GetFeature':
+                    break
+            else:
+                return False
+        else:
+            return False
+
+        # Check if the specific feature type is listed
+        feature_type_list = root.find('wfs:FeatureTypeList', namespaces)
+        if feature_type_list is not None:
+            for feature_type in feature_type_list.findall('wfs:FeatureType', namespaces):
+                name_element = feature_type.find('wfs:Name', namespaces)
+                if name_element is not None and name_element.text == self.layer_name:
+                    return True
+        return False
+    
     def geojson(self, out_fields: str=None):
         url = f"{self.server_url}/query"
 
@@ -657,7 +725,7 @@ class SaveState(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     hashstate = models.CharField(max_length = 8000)
     description = models.TextField(blank=True, null=True)
-    time_created = models.DateTimeField(default=datetime.now())
+    time_created = models.DateTimeField(default=django.utils.timezone.now)
 
     def __str__(self):
         return self.description or '{id} ({time_created})'.format(
@@ -788,3 +856,64 @@ class DynamicPillLayer(models.Model):
     
     class Meta:
         db_table = 'catalogue_dynamicpill_layers'
+
+
+# Not really catalogue tables - are they better put somewhere else (e.g. sql app?)
+
+@python_2_unicode_compatible
+class SquidleAnnotationsData(models.Model):
+    network = models.CharField(max_length=255, db_column='NETNAME')
+    park = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='RESNAME')
+    depth_zone = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='ZONENAME')
+    highlights = models.BooleanField(db_column='HIGHLIGHTS')
+    annotations_data = models.TextField(db_column='ANNOTATIONS_DATA')
+    error = models.TextField()
+    last_modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{"⚠️ " if self.error else ""}{self.network}{(" > " + self.park) if self.park else ""} > {self.depth_zone if self.depth_zone else "All Depths"} {"(Highlights)" if self.highlights else "(No Highlights)"}'
+
+    class Meta:
+        db_table = 'squidle_annotations_data'
+        unique_together = (('network', 'park', 'depth_zone'),)
+
+
+# SQL Views
+
+@python_2_unicode_compatible
+class AmpDepthZones(models.Model):
+    netname = models.CharField(max_length=255, null=False, blank=False, db_column='NETNAME', primary_key=True) # NETNAME is not unique, but Django models require a primary key
+    resname = models.CharField(max_length=255, null=False, blank=False, db_column='RESNAME')
+    zonename = models.CharField(max_length=255, null=False, blank=False, db_column='ZONENAME')
+    min = models.IntegerField(db_column='MIN')
+    max = models.IntegerField(db_column='MAX')
+
+    def __str__(self):
+        return self.netname + (f' > {self.resname}' if self.resname else '') + f': {self.zonename}'
+    
+    def save(self, **kwargs):
+        raise NotImplementedError()
+    
+    class Meta:
+        db_table = 'VW_AMP_DEPTHZONES'
+        managed = False
+        unique_together = (('netname', 'resname', 'zonename'),)
+
+@python_2_unicode_compatible
+class SquidleAnnotationsDataView(models.Model):
+    network = models.CharField(max_length=255, db_column='NETNAME')
+    park = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='RESNAME')
+    depth_zone = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='ZONENAME')
+    highlights = models.BooleanField(db_column='HIGHLIGHTS')
+    annotations_data = models.TextField(db_column='ANNOTATIONS_DATA')
+
+    def __str__(self):
+        return f'{self.network}{(" > " + self.park) if self.park else ""} > {self.depth_zone if self.depth_zone else "All Depths"} {"(Highlights)" if self.highlights else "(No Highlights)"}'
+
+    def save(self, **kwargs):
+        raise NotImplementedError()
+
+    class Meta:
+        db_table = 'VW_squidle_annotations_data'
+        managed = False
+        unique_together = (('network', 'park', 'depth_zone'),)

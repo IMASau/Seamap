@@ -8,9 +8,7 @@ from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
 
-import catalogue.viewsets as viewsets
-
-from catalogue.views import SaveStateView
+from catalogue import views, viewsets
 import habitat.viewsets as habitat_viewsets
 import carbonabatementsidebar.views
 import carbonabatementsidebar.viewsets
@@ -46,7 +44,8 @@ urlpatterns = [
     re_path(r'^api/habitat/dynamicpillregioncontrolvalues', habitat_viewsets.dynamic_pill_region_control_values),
     re_path(r'^api/layerlegend/(?P<layer_id>[^/.]+)', habitat_viewsets.layer_legend, name='layer_legend'),
     re_path(r'^api/siteconfiguration', webapp.viewsets.site_configuration, name='site_configuration'),
-    re_path(r'^api/savestates', SaveStateView.as_view()),
+    re_path(r'^api/savestates', views.SaveStateView.as_view()),
+    re_path(r'^api/squidleannotationsdata', views.SquidleAnnotationsDataView.as_view()),
     re_path(r'^api/', include(router.urls)),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),

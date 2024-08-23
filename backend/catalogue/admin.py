@@ -68,6 +68,7 @@ class RegionReportAdmin(admin.ModelAdmin):
     )
 admin.site.register(models.RegionReport, RegionReportAdmin)
 
+
 class DynamicPillForm(forms.ModelForm):
     class Meta:
         labels = {
@@ -103,3 +104,9 @@ class DynamicPillAdmin(admin.ModelAdmin):
     ]
     inlines = (DynamicPillLayerInline,)
 admin.site.register(models.DynamicPill, DynamicPillAdmin)
+
+
+class SquidleAnnotationsDataAdmin(admin.ModelAdmin):
+    readonly_fields = ('last_modified',)
+    ordering = ('-last_modified',)
+admin.site.register(models.SquidleAnnotationsData, SquidleAnnotationsDataAdmin)
