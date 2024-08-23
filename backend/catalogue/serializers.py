@@ -81,7 +81,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class KeyedLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.KeyedLayer
-        fields = ('keyword', 'layer', 'sort_key')
+        fields = ('keyword', 'layer', 'sort_key', 'description')
 
 class RichLayerAlternateViewSerializer(serializers.ModelSerializer):
     class Meta:
@@ -135,3 +135,18 @@ class PressureSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Pressure
         exclude = ('region_report',)
+
+
+# Not really catalogue viewsets - are they better put somewhere else (e.g. sql app?)
+class SquidleAnnotationsDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.SquidleAnnotationsDataView
+        exclude = ('id',)
+
+
+# SQL Views
+
+class AmpDepthZonesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.AmpDepthZones
+        fields = '__all__'

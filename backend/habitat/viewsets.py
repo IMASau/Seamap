@@ -10,10 +10,13 @@ import subprocess
 import tempfile
 import zipfile
 import logging
+import requests
+from requests.adapters import HTTPAdapter, Retry
 from shapely.geometry import box
 
+from catalogue import models, serializers
 from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure
-from catalogue.serializers import RegionReportSerializer, LayerSerializer, PressureSerializer
+from catalogue.serializers import KeyedLayerSerializer, RegionReportSerializer, LayerSerializer, PressureSerializer
 from collections import defaultdict, namedtuple
 
 from django.conf import settings
@@ -721,9 +724,6 @@ SELECT
 FROM @observations AS T1;
 """
 
-SQL_GET_NETWORK_SQUIDLE_URL = "SELECT NRandImage_URL FROM VW_IMAGERY_SQUIDLE_AMP_NETWORK WHERE NETWORK = %s;"
-SQL_GET_PARK_SQUIDLE_URL = "SELECT NRandImage_URL FROM VW_IMAGERY_SQUIDLE_AMP_PARK WHERE PARK = %s;"
-
 SQL_GET_DATA_IN_REGION = """
 DECLARE @region GEOMETRY = GEOMETRY::STGeomFromText(%s, 4326);
 SELECT DISTINCT layer_id FROM (
@@ -731,6 +731,17 @@ SELECT DISTINCT layer_id FROM (
   WHERE @region.STIntersects(geom) = 1
 ) AS [T1];
 """
+
+def http_session():
+    retry_strategy = Retry(
+        total=3,
+        status_forcelist=[ 500, 502, 503, 504 ]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    http = requests.Session()
+    http.mount("https://", adapter)
+    http.mount("http://", adapter)
+    return http
 
 def parse_bounds(bounds_str):
     # Note, we want points in x,y order but a boundary string is in y,x order:
@@ -1328,17 +1339,90 @@ def region_report_data(request):
     network_region = RegionReport.objects.get(network=network, park=None)
     data["network"] = {'network': network_region.network, 'slug': network_region.slug}
 
-    data["all_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap-panel1').order_by('-sort_key')]
-    data["all_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel1-boundary').layer).data
-    data["public_layers"] = [LayerSerializer(v.layer).data for v in KeyedLayer.objects.filter(keyword='data-report-minimap-panel2').order_by('-sort_key')]
-    data["public_layers_boundary"] = LayerSerializer(KeyedLayer.objects.get(keyword='data-report-minimap-panel2-boundary').layer).data
-    data["pressures"] = [PressureSerializer(v).data for v in Pressure.objects.filter(region_report=rr.id)]
-    data["app_boundary_layer"] = LayerSerializer(KeyedLayer.objects.get(keyword=('amp-park' if park != None else 'amp-network')).layer).data
+    # Add layers
+    keyed_layers = KeyedLayerSerializer(
+        KeyedLayer.objects.filter(
+            keyword__in=[
+                'data-report-minimap-panel1',
+                'data-report-minimap-panel1-boundary',
+                'data-report-minimap-panel2',
+                'data-report-minimap-panel2-boundary',
+                'amp-network',
+                'amp-park',
+                'data-report-minimap',
+                'data-report-boundary-network-simplified',
+                'data-report-boundary-simplified',
+            ]
+        ).order_by('sort_key'),
+        many=True
+    ).data
 
-    with connections['transects'].cursor() as cursor:
-        cursor.execute(SQL_GET_PARK_SQUIDLE_URL if park else SQL_GET_NETWORK_SQUIDLE_URL, [park or network])
-        entry = cursor.fetchone()
-        data["squidle_url"] = entry[0] if entry else None # some park
+    layers = LayerSerializer(
+        Layer.objects.filter(
+            id__in=[v['layer'] for v in keyed_layers]
+        ).prefetch_related(
+            'category',
+            'data_classification',
+            'organisation',
+            'server_type'
+            ),
+        many=True
+    ).data
+
+    data["all_layers"] = list(reversed([next(layer for layer in layers if layer["id"] == keyed_layer['layer']) for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap-panel1']))
+    data["all_layers_boundary"] = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap-panel1-boundary']][0]
+    data["public_layers"] = list(reversed([next(layer for layer in layers if layer["id"] == keyed_layer['layer']) for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap-panel2']))
+    data["public_layers_boundary"] = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap-panel2-boundary']][0]
+    data["app_boundary_layer"] = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == ('amp-park' if park != None else 'amp-network')]][0]
+    data["pressures"] = PressureSerializer(Pressure.objects.filter(region_report=rr.id).prefetch_related('layer'), many=True).data
+
+    data["minimap_layers"] = [{'label': keyed_layer['description'], 'layer': next(layer for layer in layers if layer['id'] == keyed_layer['layer'])} for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap']
+
+    # Get the boundary geometry
+    boundary_simplified = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == ('data-report-boundary-simplified' if park != None else 'data-report-boundary-network-simplified')]][0]
+    params = {
+        'request':      'GetFeature',
+        'service':      'WFS',
+        'version':      '2.0.0',
+        'typeNames':    boundary_simplified['layer_name'],
+        'outputFormat': 'application/json',
+        'cql_filter': (f"RESNAME='{park}'" if park else f"NETNAME='{network}'")
+    }
+
+    try:
+        r = http_session().get(url=boundary_simplified['server_url'], params=params)
+    except Exception as e:
+        raise Exception(f"Cannot retrieve GeoJSON from geoserver ({boundary_simplified['server_url']})") from e
+    try:
+        r_data = r.json()
+        boundary_type = r_data['features'][0]['geometry']['type']
+        if boundary_type == 'Polygon':
+            data['boundary'] = [r_data['features'][0]['geometry']['coordinates']]
+        elif boundary_type == 'MultiPolygon':
+            data['boundary'] = r_data['features'][0]['geometry']['coordinates']
+        else:
+            raise Exception(f"Unexpected boundary type: {boundary_type}")
+    except Exception as e:
+        raise Exception(f"Cannot decode geoserver response into JSON:\n{r.text}") from e
+
+    if park:
+        data['depths'] = serializers.AmpDepthZonesSerializer(
+            models.AmpDepthZones.objects.filter(netname=network, resname=park)
+                .order_by('min'),
+            many=True
+        ).data
+    else:
+        data['depths'] = serializers.AmpDepthZonesSerializer(
+            models.AmpDepthZones.objects.filter(netname=network) 
+                .order_by('min'),
+            many=True
+        ).data
+    
+    for depth in data['depths']:
+        del depth['netname']
+        del depth['resname']
+
+    data['depths'] = [i for n, i in enumerate(data['depths']) if i not in data['depths'][:n]]
 
     return Response(data)
 

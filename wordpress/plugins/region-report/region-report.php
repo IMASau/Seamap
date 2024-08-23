@@ -14,7 +14,7 @@
  * @wordpress-plugin
  * Plugin Name:       Region Reports
  * Description:       Adds the Seamap region report post type.
- * Version:           1.0.0
+ * Version:           1.0.4
  * Author:            Condense Pty Ltd.
  * Author URI:        https://condense.com.au/
  * License:           Affero General Public Licence (AGPL) v3
@@ -153,6 +153,17 @@ add_action( 'admin_init', function () {
     );
     register_setting(
         'region_report',
+        'region_report_squidle_annotations_data_url',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle annotations data URL',
+            'sanitize_callback' => 'sanitize_text_field',
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
         'region_report_pressure_preview_url_base',
         [
             'type'              => 'string',
@@ -263,6 +274,22 @@ add_action( 'admin_init', function () {
         'region_report_url_bases'
     );
     add_settings_field(
+        'region_report_squidle_annotations_data_url_field',
+        'Squidle annotations data URL',
+        function () {
+            $setting = get_option('region_report_squidle_annotations_data_url');
+            ?>
+            <input
+                type="text"
+                name="region_report_squidle_annotations_data_url"
+                value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>"
+            >
+            <?php
+        },
+        'region_report',
+        'region_report_url_bases'
+    );
+    add_settings_field(
         'region_report_pressure_preview_url_base_field',
         'Pressure previews URL base',
         function () {
@@ -320,6 +347,17 @@ add_action( 'admin_init', function () {
     );
     register_setting(
         'region_report',
+        'region_report_squidle_caption',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle caption',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
         'region_report_imagery_caption',
         [
             'type'              => 'string',
@@ -335,6 +373,94 @@ add_action( 'admin_init', function () {
         [
             'type'              => 'string',
             'description'       => 'Pressures caption',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_squidle_pose_url_template',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle pose URL template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_squidle_pose_filter_min_depth_template',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle pose filter min depth template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_squidle_pose_filter_max_depth_template',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle pose filter max depth template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_squidle_pose_filter_highlights_template',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle pose filter highlights template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_squidle_media_url_template',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle media URL template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_annotations_link_url_template',
+        [
+            'type'              => 'string',
+            'description'       => 'Annotations link URL template',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_squidle_annotations_filters',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle annotations filters',
+            'sanitize_callback' => null,
+            'show_in_rest'      => true,
+            'default'           => null
+        ]
+    );
+    register_setting(
+        'region_report',
+        'region_report_squidle_query_string_parameters',
+        [
+            'type'              => 'string',
+            'description'       => 'Squidle query string parameters',
             'sanitize_callback' => null,
             'show_in_rest'      => true,
             'default'           => null
@@ -382,6 +508,22 @@ add_action( 'admin_init', function () {
         'region_report_configurable_text'
     );
     add_settings_field(
+        'region_report_squidle_caption_field',
+        'Squidle caption',
+        function () {
+            $setting = get_option('region_report_squidle_caption');
+            ?>
+            <textarea
+                name="region_report_squidle_caption"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_configurable_text'
+    );
+    add_settings_field(
         'region_report_imagery_caption_field',
         'Imagery caption',
         function () {
@@ -412,6 +554,143 @@ add_action( 'admin_init', function () {
         },
         'region_report',
         'region_report_configurable_text'
+    );
+
+    add_settings_section(
+        'region_report_url_templates',
+        'Region Report URL Templates',
+        null,
+        'region_report'
+    );
+
+    // Register URL templates settings fields
+    add_settings_field(
+        'region_report_squidle_pose_url_template',
+        'Squidle pose URL template',
+        function () {
+            $setting = get_option('region_report_squidle_pose_url_template');
+            ?>
+            <textarea
+                name="region_report_squidle_pose_url_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_squidle_pose_filter_min_depth_template',
+        'Squidle pose filter min depth template',
+        function () {
+            $setting = get_option('region_report_squidle_pose_filter_min_depth_template');
+            ?>
+            <textarea
+                name="region_report_squidle_pose_filter_min_depth_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_squidle_pose_filter_max_depth_template',
+        'Squidle pose filter max depth template',
+        function () {
+            $setting = get_option('region_report_squidle_pose_filter_max_depth_template');
+            ?>
+            <textarea
+                name="region_report_squidle_pose_filter_max_depth_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_squidle_pose_filter_highlights_template',
+        'Squidle pose filter highlights template',
+        function () {
+            $setting = get_option('region_report_squidle_pose_filter_highlights_template');
+            ?>
+            <textarea
+                name="region_report_squidle_pose_filter_highlights_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_squidle_media_url_template',
+        'Squidle media URL template',
+        function () {
+            $setting = get_option('region_report_squidle_media_url_template');
+            ?>
+            <textarea
+                name="region_report_squidle_media_url_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_annotations_link_url_template',
+        'Annotations link URL template',
+        function () {
+            $setting = get_option('region_report_annotations_link_url_template');
+            ?>
+            <textarea
+                name="region_report_annotations_link_url_template"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_squidle_annotations_filters',
+        'Squidle annotations filters',
+        function () {
+            $setting = get_option('region_report_squidle_annotations_filters');
+            ?>
+            <textarea
+                name="region_report_squidle_annotations_filters"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
+    );
+    add_settings_field(
+        'region_report_squidle_query_string_parameters',
+        'Squidle query string parameters',
+        function () {
+            $setting = get_option('region_report_squidle_query_string_parameters');
+            ?>
+            <textarea
+                name="region_report_squidle_query_string_parameters"
+                rows="6"
+                cols="80"
+            ><?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?></textarea>
+            <?php
+        },
+        'region_report',
+        'region_report_url_templates'
     );
 } );
 
@@ -450,5 +729,30 @@ add_action( 'admin_menu', function () {
             </div>
             <?php
         }
+    );
+} );
+
+add_action( 'rest_api_init', function () {
+    register_rest_field(
+        'region_report',
+        'region_report_squidle_annotations_filters',
+        [
+            'get_callback' => function ( $object ) {
+                $region_report_squidle_annotations_filters = get_option('region_report_squidle_annotations_filters');
+                return $region_report_squidle_annotations_filters;
+            },
+            'schema' => null
+        ]
+    );
+    register_rest_field(
+        'region_report',
+        'region_report_squidle_query_string_parameters',
+        [
+            'get_callback' => function ( $object ) {
+                $region_report_squidle_query_string_parameters = get_option('region_report_squidle_query_string_parameters');
+                return $region_report_squidle_query_string_parameters;
+            },
+            'schema' => null
+        ]
     );
 } );

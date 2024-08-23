@@ -6,13 +6,17 @@
     $habitat_observations_url_base = get_option('region_report_habitat_observations_url_base');
     $research_effort_url_base = get_option('region_report_research_effort_url_base');
     $region_report_data_url_base = get_option('region_report_region_report_data_url_base');
+    $squidle_annotations_data_url = get_option('region_report_squidle_annotations_data_url');
     $pressure_preview_url_base = get_option('region_report_pressure_preview_url_base');
     $map_url_base = get_option('region_report_map_url_base');
 
     $overview_map_caption = get_option('region_report_overview_map_caption');
     $known_caption = get_option('region_report_known_caption');
+    $squidle_caption = get_option('region_report_squidle_caption');
     $imagery_caption = get_option('region_report_imagery_caption');
     $pressures_caption = get_option('region_report_pressures_caption');
+
+    $squidle_media_url_template = get_option('region_report_squidle_media_url_template');
 
     $network_name = get_post_meta(get_the_ID(), 'network_name', true);
     $park_name = get_post_meta(get_the_ID(), 'park_name', true);
@@ -48,7 +52,7 @@
             <div class="labeled-toggle">
                 <div>All data</div>
                 <label class="switch">
-                    <input type="checkbox" onclick="regionReport.toggleMinimap(this.checked)">
+                    <input type="checkbox" onclick="regionReport.toggleMinimap(this.checked ? 'public' : 'all')">
                     <span class="switch-slider"></span>
                 </label>
                 <div>Public/analysed data</div>
@@ -163,22 +167,44 @@
             </div>
         </section>
 
-        <section class="imagery-and-pressures">
+        <section class="imagery">
             <h2>What's in the <?php echo $region_name; ?>?</h2>
-            <div class="caption"><?php echo $pressures_caption; ?></div>
-        
-            <section class="imagery">
-                <h3>Imagery</h3>
-                <div id="region-report-imagery-<?php the_ID(); ?>">Loading imagery deployment data...</div>
-            </section>
+            <div class="caption"><?php echo $imagery_caption; ?></div>
 
-            <section class="pressures">
-                <h3>Pressures & Activities</h3>
-                <div>
-                    <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
-                    <div class="tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+            <h3>Imagery</h3>
+            <div>
+                <div class="map" id="region-report-imagery-map-<?php the_ID(); ?>"></div>
+                <div class="imagery-controls">
+                    <span class="imagery-depth">
+                        <label>Filter by Depth:</label>
+                        <select name="imagery-depth" id="region-report-imagery-depth-<?php the_ID(); ?>" onchange="regionReport.setImageryFilterDepth(this.value)">
+                            <option value>All depths</option>
+                        </select>
+                    </span>
+                    <div class="labeled-toggle">
+                        <div>Representative</div>
+                        <label class="switch">
+                            <input type="checkbox" onclick="regionReport.setImageryFilterHighlights(this.checked)">
+                            <span class="switch-slider"></span>
+                        </label>
+                        <div>Highlights</div>
+                    </div>
                 </div>
-            </section>
+                <div class="imagery-annotations" id="region-report-imagery-annotations-<?php the_ID(); ?>">
+                    Loading imagery deployment data...
+                </div>
+            </div>
+        </section>
+
+        <section class="pressures">
+            <h2>Pressures acting on the <?php echo $region_name; ?></h2>
+            <div class="caption"><?php echo $pressures_caption; ?></div>
+ 
+            <h3>Pressures & Activities</h3>
+            <div>
+                <div class="region-report-tabs" id="region-report-pressures-categories-<?php the_ID(); ?>" data-tab-content="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+                <div class="tab-content" id="region-report-pressures-tab-content-<?php the_ID(); ?>"></div>
+            </div>
         </section>
     </div>
 </article>
@@ -190,11 +216,18 @@
         habitatObservationsUrlBase: <?php echo json_encode($habitat_observations_url_base); ?>,
         researchEffortUrlBase: <?php echo json_encode($research_effort_url_base); ?>,
         regionReportDataUrlBase: <?php echo json_encode($region_report_data_url_base); ?>,
+        squidleAnnotationsDataUrl: <?php echo json_encode($squidle_annotations_data_url); ?>,
         pressurePreviewUrlBase: <?php echo json_encode($pressure_preview_url_base); ?>,
         mapUrlBase: <?php echo json_encode($map_url_base); ?>,
         networkName: "<?php echo $network_name; ?>",
         parkName: <?php echo empty($park_name) ? 'null' : "\"$park_name\""; ?>,
-        imageryCaption: <?php echo json_encode($imagery_caption); ?>
+        squidleCaption: <?php echo json_encode($squidle_caption); ?>,
+        squidlePoseUrlTemplate: <?php echo json_encode(get_option('region_report_squidle_pose_url_template')); ?>,
+        squidlePoseFilterMinDepthTemplate: <?php echo json_encode(get_option('region_report_squidle_pose_filter_min_depth_template')); ?>,
+        squidlePoseFilterMaxDepthTemplate: <?php echo json_encode(get_option('region_report_squidle_pose_filter_max_depth_template')); ?>,
+        squidlePoseFilterHighlightsTemplate: <?php echo json_encode(get_option('region_report_squidle_pose_filter_highlights_template')); ?>,
+        squidleMediaUrlTemplate: <?php echo json_encode($squidle_media_url_template); ?>,
+        annotationsLinkUrlTemplate: <?php echo json_encode(get_option('region_report_annotations_link_url_template')); ?>
     });
     regionReport.disablePrintCss("hcode-bootstrap-css");
     regionReport.disablePrintCss("hello-elementor-css");
