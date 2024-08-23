@@ -57,3 +57,8 @@ class RegionReportAdmin(admin.ModelAdmin):
         ('minx','maxx','miny','maxy',),
     )
 admin.site.register(models.RegionReport, RegionReportAdmin)
+
+class SquidleAnnotationsDataAdmin(admin.ModelAdmin):
+    readonly_fields = ('last_modified',)
+    ordering = ('-last_modified',)
+admin.site.register(models.SquidleAnnotationsData, SquidleAnnotationsDataAdmin)

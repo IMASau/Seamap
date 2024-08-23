@@ -3,10 +3,10 @@
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 
 from django.core.validators import MinValueValidator, RegexValidator
+import django.utils.timezone
 from django.db import models
 from six import python_2_unicode_compatible
 from uuid import uuid4
-from datetime import datetime
 import requests
 import xml.etree.ElementTree as ET 
 
@@ -218,7 +218,7 @@ class SaveState(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     hashstate = models.CharField(max_length = 8000)
     description = models.TextField(blank=True, null=True)
-    time_created = models.DateTimeField(default=datetime.now())
+    time_created = models.DateTimeField(default=django.utils.timezone.now)
 
     def __str__(self):
         return self.description or '{id} ({time_created})'.format(
@@ -292,3 +292,64 @@ class Pressure(models.Model):
 
     def __str__(self):
         return f'{self.region_report}: {self.layer}'
+
+
+# Not really catalogue tables - are they better put somewhere else (e.g. sql app?)
+
+@python_2_unicode_compatible
+class SquidleAnnotationsData(models.Model):
+    network = models.CharField(max_length=255, db_column='NETNAME')
+    park = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='RESNAME')
+    depth_zone = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='ZONENAME')
+    highlights = models.BooleanField(db_column='HIGHLIGHTS')
+    annotations_data = models.TextField(db_column='ANNOTATIONS_DATA')
+    error = models.TextField()
+    last_modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{"⚠️ " if self.error else ""}{self.network}{(" > " + self.park) if self.park else ""} > {self.depth_zone if self.depth_zone else "All Depths"} {"(Highlights)" if self.highlights else "(No Highlights)"}'
+
+    class Meta:
+        db_table = 'squidle_annotations_data'
+        unique_together = (('network', 'park', 'depth_zone'),)
+
+
+# SQL Views
+
+@python_2_unicode_compatible
+class AmpDepthZones(models.Model):
+    netname = models.CharField(max_length=255, null=False, blank=False, db_column='NETNAME', primary_key=True) # NETNAME is not unique, but Django models require a primary key
+    resname = models.CharField(max_length=255, null=False, blank=False, db_column='RESNAME')
+    zonename = models.CharField(max_length=255, null=False, blank=False, db_column='ZONENAME')
+    min = models.IntegerField(db_column='MIN')
+    max = models.IntegerField(db_column='MAX')
+
+    def __str__(self):
+        return self.netname + (f' > {self.resname}' if self.resname else '') + f': {self.zonename}'
+    
+    def save(self, **kwargs):
+        raise NotImplementedError()
+    
+    class Meta:
+        db_table = 'VW_AMP_DEPTHZONES'
+        managed = False
+        unique_together = (('netname', 'resname', 'zonename'),)
+
+@python_2_unicode_compatible
+class SquidleAnnotationsDataView(models.Model):
+    network = models.CharField(max_length=255, db_column='NETNAME')
+    park = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='RESNAME')
+    depth_zone = EmptyStringToNoneField(max_length=255, null=True, blank=True, db_column='ZONENAME')
+    highlights = models.BooleanField(db_column='HIGHLIGHTS')
+    annotations_data = models.TextField(db_column='ANNOTATIONS_DATA')
+
+    def __str__(self):
+        return f'{self.network}{(" > " + self.park) if self.park else ""} > {self.depth_zone if self.depth_zone else "All Depths"} {"(Highlights)" if self.highlights else "(No Highlights)"}'
+
+    def save(self, **kwargs):
+        raise NotImplementedError()
+
+    class Meta:
+        db_table = 'VW_squidle_annotations_data'
+        managed = False
+        unique_together = (('network', 'park', 'depth_zone'),)
