@@ -19,8 +19,5 @@ class SiteConfiguration(models.Model):
     value = NullableTextField(blank=True, null=True)
     last_modified = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        db_table = 'webapp_siteconfigurationnew'
-
     def __str__(self):
         return self.keyword

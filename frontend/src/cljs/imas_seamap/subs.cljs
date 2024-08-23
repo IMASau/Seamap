@@ -189,3 +189,14 @@
   "Get the outage message from the site configuration."
   [db _]
   (get-in db [:site-configuration :outage-message]))
+
+(defn site-configuration-data-providers
+  "Get the data provider messages from the site configuration."
+  [db _]
+  (select-keys
+   (:site-configuration db)
+   [:habitat-statistics-data-provider
+    :bathymetry-statistics-data-provider
+    :habitat-observations-imagery-data-provider
+    :habitat-observations-video-data-provider
+    :habitat-observations-sediment-data-provider]))

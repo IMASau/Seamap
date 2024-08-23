@@ -339,7 +339,6 @@
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             site-configuration-url
-                   :params          {:name "Seamap Australia"}
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:update-site-configuration]
                    :on-failure      [:update-site-configuration/error-handler]}

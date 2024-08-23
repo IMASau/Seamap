@@ -33,13 +33,33 @@
     display: flex;
     flex-direction: column;
     overflow-y: hidden;
-    >* { min-height: 0; }
-    >:last-child { flex: 1; }
+
+    >.bp3-tabs {
+        flex: 1;
+        min-height: 0;
+    }
+
+    >.data-sources {
+        margin: 0 8px 20px 8px;
+        flex-shrink: 1;
+    }
+}
+
+.data-sources {
+    .bp3-icon { margin-left: 3px; }
+}
+
+.data-sources-tooltip {
+    max-width: 220px;
+    max-height: 300px;
+    overflow-y: auto;
+    word-break: break-word;
+    white-space: normal;
 }
 
 .state-of-knowledge-drawer .bp3-tab-panel {
     overflow-y: auto;
-    margin: 0 8px 20px 8px;
+    margin: 0 8px 8px 8px;
     flex: 1;
 }
 
@@ -76,6 +96,10 @@
 
 .habitat-observations-groups {
     overflow-y: auto;
+    >.habitat-observations-group .data-sources {
+        margin: 0 12px 20px 12px;
+        flex-shrink: 1;
+    }
 }
 
 .habitat-observations-group-heading {
@@ -105,7 +129,7 @@
 }
 
 .habitat-observations-group-stats {
-    margin: 0 12px 20px 12px;
+    margin: 0 12px 8px 12px;
 }
 
 .habitat-observations-group-stat {

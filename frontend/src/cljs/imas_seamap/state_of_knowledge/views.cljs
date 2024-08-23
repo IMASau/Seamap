@@ -34,85 +34,97 @@
     (fn []
       (let [{:keys [loading? results show-layers?]} @(re-frame/subscribe [:sok/habitat-statistics])
             download-url @(re-frame/subscribe [:sok/habitat-statistics-download-url])
-            without-unmapped   (filter :habitat results)]
+            without-unmapped   (filter :habitat results)
+            data-providers (:habitat-statistics-data-provider @(re-frame/subscribe [:site-configuration/data-providers]))]
         [components/drawer-group
          {:heading         "Habitat Statistics"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
           :class           "habitat-statistics"}
-         [b/tabs
-          {:id              "habitat-statistics-tabs"
-           :selected-tab-id @selected-tab
-           :on-change       #(reset! selected-tab %)}
+         [:<>
+          [b/tabs
+           {:id              "habitat-statistics-tabs"
+            :selected-tab-id @selected-tab
+            :on-change       #(reset! selected-tab %)}
 
-          [b/tab
-           {:id    "breakdown"
-            :title "Breakdown"
-            :panel
-            (reagent/as-element
-             (cond
-               loading?
-               [b/spinner]
+           [b/tab
+            {:id    "breakdown"
+             :title "Breakdown"
+             :panel
+             (reagent/as-element
+              (cond
+                loading?
+                [b/spinner]
 
-               (empty? without-unmapped)
-               [b/non-ideal-state
-                {:title       "No Data"
-                 :description "No habitat data is available for this region."
-                 :icon        "info-sign"}]
+                (empty? without-unmapped)
+                [b/non-ideal-state
+                 {:title       "No Data"
+                  :description "No habitat data is available for this region."
+                  :icon        "info-sign"}]
 
-               :else
-               [habitat-statistics-table
-                {:habitat-statistics results}]))}]
+                :else
+                [habitat-statistics-table
+                 {:habitat-statistics results}]))}]
 
-          [b/tab
-           {:id    "chart"
-            :title "Chart"
-            :panel
-            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
-              (reagent/as-element
-               (cond
-                 loading?
-                 [b/spinner]
+           [b/tab
+            {:id    "chart"
+             :title "Chart"
+             :panel
+             (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+               (reagent/as-element
+                (cond
+                  loading?
+                  [b/spinner]
 
-                 (empty? without-unmapped)
-                 [b/non-ideal-state
-                  {:title       "No Data"
-                   :description "No habitat data is available for this region."
-                   :icon        "info-sign"}]
-                 
-                 :else
-                 [components/donut-chart
-                  {:id              "habitat-statistics-chart"
-                   :values          without-unmapped
-                   :independent-var :habitat
-                   :dependent-var   :area
-                   :color           :color
-                   :legend-title    "Habitat"}])))}]
+                  (empty? without-unmapped)
+                  [b/non-ideal-state
+                   {:title       "No Data"
+                    :description "No habitat data is available for this region."
+                    :icon        "info-sign"}]
 
-          [b/tab
-           {:id    "download"
-            :title "Download"
-            :panel
-            (reagent/as-element
-             (cond
-               loading?
-               [b/spinner]
+                  :else
+                  [components/donut-chart
+                   {:id              "habitat-statistics-chart"
+                    :values          without-unmapped
+                    :independent-var :habitat
+                    :dependent-var   :area
+                    :color           :color
+                    :legend-title    "Habitat"}])))}]
 
-               (empty? without-unmapped)
-               [b/non-ideal-state
-                {:title       "No Data"
-                 :description "No habitat data is available for this region."
-                 :icon        "info-sign"}]
+           [b/tab
+            {:id    "download"
+             :title "Download"
+             :panel
+             (reagent/as-element
+              (cond
+                loading?
+                [b/spinner]
 
-               :else
-               [:a.download
-                {:href download-url}
-                "Download as Shapefile"]))}]
+                (empty? without-unmapped)
+                [b/non-ideal-state
+                 {:title       "No Data"
+                  :description "No habitat data is available for this region."
+                  :icon        "info-sign"}]
 
-          [b/switch
-           {:checked   show-layers?
-            :on-change #(re-frame/dispatch [:sok/habitat-toggle-show-layers])
-            :label     "Layers"}]]]))))
+                :else
+                [:a.download
+                 {:href download-url}
+                 "Download as Shapefile"]))}]
+
+           [b/switch
+            {:checked   show-layers?
+             :on-change #(re-frame/dispatch [:sok/habitat-toggle-show-layers])
+             :label     "Layers"}]]
+          [:div {:className "data-sources"}
+           [b/tooltip
+            {:interactionKind "hover"
+             :content
+             (reagent/as-element
+              [:div
+               {:className "data-sources-tooltip"
+                :ref #(when % (set! (.-innerHTML %) data-providers))}
+               data-providers])}
+            [:<> "Data Sources" [b/icon {:icon "info-sign"}]]]]]]))))
 
 (defn bathymetry-statistics-table
   [{:keys [bathymetry-statistics]}]
@@ -139,85 +151,97 @@
     (fn []
       (let [{:keys [loading? results show-layers?]} @(re-frame/subscribe [:sok/bathymetry-statistics])
             download-url @(re-frame/subscribe [:sok/bathymetry-statistics-download-url])
-            without-unmapped      (filter :resolution results)]
+            without-unmapped      (filter :resolution results)
+            data-providers (:bathymetry-statistics-data-provider @(re-frame/subscribe [:site-configuration/data-providers]))]
         [components/drawer-group
          {:heading         "Bathymetry Statistics"
           :collapsed?      @collapsed?
           :toggle-collapse #(swap! collapsed? not)
           :class           "bathymetry-statistics"}
-         [b/tabs
-          {:id              "bathymetry-statistics-tabs"
-           :selected-tab-id @selected-tab
-           :on-change       #(reset! selected-tab %)}
+         [:<>
+          [b/tabs
+           {:id              "bathymetry-statistics-tabs"
+            :selected-tab-id @selected-tab
+            :on-change       #(reset! selected-tab %)}
 
-          [b/tab
-           {:id    "breakdown"
-            :title "Breakdown"
-            :panel (reagent/as-element
-                    (cond
-                      loading?
-                      [b/spinner]
+           [b/tab
+            {:id    "breakdown"
+             :title "Breakdown"
+             :panel (reagent/as-element
+                     (cond
+                       loading?
+                       [b/spinner]
 
-                      (empty? without-unmapped)
-                      [b/non-ideal-state
-                       {:title       "No Data"
-                        :description "No bathymetry data is available for this region."
-                        :icon        "info-sign"}]
+                       (empty? without-unmapped)
+                       [b/non-ideal-state
+                        {:title       "No Data"
+                         :description "No bathymetry data is available for this region."
+                         :icon        "info-sign"}]
 
-                      :else
-                      [bathymetry-statistics-table
-                       {:bathymetry-statistics results}]))}]
+                       :else
+                       [bathymetry-statistics-table
+                        {:bathymetry-statistics results}]))}]
 
-          [b/tab
-           {:id    "chart"
-            :title "Chart"
-            :panel
-            (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
-              (reagent/as-element
-               (cond
-                 loading?
-                 [b/spinner]
+           [b/tab
+            {:id    "chart"
+             :title "Chart"
+             :panel
+             (when (= "chart" @selected-tab) ; Hack(?) to only render the donut chart when the tab is selected, so that vega updates chart correctly
+               (reagent/as-element
+                (cond
+                  loading?
+                  [b/spinner]
 
-                 (empty? without-unmapped)
-                 [b/non-ideal-state
-                  {:title       "No Data"
-                   :description "No bathymetry data is available for this region."
-                   :icon        "info-sign"}]
+                  (empty? without-unmapped)
+                  [b/non-ideal-state
+                   {:title       "No Data"
+                    :description "No bathymetry data is available for this region."
+                    :icon        "info-sign"}]
 
-                 :else
-                 [components/donut-chart
-                  {:id              "bathymetry-statistics-chart"
-                   :values          without-unmapped
-                   :independent-var :resolution
-                   :dependent-var   :area
-                   :color           :color
-                   :legend-title    "Resolution"
-                   :sort-key        :rank}])))}]
+                  :else
+                  [components/donut-chart
+                   {:id              "bathymetry-statistics-chart"
+                    :values          without-unmapped
+                    :independent-var :resolution
+                    :dependent-var   :area
+                    :color           :color
+                    :legend-title    "Resolution"
+                    :sort-key        :rank}])))}]
 
-          [b/tab
-           {:id    "download"
-            :title "Download"
-            :panel
-            (reagent/as-element
-             (cond
-               loading?
-               [b/spinner]
+           [b/tab
+            {:id    "download"
+             :title "Download"
+             :panel
+             (reagent/as-element
+              (cond
+                loading?
+                [b/spinner]
 
-               (empty? without-unmapped)
-               [b/non-ideal-state
-                {:title       "No Data"
-                 :description "No bathymetry data is available for this region."
-                 :icon        "info-sign"}]
+                (empty? without-unmapped)
+                [b/non-ideal-state
+                 {:title       "No Data"
+                  :description "No bathymetry data is available for this region."
+                  :icon        "info-sign"}]
 
-               :else
-               [:a.download
-                {:href download-url}
-                "Download as Shapefile"]))}]
+                :else
+                [:a.download
+                 {:href download-url}
+                 "Download as Shapefile"]))}]
 
-          [b/switch
-           {:checked   show-layers?
-            :on-change #(re-frame/dispatch [:sok/bathymetry-toggle-show-layers])
-            :label     "Layers"}]]]))))
+           [b/switch
+            {:checked   show-layers?
+             :on-change #(re-frame/dispatch [:sok/bathymetry-toggle-show-layers])
+             :label     "Layers"}]]
+          [:div {:className "data-sources"}
+           [b/tooltip
+            {:interactionKind "hover"
+             :content
+             (reagent/as-element
+              [:div
+               {:className "data-sources-tooltip"
+                :ref #(when % (set! (.-innerHTML %) data-providers))}
+               data-providers])}
+            [:<> "Data Sources" [b/icon {:icon "info-sign"}]]]]]]))))
 
 (defn- habitat-observations-group-stat
   [{:keys [label text] :as _stat}]
@@ -228,25 +252,38 @@
 (defn- habitat-observations-group
   [_props]
   (let [expanded? (reagent/atom false)]
-    (fn [{:keys [title disabled? stats]}]
-      [:div.habitat-observations-group
-       {:class
-        (str
-         (when (and @expanded? (not disabled?)) " expanded")
-         (when disabled? " disabled"))}
-       [:div.habitat-observations-group-heading
-        {:on-click #(when-not disabled? (swap! expanded? not))}
-        [b/icon
-         {:icon (if (and @expanded? (not disabled?)) "double-chevron-up" "double-chevron-down")
-          :icon-size 20}]
-        title]
-       [b/collapse
-        {:is-open               (and @expanded? (not disabled?))
-         :keep-children-mounted true}
-        [:div.habitat-observations-group-stats
-         (for [{:keys [label] :as stat} stats]
-           ^{:key label}
-           [habitat-observations-group-stat stat])]]])))
+    (fn [{:keys [title disabled? stats data-provider] :as all}]
+      (js/console.log "all" all)
+      (let [data-providers (data-provider @(re-frame/subscribe [:site-configuration/data-providers]))]
+        [:div.habitat-observations-group
+         {:class
+          (str
+           (when (and @expanded? (not disabled?)) " expanded")
+           (when disabled? " disabled"))}
+         [:div.habitat-observations-group-heading
+          {:on-click #(when-not disabled? (swap! expanded? not))}
+          [b/icon
+           {:icon (if (and @expanded? (not disabled?)) "double-chevron-up" "double-chevron-down")
+            :icon-size 20}]
+          title]
+         [b/collapse
+          {:is-open               (and @expanded? (not disabled?))
+           :keep-children-mounted true}
+          [:<>
+           [:div.habitat-observations-group-stats
+            (for [{:keys [label] :as stat} stats]
+              ^{:key label}
+              [habitat-observations-group-stat stat])]
+           [:div {:className "data-sources"}
+            [b/tooltip
+             {:interactionKind "hover"
+              :content
+              (reagent/as-element
+               [:div
+                {:className "data-sources-tooltip"
+                 :ref #(when % (set! (.-innerHTML %) data-providers))}
+                data-providers])}
+             [:<> "Data Sources" [b/icon {:icon "info-sign"}]]]]]]]))))
 
 (defn- squidle-stats
   [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
@@ -266,7 +303,8 @@
       [{:label "Date Range" :text (if start_date (str start_date " to " end_date) "Unknown")}
        {:label "Methods of Collection" :text method}
        {:label "Images Collected" :text images}
-       {:label "Image Annotations" :text [:<> total_annotations " (" public_annotations " " [b/tooltip {:content "Finalised public curated image annotations"} [:b [:u "public"]]] ")"]}]}]))
+       {:label "Image Annotations" :text [:<> total_annotations " (" public_annotations " " [b/tooltip {:content "Finalised public curated image annotations"} [:b [:u "public"]]] ")"]}]
+      :data-provider :habitat-observations-imagery-data-provider}]))
 
 (defn- global-archive-stats
   [{:keys [deployments campaigns start_date end_date method video_time video_annotations]}]
@@ -285,7 +323,8 @@
       [{:label "Date Range" :text (if start_date (str start_date " to " end_date) "Unknown")}
        {:label "Methods of Collection" :text method}
        {:label "Hours of Video" :text video_time}
-       {:label "Video Annotations" :text [:<> video_annotations " " [b/tooltip {:content "Publicly available video annotations"} [:b [:u "public"]]]]}]}]))
+       {:label "Video Annotations" :text [:<> video_annotations " " [b/tooltip {:content "Publicly available video annotations"} [:b [:u "public"]]]]}]
+      :data-provider :habitat-observations-video-data-provider}]))
 
 (defn- sediment-stats
   [{:keys [samples analysed survey start_date end_date method]}]
@@ -304,7 +343,8 @@
       :stats
       [{:label "Date Range" :text (if start_date (str start_date " to " end_date) "Unknown")}
        {:label "Methods of Collection" :text method}
-       {:label "Samples Analysed" :text analysed}]}]))
+       {:label "Samples Analysed" :text analysed}]
+      :data-provider :habitat-observations-sediment-data-provider}]))
 
 (defn- habitat-observations []
   (let [collapsed?   (reagent/atom false)]
