@@ -6,7 +6,8 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connections
 from requests.adapters import HTTPAdapter, Retry
-from shapely.geometry import shape
+from shapely.geometry import shape, Polygon, LineString, MultiPolygon, MultiLineString
+from shapely.geometry.base import BaseGeometry
 import pyodbc
 import requests
 import traceback
@@ -58,8 +59,11 @@ def mapserver_layer_query_url(layer):
     string
         mapserver layer feature query URL
     """
-    match = re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url)
-    map_server_url = f'{match.group(1)}/rest/services/{match.group(2)}/MapServer'
+    if match := re.search(r'^(.+?)/rest/services/(.+?)/MapServer/(\d+).*$', layer.server_url):
+        return f'{match.group(1)}/rest/services/{match.group(2)}/MapServer/{match.group(3)}/query'
+    else:
+        match = re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', layer.server_url)
+        map_server_url = f'{match.group(1)}/rest/services/{match.group(2)}/MapServer'
 
     try:
         r = requests.get(url=f"{map_server_url}/layers", params={'dynamicLayers': '1=1', 'f': 'json'})
@@ -69,7 +73,7 @@ def mapserver_layer_query_url(layer):
     try:
         data = r.json()
     except Exception as e:
-        raise Exception(f"Cannot decode mapserver response into JSON:\n{r.text}") from e
+        raise Exception(f"Could not decode mapserver response into JSON") from e
 
     try:
         server_layers = data['layers']
@@ -85,12 +89,11 @@ def mapserver_layer_query_url(layer):
         )[0]  # get first layer if one layer, else filter the list
         assert server_layer
     except Exception as e:
-        raise Exception(f"No server layer found in the mapserver data JSON:\n{data}") from e
+        raise Exception(f"No server layer found in the mapserver data JSON") from e
     
     return f"{map_server_url}/{server_layer['id']}/query"
 
-
-def get_geoserver_geojson(layer, server_url, result_offset=0):
+def get_geoserver_geojson(layer: Layer, server_url: str, result_offset: int = 0):
     params = {
         'request':      'GetFeature',
         'service':      'WFS',
@@ -106,22 +109,29 @@ def get_geoserver_geojson(layer, server_url, result_offset=0):
     try:
         r = http_session().get(url=server_url, params=params)
     except Exception as e:
-        raise Exception(f"Cannot retrieve GeoJSON from geoserver ({server_url})") from e
+        try:
+            get_feature_is_supported = layer.get_feature_is_supported()
+        except Exception as e:
+            raise Exception(f"Unknown error retrieving GeoJSON from geoserver ({server_url})") from e
+        if get_feature_is_supported:
+            raise Exception(f"Unknown error retrieving GeoJSON from geoserver ({server_url})") from e
+        else:
+            raise Exception(f"GetFeature operation is not supported for {layer.layer_name} on geoserver ({server_url})") from e
 
     try:
         data = r.json()
     except Exception as e:
-        raise Exception(f"Cannot decode geoserver response into JSON:\n{r.text}") from e
+        raise Exception(f"Could not decode geoserver response into JSON") from e
 
     try:
         assert not data.get('error')
     except AssertionError as e:
-        raise Exception(f"GeoJSON contains an error:\n{data}") from e
+        raise Exception(f"GeoJSON contains an error") from e
     
     try:
         assert data.get('features')
     except AssertionError as e:
-        raise Exception(f"No features found in the GeoJSON:\n{data}") from e
+        raise Exception(f"No features found in the GeoJSON") from e
 
     # We will use the presence of a 'next' link (not that
     # we use the link itself) to decide whether there is
@@ -148,17 +158,17 @@ def get_mapserver_geojson(server_url, result_offset=0):
     try:
         data = r.json()
     except Exception as e:
-        raise Exception(f"Cannot decode mapserver response into JSON:\n{r.text}") from e
+        raise Exception(f"Could not decode mapserver response into JSON") from e
 
     try:
         assert not data.get('error')
     except AssertionError as e:
-        raise Exception(f"GeoJSON contains an error:\n{data}") from e
+        raise Exception(f"GeoJSON contains an error") from e
 
     try:
         assert data.get('features')
     except AssertionError as e:
-        raise Exception(f"No features found in the GeoJSON:\n{data}") from e
+        raise Exception(f"No features found in the GeoJSON") from e
 
     return data, data.get('exceededTransferLimit', False)
 
@@ -178,20 +188,45 @@ def get_featureserver_geojson(server_url, result_offset=0):
     try:
         data = r.json()
     except Exception as e:
-        raise Exception(f"Cannot decode featureserver response into JSON:\n{r.text}") from e
+        raise Exception(f"Could not decode featureserver response into JSON") from e
 
     try:
         assert not data.get('error')
     except AssertionError as e:
-        raise Exception(f"GeoJSON contains an error:\n{data}") from e
+        raise Exception(f"GeoJSON contains an error") from e
 
     try:
         assert data.get('features')
     except AssertionError as e:
-        raise Exception(f"No features found in the GeoJSON:\n{data}") from e
+        raise Exception(f"No features found in the GeoJSON") from e
 
     return data, data.get('exceededTransferLimit', False)
 
+def strip_z_values(geometry: BaseGeometry) -> BaseGeometry:
+    """
+    Remove Z values from any Shapely geometry type.
+
+    Args:
+        geometry (BaseGeometry): The Shapely geometry to process.
+
+    Returns:
+        BaseGeometry: A new Shapely geometry with Z values stripped.
+    """
+    if geometry.has_z:
+        if isinstance(geometry, Polygon):
+            coords_2d = [(x, y) for x, y, z in geometry.exterior.coords]
+            new_geom = Polygon(coords_2d)
+            return new_geom
+        elif isinstance(geometry, LineString):
+            coords_2d = [(x, y) for x, y, z in geometry.coords]
+            return LineString(coords_2d)
+        elif isinstance(geometry, MultiPolygon):
+            new_geoms = [Polygon([(x, y) for x, y, z in poly.exterior.coords]) for poly in geometry]
+            return MultiPolygon(new_geoms)
+        elif isinstance(geometry, MultiLineString):
+            new_geoms = [LineString([(x, y) for x, y, z in line.coords]) for line in geometry]
+            return MultiLineString(new_geoms)
+    return geometry
 
 def get_features(layer, server_url, result_offset=0):
     if re.search(r'^(.+?)/services/(.+?)/MapServer/.+$', server_url):
@@ -204,7 +239,7 @@ def get_features(layer, server_url, result_offset=0):
     features = [
         LayerFeature(
             layer.id,
-            shape(feature['geometry']).wkt
+            strip_z_values(shape(feature['geometry'])).wkt
         )
         for feature in geojson['features']
         if feature['geometry']
@@ -274,7 +309,7 @@ class Command(BaseCommand):
         try:
             assert layer_id
         except AssertionError as e:
-            logging.error(f"No layer_id argument was specified:\n{options}")
+            logging.error(f"No layer_id argument was specified: {options}")
         else:
             try:
                 layer = Layer.objects.get(id=layer_id)

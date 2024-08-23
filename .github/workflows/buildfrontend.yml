@@ -8,8 +8,34 @@ on:
   workflow_dispatch:
 
 jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+
+    steps:
+    # Introduces slugified variables; eg "master" instead of "refs/heads/master"
+    - name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v3.x
+    - name: Create timestamp for release tag-name
+      id: tag_name
+      run: echo "tag_name=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+    - name: Cut a release, for download by Ansible
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag_name.outputs.tag_name }}
+        release_name: Frontend (${{ env.GITHUB_REF_SLUG }} - ${{ env.GITHUB_SHA_SHORT }})
+        draft: false
+        prerelease: false
+
   frontend-build:
-    name: Build Front-end
+    name: Build Frontend
+    needs: create-release
     runs-on: ubuntu-latest
     env:
       LEIN_ROOT: nbd
@@ -82,29 +108,15 @@ jobs:
 
       - name: Ensure archive is group-writeable for safe extraction
         run: chmod -R g+w resources/public
-      - run: tar -c -z -v -C resources/public -f "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz" .
+      - run: tar -c -z -v -C resources/public -f frontend.tgz .
 
-      - name: Create timestamp for release tag-name
-        id: tag_name
-        run: echo "tag_name=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
-
-      - name: Cut a release, for download by Ansible
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.tag_name.outputs.tag_name }}
-          release_name: Frontend (${{ env.GITHUB_REF_SLUG }} - ${{ env.GITHUB_SHA_SHORT }})
-          draft: false
-          prerelease: false
       - name: Upload Release Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "frontend/${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz"
-          asset_name: "${{ env.GITHUB_REPOSITORY_SLUG }}-${{ env.GITHUB_REF_SLUG }}-frontend.tgz"
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: "frontend/frontend.tgz"
+          asset_name: frontend.tgz
           asset_content_type: application/gzip
