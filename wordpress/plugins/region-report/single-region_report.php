@@ -173,7 +173,9 @@
 
             <h3>Imagery</h3>
             <div>
-                <div class="map" id="region-report-imagery-map-<?php the_ID(); ?>"></div>
+                <a id="region-report-imagery-map-hyperlink-<?php the_ID(); ?>" href="#" target="_blank">
+                    <div class="map" id="region-report-imagery-map-<?php the_ID(); ?>"></div>
+                </a>
                 <div class="imagery-controls">
                     <span class="imagery-depth">
                         <label>Filter by Depth:</label>
