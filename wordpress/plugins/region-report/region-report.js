@@ -25,6 +25,7 @@ class RegionReport {
 
     // imagery map
     imageryMap = null;
+    imageryMapHyperlink = null;
     imageryMarkers = [];
     imageryDepths = [];
     imageryFilterDepth = null;
@@ -1322,6 +1323,159 @@ class RegionReport {
         this.imageryMap.getPane('main').style.zIndex = 800;
         this.imageryMap.getPane('control').style.zIndex = 400;
         this.imageryMap._handlers.forEach(e => e.disable());
+        this.imageryMapHyperlink = document.getElementById(`region-report-imagery-map-hyperlink-${this.postId}`);
+    }
+
+    imageryMapAppState() {
+        let layers = [];
+
+        Object.values(this.imageryMinimapLayers).forEach(
+            layer => {
+                if (this.imageryMap.hasLayer(layer)) {
+                    layers.push(layer.metadata.layer);
+                }
+            }
+        );
+
+        layers.push(this.appBoundaryLayer);
+        layers = layers.concat(this.publicLayers.metadata?.layers);
+
+        return [
+            "^ ",
+            "~:autosave?",
+            true,
+            "~:filters",
+            [
+                "^ ",
+                "~:layers",
+                ""
+            ],
+            "~:state-of-knowledge",
+            [
+                "^ ",
+                "~:boundaries",
+                [
+                    "^ ",
+                    "~:active-boundary",
+                    [
+                        "^ ",
+                        "~:id",
+                        "amp",
+                        "~:name",
+                        "Australian Marine Parks"
+                    ],
+                    "~:active-boundary-layer",
+                    [
+                        "^ ",
+                        "~:server_type",
+                        `~:${this.appBoundaryLayer.server_type.toLowerCase()}`,
+                        "~:category",
+                        `~:${this.appBoundaryLayer.category.toLowerCase()}`,
+                        "~:detail_layer",
+                        this.appBoundaryLayer.detail_layer,
+                        "~:organisation",
+                        this.appBoundaryLayer.organisation,
+                        "~:layer_name",
+                        this.appBoundaryLayer.layer_name,
+                        "~:server_url",
+                        this.appBoundaryLayer.server_url,
+                        "~:name",
+                        this.appBoundaryLayer.name,
+                        "~:info_format_type",
+                        this.appBoundaryLayer.info_format_type,
+                        "~:keywords",
+                        this.appBoundaryLayer.keywords,
+                        "~:style",
+                        this.appBoundaryLayer.style,
+                        "~:metadata_url",
+                        this.appBoundaryLayer.metadata_url,
+                        "~:id",
+                        this.appBoundaryLayer.id,
+                        "~:bounding_box",
+                        [
+                            "^ ",
+                            "~:west",
+                            this.appBoundaryLayer.bounding_box.west,
+                            "~:south",
+                            this.appBoundaryLayer.bounding_box.south,
+                            "~:east",
+                            this.appBoundaryLayer.bounding_box.east,
+                            "~:north",
+                            this.appBoundaryLayer.bounding_box.north
+                        ],
+                        "~:table_name",
+                        this.appBoundaryLayer.table_name,
+                        "~:data_classification",
+                        this.appBoundaryLayer.data_classification,
+                        "~:tooltip",
+                        this.appBoundaryLayer.tooltip,
+                        "~:legend_url",
+                        this.appBoundaryLayer.legend_url,
+                        "~:layer_type",
+                        `~:${this.appBoundaryLayer.layer_type.toLowerCase()}`
+                    ],
+                    "~:amp",
+                    [
+                        "^ ",
+                        "~:active-network",
+                        [
+                            "^ ",
+                            "~:network",
+                            this.network
+                        ],
+                        "~:active-park",
+                        (
+                            this.park ? [
+                                "^ ",
+                                "~:network",
+                                this.network,
+                                "~:park",
+                                this.park
+                            ] : null
+                        ),
+                    ]
+                ]
+            ],
+            "~:story-maps",
+            [
+                "^ ",
+                "~:featured-map",
+                null,
+                "~:open?",
+                false
+            ],
+            "~:display",
+            [
+                "^ ",
+                "~:left-drawer",
+                true,
+                "~:left-drawer-tab",
+                "active-layers"
+            ],
+            "~:map",
+            [
+                "^ ",
+                "~:bounds",
+                [
+                    "^ ",
+                    "~:north",
+                    this.bounds.north,
+                    "~:south",
+                    this.bounds.south,
+                    "~:east",
+                    this.bounds.east,
+                    "~:west",
+                    this.bounds.west
+                ],
+                "~:active",
+                [
+                    "~#list",
+                    layers.map(e => e.id)
+                ],
+                "~:active-base",
+                1
+            ]
+        ]
     }
 
     populateImageryMap({ all_layers_boundary: allLayersBoundary, network: network, park: park, bounding_box: bounds }) {
@@ -1361,6 +1515,27 @@ class RegionReport {
                 }
             );
         }
+
+        // set up hyperlink
+        const appState = this.imageryMapAppState();
+        this.imageryMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
+
+        this.imageryMap.on(
+            'overlayadd',
+            () => {
+                const appState = this.imageryMapAppState();
+                this.imageryMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
+            },
+            this
+        );
+        this.imageryMap.on(
+            'overlayremove',
+            () => {
+                const appState = this.imageryMapAppState();
+                this.imageryMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
+            },
+            this
+        );
 
         this.refreshImagery();
     }
