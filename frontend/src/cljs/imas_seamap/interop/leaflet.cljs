@@ -30,7 +30,7 @@
                              (when (not= (.-opacity props) (.-opacity prev-props))
                                (.setOpacity instance (.-opacity props)))
                              (when (not= (.-cql_filter props) (.-cql_filter prev-props))
-                               (.setParams instance (clj->js {:cql_filter (.-cql_filter props)})))))))
+                               (.setParams instance (js-obj "cql_filter" (or (.-cql_filter props) "")))))))) ; ISA-574: L.TileLayer.WMS.setParams doesn't remove values when 'undefined', requiring explicit empty string for the CQL filter case
 (def geojson-layer       (r/adapt-react-class ReactLeaflet/GeoJSON))
 (def vector-tile-layer   (r/adapt-react-class VectorTileLayer/default))
 (def non-tiled-layer     (r/adapt-react-class
@@ -45,7 +45,7 @@
                              (when (not= (.-opacity props) (.-opacity prev-props))
                                (.setOpacity instance (.-opacity props)))
                              (when (not= (.-cql_filter props) (.-cql_filter prev-props))
-                               (.setParams instance (clj->js {:cql_filter (.-cql_filter props)})))))))
+                               (.setParams instance (js-obj "cql_filter" (or (.-cql_filter props) "")))))))) ; ISA-574: L.TileLayer.WMS.setParams doesn't remove values when 'undefined', requiring explicit empty string for the CQL filter case
 (defn- make-update-feature-style-fn
   "We want to apply some props (currently just opacity) on top of
   existing styles. This creates a function that can be given to

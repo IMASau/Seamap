@@ -100,6 +100,7 @@ class RichLayerControlSerializer(serializers.ModelSerializer):
         try: 
             if obj.default_value and obj.data_type == 'number':
                 return float(obj.default_value)
+            return obj.default_value
         except ValueError:
             return obj.default_value
     
