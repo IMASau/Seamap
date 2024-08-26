@@ -184,8 +184,20 @@
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
 (defmethod get-feature-info INFO-FORMAT-MAP-SERVER
-  [{:keys [db]} [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point}]]
-  (let [layer-server-ids (mapv #(last (string/split (:server_url %) "/")) layers)
+  [_ [_ info-format-type layers request-id leaflet-props point]]
+  {:http-xhrio
+   {:method :get
+    :uri    (-> layers first :server_url)
+    :params {:f "json"}
+    :response-format (ajax/json-response-format {:keywords? true})
+    :on-success      [:map/get-feature-info-map-server-step-2 info-format-type layers request-id leaflet-props point]
+    :on-failure      [:map/got-featureinfo-err request-id point]}})
+
+;; MapServer layers need to make an additional request to determine if they are a
+;; group layer
+(defn get-feature-info-map-server-step-2
+  [{:keys [db]} [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point} map-server-layer-data]]
+  (let [layer-server-ids (concat [(:id map-server-layer-data)] (map :id (:subLayers map-server-layer-data)))
         url              (string/join "/" (butlast (string/split (-> layers first :server_url) "/")))
         leaflet-map      (get-in db [:map :leaflet-map])
         leaflet-point    (leaflet/latlng. lat lng)]
@@ -202,7 +214,7 @@
                   feature-collection "features"
                   (filterv
                    #(and
-                     (some #{(str (get % "layerId"))} layer-server-ids)       ; check it's a layer we're querying for (not a different layer on the server)
+                     (some #{(get % "layerId")} layer-server-ids)       ; check it's a layer we're querying for (not a different layer on the server)
                      (not= (get-in % ["properties" "Pixel Value"]) "NoData")) ; check the layer has associated data
                    (get feature-collection "features"))))]
            (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers feature-collection])))))
