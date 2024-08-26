@@ -1352,6 +1352,7 @@ def region_report_data(request):
                 'data-report-minimap',
                 'data-report-boundary-network-simplified',
                 'data-report-boundary-simplified',
+                'data-report-imagery-minimap',
             ]
         ).order_by('sort_key'),
         many=True
@@ -1377,6 +1378,7 @@ def region_report_data(request):
     data["pressures"] = PressureSerializer(Pressure.objects.filter(region_report=rr.id).prefetch_related('layer'), many=True).data
 
     data["minimap_layers"] = [{'label': keyed_layer['description'], 'layer': next(layer for layer in layers if layer['id'] == keyed_layer['layer'])} for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-minimap']
+    data["imagery_minimap_layers"] = list(reversed([next(layer for layer in layers if layer["id"] == keyed_layer['layer']) for keyed_layer in keyed_layers if keyed_layer['keyword'] == 'data-report-imagery-minimap']))
 
     # Get the boundary geometry
     boundary_simplified = [layer for layer in layers if layer['id'] in [keyed_layer['layer'] for keyed_layer in keyed_layers if keyed_layer['keyword'] == ('data-report-boundary-simplified' if park != None else 'data-report-boundary-network-simplified')]][0]

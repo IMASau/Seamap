@@ -25,6 +25,7 @@ class RegionReport {
 
     // imagery map
     imageryMap = null;
+    imageryLayers = L.layerGroup();
     imageryMapHyperlink = null;
     imageryMarkers = [];
     imageryDepths = [];
@@ -1338,7 +1339,7 @@ class RegionReport {
         );
 
         layers.push(this.appBoundaryLayer);
-        layers = layers.concat(this.publicLayers.metadata?.layers);
+        layers = layers.concat(this.imageryLayers.metadata?.layers);
 
         return [
             "^ ",
@@ -1478,7 +1479,7 @@ class RegionReport {
         ]
     }
 
-    populateImageryMap({ all_layers_boundary: allLayersBoundary, network: network, park: park, bounding_box: bounds }) {
+    populateImageryMap({ all_layers_boundary: allLayersBoundary, network: network, park: park, bounding_box: bounds, imagery_minimap_layers: imageryMinimapLayers }) {
         // map boundary layer
         L.tileLayer.wms(
             allLayersBoundary.server_url,
@@ -1492,6 +1493,9 @@ class RegionReport {
                 pane: 'main'
             }
         ).addTo(this.imageryMap);
+
+        // minimap layers (added when hyperlinked)
+        this.imageryLayers.metadata = { "layers": imageryMinimapLayers };
 
         const imageryDepthElement = document.getElementById(`region-report-imagery-depth-${this.postId}`);
         this.imageryDepths.forEach(
