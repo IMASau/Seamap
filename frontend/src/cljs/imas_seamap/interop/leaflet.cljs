@@ -113,6 +113,7 @@
      (.identify)
      (.on leaflet-map)
      (.at point)
+     (.returnGeometry false)
      (.run callback))))
 
 ;;; Multiple basemaps:

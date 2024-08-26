@@ -408,13 +408,15 @@ class Layer(models.Model):
         r = requests.get(url=self.server_url, params={ 'f': 'json' })
         return r.json()
 
-    def map_server_legend_item_to_legend_key(self, legend_item: dict) -> dict:
+    def map_server_legend_item_to_legend_key(self, legend_item: dict, legend_layer: dict) -> dict:
         """
         Converts a MapServer layer legend item into a legend key dictionary.
 
         Args:
             legend_item (dict): A dictionary representing a legend item from a MapServer
                 legend's layer `legend`.
+            legend_layer (dict): Optional. A dictionary of the legend layer data from
+                MapServer, containing the `legend_item`.
 
         Returns:
             dict: A dictionary representing a legend key with a `label` and `image`.
@@ -427,7 +429,7 @@ class Layer(models.Model):
             }
         """
         return {
-            'label': legend_item['label'],
+            'label': legend_item['label'] or legend_layer['layerName'],
             'image': f"data:image/png;base64,{legend_item['imageData']}"
         }
 
@@ -477,7 +479,7 @@ class Layer(models.Model):
                 # Extract legend data for each sub-layer, and merge into a single legend
                 for layer in layer_data['subLayers']:
                     legend_layer = next((legend_layer for legend_layer in data['layers'] if legend_layer['layerId'] == layer['id']))
-                    legend += [self.map_server_legend_item_to_legend_key(legend_item) for legend_item in legend_layer['legend']]
+                    legend += [self.map_server_legend_item_to_legend_key(legend_item, legend_layer) for legend_item in legend_layer['legend']]
                 return legend
 
             # single-layer case
