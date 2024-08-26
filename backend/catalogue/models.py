@@ -2,7 +2,6 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 
-import json
 import re
 from typing import Union
 from django.core.validators import MinValueValidator, RegexValidator
