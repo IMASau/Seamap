@@ -56,26 +56,24 @@ class Command(BaseCommand):
 
 
     def get_squidle_annotations(self, geojson: list, min: int, max: int, highlights: bool) -> str:
-        r = self.api.get("/api/annotation/tally/label", qsparams=self.qsparams)
-        r.template(self.template)
-        r.results_per_page(self.results_per_page)
-
-        # filters
-        r.filter("point", "has", qf("media", "has", qf("poses", "any", qf("geom", "geo_in_mpolyh_xy", geojson))))
+        filters = [{"name": "point", "op": "has", "val": {"name": "media", "op": "has", "val": {"name": "poses", "op": "any", "val": {"name": "geom", "op": "geo_in_mpolyh_xy", "val": geojson}}}}]
         if highlights:
-            r.filter("point", "has", qf("media", "has", qf("annotations", "any", qf("annotations", "any", qf("tags", "any", qf("id", "eq", "348"))))))
+            filters.append({"name": "point", "op": "has", "val": {"name": "media", "op": "has", "val": {"name": "annotations", "op": "any", "val": {"name": "annotations", "op": "any", "val": {"name": "tags", "op": "any", "val": {"name": "id", "op": "eq", "val": "348"}}}}}})
         if min:
-            r.filter("point", "has", qf("media", "has", qf("poses", "any", qf("dep", "gt", min))))
+            filters.append({"name": "point", "op": "has", "val": {"name": "media", "op": "has", "val": {"name": "poses", "op": "any", "val": {"name": "dep", "op": "gt", "val": min}}}})
         if max:
-            r.filter("point", "has", qf("media", "has", qf("poses", "any", qf("dep", "lte", max))))
+            filters.append({"name": "point", "op": "has", "val": {"name": "media", "op": "has", "val": {"name": "poses", "op": "any", "val": {"name": "dep", "op": "lte", "val": max}}}})
+        filters += self.additional_filters
+        
+        qsparams = {"template": self.template} | self.qsparams
+        
+        r = self.api.get("/api/annotation/tally/label", poll_status_interval=1, qsparams=qsparams, filters=filters) \
+            .results_per_page(self.results_per_page) \
+            .execute()
 
-        for additional_filter in self.additional_filters:
-            r._filters.append(additional_filter)
-
-        data = r.execute().text
-        tree = PyQuery(data)
+        tree = PyQuery(r.text)
         if (tree("div.tally-chart-row") and tree("div.tally-chart-row").text()) or (tree("div.chart-container") and tree("div.chart-container").text()):
-            return data
+            return r.text
         else:
             return None
 

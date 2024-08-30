@@ -20,5 +20,5 @@ shapely==2.0.4
 geopandas==0.9.0
 cartopy==0.22.0
 geoplot==0.5.1
-sqapi==0.49
+sqapi==0.50
 pyquery==2.0.0
