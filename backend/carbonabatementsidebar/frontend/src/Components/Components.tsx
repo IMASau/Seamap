@@ -8,7 +8,12 @@ import { LayerSpec, UnitSpec } from 'vega-lite/build/src/spec';
 import { Field } from 'vega-lite/build/src/channeldef';
 
 
-export function donutChartSpec({ thetaField, colorField, sortField, percentageField, legendTitle }: { thetaField: string, colorField: string, sortField?: string, percentageField?: string, legendTitle?: string | string[] }): VisualizationSpec {
+interface DataRow {
+    [key: string]: any;
+}
+
+
+export function donutChart({ values, thetaField, colorField, sortField, percentageField, legendTitle }: { values: DataRow[], thetaField: string, colorField: string, sortField?: string, percentageField?: string, legendTitle?: string | string[] }): VisualizationSpec {
     const layer: (LayerSpec<Field> | UnitSpec<Field>)[] = [
         {
             mark: {
@@ -67,7 +72,7 @@ export function donutChartSpec({ thetaField, colorField, sortField, percentageFi
                 sort: sortField ? { field: sortField, order: 'ascending' } : undefined,
             },
         },
-        data: { name: 'values', },
+        data: { values: values },
         layer: layer
     };
 }
@@ -94,11 +99,6 @@ function regionTypeToLegendTitle(regionType: RegionType): string | string[] {
     } else {
         throw new Error(`Unknown region type: '${regionType}'`);
     }
-}
-
-
-interface DataRow {
-    [key: string]: any;
 }
 
 
@@ -221,14 +221,14 @@ export function AbatementChart({ regionType, abatementData, metricField }: { reg
     return (
         <VegaLite
             className="abatement-chart"
-            spec={donutChartSpec({
+            spec={donutChart({
+                values: data,
                 thetaField: metricField,
                 colorField: 'region',
                 sortField: 'sort',
                 percentageField: 'percentage',
                 legendTitle: regionTypeToLegendTitle(regionType),
             })}
-            data={{ values: data }}
             actions={false}
         />
     );
@@ -398,14 +398,14 @@ export function CarbonPriceAbatementChart({ abatementData, metricField }: { abat
     return (
         <VegaLite
             className="abatement-chart"
-            spec={donutChartSpec({
+            spec={donutChart({
+                values: data,
                 thetaField: metricField,
                 colorField: 'carbonPriceString',
                 sortField: 'carbonPriceString',
                 percentageField: 'percentage',
                 legendTitle: "Carbon Price ($/tCO₂)",
             })}
-            data={{ values: data }}
             actions={false}
         />
     );
