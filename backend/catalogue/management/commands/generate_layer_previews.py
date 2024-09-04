@@ -436,7 +436,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         layer_id = int(options['layer_id']) if options['layer_id'] != None else None
-        skip_existing = options['regenerate_all'].lower() in ['t', 'true'] if options['regenerate_all'] != None else False
+        skip_existing = options['skip_existing'].lower() in ['t', 'true'] if options['skip_existing'] != None else False
         horizontal_subdivisions = int(options['horizontal_subdivisions']) if options['horizontal_subdivisions'] != None else None
         vertical_subdivisions = int(options['vertical_subdivisions']) if options['vertical_subdivisions'] != None else None
         errors = []

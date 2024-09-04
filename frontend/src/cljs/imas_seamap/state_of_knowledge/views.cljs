@@ -27,6 +27,33 @@
        [:td (or (format-number mapped_percentage) "N/A")]
        [:td (format-number total_percentage)]])]])
 
+(defn data-sources-tooltip
+  "This component is a tooltip that displays the data providers for the habitat
+   statistics, bathymetry statistics, and the different habitat observations.
+   
+   Arguments:
+   * `data-providers`: A rich-text string containing information on the data
+     providers being thanked."
+  [{:keys [data-providers]}]
+  [:div {:className "data-sources"}
+   [b/tooltip
+    {:interactionKind "hover"
+     :content
+     (reagent/as-element
+      [:div
+       {:className "data-sources-tooltip"
+        :ref
+        #(when %
+           (set! (.-innerHTML %) data-providers)
+           (let [hyperlinks (js/Array.prototype.slice.call (.getElementsByTagName % "a"))]
+             (doseq [hyperlink hyperlinks]
+               (when-not (.getAttribute hyperlink "target")
+                 (.setAttribute hyperlink "target" "_blank")))))}
+       data-providers])}
+    [:<>
+     "Data Sources"
+     [b/icon {:icon "info-sign" :size 12}]]]])
+
 (defn habitat-statistics
   []
   (let [selected-tab (reagent/atom "breakdown")
@@ -115,16 +142,7 @@
             {:checked   show-layers?
              :on-change #(re-frame/dispatch [:sok/habitat-toggle-show-layers])
              :label     "Layers"}]]
-          [:div {:className "data-sources"}
-           [b/tooltip
-            {:interactionKind "hover"
-             :content
-             (reagent/as-element
-              [:div
-               {:className "data-sources-tooltip"
-                :ref #(when % (set! (.-innerHTML %) data-providers))}
-               data-providers])}
-            [:<> "Data Sources" [b/icon {:icon "info-sign"}]]]]]]))))
+          [data-sources-tooltip {:data-providers data-providers}]]]))))
 
 (defn bathymetry-statistics-table
   [{:keys [bathymetry-statistics]}]
@@ -232,16 +250,7 @@
             {:checked   show-layers?
              :on-change #(re-frame/dispatch [:sok/bathymetry-toggle-show-layers])
              :label     "Layers"}]]
-          [:div {:className "data-sources"}
-           [b/tooltip
-            {:interactionKind "hover"
-             :content
-             (reagent/as-element
-              [:div
-               {:className "data-sources-tooltip"
-                :ref #(when % (set! (.-innerHTML %) data-providers))}
-               data-providers])}
-            [:<> "Data Sources" [b/icon {:icon "info-sign"}]]]]]]))))
+          [data-sources-tooltip {:data-providers data-providers}]]]))))
 
 (defn- habitat-observations-group-stat
   [{:keys [label text] :as _stat}]
@@ -269,21 +278,7 @@
          [b/collapse
           {:is-open               (and @expanded? (not disabled?))
            :keep-children-mounted true}
-          [:<>
-           [:div.habitat-observations-group-stats
-            (for [{:keys [label] :as stat} stats]
-              ^{:key label}
-              [habitat-observations-group-stat stat])]
-           [:div {:className "data-sources"}
-            [b/tooltip
-             {:interactionKind "hover"
-              :content
-              (reagent/as-element
-               [:div
-                {:className "data-sources-tooltip"
-                 :ref #(when % (set! (.-innerHTML %) data-providers))}
-                data-providers])}
-             [:<> "Data Sources" [b/icon {:icon "info-sign"}]]]]]]]))))
+          [data-sources-tooltip {:data-providers data-providers}]]]))))
 
 (defn- squidle-stats
   [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
