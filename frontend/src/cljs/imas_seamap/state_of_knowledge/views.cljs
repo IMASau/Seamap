@@ -37,7 +37,8 @@
   [{:keys [data-providers]}]
   [:div {:className "data-sources"}
    [b/tooltip
-    {:interactionKind "hover"
+    {:interactionKind    "hover"
+     ::hover-close-delay 500
      :content
      (reagent/as-element
       [:div
