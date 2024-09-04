@@ -261,8 +261,7 @@
 (defn- habitat-observations-group
   [_props]
   (let [expanded? (reagent/atom false)]
-    (fn [{:keys [title disabled? stats data-provider] :as all}]
-      (js/console.log "all" all)
+    (fn [{:keys [title disabled? stats data-provider]}]
       (let [data-providers (data-provider @(re-frame/subscribe [:site-configuration/data-providers]))]
         [:div.habitat-observations-group
          {:class
@@ -278,7 +277,12 @@
          [b/collapse
           {:is-open               (and @expanded? (not disabled?))
            :keep-children-mounted true}
-          [data-sources-tooltip {:data-providers data-providers}]]]))))
+          [:<>
+           [:div.habitat-observations-group-stats
+            (for [{:keys [label] :as stat} stats]
+              ^{:key label}
+              [habitat-observations-group-stat stat])]
+           [data-sources-tooltip {:data-providers data-providers}]]]]))))
 
 (defn- squidle-stats
   [{:keys [deployments campaigns start_date end_date method images total_annotations public_annotations]}]
