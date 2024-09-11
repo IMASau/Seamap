@@ -221,7 +221,9 @@
    :map/toggle-layer
    :map/toggle-layer-visibility
    :transect.plot/toggle-visibility
-   :transect/query])
+   :transect/query
+   :data-in-region/get
+   :sm/featured-map])
 
 (def standard-interceptors
   [(when ^boolean goog.DEBUG (debug-excluding
