@@ -60,3 +60,10 @@ class RichLayerViewset(viewsets.ReadOnlyModelViewSet):
 class RegionReportViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.RegionReport.objects.all()
     serializer_class = serializers.RegionReportSerializer
+
+
+# SQL Views
+
+class AmpDepthZonesViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = models.AmpDepthZones.objects.all()
+    serializer_class = serializers.AmpDepthZonesSerializer

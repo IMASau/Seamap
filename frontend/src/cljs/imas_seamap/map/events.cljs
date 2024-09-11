@@ -53,7 +53,7 @@
 (def ^:const INFO-FORMAT-NONE 3)
 (def ^:const INFO-FORMAT-FEATURE 4)
 (def ^:const INFO-FORMAT-XML 5)
-(def ^:const INFO-FORMAT-RASTER 6)
+(def ^:const INFO-FORMAT-MAP-SERVER 6)
 
 (defmulti get-feature-info #(second %2))
 
@@ -167,7 +167,7 @@
       :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
-(defmethod get-feature-info INFO-FORMAT-RASTER
+(defmethod get-feature-info INFO-FORMAT-MAP-SERVER
   [{:keys [db]} [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point}]]
   (let [layer-server-ids (mapv #(last (string/split (:server_url %) "/")) layers)
         url              (string/join "/" (butlast (string/split (-> layers first :server_url) "/")))
@@ -887,7 +887,7 @@
     (= layer_type :feature)
     :map-server-vector
 
-    (= layer_type :raster)
+    (= layer_type :map-server)
     :map-server-vector
 
     (and (#{:wms :wms-non-tiled} layer_type)
