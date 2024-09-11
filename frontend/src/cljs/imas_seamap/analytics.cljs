@@ -65,6 +65,11 @@
    :download_link  link
    :download_type  type})
 
+(defmethod format-event :sm/featured-map [[_ {:keys [title] :as _story-map} :as _event-v]]
+  {:event_action   "sm/featured-map"
+   :event_label    title
+   :featured_map   title})
+
 (defmethod format-event :default [[id & _args :as _event-v]]
   {:event_category "general"
    :event_action   (event->action id)})
