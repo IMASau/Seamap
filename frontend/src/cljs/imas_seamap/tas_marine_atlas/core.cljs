@@ -218,10 +218,14 @@
    :map.layer/load-error
    :map/clicked
    :map/pan-to-layer
+   :map.layer/metadata-click
+   :map/add-layer
+   :map/remove-layer
    :map/toggle-layer
    :map/toggle-layer-visibility
    :transect.plot/toggle-visibility
    :transect/query
+   :download-click
    :data-in-region/get
    :sm/featured-map])
 

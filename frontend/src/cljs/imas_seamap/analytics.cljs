@@ -27,6 +27,13 @@
    :layer_name     (:layer_name layer)
    :layer_display_name (:name layer)})
 
+(defmethod format-event :map/toggle-layer [[_ layer :as _event-v]]
+  {:event_category "layers"
+   :event_action   "toggle-layer"
+   :event_label    (:layer_name layer)
+   :layer_name     (:layer_name layer)
+   :layer_display_name (:name layer)})
+
 (defmethod format-event :map.layer/metadata-click [[_ {:keys [link layer]} :as _event-v]]
   {:event_category "layers"
    :event_action   "metadata-click"
