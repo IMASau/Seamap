@@ -11,21 +11,18 @@
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
   [{:keys [story-maps] map-state :map :as db}]
-  (let [pruned-rich-layers
-        (reduce-kv
-         (fn [acc key {:keys [alternate-views-selected timeline-selected tab] :as _val}]
-           (let [pruned-rich-layer
-                 (cond-> {:tab tab}
-                   alternate-views-selected (assoc :alternate-views-selected alternate-views-selected)
-                   timeline-selected        (assoc :timeline-selected timeline-selected))]
-             (assoc acc key pruned-rich-layer)))
-         {} (:rich-layers map-state))
-        
-        pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :bounds])
+  (let [pruned-map (-> (select-keys*
+                        map-state
+                        [[:rich-layers :states]
+                         :center
+                         :zoom
+                         :active-layers
+                         :active-base-layer
+                         :viewport-only?
+                         :bounds])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
-                       (update :active-base :id)
-                       (assoc :rich-layers pruned-rich-layers))
+                       (update :active-base :id))
         pruned-story-maps (-> (select-keys story-maps [:featured-map :open?])
                               (update :featured-map :id))
         db         (-> db
@@ -33,10 +30,12 @@
                                       [:display :catalogue :main]
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
+                                      [:display :right-sidebars]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
                                       [:transect :query]
+                                      [:dynamic-pills :states]
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc :story-maps pruned-story-maps))
@@ -57,6 +56,7 @@
                  [:display :catalogue :main]
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
+                 [:display :right-sidebars]
                  [:filters :layers]
                  [:story-maps :featured-map]
                  [:story-maps :open?]
@@ -68,7 +68,8 @@
                  [:map :zoom]
                  [:map :bounds]
                  [:map :viewport-only?]
-                 [:map :rich-layers]
+                 [:map :rich-layers :states]
+                 [:dynamic-pills :states]
                  :legend-ids
                  :opacity-ids
                  :autosave?
@@ -86,34 +87,25 @@
 (defn ajax-loaded-info
   "Returns db of all the info retrieved via ajax"
   [db]
-  (let [rich-layers
-        (reduce-kv
-         (fn [acc key val]
-           (assoc
-            acc
-            key
-            (assoc
-             val
-             :alternate-views-selected nil
-             :timeline-selected        nil
-             :tab                      "legend")))
-         {} (get-in db [:map :rich-layers]))]
-    (->
-     (select-keys*
-      db
-      [[:map :layers]
-       [:map :base-layers]
-       [:map :base-layer-groups]
-       [:map :grouped-base-layers]
-       [:map :organisations]
-       [:map :categories]
-       [:map :keyed-layers]
-       [:map :leaflet-map]
-       [:map :legends]
-       [:map :rich-layer-children]
-       [:story-maps :featured-maps]
-       :habitat-colours
-       :habitat-titles
-       :sorting
-       :config])
-     (assoc-in [:map :rich-layers] rich-layers))))
+  (select-keys*
+   db
+   [[:map :layers]
+    [:map :base-layers]
+    [:map :base-layer-groups]
+    [:map :grouped-base-layers]
+    [:map :organisations]
+    [:map :categories]
+    [:map :keyed-layers]
+    [:map :leaflet-map]
+    [:map :legends]
+    [:map :rich-layer-children]
+    [:map :rich-layers :rich-layers]
+    [:map :rich-layers :async-datas]
+    [:map :rich-layers :layer-lookup]
+    [:story-maps :featured-maps]
+    [:dynamic-pills :dynamic-pills]
+    [:dynamic-pills :async-datas]
+    :habitat-colours
+    :habitat-titles
+    :sorting
+    :config]))

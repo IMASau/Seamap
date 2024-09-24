@@ -24,10 +24,14 @@
                      :preview-layer   nil
                      :viewport-only?  false
                      :keyed-layers    {}
-                     :rich-layers     {}
+                     :rich-layers     {:rich-layers  []
+                                       :states       {}
+                                       :async-datas  {}
+                                       :layer-lookup {}}
                      :legends         {}
                      :controls        {:transect false
                                        :download nil}}
+   :site-configuration nil
    :story-maps      {:featured-maps []
                      :featured-map  nil
                      :open?         false}
@@ -60,9 +64,16 @@
                                              :region {:tab      "cat"
                                                       :expanded #{}}}
                      :sidebar               {:collapsed false
-                                             :selected  "tab-activelayers"}}
+                                             :selected  "tab-activelayers"}
+                     :right-sidebars        []
+                     :open-pill             nil
+                     :outage-message-open?  false}
+   :dynamic-pills {:dynamic-pills []
+                   :states        {}
+                   :async-datas   {}}
    :autosave?       false
-   :config          {:url-paths {:layer                 "layers/"
+   :config          {:url-paths {:site-configuration    "siteconfiguration/"
+                                 :layer                 "layers/"
                                  :base-layer            "baselayers/"
                                  :base-layer-group      "baselayergroups/"
                                  :organisation          "organisations/"
@@ -73,9 +84,13 @@
                                  :category              "categories/"
                                  :keyed-layers          "keyedlayers/"
                                  :rich-layers           "richlayers/"
+                                 :dynamic-pills         "dynamicpills/"
+                                 :layer-legend          "layerlegend/"
                                  :layer-previews        "layer_previews/"
                                  :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"
-                                 :data-in-region        "habitat/datainregion"}
+                                 :data-in-region        "habitat/datainregion"
+                                 :cql-filter-values     "habitat/cqlfiltervalues"
+                                 :dynamic-pill-region-control-values "habitat/dynamicpillregioncontrolvalues"}
                      :urls      nil
                      :url-base {:api-url-base       "http://localhost:8000/api/"
                                 :media-url-base     "http://localhost:8000/media/"

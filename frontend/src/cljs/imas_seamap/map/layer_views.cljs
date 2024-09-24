@@ -23,93 +23,92 @@
      (when loading? [b/spinner {:class "bp3-small"}])
      (when errors? [b/icon {:icon "warning-sign" :size 18}])]))
 
+(defn- cql-control-filter-text
+  [{:keys [label value controller-type is-default-value?]}]
+  (case controller-type
+    "multi-dropdown"
+    (when-not is-default-value?
+      (str
+       "FILTER APPLIED: " label ": "
+       (apply str (interpose ", " value)))) 
+    (when-not is-default-value? (str "FILTER APPLIED: " label ": " value))))
+
 (defn- layer-header-text
   "Layer name, with some other fancy stuff on top."
-  [{{:keys [name tooltip] :as layer} :layer
-    {{:keys [alternate-views-selected timeline-selected displayed-layer slider-label]} :rich-layer} :layer-state}]
-  [:div.layer-header-text
-   [b/tooltip
-    {:content
-     (cond
-       alternate-views-selected
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name]))
-         [b/button
-          {:icon     "cross"
-           :minimal  true
-           :on-click
-           #(do
-              (.stopPropagation %)
-              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
-
-       timeline-selected
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label]))
-         [b/button
-          {:icon     "cross"
-           :minimal  true
-           :on-click
-           #(do
-              (.stopPropagation %)
-              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
-
-       :else
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         tooltip]))
-     :disabled (not (or alternate-views-selected timeline-selected (seq tooltip)))
-     :hover-close-delay
-     (if (or alternate-views-selected timeline-selected)
-       1000 0)}
-    [b/clipped-text {:ellipsize true} (or (:name displayed-layer) name)]]])
+  [{{:keys [name tooltip]} :layer
+    {{:keys [alternate-views-selected timeline-selected displayed-layer slider-label alternate-view-label controls] :as rich-layer} :rich-layer} :layer-state}]
+  (let [filters-text
+        (remove
+         nil?
+         (conj
+          (map cql-control-filter-text controls)
+          (when alternate-views-selected
+            (str "FILTER APPLIED: " alternate-view-label ": " (get-in alternate-views-selected [:layer :name])))
+          (when timeline-selected
+            (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label])))))]
+    [:div.layer-header-text
+     [b/tooltip
+      {:content
+       (if (seq filters-text)
+         (reagent/as-element
+          [:div {:style {:max-width "320px"}}
+           (apply str (interpose "\n" filters-text))
+           [b/button
+            {:icon     "cross"
+             :minimal  true
+             :on-click
+             #(do
+                (.stopPropagation %)
+                (re-frame/dispatch [:map.rich-layer/reset-filters rich-layer]))}]])
+         (reagent/as-element
+          [:div {:style {:max-width "320px"}}
+           tooltip]))
+       :disabled (not (or alternate-views-selected timeline-selected (seq tooltip)))
+       :hover-close-delay
+       (if (seq filters-text) 1000 0)}
+      [b/clipped-text {:ellipsize true} (or (:name displayed-layer) name)]]]))
 
 (defn- layer-card-header-text
   "Layer name, with some other fancy stuff on top. Clicking it will expand the
    layer's details."
-  [{{:keys [name tooltip] :as layer} :layer
+  [{{:keys [name tooltip]} :layer
     {:keys [expanded?]
-     {:keys [alternate-views-selected timeline-selected displayed-layer slider-label]} :rich-layer} :layer-state}]
-  [:div.layer-header-text
-   [b/tooltip
-    {:content
-     (cond
-       alternate-views-selected
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         (str "FILTER APPLIED: Alternate view: " (get-in alternate-views-selected [:layer :name]))
-         [b/button
-          {:icon     "cross"
-           :minimal  true
-           :on-click
-           #(do
-              (.stopPropagation %)
-              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
+     {:keys [alternate-views-selected timeline-selected displayed-layer slider-label alternate-view-label controls] :as rich-layer} :rich-layer} :layer-state}]
+  (let [filters-text
+        (remove
+         nil?
+         (conj
+          (map cql-control-filter-text controls)
+          (when alternate-views-selected
+            (str "FILTER APPLIED: " alternate-view-label ": " (get-in alternate-views-selected [:layer :name])))
+          (when timeline-selected
+            (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label])))))]
+    [:div.layer-header-text
+     [b/tooltip
+      {:content
+       (cond
+         (seq filters-text)
+         (reagent/as-element
+          [:div {:style {:max-width "320px"}}
+           (apply str (interpose "\n" filters-text))
+           [b/button
+            {:icon     "cross"
+             :minimal  true
+             :on-click
+             #(do
+                (.stopPropagation %)
+                (re-frame/dispatch [:map.rich-layer/reset-filters rich-layer]))}]])
 
-       timeline-selected
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         (str "FILTER APPLIED: " slider-label ": " (get-in timeline-selected [:label]))
-         [b/button
-          {:icon     "cross"
-           :minimal  true
-           :on-click
-           #(do
-              (.stopPropagation %)
-              (re-frame/dispatch [:map.rich-layer/reset-filters layer]))}]])
+         (seq tooltip)
+         (reagent/as-element
+          [:div {:style {:max-width "320px"}}
+           tooltip])
 
-       (seq tooltip)
-       (reagent/as-element
-        [:div {:style {:max-width "320px"}}
-         tooltip])
-       
-       expanded? "Hide legend"
-       :else     "Show legend")
-     :hover-close-delay
-     (if (or alternate-views-selected timeline-selected)
-       1000 0)}
-    [b/clipped-text {:ellipsize true} (or (:name displayed-layer) name)]]])
+         expanded? "Hide legend"
+         :else     "Show legend")
+       :hover-close-delay
+       (if (seq filters-text) 1000 0)}
+      [b/clipped-text {:ellipsize true} (or (:name displayed-layer) name)]]]))
 
 (defn- layer-control
   "Basic layer control. It's an icon with a tooltip that does something when
@@ -238,16 +237,15 @@
            :icon        "info-sign"}]))]))
 
 (defn- alternate-view-select
-  [{:keys [layer]
-    {{:keys [alternate-views alternate-views-selected]} :rich-layer} :layer-state}]
+  [{{{:keys [alternate-views alternate-views-selected alternate-view-label] :as rich-layer} :rich-layer} :layer-state}]
   [components/form-group
-   {:label    "Alternate View"}
+   {:label alternate-view-label}
    [:div
     {:on-click #(.stopPropagation %)}
     [components/select
      {:value        alternate-views-selected
       :options      alternate-views
-      :onChange     #(re-frame/dispatch [:map.rich-layer/alternate-views-selected layer %])
+      :onChange     #(re-frame/dispatch [:map.rich-layer/alternate-views-selected rich-layer %])
       :isSearchable true
       :isClearable  true
       :keyfns
@@ -256,7 +254,7 @@
 
 (defn- timeline-select
   [{:keys [layer]
-    {{:keys [timeline timeline-selected timeline-disabled? slider-label displayed-layer]} :rich-layer} :layer-state}]
+    {{:keys [timeline timeline-selected timeline-disabled? slider-label displayed-layer] :as rich-layer} :rich-layer} :layer-state}]
   (let [timeline   (sort-by :value timeline)
         values     (map :value timeline)
         gaps      (:gaps
@@ -284,7 +282,7 @@
        :on-input (fn [e]
                    (let [value (-> e .-target .-value)
                          nearest-value (round-to-nearest value values)]
-                     (re-frame/dispatch [:map.rich-layer/timeline-selected layer (first-where #(= (:value %) nearest-value) timeline)])))
+                     (re-frame/dispatch [:map.rich-layer/timeline-selected rich-layer (first-where #(= (:value %) nearest-value) timeline)])))
        :disabled timeline-disabled?}]
      [:div.time-range
       (map-indexed
@@ -295,18 +293,116 @@
           (when (even? i) v)])
        labels-with-gaps)]]))
 
+(defmulti cql-control #(get-in % [:control :controller-type]))
+
+(defmethod cql-control "dropdown"
+  [{{:keys [label icon tooltip value values is-default-value?] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
+  [components/form-group
+   {:label
+    [b/tooltip
+     {:content tooltip}
+     [:<>
+      (when icon [b/icon {:icon icon}])
+      label]]}
+   [:div
+    {:on-click #(.stopPropagation %)}
+    [components/select
+     {:value        (first-where #(= (:value %) value) values)
+      :options      values
+      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected rich-layer control (:value %)])
+      :isSearchable true
+      :isClearable  (not is-default-value?)
+      :keyfns
+      {:id   :value
+       :text #(-> % :value str)
+       :is-disabled? #(-> % :valid? not)}}]]])
+
+(defmethod cql-control "multi-dropdown"
+  [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
+  [components/form-group
+   {:label
+    [b/tooltip
+     {:content tooltip}
+     [:<>
+      (when icon [b/icon {:icon icon}])
+      label]]}
+   [:div
+    {:on-click #(.stopPropagation %)}
+    [components/select
+     {:value        (filterv #(some #{(:value %)} (set value)) values)
+      :options      values
+      :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected rich-layer control (mapv :value %)])
+      :isSearchable true
+      :isClearable  true
+      :isMulti      true
+      :keyfns
+      {:id   :value
+       :text #(-> % :value str)
+       :is-disabled? #(-> % :valid? not)}}]]])
+
+(defmethod cql-control "slider"
+  [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
+  (let [gaps (:gaps
+              (reduce
+               (fn [{:keys [gaps prev]} {val :value}]
+                 {:gaps (if prev
+                          (conj gaps (- val prev))
+                          gaps)
+                  :prev val})
+               {:gaps [] :prev nil} values))
+
+        labels-with-gaps
+        (butlast
+         (interleave
+          values
+          (conj gaps nil)))]
+    [components/form-group
+     {:label
+      [b/tooltip
+       {:content tooltip}
+       [:<>
+        (when icon [b/icon {:icon icon}])
+        label]]}
+     [:input
+      {:type     "range"
+       :min      (apply min (map :value values))
+       :max      (apply max (map :value values))
+       :step     0.01
+       :value    (or value 0)
+       :on-click #(.stopPropagation %)
+       :on-input
+       (fn [e]
+         (let [value (-> e .-target .-value)
+               nearest-value (round-to-nearest value (map :value (filter :valid? values)))]
+           (re-frame/dispatch [:map.rich-layer/control-selected rich-layer control nearest-value])))}]
+     [:div.time-range
+      (map-indexed
+       (fn [i v]
+         [:div
+          (merge
+           {:key   i
+            :style (when (odd? i) {:flex v})}
+           (when (and (even? i) (-> v :valid? not))
+             {:class "disabled"}))
+          (when (even? i) (:value v))])
+       labels-with-gaps)]]))
+
+(defmethod cql-control :default
+ [{{:keys [label]} :control {:keys []} :rich-layer}]
+  [:div label])
+
 (defn- layer-details
   "Layer details for layer card. Includes layer's legend, and tabs for selecting
    filters if the layer is a rich-layer."
   [{:keys [layer]
-    {{:keys [tab displayed-layer alternate-views timeline tab-label icon] :as rich-layer} :rich-layer} :layer-state
+    {{:keys [tab displayed-layer alternate-views timeline controls tab-label icon cql-filter] :as rich-layer} :rich-layer} :layer-state
     :as props}]
   [:div.layer-details
    {:on-click #(.stopPropagation %)}
    (if rich-layer
      [b/tabs
       {:selected-tab-id tab
-       :on-change       #(re-frame/dispatch [:map.rich-layer/tab layer %])}
+       :on-change       #(re-frame/dispatch [:map.rich-layer/tab rich-layer %])}
 
       [b/tab
        {:id    "legend"
@@ -326,7 +422,12 @@
          [:div
           {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
           (when (seq alternate-views) [alternate-view-select props])
-          (when (seq timeline) [timeline-select props])])}]]
+          (when (seq timeline) [timeline-select props])
+          (for [control controls]
+            ^{:key (:label control)}
+            [cql-control
+             {:control control
+              :props   props}])])}]]
      
      [legend-display layer])])
 
@@ -362,7 +463,7 @@
      [layer-control
       {:tooltip  tooltip
        :icon     icon
-       :on-click #(re-frame/dispatch [:map.rich-layer/configure layer])}])
+       :on-click #(re-frame/dispatch [:map.rich-layer/configure rich-layer])}])
 
    [layer-control
     {:tooltip  (if tma? "Layer info" "Layer info / Download data")

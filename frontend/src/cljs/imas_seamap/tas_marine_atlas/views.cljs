@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child autosave-application-state-toggle]]
+            [imas-seamap.views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child autosave-application-state-toggle outage-message-dialogue]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
@@ -122,6 +122,18 @@
       :tooltip  "Show Help Overlay"
       :id       "overlay-control"
       :icon     "help"}]]])
+
+(defn- floating-pills []
+  (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))
+        {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])]
+    [:div
+     {:class (str "floating-pills" (when collapsed " collapsed"))}
+     (for [{:keys [text icon tooltip]} dynamic-pills]
+       ^{:key text}
+       [components/floating-pill-button
+        {:text    text
+         :icon    icon
+         :tooltip tooltip}])]))
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
@@ -277,7 +289,7 @@
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         _                  (use-hotkeys hot-keys) ; We don't need the results of this, just need to ensure it's called!
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
-        right-drawer-open? @(re-frame/subscribe [:sm.featured-map/open?])]
+        right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))]
     [:div#main-wrapper.tas-marine-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open"))}
      [:div#content-wrapper
@@ -317,5 +329,7 @@
      [featured-map-drawer]
      [layers-search-omnibar]
      [custom-leaflet-controls]
-     [welcome-dialogue]]))
+     [floating-pills]
+     [welcome-dialogue]
+     [outage-message-dialogue]]))
 

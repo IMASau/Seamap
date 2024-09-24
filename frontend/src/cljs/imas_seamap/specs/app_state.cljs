@@ -31,7 +31,7 @@
 (s/def :map.layer/id integer?)
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
-(s/def :map.layer/legend_url string?)
+(s/def :map.layer/legend_url (s/nilable string?))
 (s/def :map.layer/layer_name string?)
 (s/def :map.layer/detail_layer (s/nilable string?))
 (s/def :map.layer/category :map.category/name)
@@ -45,12 +45,12 @@
                    :map.layer.bounding_box/east
                    :map.layer.bounding_box/north]))
 (s/def :map.layer/metadata_url string?)
-(s/def :map.layer/description string?)
 (s/def :map.layer/server_type keyword?)
 (s/def :map.layer/info_format_type integer?)
 (s/def :map.layer/keywords (s/nilable string?))
 (s/def :map.layer/style (s/nilable string?))
 (s/def :map.layer/tooltip (s/nilable string?))
+(s/def :map.layer/crs string?)
 (s/def :map/layer
   (s/keys :req-un [:map.layer/name
                    :map.layer/server_url
@@ -60,12 +60,12 @@
                    :map.layer/category
                    :map.layer/bounding_box
                    :map.layer/metadata_url
-                   :map.layer/description
                    :map.layer/server_type
                    :map.layer/info_format_type
                    :map.layer/keywords
                    :map.layer/style
-                   :map.layer/tooltip]))
+                   :map.layer/tooltip
+                   :map.layer/crs]))
 
 
 (s/def :map.base-layer/id integer?)
@@ -130,7 +130,7 @@
 (s/def :map/hidden-layers (s/coll-of :map/layer
                                      :kind set?))
 
-(s/def :map/preview-layer :map/layer)
+(s/def :map/preview-layer (s/nilable :map/layer))
 
 (s/def :map.layer.organisation/name string?)
 (s/def :map.layer.organisation/logo (s/nilable string?))
@@ -163,39 +163,111 @@
 (s/def :map/keyed-layers
   (s/map-of keyword?
             (s/or
-             :id    integer?
-             :layer :map/layer)))
+             :ids    (s/coll-of integer? :kind vector?)
+             :layers (s/coll-of :map/layer :kind vector?))))
 
+; Rich layer data
+(s/def :map.rich-layers.rich-layer/id integer?)
+(s/def :map.rich-layers.rich-layer/layer-id :map.layer/id)
+(s/def :map.rich-layers.rich-layer/tab-label string?)
+(s/def :map.rich-layers.rich-layer/slider-label string?)
+(s/def :map.rich-layers.rich-layer/icon string?)
+(s/def :map.rich-layers.rich-layer/tooltip string?)
+(s/def :map.rich-layers.rich-layer.alternate-view/layer :map.layer/id)
+(s/def :map.rich-layers.rich-layer.alternate-view/sort_key (s/nilable string?))
+(s/def :map.rich-layers.rich-layer/alternate-view
+  (s/keys :req-un [:map.rich-layers.rich-layer.alternate-view/layer
+                   :map.rich-layers.rich-layer.alternate-view/sort_key]))
+(s/def :map.rich-layers.rich-layer/alternate-views
+  (s/coll-of :map.rich-layers.rich-layer/alternate-views :kind vector?))
+(s/def :map.rich-layers.rich-layer.timeline1/layer :map.layer/id)
+(s/def :map.rich-layers.rich-layer.timeline1/value number?)
+(s/def :map.rich-layers.rich-layer.timeline1/label string?)
+(s/def :map.rich-layers.rich-layer/timeline1
+  (s/keys :req-un [:map.rich-layers.rich-layer.timeline1/layer
+                   :map.rich-layers.rich-layer.timeline1/value
+                   :map.rich-layers.rich-layer.timeline1/label]))
+(s/def :map.rich-layers.rich-layer/timeline
+  (s/coll-of :map.rich-layers.rich-layer/timeline1 :kind vector?))
+(s/def :map.rich-layers.rich-layer.control/label string?)
+(s/def :map.rich-layers.rich-layer.control/icon (s/nilable string?))
+(s/def :map.rich-layers.rich-layer.control/tooltip (s/nilable string?))
+(s/def :map.rich-layers.rich-layer.control/cql-property string?)
+(s/def :map.rich-layers.rich-layer.control/data-type #{"string" "number"})
+(s/def :map.rich-layers.rich-layer.control/controller-type #{"slider" "dropdown" "multi-dropdown"})
+(s/def :map.rich-layers.rich-layer.control/default-value
+  (s/or :multi-dropdown (s/coll-of (s/or :string string? :number number?) :kind vector?)
+        :default        (s/nilable (s/or :string string? :number number?))))
+(s/def :map.rich-layers.rich-layer/control
+  (s/keys :req-un [:map.rich-layers.rich-layer.control/label
+                   :map.rich-layers.rich-layer.control/icon
+                   :map.rich-layers.rich-layer.control/tooltip
+                   :map.rich-layers.rich-layer.control/cql-property
+                   :map.rich-layers.rich-layer.control/data-type
+                   :map.rich-layers.rich-layer.control/controller-type
+                   :map.rich-layers.rich-layer.control/default-value]))
+(s/def :map.rich-layers.rich-layer/controls
+  (s/coll-of :map.rich-layers.rich-layer/control :kind vector?))
 
-(s/def :map.rich-layer.alternate-views.entry/sort_key (s/nilable string?))
-(s/def :map.rich-layer.alternate-views.entry/layer :map/layer)
-(s/def :map.rich-layer.alternate-views/entry
-  (s/keys :req-un [:map.rich-layer.alternate-views.entry/sort_key
-                   :map.rich-layer.alternate-views.entry/layer]))
+(s/def :map.rich-layers/rich-layer
+  (s/keys :req-un [:map.rich-layers.rich-layer/id
+                   :map.rich-layers.rich-layer/layer-id
+                   :map.rich-layers.rich-layer/tab-label
+                   :map.rich-layers.rich-layer/slider-label
+                   :map.rich-layers.rich-layer/icon
+                   :map.rich-layers.rich-layer/tooltip
+                   :map.rich-layers.rich-layer/alternate-views
+                   :map.rich-layers.rich-layer/timeline
+                   :map.rich-layers.rich-layer/controls]))
+(s/def :map.rich-layers/rich-layers
+  (s/coll-of :map.rich-layers/rich-layer :kind vector?))
 
-(s/def :map.rich-layer.timeline.entry/year integer?)
-(s/def :map.rich-layer.timeline.entry/layer :map/layer)
-(s/def :map.rich-layer.timeline/entry
-  (s/keys :req-un [:map.rich-layer.timeline.entry/year
-                   :map.rich-layer.timeline.entry/layer]))
+; Rich layer state
+(s/def :map.rich-layers.state/tab string?)
+(s/def :map.rich-layers.state/alternate-views-selected :map.rich-layers.rich-layer.alternate-view/layer)
+(s/def :map.rich-layers.state/timeline-selected :map.rich-layers.rich-layer.timeline1/layer)
+(s/def :map.rich-layers.state.control/value
+  (s/or :multi-dropdown (s/coll-of (s/or :string string? :number number?) :kind vector?)
+        :default        (s/nilable (s/or :string string? :number number?))))
+(s/def :map.rich-layers.state/control
+  (s/keys :opt-un [:map.rich-layers.state.control/value]))
+(s/def :map.rich-layers.state/controls
+  (s/map-of :map.rich-layers.rich-layer.control/cql-property :map.rich-layers.state/control))
+(s/def :map.rich-layers/state
+  (s/keys :req-un [:map.rich-layers.state/tab
+                   :map.rich-layers.state/alternate-views-selected
+                   :map.rich-layers.state/timeline-selected
+                   :map.rich-layers.state/controls]))
+(s/def :map.rich-layers/states
+  (s/map-of :map.rich-layers.rich-layer/id :map.rich-layers/state))
 
-(s/def :map.rich-layer/alternate-views
-  (s/coll-of :map.rich-layer.alternate-views/entry
-             :kind vector?))
-(s/def :map.rich-layer/alternate-views-selected (s/nilable :map.layer/id))
-(s/def :map.rich-layer/timeline
-  (s/coll-of :map.rich-layer.timeline/entry
-             :kind vector?))
-(s/def :map.rich-layer/timeline-selected (s/nilable :map.layer/id))
-(s/def :map.rich-layer/tab #{"legend" "filters"})
-(s/def :map/rich-layer
-  (s/keys :req-un [:map.rich-layer/alternate-views
-                   :map.rich-layer/alternate-views-selected
-                   :map.rich-layer/timeline
-                   :map.rich-layer/timeline-selected
-                   :map.rich-layer/tab]))
+; Rich layer async data
+(s/def :map.rich-layers.async-data.control/value :map.rich-layers.state.control/value)
+(s/def :map.rich-layers.async-data.control/values
+  (s/coll-of :map.rich-layers.async-data.control/value :kind vector?))
+(s/def :map.rich-layers.async-data/control
+  (s/keys :req-un [:map.rich-layers.async-data.control/values]))
+(s/def :map.rich-layers.async-data/controls
+  (s/map-of :map.rich-layers.rich-layer.control/cql-property :map.rich-layers.async-data/control))
+(s/def :map.rich-layers.async-data/filter-combination
+  (s/map-of :map.rich-layers.rich-layer.control/cql-property :map.rich-layers.state.control/value))
+(s/def :map.rich-layers.async-data/filter-combinations
+  (s/coll-of :map.rich-layers.async-data/filter-combination :kind vector?))
+(s/def :map.rich-layers/async-data
+  (s/keys :req-un [:map.rich-layers.async-data/controls
+                   :map.rich-layers.async-data/filter-combinations]))
+(s/def :map.rich-layers/async-datas
+  (s/map-of :map.rich-layers.rich-layer/id :map.rich-layers/async-data))
+
+; Rich layer lookup
+(s/def :map.rich-layers/layer-lookup
+  (s/map-of :map.layer/id :map.rich-layers.rich-layer/id))
+
 (s/def :map/rich-layers
-  (s/map-of :map.layer/id :map/rich-layer))
+  (s/keys :req-un [:map.rich-layers/rich-layers
+                   :map.rich-layers/states
+                   :map.rich-layers/async-datas
+                   :map.rich-layers/layer-lookup]))
 
 
 (s/def :map/legends
@@ -253,13 +325,18 @@
 (s/def :transect/habitat ::transect-results-format)
 (s/def :transect/bathymetry ::transect-results-format)
 (s/def :transect/mouse-percentage (s/nilable number?))
-(s/def ::transect (s/keys :req-un [:transect/query :transect/distance :transect/show? :transect/habitat :transect/bathymetry]
-                          :opt-un [:transect/mouse-percentage]))
+(s/def ::transect (s/keys :req-un [:transect/query :transect/show? :transect/habitat :transect/bathymetry]
+                          :opt-un [:transect/mouse-percentage :transect/distance]))
 
+;;; Site Configuration
+(s/def :site-configuration
+  (s/map-of keyword? string?))
+
+;;; display
 (s/def :display.mouse-pos/x number?)
 (s/def :display.mouse-pos/y number?)
 (s/def :display/mouse-pos
-  (s/nilable (s/keys :req-un [:display.mouse-pos/x
+  (s/nilable (s/keys :opt-un [:display.mouse-pos/x
                               :display.mouse-pos/y])))
 
 ;;; catalogue
@@ -283,8 +360,17 @@
 (s/def :display/drawer-panel
   (s/keys :req-un [:display.drawer-panel/panel
                    :display.drawer-panel/props]))
-(s/def :display/drawer-panels (s/coll-of :display/drawer-panel
-                                         :kind vector?))
+
+(s/def :display.right-sidebar/id string?)
+(s/def :display.right-sidebar/type #{:state-of-knowledge :story-map :dynamic-pill})
+(s/def :display/right-sidebar
+  (s/keys :req-un [:display.right-sidebar/id
+                   :display.right-sidebar/type]))
+(s/def :display/right-sidebars (s/coll-of :display/right-sidebar
+                                          :kind vector?))
+
+(s/def :display/open-pill (s/nilable string?))
+(s/def :display/outage-message-open? boolean?)
 
 
 ;; state of knowledge
@@ -437,12 +523,9 @@
                    :state-of-knowledge.statistics/habitat-observations]))
 
 (s/def :state-of-knowledge/open? boolean?)
-(s/def :state-of-knowledge/pill-open? boolean?)
 (s/def ::state-of-knowledge
   (s/keys :req-un [:state-of-knowledge/boundaries
-                   :state-of-knowledge/statistics
-                   :state-of-knowledge/open?
-                   :state-of-knowledge/pill-open?]))
+                   :state-of-knowledge/statistics]))
 
 
 ;; story-maps
@@ -485,8 +568,9 @@
                    :display/welcome-overlay
                    :display/sidebar
                    :display/left-drawer
-                   :display/state-of-knowledge
-                   :display/drawer-panels]))
+                   :display/right-sidebars
+                   :display/open-pill
+                   :display/outage-message-open?]))
 
 
 ;; filters
@@ -504,8 +588,73 @@
   (s/keys :req-un [:config/url-paths
                    :config/urls]))
 
+;; dynamic pills
+(s/def :dynamic-pills.dynamic-pill/id integer?)
+(s/def :dynamic-pills.dynamic-pill/text string?)
+(s/def :dynamic-pills.dynamic-pill/icon (s/nilable string?))
+(s/def :dynamic-pills.dynamic-pill/tooltip (s/nilable string?))
+(s/def :dynamic-pills.dynamic-pill.layer/layer :map.layer/id)
+(s/def :dynamic-pills.dynamic-pill.layer/metadata (s/nilable string?))
+(s/def :dynamic-pills.dynamic-pill/layer
+  (s/keys :req-un [:dynamic-pills.dynamic-pill.layer/layer
+                   :dynamic-pills.dynamic-pill.layer/metadata]))
+(s/def :dynamic-pills.dynamic-pill/layers (s/coll-of :dynamic-pills.dynamic-pill/layer :kind vector?))
+(s/def :dynamic-pills.dynamic-pill.region-control/label string?)
+(s/def :dynamic-pills.dynamic-pill.region-control/icon (s/nilable string?))
+(s/def :dynamic-pills.dynamic-pill.region-control/tooltip (s/nilable string?))
+(s/def :dynamic-pills.dynamic-pill.region-control/cql-property string?)
+(s/def :dynamic-pills.dynamic-pill.region-control/data-type #{"string" "number"})
+(s/def :dynamic-pills.dynamic-pill.region-control/controller-type #{"slider" "dropdown" "multi-dropdown"})
+(s/def :dynamic-pills.dynamic-pill.region-control/default-value
+  (s/or :multi-dropdown (s/coll-of (s/or :string string? :number number?) :kind vector?)
+        :default        (s/nilable (s/or :string string? :number number?))))
+(s/def :dynamic-pills.dynamic-pill/region-control
+  (s/keys :req-un [:dynamic-pills.dynamic-pill.region-control/label
+                   :dynamic-pills.dynamic-pill.region-control/icon
+                   :dynamic-pills.dynamic-pill.region-control/tooltip
+                   :dynamic-pills.dynamic-pill.region-control/cql-property
+                   :dynamic-pills.dynamic-pill.region-control/data-type
+                   :dynamic-pills.dynamic-pill.region-control/controller-type
+                   :dynamic-pills.dynamic-pill.region-control/default-value]))
+(s/def :dynamic-pills/dynamic-pill
+  (s/keys :req-un [:dynamic-pills.dynamic-pill/id
+                   :dynamic-pills.dynamic-pill/text
+                   :dynamic-pills.dynamic-pill/icon
+                   :dynamic-pills.dynamic-pill/tooltip
+                   :dynamic-pills.dynamic-pill/layers
+                   :dynamic-pills.dynamic-pill/region-control]))
+(s/def :dynamic-pills/dynamic-pills (s/coll-of :dynamic-pills/dynamic-pill :kind vector?))
+
+(s/def :dynamic-pills.state/active? (s/nilable boolean?))
+(s/def :dynamic-pills.state.region-control/value
+  (s/or :multi-dropdown (s/coll-of (s/or :string string? :number number?) :kind vector?)
+        :default        (s/nilable (s/or :string string? :number number?))))
+(s/def :dynamic-pills.state/region-control
+  (s/keys :req-un [:dynamic-pills.state.region-control/value]))
+(s/def :dynamic-pills/state
+  (s/keys :req-un [:dynamic-pills.state/active?
+                   :dynamic-pills.state/region-control]))
+(s/def :dynamic-pills/states (s/map-of :dynamic-pills.dynamic-pill/id :dynamic-pills/state))
+
+; Dynamic pill async data
+(s/def :dynamic-pills.async-data.region-control/value :dynamic-pills.state.region-control/value)
+(s/def :dynamic-pills.async-data.region-control/values
+  (s/coll-of :dynamic-pills.async-data.region-control/value :kind vector?))
+(s/def :dynamic-pills.async-data/region-control
+  (s/keys :req-un [:dynamic-pills.async-data.region-control/values]))
+(s/def :dynamic-pills/async-data
+  (s/keys :req-un [:dynamic-pills.async-data/region-control]))
+(s/def :dynamic-pills/async-datas
+  (s/map-of :dynamic-pills.dynamic-pill/id :dynamic-pills/async-data))
+
+(s/def ::dynamic-pills
+  (s/keys :req-un [:dynamic-pills/dynamic-pills
+                   :dynamic-pills/states
+                   :dynamic-pills/async-datas]))
+
 (s/def :seamap/app-state
   (s/keys :req-un [::config
+                   ::site-configuration
                    ::display
                    ::state-of-knowledge
                    ::story-maps
@@ -515,4 +664,5 @@
                    ::habitat-titles
                    ::layer-state
                    ::map
+                   ::dynamic-pills
                    ::transect]))

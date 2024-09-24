@@ -422,8 +422,8 @@ class Command(BaseCommand):
             help='Specify a layer ID for the layer preview image you want to generate'
         )
         parser.add_argument(
-            '--only_generate_missing',
-            help='If true, skips generating images for layers where images already exist'
+            '--skip_existing',
+            help='If false, skips generating images for layers where images already exist'
         )
         parser.add_argument(
             '--horizontal_subdivisions',
@@ -436,7 +436,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         layer_id = int(options['layer_id']) if options['layer_id'] != None else None
-        only_generate_missing = options['only_generate_missing'].lower() in ['t', 'true'] if options['only_generate_missing'] != None else False
+        skip_existing = options['skip_existing'].lower() in ['t', 'true'] if options['skip_existing'] != None else False
         horizontal_subdivisions = int(options['horizontal_subdivisions']) if options['horizontal_subdivisions'] != None else None
         vertical_subdivisions = int(options['vertical_subdivisions']) if options['vertical_subdivisions'] != None else None
         errors = []
@@ -445,7 +445,7 @@ class Command(BaseCommand):
             layer = Layer.objects.get(id=layer_id)
             filepath = f'layer_previews/{layer.id}.png'
 
-            if not only_generate_missing or not default_storage.exists(filepath):
+            if not skip_existing or not default_storage.exists(filepath):
                 try:
                     generate_layer_preview(layer, horizontal_subdivisions, vertical_subdivisions)
                 except Exception as e:
@@ -454,8 +454,12 @@ class Command(BaseCommand):
         else:
             for layer in Layer.objects.all():
                 filepath = f'layer_previews/{layer.id}.png'
+                exists = default_storage.exists(filepath)
 
-                if not only_generate_missing or not default_storage.exists(filepath):
+                # Always generate a preview if it doesn't exist.
+                # If a preview does exist, only generate it if the layer has regenerate_preview
+                # set to True and we're not skipping existing previews.
+                if not exists or (layer.regenerate_preview and not skip_existing):
                     try:
                         generate_layer_preview(layer, horizontal_subdivisions, vertical_subdivisions)
                     except Exception as e:

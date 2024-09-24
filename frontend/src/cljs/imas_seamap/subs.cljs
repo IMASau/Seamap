@@ -2,7 +2,8 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.subs
-    (:require [clojure.set :refer [rename-keys]]
+    (:require [clojure.set :refer [rename-keys] :as set]
+              [imas-seamap.map.utils :refer [->dynamic-pill]]
               [imas-seamap.utils :refer [first-where]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
               #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -152,3 +153,50 @@
 
 (defn settings-overlay [db _]
   (get-in db [:display :settings-overlay]))
+
+(defn right-sidebar [db _]
+  (last (get-in db [:display :right-sidebars])))
+
+(defn open-pill [db _]
+  (get-in db [:display :open-pill]))
+
+(defn dynamic-pills [{{:keys [dynamic-pills]} :dynamic-pills :as db} _]
+  (let [dynamic-pills (mapv #(->dynamic-pill % db) dynamic-pills)]
+    {:filtered
+     (filterv
+      #(seq (:active-layers %))
+      dynamic-pills)
+     :mapped
+     (reduce
+      (fn [mapped {:keys [id] :as dynamic-pill}]
+        (assoc mapped id dynamic-pill))
+      {} dynamic-pills)}))
+
+(defn display-outage-message-open?
+  "Should the outage message be displayed?
+   
+   Returns:
+   * `true` if the outage message should be open (e.g. if the user hasn't seen the
+     latest updates), we have a message to display (so not empty), and the welcome
+     overlay is not open."
+  [db _]
+  (and
+   (get-in db [:display :outage-message-open?])
+   (get-in db [:site-configuration :outage-message])
+   (not (get-in db [:display :welcome-overlay]))))
+
+(defn site-configuration-outage-message
+  "Get the outage message from the site configuration."
+  [db _]
+  (get-in db [:site-configuration :outage-message]))
+
+(defn site-configuration-data-providers
+  "Get the data provider messages from the site configuration."
+  [db _]
+  (select-keys
+   (:site-configuration db)
+   [:habitat-statistics-data-provider
+    :bathymetry-statistics-data-provider
+    :habitat-observations-imagery-data-provider
+    :habitat-observations-video-data-provider
+    :habitat-observations-sediment-data-provider]))

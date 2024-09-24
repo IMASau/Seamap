@@ -2,12 +2,13 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.components
-  (:require [imas-seamap.interop.ui-controls :as ui-controls]
-            [imas-seamap.utils :refer [first-where]]
-            [reagent.core :as reagent]
-            [re-frame.core :as re-frame]
+  (:require ["vega-embed" :refer [embed]]
+            [cljs.spec.alpha :as s]
             [imas-seamap.blueprint :as b]
-            ["vega-embed" :refer [embed]]))
+            [imas-seamap.interop.ui-controls :as ui-controls]
+            [imas-seamap.utils :refer [first-where]]
+            [re-frame.core :as re-frame]
+            [reagent.core :as reagent]))
 
 (defn items-selection-list
   [{:keys [items disabled data-path is-reversed has-handle]}]
@@ -53,52 +54,54 @@
 
 (defn floating-pill-control-menu
   "This component renders a floating pill which the user can click on to display a
-   pop-out menu that may contain a wide variety of content. Clicking on the pill
-   again will collapse the menu. Menu contains a header with a button that can also
-   be used for closing it.
+   pop-out menu. Clicking on the pill again will collapse the menu. The menu
+   contains a header with a button that can also be used to collapse it.
    
-   Props configure the component:
-    - text: Text displayed on the floating pill.
-    - icon: Icon displayed on the floating pill.
-    - disabled? (optional): If true then the button is disabled and the user will be
-      unable to interact with it.
-    - expanded? (optional): For if the state of the component needs to be managed
-      outside. Determines if the pop-out menu is currently visible.
-    - on-open-click (optional): For if the state of the component needs to be
-      managed outside. Event that fires when the pill is clicked that would
-      normally toggle the visibility of the pop-out menu when using an unmanaged
-      state.
-    - on-close-click (optional): For if the state of the component needs to be
-      managed outside. Event that fires when the cross in the pop-out menu is
-      clicked that would normally close the pop-out menu when using an unmanaged
-      state.
-    - reset-click (optional): When this is set the caret iccon will be replaced
-      with a cross, and clicking the cross will perform this action.
-    - & children: the children rendered inside of the pop-out menu."
-  [{:keys [_text _icon _disabled? _expanded? _on-open-click _on-close-click _reset-click _tooltip _id] :as _props} & _children]
+   Arguments:
+   * `text`: Text displayed on the floating pill.
+   * `icon`: Icon displayed on the floating pill.
+   * `disabled?` (optional): If `true`, the button is disabled and the user will be
+     unable to interact with it.
+   * `expanded?` (optional): Externally manages the state of the component. If
+     `true`, the pop-out menu will be expanded.
+   * `on-open-click` (optional): Externally manages the state of the component. Event
+     that fires when the pill is clicked to expand the pop-out menu.
+   * `on-close-click` (optional): Externally manages the state of the component.
+     Event that fires when the pill is clicked to collapse the pop-out menu.
+   * `reset-click` (optional): When given a value, the caret icon will be replaced
+     with a cross. Clicking the cross will execute this action.
+   * `active?` (optional): If `true`, the button will be styled as active.
+   * `tooltip` (optional): The tooltip displayed when hovering over the floating
+     pill.
+   * `id` (optional): The id of the floating pill.
+   * `& children`: The children rendered inside of the pop-out menu."
+  [{:keys [_text _icon _disabled? _expanded? _on-open-click _on-close-click _reset-click _active? _tooltip _id] :as _props} & _children]
   (let [atom-expanded? (reagent/atom false)]
-    (fn [{:keys [text icon disabled? expanded? on-open-click on-close-click reset-click tooltip id] :as props} & children]
-      (let [expanded?       (if (contains? props :expanded?) expanded? @atom-expanded?)
-            on-open-click   (or on-open-click #(reset! atom-expanded? true))
-            on-close-click  (or on-close-click #(reset! atom-expanded? false))
-            button          [:div
-                             (merge
-                              {:class    (str "floating-pill floating-pill-control-menu-button" (when disabled? " disabled") (when reset-click " reset-click"))
-                               :on-click (when-not disabled? (if expanded? on-close-click on-open-click))}
-                              (when id {:id id}))
-                             [b/icon
-                              {:icon icon
-                               :size 16}]
-                             [b/clipped-text {:ellipsize true :class "title"} text]
-                             (if reset-click
-                               [b/button
-                                {:icon "cross"
-                                 :minimal true
-                                 :on-click (fn [e]
-                                             (.stopPropagation e) ; so we don't fire on-open-click or on-close-click
-                                             (reset-click))}]
-                               [b/icon
-                                {:icon (if expanded? "caret-up" "caret-down")}])]]
+    (fn [{:keys [text icon disabled? expanded? on-open-click on-close-click reset-click active? tooltip id] :as props} & children]
+      (let [expanded?      (if (contains? props :expanded?) expanded? @atom-expanded?) ; use external state if passed-in, otherwise use the expanded? atom
+            on-open-click  (or on-open-click #(reset! atom-expanded? true))            ; use external state if passed-in, otherwise use the expanded? atom
+            on-close-click (or on-close-click #(reset! atom-expanded? false))          ; use external state if passed-in, otherwise use the expanded? atom
+            button
+            [:div
+             (merge
+              {:class
+               (str "floating-pill" " floating-pill-control-menu-button" (when disabled? " disabled") (when active? " active"))
+               :on-click
+               (when-not disabled?
+                 (if expanded? on-close-click on-open-click))}
+              (when id {:id id}))
+             [b/icon {:icon icon :size 16}]
+             [b/clipped-text {:ellipsize true :class "title"} text]
+             (if reset-click
+               [b/button
+                {:icon    "cross"
+                 :minimal true
+                 :on-click
+                 (fn [e]
+                   (.stopPropagation e) ; so we don't fire on-open-click or on-close-click
+                   (reset-click))}]
+               [b/icon
+                {:icon (if expanded? "caret-up" "caret-down")}])]]
         [:div
          {:class (str "floating-pill-control-menu" (when expanded? " expanded"))}
          (if tooltip
@@ -107,16 +110,14 @@
          [:div.floating-pill-control-menu-content
           [:div.floating-pill-control-menu-content-header
            [:div
-            [b/icon
-             {:icon icon
-              :size 16}]]
+            [b/icon {:icon icon :size 16}]]
            [b/clipped-text {:ellipsize true :class "title"} text]
            [:div
             [b/button
              {:icon "cross"
               :minimal true
               :on-click on-close-click}]]]
-          (into [:div] children)]]))))
+          (into [:<>] children)]]))))
 
 (defn omnibar
   [{:keys [placeholder isOpen onClose items onItemSelect keyfns]}]
@@ -139,25 +140,32 @@
         :onItemSelect (fn [id] (onItemSelect (:item (first-where #(= (:id %) id) items))))}])))
 
 (defn select
-  [{:keys [value options onChange isSearchable isClearable isDisabled keyfns]}]
+  [{:keys [value options onChange isSearchable isClearable isDisabled isMulti keyfns]}]
   (letfn [(option->select-option
             [option]
-            (if-let [{:keys [id text breadcrumbs]} keyfns]
+            (if-let [{:keys [id text breadcrumbs is-disabled?]} keyfns]
               (merge
                {:id     (id option)
                 :text   (text option)
                 :option option}
+               (when is-disabled? {:isDisabled (is-disabled? option)})
                (when breadcrumbs {:breadcrumbs (breadcrumbs option)}))
               option))]
     (let [options (map option->select-option options)
-          value   (:id (option->select-option value))]
+          value   (if isMulti
+                    (mapv #(:id (option->select-option %)) value)
+                    (:id (option->select-option value)))]
       [ui-controls/Select
        {:value        value
         :options      options
-        :onChange     (fn [id] (onChange (:option (first-where #(= (:id %) id) options))))
+        :onChange     (fn [id]
+                        (if isMulti
+                          (onChange (mapv (fn [id] (:option (first-where #(= (:id %) id) options))) id))
+                          (onChange (:option (first-where #(= (:id %) id) options)))))
         :isSearchable isSearchable
         :isClearable  isClearable
-        :isDisabled   isDisabled}])))
+        :isDisabled   isDisabled
+        :isMulti      isMulti}])))
 
 (defn form-group
   [{:keys [label class]} & children]

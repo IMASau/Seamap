@@ -54,13 +54,16 @@ class KeyedLayerViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.KeyedLayerSerializer
 
 class RichLayerViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = models.RichLayer.objects.all()
+    queryset = models.RichLayer.objects.prefetch_related('alternate_views', 'timeline', 'controls').all()
     serializer_class = serializers.RichLayerSerializer
 
 class RegionReportViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.RegionReport.objects.all()
     serializer_class = serializers.RegionReportSerializer
 
+class DynamicPillViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = models.DynamicPill.objects.prefetch_related('layers').all()
+    serializer_class = serializers.DynamicPillSerializer
 
 # SQL Views
 

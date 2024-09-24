@@ -30,15 +30,22 @@ function ItemRenderer({id, text, breadcrumbs}, {selectValue}) {
 	);
 }
 
-export function Select({value, options, onChange, isSearchable, isClearable, isDisabled}) {
+export function Select({value, options, onChange, isSearchable, isClearable, isDisabled, isMulti}) {
 	return (
 		<ReactSelect
-			value={options.filter(({id}) => id == value)}
+			value={
+				value
+					? isMulti
+						? options.filter(({ id }) => value.includes(id))
+						: options.filter(({ id }) => id == value)
+					: null
+			}
 			options={options}
 			getOptionValue={({id})=> id}
 			isSearchable={isSearchable}
 			isClearable={isClearable}
 			isDisabled={isDisabled}
+			isMulti={isMulti}
 			filterOption={(option, inputValue) => {
 				inputValue = inputValue.toLowerCase();
 
@@ -52,7 +59,13 @@ export function Select({value, options, onChange, isSearchable, isClearable, isD
 				}
 			}}
 			formatOptionLabel={ItemRenderer}
-			onChange={e => onChange(e ? e.id : e)}
+			onChange={e => {
+				if (isMulti) {
+					onChange(e.map(v => v ? v.id : v))
+				} else {
+					onChange(e ? e.id : e)
+				}
+			}}
 		/>
 	);
 }
@@ -67,5 +80,6 @@ Select.propTypes = {
 	onChange: PropTypes.func.isRequired,
 	isSearchable: PropTypes.bool,
 	isClearable: PropTypes.bool,
-	isDisabled: PropTypes.bool
+	isDisabled: PropTypes.bool,
+	isMulti: PropTypes.bool
 }

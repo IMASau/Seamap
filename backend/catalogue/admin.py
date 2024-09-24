@@ -1,6 +1,7 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+from django import forms
 from django.contrib import admin
 import catalogue.models as models
 
@@ -36,8 +37,17 @@ class RichLayerTimelineInline(admin.TabularInline):
     fk_name = 'richlayer'
     extra = 0
 
+class RichLayerControlInline(admin.TabularInline):
+    model = models.RichLayerControl
+    fk_name = 'richlayer'
+    extra = 0
+
 class RichLayerAdmin(admin.ModelAdmin):
-    inlines = (RichLayerAlternateViewInline, RichLayerTimelineInline,)
+    def get_queryset(self, request):
+        return super(RichLayerAdmin, self).get_queryset(request) \
+            .select_related('layer')
+
+    inlines = (RichLayerAlternateViewInline, RichLayerTimelineInline, RichLayerControlInline,)
     autocomplete_fields = ('layer',)
 admin.site.register(models.RichLayer, RichLayerAdmin)
 
@@ -57,6 +67,44 @@ class RegionReportAdmin(admin.ModelAdmin):
         ('minx','maxx','miny','maxy',),
     )
 admin.site.register(models.RegionReport, RegionReportAdmin)
+
+
+class DynamicPillForm(forms.ModelForm):
+    class Meta:
+        labels = {
+            'region_control_cql_property': 'CQL Property',
+            'region_control_label': 'Label',
+            'region_control_data_type': 'Data Type',
+            'region_control_controller_type': 'Controller Type',
+            'region_control_icon': 'Icon',
+            'region_control_tooltip': 'Tooltip',
+            'region_control_default_value': 'Default Value',
+        }
+
+class DynamicPillLayerInline(admin.TabularInline):
+    model = models.DynamicPill.layers.through
+    autocomplete_fields = ('layer',)
+    extra = 0
+
+class DynamicPillAdmin(admin.ModelAdmin):
+    form = DynamicPillForm
+    fieldsets = [
+        (
+            None,
+            {
+                'fields': ['text','icon','tooltip', 'url']
+            }
+        ),
+        (
+            "Region Control",
+            {
+                'fields': ['region_control_cql_property','region_control_label','region_control_data_type','region_control_controller_type','region_control_icon','region_control_tooltip','region_control_default_value']
+            },
+        ),
+    ]
+    inlines = (DynamicPillLayerInline,)
+admin.site.register(models.DynamicPill, DynamicPillAdmin)
+
 
 class SquidleAnnotationsDataAdmin(admin.ModelAdmin):
     readonly_fields = ('last_modified',)

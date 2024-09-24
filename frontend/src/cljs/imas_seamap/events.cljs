@@ -3,14 +3,16 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.events
   (:require [ajax.core :as ajax]
+            [clojure.set :refer [rename-keys] :as set]
             [clojure.string :as string]
             [clojure.data.xml :as xml]
             [clojure.data.zip.xml :as zx]
             [clojure.zip :as zip]
             [goog.dom :as gdom]
+            [cljs.spec.alpha :as s]
             [imas-seamap.blueprint :as b]
             [imas-seamap.db :as db]
-            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers]]
+            [imas-seamap.utils :refer [copy-text encode-state geonetwork-force-xml merge-in parse-state append-params-from-map ajax-loaded-info ids->layers first-where]]
             [imas-seamap.map.utils :as mutils :refer [habitat-layer? download-link latlng-distance init-layer-legend-status init-layer-opacities visible-layers enhance-rich-layer rich-layer->displayed-layer]]
             [re-frame.core :as re-frame]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -47,6 +49,7 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/update-region-reports
+                                  :update-dynamic-pills
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
@@ -55,7 +58,8 @@
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
-     :dispatch [:welcome-layer/open]
+     :dispatch-n [[:welcome-layer/open]
+                  [:display.outage-message/open true]]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
@@ -85,6 +89,7 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/update-region-reports
+                                  :update-dynamic-pills
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
@@ -93,7 +98,8 @@
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
-     :dispatch [:welcome-layer/open]
+     :dispatch-n [[:welcome-layer/open]
+                  [:display.outage-message/open true]]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
@@ -123,6 +129,7 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/update-region-reports
+                                  :update-dynamic-pills
                                   :sok/update-amp-boundaries
                                   :sok/update-imcra-boundaries
                                   :sok/update-meow-boundaries
@@ -131,13 +138,15 @@
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
-     :dispatch [:welcome-layer/open]
+     :dispatch-n [[:welcome-layer/open]
+                  [:display.outage-message/open true]]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
 (defn construct-urls [db _]
   (let [{:keys
-         [layer
+         [site-configuration
+          layer
           base-layer
           base-layer-group
           organisation
@@ -149,12 +158,16 @@
           keyed-layers
           rich-layers
           region-reports
+          dynamic-pills
+          layer-legend
           amp-boundaries
           imcra-boundaries
           meow-boundaries
           habitat-statistics
           bathymetry-statistics
           habitat-observations
+          cql-filter-values
+          dynamic-pill-region-control-values
           layer-previews
           story-maps
           region-report-pages]}
@@ -162,7 +175,8 @@
         {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
      db [:config :urls]
-     {:layer-url                   (str api-url-base layer)
+     {:site-configuration-url      (str api-url-base site-configuration)
+      :layer-url                   (str api-url-base layer)
       :base-layer-url              (str api-url-base base-layer)
       :base-layer-group-url        (str api-url-base base-layer-group)
       :organisation-url            (str api-url-base organisation)
@@ -174,12 +188,16 @@
       :keyed-layers-url            (str api-url-base keyed-layers)
       :rich-layers-url             (str api-url-base rich-layers)
       :region-reports-url          (str api-url-base region-reports)
+      :dynamic-pills-url           (str api-url-base dynamic-pills)
+      :layer-legend-url            (str api-url-base layer-legend)
       :amp-boundaries-url          (str api-url-base amp-boundaries)
       :imcra-boundaries-url        (str api-url-base imcra-boundaries)
       :meow-boundaries-url         (str api-url-base meow-boundaries)
       :habitat-statistics-url      (str api-url-base habitat-statistics)
       :bathymetry-statistics-url   (str api-url-base bathymetry-statistics)
       :habitat-observations-url    (str api-url-base habitat-observations)
+      :cql-filter-values-url       (str api-url-base cql-filter-values)
+      :dynamic-pill-region-control-values-url (str api-url-base dynamic-pill-region-control-values)
       :layer-previews-url          (str media-url-base layer-previews)
       :story-maps-url              (str wordpress-url-base story-maps)
       :region-report-pages-url     (str wordpress-url-base region-report-pages)})))
@@ -222,20 +240,31 @@
         {:keys [legend-ids opacity-ids]} db
         layers        (get-in db [:map :layers])
         legends-shown (init-layer-legend-status layers legend-ids)
-        rich-layers   (get-in db [:map :rich-layers])
-        legends-get   (map
-                       (fn [{:keys [id] :as layer}]
-                         (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer rich-layers))]
-                           (or displayed-layer layer)))
-                       legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
-                          (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
+                          (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
+
+        feature-location      (get-in db [:feature :location])
+        feature-leaflet-props (get-in db [:feature :leaflet-props])
+        rich-layers           (get-in db [:map :rich-layers :rich-layers])
+        cql-get
+        (->>
+         legend-ids
+         (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
+
+        dynamic-pills (get-in db [:dynamic-pills :dynamic-pills])
+        active-dynamic-pills (filter #(get-in db [:dynamic-pills :states (:id %) :active?]) dynamic-pills)]
     {:db         db
-     :dispatch-n (conj
+     :dispatch-n (concat
+                  []
                   (mapv #(vector :map.layer/get-legend %) legends-get)
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) cql-get)
+                  (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills)
                   [:map/update-map-view {:zoom zoom :center center}]
+                  (when (and feature-location feature-leaflet-props)
+                    [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                   [:map/popup-closed])}))
 
 (defn re-boot [{:keys [db]} _]
@@ -291,7 +320,8 @@
   {:dispatch (conj dispatch (-> save-state first :hashstate))})
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url
+  (let [{:keys [site-configuration-url
+                layer-url
                 base-layer-url
                 base-layer-group-url
                 organisation-url
@@ -301,12 +331,18 @@
                 keyed-layers-url
                 rich-layers-url
                 region-reports-url
+                dynamic-pills-url
                 amp-boundaries-url
                 imcra-boundaries-url
                 meow-boundaries-url
                 story-maps-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
+                   :uri             site-configuration-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-site-configuration]
+                   :on-failure      [:update-site-configuration/error-handler]}
+                  {:method          :get
                    :uri             layer-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-layers]
@@ -357,6 +393,11 @@
                    :on-success      [:map/update-region-reports]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
+                   :uri             dynamic-pills-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-dynamic-pills]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
                    :uri             amp-boundaries-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:sok/update-amp-boundaries]
@@ -398,7 +439,7 @@
 
 (defn layer-show-info [{:keys [db]} [_ layer]]
   (let [{:keys [metadata_url] :as displayed-layer}
-        (or (:displayed-layer (enhance-rich-layer (get-in db [:map :rich-layers (:id layer)]) (get-in db [:map :rich-layers]))) layer)]
+        (rich-layer->displayed-layer layer db)]
     ;; This regexp: has been relaxed slightly; it used to be a strict
     ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
     ;; alpha-nums with optional hyphens. I assume this is from records
@@ -514,8 +555,7 @@
                                 :distance (linestring->distance linestring)
                                 :habitat :loading
                                 :bathymetry :loading})
-        rich-layers    (get-in db [:map :rich-layers])
-        visible-layers (map #(rich-layer->displayed-layer % rich-layers) (visible-layers db-map))
+        visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers db-map))
         habitat-layers (filter habitat-layer? visible-layers)]
     (merge
      {:db         db
@@ -554,8 +594,7 @@
        :message [status-text b/INTENT-DANGER]})))
 
 (defn transect-query-habitat [{{db-map :map :as db} :db} [_ query-id linestring]]
-  (let [rich-layers    (get-in db [:map :rich-layers])
-        visible-layers (map #(rich-layer->displayed-layer % rich-layers) (visible-layers db-map))
+  (let [visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers db-map))
         habitat-layers (filter habitat-layer? visible-layers)
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it
@@ -568,7 +607,7 @@
                     :uri             (str api-url-base "habitat/transect/")
                     :params          {:layers layer-names
                                       :line   (->> linestring
-                                                   (map mutils/wgs84->epsg3112)
+                                                   (map #(mutils/project-coords % "EPSG:3112"))
                                                    coords->linestring)}
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success      [:transect.query.habitat/success query-id]
@@ -825,3 +864,88 @@
 
 (defn settings-overlay [db [_ open?]]
   (assoc-in db [:display :settings-overlay] open?))
+
+(defn- ->dynamic-pill [dynamic-pill]
+  (->
+   dynamic-pill
+   (rename-keys
+    {:region_control :region-control})
+   (update
+    :region-control
+    rename-keys
+    {:cql_property    :cql-property
+     :data_type       :data-type
+     :controller_type :controller-type
+     :default_value   :default-value})))
+
+(defn update-dynamic-pills [db [_ dynamic-pills]]
+  (assoc-in db [:dynamic-pills :dynamic-pills] (mapv ->dynamic-pill dynamic-pills)))
+
+(defn right-sidebar-push [db [_ sidebar]]
+  (update-in db [:display :right-sidebars] conj sidebar))
+
+(defn right-sidebar-pop [db _]
+  (update-in db [:display :right-sidebars] pop))
+
+(defn right-sidebar-bring-to-front [db [_ sidebar]]
+  (update-in db [:display :right-sidebars] (fn [sidebars] (conj (vec (remove #(= % sidebar) sidebars)) sidebar))))
+
+(defn right-sidebar-remove [db [_ sidebar]]
+  (update-in db [:display :right-sidebars] (fn [sidebars] (vec (remove #(= % sidebar) sidebars)))))
+
+(defn open-pill [db [_ pill-id]]
+  (assoc-in db [:display :open-pill] pill-id))
+
+(defn dynamic-pill-active [{:keys [db]} [_ {:keys [id] :as dynamic-pill} active?]]
+  (let [cql-property-values (get-in db [:map :dynamic-pills :async-datas id :region-control :values])]
+    {:db
+     (if active?
+       (assoc-in db [:dynamic-pills :states id :active?] true)
+       (update-in db [:dynamic-pills :states] dissoc id)) ; clear state when deactivated
+     :dispatch-n
+     [(if active?
+        [:ui.right-sidebar/bring-to-front
+         {:id     (str "dynamic-pill-" id)
+          :type   :dynamic-pill
+          :params {:dynamic-pill-id id}}]
+        [:ui.right-sidebar/remove
+         {:id     (str "dynamic-pill-" id)
+          :type   :dynamic-pill
+          :params {:dynamic-pill-id id}}])
+      (when (and active? (not cql-property-values))
+        [:dynamic-pill.region-control/get-values dynamic-pill])
+      [:maybe-autosave]]}))
+
+(defn dynamic-pill-region-control-get-values [{:keys [db]} [_ {:keys [id] :as dynamic-pill}]]
+  {:http-xhrio
+   {:method          :get
+    :uri             (get-in db [:config :urls :dynamic-pill-region-control-values-url])
+    :params          {:dynamic-pill-id id}
+    :response-format (ajax/json-response-format)
+    :on-success      [:dynamic-pill.region-control/get-values-success dynamic-pill]
+    :on-failure      [:ajax/default-err-handler]}})
+
+(defn dynamic-pill-region-control-get-values-success [db [_ {:keys [id] :as _dynamic-pill} values]]
+  (assoc-in db [:dynamic-pills :async-datas id :region-control :values] values))
+
+(defn dynamic-pill-region-control-value [{:keys [db]} [_ {:keys [id] :as _dynamic-pill} value]]
+  {:db (assoc-in db [:dynamic-pills :states id :region-control :value] value)
+   :dispatch [:maybe-autosave]})
+
+(defn update-site-configuration [db [_ site-configuration]]
+  (assoc db :site-configuration site-configuration))
+
+(defn update-site-configuration-error-handler [db [_ err]]
+  (js/console.error "Error fetching site configuration" err)
+  db)
+
+(defn display-outage-message-open
+  "Updates the app state to open the outage message overlay
+   
+   Arguments:
+   * `db`: Current app state database.
+   * `open?`: Boolean value indicating whether the outage message overlay should be
+     opened."
+  [db [_ open?]]
+  (s/assert open? boolean?)
+  (assoc-in db [:display :outage-message-open?] open?))
