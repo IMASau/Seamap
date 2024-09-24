@@ -1,6 +1,7 @@
 export type RegionType = "STE_NAME11" | "sa2int" | "ID_Primary";
 export type CarbonPrice = "cp35" | "cp50" | "cp65" | "cp80" | "cpmax";
 export type Abatement = "CarbonAbatement" | "AbatementArea";
+export type CarbonAbatementUnits = "tCO₂" | "MtCO₂";
 
 export interface AbatementFilters {
     dr: number;

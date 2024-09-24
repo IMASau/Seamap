@@ -1,8 +1,8 @@
 import { VegaLite, VisualizationSpec } from 'react-vega';
-import { RegionAbatementData, AbatementFilters, RegionType, CarbonPriceAbatementData, CarbonPrice, Abatement } from '../types';
+import { RegionAbatementData, AbatementFilters, RegionType, CarbonPriceAbatementData, CarbonPrice, Abatement, CarbonAbatementUnits } from '../types';
 
 import './Components.scss'
-import { Tab, TabId, Tabs } from '@blueprintjs/core';
+import { Switch, Tab, TabId, Tabs } from '@blueprintjs/core';
 import { useState } from 'react';
 import { LayerSpec, UnitSpec } from 'vega-lite/build/src/spec';
 import { Field } from 'vega-lite/build/src/channeldef';
@@ -327,6 +327,22 @@ export function AbatementScenarioMessage({ carbonPrice, abatement, abatementFilt
                 <li><b>Establishment cost of ${abatementFilters.ec.toLocaleString()}/ha</b></li>
                 <li><b>5-yearly abatement cost of ${abatementFilters.ac.toLocaleString()}/ha</b></li>
             </ul>
+        </div>
+    );
+}
+
+export function CarbonAbatementUnitsSwitch({ units, setUnits }: { units: CarbonAbatementUnits, setUnits: (units: CarbonAbatementUnits) => void }) {
+    return (
+        <div className="carbon-abatement-units-switch">
+            <div>Carbon Abatement Units</div>
+            <div>
+                <div>tCO₂</div>
+                <Switch
+                    checked={units === 'MtCO₂'}
+                    onChange={(e) => setUnits(e.target.checked ? 'MtCO₂' : 'tCO₂')}
+                />
+                <div>MtCO₂</div>
+            </div>
         </div>
     );
 }

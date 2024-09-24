@@ -18,15 +18,15 @@ class CarbonAbatementSerializer(serializers.ModelSerializer):
         carbon_price = self.context.get('carbon_price')
         assert carbon_price is not None
         if carbon_price == 'cp35':
-            return obj.cp35 / 1000000
+            return obj.cp35
         elif carbon_price == 'cp50':
-            return obj.cp50 / 1000000
+            return obj.cp50
         elif carbon_price == 'cp65':
-            return obj.cp65 / 1000000
+            return obj.cp65
         elif carbon_price == 'cp80':
-            return obj.cp80 / 1000000
+            return obj.cp80
         elif carbon_price == 'cpmax':
-            return obj.cpmax / 1000000
+            return obj.cpmax
         raise serializers.ValidationError(f"'{carbon_price}' is not a valid value for 'carbon_price'")
 
     class Meta(AbatementSerializer.Meta):

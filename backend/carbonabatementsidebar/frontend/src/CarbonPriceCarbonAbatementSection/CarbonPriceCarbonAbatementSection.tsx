@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Spinner} from '@blueprintjs/core';
 
-import { RegionType, AbatementFilters, CarbonPriceCarbonAbatement } from '../types';
-import { AbatementSection, CarbonPriceAbatementChart, CarbonPriceAbatementScenarioMessage, CarbonPriceAbatementTable, carbonPriceTocarbonPriceString } from '../Components/Components';
+import { RegionType, AbatementFilters, CarbonPriceCarbonAbatement, CarbonAbatementUnits } from '../types';
+import { AbatementSection, CarbonPriceAbatementChart, CarbonPriceAbatementScenarioMessage, CarbonAbatementUnitsSwitch, CarbonPriceAbatementTable, carbonPriceTocarbonPriceString } from '../Components/Components';
 
 
 export default function CarbonPriceCarbonAbatementSection({ apiUrl, regionType, region, abatementFilters }: { apiUrl: string, regionType: RegionType, region: string, abatementFilters: AbatementFilters }) {
     const [abatementData, setAbatementData] = useState<CarbonPriceCarbonAbatement[]>([]);
     const [loaded, setLoaded] = useState(false);
+    const [units, setUnits] = useState<CarbonAbatementUnits>('MtCO₂');
 
     useEffect(() => {
         const fetchAbatementData = async () => {
@@ -41,15 +42,20 @@ export default function CarbonPriceCarbonAbatementSection({ apiUrl, regionType, 
                             region={region}
                             abatementFilters={abatementFilters}
                         />
+                        <CarbonAbatementUnitsSwitch
+                            units={units}
+                            setUnits={setUnits}
+                        />
                         <CarbonPriceAbatementTable
                             abatementData={abatementData}
-                            metricHeading="Carbon Abatement (MtCO₂)"
-                            metricToString={row =>
-                                row.carbon_abatement.toLocaleString(
+                            metricHeading={`Carbon Abatement (${units})`}
+                            metricToString={row => {
+                                const value = row.carbon_abatement / (units === 'MtCO₂' ? 1000000 : 1);
+                                return value.toLocaleString(
                                     undefined,
                                     { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-                                )
-                            }
+                                );
+                            }}
                         />
                     </>
                     : <Spinner />
