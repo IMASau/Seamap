@@ -109,11 +109,11 @@ def carbon_price_carbon_abatement(request):
     data = model.objects.get(region=params['region'], dr=params['dr'], ec=params['ec'], ac=params['ac'])
 
     return Response([
-        { 'carbon_price' : 'cp35', 'carbon_abatement' : data.cp35  / 1000000 },
-        { 'carbon_price' : 'cp50', 'carbon_abatement' : data.cp50  / 1000000 },
-        { 'carbon_price' : 'cp65', 'carbon_abatement' : data.cp65  / 1000000 },
-        { 'carbon_price' : 'cp80', 'carbon_abatement' : data.cp80  / 1000000 },
-        { 'carbon_price' : 'cpmax', 'carbon_abatement' : data.cpmax  / 1000000 },
+        { 'carbon_price' : 'cp35', 'carbon_abatement' : data.cp35 },
+        { 'carbon_price' : 'cp50', 'carbon_abatement' : data.cp50 },
+        { 'carbon_price' : 'cp65', 'carbon_abatement' : data.cp65 },
+        { 'carbon_price' : 'cp80', 'carbon_abatement' : data.cp80 },
+        { 'carbon_price' : 'cpmax', 'carbon_abatement' : data.cpmax },
     ])
 
 @api_view()
