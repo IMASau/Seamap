@@ -8,7 +8,7 @@ import { AbatementChart, AbatementScenarioMessage, AbatementSection, AbatementTa
 export default function CarbonAbatementSection({ apiUrl, regionType, carbonPrice, regions, abatementFilters }: { apiUrl: string, regionType: RegionType, carbonPrice: CarbonPrice, regions: string[], abatementFilters: AbatementFilters }) {
     const [abatementData, setAbatementData] = useState<RegionCarbonAbatement[]>([]);
     const [loaded, setLoaded] = useState(false);
-    const [units, setUnits] = useState<CarbonAbatementUnits>('MtCO₂');
+    const [units, setUnits] = useState<CarbonAbatementUnits>('tCO₂');
 
     useEffect(() => {
         const fetchAbatementData = async () => {
@@ -52,7 +52,9 @@ export default function CarbonAbatementSection({ apiUrl, regionType, carbonPrice
                                 const value = row.carbon_abatement / (units === 'MtCO₂' ? 1000000 : 1);
                                 return value.toLocaleString(
                                     undefined,
-                                    { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                                    units === 'MtCO₂'
+                                        ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                                        : { minimumFractionDigits: 0, maximumFractionDigits: 0 }
                                 );
                             }}
                         />
