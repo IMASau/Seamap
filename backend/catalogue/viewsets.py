@@ -64,3 +64,9 @@ class RegionReportViewset(viewsets.ReadOnlyModelViewSet):
 class DynamicPillViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.DynamicPill.objects.prefetch_related('layers').all()
     serializer_class = serializers.DynamicPillSerializer
+
+# SQL Views
+
+class AmpDepthZonesViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = models.AmpDepthZones.objects.all()
+    serializer_class = serializers.AmpDepthZonesSerializer

@@ -1,8 +1,9 @@
 class RegionReport {
     postId = null;
+    squidleAnnotationsDataUrl = null;
     pressurePreviewUrlBase = null;
     mapUrlBase = null;
-    imageryCaption = null;
+    squidleCaption = null;
 
     networkResearchEffort = null;
     parkResearchEffort = null;
@@ -11,17 +12,34 @@ class RegionReport {
     overviewMap = null;
     allLayers = L.layerGroup();
     allLayersBoundary = null;
-    allLayersHyperlink = null;
     publicLayers = L.layerGroup();
     publicLayersBoundary = null;
-    publicLayersHyperlink = null;
     overviewMapHyperlink = null;
+    minimapState = 'all';
+    appBoundaryLayer = null;
+    bounds = null;
+    network = null;
+    park = null;
+    minimapLayers = {};
+    boundary = null;
 
     // imagery map
     imageryMap = null;
+    imageryLayers = L.layerGroup();
+    imageryMapHyperlink = null;
     imageryMarkers = [];
-    squidleUrl = null;
-    imageryGrid = null;
+    imageryDepths = [];
+    imageryFilterDepth = null;
+    imageryFilterHighlights = false;
+    imageryMinimapLayers = {};
+
+    // url templates
+    squidlePoseUrlTemplate = null;
+    squidlePoseFilterMinDepthTemplate = null;
+    squidlePoseFilterMaxDepthTemplate = null;
+    squidlePoseFilterHighlightsTemplate = null;
+    squidleMediaUrlTemplate = null;
+    annotationsLinkUrlTemplate = null;
 
     constructor({
         postId: postId,
@@ -30,18 +48,97 @@ class RegionReport {
         habitatObservationsUrlBase: habitatObservationsUrlBase,
         researchEffortUrlBase: researchEffortUrlBase,
         regionReportDataUrlBase: regionReportDataUrlBase,
+        squidleAnnotationsDataUrl: squidleAnnotationsDataUrl,
         pressurePreviewUrlBase: pressurePreviewUrlBase,
         mapUrlBase: mapUrlBase,
         networkName: networkName,
         parkName: parkName,
-        imageryCaption: imageryCaption
+        squidleCaption: squidleCaption,
+        squidlePoseUrlTemplate: squidlePoseUrlTemplate,
+        squidlePoseFilterMinDepthTemplate: squidlePoseFilterMinDepthTemplate,
+        squidlePoseFilterMaxDepthTemplate: squidlePoseFilterMaxDepthTemplate,
+        squidlePoseFilterHighlightsTemplate: squidlePoseFilterHighlightsTemplate,
+        squidleMediaUrlTemplate: squidleMediaUrlTemplate,
+        annotationsLinkUrlTemplate: annotationsLinkUrlTemplate
     }) {
+        L.Control.SingleLayers = L.Control.Layers.extend({
+            onAdd: function (map) {
+                this._map = map;
+                map.on('overlayadd', this._update, this);
+                map.on('overlayremove', this._update, this);
+                return L.Control.Layers.prototype.onAdd.call(this, map);
+            },
+            onRemove: function (map) {
+                map.on('overlayadd', this._update, this);
+                map.on('overlayremove', this._update, this);
+                L.Control.Layers.prototype.onRemove.call(this, map);
+            },
+            _addItem: function (obj) {
+                var item = L.Control.Layers.prototype._addItem.call(this, obj);
+
+                // Check if another overlay is active
+                let otherActive = false;
+                this._layers.forEach(
+                    objOther => {
+                        // If another overlay is active
+                        if (objOther != obj && objOther.overlay && this._map.hasLayer(objOther.layer)) {
+                            otherActive = true;
+                        }
+                    }
+                );
+
+                if (otherActive) {
+                    item.children[0].innerHTML = `<input type="checkbox" class="leaflet-control-layers-selector" disabled><span> ${obj.name}</span>`
+                }
+
+                return item;
+            }
+        });
+
+        L.control.singleLayers = function (baseLayers, overlays, options) {
+            return new L.Control.SingleLayers(baseLayers, overlays, options);
+        }
+
+        L.Control.Legend = L.Control.extend({
+            setLegend: function (layer) {
+                const url = layer.metadata?.layer?.legend_url ?? `${layer._url}?REQUEST=GetLegendGraphic&LAYER=${layer.options.layers}&TRANSPARENT=${layer.options.transparent}&SERVICE=WMS&VERSION=1.1.1&FORMAT=image/png`
+                this._container.innerHTML = `<img src="${url}">`;
+                this._container.style.display = 'block';
+            },
+            clearLegend: function () {
+                this._container.innerHTML = '';
+                this._container.style.display = 'none';
+            },
+            onAdd: function (map) {
+                const control = L.DomUtil.create('div', 'leaflet-minimap-legend');
+                control.style.display = 'none';
+                map.on('overlayadd', e => this.setLegend(e.layer), this);
+                map.on('overlayremove', this.clearLegend, this);
+                return control;
+            },
+            onRemove: function (map) { }
+        });
+
+        L.control.legend = function (options) {
+            return new L.Control.Legend(options);
+        }
+
         this.postId = postId;
+        this.squidleAnnotationsDataUrl = squidleAnnotationsDataUrl;
         this.pressurePreviewUrlBase = pressurePreviewUrlBase;
         this.mapUrlBase = mapUrlBase;
-        this.imageryCaption = imageryCaption;
+        this.squidleCaption = squidleCaption;
+
+        // url templates
+        this.squidlePoseUrlTemplate = squidlePoseUrlTemplate;
+        this.squidlePoseFilterMinDepthTemplate = squidlePoseFilterMinDepthTemplate;
+        this.squidlePoseFilterMaxDepthTemplate = squidlePoseFilterMaxDepthTemplate;
+        this.squidlePoseFilterHighlightsTemplate = squidlePoseFilterHighlightsTemplate;
+        this.squidleMediaUrlTemplate = squidleMediaUrlTemplate;
+        this.annotationsLinkUrlTemplate = annotationsLinkUrlTemplate;
 
         this.setupOverviewMap();
+        this.setupImageryMap();
         this.setupResearchEffort(networkName, parkName);
 
         // Do AJAX
@@ -94,6 +191,42 @@ class RegionReport {
         $.ajax(regionReportDataUrl, {
             dataType: "json",
             success: response => {
+                this.appBoundaryLayer = response.app_boundary_layer;
+                this.bounds = response.bounding_box;
+                this.network = response.network.network;
+                this.park = response.park;
+                this.boundary = response.boundary;
+                this.imageryDepths = response.depths;
+                response.minimap_layers.forEach(
+                    minimapLayer => {
+                        this.minimapLayers[minimapLayer.label] = L.tileLayer.wms(
+                            minimapLayer.layer.server_url,
+                            {
+                                layers: minimapLayer.layer.layer_name,
+                                transparent: true,
+                                tiled: true,
+                                format: "image/png",
+                                styles: minimapLayer.layer.style ?? "",
+                                pane: 'control'
+                            }
+                        );
+                        this.minimapLayers[minimapLayer.label].metadata = { "layer": minimapLayer.layer };
+
+                        this.imageryMinimapLayers[minimapLayer.label] = L.tileLayer.wms(
+                            minimapLayer.layer.server_url,
+                            {
+                                layers: minimapLayer.layer.layer_name,
+                                transparent: true,
+                                tiled: true,
+                                format: "image/png",
+                                styles: minimapLayer.layer.style ?? "",
+                                pane: 'control'
+                            }
+                        );
+                        this.imageryMinimapLayers[minimapLayer.label].metadata = { "layer": minimapLayer.layer };
+                    }
+                );
+
                 this.populateRegionHeading(response);
                 this.populateOverviewMap(response);
                 this.populateParksList(response);
@@ -103,6 +236,15 @@ class RegionReport {
                 this.populatePressures(response);
             }
         });
+    }
+
+    templateStringFill(text, data) {
+        return text.replace(
+            /%(\w+)%/g,
+            function (match, key) {
+                return data[key] ?? match;
+            }
+        );
     }
 
     starRating(element, value, total, text) {
@@ -198,7 +340,7 @@ class RegionReport {
         if (withoutUnmapped.length > 0) {
             habitatStatistics.forEach(habitat => {
                 const row = table.insertRow();
-    
+
                 row.insertCell().innerText = habitat.habitat ?? "Total Mapped";
                 row.insertCell().innerText = habitat.area.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
                 row.insertCell().innerText = habitat.mapped_percentage?.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) ?? "N/A";
@@ -394,14 +536,46 @@ class RegionReport {
              </div>`;
     }
 
+
+    /**
+     * Rounds a number up to the nearest multiple of a given value.
+     *
+     * @param {number} value - The number to be rounded down.
+     * @param {number} multiple - The multiple to which the value should be rounded
+     *  down.
+     * @returns {number} The largest number less than or equal to `value` that is a
+     *  multiple of `multiple`.
+     *
+     * @example
+     * console.log(floorToNearestMultiple(17, 5));
+     * // Output: 15
+     */
+    floorToNearestMultiple(value, multiple) {
+        return Math.floor(value / multiple) * multiple;
+    }
+
+
+    /**
+     * Rounds a number up to the nearest multiple of a given value.
+     *
+     * @param {number} value - The number to be rounded up.
+     * @param {number} multiple - The multiple to which the value should be rounded up.
+     * @returns {number} The smallest number greater than or equal to `value` that is
+     *  a multiple of `multiple`.
+     *
+     * @example
+     * console.log(ceilToNearestMultiple(17, 5));
+     * // Output: 20
+     */
+    ceilToNearestMultiple(value, multiple) {
+        return Math.ceil(value / multiple) * multiple;
+    }
+
+
     vegaMultiHistogram(values, tickStep, title) {
-        let start = Math.min(...values.map(e => e.year));
-        if (start % tickStep != 0)
-            start -= start % tickStep;
-        let end = new Date().getFullYear();
-        if (end % tickStep != 0)
-            end += tickStep - end % tickStep;
-        
+        let start = this.floorToNearestMultiple(Math.min(...values.map(e => e.year)) - 1, tickStep);
+        let end = this.ceilToNearestMultiple(new Date().getFullYear() + 1, tickStep);
+
         const filledValues = Array.from(
             { length: end - start },
             (_, i) => {
@@ -433,7 +607,7 @@ class RegionReport {
                     title: "Year",
                     axis: {
                         values: Array.from(
-                            { length: (end - start) / tickStep },
+                            { length: Math.floor((end - start) / tickStep) + 1},
                             (_, i) => i * tickStep + start
                         ),
                         format: "r",
@@ -443,8 +617,8 @@ class RegionReport {
                     },
                     scale: {
                         domain: [
-                            start - 0.5,
-                            new Date().getFullYear() + 0.5
+                            start,
+                            end
                         ]
                     }
                 },
@@ -609,10 +783,35 @@ class RegionReport {
     setupOverviewMap() {
         this.overviewMap = L.map(`region-report-overview-map-map-${this.postId}`, { maxZoom: 19, zoomControl: false });
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.overviewMap);
+        this.overviewMap.createPane('main');
+        this.overviewMap.createPane('control');
+        this.overviewMap.getPane('main').style.zIndex = 800;
+        this.overviewMap.getPane('control').style.zIndex = 400;
         this.overviewMapHyperlink = document.getElementById(`region-report-overview-map-hyperlink-${this.postId}`);
     }
 
-    overviewMapAppState(layers, boundaryLayer, bounds, network, park) {
+    overviewMapAppState() {
+        let layers = [];
+
+        Object.values(this.minimapLayers).forEach(
+            layer => {
+                if (this.overviewMap.hasLayer(layer)) {
+                    layers.push(layer.metadata.layer);
+                }
+            }
+        );
+
+        layers.push(this.appBoundaryLayer);
+
+        switch (this.minimapState) {
+            case 'all':
+                layers = layers.concat(this.allLayers.metadata?.layers);
+                break;
+            case 'public':
+                layers = layers.concat(this.publicLayers.metadata?.layers);
+                break;
+        }
+
         return [
             "^ ",
             "~:autosave?",
@@ -641,51 +840,51 @@ class RegionReport {
                     [
                         "^ ",
                         "~:server_type",
-                        `~:${boundaryLayer.server_type.toLowerCase()}`,
+                        `~:${this.appBoundaryLayer.server_type.toLowerCase()}`,
                         "~:category",
-                        `~:${boundaryLayer.category.toLowerCase()}`,
+                        `~:${this.appBoundaryLayer.category.toLowerCase()}`,
                         "~:detail_layer",
-                        boundaryLayer.detail_layer,
+                        this.appBoundaryLayer.detail_layer,
                         "~:organisation",
-                        boundaryLayer.organisation,
+                        this.appBoundaryLayer.organisation,
                         "~:layer_name",
-                        boundaryLayer.layer_name,
+                        this.appBoundaryLayer.layer_name,
                         "~:server_url",
-                        boundaryLayer.server_url,
+                        this.appBoundaryLayer.server_url,
                         "~:name",
-                        boundaryLayer.name,
+                        this.appBoundaryLayer.name,
                         "~:info_format_type",
-                        boundaryLayer.info_format_type,
+                        this.appBoundaryLayer.info_format_type,
                         "~:keywords",
-                        boundaryLayer.keywords,
+                        this.appBoundaryLayer.keywords,
                         "~:style",
-                        boundaryLayer.style,
+                        this.appBoundaryLayer.style,
                         "~:metadata_url",
-                        boundaryLayer.metadata_url,
+                        this.appBoundaryLayer.metadata_url,
                         "~:id",
-                        boundaryLayer.id,
+                        this.appBoundaryLayer.id,
                         "~:bounding_box",
                         [
                             "^ ",
                             "~:west",
-                            boundaryLayer.bounding_box.west,
+                            this.appBoundaryLayer.bounding_box.west,
                             "~:south",
-                            boundaryLayer.bounding_box.south,
+                            this.appBoundaryLayer.bounding_box.south,
                             "~:east",
-                            boundaryLayer.bounding_box.east,
+                            this.appBoundaryLayer.bounding_box.east,
                             "~:north",
-                            boundaryLayer.bounding_box.north
+                            this.appBoundaryLayer.bounding_box.north
                         ],
                         "~:table_name",
-                        boundaryLayer.table_name,
+                        this.appBoundaryLayer.table_name,
                         "~:data_classification",
-                        boundaryLayer.data_classification,
+                        this.appBoundaryLayer.data_classification,
                         "~:tooltip",
-                        boundaryLayer.tooltip,
+                        this.appBoundaryLayer.tooltip,
                         "~:legend_url",
-                        boundaryLayer.legend_url,
+                        this.appBoundaryLayer.legend_url,
                         "~:layer_type",
-                        `~:${boundaryLayer.layer_type.toLowerCase()}`
+                        `~:${this.appBoundaryLayer.layer_type.toLowerCase()}`
                     ],
                     "~:amp",
                     [
@@ -694,16 +893,16 @@ class RegionReport {
                         [
                             "^ ",
                             "~:network",
-                            network
+                            this.network
                         ],
                         "~:active-park",
                         (
-                            park ? [
+                            this.park ? [
                                 "^ ",
                                 "~:network",
-                                network,
+                                this.network,
                                 "~:park",
-                                park
+                                this.park
                             ] : null
                         ),
                     ]
@@ -732,18 +931,18 @@ class RegionReport {
                 [
                     "^ ",
                     "~:north",
-                    bounds.north,
+                    this.bounds.north,
                     "~:south",
-                    bounds.south,
+                    this.bounds.south,
                     "~:east",
-                    bounds.east,
+                    this.bounds.east,
                     "~:west",
-                    bounds.west
+                    this.bounds.west
                 ],
                 "~:active",
                 [
                     "~#list",
-                    [boundaryLayer.id, ...layers]
+                    layers.map(e => e.id)
                 ],
                 "~:active-base",
                 1
@@ -751,7 +950,7 @@ class RegionReport {
         ]
     }
 
-    populateOverviewMap({ all_layers: allLayers, all_layers_boundary: allLayersBoundary, public_layers: publicLayers, public_layers_boundary: publicLayersBoundary, network: network, park: park, bounding_box: bounds, app_boundary_layer: appBoundaryLayer }) {
+    populateOverviewMap({ all_layers: allLayers, all_layers_boundary: allLayersBoundary, public_layers: publicLayers, public_layers_boundary: publicLayersBoundary, network: network, park: park, bounding_box: bounds }) {
         // all layers
         allLayers.forEach(
             layer => {
@@ -763,11 +962,13 @@ class RegionReport {
                         tiled: true,
                         format: "image/png",
                         styles: layer.style ?? "",
-                        cql_filter: `Network='${network.network}'` + (park ? ` AND Park='${park}'` : "")
+                        cql_filter: `Network='${network.network}'` + (park ? ` AND Park='${park}'` : ""),
+                        pane: 'main'
                     }
                 ).addTo(this.allLayers);
             }
         );
+        this.allLayers.metadata = { "layers": allLayers };
 
         // all layers boundary
         this.allLayersBoundary = L.tileLayer.wms(
@@ -778,7 +979,8 @@ class RegionReport {
                 tiled: true,
                 format: "image/png",
                 styles: allLayersBoundary.style ?? "",
-                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
+                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`,
+                pane: 'main'
             }
         );
 
@@ -793,11 +995,13 @@ class RegionReport {
                         tiled: true,
                         format: "image/png",
                         styles: layer.style ?? "",
-                        cql_filter: `Network='${network.network}'` + (park ? ` AND Park='${park}'` : "")
+                        cql_filter: `Network='${network.network}'` + (park ? ` AND Park='${park}'` : ""),
+                        pane: 'main'
                     }
                 ).addTo(this.publicLayers);
             }
         );
+        this.publicLayers.metadata = { "layers": publicLayers };
 
         // public layers boundary
         this.publicLayersBoundary = L.tileLayer.wms(
@@ -808,16 +1012,30 @@ class RegionReport {
                 tiled: true,
                 format: "image/png",
                 styles: publicLayersBoundary.style ?? "",
-                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
+                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`,
+                pane: 'main'
             }
         );
 
+        // map controls
+        L.control.singleLayers(null, this.minimapLayers).addTo(this.overviewMap);
+        L.control.legend({ position: 'bottomleft' }).addTo(this.overviewMap);
+
         // set up map
-        this.overviewMap.addLayer(this.allLayersBoundary);
-        this.overviewMap.addLayer(this.allLayers);
         this.overviewMap._handlers.forEach(function (handler) {
             handler.disable();
         });
+
+        switch (this.minimapState) {
+            case 'all':
+                this.overviewMap.addLayer(this.allLayersBoundary);
+                this.overviewMap.addLayer(this.allLayers);
+                break;
+            case 'public':
+                this.overviewMap.addLayer(this.publicLayersBoundary);
+                this.overviewMap.addLayer(this.publicLayers);
+                break;
+        }
 
         // zoom to map extent
         this.overviewMap.fitBounds([[bounds.north, bounds.east], [bounds.south, bounds.west]]);
@@ -830,23 +1048,48 @@ class RegionReport {
                 }
             );
 
-        const allLayersAppState = this.overviewMapAppState(allLayers.map(e=>e.id), appBoundaryLayer, bounds, network.network, park);
-        this.allLayersHyperlink = `${this.mapUrlBase}/#${btoa(JSON.stringify(allLayersAppState))}`;
-        const publicLayersAppState = this.overviewMapAppState(publicLayers.map(e=>e.id), appBoundaryLayer, bounds, network.network, park);
-        this.publicLayersHyperlink = `${this.mapUrlBase}/#${btoa(JSON.stringify(publicLayersAppState))}`;
+        // set up hyperlink
+        const appState = this.overviewMapAppState();
+        this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
 
-        this.overviewMapHyperlink.href = this.allLayersHyperlink;
+        this.overviewMap.on(
+            'overlayadd',
+            () => {
+                const appState = this.overviewMapAppState();
+                this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
+            },
+            this
+        );
+        this.overviewMap.on(
+            'overlayremove',
+            () => {
+                const appState = this.overviewMapAppState();
+                this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
+            },
+            this
+        );
     }
 
-    toggleMinimap(publicOnly) {
+    toggleMinimap(minimapState) {
+        this.minimapState = minimapState;
         this.overviewMap.removeLayer(this.allLayers);
         this.overviewMap.removeLayer(this.allLayersBoundary);
         this.overviewMap.removeLayer(this.publicLayers);
         this.overviewMap.removeLayer(this.publicLayersBoundary);
 
-        this.overviewMap.addLayer(publicOnly ? this.publicLayersBoundary : this.allLayersBoundary);
-        this.overviewMap.addLayer(publicOnly ? this.publicLayers : this.allLayers);
-        this.overviewMapHyperlink.href = publicOnly ? this.publicLayersHyperlink : this.allLayersHyperlink;
+        switch (this.minimapState) {
+            case 'all':
+                this.overviewMap.addLayer(this.allLayersBoundary);
+                this.overviewMap.addLayer(this.allLayers);
+                break;
+            case 'public':
+                this.overviewMap.addLayer(this.publicLayersBoundary);
+                this.overviewMap.addLayer(this.publicLayers);
+                break;
+        }
+
+        const appState = this.overviewMapAppState();
+        this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
     }
 
     populateParksList({ parks: parks }) {
@@ -910,133 +1153,395 @@ class RegionReport {
     }
 
     refreshImagery() {
-        if (this.squidleUrl == null) return;
         if (this.imageryMap == null) return;
+        if (this.boundary == null) return;
 
-        $.ajax(this.squidleUrl, {
+        // initiate loading
+        const imageryElement = document.getElementById(`region-report-imagery-annotations-${this.postId}`);
+        imageryElement.innerHTML = "Loading imagery deployment data...";
+        this.imageryMarkers.forEach(marker => this.imageryMap.removeLayer(marker));
+        this.imageryMarkers = [];
+
+        const minDepth = this.imageryDepths.find(e => e.zonename == this.imageryFilterDepth)?.min;
+        const maxDepth = this.imageryDepths.find(e => e.zonename == this.imageryFilterDepth)?.max;
+
+        const imageryUrl = this.templateStringFill(
+            this.squidlePoseUrlTemplate,
+            {
+                'boundary': JSON.stringify(this.boundary),
+                'min_depth': minDepth ? this.templateStringFill(this.squidlePoseFilterMinDepthTemplate, { 'min_depth': minDepth }) : '',
+                'max_depth': maxDepth ? this.templateStringFill(this.squidlePoseFilterMaxDepthTemplate, { 'max_depth': maxDepth }) : '',
+                'highlights': this.imageryFilterHighlights ? this.squidlePoseFilterHighlightsTemplate : ''
+            }
+        );
+
+
+        // retrieve data
+        $.ajax(imageryUrl, {
             dataType: "json",
-            success: media => {
+            success: pose => {
+                if (pose.objects.length > 0) {
+                    // populate imagery grid
+                    imageryElement.innerHTML = `
+                        <div class="images">
+                            <div class="image-grid" id="region-report-imagery-grid-${this.postId}"></div>
+                            <div class="caption">${this.squidleCaption}</div>
+                            <a href="#!" onclick="regionReport.refreshImagery()">Refresh imagery</a>
+                        </div>
+                        <div id="region-report-annotations-${this.postId}"></div>`;
 
-                $.ajax("https://squidle.org/api/pose", {
-                    dataType: "json",
-                    data: {
-                        q: JSON.stringify({
-                            filters: [{
-                                name: "media_id",
-                                op: "in",
-                                val: media.objects.map(e => e.id)
-                            }]
-                        })
-                    },
-                    success: pose => {
-                        // clear
-                        this.imageryMarkers.forEach(marker => this.imageryMap.removeLayer(marker));
-                        this.imageryMarkers = [];
-                        this.imageryGrid.innerHTML = "";
+                    const params = {
+                        network: this.network,
+                        depth_zone: this.imageryFilterDepth,
+                        highlights: this.imageryFilterHighlights
+                    };
+                    if (this.park) params.park = this.park;
 
-                        // populate
-                        media.objects.forEach((image, index) => {
-                            Object.assign(image, pose.objects.filter(e => e.media.id == image.id)[0]);
+                    const annotationsElement = document.getElementById(`region-report-annotations-${this.postId}`);
+                    $.ajax(this.squidleAnnotationsDataUrl, {
+                        dataType: "json",
+                        data: params,
+                        success: annotations => {
+                            annotationsElement.innerHTML =
+                                annotations.annotations_data
+                                    ? `<a
+                                        href="${this.templateStringFill(this.annotationsLinkUrlTemplate, {
+                                            'network': this.network ?? '',
+                                            'park': this.park ?? '',
+                                            'depth_zone': this.imageryFilterDepth ?? '',
+                                            'highlights': this.imageryFilterHighlights ?? '',
+                                            'min_depth': minDepth ?? '',
+                                            'max_depth': maxDepth ?? ''
+                                        })}"
+                                        target="_blank"
+                                        class="annotations-link"
+                                    >
+                                        <h4>
+                                            Dominant Annotations for the Region <span class="tooltip-parent">
+                                                <i class="fa fa-info-circle"></i>
+                                                <div class="tooltip">Publicly available, finalised annotations from imagery scored in this region</div>
+                                            </span>
+                                        </h4>
+                                        ${annotations.annotations_data}
+                                    </a>`
+                                : `<div class="bp3-non-ideal-state">
+                                    <div class="bp3-non-ideal-state-visual">
+                                        <span class="bp3-icon bp3-icon-info-sign"></span>
+                                    </div>
+                                    <h4 class="bp3-heading">No Data</h4>
+                                    <div>No public image annotations were found for this region.</div>
+                                </div>`;
+                        },
+                        error: () => {
+                            annotationsElement.innerHTML = `
+                                <div class="bp3-non-ideal-state">
+                                    <div class="bp3-non-ideal-state-visual">
+                                        <span class="bp3-icon bp3-icon-info-sign"></span>
+                                    </div>
+                                    <h4 class="bp3-heading">No Data</h4>
+                                    <div>No public image annotations were found for this region.</div>
+                                </div>`;
+                        }
+                    })
 
-                            // grid items
-                            this.imageryGrid.innerHTML += `
-                                <a
-                                    href="https://squidle.org/iframe/api/media/${image.media.id}?template=models/media/preview_single.html&nologin=true&fullwidth=true"
-                                    target="_blank"
-                                    onmouseenter="regionReport.focusMarker(${index})"
-                                    onmouseleave="regionReport.focusMarker()"
-                                >
-                                    <img src="${image.path_best_thm}">
-                                    <div class="grid-number">${index + 1}</div>
-                                </a>`;
+                    const imageryGrid = document.getElementById(`region-report-imagery-grid-${this.postId}`);
+                    pose.objects.forEach((poseObject, index) => {
+                        // grid items
+                        imageryGrid.innerHTML += `
+                            <a
+                                href="${this.templateStringFill(this.squidleMediaUrlTemplate, { 'media_id': poseObject.media.id })}"
+                                target="_blank"
+                                onmouseenter="regionReport.focusMarker(${index})"
+                                onmouseleave="regionReport.focusMarker()"
+                            >
+                                <img src="${poseObject.media.path_best_thm}">
+                                <div class="grid-number">${index + 1}</div>
+                            </a>`;
 
-                            // marker
-                            this.imageryMarkers.push(
-                                new L.Marker(
-                                    [image.lat, image.lon],
-                                    {
-                                        icon: L.divIcon({
-                                            html: `
-                                                <svg width=25 height=41>
-                                                    <polygon
-                                                        points="0,0 25,0, 25,28 20,28 12.5,41 5,28 0,28"
-                                                        fill="rgb(0, 147, 36)"
-                                                        stroke="white"
-                                                        stroke-width=1.5
-                                                    />
-                                                    <text
-                                                        fill="white"
-                                                        x="50%"
-                                                        y=14
-                                                        dominant-baseline="middle"
-                                                        text-anchor="middle"
-                                                        font-family="sans-serif"
-                                                        font-weight="bold"
-                                                    >${index + 1}</text>
-                                                </svg>`,
-                                            iconSize: [25, 41],
-                                            iconAnchor: [12.5, 41]
-                                        })
-                                    }
-                                )
-                            );
-                            this.imageryMarkers[this.imageryMarkers.length - 1].addTo(this.imageryMap);
-                        });
-                    }
-                });
+                        // marker
+                        this.imageryMarkers.push(
+                            new L.Marker(
+                                [poseObject.lat, poseObject.lon],
+                                {
+                                    icon: L.divIcon({
+                                        html: `
+                                            <svg width=25 height=41>
+                                                <polygon
+                                                    points="0,0 25,0, 25,28 20,28 12.5,41 5,28 0,28"
+                                                    fill="rgb(0, 147, 36)"
+                                                    stroke="white"
+                                                    stroke-width=1.5
+                                                />
+                                                <text
+                                                    fill="white"
+                                                    x="50%"
+                                                    y=14
+                                                    dominant-baseline="middle"
+                                                    text-anchor="middle"
+                                                    font-family="sans-serif"
+                                                    font-weight="bold"
+                                                >${index + 1}</text>
+                                            </svg>`,
+                                        iconSize: [25, 41],
+                                        iconAnchor: [12.5, 41]
+                                    }),
+                                    pane: 'main'
+                                }
+                            )
+                        );
+                        this.imageryMarkers[index].addTo(this.imageryMap);
+                    });
+                } else {
+                    imageryElement.innerHTML = `
+                        <div class="bp3-non-ideal-state">
+                            <div class="bp3-non-ideal-state-visual">
+                                <span class="bp3-icon bp3-icon-info-sign"></span>
+                            </div>
+                            <h4 class="bp3-heading">No Data</h4>
+                            <div>No public imagery was found for this region.</div>
+                        </div>`;
+                }
             }
         });
     }
 
-    populateImageryMap({ squidle_url: squidleUrl, all_layers_boundary: allLayersBoundary, network: network, park: park, bounding_box: bounds }) {
-        this.squidleUrl = squidleUrl;
-        const imageryElement = document.getElementById(`region-report-imagery-${this.postId}`);
+    setImageryFilterDepth(depth) {
+        this.imageryFilterDepth = depth;
+        this.refreshImagery();
+    }
 
-        if (this.squidleUrl) {
-            imageryElement.innerHTML = `
-                <div class="map" id="region-report-imagery-map-${this.postId}"></div>
-                <div class="images">
-                    <div class="image-grid" id="region-report-imagery-grid-${this.postId}"></div>
-                    <div class="caption">${this.imageryCaption}</div>
-                    <a href="#!" onclick="regionReport.refreshImagery()">Refresh images</a>
-                </div>`;
+    setImageryFilterHighlights(highlights) {
+        this.imageryFilterHighlights = highlights;
+        this.refreshImagery();
+    }
 
+    setupImageryMap() {
+        // set-up map
+        this.imageryMap = L.map(`region-report-imagery-map-${this.postId}`, { maxZoom: 19, zoomControl: false });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.imageryMap);
+        this.imageryMap.createPane('main');
+        this.imageryMap.createPane('control');
+        this.imageryMap.getPane('main').style.zIndex = 800;
+        this.imageryMap.getPane('control').style.zIndex = 400;
+        this.imageryMap._handlers.forEach(e => e.disable());
+        this.imageryMapHyperlink = document.getElementById(`region-report-imagery-map-hyperlink-${this.postId}`);
+    }
 
-            this.imageryGrid = document.getElementById(`region-report-imagery-grid-${this.postId}`);
+    imageryMapAppState() {
+        let layers = [];
 
-            // set-up map
-            this.imageryMap = L.map(`region-report-imagery-map-${this.postId}`, { maxZoom: 19, zoomControl: false });
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.imageryMap);
-            this.imageryMap._handlers.forEach(e => e.disable());
-
-            this.refreshImagery();
-
-            // map boundary layer
-            L.tileLayer.wms(
-                allLayersBoundary.server_url,
-                {
-                    layers: allLayersBoundary.layer_name,
-                    transparent: true,
-                    tiled: true,
-                    format: "image/png",
-                    styles: allLayersBoundary.style ?? "",
-                    cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`
+        Object.values(this.imageryMinimapLayers).forEach(
+            layer => {
+                if (this.imageryMap.hasLayer(layer)) {
+                    layers.push(layer.metadata.layer);
                 }
-            ).addTo(this.imageryMap);
+            }
+        );
 
-            // zoom to map extent
-            this.imageryMap.fitBounds([[bounds.north, bounds.east], [bounds.south, bounds.west]]);
-            window.addEventListener("resize", this.imageryMap.invalidateSize);
-            if (navigator.userAgent.match(/chrome|chromium|crios/i))
-                window.matchMedia('print').addEventListener(
-                    "change",
-                    e => {
-                        if (e.matches) this.imageryMap.invalidateSize();
-                    }
-                );
-        } else {
-            imageryElement.innerText = "No imagery deployments found in this region";
+        layers.push(this.appBoundaryLayer);
+        layers = layers.concat(this.imageryLayers.metadata?.layers);
+
+        return [
+            "^ ",
+            "~:autosave?",
+            true,
+            "~:filters",
+            [
+                "^ ",
+                "~:layers",
+                ""
+            ],
+            "~:state-of-knowledge",
+            [
+                "^ ",
+                "~:boundaries",
+                [
+                    "^ ",
+                    "~:active-boundary",
+                    [
+                        "^ ",
+                        "~:id",
+                        "amp",
+                        "~:name",
+                        "Australian Marine Parks"
+                    ],
+                    "~:active-boundary-layer",
+                    [
+                        "^ ",
+                        "~:server_type",
+                        `~:${this.appBoundaryLayer.server_type.toLowerCase()}`,
+                        "~:category",
+                        `~:${this.appBoundaryLayer.category.toLowerCase()}`,
+                        "~:detail_layer",
+                        this.appBoundaryLayer.detail_layer,
+                        "~:organisation",
+                        this.appBoundaryLayer.organisation,
+                        "~:layer_name",
+                        this.appBoundaryLayer.layer_name,
+                        "~:server_url",
+                        this.appBoundaryLayer.server_url,
+                        "~:name",
+                        this.appBoundaryLayer.name,
+                        "~:info_format_type",
+                        this.appBoundaryLayer.info_format_type,
+                        "~:keywords",
+                        this.appBoundaryLayer.keywords,
+                        "~:style",
+                        this.appBoundaryLayer.style,
+                        "~:metadata_url",
+                        this.appBoundaryLayer.metadata_url,
+                        "~:id",
+                        this.appBoundaryLayer.id,
+                        "~:bounding_box",
+                        [
+                            "^ ",
+                            "~:west",
+                            this.appBoundaryLayer.bounding_box.west,
+                            "~:south",
+                            this.appBoundaryLayer.bounding_box.south,
+                            "~:east",
+                            this.appBoundaryLayer.bounding_box.east,
+                            "~:north",
+                            this.appBoundaryLayer.bounding_box.north
+                        ],
+                        "~:table_name",
+                        this.appBoundaryLayer.table_name,
+                        "~:data_classification",
+                        this.appBoundaryLayer.data_classification,
+                        "~:tooltip",
+                        this.appBoundaryLayer.tooltip,
+                        "~:legend_url",
+                        this.appBoundaryLayer.legend_url,
+                        "~:layer_type",
+                        `~:${this.appBoundaryLayer.layer_type.toLowerCase()}`
+                    ],
+                    "~:amp",
+                    [
+                        "^ ",
+                        "~:active-network",
+                        [
+                            "^ ",
+                            "~:network",
+                            this.network
+                        ],
+                        "~:active-park",
+                        (
+                            this.park ? [
+                                "^ ",
+                                "~:network",
+                                this.network,
+                                "~:park",
+                                this.park
+                            ] : null
+                        ),
+                    ]
+                ]
+            ],
+            "~:story-maps",
+            [
+                "^ ",
+                "~:featured-map",
+                null,
+                "~:open?",
+                false
+            ],
+            "~:display",
+            [
+                "^ ",
+                "~:left-drawer",
+                true,
+                "~:left-drawer-tab",
+                "active-layers"
+            ],
+            "~:map",
+            [
+                "^ ",
+                "~:bounds",
+                [
+                    "^ ",
+                    "~:north",
+                    this.bounds.north,
+                    "~:south",
+                    this.bounds.south,
+                    "~:east",
+                    this.bounds.east,
+                    "~:west",
+                    this.bounds.west
+                ],
+                "~:active",
+                [
+                    "~#list",
+                    layers.map(e => e.id)
+                ],
+                "~:active-base",
+                1
+            ]
+        ]
+    }
+
+    populateImageryMap({ all_layers_boundary: allLayersBoundary, network: network, park: park, bounding_box: bounds, imagery_minimap_layers: imageryMinimapLayers }) {
+        // map boundary layer
+        L.tileLayer.wms(
+            allLayersBoundary.server_url,
+            {
+                layers: allLayersBoundary.layer_name,
+                transparent: true,
+                tiled: true,
+                format: "image/png",
+                styles: allLayersBoundary.style ?? "",
+                cql_filter: park ? `RESNAME='${park}'` : `NETNAME='${network.network}'`,
+                pane: 'main'
+            }
+        ).addTo(this.imageryMap);
+
+        // minimap layers (added when hyperlinked)
+        this.imageryLayers.metadata = { "layers": imageryMinimapLayers };
+
+        const imageryDepthElement = document.getElementById(`region-report-imagery-depth-${this.postId}`);
+        this.imageryDepths.forEach(
+            depth => {
+                imageryDepthElement.innerHTML += `<option value="${depth.zonename}">${depth.zonename}</option>`;
+            }
+        );
+
+        // map controls
+        L.control.singleLayers(null, this.imageryMinimapLayers).addTo(this.imageryMap);
+        L.control.legend({ position: 'bottomleft' }).addTo(this.imageryMap);
+
+        // zoom to map extent
+        this.imageryMap.fitBounds([[bounds.north, bounds.east], [bounds.south, bounds.west]]);
+        window.addEventListener("resize", this.imageryMap.invalidateSize);
+        if (navigator.userAgent.match(/chrome|chromium|crios/i)) {
+            window.matchMedia('print').addEventListener(
+                "change",
+                e => {
+                    if (e.matches) this.imageryMap.invalidateSize();
+                }
+            );
         }
+
+        // set up hyperlink
+        const appState = this.imageryMapAppState();
+        this.imageryMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
+
+        this.imageryMap.on(
+            'overlayadd',
+            () => {
+                const appState = this.imageryMapAppState();
+                this.imageryMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
+            },
+            this
+        );
+        this.imageryMap.on(
+            'overlayremove',
+            () => {
+                const appState = this.imageryMapAppState();
+                this.imageryMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
+            },
+            this
+        );
+
+        this.refreshImagery();
     }
 
     pressureAppState(pressureLayer, boundaryLayer, bounds, network, park) {
@@ -1178,12 +1683,12 @@ class RegionReport {
                 "~:active-base",
                 1
             ]
-        ]        
+        ]
     }
 
     pressurePreview(pressure, appBoundaryLayer, bounds, network, park) {
-        const appState = this.pressureAppState(pressure.layer, appBoundaryLayer, bounds, network.network, park);  
-        
+        const appState = this.pressureAppState(pressure.layer, appBoundaryLayer, bounds, network.network, park);
+
         return `
             <a
                 href="${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}"
@@ -1254,14 +1759,14 @@ class RegionReport {
         if (href == null) return;
 
         let targetStylesheet = null;
-    
+
         for (let i in document.styleSheets) {
             if (document.styleSheets[i].href == href) {
                 targetStylesheet = document.styleSheets[i];
                 break;
             }
         }
-        
+
         for (let i in targetStylesheet.cssRules) {
             if (targetStylesheet.cssRules[i] instanceof CSSMediaRule && targetStylesheet.cssRules[i].conditionText == 'print')
                 targetStylesheet.deleteRule(i);
