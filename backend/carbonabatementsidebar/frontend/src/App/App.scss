@@ -44,7 +44,7 @@ body {
     margin: 0;
 }
 
-:focus, :focus-visible { outline: none !important; }
+:focus, :focus-visible, :focus ~ *, :focus-visible ~ * { outline: none !important; }
 
 h1, h2, h3, h4, h5 {
     font-weight: inherit;
