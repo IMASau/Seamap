@@ -329,7 +329,7 @@
                           :opt-un [:transect/mouse-percentage :transect/distance]))
 
 ;;; Site Configuration
-(s/def :site-configuration
+(s/def ::site-configuration
   (s/map-of keyword? string?))
 
 ;;; display

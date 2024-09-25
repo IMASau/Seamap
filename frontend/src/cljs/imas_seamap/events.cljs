@@ -947,5 +947,5 @@
    * `open?`: Boolean value indicating whether the outage message overlay should be
      opened."
   [db [_ open?]]
-  (s/assert open? boolean?)
+  (s/assert boolean? open?)
   (assoc-in db [:display :outage-message-open?] open?))
