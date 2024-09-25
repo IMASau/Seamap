@@ -59,7 +59,7 @@ class LayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Layer
-        exclude = ('minx', 'miny', 'maxx', 'maxy', 'sort_key',)
+        exclude = ('minx', 'miny', 'maxx', 'maxy', 'sort_key', 'regenerate_preview')
 
 
 class BaseLayerGroupSerializer(serializers.ModelSerializer):
@@ -93,24 +93,29 @@ class RichLayerTimelineSerializer(serializers.ModelSerializer):
         model = models.RichLayerTimeline
         exclude = ('id', 'richlayer',)
 
+class RichLayerControlSerializer(serializers.ModelSerializer):
+    default_value = serializers.SerializerMethodField()
+    
+    def get_default_value(self, obj):
+        try: 
+            if obj.default_value and obj.data_type == 'number':
+                return float(obj.default_value)
+            return obj.default_value
+        except ValueError:
+            return obj.default_value
+    
+    class Meta:
+        model = models.RichLayerControl
+        exclude = ('id', 'richlayer',)
+
 class RichLayerSerializer(serializers.ModelSerializer):
-    alternate_views = serializers.SerializerMethodField()
-    timeline = serializers.SerializerMethodField()
-
-    def get_alternate_views(self, obj):
-        alternate_views = models.RichLayerAlternateView.objects \
-            .filter(richlayer=obj.id) \
-            .annotate(sort_key_null=Coalesce('sort_key', Value('zzzzzzzz'))) \
-            .order_by('sort_key_null')
-        return [RichLayerAlternateViewSerializer(v).data for v in alternate_views]
-
-    def get_timeline(self, obj):
-        timeline = models.RichLayerTimeline.objects.filter(richlayer=obj.id)
-        return [RichLayerTimelineSerializer(v).data for v in timeline]
+    alternate_views = RichLayerAlternateViewSerializer(many=True, read_only=True)
+    timeline = RichLayerTimelineSerializer(many=True, read_only=True)
+    controls = RichLayerControlSerializer(many=True, read_only=True)
 
     class Meta:
         model = models.RichLayer
-        exclude = ('id',)
+        fields = '__all__'
 
 class RegionReportSerializer(serializers.ModelSerializer):
     bounding_box = serializers.SerializerMethodField()
@@ -135,6 +140,35 @@ class PressureSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Pressure
         exclude = ('region_report',)
+
+
+class DynamicPillLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DynamicPillLayer
+        fields = ('layer', 'metadata')
+
+class DynamicPillSerializer(serializers.ModelSerializer):
+    region_control = serializers.SerializerMethodField()
+    layers = serializers.SerializerMethodField()
+
+    def get_region_control(self, obj):
+        return {
+            'cql_property': obj.region_control_cql_property,
+            'label': obj.region_control_label,
+            'data_type': obj.region_control_data_type,
+            'controller_type': obj.region_control_controller_type,
+            'icon': obj.region_control_icon,
+            'tooltip': obj.region_control_tooltip,
+            'default_value': obj.region_control_default_value,
+        }
+    
+    def get_layers(self, obj):
+        dynamic_pill_layers = models.DynamicPillLayer.objects.filter(dynamic_pill=obj)
+        return DynamicPillLayerSerializer(dynamic_pill_layers, many=True).data
+
+    class Meta:
+        model = models.DynamicPill
+        exclude = ('region_control_cql_property', 'region_control_label', 'region_control_data_type', 'region_control_controller_type', 'region_control_icon', 'region_control_tooltip', 'region_control_default_value',)
 
 
 # Not really catalogue viewsets - are they better put somewhere else (e.g. sql app?)

@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.utils
   (:require [cemerick.url :as url]
-            [clojure.set :refer [index rename-keys]]
+            [clojure.set :refer [index rename-keys] :as set]
             [clojure.string :as string]
             [clojure.walk :refer [keywordize-keys]]
             [goog.crypt.base64 :as b64]
@@ -42,21 +42,18 @@
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
   [{:keys [story-maps] map-state :map {boundaries-state :boundaries statistics-state :statistics} :state-of-knowledge :as db}]
-  (let [pruned-rich-layers
-        (reduce-kv
-         (fn [acc key {:keys [alternate-views-selected timeline-selected tab] :as _val}]
-           (let [pruned-rich-layer
-                 (cond-> {:tab tab}
-                   alternate-views-selected (assoc :alternate-views-selected alternate-views-selected)
-                   timeline-selected        (assoc :timeline-selected timeline-selected))]
-             (assoc acc key pruned-rich-layer)))
-         {} (:rich-layers map-state))
-
-        pruned-map (-> (select-keys map-state [:center :zoom :active-layers :active-base-layer :viewport-only? :bounds])
+  (let [pruned-map (-> (select-keys*
+                        map-state
+                        [[:rich-layers :states]
+                         :center
+                         :zoom
+                         :active-layers
+                         :active-base-layer
+                         :viewport-only?
+                         :bounds])
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
-                       (update :active-base :id)
-                       (assoc :rich-layers pruned-rich-layers))
+                       (update :active-base :id))
         pruned-boundaries (select-keys*
                            boundaries-state
                            [[:active-boundary]
@@ -83,10 +80,14 @@
                                       [:display :catalogue :main]
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
+                                      [:display :right-sidebars]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
                                       [:transect :query]
+                                      [:feature :location]
+                                      [:feature :leaflet-props]
+                                      [:dynamic-pills :states]
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc-in [:state-of-knowledge :boundaries] pruned-boundaries)
@@ -110,6 +111,7 @@
                  [:display :catalogue :main]
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
+                 [:display :right-sidebars]
                  [:filters :layers]
                  [:state-of-knowledge :boundaries :active-boundary]
                  [:state-of-knowledge :boundaries :active-boundary-layer]
@@ -136,7 +138,10 @@
                  [:map :zoom]
                  [:map :bounds]
                  [:map :viewport-only?]
-                 [:map :rich-layers]
+                 [:map :rich-layers :states]
+                 [:feature :location]
+                 [:feature :leaflet-props]
+                 [:dynamic-pills :states]
                  :legend-ids
                  :opacity-ids
                  :autosave?
@@ -196,7 +201,14 @@
 
 (defn append-query-params
   [url params]
-  (let [params (map (fn [[key val]] (str (name key) "=" val)) params)
+  (let [params (map
+                (fn [[key val]]
+                  (str
+                   (name key) "="
+                   (if (sequential? val)
+                     (js/JSON.stringify (clj->js val))
+                     val)))
+                params)
         params (apply str (interpose "&" params))]
     (str url "?" params)))
 
@@ -253,41 +265,32 @@
 (defn ajax-loaded-info
   "Returns db of all the info retrieved via ajax"
   [db]
-  (let [rich-layers
-        (reduce-kv
-         (fn [acc key val]
-           (assoc
-            acc
-            key
-            (assoc
-             val
-             :alternate-views-selected nil
-             :timeline-selected        nil
-             :tab                      "legend")))
-         {} (get-in db [:map :rich-layers]))]
-    (->
-     (select-keys*
-      db
-      [[:map :layers]
-       [:map :base-layers]
-       [:map :base-layer-groups]
-       [:map :grouped-base-layers]
-       [:map :organisations]
-       [:map :categories]
-       [:map :keyed-layers]
-       [:map :leaflet-map]
-       [:map :legends]
-       [:map :rich-layer-children]
-       [:state-of-knowledge :boundaries :amp :boundaries]
-       [:state-of-knowledge :boundaries :imcra :boundaries]
-       [:state-of-knowledge :boundaries :meow :boundaries]
-       [:state-of-knowledge :region-reports]
-       [:story-maps :featured-maps]
-       :habitat-colours
-       :habitat-titles
-       :sorting
-       :config])
-       (assoc-in [:map :rich-layers] rich-layers))))
+  (select-keys*
+   db
+   [[:map :layers]
+    [:map :base-layers]
+    [:map :base-layer-groups]
+    [:map :grouped-base-layers]
+    [:map :organisations]
+    [:map :categories]
+    [:map :keyed-layers]
+    [:map :leaflet-map]
+    [:map :legends]
+    [:map :rich-layer-children]
+    [:map :rich-layers :rich-layers]
+    [:map :rich-layers :async-datas]
+    [:map :rich-layers :layer-lookup]
+    [:state-of-knowledge :boundaries :amp :boundaries]
+    [:state-of-knowledge :boundaries :imcra :boundaries]
+    [:state-of-knowledge :boundaries :meow :boundaries]
+    [:state-of-knowledge :region-reports]
+    [:story-maps :featured-maps]
+    [:dynamic-pills :dynamic-pills]
+    [:dynamic-pills :async-datas]
+    :habitat-colours
+    :habitat-titles
+    :sorting
+    :config]))
 
 (defn decode-html-entities
   "Removes HTML entities from an HTML entity encoded string:
@@ -342,3 +345,16 @@
   "Returns true when string is a url."
   [value]
   (re-find #"^https?://(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?://(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,}$" value))
+
+(defn control->cql-filter [{:keys [cql-property controller-type data-type] :as _control} value]
+  (if (= controller-type "multi-dropdown")
+    (case (count value)
+      0 nil
+      1 (str cql-property "=" (when (= data-type "string") "'") (first value) (when (= data-type "string") "'"))
+      (str
+       "("
+       (apply
+        str
+        (interpose " OR " (map #(str cql-property "=" (when (= data-type "string") "'") % (when (= data-type "string") "'")) value)))
+       ")"))
+    (when value (str cql-property "=" (when (= data-type "string") "'") value (when (= data-type "string") "'")))))

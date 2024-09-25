@@ -61,7 +61,6 @@
     :sok/active-boundaries?               soksubs/active-boundaries?
     :sok/active-zones?                    soksubs/active-zones?
     :sok/open?                            soksubs/open?
-    :sok/open-pill                        soksubs/open-pill
     :sok/boundary-layer-filter            soksubs/boundary-layer-filter-fn
     :sok/region-report-url                soksubs/region-report-url
     :sm/featured-maps                     smsubs/featured-maps
@@ -72,6 +71,7 @@
     :transect/info                        subs/transect-info
     :transect/results                     subs/transect-results
     :transect.plot/show?                  subs/transect-show?
+    :display.outage-message/open?         subs/display-outage-message-open?
     :help-layer/open?                     subs/help-layer-open?
     :welcome-layer/open?                  subs/welcome-layer-open?
     :left-drawer/open?                    subs/left-drawer-open?
@@ -81,8 +81,13 @@
     :ui.catalogue/nodes                   subs/catalogue-nodes
     :ui/preview-layer-url                 subs/preview-layer-url
     :ui/sidebar                           subs/sidebar-state
+    :ui/right-sidebar                     subs/right-sidebar
+    :ui/open-pill                         subs/open-pill
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
+    :dynamic-pills                        subs/dynamic-pills
+    :site-configuration/outage-message    subs/site-configuration-outage-message
+    :site-configuration/data-providers    subs/site-configuration-data-providers
     :app/loading?                         subs/app-loading?
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
@@ -106,6 +111,10 @@
     :initialise-db                        [events/initialise-db]
     :initialise-layers                    [events/initialise-layers]
     :loading-failed                       events/loading-failed
+    :update-dynamic-pills                 events/update-dynamic-pills
+    :update-site-configuration            events/update-site-configuration
+    :update-site-configuration/error-handler events/update-site-configuration-error-handler
+    :display.outage-message/open          events/display-outage-message-open
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
@@ -137,7 +146,9 @@
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map.feature/show                     mevents/show-popup
     :map/clicked                          [mevents/map-click-dispatcher]
+    :map/feature-info-dispatcher          [mevents/feature-info-dispatcher]
     :map/get-feature-info                 [mevents/get-feature-info]
+    :map/get-feature-info-map-server-step-2 [mevents/get-feature-info-map-server-step-2] ; MapServer layers need to make an additional request to determine if they are a group layer
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
     :map/toggle-layer                     [mevents/toggle-layer]
@@ -170,10 +181,13 @@
     :map.layer.selection/finalise         [mevents/map-finalise-selection]
     :map.layer.selection/toggle           [mevents/map-toggle-selecting]
     :map.rich-layer/tab                   [mevents/rich-layer-tab]
-    :map.rich-layer/alternate-views-selected [mevents/rich-layer-alternate-views-selected]
-    :map.rich-layer/timeline-selected        [mevents/rich-layer-timeline-selected]
-    :map.rich-layer/reset-filters            [mevents/rich-layer-reset-filters]
-    :map.rich-layer/configure                [mevents/rich-layer-configure]
+    :map.rich-layer/alternate-views-selected      [mevents/rich-layer-alternate-views-selected]
+    :map.rich-layer/timeline-selected             [mevents/rich-layer-timeline-selected]
+    :map.rich-layer/control-selected              [mevents/rich-layer-control-selected]
+    :map.rich-layer/reset-filters                 [mevents/rich-layer-reset-filters]
+    :map.rich-layer/configure                     [mevents/rich-layer-configure]
+    :map.rich-layer/get-cql-filter-values         [mevents/rich-layer-get-cql-filter-values]
+    :map.rich-layer/get-cql-filter-values-success mevents/rich-layer-get-cql-filter-values-success
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups
@@ -226,7 +240,6 @@
     :sok/get-habitat-observations         [sokevents/get-habitat-observations]
     :sok/got-habitat-observations         sokevents/got-habitat-observations
     :sok/close                            [sokevents/close]
-    :sok/open-pill                        sokevents/open-pill
     :sok/get-filtered-bounds              [sokevents/get-filtered-bounds]
     :sok/got-filtered-bounds              [sokevents/got-filtered-bounds]
     :sok/habitat-toggle-show-layers       [sokevents/habitat-toggle-show-layers]
@@ -247,6 +260,11 @@
     :ui.sidebar/open                      [events/sidebar-open]
     :ui.sidebar/close                     events/sidebar-close
     :ui.sidebar/toggle                    events/sidebar-toggle
+    :ui.right-sidebar/push                events/right-sidebar-push
+    :ui.right-sidebar/pop                 events/right-sidebar-pop
+    :ui.right-sidebar/bring-to-front      events/right-sidebar-bring-to-front
+    :ui.right-sidebar/remove              events/right-sidebar-remove
+    :ui/open-pill                         events/open-pill
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
@@ -254,6 +272,10 @@
     :left-drawer/open                     [events/left-drawer-open]
     :left-drawer/close                    [events/left-drawer-close]
     :left-drawer/tab                      [events/left-drawer-tab]
+    :dynamic-pill/active                  [events/dynamic-pill-active]
+    :dynamic-pill.region-control/get-values [events/dynamic-pill-region-control-get-values]
+    :dynamic-pill.region-control/get-values-success events/dynamic-pill-region-control-get-values-success
+    :dynamic-pill.region-control/value    [events/dynamic-pill-region-control-value]
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close

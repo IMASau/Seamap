@@ -44,13 +44,17 @@ INSTALLED_APPS = (
     'corsheaders',
     'django_extensions',
     'rest_framework',
+    'tinymce',
+    'webapp',
     'catalogue',
     'habitat',
     'sql',
+    'carbonabatementsidebar',
 )
 
 MIDDLEWARE = (
     'corsheaders.middleware.CorsMiddleware',
+    'csp.middleware.CSPMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -126,9 +130,8 @@ CORS_ORIGIN_WHITELIST = []
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_URL = '/static/'
-# Just need this to keep it quiet; it isn't used:
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 SQL_ROOT = os.path.join(BASE_DIR, "../database")
 
@@ -173,3 +176,12 @@ LOGGING = {
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
+
+CSP_FRAME_ANCESTORS = ("'self'")
+CSP_SCRIPT_SRC = ("'self'")

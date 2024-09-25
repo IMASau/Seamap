@@ -6,21 +6,23 @@
             [clojure.string :as string]
             [clojure.set :as set]
             [goog.dom.xml :as gxml]
-            [imas-seamap.utils :refer [merge-in select-values first-where url?]]
+            [cljs.spec.alpha :as s]
+            [imas-seamap.utils :refer [merge-in select-values first-where url? control->cql-filter ids->layers]]
             ["proj4" :as proj4]
             [reagent.dom.server :refer [render-to-string]]
             [imas-seamap.interop.leaflet :as leaflet]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 
-(def ^:private EPSG-3112
-  (proj4
-   "+proj=lcc +lat_1=-18 +lat_2=-36 +lat_0=0 +lon_0=134 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+(def ^:private projections
+  {"EPSG:4326" (proj4 "+proj=longlat +datum=WGS84 +no_defs +type=crs")
+   "EPSG:3857" (proj4 "+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs")
+   "EPSG:3112" (proj4 "+proj=lcc +lat_0=0 +lon_0=134 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs")})
 
-(defn wgs84->epsg3112 [pt]
-  ;; pt is a vector of [lon lat]
-  (js->clj
-   (EPSG-3112.forward (clj->js pt))))
+(defn project-coords
+  [coords crs]
+  (let [projection (get projections crs)]
+    (-> coords clj->js projection.forward js->clj)))
 
 (defn bounds->projected [project-fn {:keys [north south east west] :as _bounds}]
   (let [[x0 y0] (project-fn [west south])
@@ -36,8 +38,8 @@
 (defn bounds->str
   ([bounds] (bounds->str 4326 bounds))
   ([epsg-code {:keys [north south east west] :as _bounds}]
-   (assert (integer? epsg-code))
-   (string/join "," [west south east north (str "EPSG:" epsg-code)])))
+   (assert (or (integer? epsg-code) (string? epsg-code)))
+   (string/join "," [west south east north (if (integer? epsg-code) (str "EPSG:" epsg-code) epsg-code)])))
 
 (defn bounds->geojson [{:keys [north south east west]}]
   {:type "Polygon"
@@ -115,7 +117,7 @@
   (if-not bounds
     ((get-method download-link :wfs) layer bounds download-type)
     (let [base-url (str api-url-base "habitat/subset/")
-          bounds-arg (->> bounds (bounds->projected wgs84->epsg3112) (bounds->str 3112))]
+          bounds-arg (->> bounds (bounds->projected #(project-coords % "EPSG:3112")) (bounds->str 3112))]
       (-> (url/url base-url)
           (assoc :query {:layer_id id
                          :bounds   bounds-arg
@@ -416,34 +418,134 @@
    (filter #(= (:category %) :habitat))
    seq boolean))
 
+(defn ->alternate-view [{layer-id :layer :as alternate-view} db]
+  (let [layers (get-in db [:map :layers])
+        layer  (first-where #(= (:id %) layer-id) layers)]
+    (assoc alternate-view :layer layer)))
+
+(defn ->timeline [{layer-id :layer :as timeline} db]
+  (let [layers (get-in db [:map :layers])
+        layer  (first-where #(= (:id %) layer-id) layers)]
+    (assoc timeline :layer layer)))
+
+(defn control->value [{:keys [cql-property controller-type default-value] :as _control} {:keys [id] :as _rich-layer} db]
+  (let [value  (get-in db [:map :rich-layers :states id :controls cql-property :value])
+        values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])]
+    (or
+     value
+     default-value
+     (when (= controller-type "slider") (apply max values)))))
+
+(defn control->value-map
+  "Returns a map of the control's cql-property to its value."
+  [{:keys [cql-property] :as control} rich-layer db]
+  (let [value (control->value control rich-layer db)]
+    {cql-property value}))
+
+(defn control-is-default-value? [{:keys [cql-property controller-type default-value] :as control} {:keys [id] :as rich-layer} db]
+  (let [value  (control->value control rich-layer db)
+        values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])]
+    (boolean
+     (or
+      (= value default-value)
+      (and (not default-value) (= controller-type "slider") (= value (apply max values)))))))
+
+(defn remove-incompatible-combinations
+  "Removes filter combinations that are incompatible with the current
+   filter values."
+  [filter-combinations {:keys [cql-property controller-type value]}]
+  (if value
+    (case controller-type
+      "multi-dropdown"
+      (filterv #(or (not (seq value)) (some #{(get % cql-property)} (set value))) filter-combinations)
+
+      (filterv #(= (get % cql-property) value) filter-combinations))
+    filter-combinations))
+
+(defn- ->control [{:keys [cql-property] :as control} {:keys [id controls] :as rich-layer} db]
+  (let [values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])
+        value  (control->value control rich-layer db)
+        other-controls
+        (->>
+         controls
+         (remove #(= cql-property (:cql-property %)))
+         (map #(assoc % :value (control->value % rich-layer db))))
+        filter-combinations (get-in db [:map :rich-layers :async-datas id :filter-combinations])
+        valid-filter-combinations (reduce #(remove-incompatible-combinations %1 %2) filter-combinations other-controls)
+        valid-values (set (map #(get % cql-property) valid-filter-combinations))]
+    (assoc
+     control
+     :values (mapv #(hash-map :value % :valid? (boolean (some #{%} valid-values))) values)
+     :value  value
+     :is-default-value? (control-is-default-value? control rich-layer db)
+     :cql-filter (control->cql-filter control value))))
+
+(defn rich-layer->controls-value-map
+  "Returns a map of the rich layer's controls' CQL propeties to their values.
+
+   * `rich-layer: :map.rich-layers/rich-layer`: Rich layer to get the controls from
+   * `db: :seamap/app-state`: Seamap app state
+
+   Example: `rich-layer` -> `{\"cql-property1\" 100 \"cql-property2\" 200}`"
+  [rich-layer db]
+  (s/assert :map.rich-layers/rich-layer rich-layer)
+  (apply merge (map #(control->value-map % rich-layer db) (:controls rich-layer))))
+
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
-  [{:keys [slider-label alternate-views timeline]
-    alternate-views-selected-id :alternate-views-selected
-    timeline-selected-id :timeline-selected
-    :as rich-layer}
-   rich-layers]
-  (let [alternate-views-selected  (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
-        alternate-view-rich-layer (get rich-layers alternate-views-selected-id)
-        timeline                  (or (:timeline alternate-view-rich-layer) timeline)
+  [{:keys [id slider-label alternate-views timeline controls]
+    :as rich-layer} db]
+  (let [{:keys [tab]
+         alternate-views-selected-id :alternate-views-selected
+         timeline-selected-id        :timeline-selected
+         :as state}
+        (get-in db [:map :rich-layers :states id])
+        async-data                (get-in db [:map :rich-layers :async-datas id])
+
+        alternate-views              (mapv #(->alternate-view % db) alternate-views)
+        alternate-views-selected     (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
+        alternate-view-rich-layer-id (get-in db [:map :rich-layers :layer-lookup alternate-views-selected-id])
+        alternate-view-rich-layer    (first-where #(= (:id %) alternate-view-rich-layer-id) (get-in db [:map :rich-layers :rich-layers]))
+
+        timeline                  (mapv #(->timeline % db) (or (:timeline alternate-view-rich-layer) timeline))
+        timeline-selected         (first-where #(= (get-in % [:layer :id]) timeline-selected-id) timeline)
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
-        timeline-selected         (first-where #(= (get-in % [:layer :id]) timeline-selected-id) timeline)]
+
+        controls                  (mapv #(->control % rich-layer db) controls)
+        cql-filter                (->>
+                                   controls
+                                   (map :cql-filter)
+                                   (filter identity)
+                                   (interpose " AND ")
+                                   (apply str))]
     (when rich-layer
-      (assoc
+      (->
        rich-layer
-       :alternate-views-selected alternate-views-selected
-       :timeline-selected        timeline-selected
-       :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
-       :timeline                 timeline
-       :slider-label             slider-label
-       :displayed-layer          (:layer (or timeline-selected alternate-views-selected))))))
+       (merge state)
+       (merge async-data)
+       (assoc
+        :tab                      (or tab "legend")
+        :controls                 controls
+        :alternate-views          alternate-views
+        :alternate-views-selected alternate-views-selected
+        :timeline                 timeline
+        :timeline-selected        timeline-selected
+        :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
+        :slider-label             slider-label
+        :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
+        :cql-filter               cql-filter)))))
+
+(defn layer->rich-layer [{:keys [id] :as _layer} db]
+  (let [{:keys [rich-layers layer-lookup]} (get-in db [:map :rich-layers])
+        rich-layer-id (get layer-lookup id)]
+    (first-where #(= (:id %) rich-layer-id) rich-layers)))
 
 (defn rich-layer->displayed-layer
   "If a layer is a rich-layer, then return the currently displayed layer (including
    default if no alternate view or timeline selected). If layer is not a
    rich-layer, then the layer is just returned."
-  [{:keys [id] :as layer} rich-layers]
-  (let [rich-layer (enhance-rich-layer (get rich-layers id) rich-layers)]
+  [layer db]
+  (let [rich-layer (enhance-rich-layer (layer->rich-layer layer db) db)]
     (or (:displayed-layer rich-layer) layer)))
 
 (defn rich-layer-children->parents
@@ -456,3 +558,54 @@
         (conj val)             ; add the layer into the set
         (set/union parents)))) ; add the layer's rich-layer parents into the set (if any exist)
    #{} layers))
+
+(defn layer->dynamic-pills
+  "Returns the dynamic pills for a layer."
+  [{:keys [id] :as _layer} db]
+  (let [dynamic-pills (get-in db [:dynamic-pills :dynamic-pills])]
+    (filter
+     (fn [{:keys [layers] :as _dynamic-pill}]
+       (some #{id} (set (map :layer layers))))
+     dynamic-pills)))
+
+(defn ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} {{:keys [active-layers layers]} :map :as db}]
+  (let [value (get-in db [:dynamic-pills :states id :region-control :value])
+        active-layers
+        (ids->layers
+         (set/intersection
+          (set (map :layer (:layers dynamic-pill)))
+          (set (map :id active-layers)))
+         layers)
+        displayed-layers
+        (map #(rich-layer->displayed-layer % db) active-layers)
+        displayed-rich-layer-filters (mapv #(rich-layer->controls-value-map (layer->rich-layer % db) db) displayed-layers)
+        active-layers-metadata (map (fn [layer] (:metadata (first-where #(= (:layer %) (:id layer)) (:layers dynamic-pill)))) active-layers)] ; get the metadata for the active layers, forming a list of the same arity
+    (->
+     dynamic-pill
+     (merge (get-in db [:dynamic-pills :states id]))
+     (merge (get-in db [:dynamic-pills :async-datas id]))
+     (assoc
+      :region-control
+      (->
+       region-control
+       (merge (get-in db [:dynamic-pills :states id :region-control]))
+       (merge (get-in db [:dynamic-pills :async-datas id :region-control]))))
+     (assoc
+      :expanded?
+      (=
+       (get-in db [:display :open-pill])
+       (str "dynamic-pill-" id)))
+     (assoc :active-layers active-layers)
+     (assoc :active-layers-metadata active-layers-metadata)
+     (assoc :displayed-layers displayed-layers)
+     (assoc :cql-filter (control->cql-filter region-control value))
+     (assoc :displayed-rich-layer-filters displayed-rich-layer-filters))))
+
+(defn layer->cql-filter
+  "Returns the CQL filter for a layer."
+  [layer db]
+  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db))
+        dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db)))
+        cql-filters (if rich-layer-cql-filter (conj dynamic-pills-cql-filters rich-layer-cql-filter) dynamic-pills-cql-filters)
+        cql-filter (apply str (interpose " AND " cql-filters))]
+    (when (seq cql-filter) cql-filter)))

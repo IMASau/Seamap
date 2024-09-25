@@ -5,7 +5,7 @@
   (:require [ajax.core :as ajax]
             [imas-seamap.tas-marine-atlas.db :as db]
             [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
-            [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities enhance-rich-layer]]
+            [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities rich-layer->displayed-layer]]
             [imas-seamap.tas-marine-atlas.utils :refer [encode-state parse-state ajax-loaded-info]]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -31,6 +31,7 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
+                                  :update-dynamic-pills
                                   :map/join-keyed-layers
                                   :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
@@ -59,6 +60,7 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
+                                  :update-dynamic-pills
                                   :map/join-keyed-layers
                                   :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
@@ -87,6 +89,7 @@
                                   :map/update-descriptors
                                   :map/update-categories
                                   :map/update-keyed-layers
+                                  :update-dynamic-pills
                                   :map/join-keyed-layers
                                   :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
@@ -96,7 +99,8 @@
 
 (defn construct-urls [db _]
   (let [{:keys
-         [layer
+         [site-configuration
+          layer
           base-layer
           base-layer-group
           organisation
@@ -107,14 +111,18 @@
           category
           keyed-layers
           rich-layers
+          dynamic-pills
+          layer-legend
           layer-previews
           story-maps
-          data-in-region]}
+          data-in-region
+          cql-filter-values]}
         (get-in db [:config :url-paths])
         {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
      db [:config :urls]
-     {:layer-url                 (str api-url-base layer)
+     {:site-configuration-url    (str api-url-base site-configuration)
+      :layer-url                 (str api-url-base layer)
       :base-layer-url            (str api-url-base base-layer)
       :base-layer-group-url      (str api-url-base base-layer-group)
       :organisation-url          (str api-url-base organisation)
@@ -125,9 +133,12 @@
       :category-url              (str api-url-base category)
       :keyed-layers-url          (str api-url-base keyed-layers)
       :rich-layers-url           (str api-url-base rich-layers)
+      :dynamic-pills-url         (str api-url-base dynamic-pills)
+      :layer-legend-url          (str api-url-base layer-legend)
       :layer-previews-url        (str media-url-base layer-previews)
       :story-maps-url            (str wordpress-url-base story-maps)
-      :data-in-region-url        (str api-url-base data-in-region)})))
+      :data-in-region-url        (str api-url-base data-in-region)
+      :cql-filter-values-url     (str api-url-base cql-filter-values)})))
 
 (defn boot [{:keys [save-code hash-code] {:keys [seamap-app-state]} :local-storage/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (assoc-in
@@ -167,20 +178,31 @@
         {:keys [legend-ids opacity-ids]} db
         layers        (get-in db [:map :layers])
         legends-shown (init-layer-legend-status layers legend-ids)
-        rich-layers   (get-in db [:map :rich-layers])
-        legends-get   (map
-                       (fn [{:keys [id] :as layer}]
-                         (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer rich-layers))]
-                           (or displayed-layer layer)))
-                       legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
-                          (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))]
+                          (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
+
+        feature-location      (get-in db [:feature :location])
+        feature-leaflet-props (get-in db [:feature :leaflet-props])
+        rich-layers (get-in db [:map :rich-layers :rich-layers])
+        cql-get
+        (->>
+         legend-ids
+         (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
+
+        dynamic-pills (get-in db [:dynamic-pills :dynamic-pills])
+        active-dynamic-pills (filter #(get-in db [:dynamic-pills :states (:id %) :active?]) dynamic-pills)]
     {:db         db
-     :dispatch-n (conj
+     :dispatch-n (concat
+                  []
                   (mapv #(vector :map.layer/get-legend %) legends-get)
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) cql-get)
+                  (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills)
                   [:map/update-map-view {:zoom zoom :center center}]
+                  (when (and feature-location feature-leaflet-props)
+                    [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                   [:map/popup-closed])}))
 
 (defn re-boot [{:keys [db]} _]
@@ -205,7 +227,8 @@
   (assoc-in db [:display :welcome-overlay] false))
 
 (defn initialise-layers [{:keys [db]} _]
-  (let [{:keys [layer-url
+  (let [{:keys [site-configuration-url
+                layer-url
                 base-layer-url
                 base-layer-group-url
                 organisation-url
@@ -214,9 +237,15 @@
                 category-url
                 keyed-layers-url
                 rich-layers-url
+                dynamic-pills-url
                 story-maps-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
+                   :uri             site-configuration-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-site-configuration]
+                   :on-failure      [:update-site-configuration/error-handler]}
+                  {:method          :get
                    :uri             layer-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-layers]
@@ -260,6 +289,11 @@
                    :uri             rich-layers-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-rich-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             dynamic-pills-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-dynamic-pills]
                    :on-failure      [:ajax/default-err-handler]}
                   {:method          :get
                    :uri             story-maps-url
@@ -307,23 +341,33 @@
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
         legends-shown (init-layer-legend-status layers legend-ids)
-        rich-layers   (get-in db [:map :rich-layers])
-        legends-get   (map
-                       (fn [{:keys [id] :as layer}]
-                         (let [rich-layer (get rich-layers id)
-                               {:keys [displayed-layer]} (when rich-layer (enhance-rich-layer rich-layer rich-layers))]
-                           (or displayed-layer layer)))
-                       legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
                           (assoc-in [:story-maps :featured-map] featured-map)
-                          (assoc :initialised true))]
+                          (assoc :initialised true))
+
+        feature-location      (get-in db [:feature :location])
+        feature-leaflet-props (get-in db [:feature :leaflet-props])
+        rich-layers (get-in db [:map :rich-layers :rich-layers])
+        cql-get
+        (->>
+         legend-ids
+         (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
+
+        dynamic-pills (get-in db [:dynamic-pills :dynamic-pills])
+        active-dynamic-pills (filter #(get-in db [:dynamic-pills :states (:id %) :active?]) dynamic-pills)]
     {:db         db
      :dispatch-n (concat
                   [[:ui/hide-loading]
+                   (when (and feature-location feature-leaflet-props)
+                     [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                    [:maybe-autosave]]
-                  (mapv #(vector :map.layer/get-legend %) legends-get))}))
+                  (mapv #(vector :map.layer/get-legend %) legends-get)
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) cql-get)
+                  (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills))}))
 
 (defn data-in-region-open [{:keys [db]} [_ open?]]
   {:db       (assoc-in db [:data-in-region :open?] open?)
