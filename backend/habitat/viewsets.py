@@ -1470,12 +1470,18 @@ def cql_filter_values(request):
     rich_layer = RichLayer.objects.get(id=params['rich-layer-id'])
     cql_properties = rich_layer.controls.values_list('cql_property', flat=True)
     
-    cql_property_values = rich_layer.layer.cql_property_values(cql_properties)
-    
-    return Response({
-        'values': cql_property_values['values'],
-        'filter_combinations': cql_property_values['value_combinations']
-    })
+    try:
+        cql_property_values = rich_layer.layer.cql_property_values(cql_properties)
+    except Exception:
+        return Response({
+            'values': [],
+            'filter_combinations': []
+        })
+    else:
+        return Response({
+            'values': cql_property_values['values'],
+            'filter_combinations': cql_property_values['value_combinations']
+        })
 
 @action(detail=False)
 @cache_page(60 * 15)
