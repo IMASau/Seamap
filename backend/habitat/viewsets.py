@@ -1467,7 +1467,10 @@ def cql_filter_values(request):
     
     params = {k: v or None for k, v in request.query_params.items()}
 
-    rich_layer = RichLayer.objects.get(id=params['rich-layer-id'])
+    try:
+        rich_layer = RichLayer.objects.get(id=params['rich-layer-id'])
+    except RichLayer.DoesNotExist as e:
+        raise ValidationError({"message": "'{}' is not a valid rich layer".format(params['rich-layer-id'])})
     cql_properties = rich_layer.controls.values_list('cql_property', flat=True)
     
     try:
