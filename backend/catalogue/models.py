@@ -622,9 +622,9 @@ class Layer(models.Model):
             'legend_options': 'forceLabels:on',
         }
         r = requests.get(url=self.server_url, params=params)
-        data = r.json()
         
         try:
+            data = r.json()
             legend_rules = data['Legend'][0]['rules'] # Get legend rules
             assert self.geoserver_legend_rule_to_legend_key(legend_rules[0]) # Check if the first legend rule can be converted
             return [self.geoserver_legend_rule_to_legend_key(legend_rule) for legend_rule in legend_rules] # Convert all legend rules

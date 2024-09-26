@@ -1473,18 +1473,26 @@ def cql_filter_values(request):
         raise ValidationError({"message": "'{}' is not a valid rich layer".format(params['rich-layer-id'])})
     cql_properties = rich_layer.controls.values_list('cql_property', flat=True)
     
-    try:
-        cql_property_values = rich_layer.layer.cql_property_values(cql_properties)
-    except Exception:
+    # We can only request CQL filter values for WMS layers
+    if rich_layer.layer.layer_type not in ['wms', 'wms-non-tiled']:
         return Response({
             'values': [],
             'filter_combinations': []
         })
     else:
-        return Response({
-            'values': cql_property_values['values'],
-            'filter_combinations': cql_property_values['value_combinations']
-        })
+        try:
+            cql_property_values = rich_layer.layer.cql_property_values(cql_properties)
+        except Exception:
+            # In the event the server is down, or the layer is unsupported, return an empty response
+            return Response({
+                'values': [],
+                'filter_combinations': []
+            })
+        else:
+            return Response({
+                'values': cql_property_values['values'],
+                'filter_combinations': cql_property_values['value_combinations']
+            })
 
 @action(detail=False)
 @cache_page(60 * 15)
