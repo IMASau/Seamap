@@ -346,15 +346,22 @@
   [value]
   (re-find #"^https?://(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?://(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,}$" value))
 
+(defn value->cql-filter
+  "Converts a value to a CQL filter string."
+  [cql-property data-type value]
+  (if (not= value "None")
+    (str cql-property "=" (when (= data-type "string") "'") value (when (= data-type "string") "'"))
+    (str cql-property " IS NULL")))
+
 (defn control->cql-filter [{:keys [cql-property controller-type data-type] :as _control} value]
   (if (= controller-type "multi-dropdown")
     (case (count value)
       0 nil
-      1 (str cql-property "=" (when (= data-type "string") "'") (first value) (when (= data-type "string") "'"))
+      1 (value->cql-filter cql-property data-type (first value))
       (str
        "("
        (apply
         str
-        (interpose " OR " (map #(str cql-property "=" (when (= data-type "string") "'") % (when (= data-type "string") "'")) value)))
+        (interpose " OR " (map #(value->cql-filter cql-property data-type %) value)))
        ")"))
-    (when value (str cql-property "=" (when (= data-type "string") "'") value (when (= data-type "string") "'")))))
+    (when value (value->cql-filter cql-property data-type value))))

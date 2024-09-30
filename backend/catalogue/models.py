@@ -299,10 +299,13 @@ class Layer(models.Model):
         values = [
             {
                 'cql_property': cql_property,
-                'values': sorted(set(
-                    value_combination[cql_property]
-                    for value_combination in value_combinations
-                ))
+                'values': sorted(
+                    set(
+                        value_combination[cql_property]
+                        for value_combination in value_combinations
+                    ),
+                    key=lambda x: (x is None, x)
+                )
             }
             for cql_property in cql_properties
         ]

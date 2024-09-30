@@ -457,7 +457,12 @@
   (if value
     (case controller-type
       "multi-dropdown"
-      (filterv #(or (not (seq value)) (some #{(get % cql-property)} (set value))) filter-combinations)
+      (filterv
+       (fn [filter-combination]
+         (or
+          (not (seq value)) ; if no value, then all combinations are valid
+          (some #(= % (get filter-combination cql-property)) (map #(when (not= % "None") %) value)))) ; if value, then only combinations with that value are valid ("None" is substituted back to nil)
+       filter-combinations)
 
       (filterv #(= (get % cql-property) value) filter-combinations))
     filter-combinations))
@@ -475,7 +480,13 @@
         valid-values (set (map #(get % cql-property) valid-filter-combinations))]
     (assoc
      control
-     :values (mapv #(hash-map :value % :valid? (boolean (some #{%} valid-values))) values)
+     :values
+     (mapv
+      (fn [value]
+        (hash-map
+         :value (or value "None") ; nil is substituted with "None" for the dropdown
+         :valid? (boolean (some #(= % value) valid-values))))
+      values)
      :value  value
      :is-default-value? (control-is-default-value? control rich-layer db)
      :cql-filter (control->cql-filter control value))))
