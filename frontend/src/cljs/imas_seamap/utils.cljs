@@ -129,7 +129,6 @@
                  [:state-of-knowledge :statistics :bathymetry :show-layers?]
                  [:state-of-knowledge :statistics :habitat-observations :show-layers?]
                  [:story-maps :featured-map]
-                 [:story-maps :open?]
                  [:transect :show?]
                  [:transect :query]
                  [:map :active]

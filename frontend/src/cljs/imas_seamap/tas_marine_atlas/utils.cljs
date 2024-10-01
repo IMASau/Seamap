@@ -59,7 +59,6 @@
                  [:display :right-sidebars]
                  [:filters :layers]
                  [:story-maps :featured-map]
-                 [:story-maps :open?]
                  [:transect :show?]
                  [:transect :query]
                  [:map :active]

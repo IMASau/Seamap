@@ -939,9 +939,7 @@
   (let [{{popup-x :x popup-y :y popup-lat :lat popup-lng :lng} :location} feature
         
         view-left       (+ (if (get-in db [:display :left-drawer]) 368 0) 52)
-        view-right      (if (or
-                             (boolean (get-in db [:state-of-knowledge :boundaries :active-boundary]))
-                             (get-in db [:story-maps :open?]))
+        view-right      (if (boolean (get-in db [:state-of-knowledge :boundaries :active-boundary]))
                           368 0)
         
         map-x           (/ map-width 2)
