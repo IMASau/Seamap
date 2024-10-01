@@ -73,7 +73,7 @@
                            [[:habitat :show-layers?]
                             [:bathymetry :show-layers?]
                             [:habitat-observations :show-layers?]])
-        pruned-story-maps (-> (select-keys story-maps [:featured-map :open?])
+        pruned-story-maps (-> (select-keys story-maps [:featured-map])
                               (update :featured-map :id))
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]

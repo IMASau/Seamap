@@ -23,7 +23,7 @@
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
                        (update :active-base :id))
-        pruned-story-maps (-> (select-keys story-maps [:featured-map :open?])
+        pruned-story-maps (-> (select-keys story-maps [:featured-map])
                               (update :featured-map :id))
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]

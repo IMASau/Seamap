@@ -370,8 +370,11 @@
                   (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills))}))
 
 (defn data-in-region-open [{:keys [db]} [_ open?]]
-  {:db       (assoc-in db [:data-in-region :open?] open?)
-   :dispatch [:maybe-autosave]})
+  {:dispatch-n
+   [(if open?
+      [:ui.right-sidebar/bring-to-front {:id "data-in-region" :type :data-in-region}]
+      [:ui.right-sidebar/remove {:id "data-in-region" :type :data-in-region}])
+    [:maybe-autosave]]})
 
 (defn map-start-selecting [db _]
   (-> db

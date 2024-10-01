@@ -30,7 +30,8 @@
                   [:maybe-autosave]]}))
 
 (defn featured-map-open [_ [_ open?]]
-  {:dispatch-n [(if open?
-                  [:ui.right-sidebar/bring-to-front {:id "story-map" :type :story-map}]
-                  [:ui.right-sidebar/remove {:id "story-map" :type :story-map}])
-                [:maybe-autosave]]})
+  {:dispatch-n
+   [(if open?
+      [:ui.right-sidebar/bring-to-front {:id "story-map" :type :story-map}]
+      [:ui.right-sidebar/remove {:id "story-map" :type :story-map}])
+    [:maybe-autosave]]})

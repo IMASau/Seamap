@@ -33,10 +33,8 @@
                                        :download nil}}
    :site-configuration nil
    :story-maps      {:featured-maps []
-                     :featured-map  nil
-                     :open?         false}
-   :data-in-region  {:open?    false
-                     :data     nil
+                     :featured-map  nil}
+   :data-in-region  {:data     nil
                      :query-id nil}
    :layer-state     {:loading-state {}
                      :tile-count    {}

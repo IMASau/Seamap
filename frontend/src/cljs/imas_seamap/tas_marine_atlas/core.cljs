@@ -75,7 +75,6 @@
     :info/message                         subs/user-message
     :autosave?                            subs/autosave?
     :url-base                             subs/url-base
-    :data-in-region/open?                 tmasubs/data-in-region-open?
     :data-in-region/data                  tmasubs/data-in-region}
 
    :events
