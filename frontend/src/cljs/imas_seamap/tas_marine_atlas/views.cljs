@@ -6,10 +6,10 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child autosave-application-state-toggle outage-message-dialogue]]
+            [imas-seamap.views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child autosave-application-state-toggle outage-message-dialogue right-drawer]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
-            [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
+            [imas-seamap.story-maps.views :refer [featured-maps]]
             [imas-seamap.components :as components]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -194,7 +194,7 @@
      (when active? {:class "active-layer"})
      [layer-catalogue-header {:layer layer :layer-state layer-state}]]))
 
-(defn data-in-region-drawer []
+(defmethod right-drawer :data-in-region []
   (let [{:keys [catalogue-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
         {:keys [status layers]} @(re-frame/subscribe [:data-in-region/data])
         ;; Filter out layers in region that have no category (ie, currently just placeholders)
@@ -211,7 +211,7 @@
      {:title       "Data in Region"
       :position    "right"
       :size        "368px"
-      :isOpen      @(re-frame/subscribe [:data-in-region/open?])
+      :isOpen      true
       :onClose     #(re-frame/dispatch [:data-in-region/open false])
       :hasBackdrop false
       :className   "data-in-region-drawer"}
@@ -325,8 +325,7 @@
      [info-card]
      [loading-display]
      [left-drawer]
-     [data-in-region-drawer]
-     [featured-map-drawer]
+     [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
      [layers-search-omnibar]
      [custom-leaflet-controls]
      [floating-pills]

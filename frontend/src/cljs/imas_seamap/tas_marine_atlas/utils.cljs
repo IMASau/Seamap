@@ -23,7 +23,7 @@
                        (rename-keys {:active-layers :active :active-base-layer :active-base})
                        (update :active (partial map :id))
                        (update :active-base :id))
-        pruned-story-maps (-> (select-keys story-maps [:featured-map :open?])
+        pruned-story-maps (-> (select-keys story-maps [:featured-map])
                               (update :featured-map :id))
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]
@@ -36,6 +36,8 @@
                                       [:transect :show?]
                                       [:transect :query]
                                       [:dynamic-pills :states]
+                                      [:feature :location]
+                                      [:feature :leaflet-props]
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc :story-maps pruned-story-maps))
@@ -59,7 +61,6 @@
                  [:display :right-sidebars]
                  [:filters :layers]
                  [:story-maps :featured-map]
-                 [:story-maps :open?]
                  [:transect :show?]
                  [:transect :query]
                  [:map :active]
@@ -70,6 +71,8 @@
                  [:map :viewport-only?]
                  [:map :rich-layers :states]
                  [:dynamic-pills :states]
+                 [:feature :location]
+                 [:feature :leaflet-props]
                  :legend-ids
                  :opacity-ids
                  :autosave?

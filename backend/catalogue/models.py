@@ -488,7 +488,7 @@ class Layer(models.Model):
             # single-layer case
             else:
                 legend_layer = next((legend_layer for legend_layer in data['layers'] if legend_layer['layerId'] == map_server_layer_id))
-                return [self.map_server_legend_item_to_legend_key(legend_item) for legend_item in legend_layer['legend']]
+                return [self.map_server_legend_item_to_legend_key(legend_item, legend_layer) for legend_item in legend_layer['legend']]
 
         # If the legend data cannot be retrieved, return the legend graphic image URL
         except Exception as e:

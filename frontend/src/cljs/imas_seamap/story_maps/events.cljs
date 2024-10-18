@@ -29,9 +29,9 @@
      :dispatch-n [[:sm.featured-map/open true]
                   [:maybe-autosave]]}))
 
-(defn featured-map-open [{:keys [db]} [_ open?]]
-  {:db         (assoc-in db [:story-maps :open?] open?)
-   :dispatch-n [(if open?
-                  [:ui.right-sidebar/bring-to-front {:id "story-map" :type :story-map}]
-                  [:ui.right-sidebar/remove {:id "story-map" :type :story-map}])
-                [:maybe-autosave]]})
+(defn featured-map-open [_ [_ open?]]
+  {:dispatch-n
+   [(if open?
+      [:ui.right-sidebar/bring-to-front {:id "story-map" :type :story-map}]
+      [:ui.right-sidebar/remove {:id "story-map" :type :story-map}])
+    [:maybe-autosave]]})

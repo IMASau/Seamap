@@ -36,7 +36,9 @@
                                   :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
-    {:when :seen? :events :ui/hide-loading :halt? true}
+    {:when :seen? :events :ui/hide-loading
+     :dispatch [:display.outage-message/open true]
+     :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
 (defn- boot-flow-hash-state [hash-code]
@@ -65,7 +67,9 @@
                                   :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
-    {:when :seen? :events :ui/hide-loading :halt? true}
+    {:when :seen? :events :ui/hide-loading
+     :dispatch [:display.outage-message/open true]
+     :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
 (defn- boot-flow-save-state [shortcode]
@@ -94,7 +98,9 @@
                                   :map/join-rich-layers]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
-    {:when :seen? :events :ui/hide-loading :halt? true}
+    {:when :seen? :events :ui/hide-loading
+     :dispatch [:display.outage-message/open true]
+     :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
 (defn construct-urls [db _]
@@ -370,8 +376,11 @@
                   (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills))}))
 
 (defn data-in-region-open [{:keys [db]} [_ open?]]
-  {:db       (assoc-in db [:data-in-region :open?] open?)
-   :dispatch [:maybe-autosave]})
+  {:dispatch-n
+   [(if open?
+      [:ui.right-sidebar/bring-to-front {:id "data-in-region" :type :data-in-region}]
+      [:ui.right-sidebar/remove {:id "data-in-region" :type :data-in-region}])
+    [:maybe-autosave]]})
 
 (defn map-start-selecting [db _]
   (-> db

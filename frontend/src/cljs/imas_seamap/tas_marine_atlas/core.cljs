@@ -49,7 +49,6 @@
     :sok/boundary-layer-filter            (fn [] #(identity nil))
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
-    :sm.featured-map/open?                smsubs/featured-map-open?
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
@@ -76,7 +75,6 @@
     :info/message                         subs/user-message
     :autosave?                            subs/autosave?
     :url-base                             subs/url-base
-    :data-in-region/open?                 tmasubs/data-in-region-open?
     :data-in-region/data                  tmasubs/data-in-region}
 
    :events
@@ -165,8 +163,11 @@
     :map.rich-layer/tab                   [mevents/rich-layer-tab]
     :map.rich-layer/alternate-views-selected [mevents/rich-layer-alternate-views-selected]
     :map.rich-layer/timeline-selected        [mevents/rich-layer-timeline-selected]
+    :map.rich-layer/control-selected         [mevents/rich-layer-control-selected]
     :map.rich-layer/reset-filters            [mevents/rich-layer-reset-filters]
     :map.rich-layer/configure                [mevents/rich-layer-configure]
+    :map.rich-layer/get-cql-filter-values         [mevents/rich-layer-get-cql-filter-values]
+    :map.rich-layer/get-cql-filter-values-success mevents/rich-layer-get-cql-filter-values-success
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups

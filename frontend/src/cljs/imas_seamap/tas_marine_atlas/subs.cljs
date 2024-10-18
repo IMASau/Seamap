@@ -6,9 +6,6 @@
             [imas-seamap.map.utils :refer [rich-layer-children->parents]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
-(defn data-in-region-open? [db _]
-  (get-in db [:data-in-region :open?]))
-
 (defn data-in-region [db _]
   (let [data   (get-in db [:data-in-region :data])
         layers (get-in db [:map :layers])

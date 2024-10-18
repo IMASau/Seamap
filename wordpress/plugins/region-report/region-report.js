@@ -912,9 +912,7 @@ class RegionReport {
             [
                 "^ ",
                 "~:featured-map",
-                null,
-                "~:open?",
-                false
+                null
             ],
             "~:display",
             [
@@ -1441,9 +1439,7 @@ class RegionReport {
             [
                 "^ ",
                 "~:featured-map",
-                null,
-                "~:open?",
-                false
+                null
             ],
             "~:display",
             [
@@ -1645,9 +1641,7 @@ class RegionReport {
             [
                 "^ ",
                 "~:featured-map",
-                null,
-                "~:open?",
-                false
+                null
             ],
             "~:display",
             [
