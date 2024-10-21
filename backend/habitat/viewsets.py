@@ -1515,5 +1515,13 @@ def dynamic_pill_region_control_values(request):
 @cache_page(60 * 15)
 @api_view()
 def layer_legend(request: Request, layer_id: int):
-    layer = models.Layer.objects.get(id=layer_id)
-    return Response(layer.get_legend())
+    try:
+        layer = models.Layer.objects.get(id=layer_id)
+    except models.Layer.DoesNotExist:
+        return Response("Layer not found", status=400)
+    
+    try:
+        legend = layer.get_legend()
+        return Response(legend)
+    except ValueError:
+        return Response("No legend available for this layer", status=400)
