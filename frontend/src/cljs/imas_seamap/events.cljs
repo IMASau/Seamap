@@ -221,7 +221,11 @@
   (let [parsed-state (-> (parse-state hash-code)
                          (dissoc :story-maps))
         parsed-state (-> parsed-state
-                         (update :display dissoc :left-drawer) ; discard the left drawer open/closed state
+                         (update
+                          :display
+                          dissoc
+                          :left-drawer ; discard the left drawer open/closed state
+                          :right-sidebars) ; discard the right sidebar state
                          (cond->
                           (not (get-in parsed-state [:display :left-drawer])) ; if the left drawer was closed, then discard the tab state
                            (update :display dissoc :left-drawer-tab)))
@@ -257,15 +261,15 @@
         dynamic-pills (get-in db [:dynamic-pills :dynamic-pills])
         active-dynamic-pills (filter #(get-in db [:dynamic-pills :states (:id %) :active?]) dynamic-pills)]
     {:db         db
-     :dispatch-n (concat
-                  []
-                  (mapv #(vector :map.layer/get-legend %) legends-get)
-                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) cql-get)
-                  (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills)
-                  [:map/update-map-view {:zoom zoom :center center}]
-                  (when (and feature-location feature-leaflet-props)
-                    [:map/feature-info-dispatcher feature-leaflet-props feature-location])
-                  [:map/popup-closed])}))
+     :dispatch-n
+     (concat
+      [[:map/update-map-view {:zoom zoom :center center}]
+       (when (and feature-location feature-leaflet-props)
+         [:map/feature-info-dispatcher feature-leaflet-props feature-location])
+       [:map/popup-closed]]
+      (mapv #(vector :map.layer/get-legend %) (filter identity legends-get))
+      (mapv #(vector :map.rich-layer/get-cql-filter-values %) (filter identity cql-get))
+      (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills))}))
 
 (defn re-boot [{:keys [db]} _]
   (let [db (merge-in db/default-db (ajax-loaded-info db))
