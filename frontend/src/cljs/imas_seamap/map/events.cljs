@@ -505,28 +505,42 @@
    (set (map :layer alternate-views))
    (set (map :layer timeline))))
 
+(defn- rich-layers->rich-layer-children
+  "Converts a list of rich layers to a hashmap, where the keys are the rich layer
+   children IDs, and the values are the parent rich layer IDs.
+   
+   Arguments:
+   * `rich-layers`: [{:layer-id ... :alternate-views ... :timeline ...}]
+   
+   Returns: {child-layer-id #{parent-layer-id ...}}"
+  [rich-layers]
+  (reduce
+   (fn [rich-layer-children {:keys [layer-id] :as rich-layer}]
+     (let [children (rich-layer->children rich-layer)]
+       (reduce
+        (fn [rich-layer-children child]
+          "* rich-layer-children: {child-layer-id #{parent-layer-id ...}}
+           * child: layer-id"
+          (if (get rich-layer-children child)
+            (update rich-layer-children child conj layer-id) ; if already exists, add to set
+            (assoc rich-layer-children child #{layer-id})))  ; if doesn't exist, create set
+        rich-layer-children children)))
+   {} rich-layers))
+
 (defn update-rich-layers [db [_ rich-layers]]
   (let [rich-layers (mapv ->rich-layer rich-layers)
 
-        rich-layer-children
-        (reduce
-         (fn [rich-layer-children {:keys [layer-id] :as rich-layer}]
-           (let [children (rich-layer->children rich-layer)]
-             (reduce
-              (fn [rich-layer-children child]
-                (if (get rich-layer-children child)
-                  (update rich-layer-children child conj layer-id)
-                  (assoc rich-layer-children child #{layer-id})))
-              rich-layer-children children)))
-         {} rich-layers)
+        rich-layer-children (rich-layers->rich-layer-children rich-layers)
         
-        layer-lookup
+        layer-lookup ; {layer-id rich-layer-id}
         (reduce
          (fn [layer-lookup {:keys [id layer-id] :as rich-layer}]
            (let [children (rich-layer->children rich-layer)]
              (as-> layer-lookup layer-lookup
                (assoc layer-lookup layer-id id)
-               (reduce #(assoc %1 %2 id) layer-lookup children))))
+               (reduce
+                #(if (get %1 %2) %1 (assoc %1 %2 id)) ; if child is already in the lookup, don't overwrite (e.g. if the child of the rich layer happens to be a rich layer itself)
+                layer-lookup children))))
          {} rich-layers)]
     (->
      db
