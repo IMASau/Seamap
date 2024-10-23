@@ -516,6 +516,7 @@
         alternate-views              (mapv #(->alternate-view % db) alternate-views)
         alternate-views-selected     (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
         alternate-view-rich-layer-id (get-in db [:map :rich-layers :layer-lookup alternate-views-selected-id])
+        alternate-view-rich-layer-id (when-not (= alternate-view-rich-layer-id id) alternate-view-rich-layer-id)
         alternate-view-rich-layer    (first-where #(= (:id %) alternate-view-rich-layer-id) (get-in db [:map :rich-layers :rich-layers]))
 
         timeline                  (mapv #(->timeline % db) (or (:timeline alternate-view-rich-layer) timeline))
