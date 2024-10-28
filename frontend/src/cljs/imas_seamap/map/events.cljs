@@ -764,14 +764,16 @@
                   [:map.rich-layer/get-cql-filter-values rich-layer])                                 ; then get them
                 [:maybe-autosave]]})
 
-(defn rich-layer-get-cql-filter-values [{:keys [db]} [_ {:keys [id] :as rich-layer}]]
-  {:http-xhrio
-   {:method          :get
-    :uri             (get-in db [:config :urls :cql-filter-values-url])
-    :params          {:rich-layer-id id}
-    :response-format (ajax/json-response-format)
-    :on-success      [:map.rich-layer/get-cql-filter-values-success rich-layer]
-    :on-failure      [:ajax/default-err-handler]}})
+(defn rich-layer-get-cql-filter-values [{:keys [db]} [_ {:keys [id controls] :as rich-layer}]]
+  (if (seq controls)
+    {:http-xhrio
+     {:method          :get
+      :uri             (get-in db [:config :urls :cql-filter-values-url])
+      :params          {:rich-layer-id id}
+      :response-format (ajax/json-response-format)
+      :on-success      [:map.rich-layer/get-cql-filter-values-success rich-layer]
+      :on-failure      [:ajax/default-err-handler]}}
+    {:dispatch [:map.rich-layer/get-cql-filter-values-success rich-layer {"values" {} "filter_combinations" []}]}))
 
 (defn rich-layer-get-cql-filter-values-success [db [_ {:keys [id] :as _rich-layer} {:strs [values filter_combinations]}]]
   (let [values (keywordize-keys values)]
