@@ -342,14 +342,21 @@ class Layer(models.Model):
         Note:
         - If 'label' is empty or `None`, the function falls back to using 'name'.
         """
+        
+        # Construct a legend key dictionary
+        style = {
+            'height': '100%',
+            'width': '100%'
+        }
+
+        if value_info['symbol'].get('color'):
+            style['backgroundColor'] = f"rgba({','.join(map(str, value_info['symbol']['color']))})"
+        if value_info['symbol'].get('outline'):
+            style['border'] = f"2px solid rgba({','.join(map(str, value_info['symbol']['outline']['color']))})"
+
         return {
             'label': value_info.get('label', None) or value_info.get('name'),
-            'style': {
-                'backgroundColor': f"rgba({','.join(map(str, value_info['symbol']['color']))})",
-                'border': f"2px solid rgba({','.join(map(str, value_info['symbol']['outline']['color']))})",
-                'height': '100%',
-                'width': '100%'
-            }
+            'style': style
         }
 
     def get_feature_server_legend(self) -> list[dict]:
