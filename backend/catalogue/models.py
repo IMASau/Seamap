@@ -507,6 +507,8 @@ class Layer(models.Model):
                 'format': 'image/png',
                 'transparent': True,
             }
+            if self.style:
+                params['style'] = self.style
             return requests.get(url=self.server_url, params=params).url
 
     def geoserver_legend_rule_to_legend_key(self, legend_rule: dict) -> dict:
@@ -631,6 +633,8 @@ class Layer(models.Model):
             'format': 'application/json',
             'legend_options': 'forceLabels:on',
         }
+        if self.style:
+            params['style'] = self.style
         r = requests.get(url=self.server_url, params=params)
         
         try:
@@ -648,6 +652,8 @@ class Layer(models.Model):
                 'format': 'image/png',
                 'transparent': True,
             }
+            if self.style:
+                params['style'] = self.style
             return requests.get(url=self.server_url, params=params).url
 
     def get_legend(self) -> Union[str, list[dict]]:
