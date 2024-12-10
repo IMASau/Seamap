@@ -580,8 +580,7 @@
 (defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))
         has-legend? (get-in db [:map :legends id])
-        rich-layer  (enhance-rich-layer (layer->rich-layer layer db) db)
-        has-cql-filter-values? (get-in rich-layer [:controls :values])]
+        rich-layer  (enhance-rich-layer (layer->rich-layer layer db) db)]
     {:db         db
      :dispatch-n [[:maybe-autosave]
                   ;; Retrieve layer legend data for display if we don't already have it or aren't
@@ -589,8 +588,7 @@
                   (when-not has-legend?
                     [:map.layer/get-legend layer])
                   ;; Retrieve rich layer cql filter data if we don't already have it
-                  (when (and rich-layer (not has-cql-filter-values?))
-                    [:map.rich-layer/get-cql-filter-values rich-layer])]}))
+                  [:map.rich-layer/get-cql-filter-values rich-layer]]}))
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
@@ -764,16 +762,21 @@
                   [:map.rich-layer/get-cql-filter-values rich-layer])                                 ; then get them
                 [:maybe-autosave]]})
 
-(defn rich-layer-get-cql-filter-values [{:keys [db]} [_ {:keys [id controls] :as rich-layer}]]
-  (if (seq controls)
-    {:http-xhrio
-     {:method          :get
-      :uri             (get-in db [:config :urls :cql-filter-values-url])
-      :params          {:rich-layer-id id}
-      :response-format (ajax/json-response-format)
-      :on-success      [:map.rich-layer/get-cql-filter-values-success rich-layer]
-      :on-failure      [:ajax/default-err-handler]}}
-    {:dispatch [:map.rich-layer/get-cql-filter-values-success rich-layer {"values" {} "filter_combinations" []}]}))
+(defn rich-layer-get-cql-filter-values [{:keys [db]} [_ {:keys [id] :as _rich-layer}]]
+  (let [; Check if the new displayed layer is a rich layer, and if it has cql filter values that need to be fetched
+        {:keys [displayed-layer]} (enhance-rich-layer (first-where #(= (:id %) id) (get-in db [:map :rich-layers :rich-layers])) db)
+         displayed-rich-layer (layer->rich-layer displayed-layer db)
+        has-cql-filter-values? (:values (first (get-in db [:map :rich-layers :async-datas (:id displayed-rich-layer) :controls])))]
+    (when-not has-cql-filter-values? ; If the displayed layer doesn't have cql filter values, fetch them
+      (if (seq (:controls displayed-rich-layer))
+        {:http-xhrio
+         {:method          :get
+          :uri             (get-in db [:config :urls :cql-filter-values-url])
+          :params          {:rich-layer-id (:id displayed-rich-layer)}
+          :response-format (ajax/json-response-format)
+          :on-success      [:map.rich-layer/get-cql-filter-values-success displayed-rich-layer]
+          :on-failure      [:ajax/default-err-handler]}}
+        {:dispatch [:map.rich-layer/get-cql-filter-values-success displayed-rich-layer {"values" {} "filter_combinations" []}]}))))
 
 (defn rich-layer-get-cql-filter-values-success [db [_ {:keys [id] :as _rich-layer} {:strs [values filter_combinations]}]]
   (let [values (keywordize-keys values)]
@@ -794,7 +797,7 @@
         db (assoc-in db [:map :rich-layers :states id :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
         {:keys [timeline]
          new-slider-label :slider-label}
-        (enhance-rich-layer rich-layer db)
+        (enhance-rich-layer (first-where #(= (:id %) id) (get-in db [:map :rich-layers :rich-layers])) db)
 
         ; Find a value on the new alternate view's timeline that matches the old
         ; selected value.
@@ -810,7 +813,8 @@
      :dispatch-n
      [(when
        (and alternate-views-selected (not (get-in db [:map :legends (get-in alternate-views-selected [:layer :id])])))
-        [:map.layer/get-legend (:layer alternate-views-selected)])
+        [:map.layer/get-legend (:layer alternate-views-selected)]) 
+      [:map.rich-layer/get-cql-filter-values rich-layer]
       [:maybe-autosave]]}))
 
 (defn rich-layer-timeline-selected [{:keys [db]} [_ {:keys [id layer] :as _rich-layer} timeline-selected]]
