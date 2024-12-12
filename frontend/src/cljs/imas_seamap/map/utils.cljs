@@ -467,15 +467,15 @@
       (filterv #(= (get % cql-property) value) filter-combinations))
     filter-combinations))
 
-(defn- ->control [{:keys [cql-property] :as control} rich-layer {alternate-view-rich-layer-id :id :as alternate-view-rich-layer} db]
-  (let [values (get-in db [:map :rich-layers :async-datas alternate-view-rich-layer-id :controls cql-property :values])
+(defn- ->control [{:keys [cql-property controller-type] :as control} {rich-layer-id :id :as rich-layer} {alternate-view-rich-layer-id :id :as alternate-view-rich-layer} db]
+  (let [values (get-in db [:map :rich-layers :async-datas (or alternate-view-rich-layer-id rich-layer-id) :controls cql-property :values])
         value  (control->value control rich-layer alternate-view-rich-layer db)
         other-controls
         (->>
          (or (:controls alternate-view-rich-layer) (:controls rich-layer))
          (remove #(= cql-property (:cql-property %)))
          (map #(assoc % :value (control->value % rich-layer alternate-view-rich-layer db))))
-        filter-combinations (get-in db [:map :rich-layers :async-datas alternate-view-rich-layer-id :filter-combinations])
+        filter-combinations (get-in db [:map :rich-layers :async-datas (or alternate-view-rich-layer-id rich-layer-id) :filter-combinations])
         valid-filter-combinations (reduce #(remove-incompatible-combinations %1 %2) filter-combinations other-controls)
         valid-values (set (map #(get % cql-property) valid-filter-combinations))
         values
@@ -486,7 +486,7 @@
             :valid? (boolean (some #(= % value) valid-values))))
          values)
         
-        values (if (and value (not (first-where #(= (:value %) value) values))) (conj values {:value value :valid? false}) values)]
+        values (if (and value (not= controller-type "multi-dropdown") (not (first-where #(= (:value %) value) values))) (conj values {:value value :valid? false}) values)]
     (assoc
      control
      :values values
