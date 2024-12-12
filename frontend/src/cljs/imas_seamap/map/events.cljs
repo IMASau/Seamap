@@ -764,19 +764,19 @@
 
 (defn rich-layer-get-cql-filter-values [{:keys [db]} [_ {:keys [id] :as _rich-layer}]]
   (let [; Check if the new displayed layer is a rich layer, and if it has cql filter values that need to be fetched
-        {:keys [displayed-layer]} (enhance-rich-layer (first-where #(= (:id %) id) (get-in db [:map :rich-layers :rich-layers])) db)
+        {:keys [displayed-layer] :as rich-layer} (enhance-rich-layer (first-where #(= (:id %) id) (get-in db [:map :rich-layers :rich-layers])) db)
          displayed-rich-layer (layer->rich-layer displayed-layer db)
-        has-cql-filter-values? (:values (first (get-in db [:map :rich-layers :async-datas (:id displayed-rich-layer) :controls])))]
+        has-cql-filter-values? (:values (first (get-in db [:map :rich-layers :async-datas (:id (or displayed-rich-layer rich-layer)) :controls])))]
     (when-not has-cql-filter-values? ; If the displayed layer doesn't have cql filter values, fetch them
-      (if (seq (:controls displayed-rich-layer))
+      (if (seq (:controls (or displayed-rich-layer rich-layer)))
         {:http-xhrio
          {:method          :get
           :uri             (get-in db [:config :urls :cql-filter-values-url])
-          :params          {:rich-layer-id (:id displayed-rich-layer)}
+          :params          {:rich-layer-id (:id (or displayed-rich-layer rich-layer))}
           :response-format (ajax/json-response-format)
-          :on-success      [:map.rich-layer/get-cql-filter-values-success displayed-rich-layer]
+          :on-success      [:map.rich-layer/get-cql-filter-values-success (or displayed-rich-layer rich-layer)]
           :on-failure      [:ajax/default-err-handler]}}
-        {:dispatch [:map.rich-layer/get-cql-filter-values-success displayed-rich-layer {"values" {} "filter_combinations" []}]}))))
+        {:dispatch [:map.rich-layer/get-cql-filter-values-success (or displayed-rich-layer rich-layer) {"values" {} "filter_combinations" []}]}))))
 
 (defn rich-layer-get-cql-filter-values-success [db [_ {:keys [id] :as _rich-layer} {:strs [values filter_combinations]}]]
   (let [values (keywordize-keys values)]
