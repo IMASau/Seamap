@@ -428,9 +428,9 @@
         layer  (first-where #(= (:id %) layer-id) layers)]
     (assoc timeline :layer layer)))
 
-(defn control->value [{:keys [cql-property controller-type default-value] :as _control} {:keys [id] :as _rich-layer} {alternate-view-rich-layer-id :id :as _alternate-view-rich-layer} db]
+(defn control->value [{:keys [cql-property controller-type default-value] :as _control} {:keys [id] :as _rich-layer} db]
   (let [value  (get-in db [:map :rich-layers :states id :controls cql-property :value])
-        values (get-in db [:map :rich-layers :async-datas (or alternate-view-rich-layer-id id) :controls cql-property :values])]
+        values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])]
     (or
      value
      default-value
@@ -438,13 +438,13 @@
 
 (defn control->value-map
   "Returns a map of the control's cql-property to its value."
-  [{:keys [cql-property] :as control} rich-layer alternate-view-rich-layer db]
-  (let [value (control->value control rich-layer alternate-view-rich-layer db)]
+  [{:keys [cql-property] :as control} rich-layer db]
+  (let [value (control->value control rich-layer db)]
     {cql-property value}))
 
-(defn control-is-default-value? [{:keys [cql-property controller-type default-value] :as control} {:keys [id] :as rich-layer} {alternate-view-rich-layer-id :id :as alternate-view-rich-layer} db]
-  (let [value  (control->value control rich-layer alternate-view-rich-layer db)
-        values (get-in db [:map :rich-layers :async-datas (or alternate-view-rich-layer-id id) :controls cql-property :values])]
+(defn control-is-default-value? [{:keys [cql-property controller-type default-value] :as control} {:keys [id] :as rich-layer} db]
+  (let [value  (control->value control rich-layer db)
+        values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])]
     (boolean
      (or
       (= value default-value)
@@ -467,31 +467,28 @@
       (filterv #(= (get % cql-property) value) filter-combinations))
     filter-combinations))
 
-(defn- ->control [{:keys [cql-property] :as control} rich-layer {alternate-view-rich-layer-id :id :as alternate-view-rich-layer} db]
-  (let [values (get-in db [:map :rich-layers :async-datas alternate-view-rich-layer-id :controls cql-property :values])
-        value  (control->value control rich-layer alternate-view-rich-layer db)
+(defn- ->control [{:keys [cql-property] :as control} {:keys [id controls] :as rich-layer} db]
+  (let [values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])
+        value  (control->value control rich-layer db)
         other-controls
         (->>
-         (or (:controls alternate-view-rich-layer) (:controls rich-layer))
+         controls
          (remove #(= cql-property (:cql-property %)))
-         (map #(assoc % :value (control->value % rich-layer alternate-view-rich-layer db))))
-        filter-combinations (get-in db [:map :rich-layers :async-datas alternate-view-rich-layer-id :filter-combinations])
+         (map #(assoc % :value (control->value % rich-layer db))))
+        filter-combinations (get-in db [:map :rich-layers :async-datas id :filter-combinations])
         valid-filter-combinations (reduce #(remove-incompatible-combinations %1 %2) filter-combinations other-controls)
-        valid-values (set (map #(get % cql-property) valid-filter-combinations))
-        values
-        (mapv
-         (fn [value]
-           (hash-map
-            :value (or value "None") ; nil is substituted with "None" for the dropdown
-            :valid? (boolean (some #(= % value) valid-values))))
-         values)
-        
-        values (if (and value (not (first-where #(= (:value %) value) values))) (conj values {:value value :valid? false}) values)]
+        valid-values (set (map #(get % cql-property) valid-filter-combinations))]
     (assoc
      control
-     :values values
+     :values
+     (mapv
+      (fn [value]
+        (hash-map
+         :value (or value "None") ; nil is substituted with "None" for the dropdown
+         :valid? (boolean (some #(= % value) valid-values))))
+      values)
      :value  value
-     :is-default-value? (control-is-default-value? control rich-layer alternate-view-rich-layer db)
+     :is-default-value? (control-is-default-value? control rich-layer db)
      :cql-filter (control->cql-filter control value))))
 
 (defn rich-layer->controls-value-map
@@ -501,9 +498,9 @@
    * `db: :seamap/app-state`: Seamap app state
 
    Example: `rich-layer` -> `{\"cql-property1\" 100 \"cql-property2\" 200}`"
-  [rich-layer alternate-view-rich-layer db]
+  [rich-layer db]
   (s/assert :map.rich-layers/rich-layer rich-layer)
-  (apply merge (map #(control->value-map % rich-layer alternate-view-rich-layer db) (:controls rich-layer))))
+  (apply merge (map #(control->value-map % rich-layer db) (:controls rich-layer))))
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
@@ -526,8 +523,7 @@
         timeline-selected         (first-where #(= (get-in % [:layer :id]) timeline-selected-id) timeline)
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
 
-        controls                  (mapv #(->control % rich-layer alternate-view-rich-layer db) (if alternate-view-rich-layer (:controls alternate-view-rich-layer) controls))
-
+        controls                  (mapv #(->control % rich-layer db) controls)
         cql-filter                (->>
                                    controls
                                    (map :cql-filter)
@@ -594,18 +590,7 @@
          layers)
         displayed-layers
         (map #(rich-layer->displayed-layer % db) active-layers)
-
-        displayed-rich-layer-filters
-        (mapv
-         (fn [displayed-layer]
-           (let [rich-layer (layer->rich-layer displayed-layer db)
-
-                 alternate-view-rich-layer-id (get-in db [:map :rich-layers :layer-lookup (:alternate-views-selected rich-layer)])
-                 alternate-view-rich-layer-id (when-not (= alternate-view-rich-layer-id id) alternate-view-rich-layer-id)
-                 alternate-view-rich-layer    (first-where #(= (:id %) alternate-view-rich-layer-id) (get-in db [:map :rich-layers :rich-layers]))]
-             (rich-layer->controls-value-map rich-layer alternate-view-rich-layer db)))
-         displayed-layers)
-
+        displayed-rich-layer-filters (mapv #(rich-layer->controls-value-map (layer->rich-layer % db) db) displayed-layers)
         active-layers-metadata (map (fn [layer] (:metadata (first-where #(= (:layer %) (:id layer)) (:layers dynamic-pill)))) active-layers)] ; get the metadata for the active layers, forming a list of the same arity
     (->
      dynamic-pill
