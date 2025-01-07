@@ -22,8 +22,11 @@
                           (ReactLeafletCore/createLayerComponent
                            ;; Create layer fn
                            (fn [props context]
-                             (let [instance ((-> L/default .-tileLayer .-wms) (.-url props) (clj->js props))]
-                               #js{:instance instance :context context}))
+                             (let [url (.-url props)]
+                               (js-delete props "url")
+                               (js-delete props "eventHandlers")
+                               (let [instance ((-> L/default .-tileLayer .-wms) url props)]
+                                 #js{:instance instance :context context})))
                            ;; Update layer fn
                            (fn [instance ^js/Object props ^js/Object prev-props]
                              ; TODO: More prop updates?
@@ -37,8 +40,11 @@
                           (ReactLeafletCore/createLayerComponent
                            ;; Create layer fn
                            (fn [props context]
-                             (let [instance ((-> L/default .-nonTiledLayer .-wms) (.-url props) (clj->js props))]
-                               #js{:instance instance :context context}))
+                             (let [url (.-url props)]
+                               (js-delete props "url")
+                               (js-delete props "eventHandlers")
+                               (let [instance ((-> L/default .-nonTiledLayer .-wms) url props)]
+                                 #js{:instance instance :context context})))
                            ;; Update layer fn
                            (fn [instance ^js/Object props ^js/Object prev-props]
                              ; TODO: More prop updates?
