@@ -8,4 +8,5 @@ CREATE TABLE [dbo].[catalogue_richlayercontrol] (
   [icon]            NVARCHAR(255) NULL,
   [tooltip]         NVARCHAR(255) NULL,
   [default_value]   NVARCHAR(255) NULL
+  [show_invalid]    BIT           NOT NULL DEFAULT 1
 );
