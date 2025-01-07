@@ -198,6 +198,7 @@
 (s/def :map.rich-layers.rich-layer.control/default-value
   (s/or :multi-dropdown (s/coll-of (s/or :string string? :number number?) :kind vector?)
         :default        (s/nilable (s/or :string string? :number number?))))
+(s/def :map.rich-layers.rich-layer.control/show-invalid? boolean?)
 (s/def :map.rich-layers.rich-layer/control
   (s/keys :req-un [:map.rich-layers.rich-layer.control/label
                    :map.rich-layers.rich-layer.control/icon
@@ -205,7 +206,8 @@
                    :map.rich-layers.rich-layer.control/cql-property
                    :map.rich-layers.rich-layer.control/data-type
                    :map.rich-layers.rich-layer.control/controller-type
-                   :map.rich-layers.rich-layer.control/default-value]))
+                   :map.rich-layers.rich-layer.control/default-value
+                   :map.rich-layers.rich-layer.control/show-invalid?]))
 (s/def :map.rich-layers.rich-layer/controls
   (s/coll-of :map.rich-layers.rich-layer/control :kind vector?))
 

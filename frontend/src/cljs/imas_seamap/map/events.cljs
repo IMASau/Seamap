@@ -484,7 +484,8 @@
       {:cql_property    :cql-property
        :data_type       :data-type
        :controller_type :controller-type
-       :default_value   :default-value})
+       :default_value   :default-value
+       :show_invalid    :show-invalid?})
      (assoc :default-value default_value))))
 
 (defn- ->rich-layer

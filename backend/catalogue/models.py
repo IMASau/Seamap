@@ -813,6 +813,16 @@ class RichLayerControl(models.Model):
     icon = EmptyStringToNoneField(max_length=255, null=True, blank=True)
     tooltip = EmptyStringToNoneField(max_length=255, null=True, blank=True)
     default_value = EmptyStringToNoneField(max_length=255, null=True, blank=True)
+    show_invalid = models.BooleanField(
+        default=True,
+        help_text="""
+            <p>Show invalid values in the dropdown/multi-dropdown rich layer control:</p>
+            <ol>
+                <li>If true, invalid values are visible but disabled.</li>
+                <li>If false, invalid values are not visible.</li>
+            </ol>
+        """
+    )
 
 @python_2_unicode_compatible
 class RegionReport(models.Model):

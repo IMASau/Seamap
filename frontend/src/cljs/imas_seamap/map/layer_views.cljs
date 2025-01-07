@@ -296,7 +296,7 @@
 (defmulti cql-control #(get-in % [:control :controller-type]))
 
 (defmethod cql-control "dropdown"
-  [{{:keys [label icon tooltip value values is-default-value?] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
+  [{{:keys [label icon tooltip value values is-default-value? show-invalid?] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
   [components/form-group
    {:label
     [b/tooltip
@@ -308,7 +308,7 @@
     {:on-click #(.stopPropagation %)}
     [components/select
      {:value        (first-where #(= (:value %) value) values)
-      :options      values
+      :options      (if show-invalid? values (filter :valid? values)) ; "show-invalid?" is a database flag that determines if invalid options should be shown in the dropdown
       :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected rich-layer control (:value %)])
       :isSearchable true
       :isClearable  (not is-default-value?)
@@ -318,7 +318,7 @@
        :is-disabled? #(-> % :valid? not)}}]]])
 
 (defmethod cql-control "multi-dropdown"
-  [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
+  [{{:keys [label icon tooltip value values show-invalid?] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
   [components/form-group
    {:label
     [b/tooltip
@@ -330,7 +330,7 @@
     {:on-click #(.stopPropagation %)}
     [components/select
      {:value        (filterv #(some #{(:value %)} (set value)) values)
-      :options      values
+      :options      (if show-invalid? values (filter :valid? values)) ; "show-invalid?" is a database flag that determines if invalid options should be shown in the dropdown
       :onChange     #(re-frame/dispatch [:map.rich-layer/control-selected rich-layer control (mapv :value %)])
       :isSearchable true
       :isClearable  true
