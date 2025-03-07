@@ -38,7 +38,14 @@
          Country in the Tasmania's Marine Atlas does not indicate an absence of
          connection or significance. We respect the right of Tasmanian Aboriginal people
          to self-determination and affirm their right to decide what information is
-         included in the Atlas."]]
+         included in the Atlas."]
+       [:p
+        "Learn more about the Tasmanian Aboriginal Sea Country in our "
+        [:a
+         {:href "https://storymaps.arcgis.com/stories/22672ae2d60f424f8d1e024232cfa885"
+          :target "_blank"}
+         "StoryMap"]
+        "."]]
       [b/button
        {:text       "Explore the Atlas"
         :intent     b/INTENT-PRIMARY
