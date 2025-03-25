@@ -40,11 +40,11 @@
          to self-determination and affirm their right to decide what information is
          included in the Atlas."]
        [:p
-        "Learn more about the Tasmanian Aboriginal Sea Country in our "
+        "Learn more about Sea Country and Tasmanian Aboriginal People "
         [:a
          {:href "https://storymaps.arcgis.com/stories/22672ae2d60f424f8d1e024232cfa885"
           :target "_blank"}
-         "StoryMap"]
+         "here"]
         "."]]
       [b/button
        {:text       "Explore the Atlas"
