@@ -5,10 +5,10 @@
 
 (def default-db
   {:initialised     false               ; Flag to prevent early updates
-   :map             {:center          [-27.819644755 132.133333]
+   :map             {:center          [-90 0]
                      :initial-bounds? true
                      :size            {}
-                     :zoom            4
+                     :zoom            2
                      :zoom-cutover    10
                      :bounds          {}
                      :categories      []
