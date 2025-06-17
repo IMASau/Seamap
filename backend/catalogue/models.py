@@ -92,6 +92,7 @@ CRS_CHOICES = [
     ('EPSG:4326', 'EPSG:4326'),
     ('EPSG:3857', 'EPSG:3857'),
     ('EPSG:3112', 'EPSG:3112'),
+    ('EPSG:3031', 'EPSG:3031'),
 ]
 
 
