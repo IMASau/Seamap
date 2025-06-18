@@ -1,14 +1,14 @@
 ;;; Seamap: view and interact with Australian coastal habitat data
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
-(ns imas-seamap.db)
+(ns imas-seamap.seamap-antarctica.db)
 
 (def default-db
   {:initialised     false               ; Flag to prevent early updates
-   :map             {:center          [-27.819644755 132.133333]
+   :map             {:center          [-80 -90]
                      :initial-bounds? true
                      :size            {}
-                     :zoom            4
+                     :zoom            2
                      :zoom-cutover    10
                      :bounds          {}
                      :categories      []
