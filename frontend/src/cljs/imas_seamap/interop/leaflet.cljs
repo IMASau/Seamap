@@ -12,10 +12,31 @@
             ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
             ["react-esri-leaflet/plugins/VectorTileLayer" :as VectorTileLayer]
             ["leaflet.nontiledlayer"]
+            ["leaflet.tilelayer.wmts"]
+            ["proj4leaflet" :as proj4leaflet]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (def crs-epsg4326        L/CRS.EPSG4326)
 (def crs-epsg3857        L/CRS.EPSG3857)
+(def crs-epsg3031
+  (proj4leaflet/CRS.
+   "EPSG:3031"
+   "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+   #js{:resolutions
+       #js[29917.72523676488   ; Level 0 (maps to tile matrix 3)
+           14958.862618382442  ; Level 1 (maps to tile matrix 4)
+           7479.4813091912213  ; Level 2 (maps to tile matrix 5)
+           3739.7406545956107  ; Level 3 (maps to tile matrix 6)
+           1869.8703272978053  ; Level 4 (maps to tile matrix 7)
+           934.9351636489027   ; Level 5 (maps to tile matrix 8)
+           467.46758182445134  ; Level 6 (maps to tile matrix 9)
+           233.73379091222567  ; Level 7 (maps to tile matrix 10)
+           116.86689545611284  ; Level 8 (maps to tile matrix 11)
+           58.43344772805642   ; Level 9 (maps to tile matrix 12)
+           29.216723864028208] ; Level 10 (maps to tile matrix 13)
+       :origin     #js[-30635955.4472718 30635955.4472718]
+       :bounds     (L/bounds #js[-4898635.244666547 -4903364.755333453] #js[4898864.755333463 4898864.755333455])}))
+
 (def tile-layer          (r/adapt-react-class ReactLeaflet/TileLayer))
 ;; (def wms-layer           (r/adapt-react-class ReactLeaflet/WMSTileLayer))
 (def wms-layer           (r/adapt-react-class
@@ -34,6 +55,22 @@
                                (.setOpacity instance (.-opacity props)))
                              (when (not= (.-cql_filter props) (.-cql_filter prev-props))
                                (.setParams instance (js-obj "cql_filter" (or (.-cql_filter props) "")))))))) ; ISA-574: L.TileLayer.WMS.setParams doesn't remove values when 'undefined', requiring explicit empty string for the CQL filter case
+(def wmts-layer          (r/adapt-react-class
+                          (ReactLeafletCore/createLayerComponent
+                           ;; Create layer fn
+                           (fn [props context]
+                             (let [url (.-url props)]
+                               (js-delete props "url")
+                               (js-delete props "eventHandlers")
+                               (let [instance ((-> L/default .-tileLayer .-wmts) url props)]
+                                 #js{:instance instance :context context})))
+                           ;; Update layer fn
+                           (fn [instance ^js/Object props ^js/Object prev-props]
+                                                       ; TODO: More prop updates?
+                             (when (not= (.-opacity props) (.-opacity prev-props))
+                               (.setOpacity instance (.-opacity props)))
+                             (when (not= (.-cql_filter props) (.-cql_filter prev-props))
+                               (.setParams instance (js-obj "cql_filter" (or (.-cql_filter props) ""))))))))
 (def geojson-layer       (r/adapt-react-class ReactLeaflet/GeoJSON))
 (def vector-tile-layer   (r/adapt-react-class VectorTileLayer/default))
 (def non-tiled-layer     (r/adapt-react-class
