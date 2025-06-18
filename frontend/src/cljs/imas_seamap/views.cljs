@@ -763,7 +763,7 @@
       :icon icon
       :on-click #(re-frame/dispatch [:dynamic-pill/active dynamic-pill true])}]))
 
-(defn- floating-pills []
+(defn floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
         valid-boundaries         @(re-frame/subscribe [:sok/valid-boundaries])
@@ -845,7 +845,7 @@
       :rich-layer-fn  rich-layer-fn
       :tma?           tma?}]))
 
-(defn- left-drawer []
+(defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
         {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]

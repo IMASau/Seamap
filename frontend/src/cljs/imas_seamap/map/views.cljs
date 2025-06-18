@@ -296,7 +296,7 @@
       [leaflet/map-container
        (merge
         {:id                   "map"
-         :crs                  leaflet/crs-epsg3031
+         :crs                  leaflet/crs-epsg3857
          :preferCanvas         true
          :use-fly-to           false
          :center               center
