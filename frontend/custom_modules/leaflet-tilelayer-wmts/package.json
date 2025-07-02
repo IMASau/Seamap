@@ -1,0 +1,11 @@
+{
+  "name": "leaflet.tilelayer.wmts",
+  "version": "1.0.0",
+  "description": "Leaflet WMTS tilelayer plugin with typings",
+  "main": "leaflet-tilelayer-wmts.js",
+  "author": "Alexandru Calin",
+  "license": "Beerware",
+  "devDependencies": {
+    "uglify-js": "^3.12.8"
+  }
+}

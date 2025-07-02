@@ -271,6 +271,15 @@
   [{:keys [server_url attribution]}]
   [leaflet/vector-tile-layer {:url server_url :attribution attribution}])
 
+(defmethod basemap-layer-component :wmts
+  [{:keys [server_url attribution]}]
+  [leaflet/wmts-layer
+   {:url server_url
+    :attribution attribution
+    :layer "Antarctica_and_the_Southern_Ocean" ; TODO: Should be configurable
+    :tileMatrixSet "default028mm" ; TODO: Should be configurable
+    :tileMatrixStart 3}]) ; TODO: Should be configurable
+
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])

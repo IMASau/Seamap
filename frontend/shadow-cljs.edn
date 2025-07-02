@@ -24,6 +24,7 @@
                 :closure-defines  {goog.DEBUG                            true
                                    "re_frame.trace.trace_enabled_QMARK_" true}
                 :modules          {:app {:entries [imas-seamap.core
+                                                   imas-seamap.seamap-antarctica.core
                                                    imas-seamap.tas-marine-atlas.core]}}
                 :compiler-options {:pretty-print true}
                 :devtools
@@ -38,6 +39,7 @@
                 :module-hash-names true
                 :build-options     {:manifest-name "manifest.json"}
                 :modules           {:app {:entries [imas-seamap.core
+                                                    imas-seamap.seamap-antarctica.core
                                                     imas-seamap.tas-marine-atlas.core]}}}
 
           :mindev {:target            :browser
@@ -47,6 +49,7 @@
                    :module-hash-names true
                    :build-options     {:manifest-name "manifest.json"}
                    :modules           {:app {:entries [imas-seamap.core
+                                                       imas-seamap.seamap-antarctica.core
                                                        imas-seamap.tas-marine-atlas.core]}}
                    :compiler-options  {:pseudo-names true
                                        :source-map   true}}}}

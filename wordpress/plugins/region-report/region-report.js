@@ -920,7 +920,17 @@ class RegionReport {
                 "~:left-drawer",
                 true,
                 "~:left-drawer-tab",
-                "active-layers"
+                "active-layers",
+                "~:right-sidebars",
+                [
+                    [
+                        "^ ",
+                        "^:",
+                        "state-of-knowledge",
+                        "~:type",
+                        "~:state-of-knowledge",
+                    ],
+                ],
             ],
             "~:map",
             [
@@ -1447,7 +1457,17 @@ class RegionReport {
                 "~:left-drawer",
                 true,
                 "~:left-drawer-tab",
-                "active-layers"
+                "active-layers",
+                "~:right-sidebars",
+                [
+                    [
+                        "^ ",
+                        "^:",
+                        "state-of-knowledge",
+                        "~:type",
+                        "~:state-of-knowledge",
+                    ],
+                ],
             ],
             "~:map",
             [
@@ -1649,7 +1669,17 @@ class RegionReport {
                 "~:left-drawer",
                 true,
                 "~:left-drawer-tab",
-                "active-layers"
+                "active-layers",
+                "~:right-sidebars",
+                [
+                    [
+                        "^ ",
+                        "^:",
+                        "state-of-knowledge",
+                        "~:type",
+                        "~:state-of-knowledge",
+                    ],
+                ],
             ],
             "~:map",
             [
