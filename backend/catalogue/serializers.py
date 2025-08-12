@@ -1,11 +1,19 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+from pyproj import Transformer
+import numpy
+import math
+
 import catalogue.models as models
 
 from django.db.models import Value
 from django.db.models.functions import Coalesce
 from rest_framework import serializers
+
+
+transformer = Transformer.from_crs("epsg:4326", "epsg:3031", always_xy=True)
+inverter = Transformer.from_crs("epsg:3031", "epsg:4326", always_xy=True)
 
 
 class OrganisationSerializer(serializers.ModelSerializer):
@@ -52,10 +60,31 @@ class LayerSerializer(serializers.ModelSerializer):
         return getattr(obj.organisation, 'name', None)
 
     def get_bounding_box(self, obj):
-        return {'west': float(obj.minx),
-                'south': float(obj.miny),
-                'east': float(obj.maxx),
-                'north': float(obj.maxy)}
+        # https://gis.stackexchange.com/a/197336
+        p_0 = numpy.array((float(obj.minx), float(obj.miny)))
+        p_1 = numpy.array((float(obj.minx), float(obj.maxy)))
+        p_2 = numpy.array((float(obj.maxx), float(obj.miny)))
+        p_3 = numpy.array((float(obj.maxx), float(obj.maxy)))
+        edge_samples = 11
+        _transform = lambda p: transformer.transform(p[0], p[1])
+        transformed_bounding_box = [
+        bounding_fn(
+            [_transform(
+                p_a * v + p_b * (1 - v)) for v in numpy.linspace(
+                    0, 1, edge_samples)])
+        for p_a, p_b, bounding_fn in [
+            (p_0, p_1, lambda p_list: min([p[0] for p in p_list])),
+            (p_1, p_2, lambda p_list: min([p[1] for p in p_list])),
+            (p_2, p_3, lambda p_list: max([p[0] for p in p_list])),
+            (p_3, p_0, lambda p_list: max([p[1] for p in p_list]))]]
+        # now transform back again:
+        minx,miny,maxx,maxy = transformed_bounding_box
+        minx,miny = inverter.transform(minx, miny)
+        maxx,maxy = inverter.transform(maxx, maxy)
+        return {'west': minx,
+                'south': miny,
+                'east': maxx,
+                'north': maxy}
 
     class Meta:
         model = models.Layer
