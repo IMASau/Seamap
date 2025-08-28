@@ -68,23 +68,24 @@ class LayerSerializer(serializers.ModelSerializer):
         edge_samples = 11
         _transform = lambda p: transformer.transform(p[0], p[1])
         transformed_bounding_box = [
-        bounding_fn(
-            [_transform(
-                p_a * v + p_b * (1 - v)) for v in numpy.linspace(
-                    0, 1, edge_samples)])
-        for p_a, p_b, bounding_fn in [
-            (p_0, p_1, lambda p_list: min([p[0] for p in p_list])),
-            (p_1, p_2, lambda p_list: min([p[1] for p in p_list])),
-            (p_2, p_3, lambda p_list: max([p[0] for p in p_list])),
-            (p_3, p_0, lambda p_list: max([p[1] for p in p_list]))]]
+            bounding_fn(
+                [
+                    _transform(p_a * v + p_b * (1 - v))
+                    for v in numpy.linspace(0, 1, edge_samples)
+                ]
+            )
+            for p_a, p_b, bounding_fn in [
+                (p_0, p_1, lambda p_list: min([p[0] for p in p_list])),
+                (p_1, p_2, lambda p_list: min([p[1] for p in p_list])),
+                (p_2, p_3, lambda p_list: max([p[0] for p in p_list])),
+                (p_3, p_0, lambda p_list: max([p[1] for p in p_list])),
+            ]
+        ]
         # now transform back again:
-        minx,miny,maxx,maxy = transformed_bounding_box
-        minx,miny = inverter.transform(minx, miny)
-        maxx,maxy = inverter.transform(maxx, maxy)
-        return {'west': minx,
-                'south': miny,
-                'east': maxx,
-                'north': maxy}
+        minx, miny, maxx, maxy = transformed_bounding_box
+        minx, miny = inverter.transform(minx, miny)
+        maxx, maxy = inverter.transform(maxx, maxy)
+        return {"west": minx, "south": miny, "east": maxx, "north": maxy}
 
     class Meta:
         model = models.Layer
