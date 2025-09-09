@@ -1,20 +1,24 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
-from pyproj import Transformer
-import numpy
+import logging
 import math
+
+import numpy
+from django.db.models import Value
+from django.db.models.functions import Coalesce
+from pyproj import CRS, Transformer
+from rest_framework import serializers
 
 import catalogue.models as models
 
-from django.db.models import Value
-from django.db.models.functions import Coalesce
-from rest_framework import serializers
+
+logger = logging.getLogger(__name__)
 
 
 transformer = Transformer.from_crs("epsg:4326", "epsg:3031", always_xy=True)
 inverter = Transformer.from_crs("epsg:3031", "epsg:4326", always_xy=True)
-
+crs = CRS("epsg:3031")
 
 class OrganisationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -60,7 +64,27 @@ class LayerSerializer(serializers.ModelSerializer):
         return getattr(obj.organisation, 'name', None)
 
     def get_bounding_box(self, obj):
-        # https://gis.stackexchange.com/a/197336
+        CUTOFF_RATIO = 0.5
+        usable_bbox = crs.area_of_use
+        # Hack: because we know the CRS goes from 90 to 60, to
+        # calculate the area of overlap we can just look at the
+        # vertical ratio of segments above and below the northern CRS
+        # edge:
+        crs_top = usable_bbox.north
+        if crs_top >= obj.maxy:
+            overlap_ratio = 1
+        elif crs_top <= obj.miny:
+            overlap_ratio = 0
+        else:
+            portion_above = float(obj.maxy) - crs_top
+            portion_below = crs_top - float(obj.miny)
+            overlap_ratio = portion_below / (portion_above + portion_below)
+        logger.debug(f"DEBUGGING: Layer {obj.name} ({obj.id}) overlaps with ratio {overlap_ratio:.2f} [{obj.miny}|{obj.maxy}]")
+        if overlap_ratio < CUTOFF_RATIO:
+            # return unmodified
+            return {"west": obj.minx, "south": obj.miny, "east": obj.maxx, "north": obj.maxy}
+        # print(f"Adjusting bbox for layer {obj.name} id {obj.id}")
+        # # https://gis.stackexchange.com/a/197336
         p_0 = numpy.array((float(obj.minx), float(obj.miny)))
         p_1 = numpy.array((float(obj.minx), float(obj.maxy)))
         p_2 = numpy.array((float(obj.maxx), float(obj.miny)))
