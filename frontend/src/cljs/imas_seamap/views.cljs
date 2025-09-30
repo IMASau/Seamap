@@ -854,7 +854,7 @@
       [:<>
        [:div
         [:a {:href "https://seamapaustralia.org/"}
-         [:img {:src "img/Seamap2_V2_RGB.png"}]]]
+         [:img {:src "img/SeaMapAntarctica_Logo_RGB_1000px.png"}]]]
        [b/button
         {:icon     "double-chevron-left"
          :minimal  true
