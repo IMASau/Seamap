@@ -83,9 +83,10 @@
   {:width 101 :height 101})
 
 (defmethod get-feature-info INFO-FORMAT-HTML
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
-  (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
-                  (bounds->projected #(project-coords % (-> layers first :crs)))
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size scale bounds] :as _leaflet-props} point]]
+  (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
+        projected-point  (project-coords ((juxt :lng :lat) point) layer-crs)
+        bbox (->> (bounds-for-zoom2 projected-point feature-info-image-size layer-crs scale)
                   (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
@@ -120,9 +121,10 @@
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
 (defmethod get-feature-info INFO-FORMAT-JSON
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
-  (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
-                  (bounds->projected #(project-coords % (-> layers first :crs)))
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size scale bounds zoom] :as _leaflet-props} point]]
+  (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
+        projected-point  (project-coords ((juxt :lng :lat) point) layer-crs)
+        bbox (->> (bounds-for-zoom2 projected-point feature-info-image-size layer-crs scale)
                   (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
