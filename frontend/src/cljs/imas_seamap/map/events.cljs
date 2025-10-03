@@ -35,19 +35,40 @@
   convenient option of using the map viewport for both, as provided by
   leaflet, can cause inaccuracies when zoomed out. So, we calculate a
   smaller region by using the viewport dimensions to approximate a
-  narrower pixel region."
-  [{:keys [lat lng] :as _point}
+  narrower pixel region. This method used to be used by the geoserver
+  openlayers preview."
+  [[lng lat :as _point]
    {:keys [x y] :as _map-size}
    {:keys [north south east west] :as _map-bounds}
    {:keys [width height] :as _img-size}]
-  (let [x-scale (/ (Math/abs (- west east)) x)
-        y-scale (/ (Math/abs (- north south)) y)
+  (let [x-scale (/ (- west east) x)
+        y-scale (/ (- north south) y)
         img-x-bounds (* x-scale width)
         img-y-bounds (* y-scale height)]
     {:north (+ lat (/ img-y-bounds 2))
      :south (- lat (/ img-y-bounds 2))
      :east  (+ lng (/ img-x-bounds 2))
      :west  (- lng (/ img-x-bounds 2))}))
+
+(defn bounds-for-zoom2
+  "GetFeatureInfo requires the pixel coordinates and dimensions around a
+  geographic point, to translate a click into a feature. The
+  convenient option of using the map viewport for both, as provided by
+  leaflet, can cause inaccuracies when zoomed out. So, we calculate a
+  smaller region by using the resolution (inverse of scale) to
+  construct a bounding box around the clicked point. This is the
+  method now used by OpenLayers getFeatureInfoUrl."
+  [[lng lat :as point]
+   {:keys [width height] :as img-size}
+   crs-code
+   scale]
+  (let [resolution (/ 1 scale)
+        dx (/ (* resolution width) 2)
+        dy (/ (* resolution height) 2)]
+    {:north (+ lat dy)
+     :south (- lat dy)
+     :east  (+ lng dx)
+     :west  (- lng dx)}))
 
 (def ^:const INFO-FORMAT-HTML 1)
 (def ^:const INFO-FORMAT-JSON 2)
