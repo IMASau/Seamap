@@ -23,7 +23,8 @@
    "EPSG:3031"
    "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
    ;; resolutions are extent / tilesize / 2^zoom
-   ;; where tilesize is 512 (same as OSM) and extent is 12367396.2185, extent to equator given tilesize
+   ;; where tilesize is 256; see
+   ;; https://tiles.arcgis.com/tiles/tPxy1hrFDhJfZ0Mf/arcgis/rest/services/Antarctica_and_the_Southern_Ocean/MapServer
    #js{:resolutions
        #js[29917.72523676488   ; Level 0 (maps to tile matrix 3)
            14958.862618382442  ; Level 1 (maps to tile matrix 4)
