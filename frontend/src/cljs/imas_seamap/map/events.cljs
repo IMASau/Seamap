@@ -85,7 +85,8 @@
 (defmethod get-feature-info INFO-FORMAT-HTML
   [{:keys [db]} [_ _info-format-type layers request-id {:keys [size scale bounds] :as _leaflet-props} point]]
   (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
-        projected-point  (project-coords ((juxt :lng :lat) point) layer-crs)
+        geo-point ((juxt :lng :lat) point)
+        projected-point  (project-coords geo-point "EPSG:3031")
         bbox (->> (bounds-for-zoom2 projected-point feature-info-image-size layer-crs scale)
                   (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
@@ -109,8 +110,8 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
-        :CRS           (-> layers first :crs)
-        :SRS           (-> layers first :crs)
+        :CRS           "EPSG:3031" ;(-> layers first :crs)
+        :SRS           "EPSG:3031" ;(-> layers first :crs)
         :FORMAT        "image/png"
         :INFO_FORMAT   "text/html"
         :SERVICE       "WMS"
@@ -123,7 +124,8 @@
 (defmethod get-feature-info INFO-FORMAT-JSON
   [{:keys [db]} [_ _info-format-type layers request-id {:keys [size scale bounds zoom] :as _leaflet-props} point]]
   (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
-        projected-point  (project-coords ((juxt :lng :lat) point) layer-crs)
+        geo-point ((juxt :lng :lat) point)
+        projected-point  (project-coords geo-point "EPSG:3031")
         bbox (->> (bounds-for-zoom2 projected-point feature-info-image-size layer-crs scale)
                   (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
@@ -147,8 +149,8 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
-        :CRS           (-> layers first :crs)
-        :SRS           (-> layers first :crs)
+        :CRS           "EPSG:3031" ;(-> layers first :crs)
+        :SRS           "EPSG:3031" ;(-> layers first :crs)
         :FORMAT        "image/png"
         :INFO_FORMAT   "application/json"
         :SERVICE       "WMS"

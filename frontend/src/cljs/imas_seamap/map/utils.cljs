@@ -40,7 +40,7 @@
   ([bounds] (bounds->str 4326 bounds))
   ([epsg-code {:keys [north south east west] :as _bounds}]
    (assert (or (integer? epsg-code) (string? epsg-code)))
-   (string/join "," [west south east north (if (integer? epsg-code) (str "EPSG:" epsg-code) epsg-code)])))
+   (string/join "," [west south east north #_(if (integer? epsg-code) (str "EPSG:" epsg-code) epsg-code)])))
 
 (defn bounds->geojson [{:keys [north south east west]}]
   {:type "Polygon"
