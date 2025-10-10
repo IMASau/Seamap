@@ -58,9 +58,8 @@
   smaller region by using the resolution (inverse of scale) to
   construct a bounding box around the clicked point. This is the
   method now used by OpenLayers getFeatureInfoUrl."
-  [[lng lat :as point]
-   {:keys [width height] :as img-size}
-   crs-code
+  [[lng lat :as _point]
+   {:keys [width height] :as _img-size}
    scale]
   (let [resolution (/ 1 scale)
         dx (/ (* resolution width) 2)
@@ -87,7 +86,7 @@
   (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
         geo-point ((juxt :lng :lat) point)
         projected-point  (project-coords geo-point "EPSG:3031")
-        bbox (->> (bounds-for-resolution projected-point feature-info-image-size layer-crs scale)
+        bbox (->> (bounds-for-resolution projected-point feature-info-image-size scale)
                   (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
@@ -126,7 +125,7 @@
   (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
         geo-point ((juxt :lng :lat) point)
         projected-point  (project-coords geo-point "EPSG:3031")
-        bbox (->> (bounds-for-resolution projected-point feature-info-image-size layer-crs scale)
+        bbox (->> (bounds-for-resolution projected-point feature-info-image-size scale)
                   (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
