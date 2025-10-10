@@ -50,7 +50,7 @@
      :east  (+ lng (/ img-x-bounds 2))
      :west  (- lng (/ img-x-bounds 2))}))
 
-(defn bounds-for-zoom2
+(defn bounds-for-resolution
   "GetFeatureInfo requires the pixel coordinates and dimensions around a
   geographic point, to translate a click into a feature. The
   convenient option of using the map viewport for both, as provided by
@@ -87,7 +87,7 @@
   (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
         geo-point ((juxt :lng :lat) point)
         projected-point  (project-coords geo-point "EPSG:3031")
-        bbox (->> (bounds-for-zoom2 projected-point feature-info-image-size layer-crs scale)
+        bbox (->> (bounds-for-resolution projected-point feature-info-image-size layer-crs scale)
                   (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
@@ -126,7 +126,7 @@
   (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
         geo-point ((juxt :lng :lat) point)
         projected-point  (project-coords geo-point "EPSG:3031")
-        bbox (->> (bounds-for-zoom2 projected-point feature-info-image-size layer-crs scale)
+        bbox (->> (bounds-for-resolution projected-point feature-info-image-size layer-crs scale)
                   (bounds->str (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
