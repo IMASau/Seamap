@@ -1,17 +1,14 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+import itertools
 import logging
-import math
 
 import numpy
-from django.db.models import Value
-from django.db.models.functions import Coalesce
 from pyproj import CRS, Transformer
 from rest_framework import serializers
 
 import catalogue.models as models
-
 
 logger = logging.getLogger(__name__)
 
@@ -79,34 +76,36 @@ class LayerSerializer(serializers.ModelSerializer):
             portion_above = float(obj.maxy) - crs_top
             portion_below = crs_top - float(obj.miny)
             overlap_ratio = portion_below / (portion_above + portion_below)
-        logger.debug(f"DEBUGGING: Layer {obj.name} ({obj.id}) overlaps with ratio {overlap_ratio:.2f} [{obj.miny}|{obj.maxy}]")
         if overlap_ratio < CUTOFF_RATIO:
-            # return unmodified
+            # return unmodified:
             return {"west": obj.minx, "south": obj.miny, "east": obj.maxx, "north": obj.maxy}
-        # print(f"Adjusting bbox for layer {obj.name} id {obj.id}")
-        # # https://gis.stackexchange.com/a/197336
+        # https://gis.stackexchange.com/a/197336
         p_0 = numpy.array((float(obj.minx), float(obj.miny)))
         p_1 = numpy.array((float(obj.minx), float(obj.maxy)))
         p_2 = numpy.array((float(obj.maxx), float(obj.miny)))
         p_3 = numpy.array((float(obj.maxx), float(obj.maxy)))
         edge_samples = 11
         _transform = lambda p: transformer.transform(p[0], p[1])
-        transformed_bounding_box = [
-            bounding_fn(
-                [
-                    _transform(p_a * v + p_b * (1 - v))
-                    for v in numpy.linspace(0, 1, edge_samples)
-                ]
-            )
-            for p_a, p_b, bounding_fn in [
-                (p_0, p_1, lambda p_list: min([p[0] for p in p_list])),
-                (p_1, p_2, lambda p_list: min([p[1] for p in p_list])),
-                (p_2, p_3, lambda p_list: max([p[0] for p in p_list])),
-                (p_3, p_0, lambda p_list: max([p[1] for p in p_list])),
-            ]
-        ]
+        # list of list of points for each edge; note the '+' does
+        # element-wise addition for numpy arrays, so this sneakily
+        # iterates along each edge:
+        edge_pts = [[_transform(x*i + y*(1-i)) for i in numpy.linspace(0,1,edge_samples)]
+                    for x,y in [(p_0, p_1),
+                                (p_1, p_2),
+                                (p_2, p_3),
+                                (p_3, p_0)]]
+        # Flatten out (we just want all points; "edge" isn't a useful
+        # concept at this point, we just want the extremes of each
+        # axis to construct a new bounding box from):
+        edge_pts = list( itertools.chain.from_iterable(edge_pts) )
+        xs = [p[0] for p in edge_pts]
+        ys = [p[1] for p in edge_pts]
+        minx = min(xs)
+        maxx = max(xs)
+        miny = min(ys)
+        maxy = max(ys)
+
         # now transform back again:
-        minx, miny, maxx, maxy = transformed_bounding_box
         minx, miny = inverter.transform(minx, miny)
         maxx, maxy = inverter.transform(maxx, maxy)
         return {"west": minx, "south": miny, "east": maxx, "north": maxy}
