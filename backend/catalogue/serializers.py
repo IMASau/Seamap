@@ -1,21 +1,16 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
-import itertools
+import importlib
 import logging
 
-import numpy
-from pyproj import CRS, Transformer
+from django.conf import settings
 from rest_framework import serializers
 
 import catalogue.models as models
 
 logger = logging.getLogger(__name__)
 
-
-transformer = Transformer.from_crs("epsg:4326", "epsg:3031", always_xy=True)
-inverter = Transformer.from_crs("epsg:3031", "epsg:4326", always_xy=True)
-crs = CRS("epsg:3031")
 
 class OrganisationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -61,54 +56,19 @@ class LayerSerializer(serializers.ModelSerializer):
         return getattr(obj.organisation, 'name', None)
 
     def get_bounding_box(self, obj):
-        CUTOFF_RATIO = 0.5
-        usable_bbox = crs.area_of_use
-        # Hack: because we know the CRS goes from 90 to 60, to
-        # calculate the area of overlap we can just look at the
-        # vertical ratio of segments above and below the northern CRS
-        # edge:
-        crs_top = usable_bbox.north
-        if crs_top >= obj.maxy:
-            overlap_ratio = 1
-        elif crs_top <= obj.miny:
-            overlap_ratio = 0
-        else:
-            portion_above = float(obj.maxy) - crs_top
-            portion_below = crs_top - float(obj.miny)
-            overlap_ratio = portion_below / (portion_above + portion_below)
-        if overlap_ratio < CUTOFF_RATIO:
-            # return unmodified:
-            return {"west": obj.minx, "south": obj.miny, "east": obj.maxx, "north": obj.maxy}
-        # https://gis.stackexchange.com/a/197336
-        p_0 = numpy.array((float(obj.minx), float(obj.miny)))
-        p_1 = numpy.array((float(obj.minx), float(obj.maxy)))
-        p_2 = numpy.array((float(obj.maxx), float(obj.miny)))
-        p_3 = numpy.array((float(obj.maxx), float(obj.maxy)))
-        edge_samples = 11
-        _transform = lambda p: transformer.transform(p[0], p[1])
-        # list of list of points for each edge; note the '+' does
-        # element-wise addition for numpy arrays, so this sneakily
-        # iterates along each edge:
-        edge_pts = [[_transform(x*i + y*(1-i)) for i in numpy.linspace(0,1,edge_samples)]
-                    for x,y in [(p_0, p_1),
-                                (p_1, p_2),
-                                (p_2, p_3),
-                                (p_3, p_0)]]
-        # Flatten out (we just want all points; "edge" isn't a useful
-        # concept at this point, we just want the extremes of each
-        # axis to construct a new bounding box from):
-        edge_pts = list( itertools.chain.from_iterable(edge_pts) )
-        xs = [p[0] for p in edge_pts]
-        ys = [p[1] for p in edge_pts]
-        minx = min(xs)
-        maxx = max(xs)
-        miny = min(ys)
-        maxy = max(ys)
+        # Allow customisation (currently only employed by Seamap-Antarctica)
+        if bbox_fn := getattr(settings, "BBOX_SERIALIZER", None):
+            module_name, fn_name = bbox_fn.rsplit('.', 1)
+            try:
+                plugin_module = importlib.import_module(module_name)
+                plugin_fn = getattr(plugin_module, fn_name)
+                return plugin_fn(self, obj)
+            except ModuleNotFoundError:
+                logger.error(f"Error trying to import bbox path {bbox_fn}", exc_info=True)
+                raise
 
-        # now transform back again:
-        minx, miny = inverter.transform(minx, miny)
-        maxx, maxy = inverter.transform(maxx, maxy)
-        return {"west": minx, "south": miny, "east": maxx, "north": maxy}
+        # Default:
+        return {"west": obj.minx, "south": obj.miny, "east": obj.maxx, "north": obj.maxy}
 
     class Meta:
         model = models.Layer
