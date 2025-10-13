@@ -271,7 +271,7 @@
                           {:status   :feature-info/waiting
                            :leaflet-props leaflet-props
                            :location point
-                           :show?    false}))] 
+                           :show?    false}))]
     (merge
      {:db db
       :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
