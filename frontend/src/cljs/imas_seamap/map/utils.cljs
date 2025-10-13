@@ -366,10 +366,12 @@
    :west  (. bounds getWest)})
 
 (defn leaflet-props [e]
-  (let [m (. e -target)
-        zoom (. m getZoom)]
+  (let [m    (. e -target)
+        zoom (. m getZoom)
+        crs  (-> m .-options .-crs)]
     {:zoom   zoom
-     :scale  (-> m .-options .-crs (.scale zoom))
+     :scale  (-> crs (.scale zoom))
+     :crs    (.-code crs)
      :size   (-> m (. getSize) (js->clj :keywordize-keys true) (select-keys [:x :y]))
      :center (-> m (. getCenter) latlng->vec)
      :bounds (-> m (. getBounds) bounds->map)}))
