@@ -41,7 +41,7 @@
    {:keys [x y] :as _map-size}
    {:keys [north south east west] :as _map-bounds}
    {:keys [width height] :as _img-size}]
-  (let [x-scale (/ (- west east) x)
+  (let [x-scale (/ (- east west) x)
         y-scale (/ (- north south) y)
         img-x-bounds (* x-scale width)
         img-y-bounds (* y-scale height)]
