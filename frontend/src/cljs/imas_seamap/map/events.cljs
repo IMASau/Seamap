@@ -81,13 +81,29 @@
 (def feature-info-image-size
   {:width 101 :height 101})
 
+(defn crs-map-default?
+  "Compares the map CRS with the layer CRS (which may be null).
+  Represents whether the map crs is the default; ie, if the layer
+  doesn't specify a different CRS, or it is the same as the map's.
+  Note, uses keyword arguments to avoid confusion."
+  [& {:keys [map-crs layer-crs]}]
+  ;; Just support EPSG codes for now:
+  (or (string/blank? layer-crs)
+      (= (string/lower-case map-crs) (string/lower-case layer-crs))))
+
 (defmethod get-feature-info INFO-FORMAT-HTML
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size scale bounds] :as _leaflet-props} point]]
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds] :as _leaflet-props} point]]
   (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
+        request-crs (or layer-crs crs)
         geo-point ((juxt :lng :lat) point)
-        projected-point  (project-coords geo-point "EPSG:3031")
-        bbox (->> (bounds-for-resolution projected-point feature-info-image-size scale)
-                  (bounds->str (-> layers first :crs)))
+        projected-point (project-coords geo-point request-crs)
+        bbox-bounds (if (crs-map-default? :map-crs crs
+                                          :layer-crs layer-crs)
+                      (bounds-for-resolution projected-point feature-info-image-size scale)
+                      (bounds->projected
+                       #(project-coords % request-crs)
+                       (bounds-for-zoom geo-point size bounds feature-info-image-size)))
+        bbox (bounds->str request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
@@ -109,8 +125,8 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
-        :CRS           "EPSG:3031" ;(-> layers first :crs)
-        :SRS           "EPSG:3031" ;(-> layers first :crs)
+        :CRS           request-crs
+        :SRS           request-crs
         :FORMAT        "image/png"
         :INFO_FORMAT   "text/html"
         :SERVICE       "WMS"
@@ -121,12 +137,18 @@
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
 (defmethod get-feature-info INFO-FORMAT-JSON
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size scale bounds zoom] :as _leaflet-props} point]]
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds zoom] :as _leaflet-props} point]]
   (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
+        request-crs (or layer-crs crs)
         geo-point ((juxt :lng :lat) point)
-        projected-point  (project-coords geo-point "EPSG:3031")
-        bbox (->> (bounds-for-resolution projected-point feature-info-image-size scale)
-                  (bounds->str (-> layers first :crs)))
+        projected-point (project-coords geo-point request-crs)
+        bbox-bounds (if (crs-map-default? :map-crs crs
+                                          :layer-crs layer-crs)
+                      (bounds-for-resolution projected-point feature-info-image-size scale)
+                      (bounds->projected
+                       #(project-coords % request-crs)
+                       (bounds-for-zoom projected-point size bounds feature-info-image-size)))
+        bbox (bounds->str request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
@@ -148,8 +170,8 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
-        :CRS           "EPSG:3031" ;(-> layers first :crs)
-        :SRS           "EPSG:3031" ;(-> layers first :crs)
+        :CRS           request-crs
+        :SRS           request-crs
         :FORMAT        "image/png"
         :INFO_FORMAT   "application/json"
         :SERVICE       "WMS"
