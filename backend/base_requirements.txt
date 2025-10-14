@@ -21,6 +21,6 @@ geopandas==0.9.0
 cartopy==0.22.0
 geoplot==0.5.1
 django-tinymce==4.1.0
-requests==2.32.0
+requests==2.32.4
 sqapi==0.50
 pyquery==2.0.0
