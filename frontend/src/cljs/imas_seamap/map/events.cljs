@@ -522,7 +522,11 @@
   [{:keys [controller_type default_value] :as rich-layer-control}]
   (let [default_value
         (if (= controller_type "multi-dropdown")
-          (if default_value [default_value] [])
+          (if default_value
+            (try ; we *try* to parse the default_value as JSON, but if it fails, we just use default_value as is in an array ; TODO: Disgusting hack. I'd like to replace the field with a proper JSONField in the DB, but that would entail a data migration
+              (js->clj (js/JSON.parse default_value))
+              (catch js/Error _ [default_value]))
+            [])
           default_value)]
     (->
      rich-layer-control
