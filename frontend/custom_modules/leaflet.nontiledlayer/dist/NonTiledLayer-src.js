@@ -60,12 +60,16 @@ L.NonTiledLayer.WMS = L.NonTiledLayer.extend({
 
 		var nw = this._crs.project(bounds.getNorthWest());
 		var se = this._crs.project(bounds.getSouthEast());
+		const minX = Math.min(nw.x, se.x);
+		const maxX = Math.max(nw.x, se.x);
+		const minY = Math.min(nw.y, se.y);
+		const maxY = Math.max(nw.y, se.y);
 
 		var url = this._wmsUrl;
 
 		var bbox = bbox = (this._wmsVersion >= 1.3 && this._crs === L.CRS.EPSG4326 ?
-        [se.y, nw.x, nw.y, se.x] :
-        [nw.x, se.y, se.x, nw.y]).join(',');
+        [minY, minX, maxY, maxX] :
+        [minX, minY, maxX, maxY]).join(',');
 
 		return url +
 			L.Util.getParamString(this.wmsParams, url, this.options.uppercase) +
@@ -450,8 +454,10 @@ L.NonTiledLayer = (L.Layer || L.Class).extend({
 		var pix2 = this._map.latLngToContainerPoint(bounds.getSouthEast());
 
         // get pixel size
-		var width = pix2.x - pix1.x;
-		var height = pix2.y - pix1.y;
+		// Use Math.abs() to handle polar projections where the axes may be inverted
+		// relative to standard projections, causing pix2.y < pix1.y
+		var width = Math.abs(pix2.x - pix1.x);
+		var height = Math.abs(pix2.y - pix1.y);
 
 		var i;
 		if (this._useCanvas) {
