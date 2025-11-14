@@ -752,7 +752,10 @@
 (defn update-map-view
   "Update the map view (zoom/center/bounds)
    If `instant?` is true, set the view immediately, otherwise fly to it.
-   Uses zoom/center if provided, otherwise uses bounds if provided."
+   Uses zoom/center if provided, otherwise uses bounds if provided.
+   
+   Note that zoom/center are prioritised over bounds, as bounds can be buggy in
+   stereographic polar projections."
   [{{:keys [leaflet-map] old-zoom :zoom old-center :center} :map} [_ {:keys [zoom center bounds instant?]}]]
   (when leaflet-map
     (if instant?
