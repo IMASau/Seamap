@@ -23,6 +23,8 @@ from catalogue.models import Layer
 
 Image.MAX_IMAGE_PIXELS = None
 
+# We not able to simply *add* the basemap image file to our GitHub tracking, as it's too large.
+# For now, the image will be added to deployments manually.
 basemap = Image.open(default_storage.open('land_shallow_topo_21600.tif'))
 
 def bounds_to_image_info(bounds):
