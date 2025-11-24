@@ -278,7 +278,7 @@
     :attribution attribution
     :layer "Antarctica_and_the_Southern_Ocean" ; TODO: Should be configurable
     :tileMatrixSet "default028mm" ; TODO: Should be configurable
-    :tileMatrixStart 3}]) ; TODO: Should be configurable
+    :tileMatrixLabels #js[3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]}]) ; TODO: Should be configurable
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
