@@ -85,6 +85,7 @@ LAYER_TYPE_CHOICES = [
     ('feature', 'feature'),
     ('map-server', 'map-server'),
     ('wms-non-tiled', 'wms-non-tiled'),
+    ('wmts', 'wmts'),
 ]
 
 
