@@ -6,12 +6,12 @@ export class WMTS extends L.TileLayer {
 
     const {
       layer, tileMatrixSet, style = "default", format = "image/png",
-      time, tileMatrixLabels, googleMapsCompatible = true,
+      time, tileMatrixLabels, googleMapsCompatible = true, useGetCapabilities = false,
       extraParams, baseQuery, crossOrigin, requestEncoding, ...tileLayerOpts
     } = options;
 
     if (!layer) throw new Error("WMTS: 'layer' is required.");
-    if (!tileMatrixSet) throw new Error("WMTS: 'tileMatrixSet' is required.");
+    if (!tileMatrixSet && !useGetCapabilities) throw new Error("WMTS: Either 'tileMatrixSet' or 'useGetCapabilities' is required.");
 
     L.setOptions(this, tileLayerOpts);
 
@@ -59,6 +59,12 @@ export class WMTS extends L.TileLayer {
     if (crossOrigin !== undefined) {
       this.options.crossOrigin = crossOrigin === true ? "" : crossOrigin;
     }
+
+    this._useGetCapabilities = useGetCapabilities;
+    if (useGetCapabilities) {
+      this._capabilitiesLoaded = false;
+      this._loadCapabilities();
+    }
   }
 
   createTile(coords, done) {
@@ -70,6 +76,11 @@ export class WMTS extends L.TileLayer {
   }
 
   getTileUrl(coords) {
+    if (this._useGetCapabilities && !this._capabilitiesLoaded) {
+      // Capabilities not yet loaded; return a blank tile URL.
+      return L.Util.emptyImageUrl;
+    }
+
     const z = this._tileZoom;
     const matrix = this._labels && this._labels[z] !== undefined ? this._labels[z] : z;
 
@@ -144,8 +155,54 @@ export class WMTS extends L.TileLayer {
       this._baseUrl = `${this._url}${sep}${params.baseQuery ?? ""}`;
     }
 
+    if (params.useGetCapabilities !== undefined && params.useGetCapabilities !== this._useGetCapabilities) {
+      this._useGetCapabilities = params.useGetCapabilities;
+      this._capabilitiesLoaded = false;
+      if (this._useGetCapabilities) {
+        this._loadCapabilities();
+      }
+    }
+
     if (!noRedraw) this.redraw();
     return this;
+  }
+
+  async _loadCapabilities() {
+    const capabilitiesUrl = this._baseUrl + L.Util.getParamString({
+      SERVICE: "WMTS",
+      REQUEST: "GetCapabilities",
+      VERSION: "1.0.0"
+    });
+
+    const response = await fetch(capabilitiesUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to load WMTS capabilities: ${response.statusText}`);
+    }
+    const text = await response.text();
+    const doc = new DOMParser().parseFromString(text, "application/xml");
+    const tileMatrixSetsLabels = Object.fromEntries(
+      Array.from(doc.querySelectorAll("Contents > TileMatrixSet"))
+        .map(tileMatrixSet => [
+          tileMatrixSet.querySelector("Identifier")?.textContent,
+          Array.from(tileMatrixSet.querySelectorAll("TileMatrix > Identifier"))
+            .map(tileMatrix => tileMatrix?.textContent)
+        ]));
+    const layerTileMatrixSets = Object.fromEntries(
+      Array.from(doc.querySelectorAll("Contents > Layer"))
+        .map(layer => [
+          layer.querySelector("Identifier")?.textContent,
+          layer.querySelector("TileMatrixSetLink > TileMatrixSet")?.textContent
+        ]));
+    const tileMatrixSet = layerTileMatrixSets[this._wmtsParams.LAYER];
+    const tileMatrixLabels = tileMatrixSetsLabels[tileMatrixSet];
+
+
+    this._wmtsParams.TILEMATRIXSET = String(tileMatrixSet);
+    this._rest.tileMatrixSet = String(tileMatrixSet);
+    this._labels = tileMatrixLabels;
+
+    this._capabilitiesLoaded = true;
+    this.redraw();
   }
 }
 
