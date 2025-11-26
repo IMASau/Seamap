@@ -735,6 +735,7 @@ class BaseLayer(models.Model):
     sort_key = models.CharField(max_length=10, null=True, blank=True)
     layer_group = models.ForeignKey(BaseLayerGroup, blank=True, null=True, on_delete=models.PROTECT, db_column='layer_group')
     layer_type = models.CharField(max_length=10)
+    layer_name = models.CharField(max_length = 200, help_text = "Only required for WMTS layers", blank=True, null=True)
 
     def __str__(self):
         return self.name

@@ -280,11 +280,11 @@
   [leaflet/vector-tile-layer {:url server_url :attribution attribution}])
 
 (defmethod basemap-layer-component :wmts
-  [{:keys [server_url attribution]}]
+  [{:keys [server_url attribution layer_name]}]
   [leaflet/wmts-layer
    {:url server_url
     :attribution attribution
-    :layer "Antarctica_and_the_Southern_Ocean"
+    :layer layer_name
     :useGetCapabilities true}])
 
 (defn map-component [& children]
