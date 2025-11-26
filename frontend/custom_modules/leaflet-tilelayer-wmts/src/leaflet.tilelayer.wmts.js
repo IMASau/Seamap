@@ -60,6 +60,7 @@ export class WMTS extends L.TileLayer {
       this.options.crossOrigin = crossOrigin === true ? "" : crossOrigin;
     }
 
+    // If requested, load capabilities to fill in missing info.
     this._useGetCapabilities = useGetCapabilities;
     if (useGetCapabilities) {
       this._capabilitiesLoaded = false;
@@ -158,16 +159,26 @@ export class WMTS extends L.TileLayer {
     if (params.useGetCapabilities !== undefined && params.useGetCapabilities !== this._useGetCapabilities) {
       this._useGetCapabilities = params.useGetCapabilities;
       this._capabilitiesLoaded = false;
+      // If requested, load capabilities to fill in missing info.
       if (this._useGetCapabilities) {
         this._loadCapabilities();
       }
+    }
+
+    if (params.baseQuery !== undefined) {
+      const sep = this._url.includes("?") ? "&" : "?";
+      this._baseUrl = `${this._url}${sep}${params.baseQuery ?? ""}`;
     }
 
     if (!noRedraw) this.redraw();
     return this;
   }
 
+  /**
+   * Load WMTS GetCapabilities document and extract TileMatrixSet info.
+   */
   async _loadCapabilities() {
+    // Fetch GetCapabilities document
     const capabilitiesUrl = this._baseUrl + L.Util.getParamString({
       SERVICE: "WMTS",
       REQUEST: "GetCapabilities",
@@ -176,10 +187,13 @@ export class WMTS extends L.TileLayer {
 
     const response = await fetch(capabilitiesUrl);
     if (!response.ok) {
-      throw new Error(`Failed to load WMTS capabilities: ${response.statusText}`);
+      throw new Error(`WMTS: Failed to load WMTS capabilities: ${response.statusText}`);
     }
     const text = await response.text();
     const doc = new DOMParser().parseFromString(text, "application/xml");
+
+    // Extract TileMatrixSet info
+    // The labels for all TileMatrixSets
     const tileMatrixSetsLabels = Object.fromEntries(
       Array.from(doc.querySelectorAll("Contents > TileMatrixSet"))
         .map(tileMatrixSet => [
@@ -187,19 +201,21 @@ export class WMTS extends L.TileLayer {
           Array.from(tileMatrixSet.querySelectorAll("TileMatrix > Identifier"))
             .map(tileMatrix => tileMatrix?.textContent)
         ]));
+    // Find which TileMatrixSet is used by our layer
     const layers = Object.fromEntries(
-      Array.from(doc.querySelectorAll("Contents > Layer"))
-        .map(layer => [
-          layer.querySelector("Identifier")?.textContent,
-          {
-            tileMatrixSet: layer.querySelector("TileMatrixSetLink > TileMatrixSet")?.textContent,
-            defaultStyle: layer.querySelector("Style[isDefault='true'] > Identifier")?.textContent ?? layer.querySelector("Style > Identifier")?.textContent,
-            formats: Array.from(layer.querySelectorAll("Format")).map(format => format.textContent)
-          }
-        ]));
+    Array.from(doc.querySelectorAll("Contents > Layer"))
+      .map(layer => [
+        layer.querySelector("Identifier")?.textContent,
+        {
+          tileMatrixSet: layer.querySelector("TileMatrixSetLink > TileMatrixSet")?.textContent,
+          defaultStyle: layer.querySelector("Style[isDefault='true'] > Identifier")?.textContent ?? layer.querySelector("Style > Identifier")?.textContent,
+          formats: Array.from(layer.querySelectorAll("Format")).map(format => format.textContent),
+          // If we wanted, we could extract more info here (e.g. min and max row and col for
+          // each tile matrix)
+        }
+      ]));
     const layer = layers[this._wmtsParams.LAYER];
-    const tileMatrixLabels = tileMatrixSetsLabels[layer.tileMatrixSet];
-
+    const tileMatrixLabels = tileMatrixSetsLabels[layer.tileMatrixSet]; // The labels for the set used by our layer
 
     // Only set params that were not explicitly provided.
     // We make the assumption that even if the user explicitly provided "default" for
@@ -222,6 +238,7 @@ export class WMTS extends L.TileLayer {
       this._labels = tileMatrixLabels;
     }
 
+    // Finish
     this._capabilitiesLoaded = true;
     this.redraw();
   }
