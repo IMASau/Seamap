@@ -36,9 +36,9 @@ export class WMTS extends L.TileLayer {
       REQUEST: "GetTile",
       VERSION: "1.0.0",
       LAYER: String(layer),
-      STYLE: String(style),
-      TILEMATRIXSET: String(tileMatrixSet),
-      FORMAT: String(format),
+      STYLE: style ? String(style) : undefined,
+      TILEMATRIXSET: tileMatrixSet ? String(tileMatrixSet) : undefined,
+      FORMAT: format ? String(format) : undefined,
       WIDTH: String(size.x),
       HEIGHT: String(size.y)
     };
@@ -51,9 +51,9 @@ export class WMTS extends L.TileLayer {
 
     this._rest = {
       layer: String(layer),
-      style: String(style),
+      style: style ? String(style) : undefined,
       time: time ? String(time) : undefined,
-      tileMatrixSet: String(tileMatrixSet)
+      tileMatrixSet: tileMatrixSet ? String(tileMatrixSet) : undefined
     };
 
     if (crossOrigin !== undefined) {
@@ -187,19 +187,40 @@ export class WMTS extends L.TileLayer {
           Array.from(tileMatrixSet.querySelectorAll("TileMatrix > Identifier"))
             .map(tileMatrix => tileMatrix?.textContent)
         ]));
-    const layerTileMatrixSets = Object.fromEntries(
+    const layers = Object.fromEntries(
       Array.from(doc.querySelectorAll("Contents > Layer"))
         .map(layer => [
           layer.querySelector("Identifier")?.textContent,
-          layer.querySelector("TileMatrixSetLink > TileMatrixSet")?.textContent
+          {
+            tileMatrixSet: layer.querySelector("TileMatrixSetLink > TileMatrixSet")?.textContent,
+            defaultStyle: layer.querySelector("Style[isDefault='true'] > Identifier")?.textContent ?? layer.querySelector("Style > Identifier")?.textContent,
+            formats: Array.from(layer.querySelectorAll("Format")).map(format => format.textContent)
+          }
         ]));
-    const tileMatrixSet = layerTileMatrixSets[this._wmtsParams.LAYER];
-    const tileMatrixLabels = tileMatrixSetsLabels[tileMatrixSet];
+    const layer = layers[this._wmtsParams.LAYER];
+    const tileMatrixLabels = tileMatrixSetsLabels[layer.tileMatrixSet];
 
 
-    this._wmtsParams.TILEMATRIXSET = String(tileMatrixSet);
-    this._rest.tileMatrixSet = String(tileMatrixSet);
-    this._labels = tileMatrixLabels;
+    // Only set params that were not explicitly provided.
+    // We make the assumption that even if the user explicitly provided "default" for
+    // style, they probably want whatever the server labels as the default style for
+    // that layer.
+    if (this._wmtsParams.STYLE === "default") {
+      this._wmtsParams.STYLE = String(layer.defaultStyle);
+      this._rest.style = String(layer.defaultStyle);
+    }
+    if (!this._wmtsParams.TILEMATRIXSET) {
+      this._wmtsParams.TILEMATRIXSET = String(layer.tileMatrixSet);
+      this._rest.tileMatrixSet = String(layer.tileMatrixSet);
+    }
+    // User could have explicitly provided format as image/png, so this is a hack to
+    // only override if it's not supported.
+    if (this._wmtsParams.FORMAT === "image/png" && !layer.formats.includes("image/png")) {
+      this._wmtsParams.FORMAT = String(layer.formats[0]);
+    }
+    if (!this._labels) {
+      this._labels = tileMatrixLabels;
+    }
 
     this._capabilitiesLoaded = true;
     this.redraw();

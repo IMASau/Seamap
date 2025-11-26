@@ -267,8 +267,7 @@
    {:url server_url
     :layer layer_name
     :useGetCapabilities true
-    :opacity (/ (layer-opacities layer) 100)
-    :style ""}])
+    :opacity (/ (layer-opacities layer) 100)}])
 
 (defmulti basemap-layer-component :layer_type)
 
