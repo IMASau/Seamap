@@ -6314,9 +6314,8 @@ esri-leaflet-cluster@^3.0.0:
   integrity sha512-aAj2Bv7Lv8e4uK/BLT5EJlIizk+28NSSYbkYcPT+HYrnmLwog01V7pGxGOmI3HMpDMTjlt8WE9DpygMy6TIwQQ==
 
 "esri-leaflet-renderers@link:./custom_modules/esri-leaflet-renderers":
-  version "3.0.0"
-  optionalDependencies:
-    esri-leaflet-cluster "^3.0.0"
+  version "0.0.0"
+  uid ""
 
 esri-leaflet-vector@3.1.5:
   version "3.1.5"
@@ -6326,10 +6325,8 @@ esri-leaflet-vector@3.1.5:
     mapbox-gl "1.13.1"
 
 "esri-leaflet@link:./custom_modules/esri-leaflet":
-  version "3.0.11"
-  dependencies:
-    "@terraformer/arcgis" "^2.1.0"
-    tiny-binary-search "^1.0.3"
+  version "0.0.0"
+  uid ""
 
 estraverse@^4.1.1:
   version "4.3.0"
@@ -8457,10 +8454,8 @@ leaflet-draw@^1.0.4:
   integrity sha512-rsQ6saQO5ST5Aj6XRFylr5zvarWgzWnrg46zQ1MEOEIHsppdC/8hnN8qMoFvACsPvTioAuysya/TVtog15tyAQ==
 
 "leaflet-easyprint@link:./custom_modules/leaflet-easyprint":
-  version "2.1.8"
-  dependencies:
-    dom-to-image "^2.5.2"
-    file-saver "^1.3.3"
+  version "0.0.0"
+  uid ""
 
 leaflet-shape-markers@^1.0.6:
   version "1.0.6"
@@ -8469,15 +8464,13 @@ leaflet-shape-markers@^1.0.6:
   dependencies:
     leaflet "^1.0.0"
 
-leaflet.nontiledlayer@1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/leaflet.nontiledlayer/-/leaflet.nontiledlayer-1.0.9.tgz#ed50e894579285f088a9939b131f9806b03ee419"
-  integrity sha512-w4yeTLNFhTToAmGQ7P9cAiGFVwVLJzuO3A/tFNMWRVYl1BLvrvlqY7hKE33pmmeoQ6m5ZsWd0qbdYq/d+zBuUQ==
-  dependencies:
-    leaflet "^1.6.0"
+"leaflet.nontiledlayer@link:./custom_modules/leaflet.nontiledlayer":
+  version "0.0.0"
+  uid ""
 
 "leaflet.tilelayer.wmts@link:./custom_modules/leaflet-tilelayer-wmts":
-  version "1.0.0"
+  version "0.0.0"
+  uid ""
 
 leaflet@1.9.0:
   version "1.9.0"
