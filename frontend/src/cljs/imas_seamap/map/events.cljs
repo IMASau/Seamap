@@ -749,15 +749,22 @@
 
     (assoc-in db [:map :leaflet-map] leaflet-map)))
 
-(defn update-map-view [{{:keys [leaflet-map] old-zoom :zoom old-center :center} :map} [_ {:keys [zoom center bounds instant?]}]] 
+(defn update-map-view
+  "Update the map view (zoom/center/bounds)
+   If `instant?` is true, set the view immediately, otherwise fly to it.
+   Uses zoom/center if provided, otherwise uses bounds if provided.
+   
+   Note that zoom/center are prioritised over bounds, as bounds can be buggy in
+   stereographic polar projections."
+  [{{:keys [leaflet-map] old-zoom :zoom old-center :center} :map} [_ {:keys [zoom center bounds instant?]}]]
   (when leaflet-map
     (if instant?
-      (do
-        (when (or zoom (seq center)) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom)))
-        (when (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js))))
-      (do
-        (when (or zoom (seq center)) (.flyTo leaflet-map (clj->js (if (seq center) center old-center)) (or zoom old-zoom)))
-        (when (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js))))))
+      (cond
+        (or zoom (seq center)) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom))
+        (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js)))
+      (cond
+        (or zoom (seq center)) (.flyTo leaflet-map (clj->js (if (seq center) center old-center)) (or zoom old-zoom))
+        (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js)))))
   nil)
 
 (defn map-view-updated [{:keys [db]} [_ {:keys [zoom size center bounds]}]]
