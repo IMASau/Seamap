@@ -8468,14 +8468,7 @@ leaflet-shape-markers@^1.0.6:
   dependencies:
     leaflet "^1.0.0"
 
-leaflet.nontiledlayer@1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/leaflet.nontiledlayer/-/leaflet.nontiledlayer-1.0.9.tgz#ed50e894579285f088a9939b131f9806b03ee419"
-  integrity sha512-w4yeTLNFhTToAmGQ7P9cAiGFVwVLJzuO3A/tFNMWRVYl1BLvrvlqY7hKE33pmmeoQ6m5ZsWd0qbdYq/d+zBuUQ==
-  dependencies:
-    leaflet "^1.6.0"
-
-"leaflet.tilelayer.wmts@link:./custom_modules/leaflet-tilelayer-wmts":
+"leaflet.nontiledlayer@link:./custom_modules/leaflet.nontiledlayer":
   version "0.0.0"
   uid ""
 
