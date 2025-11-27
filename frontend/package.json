@@ -17,7 +17,7 @@
     "leaflet-draw": "^1.0.4",
     "leaflet-easyprint": "link:./custom_modules/leaflet-easyprint",
     "leaflet-shape-markers": "^1.0.6",
-    "leaflet.tilelayer.wmts": "link:./custom_modules/leaflet-tilelayer-wmts",
+    "@alcalin/leaflet-tilelayer-wmts": "link:./custom_modules/leaflet-tilelayer-wmts",
     "leaflet.nontiledlayer": "link:./custom_modules/leaflet.nontiledlayer",
     "proj4": "^2.7.5",
     "proj4leaflet": "^1.0.2",

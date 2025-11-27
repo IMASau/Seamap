@@ -12,7 +12,7 @@
             ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
             ["react-esri-leaflet/plugins/VectorTileLayer" :as VectorTileLayer]
             ["leaflet.nontiledlayer"]
-            ["leaflet.tilelayer.wmts"]
+            ["@alcalin/leaflet-tilelayer-wmts" :refer [wmts]]
             ["proj4leaflet" :as proj4leaflet]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -76,7 +76,7 @@
                              (let [url (.-url props)]
                                (js-delete props "url")
                                (js-delete props "eventHandlers")
-                               (let [instance ((-> L/default .-tileLayer .-wmts) url props)]
+                               (let [instance (wmts url props)]
                                  #js{:instance instance :context context})))
                            ;; Update layer fn
                            (fn [instance ^js/Object props ^js/Object prev-props]

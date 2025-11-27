@@ -261,6 +261,14 @@
     (boundary-filter layer)
     (when cql-filter {:cql_filter cql-filter}))])
 
+(defmethod layer-component :wmts
+  [{:keys [layer-opacities layer] {:keys [server_url layer_name]} :displayed-layer}]
+  [leaflet/wmts-layer
+   {:url server_url
+    :layer layer_name
+    :useGetCapabilities true
+    :opacity (/ (layer-opacities layer) 100)}])
+
 (defmulti basemap-layer-component :layer_type)
 
 (defmethod basemap-layer-component :tile
@@ -272,13 +280,12 @@
   [leaflet/vector-tile-layer {:url server_url :attribution attribution}])
 
 (defmethod basemap-layer-component :wmts
-  [{:keys [server_url attribution]}]
+  [{:keys [server_url attribution layer_name]}]
   [leaflet/wmts-layer
    {:url server_url
     :attribution attribution
-    :layer "Antarctica_and_the_Southern_Ocean" ; TODO: Should be configurable
-    :tileMatrixSet "default028mm" ; TODO: Should be configurable
-    :tileMatrixStart 3}]) ; TODO: Should be configurable
+    :layer layer_name
+    :useGetCapabilities true}])
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
