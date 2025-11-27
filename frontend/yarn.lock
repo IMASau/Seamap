@@ -8475,6 +8475,10 @@ leaflet.nontiledlayer@1.0.9:
   dependencies:
     leaflet "^1.6.0"
 
+"leaflet.tilelayer.wmts@link:./custom_modules/leaflet-tilelayer-wmts":
+  version "0.0.0"
+  uid ""
+
 leaflet@1.9.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/leaflet/-/leaflet-1.9.0.tgz#4f5adf5ad392107935a20a24298e877520691c1e"
