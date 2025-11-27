@@ -109,4 +109,5 @@ admin.site.register(models.DynamicPill, DynamicPillAdmin)
 class SquidleAnnotationsDataAdmin(admin.ModelAdmin):
     readonly_fields = ('last_modified',)
     ordering = ('-last_modified',)
+    list_display = ('network', 'park', 'depth_zone', 'highlights',)
 admin.site.register(models.SquidleAnnotationsData, SquidleAnnotationsDataAdmin)
