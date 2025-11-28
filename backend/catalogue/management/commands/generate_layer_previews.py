@@ -1,25 +1,38 @@
-from django.core.management.base import BaseCommand
-from django.core.files.storage import default_storage
-from django.core.files import File
-from urllib.request import urlopen
-from urllib.parse import urlencode
-from urllib.error import HTTPError
-from PIL import Image, UnidentifiedImageError
-from io import BytesIO
+# Seamap: view and interact with Australian coastal habitat data
+# Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
+# Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+
+"""
+Management command to generate layer previews.
+"""
+import base64
+import functools
 import logging
 import re
+from io import BytesIO
+from urllib.error import HTTPError
+from urllib.parse import urlencode
+from urllib.request import urlopen
+
 import geopandas
 import geoplot
-import matplotlib.pyplot as plt
-import base64
 import matplotlib.image as mpimg
-import functools
+import matplotlib.pyplot as plt
+from catalogue.emails import email_generate_layer_preview_summary
+from catalogue.models import Layer
+from django.core.files import File
+from django.core.files.storage import default_storage
+from django.core.management.base import BaseCommand
 from matplotlib.image import BboxImage
 from matplotlib.transforms import Bbox, TransformedBbox
-from shapely.geometry import shape, LineString, MultiLineString, Polygon, MultiPolygon
-from catalogue.emails import email_generate_layer_preview_summary
+from PIL import Image, UnidentifiedImageError
+from shapely.geometry import (LineString, MultiLineString, MultiPolygon,
+                              Polygon, shape)
 
-from catalogue.models import Layer
+# pylint: disable=line-too-long
+# pylint: disable=missing-function-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=redefined-outer-name
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -59,7 +72,7 @@ def cropped_basemap_image(north, south, east, west) -> Image:
     upper = basemap_longitude_to_pixel(north)
     lower = basemap_longitude_to_pixel(south)
 
-    if (left > right):
+    if left > right:
         left_img = basemap.crop((left, upper, basemap.width + right, lower))
         right_img = basemap.crop((0, upper, right, lower))
         left_img.paste(right_img, (left_img.width - right, 0))
@@ -130,12 +143,12 @@ def geoserver_retrieve_image(layer: Layer, horizontal_subdivisions: int=1, verti
             try:
                 response = urlopen(url)
             except HTTPError as e:
-                raise Exception(f"URL {url} returned an error response") from e
+                raise RuntimeError(f"URL {url} returned an error response") from e
 
             try:
                 sub_image = Image.open(response)
             except UnidentifiedImageError as e:
-                raise Exception(f"Response from URL {url} could not be converted to an image") from e
+                raise RuntimeError(f"Response from URL {url} could not be converted to an image") from e
 
             sub_image = sub_image.convert('RGBA')
 
@@ -153,16 +166,16 @@ def wms_layer_image(layer: Layer, horizontal_subdivisions: int, vertical_subdivi
     if horizontal_subdivisions or vertical_subdivisions:
         try:
             return geoserver_retrieve_image(layer, horizontal_subdivisions, vertical_subdivisions)
-        except Exception as e:
-            raise Exception(f"Could not retrieve image in {horizontal_subdivisions}x{vertical_subdivisions} subdivisions") from e
+        except RuntimeError as e:
+            raise RuntimeError(f"Could not retrieve image in {horizontal_subdivisions}x{vertical_subdivisions} subdivisions") from e
     else:
         try:
             return geoserver_retrieve_image(layer)
-        except Exception as e:
+        except RuntimeError as e:
             try:
                 return geoserver_retrieve_image(layer, 40, 40)
-            except Exception as e:
-                raise Exception("Could not retrieve image in single request or in 40x40 subdivisions") from e
+            except RuntimeError as e:
+                raise RuntimeError("Could not retrieve image in single request or in 40x40 subdivisions") from e
 
 def drawing_info_to_opacity(drawing_info) -> float:
     return (100 - drawing_info.get('transparency', 0)) / 100
@@ -232,7 +245,7 @@ def symbol_to_marker_image(symbol):
         return mpimg.imread(i, format=symbol['imageData'].split('/')[-1])
 
 def add_marker_image_point(ax, marker_image, point):
-    bb = Bbox.from_bounds(point.x-0.5, point.y-0.5, 1, 1)  
+    bb = Bbox.from_bounds(point.x-0.5, point.y-0.5, 1, 1)
     bb2 = TransformedBbox(bb, ax.transData)
     bbox_image = BboxImage(
         bb2,
@@ -264,11 +277,11 @@ def compare_unique_value_infos(unique_value_info1, unique_value_info2) -> int:
 
     try:
         opacity1 = unique_value_info1['symbol']['color'][3]
-    except:
+    except (KeyError, IndexError):
         opacity1 = 255
     try:
         opacity2 = unique_value_info2['symbol']['color'][3]
-    except:
+    except (KeyError, IndexError):
         opacity2 = 255
 
     if style1 == 'esriSFSSolid' and style2 != 'esriSFSSolid':
@@ -291,7 +304,7 @@ def mapserver_vector_layer_image(layer: Layer) -> Image:
         geojson = layer.geojson('*')
     else:
         raise ValueError(f"renderer_type '{renderer_type}' not handled")
-    
+
     for feature in geojson['features']:
         feature['properties'] = feature['properties'] or {}
 
@@ -329,7 +342,7 @@ def mapserver_vector_layer_image(layer: Layer) -> Image:
             )
 
             if symbol.get('imageData'):
-                for i, row in gdf.iterrows():
+                for _, row in gdf.iterrows():
                     add_marker_image_point(ax, marker_image, row['geometry'])
         else:
             raise ValueError(f"plot_type '{plot_type}' not handled")
@@ -370,7 +383,7 @@ def mapserver_vector_layer_image(layer: Layer) -> Image:
                 )
 
                 if symbol.get('imageData'):
-                    for i, row in filtered_gdf.iterrows():
+                    for _, row in filtered_gdf.iterrows():
                         add_marker_image_point(ax, marker_image, row['geometry'])
             else:
                 raise ValueError(f"plot_type '{plot_type}' not handled")
@@ -437,10 +450,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        layer_id = int(options['layer_id']) if options['layer_id'] != None else None
-        skip_existing = options['skip_existing'].lower() in ['t', 'true'] if options['skip_existing'] != None else False
-        horizontal_subdivisions = int(options['horizontal_subdivisions']) if options['horizontal_subdivisions'] != None else None
-        vertical_subdivisions = int(options['vertical_subdivisions']) if options['vertical_subdivisions'] != None else None
+        layer_id = int(options['layer_id']) if options['layer_id'] is not None else None
+        skip_existing = options['skip_existing'].lower() in ['t', 'true'] if options['skip_existing'] is not None else False
+        horizontal_subdivisions = int(options['horizontal_subdivisions']) if options['horizontal_subdivisions'] is not None else None
+        vertical_subdivisions = int(options['vertical_subdivisions']) if options['vertical_subdivisions'] is not None else None
         errors = []
 
         if layer_id is not None:
@@ -450,8 +463,8 @@ class Command(BaseCommand):
             if not skip_existing or not default_storage.exists(filepath):
                 try:
                     generate_layer_preview(layer, horizontal_subdivisions, vertical_subdivisions)
-                except Exception as e:
-                    logging.error(f"Error processing layer {layer.id}", exc_info=e)
+                except Exception as e: # pylint: disable=broad-except
+                    logging.error("Error processing layer %s", layer.id, exc_info=e)
                     errors.append({'layer': layer, 'e': e})
         else:
             for layer in Layer.objects.all():
@@ -464,16 +477,17 @@ class Command(BaseCommand):
                 if not exists or (layer.regenerate_preview and not skip_existing):
                     try:
                         generate_layer_preview(layer, horizontal_subdivisions, vertical_subdivisions)
-                    except Exception as e:
-                        logging.error(f"Error processing layer {layer.id}", exc_info=e)
+                    except Exception as e: # pylint: disable=broad-except
+                        logging.error("Error processing layer %s", layer.id, exc_info=e)
                         errors.append({'layer': layer, 'e': e})
 
-        if len(errors):
-            logging.warn("Failed to retrieve the following layers: \n{}".format(
+        if errors:
+            logging.warning(
+                "Failed to retrieve the following layers: \n%s",
                 '\n'.join(
                     [f" • {error['layer'].name} ({error['layer'].id})" for error in errors]
                 )
-            ))
+            )
 
             if not layer_id:
                 email_generate_layer_preview_summary(errors)
