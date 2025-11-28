@@ -18,9 +18,11 @@ import geopandas
 import geoplot
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
+import numpy
+import rasterio
+from rasterio import transform, warp
 from catalogue.emails import email_generate_layer_preview_summary
 from catalogue.models import Layer
-from django.core.files import File
 from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand
 from matplotlib.image import BboxImage
@@ -38,7 +40,10 @@ Image.MAX_IMAGE_PIXELS = None
 
 # We not able to simply *add* the basemap image file to our GitHub tracking, as it's too large.
 # For now, the image will be added to deployments manually.
-basemap = Image.open(default_storage.open('land_shallow_topo_21600.tif'))
+BASEMAP_FILEPATH = default_storage.path('land_shallow_topo_21600.tif')
+BASEMAP_CRS = "EPSG:4326"
+BASEMAP_BOUNDS = (-180, -90, 180, 90)
+DST_WIDTH = 386
 
 def bounds_to_image_info(bounds):
     x_delta = (bounds['east'] - bounds['west'] + 360) % 360
@@ -56,29 +61,58 @@ def bounds_to_image_info(bounds):
         'aspect_ratio': aspect_ratio
     }
 
-def basemap_latitude_to_pixel(latitude):
-    t = 0.5 + (latitude / 360)
-    return round(basemap.width * t)
 
+def get_basemap_cropped_basemap_image(min_x: float, min_y: float, max_x: float, max_y: float, target_crs: str) -> Image:
+    """
+    Generate a cropped basemap image in the target CRS.
+    
+    Args:
+        min_x (float): Minimum x coordinate (in target CRS)
+        min_y (float): Minimum y coordinate (in target CRS)
+        max_x (float): Maximum x coordinate (in target CRS)
+        max_y (float): Maximum y coordinate (in target CRS)
+        target_crs (str): Target coordinate reference system (e.g. "EPSG:3031")
+    Returns:
+        Image: Cropped basemap image in the target CRS.
+    """
+    dst_resolution = (max_x - min_x) / DST_WIDTH
+    dst_height = int((max_y - min_y) / dst_resolution)
+    dst_transform = transform.from_bounds(min_x, min_y, max_x, max_y, DST_WIDTH, dst_height)
+    with rasterio.open(BASEMAP_FILEPATH) as basemap_src:
+        src_crs = rasterio.crs.CRS.from_string(BASEMAP_CRS)
+        src_transform = transform.from_bounds(*BASEMAP_BOUNDS, width=basemap_src.width, height=basemap_src.height)
+        profile = basemap_src.profile.copy()
+        profile.update({
+            "crs": target_crs,
+            "transform": dst_transform,
+            "width": DST_WIDTH,
+            "height": dst_height,
+        })
+        dst_arrays = []
+        for i in range(1, basemap_src.count + 1): # Iterate over each band (e.g. R, G, B, A)
+            src_array = basemap_src.read(i)
+            dst_array = numpy.empty((dst_height, DST_WIDTH), dtype=src_array.dtype)
 
-def basemap_longitude_to_pixel(longitude):
-    t = 0.5 - (longitude / 180)
-    return round(basemap.height * t)
+            warp.reproject(
+                src_array,
+                dst_array,
+                src_transform=src_transform,
+                src_crs=src_crs,
+                dst_transform=dst_transform,
+                dst_crs=target_crs,
+                resampling=warp.Resampling.bilinear,
+            )
 
+            dst_arrays.append(dst_array)
 
-def cropped_basemap_image(north, south, east, west) -> Image:
-    left = basemap_latitude_to_pixel(west)
-    right = basemap_latitude_to_pixel(east)
-    upper = basemap_longitude_to_pixel(north)
-    lower = basemap_longitude_to_pixel(south)
-
-    if left > right:
-        left_img = basemap.crop((left, upper, basemap.width + right, lower))
-        right_img = basemap.crop((0, upper, right, lower))
-        left_img.paste(right_img, (left_img.width - right, 0))
-        return left_img
-    else:
-        return basemap.crop((left, upper, right, lower))
+        # Create PIL Image from the reprojected data
+        mode_map = {1: 'L', 3: 'RGB', 4: 'RGBA'}
+        mode = mode_map.get(basemap_src.count, 'L')
+        if basemap_src.count == 1:
+            bands_array = dst_arrays[0].astype('uint8')
+        else:
+            bands_array = numpy.dstack(dst_arrays).astype('uint8')
+        return Image.fromarray(bands_array, mode=mode)
 
 
 def subdivide_requests(layer: Layer, horizontal_subdivisions: int=1, vertical_subdivisions: int=1) -> list[list[str]]:
@@ -408,7 +442,10 @@ def mapserver_vector_layer_image(layer: Layer) -> Image:
 def featureserver_vector_layer_image(layer: Layer) -> Image:
     return mapserver_vector_layer_image(layer) # FeatureServer case seemingly the same as MapServer case (for now)
 
-def generate_layer_preview(layer: Layer, horizontal_subdivisions: int, vertical_subdivisions: int) -> None:
+def generate_layer_preview(layer: Layer, target_crs: str, horizontal_subdivisions: int, vertical_subdivisions: int) -> None:
+    """
+    Generate a layer preview image for the given layer and save it to storage.
+    """
     filepath = f'layer_previews/{layer.id}.png'
     bounds = layer.bounds()
     image_info = bounds_to_image_info(bounds)
@@ -422,13 +459,17 @@ def generate_layer_preview(layer: Layer, horizontal_subdivisions: int, vertical_
         layer_image = wms_layer_image(layer, horizontal_subdivisions, vertical_subdivisions)
 
     layer_image = layer_image.resize((image_info['width'], image_info['height']))
-    cropped_basemap = cropped_basemap_image(**bounds).resize((image_info['width'], image_info['height']))
+    cropped_basemap = get_basemap_cropped_basemap_image(
+        bounds['west'],
+        bounds['south'],
+        bounds['east'],
+        bounds['north'],
+        target_crs
+    )
     cropped_basemap.paste(layer_image, mask=layer_image)
 
-    with BytesIO() as bytes_io:
-        cropped_basemap.save(bytes_io, 'PNG')
-        default_storage.delete(filepath)
-        default_storage.save(filepath, File(bytes_io, ''))
+    default_storage.delete(filepath)
+    cropped_basemap.save(default_storage.path(filepath), format='PNG')
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
@@ -448,12 +489,17 @@ class Command(BaseCommand):
             '--vertical_subdivisions',
             help='Number of rows to break the GetMap query for each layer into'
         )
+        parser.add_argument(
+            '--target_crs',
+            help='Target CRS for the layer preview image (e.g. EPSG:3031 for Antarctica layers)'
+        )
 
     def handle(self, *args, **options):
         layer_id = int(options['layer_id']) if options['layer_id'] is not None else None
         skip_existing = options['skip_existing'].lower() in ['t', 'true'] if options['skip_existing'] is not None else False
         horizontal_subdivisions = int(options['horizontal_subdivisions']) if options['horizontal_subdivisions'] is not None else None
         vertical_subdivisions = int(options['vertical_subdivisions']) if options['vertical_subdivisions'] is not None else None
+        target_crs = options['target_crs'] if options['target_crs'] is not None else 'EPSG:4326'
         errors = []
 
         if layer_id is not None:
@@ -462,7 +508,7 @@ class Command(BaseCommand):
 
             if not skip_existing or not default_storage.exists(filepath):
                 try:
-                    generate_layer_preview(layer, horizontal_subdivisions, vertical_subdivisions)
+                    generate_layer_preview(layer, target_crs, horizontal_subdivisions, vertical_subdivisions)
                 except Exception as e: # pylint: disable=broad-except
                     logging.error("Error processing layer %s", layer.id, exc_info=e)
                     errors.append({'layer': layer, 'e': e})
@@ -476,7 +522,7 @@ class Command(BaseCommand):
                 # set to True and we're not skipping existing previews.
                 if not exists or (layer.regenerate_preview and not skip_existing):
                     try:
-                        generate_layer_preview(layer, horizontal_subdivisions, vertical_subdivisions)
+                        generate_layer_preview(layer, target_crs, horizontal_subdivisions, vertical_subdivisions)
                     except Exception as e: # pylint: disable=broad-except
                         logging.error("Error processing layer %s", layer.id, exc_info=e)
                         errors.append({'layer': layer, 'e': e})
@@ -484,9 +530,7 @@ class Command(BaseCommand):
         if errors:
             logging.warning(
                 "Failed to retrieve the following layers: \n%s",
-                '\n'.join(
-                    [f" • {error['layer'].name} ({error['layer'].id})" for error in errors]
-                )
+                '\n'.join([f" • {error['layer'].name} ({error['layer'].id})" for error in errors])
             )
 
             if not layer_id:
