@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 import numpy
 import rasterio
 from rasterio import transform, warp
-from pyproj import Transformer
+from pyproj import CRS, Transformer
 from catalogue.emails import email_generate_layer_preview_summary
 from catalogue.models import Layer
 from django.core.files.storage import default_storage
@@ -46,7 +46,7 @@ BASEMAP_CRS = 'EPSG:4326'
 BASEMAP_BOUNDS = (-180, -90, 180, 90)
 DST_WIDTH = 386
 
-def get_image_details_from_projected_layer_bounds(min_x: float, min_y: float, max_x: float, max_y: float) -> tuple:
+def get_image_details_from_projected_layer_bounds(min_x: float, min_y: float, max_x: float, max_y: float, crs: str) -> tuple:
     """
     Get image details from the projected layer bounds.
 
@@ -55,11 +55,16 @@ def get_image_details_from_projected_layer_bounds(min_x: float, min_y: float, ma
         min_y (float): Minimum y coordinate
         max_x (float): Maximum x coordinate
         max_y (float): Maximum y coordinate
+        crs (str): The coordinate reference system (e.g. 'EPSG:4326')
 
     Returns:
         tuple: (width, height, x_delta, y_delta, aspect_ratio)
     """
+    crs_obj = CRS.from_string(crs)
     x_delta = max_x - min_x
+    # Handle cases where the CRS wraps around (e.g. EPSG:4326) and the bounding box crosses the antimeridian
+    if crs_obj.is_geographic and x_delta < 0:
+        x_delta += crs_obj.area_of_use.east - crs_obj.area_of_use.west
     y_delta = max_y - min_y
     aspect_ratio = x_delta / y_delta
     height = round(DST_WIDTH / aspect_ratio)
@@ -150,7 +155,7 @@ def subdivide_requests(layer: Layer, target_crs: str, horizontal_subdivisions: i
         list[list[str]]: A 2D list of URLs for the subdivided requests.
     """
     ( min_x, min_y, max_x, max_y ) = get_projected_layer_bounds(layer, target_crs)
-    ( width, height, x_delta, y_delta, _ ) = get_image_details_from_projected_layer_bounds(min_x, min_y, max_x, max_y)
+    ( width, height, x_delta, y_delta, _ ) = get_image_details_from_projected_layer_bounds(min_x, min_y, max_x, max_y, target_crs)
 
     urls = [None] * horizontal_subdivisions
 
@@ -212,7 +217,7 @@ def geoserver_retrieve_image(layer: Layer, target_crs: str, horizontal_subdivisi
         Image: The retrieved layer image.
     """
     projected_bounds = get_projected_layer_bounds(layer, target_crs)
-    ( width, height, _, _, _ ) = get_image_details_from_projected_layer_bounds(*projected_bounds)
+    ( width, height, _, _, _ ) = get_image_details_from_projected_layer_bounds(*projected_bounds, target_crs)
 
     image =  Image.new('RGBA', (width, height))
 
@@ -388,7 +393,7 @@ def mapserver_vector_layer_image(layer: Layer, target_crs: str) -> Image:
     opacity = drawing_info_to_opacity(drawing_info)
     renderer_type = drawing_info['renderer']['type']
     ( min_x, min_y, max_x, max_y ) = get_projected_layer_bounds(layer, target_crs)
-    ( _, _, _, _, aspect_ratio ) = get_image_details_from_projected_layer_bounds(min_x, min_y, max_x, max_y)
+    ( _, _, _, _, aspect_ratio ) = get_image_details_from_projected_layer_bounds(min_x, min_y, max_x, max_y, target_crs)
 
     if renderer_type == 'simple':
         geojson = layer.geojson()
@@ -506,7 +511,7 @@ def generate_layer_preview(layer: Layer, target_crs: str, horizontal_subdivision
     """
     filepath = f'layer_previews/{layer.id}.png'
     projected_layer_bounds = get_projected_layer_bounds(layer, target_crs)
-    ( width, height, _, _, _ ) = get_image_details_from_projected_layer_bounds(*projected_layer_bounds)
+    ( width, height, _, _, _ ) = get_image_details_from_projected_layer_bounds(*projected_layer_bounds, target_crs)
 
     layer_image = None
     if re.search(r'^(.+?)/services/(.+?)/MapServer/(?!WMSServer).+$', layer.server_url):
