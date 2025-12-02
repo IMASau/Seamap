@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import numpy
 import rasterio
 from rasterio import transform, warp
+from pyproj import Transformer
 from catalogue.emails import email_generate_layer_preview_summary
 from catalogue.models import Layer
 from django.core.files.storage import default_storage
@@ -41,37 +42,57 @@ Image.MAX_IMAGE_PIXELS = None
 # We not able to simply *add* the basemap image file to our GitHub tracking, as it's too large.
 # For now, the image will be added to deployments manually.
 BASEMAP_FILEPATH = default_storage.path('land_shallow_topo_21600.tif')
-BASEMAP_CRS = "EPSG:4326"
+BASEMAP_CRS = 'EPSG:4326'
 BASEMAP_BOUNDS = (-180, -90, 180, 90)
 DST_WIDTH = 386
 
-def bounds_to_image_info(bounds):
-    x_delta = (bounds['east'] - bounds['west'] + 360) % 360
-    x_delta = x_delta if x_delta != 0 else 360
-    y_delta = bounds['north'] - bounds['south']
-    aspect_ratio = x_delta / y_delta
-    width = 386
-    height = round(width / aspect_ratio)
+def get_image_details_from_projected_layer_bounds(min_x: float, min_y: float, max_x: float, max_y: float) -> tuple:
+    """
+    Get image details from the projected layer bounds.
 
-    return {
-        'width': width,
-        'height': height,
-        'x_delta': x_delta,
-        'y_delta': y_delta,
-        'aspect_ratio': aspect_ratio
-    }
+    Args:
+        min_x (float): Minimum x coordinate
+        min_y (float): Minimum y coordinate
+        max_x (float): Maximum x coordinate
+        max_y (float): Maximum y coordinate
+
+    Returns:
+        tuple: (width, height, x_delta, y_delta, aspect_ratio)
+    """
+    x_delta = max_x - min_x
+    y_delta = max_y - min_y
+    aspect_ratio = x_delta / y_delta
+    height = round(DST_WIDTH / aspect_ratio)
+    return ( DST_WIDTH, height, x_delta, y_delta, aspect_ratio )
+
+
+def get_projected_layer_bounds(layer: Layer, target_crs: str) -> tuple:
+    """
+    Get the projected bounds of the layer in the target CRS.
+
+    Args:
+        layer (Layer): The layer to get the bounds for.
+        target_crs (str): The target coordinate reference system (e.g. "EPSG:3031")
+
+    Returns:
+        tuple: The projected bounds as (min_x, min_y, max_x, max_y)
+    """
+    transformer = Transformer.from_crs('EPSG:4326', target_crs, always_xy=True)
+    bounds = layer.bounds()
+    return transformer.transform_bounds(bounds['west'], bounds['south'], bounds['east'], bounds['north'])
 
 
 def get_basemap_cropped_basemap_image(min_x: float, min_y: float, max_x: float, max_y: float, target_crs: str) -> Image:
     """
     Generate a cropped basemap image in the target CRS.
-    
+
     Args:
         min_x (float): Minimum x coordinate (in target CRS)
         min_y (float): Minimum y coordinate (in target CRS)
         max_x (float): Maximum x coordinate (in target CRS)
         max_y (float): Maximum y coordinate (in target CRS)
         target_crs (str): Target coordinate reference system (e.g. "EPSG:3031")
+
     Returns:
         Image: Cropped basemap image in the target CRS.
     """
@@ -115,16 +136,28 @@ def get_basemap_cropped_basemap_image(min_x: float, min_y: float, max_x: float, 
         return Image.fromarray(bands_array, mode=mode)
 
 
-def subdivide_requests(layer: Layer, horizontal_subdivisions: int=1, vertical_subdivisions: int=1) -> list[list[str]]:
-    bounds = layer.bounds()
-    image_info = bounds_to_image_info(bounds)
+def subdivide_requests(layer: Layer, target_crs: str, horizontal_subdivisions: int=1, vertical_subdivisions: int=1) -> list[list[str]]:
+    """
+    Subdivide WMS GetMap requests into smaller requests.
+
+    Args:
+        layer (Layer): The layer to generate requests for.
+        target_crs (str): Target coordinate reference system (e.g. 'EPSG:3031')
+        horizontal_subdivisions (int): Number of horizontal subdivisions.
+        vertical_subdivisions (int): Number of vertical subdivisions.
+
+    Returns:
+        list[list[str]]: A 2D list of URLs for the subdivided requests.
+    """
+    ( min_x, min_y, max_x, max_y ) = get_projected_layer_bounds(layer, target_crs)
+    ( width, height, x_delta, y_delta, _ ) = get_image_details_from_projected_layer_bounds(min_x, min_y, max_x, max_y)
 
     urls = [None] * horizontal_subdivisions
 
-    general_sub_width = image_info['width'] // horizontal_subdivisions
-    general_x_delta = image_info['x_delta'] / image_info['width'] * general_sub_width
-    general_sub_height = image_info['height'] // vertical_subdivisions
-    general_y_delta = image_info['y_delta'] / image_info['height'] * general_sub_height
+    general_sub_width = width // horizontal_subdivisions
+    general_x_delta = x_delta / width * general_sub_width
+    general_sub_height = height // vertical_subdivisions
+    general_y_delta = y_delta / height * general_sub_height
 
     for i in range(0, horizontal_subdivisions):
         urls[i] = [None] * vertical_subdivisions
@@ -132,19 +165,19 @@ def subdivide_requests(layer: Layer, horizontal_subdivisions: int=1, vertical_su
         sub_width = general_sub_width
         sub_x_delta = general_x_delta
         if i == horizontal_subdivisions - 1:
-            sub_width += image_info['width'] % horizontal_subdivisions
-            sub_x_delta = image_info['x_delta'] / image_info['width'] * sub_width
-        west = bounds['west'] + i * general_x_delta
-        east = west + sub_x_delta
+            sub_width += width % horizontal_subdivisions
+            sub_x_delta = x_delta / width * sub_width
+        sub_min_x = min_x + i * general_x_delta
+        sub_max_x = sub_min_x + sub_x_delta
 
         for j in range(0, vertical_subdivisions):
             sub_height = general_sub_height
             sub_y_delta = general_y_delta
             if j == vertical_subdivisions - 1:
-                sub_height += image_info['height'] % vertical_subdivisions
-                sub_y_delta = image_info['y_delta'] / image_info['height'] * sub_height
-            south = bounds['south'] + j * general_y_delta
-            north = south + sub_y_delta
+                sub_height += height % vertical_subdivisions
+                sub_y_delta = y_delta / height * sub_height
+            sub_min_y = min_y + j * general_y_delta
+            sub_max_y = sub_min_y + sub_y_delta
 
             sub_params = {
                 'service': 'WMS',
@@ -156,21 +189,34 @@ def subdivide_requests(layer: Layer, horizontal_subdivisions: int=1, vertical_su
                 'version': '1.1.1',
                 'width': sub_width,
                 'height': sub_height,
-                'srs': 'EPSG:4326',
-                'bbox': f'{west},{south},{east},{north}'
+                'srs': target_crs,
+                'bbox': f'{sub_min_x},{sub_min_y},{sub_max_x},{sub_max_y}'
             }
 
             urls[i][j] = f'{layer.server_url}?{urlencode(sub_params)}'
 
     return urls
 
-def geoserver_retrieve_image(layer: Layer, horizontal_subdivisions: int=1, vertical_subdivisions: int=1) -> Image:
-    bounds = layer.bounds()
-    image_info = bounds_to_image_info(bounds)
+def geoserver_retrieve_image(layer: Layer, target_crs: str, horizontal_subdivisions: int=1, vertical_subdivisions: int=1) -> Image:
+    """
+    Retrieve a WMS layer image from GeoServer.
+    If horizontal_subdivisions and vertical_subdivisions are provided, the image is retrieved in multiple requests and stitched together.
 
-    image =  Image.new('RGBA', (image_info['width'], image_info['height']))
+    Args:
+        layer (Layer): The layer to retrieve the image for.
+        target_crs (str): Target coordinate reference system (e.g. 'EPSG:3031')
+        horizontal_subdivisions (int): Number of horizontal subdivisions.
+        vertical_subdivisions (int): Number of vertical subdivisions.
 
-    urls = subdivide_requests(layer, horizontal_subdivisions, vertical_subdivisions)
+    Returns:
+        Image: The retrieved layer image.
+    """
+    projected_bounds = get_projected_layer_bounds(layer, target_crs)
+    ( width, height, _, _, _ ) = get_image_details_from_projected_layer_bounds(*projected_bounds)
+
+    image =  Image.new('RGBA', (width, height))
+
+    urls = subdivide_requests(layer, target_crs, horizontal_subdivisions, vertical_subdivisions)
 
     for i, h_urls in enumerate(urls):
         for j, url in enumerate(h_urls):
@@ -189,25 +235,37 @@ def geoserver_retrieve_image(layer: Layer, horizontal_subdivisions: int=1, verti
             image.paste(
                 sub_image,
                 (
-                    (image_info['width'] // horizontal_subdivisions) * i,
-                    image_info['height'] - (image_info['height'] // vertical_subdivisions) * j - sub_image.height
+                    (width // horizontal_subdivisions) * i,
+                    height - (height // vertical_subdivisions) * j - sub_image.height
                 ),
                 sub_image
             )
     return image
 
-def wms_layer_image(layer: Layer, horizontal_subdivisions: int, vertical_subdivisions: int) -> Image:
+def wms_layer_image(layer: Layer, target_crs: str, horizontal_subdivisions: int, vertical_subdivisions: int) -> Image:
+    """
+    Retrieve a WMS layer image, optionally subdividing the request.
+
+    Args:
+        layer (Layer): The layer to retrieve the image for.
+        target_crs (str): Target coordinate reference system (e.g. 'EPSG:3031')
+        horizontal_subdivisions (int): Number of horizontal subdivisions.
+        vertical_subdivisions (int): Number of vertical subdivisions.
+
+    Returns:
+        Image: The retrieved layer image.
+    """
     if horizontal_subdivisions or vertical_subdivisions:
         try:
-            return geoserver_retrieve_image(layer, horizontal_subdivisions, vertical_subdivisions)
+            return geoserver_retrieve_image(layer, target_crs, horizontal_subdivisions, vertical_subdivisions)
         except RuntimeError as e:
             raise RuntimeError(f"Could not retrieve image in {horizontal_subdivisions}x{vertical_subdivisions} subdivisions") from e
     else:
         try:
-            return geoserver_retrieve_image(layer)
+            return geoserver_retrieve_image(layer, target_crs)
         except RuntimeError as e:
             try:
-                return geoserver_retrieve_image(layer, 40, 40)
+                return geoserver_retrieve_image(layer, target_crs, 40, 40)
             except RuntimeError as e:
                 raise RuntimeError("Could not retrieve image in single request or in 40x40 subdivisions") from e
 
@@ -325,12 +383,12 @@ def compare_unique_value_infos(unique_value_info1, unique_value_info2) -> int:
 
     return opacity1 - opacity2
 
-def mapserver_vector_layer_image(layer: Layer) -> Image:
+def mapserver_vector_layer_image(layer: Layer, target_crs: str) -> Image:
     drawing_info = layer.server_info()['drawingInfo']
     opacity = drawing_info_to_opacity(drawing_info)
     renderer_type = drawing_info['renderer']['type']
-    bounds = layer.bounds()
-    image_info = bounds_to_image_info(bounds)
+    ( min_x, min_y, max_x, max_y ) = get_projected_layer_bounds(layer, target_crs)
+    ( _, _, _, _, aspect_ratio ) = get_image_details_from_projected_layer_bounds(min_x, min_y, max_x, max_y)
 
     if renderer_type == 'simple':
         geojson = layer.geojson()
@@ -356,7 +414,7 @@ def mapserver_vector_layer_image(layer: Layer) -> Image:
             ax = geoplot.polyplot(
                 gdf,
                 ax=ax,
-                extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                extent=[min_x, min_y, max_x, max_y],
                 **geoplot_args
             )
         elif plot_type == 'line':
@@ -364,14 +422,14 @@ def mapserver_vector_layer_image(layer: Layer) -> Image:
             ax = geoplot.polyplot(
                 gdf,
                 ax=ax,
-                extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                extent=[min_x, min_y, max_x, max_y],
                 **geoplot_args
             )
         elif plot_type == 'point':
             ax = geoplot.pointplot(
                 gdf,
                 ax=ax,
-                extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                extent=[min_x, min_y, max_x, max_y],
                 **geoplot_args
             )
 
@@ -397,7 +455,7 @@ def mapserver_vector_layer_image(layer: Layer) -> Image:
                 ax = geoplot.polyplot(
                     filtered_gdf,
                     ax=ax,
-                    extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                    extent=[min_x, min_y, max_x, max_y],
                     **geoplot_args
                 )
             elif plot_type == 'line':
@@ -405,14 +463,14 @@ def mapserver_vector_layer_image(layer: Layer) -> Image:
                 ax = geoplot.polyplot(
                     filtered_gdf,
                     ax=ax,
-                    extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                    extent=[min_x, min_y, max_x, max_y],
                     **geoplot_args
                 )
             elif plot_type == 'point':
                 ax = geoplot.pointplot(
                     filtered_gdf,
                     ax=ax,
-                    extent=[bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+                    extent=[min_x, min_y, max_x, max_y],
                     **geoplot_args
                 )
 
@@ -429,7 +487,7 @@ def mapserver_vector_layer_image(layer: Layer) -> Image:
         plt.tight_layout(pad=0)
         fig = plt.gcf()
         fig_width = fig.get_size_inches()[0]
-        fig.set_size_inches(fig_width, fig_width / image_info['aspect_ratio'])
+        fig.set_size_inches(fig_width, fig_width / aspect_ratio)
         plt.savefig(
             bytes_io,
             format='png',
@@ -439,33 +497,28 @@ def mapserver_vector_layer_image(layer: Layer) -> Image:
         image = Image.open(bytes_io).copy()
         return image
 
-def featureserver_vector_layer_image(layer: Layer) -> Image:
-    return mapserver_vector_layer_image(layer) # FeatureServer case seemingly the same as MapServer case (for now)
+def featureserver_vector_layer_image(layer: Layer, target_crs) -> Image:
+    return mapserver_vector_layer_image(layer, target_crs) # FeatureServer case seemingly the same as MapServer case (for now)
 
 def generate_layer_preview(layer: Layer, target_crs: str, horizontal_subdivisions: int, vertical_subdivisions: int) -> None:
     """
     Generate a layer preview image for the given layer and save it to storage.
     """
     filepath = f'layer_previews/{layer.id}.png'
-    bounds = layer.bounds()
-    image_info = bounds_to_image_info(bounds)
+    projected_layer_bounds = get_projected_layer_bounds(layer, target_crs)
+    ( width, height, _, _, _ ) = get_image_details_from_projected_layer_bounds(*projected_layer_bounds)
 
     layer_image = None
     if re.search(r'^(.+?)/services/(.+?)/MapServer/(?!WMSServer).+$', layer.server_url):
-        layer_image = mapserver_vector_layer_image(layer)
+        layer_image = mapserver_vector_layer_image(layer, target_crs)
     elif re.search(r'^(.+?)/services/(.+?)/FeatureServer/(?!WMSServer).+$', layer.server_url):
-        layer_image = featureserver_vector_layer_image(layer)
+        layer_image = featureserver_vector_layer_image(layer, target_crs)
     else:
-        layer_image = wms_layer_image(layer, horizontal_subdivisions, vertical_subdivisions)
+        layer_image = wms_layer_image(layer, target_crs, horizontal_subdivisions, vertical_subdivisions)
 
-    layer_image = layer_image.resize((image_info['width'], image_info['height']))
-    cropped_basemap = get_basemap_cropped_basemap_image(
-        bounds['west'],
-        bounds['south'],
-        bounds['east'],
-        bounds['north'],
-        target_crs
-    )
+    layer_image = layer_image.resize((width, height))
+    projected_layer_bounds = get_projected_layer_bounds(layer, target_crs)
+    cropped_basemap = get_basemap_cropped_basemap_image(*projected_layer_bounds, target_crs)
     cropped_basemap.paste(layer_image, mask=layer_image)
 
     default_storage.delete(filepath)
