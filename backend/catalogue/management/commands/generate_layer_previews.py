@@ -533,31 +533,38 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--layer_id',
-            help='Specify a layer ID for the layer preview image you want to generate'
+            help='Specify a layer ID for the layer preview image you want to generate',
+            type=int,
         )
         parser.add_argument(
             '--skip_existing',
-            help='If false, skips generating images for layers where images already exist'
+            help='If false, skips generating images for layers where images already exist',
+            type=bool,
+            default=False,
         )
         parser.add_argument(
             '--horizontal_subdivisions',
-            help='Number of columns to break the GetMap query for each layer into'
+            help='Number of columns to break the GetMap query for each layer into',
+            type=int,
         )
         parser.add_argument(
             '--vertical_subdivisions',
-            help='Number of rows to break the GetMap query for each layer into'
+            help='Number of rows to break the GetMap query for each layer into',
+            type=int,
         )
         parser.add_argument(
             '--target_crs',
-            help='Target CRS for the layer preview image (e.g. EPSG:3031 for Antarctica layers)'
+            help='Target CRS for the layer preview image (e.g. EPSG:3031 for Antarctica layers)',
+            type=str,
+            default='EPSG:4326',
         )
 
     def handle(self, *args, **options):
-        layer_id = int(options['layer_id']) if options['layer_id'] is not None else None
-        skip_existing = options['skip_existing'].lower() in ['t', 'true'] if options['skip_existing'] is not None else False
-        horizontal_subdivisions = int(options['horizontal_subdivisions']) if options['horizontal_subdivisions'] is not None else None
-        vertical_subdivisions = int(options['vertical_subdivisions']) if options['vertical_subdivisions'] is not None else None
-        target_crs = options['target_crs'] if options['target_crs'] is not None else 'EPSG:4326'
+        layer_id = options['layer_id']
+        skip_existing = options['skip_existing']
+        horizontal_subdivisions = options['horizontal_subdivisions']
+        vertical_subdivisions = options['vertical_subdivisions']
+        target_crs = options['target_crs']
         errors = []
 
         if layer_id is not None:
