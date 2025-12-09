@@ -19,8 +19,6 @@
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
-            [imas-seamap.story-maps.events :as smevents]
-            [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
             [imas-seamap.futuresofseafood.views :as views]
@@ -46,8 +44,6 @@
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
-    :sm/featured-maps                     smsubs/featured-maps
-    :sm/featured-map                      smsubs/featured-map
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
@@ -198,9 +194,6 @@
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :map/toggle-viewport-only             [mevents/toggle-viewport-only]
     :map/pan-to-popup                     [mevents/pan-to-popup]
-    :sm/update-featured-maps              smevents/update-featured-maps
-    :sm/featured-map                      [smevents/featured-map]
-    :sm.featured-map/open                 [smevents/featured-map-open]
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]

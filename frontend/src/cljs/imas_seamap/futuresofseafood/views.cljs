@@ -2,13 +2,59 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.futuresofseafood.views
-  (:require [re-frame.core :as re-frame]
+  (:require [goog.string.format]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
+            [imas-seamap.components :as components]
+            [imas-seamap.futuresofseafood.map.views :refer [map-component]]
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.views :as views]
-            [imas-seamap.futuresofseafood.map.views :refer [map-component]]
-            [goog.string.format]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
+            [re-frame.core :as re-frame]
+            [reagent.core :as reagent]))
+
+(defn left-drawer []
+  (let [open? @(re-frame/subscribe [:left-drawer/open?])
+        tab   @(re-frame/subscribe [:left-drawer/tab])
+        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
+    [components/drawer
+     {:title
+      [:<>
+       [:div
+        [:a {:href "https://seamapaustralia.org/"}
+         [:img {:src "img/Seamap2_V2_RGB.png"}]]]
+       [b/button
+        {:icon     "double-chevron-left"
+         :minimal  true
+         :on-click #(re-frame/dispatch [:left-drawer/close])}]]
+      :position    "left"
+      :size        "368px"
+      :isOpen      open?
+      :onClose     #(re-frame/dispatch [:left-drawer/close])
+      :className   "left-drawer seamap-drawer"
+      :isCloseButtonShown false
+      :hasBackdrop false}
+     [b/tabs
+      {:id              "left-drawer-tabs"
+       :class           "left-drawer-tabs"
+       :selected-tab-id tab
+       :on-change       #(re-frame/dispatch [:left-drawer/tab %1])
+       :render-active-tab-panel-only true} ; doing this re-renders ellipsized text on tab switch, fixing ISA-359
+
+      [b/tab
+       {:id    "catalogue"
+        :class "catalogue"
+        :title (reagent/as-element
+                [b/tooltip {:content "All available map layers"} "Catalogue"])
+        :panel (reagent/as-element [views/left-drawer-catalogue false])}]
+
+      [b/tab
+       {:id    "active-layers"
+        :title (reagent/as-element
+                [b/tooltip {:content "Currently active layers"}
+                 [:<> "Active Layers"
+                  (when (seq active-layers)
+                    [:div.notification-bubble (count active-layers)])]])
+        :panel (reagent/as-element [views/left-drawer-active-layers false])}]]]))
+
 
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] views/hotkeys-combos))
@@ -54,7 +100,7 @@
      [views/settings-overlay]
      [views/info-card]
      [views/loading-display]
-     [views/left-drawer]
+     [left-drawer]
      [views/right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
      [views/layers-search-omnibar]
      [views/custom-leaflet-controls]

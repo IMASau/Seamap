@@ -136,8 +136,7 @@
                 category-url
                 keyed-layers-url
                 rich-layers-url
-                region-reports-url
-                story-maps-url]} (get-in db [:config :urls])]
+                region-reports-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             site-configuration-url
@@ -193,9 +192,4 @@
                    :uri             region-reports-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:map/update-region-reports]
-                   :on-failure      [:ajax/default-err-handler]}
-                  {:method          :get
-                   :uri             story-maps-url
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:sm/update-featured-maps]
-                   :on-failure      [:sm/update-featured-maps []]}]}))
+                   :on-failure      [:ajax/default-err-handler]}]}))
