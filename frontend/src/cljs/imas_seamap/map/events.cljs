@@ -224,15 +224,28 @@
   [_ [_ _info-format-type layers request-id _leaflet-props point]]
   {:dispatch [:map/got-featureinfo request-id point nil nil layers]})
 
-(defn feature-info-dispatcher [{:keys [db]} [_ leaflet-props point]]
+(defn feature-info-dispatcher
+  "Takes a map click event, and dispatches :map/get-feature-info events for each
+     visible layer.
+     
+     Args:
+       - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
+       - point:         The lat lng and x y pixel coords of the clicked point"
+  [{:keys [db]} [_ leaflet-props point]]
   (let [visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers (:map db)))
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
-        per-request    (group-by (juxt :server_url :info_format_type) secure-layers)
         request-id     (gensym)
-        requests       (reduce-kv
-                        (fn [acc [_ info-format-type] layers]
-                          (conj acc [:map/get-feature-info info-format-type layers request-id leaflet-props point]))
-                        [] per-request)
+
+        ;; Requests used to be grouped by server URL, but has since been changed to be
+        ;; per-layer (many reasons, but the  triggering factor was separating the CQL
+        ;; filters per layer).
+        ;; We now generate just one :map/get-feature-info event per layer.
+        ;; :map/get-feature-info hasn't been updated to remove the multiple layers
+        ;; parameter, but sending in a vector of a single layer works fine.
+        requests       (map
+                        (fn [{:keys [info_format_type] :as layer}]
+                          [:map/get-feature-info info_format_type [layer] request-id leaflet-props point])
+                        secure-layers)
         had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
         db             (if had-insecure?
                          (assoc db :feature {:status :feature-info/none-queryable :location point :show? true}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
@@ -247,7 +260,7 @@
                           {:status   :feature-info/waiting
                            :leaflet-props leaflet-props
                            :location point
-                           :show?    false}))] 
+                           :show?    false}))]
     (merge
      {:db db
       :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
