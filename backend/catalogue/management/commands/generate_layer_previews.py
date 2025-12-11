@@ -24,6 +24,7 @@ from rasterio import transform, warp
 from pyproj import CRS, Transformer
 from catalogue.emails import email_generate_layer_preview_summary
 from catalogue.models import Layer
+from django.core.files import File
 from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand
 from matplotlib.image import BboxImage
@@ -547,7 +548,10 @@ def generate_layer_preview(layer: Layer, target_crs: str, horizontal_subdivision
     cropped_basemap.paste(layer_image, mask=layer_image)
 
     default_storage.delete(filepath)
-    cropped_basemap.save(default_storage.path(filepath), format='PNG')
+    with BytesIO() as bytes_io:
+        cropped_basemap.save(bytes_io, format='PNG')
+        bytes_io.seek(0)
+        default_storage.save(filepath, File(bytes_io))
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
