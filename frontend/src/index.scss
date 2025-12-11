@@ -95,6 +95,11 @@ $seamap-medium-blue: #5f9acb;
 $seamap-color-2-darker: rgb(25, 44, 86);
 $seamap-color-3-darker: rgb(39, 91, 141);
 
+$fos-color-2: #062440;
+$fos-deep-blue-ligher: #063465;
+$fos-color-highlight: #00b0a5;
+$fos-color-default: white;
+
 $tma-color-1: rgb(18, 37, 55);
 $tma-color-2: rgb(11, 80, 113);
 $tma-color-8: rgb(98, 191, 236);
@@ -128,7 +133,14 @@ $headings-font-family: "Poppins", "system-ui", sans-serif;
     --color-2-darker: #{$seamap-color-2-darker};
     --color-3-darker: #{$seamap-color-3-darker};
 }
+.futures-of-seafood {
+    --color-2: #{$fos-color-2};
+    --color-highlight-1: #{$fos-color-highlight};
+    --color-7: #{$fos-color-default};
 
+    --deep-blue: #{$fos-color-2};
+    --deep-blue-lighter: #{$fos-deep-blue-ligher};
+}
 .tas-marine-atlas {
     --color-1: #{$tma-color-1};
     --color-2: #{$tma-color-2};

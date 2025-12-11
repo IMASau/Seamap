@@ -19,8 +19,8 @@
      {:title
       [:<>
        [:div
-        [:a {:href "https://seamapaustralia.org/"}
-         [:img {:src "img/Seamap2_V2_RGB.png"}]]]
+        [:a {:href "https://futuresofseafood.com.au/"}
+         [:img {:src "img/Futures-of-Seafood-Logo-Reverse-400x218.png"}]]]
        [b/button
         {:icon     "double-chevron-left"
          :minimal  true
@@ -29,7 +29,7 @@
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
-      :className   "left-drawer seamap-drawer"
+      :className   "left-drawer fos-drawer"
       :isCloseButtonShown false
       :hasBackdrop false}
      [b/tabs
@@ -63,7 +63,7 @@
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])]
-    [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
+    [:div#main-wrapper.futures-of-seafood ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
      [:div#content-wrapper
       [map-component]
