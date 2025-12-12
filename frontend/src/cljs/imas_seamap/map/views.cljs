@@ -198,7 +198,7 @@
      :tiled            true
      :format           "image/png"}
     (when style {:styles style})
-    (boundary-filter layer)
+    (when boundary-filter (boundary-filter layer))
     (when cql-filter {:cql_filter cql-filter}))])
 
 (defmethod layer-component :tile
@@ -258,7 +258,7 @@
      :format           "image/png"
      :cross-origin     "anonymous"}
     (when style {:styles style})
-    (boundary-filter layer)
+    (when boundary-filter (boundary-filter layer))
     (when cql-filter {:cql_filter cql-filter}))])
 
 (defmulti basemap-layer-component :layer_type)
