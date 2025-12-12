@@ -616,9 +616,12 @@
 
 (defn layer->cql-filter
   "Returns the CQL filter for a layer."
-  [layer db]
-  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db))
-        dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db)))
-        cql-filters (if rich-layer-cql-filter (conj dynamic-pills-cql-filters rich-layer-cql-filter) dynamic-pills-cql-filters)
-        cql-filter (apply str (interpose " AND " cql-filters))]
-    (when (seq cql-filter) cql-filter)))
+  [{layer-cql-filter :filter :as layer} db]
+  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db)) ; string or nil
+        dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db))) ; list of strings
+        cql-filters
+        (cond-> dynamic-pills-cql-filters
+          rich-layer-cql-filter (conj rich-layer-cql-filter) ; if rich-layer cql filter exists, add it
+          layer-cql-filter     (conj layer-cql-filter)) ; if layer cql filter exists, add it
+        cql-filter (apply str (interpose " AND " cql-filters))] ; combine with AND
+    (when (seq cql-filter) cql-filter))) ; return nil if no filter
