@@ -9,12 +9,17 @@ create table TRANSFORM_SQUIDLE_DEPLOYMENT_POINTS (
 	color nvarchar(255) COLLATE Latin1_General_CI_AS NULL,
 	dep_min float NULL,
 	dep_max float NULL,	
+	alt_min float NULL,
+	alt_max float NULL,	
+	timestamp_start datetime2(0),
+	timestamp_end datetime2(0),	
 	platform_name nvarchar(255) COLLATE Latin1_General_CI_AS NULL,
 	platform_key nvarchar(255) COLLATE Latin1_General_CI_AS NULL,
 	platform_id numeric(9,0) NULL,
-	url nvarchar(255) COLLATE Latin1_General_CI_AS NULL,
 	[date] date NULL,
 	media_count int NULL,
+	pose_count int NULL,	
 	total_annotation_count int NULL,
-	public_annotation_count int NULL
+	public_annotation_count int NULL,
+	url nvarchar(255) COLLATE Latin1_General_CI_AS NULL	
 );
