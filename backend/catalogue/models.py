@@ -159,6 +159,7 @@ class Layer(models.Model):
         default=True,
         help_text="Dictates if a layer should generate a new layer preview each week, even if a preview already exists. If no preview image exists for the layer, this property will be ignored."
     )
+    filter = models.CharField(max_length=255, null=True, blank=True, help_text="CQL filter to apply to the layer")
 
     def __str__(self):
         return self.name
