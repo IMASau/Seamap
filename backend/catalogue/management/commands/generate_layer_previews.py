@@ -160,6 +160,72 @@ def get_basemap_cropped_basemap_image(min_x: float, min_y: float, max_x: float, 
         return Image.fromarray(bands_array, mode=mode)
 
 
+def reproject_image(min_x: float, min_y: float, max_x: float, max_y: float, image: Image, target_crs: str) -> Image:
+    """
+    Reproject a PIL Image from EPSG:4326 to a target CRS.
+
+    Args:
+        min_x (float): Minimum longitude (west) in EPSG:4326
+        min_y (float): Minimum latitude (south) in EPSG:4326
+        max_x (float): Maximum longitude (east) in EPSG:4326
+        max_y (float): Maximum latitude (north) in EPSG:4326
+        image (Image): PIL Image in EPSG:4326
+        target_crs (str): Target coordinate reference system (e.g. "EPSG:3031")
+
+    Returns:
+        Image: Reprojected PIL Image in the target CRS with width DST_WIDTH.
+    """
+    # Transform bounds from EPSG:4326 to target CRS
+    transformer = Transformer.from_crs("EPSG:4326", target_crs, always_xy=True)
+    dst_min_x, dst_min_y, dst_max_x, dst_max_y = transformer.transform_bounds(min_x, min_y, max_x, max_y)
+
+    # Calculate destination dimensions
+    dst_resolution = (dst_max_x - dst_min_x) / DST_WIDTH
+    dst_height = int((dst_max_y - dst_min_y) / dst_resolution)
+
+    # Create transforms
+    src_transform = transform.from_bounds(min_x, min_y, max_x, max_y, image.width, image.height)
+    dst_transform = transform.from_bounds(dst_min_x, dst_min_y, dst_max_x, dst_max_y, DST_WIDTH, dst_height)
+
+    # Convert PIL Image to numpy array
+    image_array = numpy.array(image)
+
+    # Handle different image modes
+    if image.mode == 'L':  # Grayscale
+        bands = [image_array]
+    elif image.mode == 'RGB':
+        bands = [image_array[:, :, i] for i in range(3)]
+    elif image.mode == 'RGBA':
+        bands = [image_array[:, :, i] for i in range(4)]
+    else:
+        raise ValueError(f"Unsupported image mode: {image.mode}")
+
+    # Reproject each band
+    dst_arrays = []
+    for src_band in bands:
+        dst_array = numpy.empty((dst_height, DST_WIDTH), dtype=src_band.dtype)
+        warp.reproject(
+            src_band,
+            dst_array,
+            src_transform=src_transform,
+            src_crs="EPSG:4326",
+            dst_transform=dst_transform,
+            dst_crs=target_crs,
+            resampling=warp.Resampling.bilinear,
+        )
+        dst_arrays.append(dst_array)
+
+    # Convert back to PIL Image
+    mode_map = {1: 'L', 3: 'RGB', 4: 'RGBA'}
+    mode = mode_map.get(len(dst_arrays), 'L')
+    if len(dst_arrays) == 1:
+        bands_array = dst_arrays[0].astype('uint8')
+    else:
+        bands_array = numpy.dstack(dst_arrays).astype('uint8')
+
+    return Image.fromarray(bands_array, mode=mode)
+
+
 def subdivide_requests(layer: Layer, target_crs: str, horizontal_subdivisions: int=1, vertical_subdivisions: int=1) -> list[list[str]]:
     """
     Subdivide WMS GetMap requests into smaller requests.
@@ -412,14 +478,18 @@ def mapserver_vector_layer_image(layer: Layer, target_crs: str) -> Image:
     drawing_info = layer.server_info()['drawingInfo']
     opacity = drawing_info_to_opacity(drawing_info)
     renderer_type = drawing_info['renderer']['type']
-    ( min_x, min_y, max_x, max_y ) = get_projected_layer_bounds(layer, target_crs)
-    ( x_delta, y_delta ) = get_deltas_from_projected_bounds(min_x, min_y, max_x, max_y, target_crs)
+    layer_bounds = layer.bounds()
+    min_x = layer_bounds['west']
+    min_y = layer_bounds['south']
+    max_x = layer_bounds['east']
+    max_y = layer_bounds['north']
+    ( x_delta, y_delta ) = get_deltas_from_projected_bounds(min_x, min_y, max_x, max_y, "EPSG:4326")
     aspect_ratio = x_delta / y_delta
 
     if renderer_type == 'simple':
         geojson = layer.geojson()
     elif renderer_type == 'uniqueValue':
-        geojson = layer.geojson('*')
+        geojson = layer.geojson(out_fields='*')
     else:
         raise ValueError(f"renderer_type '{renderer_type}' not handled")
 
@@ -536,6 +606,14 @@ def mapserver_vector_layer_image(layer: Layer, target_crs: str) -> Image:
         )
         bytes_io.seek(0)
         image = Image.open(bytes_io).copy()
+        # Reproject the image to the target CRS
+        # MapServer vector layers have to be drawn in EPSG:4326 first then reprojected.
+        # Unfortunately, geoplot does not play nicely with plotting non-lat/lon geometries
+        # (it raises the error "xpects input geometries to be in latitude-longitude
+        # coordinates, but the values provided include points whose values exceed the
+        # maximum or minimum possible longitude or latitude values (-180, -90, 180, 90),
+        # indicating that the input data is not in proper latitude-longitude format.")
+        image = reproject_image(min_x, min_y, max_x, max_y, image, target_crs)
         return image
 
 def featureserver_vector_layer_image(layer: Layer, target_crs) -> Image:
