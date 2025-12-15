@@ -465,8 +465,23 @@ def mapserver_vector_layer_image(layer: Layer, target_crs: str) -> Image:
         else:
             raise ValueError(f"plot_type '{plot_type}' not handled")
     elif renderer_type == 'uniqueValue':
-        value_column = drawing_info['renderer']['field1'].lower()
-        gdf[value_column] = gdf[value_column].astype(str)
+        value_column1 = drawing_info['renderer'].get('field1').lower() if drawing_info['renderer'].get('field1') else None
+        value_column2 = drawing_info['renderer'].get('field2', '').lower() if drawing_info['renderer'].get('field2') else None
+        if value_column1:
+            gdf[value_column1] = gdf[value_column1].astype(str)
+        if value_column2:
+            gdf[value_column2] = gdf[value_column2].astype(str)
+
+        # Determine which column to filter on
+        if value_column1 and value_column2:
+            # Both exist: create composite column with semicolon separator
+            gdf['_composite_key'] = gdf[value_column1] + ';' + gdf[value_column2]
+            filter_column = '_composite_key'
+        elif value_column1:
+            filter_column = value_column1
+        else:
+            filter_column = value_column2
+
         unique_value_infos = drawing_info['renderer']['uniqueValueInfos']
         unique_value_infos.sort(key=functools.cmp_to_key(compare_unique_value_infos))
 
@@ -475,7 +490,7 @@ def mapserver_vector_layer_image(layer: Layer, target_crs: str) -> Image:
             geoplot_args = symbol_to_geoplot_args(symbol, opacity)
             plot_type = symbol_to_plot_type(symbol)
             marker_image = symbol_to_marker_image(symbol)
-            filtered_gdf = gdf[gdf[value_column] == unique_value_info['value']]
+            filtered_gdf = gdf[gdf[filter_column] == unique_value_info['value']]
 
             if plot_type == 'polygon':
                 ax = geoplot.polyplot(
