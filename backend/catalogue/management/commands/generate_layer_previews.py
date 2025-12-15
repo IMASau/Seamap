@@ -346,7 +346,7 @@ def symbol_to_geoplot_args(symbol, opacity: float):
 
 def symbol_to_plot_type(symbol) -> str:
     plot_type = symbol['type']
-    if plot_type == 'esriSFS':
+    if plot_type in ['esriSFS', 'esriPFS']:
         return 'polygon'
     elif plot_type == 'esriSLS':
         return 'line'
