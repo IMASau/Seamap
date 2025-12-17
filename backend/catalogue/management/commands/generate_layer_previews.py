@@ -628,9 +628,9 @@ def generate_layer_preview(layer: Layer, target_crs: str, horizontal_subdivision
     ( width, height ) = get_dimensions_from_projected_bounds(*projected_layer_bounds, target_crs)
 
     layer_image = None
-    if re.search(r'^(.+?)/services/(.+?)/MapServer/(?!WMSServer).+$', layer.server_url):
+    if re.search(r'^(.+?)/services/(.+?)/MapServer/(?![Ww][Mm][Ss][Ss]erver).+$', layer.server_url):
         layer_image = mapserver_vector_layer_image(layer, target_crs)
-    elif re.search(r'^(.+?)/services/(.+?)/FeatureServer/(?!WMSServer).+$', layer.server_url):
+    elif re.search(r'^(.+?)/services/(.+?)/FeatureServer/(?![Ww][Mm][Ss][Ss]erver).+$', layer.server_url):
         layer_image = featureserver_vector_layer_image(layer, target_crs)
     else:
         layer_image = wms_layer_image(layer, target_crs, horizontal_subdivisions, vertical_subdivisions)
