@@ -20,8 +20,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy
 import rasterio
-from rasterio import transform, warp
-from pyproj import CRS, Transformer
+import requests
 from catalogue.emails import email_generate_layer_preview_summary
 from catalogue.models import Layer
 from django.core.files import File
@@ -30,6 +29,8 @@ from django.core.management.base import BaseCommand
 from matplotlib.image import BboxImage
 from matplotlib.transforms import Bbox, TransformedBbox
 from PIL import Image, UnidentifiedImageError
+from pyproj import CRS, Transformer
+from rasterio import transform, warp
 from shapely.geometry import (LineString, MultiLineString, MultiPolygon,
                               Polygon, shape)
 
@@ -474,7 +475,7 @@ def compare_unique_value_infos(unique_value_info1, unique_value_info2) -> int:
 
     return opacity1 - opacity2
 
-def mapserver_vector_layer_image(layer: Layer, target_crs: str) -> Image:
+def mapserver_feature_layer_image(layer: Layer, target_crs: str) -> Image:
     drawing_info = layer.server_info()['drawingInfo']
     opacity = drawing_info_to_opacity(drawing_info)
     renderer_type = drawing_info['renderer']['type']
@@ -616,8 +617,44 @@ def mapserver_vector_layer_image(layer: Layer, target_crs: str) -> Image:
         image = reproject_image(min_x, min_y, max_x, max_y, image, target_crs)
         return image
 
-def featureserver_vector_layer_image(layer: Layer, target_crs) -> Image:
-    return mapserver_vector_layer_image(layer, target_crs) # FeatureServer case seemingly the same as MapServer case (for now)
+def mapserver_raster_layer_image(layer: Layer, target_crs) -> Image:
+    match = re.match(r'^(?P<map_server_url>.+)/(?P<map_server_layer_id>\d+)$', layer.server_url)
+    map_server_url = match.group('map_server_url')
+    map_server_layer_id = int(match.group('map_server_layer_id'))
+    projected_layer_bounds = get_projected_layer_bounds(layer, target_crs)
+    (min_x, min_y, max_x, max_y) = projected_layer_bounds
+    ( width, height ) = get_dimensions_from_projected_bounds(*projected_layer_bounds, target_crs)
+
+    image_url_params = {
+        'bbox': f"{min_x},{min_y},{max_x},{max_y}",
+        'size': f"{width},{height}",
+        'dpi': 96,
+        'format': 'png32',
+        'transparent': True,
+        'bboxSR': target_crs.split(':')[1],
+        'imageSR': target_crs.split(':')[1],
+        'layers': f'show:{map_server_layer_id}',
+        'f': 'image'
+    }
+    response = requests.get(f"{map_server_url}/export", params=image_url_params, verify=False, stream=True, timeout=30)
+    response.raise_for_status()
+
+    image = Image.open(response.raw)
+    image = image.convert('RGBA')
+    return image
+
+def mapserver_layer_image(layer: Layer, target_crs) -> Image:
+    server_info = layer.server_info()
+    layer_type = server_info.get('type')
+    if layer_type == 'Feature Layer':
+        return mapserver_feature_layer_image(layer, target_crs)
+    elif layer_type == 'Raster Layer':
+        return mapserver_raster_layer_image(layer, target_crs)
+    else:
+        raise ValueError(f"MapServer layer type '{layer_type}' not handled")
+
+def featureserver_layer_image(layer: Layer, target_crs) -> Image:
+    return mapserver_layer_image(layer, target_crs) # FeatureServer case seemingly the same as MapServer case (for now)
 
 def generate_layer_preview(layer: Layer, target_crs: str, horizontal_subdivisions: int, vertical_subdivisions: int) -> None:
     """
@@ -629,9 +666,9 @@ def generate_layer_preview(layer: Layer, target_crs: str, horizontal_subdivision
 
     layer_image = None
     if re.search(r'^(.+?)/services/(.+?)/MapServer/(?![Ww][Mm][Ss][Ss]erver).+$', layer.server_url):
-        layer_image = mapserver_vector_layer_image(layer, target_crs)
+        layer_image = mapserver_layer_image(layer, target_crs)
     elif re.search(r'^(.+?)/services/(.+?)/FeatureServer/(?![Ww][Mm][Ss][Ss]erver).+$', layer.server_url):
-        layer_image = featureserver_vector_layer_image(layer, target_crs)
+        layer_image = featureserver_layer_image(layer, target_crs)
     else:
         layer_image = wms_layer_image(layer, target_crs, horizontal_subdivisions, vertical_subdivisions)
 
