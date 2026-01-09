@@ -290,6 +290,15 @@
   [{:keys [server_url attribution]}]
   [leaflet/vector-tile-layer {:url server_url :attribution attribution}])
 
+(defmethod basemap-layer-component :wms
+  [{:keys [server_url attribution layer_name]}]
+  [leaflet/wms-layer
+   {:url         server_url
+    :attribution attribution
+    :layers      layer_name
+    :tiled       true
+    :format      "image/png"}])
+
 (defmethod basemap-layer-component :wmts
   [{:keys [server_url attribution layer_name]}]
   [leaflet/wmts-layer
