@@ -515,6 +515,41 @@ class Layer(models.Model):
                 params['style'] = self.style
             return requests.get(url=self.server_url, params=params).url
 
+
+    def get_esri_image_map_legend(self) -> Union[str, list[dict]]:
+        """
+        Retrieves and constructs a list of legend keys for an ESRI ImageServer layer.
+
+        This function constructs a URL to fetch the legend for a specific map server
+        layer based on `self.server_url`. It makes a HTTP GET request to retrieve legend
+        data in JSON format, then extracts and processes the legend.
+
+        Returns:
+            Union[str, list[dict]]: A list of dictionaries where each dictionary represents
+                a legend key. Each legend key contains a `label` and `image`.
+
+        Example:
+            >>> self.get_esri_image_map_legend()
+            [
+                {
+                    'label': 'Feature A',
+                    'image': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNwAAAABJRU5ErkJggg=='
+                },
+                ...
+            ]
+
+        Note:
+        - The method assumes that `self.server_url` points to a valid ImageServer endpoint
+            that returns data in the expected format.
+        """
+        # First, try to get legend data in JSON format
+        legend_url = f"{self.server_url}/legend" # TODO
+        r = requests.get(url=legend_url, params={ 'f': 'json' }, timeout=10)
+        data = r.json()
+        legend_layer = data['layers'][0]
+        return [self.map_server_legend_item_to_legend_key(legend_item, legend_layer) for legend_item in legend_layer['legend']]
+
+
     def geoserver_legend_rule_to_legend_key(self, legend_rule: dict) -> dict:
         """
         Converts a GeoServer legend rule into a legend key dictionary.
@@ -699,11 +734,14 @@ class Layer(models.Model):
             # ...and has a FeatureServer URL, request legend data and transform
             if re.match(r'^(.+?)/services/(.+?)/FeatureServer/.+$', self.server_url):
                 return self.get_feature_server_legend()
-            
+
             # ...and has a MapServer URL, request legend data and transform
             else:
                 return self.get_map_server_legend()
-        
+
+        elif self.layer_type == 'esri-image-map':
+            return self.get_esri_image_map_legend()
+
         # ...otherwise, if the layer is a WMS layer
         elif self.layer_type in ['wms', 'wms-non-tiled']:
             return self.get_geoserver_legend()
