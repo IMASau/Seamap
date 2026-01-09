@@ -149,6 +149,21 @@
       (when (not= (.-opacity props) (.-opacity prev-props))
         (.setOpacity instance (.-opacity props)))))))
 
+(def esri-image-map-layer
+  (r/adapt-react-class
+   (ReactLeafletCore/createLayerComponent
+    ;; Create layer fn
+    (fn [props context]
+      (let [url (.-url props)
+            normalized-url (if (and url (not (.endsWith url "/"))) (str url "/") url)] ; Counter to all the other layers, L.esri.imageMapLayer doesn't won't work unless the URL ends in a trailing "/".
+        (aset props "url" normalized-url)
+        (let [instance ((-> esri .-imageMapLayer) props)]
+          #js{:instance instance :context context})))
+    ;; Update layer fn
+    (fn [instance props prev-props]
+      (when (not= (.-opacity props) (.-opacity prev-props))
+        (.setOpacity instance (.-opacity props)))))))
+
 (def map-container       (r/adapt-react-class ReactLeaflet/MapContainer))
 (def pane                (r/adapt-react-class ReactLeaflet/Pane))
 (def marker              (r/adapt-react-class ReactLeaflet/Marker))
