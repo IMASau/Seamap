@@ -241,6 +241,17 @@
        :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
        :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}])) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
 
+(defmethod layer-component :esri-vector-tile
+  [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
+  [leaflet/vector-tile-layer
+   {:url     server_url
+    :opacity (/ (layer-opacities layer) 100)
+    :eventHandlers
+    {:loading       #(re-frame/dispatch [:map.layer/load-start layer])
+     :tileloadstart #(re-frame/dispatch [:map.layer/tile-load-start layer])
+     :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
+     :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}])
+
 (defmethod layer-component :wms-non-tiled
   [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
   [leaflet/non-tiled-layer
