@@ -60,5 +60,6 @@
      [views/right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
      [views/layers-search-omnibar]
      [views/custom-leaflet-controls]
-     [views/floating-pills]
+     ;; Definitely no state-of-knowledge, and probably no generic pills for now at least:
+     ;; [views/floating-pills]
      [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))

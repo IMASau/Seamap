@@ -12,7 +12,7 @@
             ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
             ["react-esri-leaflet/plugins/VectorTileLayer" :as VectorTileLayer]
             ["leaflet.nontiledlayer"]
-            ["leaflet.tilelayer.wmts"]
+            ["@alcalin/leaflet-tilelayer-wmts" :refer [wmts]]
             ["proj4leaflet" :as proj4leaflet]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -22,6 +22,9 @@
   (proj4leaflet/CRS.
    "EPSG:3031"
    "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+   ;; resolutions are extent / tilesize / 2^zoom
+   ;; where tilesize is 256; see
+   ;; https://tiles.arcgis.com/tiles/tPxy1hrFDhJfZ0Mf/arcgis/rest/services/Antarctica_and_the_Southern_Ocean/MapServer
    #js{:resolutions
        #js[29917.72523676488   ; Level 0 (maps to tile matrix 3)
            14958.862618382442  ; Level 1 (maps to tile matrix 4)
@@ -33,7 +36,18 @@
            233.73379091222567  ; Level 7 (maps to tile matrix 10)
            116.86689545611284  ; Level 8 (maps to tile matrix 11)
            58.43344772805642   ; Level 9 (maps to tile matrix 12)
-           29.216723864028208] ; Level 10 (maps to tile matrix 13)
+           29.216723864028208  ; Level 10 (maps to tile matrix 13)
+           14.608361932        ; Level 11 (maps to tile matrix 14)
+           7.304180966         ; Level 12 (maps to tile matrix 15)
+           3.652090483         ; Level 13 (maps to tile matrix 16)
+           1.8260452415        ; Level 14 (maps to tile matrix 17)
+           0.91302262075       ; Level 15 (maps to tile matrix 18)
+           0.456511310375      ; Level 16 (maps to tile matrix 19)
+           0.228255655188      ; Level 17 (maps to tile matrix 20)
+           0.114127827594      ; Level 18 (maps to tile matrix 21)
+           0.057063913797      ; Level 19 (maps to tile matrix 22)
+           0.0285319568985     ; Level 20 (maps to tile matrix 23)
+           ]
        :origin     #js[-30635955.4472718 30635955.4472718]
        :bounds     (L/bounds #js[-4898635.244666547 -4903364.755333453] #js[4898864.755333463 4898864.755333455])}))
 
@@ -62,7 +76,7 @@
                              (let [url (.-url props)]
                                (js-delete props "url")
                                (js-delete props "eventHandlers")
-                               (let [instance ((-> L/default .-tileLayer .-wmts) url props)]
+                               (let [instance (wmts url props)]
                                  #js{:instance instance :context context})))
                            ;; Update layer fn
                            (fn [instance ^js/Object props ^js/Object prev-props]
@@ -130,6 +144,21 @@
     (fn [props context]
       (let [instance ((-> esri .-dynamicMapLayer) props)]
         #js{:instance instance :context context}))
+    ;; Update layer fn
+    (fn [instance props prev-props]
+      (when (not= (.-opacity props) (.-opacity prev-props))
+        (.setOpacity instance (.-opacity props)))))))
+
+(def esri-image-map-layer
+  (r/adapt-react-class
+   (ReactLeafletCore/createLayerComponent
+    ;; Create layer fn
+    (fn [props context]
+      (let [url (.-url props)
+            normalized-url (if (and url (not (.endsWith url "/"))) (str url "/") url)] ; Counter to all the other layers, L.esri.imageMapLayer doesn't won't work unless the URL ends in a trailing "/".
+        (aset props "url" normalized-url)
+        (let [instance ((-> esri .-imageMapLayer) props)]
+          #js{:instance instance :context context})))
     ;; Update layer fn
     (fn [instance props prev-props]
       (when (not= (.-opacity props) (.-opacity prev-props))

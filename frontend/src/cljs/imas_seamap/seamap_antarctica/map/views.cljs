@@ -35,7 +35,8 @@
          :zoom                 zoom
          :zoomControl          true
          :scaleFactor          true
-         :minZoom              2
+         :minZoom              1
+         :maxZoom              15       ; ISA-657 (could support more; see imas-seamap.interop.leaflet/crs-epsg3031)
          :keyboard             false ; handled externally
          :close-popup-on-click false} ; We'll handle that ourselves
         (when (seq bounds) {:bounds (map->bounds bounds)}))

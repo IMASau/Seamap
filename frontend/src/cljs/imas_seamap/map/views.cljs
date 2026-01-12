@@ -247,6 +247,17 @@
    {:url     server_url
     :opacity (/ (layer-opacities layer) 100)
     :eventHandlers
+       {:loading       #(re-frame/dispatch [:map.layer/load-start layer])
+        :tileloadstart #(re-frame/dispatch [:map.layer/tile-load-start layer])
+        :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
+        :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}])
+
+(defmethod layer-component :esri-image-map
+  [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
+  [leaflet/esri-image-map-layer
+   {:url             server_url
+    :opacity          (/ (layer-opacities layer) 100)
+    :eventHandlers
     {:loading       #(re-frame/dispatch [:map.layer/load-start layer])
      :tileloadstart #(re-frame/dispatch [:map.layer/tile-load-start layer])
      :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
@@ -272,6 +283,14 @@
     (when boundary-filter (boundary-filter layer))
     (when cql-filter {:cql_filter cql-filter}))])
 
+(defmethod layer-component :wmts
+  [{:keys [layer-opacities layer] {:keys [server_url layer_name]} :displayed-layer}]
+  [leaflet/wmts-layer
+   {:url server_url
+    :layer layer_name
+    :useGetCapabilities true
+    :opacity (/ (layer-opacities layer) 100)}])
+
 (defmulti basemap-layer-component :layer_type)
 
 (defmethod basemap-layer-component :tile
@@ -283,13 +302,12 @@
   [leaflet/vector-tile-layer {:url server_url :attribution attribution}])
 
 (defmethod basemap-layer-component :wmts
-  [{:keys [server_url attribution]}]
+  [{:keys [server_url attribution layer_name]}]
   [leaflet/wmts-layer
    {:url server_url
     :attribution attribution
-    :layer "Antarctica_and_the_Southern_Ocean" ; TODO: Should be configurable
-    :tileMatrixSet "default028mm" ; TODO: Should be configurable
-    :tileMatrixStart 3}]) ; TODO: Should be configurable
+    :layer layer_name
+    :useGetCapabilities true}])
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])

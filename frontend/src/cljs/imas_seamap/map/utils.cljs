@@ -18,7 +18,7 @@
   {"EPSG:4326" (proj4 "+proj=longlat +datum=WGS84 +no_defs +type=crs")
    "EPSG:3857" (proj4 "+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs")
    "EPSG:3112" (proj4 "+proj=lcc +lat_0=0 +lon_0=134 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs")
-   "EPSG:3031" (proj4 "+proj=stere +lat_0=-90 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +type=crs")})
+   "EPSG:3031" (proj4 "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs")})
 
 (defn project-coords
   [coords crs]
@@ -366,8 +366,12 @@
    :west  (. bounds getWest)})
 
 (defn leaflet-props [e]
-  (let [m (. e -target)]
-    {:zoom   (. m getZoom)
+  (let [m    (. e -target)
+        zoom (. m getZoom)
+        crs  (-> m .-options .-crs)]
+    {:zoom   zoom
+     :scale  (-> crs (.scale zoom))
+     :crs    (.-code crs)
      :size   (-> m (. getSize) (js->clj :keywordize-keys true) (select-keys [:x :y]))
      :center (-> m (. getCenter) latlng->vec)
      :bounds (-> m (. getBounds) bounds->map)}))
@@ -616,9 +620,12 @@
 
 (defn layer->cql-filter
   "Returns the CQL filter for a layer."
-  [layer db]
-  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db))
-        dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db)))
-        cql-filters (if rich-layer-cql-filter (conj dynamic-pills-cql-filters rich-layer-cql-filter) dynamic-pills-cql-filters)
-        cql-filter (apply str (interpose " AND " cql-filters))]
-    (when (seq cql-filter) cql-filter)))
+  [{layer-cql-filter :filter :as layer} db]
+  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db)) ; string or nil
+        dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db))) ; list of strings
+        cql-filters
+        (cond-> dynamic-pills-cql-filters
+          rich-layer-cql-filter (conj rich-layer-cql-filter) ; if rich-layer cql filter exists, add it
+          layer-cql-filter     (conj layer-cql-filter)) ; if layer cql filter exists, add it
+        cql-filter (apply str (interpose " AND " cql-filters))] ; combine with AND
+    (when (seq cql-filter) cql-filter))) ; return nil if no filter

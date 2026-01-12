@@ -12,6 +12,7 @@ from uuid import uuid4
 import requests
 import xml.etree.ElementTree as ET 
 
+# pylint: disable=line-too-long
 
 @python_2_unicode_compatible
 class Category(models.Model):
@@ -86,6 +87,8 @@ LAYER_TYPE_CHOICES = [
     ('map-server', 'map-server'),
     ('wms-non-tiled', 'wms-non-tiled'),
     ('esri-vector-tile', 'esri-vector-tile'),
+    ('wmts', 'wmts'),
+    ('esri-image-map', 'esri-image-map'),
 ]
 
 
@@ -136,14 +139,15 @@ class Layer(models.Model):
         max_length=200,
         choices=LAYER_TYPE_CHOICES,
         help_text="""
-            <p>Seamap accommodates 6 different types of map layer:</p>
+            <p>Seamap accommodates 7 different types of map layer:</p>
             <ol>
                 <li><code>wms</code>: standard OGC/MapServer wms or WMSServer</li>
                 <li><code>feature</code>: vector-styled layer from ESRI ArcGIS server</li>
                 <li><code>map-server</code>: not <code>tile</code> or <code>wms</code> layer from ESRI ArcGIS MapServer</li>
                 <li><code>tile</code>: tile server</li>
                 <li><code>wms-non-tiled</code>: special case where we want a WMS request to be made of a single image of the layer, rather than a series of tiles. This is less efficient but is used sometimes for layers that use a global render (e.g. heatmaps)</li>
-                <li><code>esri-image-map</code>: For ESRI VectorTileServer layers. Rendered with <a href="https://developers.arcgis.com/esri-leaflet/api-reference/esri-leaflet-vector/vector-layer/">L.esri.Vector.vectorTileLayer</a></li>
+                <li><code>esri-vector-tile</code>: For ESRI VectorTileServer layers. Rendered with <a href="https://developers.arcgis.com/esri-leaflet/api-reference/esri-leaflet-vector/vector-layer/">L.esri.Vector.vectorTileLayer</a></li>
+                <li><code>esri-image-map</code>: For ESRI ImageServer layers. Rendered with <a href="https://developers.arcgis.com/esri-leaflet/api-reference/esri-leaflet/image-map-layer/">L.esri.imageMapLayer</a></li>
             </ol>
             <p>Extra info:</p>
             <ul>
@@ -161,11 +165,12 @@ class Layer(models.Model):
         default=True,
         help_text="Dictates if a layer should generate a new layer preview each week, even if a preview already exists. If no preview image exists for the layer, this property will be ignored."
     )
+    filter = models.CharField(max_length=255, null=True, blank=True, help_text="CQL filter to apply to the layer")
 
     def __str__(self):
         return self.name
     
-    def get_geoserver_wfs_capabilities(self) -> ET.ElementTree:
+    def _get_geoserver_wfs_capabilities(self) -> ET.ElementTree:
         """Retrieves the WFS GetCapabilities document from the GeoServer layer.
 
         This function sends a GetCapabilities request to the GeoServer specified by the
@@ -205,7 +210,7 @@ class Layer(models.Model):
             Exception: If the server type is not 'geoserver'.
             Exception: If the capabilities document cannot be retrieved or parsed.
         """
-        root = self.get_geoserver_wfs_capabilities().getroot()
+        root = self._get_geoserver_wfs_capabilities().getroot()
         namespaces = {
             'wfs': 'http://www.opengis.net/wfs/2.0',
             'ows': 'http://www.opengis.net/ows/1.1'
@@ -318,7 +323,7 @@ class Layer(models.Model):
             'value_combinations': value_combinations
         }
 
-    def feature_server_renderer_value_info_to_legend_key(self, value_info: dict) -> dict:
+    def _feature_server_renderer_value_info_to_legend_key(self, value_info: dict) -> dict:
         """
         Converts a FeatureServer renderer value info dictionary into a legend key
         dictionary.
@@ -331,7 +336,7 @@ class Layer(models.Model):
             dict: A dictionary representing a legend key with a `label` and `style`.
 
         Example:
-            >>> self.feature_server_renderer_value_info_to_legend_key(renderer['uniqueValueInfos'][0])
+            >>> self._feature_server_renderer_value_info_to_legend_key(renderer['uniqueValueInfos'][0])
             {
                 'label': 'Feature A',
                 'style': {
@@ -362,7 +367,7 @@ class Layer(models.Model):
             'style': style
         }
 
-    def get_feature_server_legend(self) -> list[dict]:
+    def _get_feature_server_legend(self) -> list[dict]:
         """
         Retrieves and constructs a list of legend keys for a FeatureServer layer.
 
@@ -372,7 +377,7 @@ class Layer(models.Model):
         and returns a list of legend keys.
 
         If `uniqueValueInfos` is present in the renderer, it converts each value info
-        into a legend key using the `feature_server_renderer_value_info_to_legend_key`
+        into a legend key using the `_feature_server_renderer_value_info_to_legend_key`
         method. If `uniqueValueInfos` is not present, it returns a single legend key for
         the renderer itself.
 
@@ -381,7 +386,7 @@ class Layer(models.Model):
                 key. Each legend key contains a `label` and `style`.
 
         Example:
-            >>> self.get_feature_server_legend()
+            >>> self._get_feature_server_legend()
             [
                 {
                     'label': 'Feature A',
@@ -406,12 +411,12 @@ class Layer(models.Model):
         renderer = data['drawingInfo']['renderer'] # Get renderer data
         if 'uniqueValueInfos' in renderer: # If renderer has uniqueValueInfos, then...
             # ...return a list of legend keys for each value info, else...
-            return [self.feature_server_renderer_value_info_to_legend_key(value_info) for value_info in renderer['uniqueValueInfos']]
+            return [self._feature_server_renderer_value_info_to_legend_key(value_info) for value_info in renderer['uniqueValueInfos']]
         else:
             # ...return a list containing a single legend key for the renderer
-            return [self.feature_server_renderer_value_info_to_legend_key(renderer)]
+            return [self._feature_server_renderer_value_info_to_legend_key(renderer)]
 
-    def map_server_layer_data(self) -> dict:
+    def _map_server_layer_data(self) -> dict:
         """
         Retrieves and returns the MapServer layer data.
         
@@ -421,7 +426,7 @@ class Layer(models.Model):
         r = requests.get(url=self.server_url, params={ 'f': 'json' })
         return r.json()
 
-    def map_server_legend_item_to_legend_key(self, legend_item: dict, legend_layer: dict) -> dict:
+    def _map_server_legend_item_to_legend_key(self, legend_item: dict, legend_layer: dict) -> dict:
         """
         Converts a MapServer layer legend item into a legend key dictionary.
 
@@ -435,7 +440,7 @@ class Layer(models.Model):
             dict: A dictionary representing a legend key with a `label` and `image`.
 
         Example:
-            >>> self.map_server_legend_item_to_legend_key(legend_layer['legend'][0])
+            >>> self._map_server_legend_item_to_legend_key(legend_layer['legend'][0])
             {
                 'label': 'Feature A',
                 'image': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNwAAAABJRU5ErkJggg=='
@@ -446,7 +451,7 @@ class Layer(models.Model):
             'image': f"data:image/png;base64,{legend_item['imageData']}"
         }
 
-    def get_map_server_legend(self) -> Union[str, list[dict]]:
+    def _get_map_server_legend(self) -> Union[str, list[dict]]:
         """
         Retrieves and constructs a list of legend keys for a MapServer layer.
 
@@ -461,7 +466,7 @@ class Layer(models.Model):
                 format.
 
         Example:
-            >>> self.get_map_server_legend()
+            >>> self._get_map_server_legend()
             [
                 {
                     'label': 'Feature A',
@@ -469,7 +474,7 @@ class Layer(models.Model):
                 },
                 ...
             ] # if legend data can be retrieved
-            >>> self.get_map_server_legend()
+            >>> self._get_map_server_legend()
             "https://mapserver.../legend?service=WMS&request=GetLegendGraphic&layer=...&format=image/png" # if legend data cannot be retrieved
 
         Note:
@@ -483,7 +488,7 @@ class Layer(models.Model):
             map_server_layer_id = int(match.group('map_server_layer_id'))
             r = requests.get(url=legend_url, params={ 'f': 'json' })
             data = r.json()
-            layer_data = self.map_server_layer_data()
+            layer_data = self._map_server_layer_data()
 
             # group-layer case
             if layer_data['type'] == 'Group Layer':
@@ -492,13 +497,13 @@ class Layer(models.Model):
                 # Extract legend data for each sub-layer, and merge into a single legend
                 for layer in layer_data['subLayers']:
                     legend_layer = next((legend_layer for legend_layer in data['layers'] if legend_layer['layerId'] == layer['id']))
-                    legend += [self.map_server_legend_item_to_legend_key(legend_item, legend_layer) for legend_item in legend_layer['legend']]
+                    legend += [self._map_server_legend_item_to_legend_key(legend_item, legend_layer) for legend_item in legend_layer['legend']]
                 return legend
 
             # single-layer case
             else:
                 legend_layer = next((legend_layer for legend_layer in data['layers'] if legend_layer['layerId'] == map_server_layer_id))
-                return [self.map_server_legend_item_to_legend_key(legend_item, legend_layer) for legend_item in legend_layer['legend']]
+                return [self._map_server_legend_item_to_legend_key(legend_item, legend_layer) for legend_item in legend_layer['legend']]
 
         # If the legend data cannot be retrieved, return the legend graphic image URL
         except Exception as e:
@@ -514,7 +519,42 @@ class Layer(models.Model):
                 params['style'] = self.style
             return requests.get(url=self.server_url, params=params).url
 
-    def geoserver_legend_rule_to_legend_key(self, legend_rule: dict) -> dict:
+
+    def _get_esri_image_map_legend(self) -> Union[str, list[dict]]:
+        """
+        Retrieves and constructs a list of legend keys for an ESRI ImageServer layer.
+
+        This function constructs a URL to fetch the legend for a specific map server
+        layer based on `self.server_url`. It makes a HTTP GET request to retrieve legend
+        data in JSON format, then extracts and processes the legend.
+
+        Returns:
+            Union[str, list[dict]]: A list of dictionaries where each dictionary represents
+                a legend key. Each legend key contains a `label` and `image`.
+
+        Example:
+            >>> self._get_esri_image_map_legend()
+            [
+                {
+                    'label': 'Feature A',
+                    'image': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNwAAAABJRU5ErkJggg=='
+                },
+                ...
+            ]
+
+        Note:
+        - The method assumes that `self.server_url` points to a valid ImageServer endpoint
+            that returns data in the expected format.
+        """
+        # First, try to get legend data in JSON format
+        legend_url = f"{self.server_url}/legend" # TODO
+        r = requests.get(url=legend_url, params={ 'f': 'json' }, timeout=10)
+        data = r.json()
+        legend_layer = data['layers'][0]
+        return [self._map_server_legend_item_to_legend_key(legend_item, legend_layer) for legend_item in legend_layer['legend']]
+
+
+    def _geoserver_legend_rule_to_legend_key(self, legend_rule: dict) -> dict:
         """
         Converts a GeoServer legend rule into a legend key dictionary.
 
@@ -528,7 +568,7 @@ class Layer(models.Model):
             ValueError: If the legend rule's symbolizer type is unsupported.
 
         Example:
-            >>> self.geoserver_legend_rule_to_legend_key(geoserver_legend['Legend'][0]['rules'][0])
+            >>> self._geoserver_legend_rule_to_legend_key(geoserver_legend['Legend'][0]['rules'][0])
             {
                 'label': 'Red Polygon',
                 'style': {
@@ -591,7 +631,7 @@ class Layer(models.Model):
             'style': style
         }
 
-    def get_geoserver_legend(self) -> Union[str, list[dict]]:
+    def _get_geoserver_legend(self) -> Union[str, list[dict]]:
         """
         Retrieves and constructs a list of legend keys for a GeoServer layer.
 
@@ -607,7 +647,7 @@ class Layer(models.Model):
                 the URL of the legend graphic image in PNG format.
 
         Example:
-            >>> self.get_geoserver_legend()
+            >>> self._get_geoserver_legend()
             [
                 {
                     'label': 'Red Polygon',
@@ -620,7 +660,7 @@ class Layer(models.Model):
                 },
                 ...
             ] # for successful conversion
-            >>> self.get_geoserver_legend()
+            >>> self._get_geoserver_legend()
             "https://geoserver...?service=WMS&version=1.1.1&request=GetLegendGraphic&layer=...&format=image/png&transparent=True" # for unsuccessful conversion
         
         Note:
@@ -643,8 +683,8 @@ class Layer(models.Model):
         try:
             data = r.json()
             legend_rules = data['Legend'][0]['rules'] # Get legend rules
-            assert self.geoserver_legend_rule_to_legend_key(legend_rules[0]) # Check if the first legend rule can be converted
-            return [self.geoserver_legend_rule_to_legend_key(legend_rule) for legend_rule in legend_rules] # Convert all legend rules
+            assert self._geoserver_legend_rule_to_legend_key(legend_rules[0]) # Check if the first legend rule can be converted
+            return [self._geoserver_legend_rule_to_legend_key(legend_rule) for legend_rule in legend_rules] # Convert all legend rules
         except Exception as e:
             # If the legend rules cannot be converted, return the legend graphic image URL
             params = {
@@ -697,15 +737,18 @@ class Layer(models.Model):
         if self.layer_type in ['feature', 'map-server']:
             # ...and has a FeatureServer URL, request legend data and transform
             if re.match(r'^(.+?)/services/(.+?)/FeatureServer/.+$', self.server_url):
-                return self.get_feature_server_legend()
-            
+                return self._get_feature_server_legend()
+
             # ...and has a MapServer URL, request legend data and transform
             else:
-                return self.get_map_server_legend()
-        
+                return self._get_map_server_legend()
+
+        elif self.layer_type == 'esri-image-map':
+            return self._get_esri_image_map_legend()
+
         # ...otherwise, if the layer is a WMS layer
         elif self.layer_type in ['wms', 'wms-non-tiled']:
-            return self.get_geoserver_legend()
+            return self._get_geoserver_legend()
 
         # ...otherwise, layer type is not supported
         else:
@@ -736,6 +779,7 @@ class BaseLayer(models.Model):
     sort_key = models.CharField(max_length=10, null=True, blank=True)
     layer_group = models.ForeignKey(BaseLayerGroup, blank=True, null=True, on_delete=models.PROTECT, db_column='layer_group')
     layer_type = models.CharField(max_length=10)
+    layer_name = models.CharField(max_length = 200, help_text = "Only required for WMTS layers", blank=True, null=True)
 
     def __str__(self):
         return self.name

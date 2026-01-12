@@ -1,11 +1,15 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+import importlib
+import logging
+
+from django.conf import settings
+from rest_framework import serializers
+
 import catalogue.models as models
 
-from django.db.models import Value
-from django.db.models.functions import Coalesce
-from rest_framework import serializers
+logger = logging.getLogger(__name__)
 
 
 class OrganisationSerializer(serializers.ModelSerializer):
@@ -52,10 +56,19 @@ class LayerSerializer(serializers.ModelSerializer):
         return getattr(obj.organisation, 'name', None)
 
     def get_bounding_box(self, obj):
-        return {'west': float(obj.minx),
-                'south': float(obj.miny),
-                'east': float(obj.maxx),
-                'north': float(obj.maxy)}
+        # Allow customisation (currently only employed by Seamap-Antarctica)
+        if bbox_fn := getattr(settings, "BBOX_SERIALIZER", None):
+            module_name, fn_name = bbox_fn.rsplit('.', 1)
+            try:
+                plugin_module = importlib.import_module(module_name)
+                plugin_fn = getattr(plugin_module, fn_name)
+                return plugin_fn(self, obj)
+            except ModuleNotFoundError:
+                logger.error(f"Error trying to import bbox path {bbox_fn}", exc_info=True)
+                raise
+
+        # Default:
+        return {"west": obj.minx, "south": obj.miny, "east": obj.maxx, "north": obj.maxy}
 
     class Meta:
         model = models.Layer

@@ -35,19 +35,39 @@
   convenient option of using the map viewport for both, as provided by
   leaflet, can cause inaccuracies when zoomed out. So, we calculate a
   smaller region by using the viewport dimensions to approximate a
-  narrower pixel region."
-  [{:keys [lat lng] :as _point}
+  narrower pixel region. This method used to be used by the geoserver
+  openlayers preview."
+  [[lng lat :as _point]
    {:keys [x y] :as _map-size}
    {:keys [north south east west] :as _map-bounds}
    {:keys [width height] :as _img-size}]
-  (let [x-scale (/ (Math/abs (- west east)) x)
-        y-scale (/ (Math/abs (- north south)) y)
+  (let [x-scale (/ (- east west) x)
+        y-scale (/ (- north south) y)
         img-x-bounds (* x-scale width)
         img-y-bounds (* y-scale height)]
     {:north (+ lat (/ img-y-bounds 2))
      :south (- lat (/ img-y-bounds 2))
      :east  (+ lng (/ img-x-bounds 2))
      :west  (- lng (/ img-x-bounds 2))}))
+
+(defn bounds-for-resolution
+  "GetFeatureInfo requires the pixel coordinates and dimensions around a
+  geographic point, to translate a click into a feature. The
+  convenient option of using the map viewport for both, as provided by
+  leaflet, can cause inaccuracies when zoomed out. So, we calculate a
+  smaller region by using the resolution (inverse of scale) to
+  construct a bounding box around the clicked point. This is the
+  method now used by OpenLayers getFeatureInfoUrl."
+  [[lng lat :as _point]
+   {:keys [width height] :as _img-size}
+   scale]
+  (let [resolution (/ 1 scale)
+        dx (/ (* resolution width) 2)
+        dy (/ (* resolution height) 2)]
+    {:north (+ lat dy)
+     :south (- lat dy)
+     :east  (+ lng dx)
+     :west  (- lng dx)}))
 
 (def ^:const INFO-FORMAT-HTML 1)
 (def ^:const INFO-FORMAT-JSON 2)
@@ -61,11 +81,29 @@
 (def feature-info-image-size
   {:width 101 :height 101})
 
+(defn crs-map-default?
+  "Compares the map CRS with the layer CRS (which may be null).
+  Represents whether the map crs is the default; ie, if the layer
+  doesn't specify a different CRS, or it is the same as the map's.
+  Note, uses keyword arguments to avoid confusion."
+  [& {:keys [map-crs layer-crs]}]
+  ;; Just support EPSG codes for now:
+  (or (string/blank? layer-crs)
+      (= (string/lower-case map-crs) (string/lower-case layer-crs))))
+
 (defmethod get-feature-info INFO-FORMAT-HTML
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
-  (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
-                  (bounds->projected #(project-coords % (-> layers first :crs)))
-                  (bounds->str (-> layers first :crs)))
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds] :as _leaflet-props} point]]
+  (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
+        request-crs (or layer-crs crs)
+        geo-point ((juxt :lng :lat) point)
+        projected-point (project-coords geo-point request-crs)
+        bbox-bounds (if (crs-map-default? :map-crs crs
+                                          :layer-crs layer-crs)
+                      (bounds-for-resolution projected-point feature-info-image-size scale)
+                      (bounds->projected
+                       #(project-coords % request-crs)
+                       (bounds-for-zoom geo-point size bounds feature-info-image-size)))
+        bbox (bounds->str request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
@@ -87,8 +125,8 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
-        :CRS           (-> layers first :crs)
-        :SRS           (-> layers first :crs)
+        :CRS           request-crs
+        :SRS           request-crs
         :FORMAT        "image/png"
         :INFO_FORMAT   "text/html"
         :SERVICE       "WMS"
@@ -99,10 +137,18 @@
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
 (defmethod get-feature-info INFO-FORMAT-JSON
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
-  (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
-                  (bounds->projected #(project-coords % (-> layers first :crs)))
-                  (bounds->str (-> layers first :crs)))
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds zoom] :as _leaflet-props} point]]
+  (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
+        request-crs (or layer-crs crs)
+        geo-point ((juxt :lng :lat) point)
+        projected-point (project-coords geo-point request-crs)
+        bbox-bounds (if (crs-map-default? :map-crs crs
+                                          :layer-crs layer-crs)
+                      (bounds-for-resolution projected-point feature-info-image-size scale)
+                      (bounds->projected
+                       #(project-coords % request-crs)
+                       (bounds-for-zoom projected-point size bounds feature-info-image-size)))
+        bbox (bounds->str request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
@@ -124,8 +170,8 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
-        :CRS           (-> layers first :crs)
-        :SRS           (-> layers first :crs)
+        :CRS           request-crs
+        :SRS           request-crs
         :FORMAT        "image/png"
         :INFO_FORMAT   "application/json"
         :SERVICE       "WMS"
@@ -716,15 +762,22 @@
 
     (assoc-in db [:map :leaflet-map] leaflet-map)))
 
-(defn update-map-view [{{:keys [leaflet-map] old-zoom :zoom old-center :center} :map} [_ {:keys [zoom center bounds instant?]}]] 
+(defn update-map-view
+  "Update the map view (zoom/center/bounds)
+   If `instant?` is true, set the view immediately, otherwise fly to it.
+   Uses zoom/center if provided, otherwise uses bounds if provided.
+   
+   Note that zoom/center are prioritised over bounds, as bounds can be buggy in
+   stereographic polar projections."
+  [{{:keys [leaflet-map] old-zoom :zoom old-center :center} :map} [_ {:keys [zoom center bounds instant?]}]]
   (when leaflet-map
     (if instant?
-      (do
-        (when (or zoom (seq center)) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom)))
-        (when (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js))))
-      (do
-        (when (or zoom (seq center)) (.flyTo leaflet-map (clj->js (if (seq center) center old-center)) (or zoom old-zoom)))
-        (when (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js))))))
+      (cond
+        (or zoom (seq center)) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom))
+        (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js)))
+      (cond
+        (or zoom (seq center)) (.flyTo leaflet-map (clj->js (if (seq center) center old-center)) (or zoom old-zoom))
+        (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js)))))
   nil)
 
 (defn map-view-updated [{:keys [db]} [_ {:keys [zoom size center bounds]}]]

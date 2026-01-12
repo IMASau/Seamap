@@ -126,3 +126,82 @@
      :dispatch   [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center})]
      :local-storage/remove
      {:name :seamap-app-state}}))
+
+(defn initialise-layers [{:keys [db]} _]
+  (let [{:keys [site-configuration-url
+                layer-url
+                base-layer-url
+                base-layer-group-url
+                organisation-url
+                classification-url
+                descriptor-url
+                category-url
+                keyed-layers-url
+                rich-layers-url
+                region-reports-url
+                dynamic-pills-url
+                amp-boundaries-url
+                imcra-boundaries-url
+                meow-boundaries-url
+                story-maps-url]} (get-in db [:config :urls])]
+    {:db         db
+     :http-xhrio [{:method          :get
+                   :uri             site-configuration-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-site-configuration]
+                   :on-failure      [:update-site-configuration/error-handler]}
+                  {:method          :get
+                   :uri             layer-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             base-layer-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-base-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             base-layer-group-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-base-layer-groups]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             descriptor-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-descriptors]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             classification-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-classifications]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             organisation-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-organisations]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             category-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-categories]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             keyed-layers-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-keyed-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             rich-layers-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-rich-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             dynamic-pills-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-dynamic-pills]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             story-maps-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:sm/update-featured-maps]
+                   :on-failure      [:sm/update-featured-maps []]}]}))

@@ -109,7 +109,7 @@
     :get-save-state                       [events/get-save-state]
     :get-save-state-success               [events/get-save-state-success]
     :initialise-db                        [events/initialise-db]
-    :initialise-layers                    [events/initialise-layers]
+    :initialise-layers                    [antevents/initialise-layers]
     :loading-failed                       events/loading-failed
     :update-dynamic-pills                 events/update-dynamic-pills
     :update-site-configuration            events/update-site-configuration
