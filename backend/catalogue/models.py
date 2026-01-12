@@ -86,6 +86,7 @@ LAYER_TYPE_CHOICES = [
     ('feature', 'feature'),
     ('map-server', 'map-server'),
     ('wms-non-tiled', 'wms-non-tiled'),
+    ('esri-vector-tile', 'esri-vector-tile'),
     ('wmts', 'wmts'),
     ('esri-image-map', 'esri-image-map'),
 ]
@@ -138,13 +139,14 @@ class Layer(models.Model):
         max_length=200,
         choices=LAYER_TYPE_CHOICES,
         help_text="""
-            <p>Seamap accommodates 6 different types of map layer:</p>
+            <p>Seamap accommodates 7 different types of map layer:</p>
             <ol>
                 <li><code>wms</code>: standard OGC/MapServer wms or WMSServer</li>
                 <li><code>feature</code>: vector-styled layer from ESRI ArcGIS server</li>
                 <li><code>map-server</code>: not <code>tile</code> or <code>wms</code> layer from ESRI ArcGIS MapServer</li>
                 <li><code>tile</code>: tile server</li>
                 <li><code>wms-non-tiled</code>: special case where we want a WMS request to be made of a single image of the layer, rather than a series of tiles. This is less efficient but is used sometimes for layers that use a global render (e.g. heatmaps)</li>
+                <li><code>esri-vector-tile</code>: For ESRI VectorTileServer layers. Rendered with <a href="https://developers.arcgis.com/esri-leaflet/api-reference/esri-leaflet-vector/vector-layer/">L.esri.Vector.vectorTileLayer</a></li>
                 <li><code>esri-image-map</code>: For ESRI ImageServer layers. Rendered with <a href="https://developers.arcgis.com/esri-leaflet/api-reference/esri-leaflet/image-map-layer/">L.esri.imageMapLayer</a></li>
             </ol>
             <p>Extra info:</p>
