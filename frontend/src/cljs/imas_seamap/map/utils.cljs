@@ -625,7 +625,7 @@
         dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db))) ; list of strings
         cql-filters
         (cond-> dynamic-pills-cql-filters
-          rich-layer-cql-filter (conj rich-layer-cql-filter) ; if rich-layer cql filter exists, add it
-          layer-cql-filter     (conj layer-cql-filter)) ; if layer cql filter exists, add it
+          (seq rich-layer-cql-filter) (conj rich-layer-cql-filter) ; if rich-layer cql filter exists, add it
+          (seq layer-cql-filter)      (conj layer-cql-filter))     ; if layer cql filter exists, add it
         cql-filter (apply str (interpose " AND " cql-filters))] ; combine with AND
     (when (seq cql-filter) cql-filter))) ; return nil if no filter
