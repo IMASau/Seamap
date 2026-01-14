@@ -73,8 +73,7 @@
     [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
      [:div#content-wrapper
-      [map-component]
-      [views/plot-component]]
+      [map-component]]
 
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [views/helper-overlay
@@ -91,7 +90,7 @@
       {:id "settings-button" :helperText "Select from user-configurable settings"}
       {:id "print-control" :helperText "Export current map view as an image"}
       {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
-      {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
+      {:id "transect-control" :helperText "Take a measurement"}
       {:id "select-control" :helperText "Select a region for download (habitat data)"}
       {:id "share-control" :helperText "Create a shareable URL for current map view"}
       {:id "reset-control" :helperText "Reset the application back to its initial state"}
