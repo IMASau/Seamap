@@ -104,10 +104,10 @@
      :cql-filter-fn   #(layer->cql-filter % db)}))
 
 (defn map-base-layers [{{:keys [grouped-base-layers active-base-layer zoom]} :map} _]
-  (let [enabled-base-layer-fn (fn [{:keys [max_zoom]}] (or (nil? max_zoom) (<= zoom max_zoom)))
+  (let [enabled-base-layer-fn (fn [{:keys [max_zoom]}] (or (nil? max_zoom) (<= zoom max_zoom))) ; Utility for checking if a basemap is "enabled" - i.e. is it a valid basemap the user can select, or are we beyond the max zoom for the layer
         enabled-base-layers (filter enabled-base-layer-fn grouped-base-layers)]
-    {:grouped-base-layers   grouped-base-layers
-     :active-base-layer     (if (enabled-base-layer-fn active-base-layer) active-base-layer (first enabled-base-layers))
+    {:grouped-base-layers   grouped-base-layers ; List of selectable basemaps (composite basemaps grouped as a single element)
+     :active-base-layer     (if (enabled-base-layer-fn active-base-layer) active-base-layer (first enabled-base-layers)) ; Active basemap is the one selected by the user, unless it's disabled. If the basemap is disabled, then switch to first enabled basemap
      :enabled-base-layer-fn enabled-base-layer-fn}))
 
 (defn display-categories
