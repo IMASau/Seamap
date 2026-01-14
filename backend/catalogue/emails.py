@@ -7,9 +7,9 @@ def email_generate_layer_preview_summary(errors):
     """
     Email staff about failed layers during the generate_layer_previews run.
     """
-    context = {'errors': errors}
+    context = {'errors': errors, 'site_name': settings.SITE_NAME}
     send_mail(
-        subject="Layer Preview Generation Summary",
+        subject=f"{settings.SITE_NAME}: Layer Preview Generation Summary",
         message=render_to_string('email_generate_layer_preview_summary.txt', context),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=settings.ADMINS,
@@ -27,9 +27,9 @@ def email_build_feature_index_summary(errors: list[LayerFeatureIndexError]) -> N
     Args:
         errors (list[LayerFeatureIndexError]): List of errors to report.
     """
-    context = {'errors': errors}
+    context = {'errors': errors, 'site_name': settings.SITE_NAME}
     send_mail(
-        subject="Build Feature Index Summary",
+        subject=f"{settings.SITE_NAME}: Build Feature Index Summary",
         message=render_to_string('email_generate_build_feature_index_summary.txt', context),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=settings.ADMINS,

@@ -1,4 +1,4 @@
-The layer preview generation run finished.
+The layer preview generation run for {site_name} has finished.
 
 {% if errors %}
 The following layers failed to generate previews:
