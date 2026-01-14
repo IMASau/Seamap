@@ -15,7 +15,7 @@
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
-        {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
+        {:keys [grouped-base-layers active-base-layer enabled-base-layer-fn]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
@@ -55,11 +55,11 @@
          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index -1}}
           [map-views/basemap-layer-component (first grouped-base-layers)]])
 
-       ;; Basemap selection:
+       ;; Basemap layer
        [leaflet/layers-control {:position "topright" :auto-z-index false}
         (for [{:keys [id name] :as base-layer} grouped-base-layers]
           ^{:key id}
-          [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
+          [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer) :disabled (not (enabled-base-layer-fn base-layer))}
            [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
             [map-views/basemap-layer-component base-layer]]])]
 

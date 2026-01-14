@@ -103,8 +103,12 @@
      :rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)
      :cql-filter-fn   #(layer->cql-filter % db)}))
 
-(defn map-base-layers [{:keys [map]} _]
-  (select-keys map [:grouped-base-layers :active-base-layer]))
+(defn map-base-layers [{{:keys [grouped-base-layers active-base-layer zoom]} :map} _]
+  (let [enabled-base-layer-fn (fn [{:keys [max_zoom]}] (or (nil? max_zoom) (<= zoom max_zoom)))
+        enabled-base-layers (filter enabled-base-layer-fn grouped-base-layers)]
+    {:grouped-base-layers   grouped-base-layers
+     :active-base-layer     (if (enabled-base-layer-fn active-base-layer) active-base-layer (first enabled-base-layers))
+     :enabled-base-layer-fn enabled-base-layer-fn}))
 
 (defn display-categories
   "Filter categories to only those that have a display name and at least one layer."
