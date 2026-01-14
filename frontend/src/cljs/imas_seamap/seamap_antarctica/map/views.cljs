@@ -56,8 +56,8 @@
           [map-views/basemap-layer-component (first grouped-base-layers)]])
 
        ;; Basemap layer
-       (when active-base-layer
-         ^{:key (str active-base-layer)}
+       (when active-base-layer ; Don't render unless we have a basemap
+         ^{:key (str active-base-layer)} ; Key changes with each basemap, so the layer re-renders
          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
           [map-views/basemap-layer-component active-base-layer]])
 

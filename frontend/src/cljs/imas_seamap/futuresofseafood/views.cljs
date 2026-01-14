@@ -105,6 +105,6 @@
      [views/layers-search-omnibar]
      [views/custom-leaflet-controls]
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
-      {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}}
+      {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [views/layers-control]]
      [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
