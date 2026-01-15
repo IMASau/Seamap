@@ -32,6 +32,7 @@
 (def config-handlers
   {:subs
    {:map/props                            msubs/map-props
+    :map/leaflet-map                      msubs/leaflet-map
     :map/layers                           msubs/map-layers
     :map/base-layers                      msubs/map-base-layers
     :map/organisations                    msubs/organisations
@@ -82,7 +83,6 @@
     :ui/sidebar                           subs/sidebar-state
     :ui/right-sidebar                     subs/right-sidebar
     :ui/open-pill                         subs/open-pill
-    :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
     :dynamic-pills                        subs/dynamic-pills
     :site-configuration/outage-message    subs/site-configuration-outage-message
@@ -264,7 +264,6 @@
     :ui.right-sidebar/bring-to-front      events/right-sidebar-bring-to-front
     :ui.right-sidebar/remove              events/right-sidebar-remove
     :ui/open-pill                         events/open-pill
-    :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
     :left-drawer/toggle                   [events/left-drawer-toggle]
@@ -296,7 +295,6 @@
 (def standard-interceptors
   [(when ^boolean goog.DEBUG (debug-excluding
                               :transect.plot/mousemove
-                              :ui/mouse-pos
                               :map.layer/load-start
                               :map.layer/tile-load-start
                               :map.layer/load-error

@@ -335,11 +335,6 @@
   (s/map-of keyword? string?))
 
 ;;; display
-(s/def :display.mouse-pos/x number?)
-(s/def :display.mouse-pos/y number?)
-(s/def :display/mouse-pos
-  (s/nilable (s/keys :opt-un [:display.mouse-pos/x
-                              :display.mouse-pos/y])))
 
 ;;; catalogue
 (s/def :display.catalogue.group/tab string?)
@@ -564,8 +559,7 @@
 
 ;; display
 (s/def ::display
-  (s/keys :req-un [:display/mouse-pos
-                   :display/catalogue
+  (s/keys :req-un [:display/catalogue
                    :display/help-overlay
                    :display/welcome-overlay
                    :display/sidebar

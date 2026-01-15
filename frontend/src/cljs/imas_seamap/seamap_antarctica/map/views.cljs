@@ -20,8 +20,7 @@
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
-        boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
-        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
+        boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])]
     (into
      [:div.map-wrapper
       [map-views/download-component download-info]
@@ -121,7 +120,7 @@
          :useLatLngOrder   true
          :enableUserInput  false}]
 
-       (when (and mouse-pos distance) [map-views/distance-tooltip {:mouse-pos mouse-pos :distance distance}])
+       (when distance [map-views/distance-tooltip {:distance distance}])
 
        [map-views/popup feature-info]]]
 

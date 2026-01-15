@@ -171,14 +171,57 @@
 
      ^{:key (str status responses)} [popup-contents {:status status :responses responses}]]))
 
-(defn distance-tooltip [{:keys [distance] {:keys [x y]} :mouse-pos}]
-  [:div.leaflet-draw-tooltip.distance-tooltip
-   {:style {:visibility "inherit"
-            :transform  (str "translate3d(" x "px, " y "px, 0px)")
-            :z-index    700}}
-   (if (> distance 1000)
-     (str (format-number (/ distance 1000) 2) "km")
-     (str (format-number distance 0) "m"))])
+(defn distance-tooltip
+  "Displays distance tooltip that follows the mouse cursor.
+
+   It's a form-3 component (with lifecycle methods) to avoid performance issues.
+   We attach mousemove listeners directly to the Leaflet map and update the
+   tooltip's CSS transform via direct DOM manipulation, bypassing re-frame state
+   and React re-renders.
+   Storing mouse position in app state would cause the entire map component to re-render
+   on every mouse movement, which severely degrades performance."
+  [{:keys [_distance]}]
+  (let [tooltip-ref (atom nil)
+        mousemove-handler (atom nil)
+        mouseout-handler (atom nil)]
+    (r/create-class
+     {:component-did-mount
+      (fn [_]
+        (when-let [dom-node @tooltip-ref]
+          (when-let [leaflet-map @(re-frame/subscribe [:map/leaflet-map])]
+            ;; Attach direct mousemove listener that updates tooltip position via DOM
+            (let [style (.-style dom-node)
+                  move-fn (fn [e]
+                            (let [x (-> e .-containerPoint .-x)
+                                  y (-> e .-containerPoint .-y)]
+                              (set! (.-transform style)
+                                    (str "translate3d(" x "px, " y "px, 0px)"))
+                              (set! (.-visibility style) "visible")))
+                  out-fn #(set! (.-visibility style) "hidden")]
+              (reset! mousemove-handler move-fn)
+              (reset! mouseout-handler out-fn)
+              (.on leaflet-map "mousemove" move-fn)
+              (.on leaflet-map "mouseout" out-fn)))))
+
+      :component-will-unmount
+      (fn [_]
+        (when-let [leaflet-map @(re-frame/subscribe [:map/leaflet-map])]
+          (when @mousemove-handler
+            (.off leaflet-map "mousemove" @mousemove-handler))
+          (when @mouseout-handler
+            (.off leaflet-map "mouseout" @mouseout-handler))))
+
+      :reagent-render
+      (fn [{:keys [distance]}]
+        [:div.leaflet-draw-tooltip.distance-tooltip
+         {:ref #(reset! tooltip-ref %)
+          :style {:visibility      "inherit"
+                  :z-index         700
+                  :pointer-events  "none"  ; Don't interfere with mouse events
+                  :transform       "translate3d(-9999px, -9999px, 0px)"}} ; Start off-screen
+         (if (> distance 1000)
+           (str (format-number (/ distance 1000) 2) "km")
+           (str (format-number distance 0) "m"))])})))
 
 (defmulti layer-component (comp :layer_type :displayed-layer))
 
@@ -326,8 +369,7 @@
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
-        boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
-        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
+        boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])]
     (into
      [:div.map-wrapper
       [download-component download-info]
@@ -426,7 +468,7 @@
          :useLatLngOrder   true
          :enableUserInput  false}]
 
-       (when (and mouse-pos distance) [distance-tooltip {:mouse-pos mouse-pos :distance distance}])
+       (when distance [distance-tooltip {:distance distance}])
 
        [popup feature-info]]]
      

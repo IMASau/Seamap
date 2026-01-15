@@ -753,8 +753,6 @@
     (.on leaflet-map "click"              #(re-frame/dispatch [:map/clicked (leaflet-props %) (mouseevent->coords %)]))
     (.on leaflet-map "popupclose"         #(when-not (-> % .-popup .-options .-className (= "waiting"))  ;; Only dispatch :map/popup-closed if we're not closing a waiting popup (fixes ISA-269, caused by switching out waiting popup with info popup triggers popup closed)
                                              (re-frame/dispatch [:map/popup-closed])))
-    (.on leaflet-map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
-    (.on leaflet-map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
     (.on leaflet-map "easyPrint-start"    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
     (.on leaflet-map "easyPrint-finished" #(re-frame/dispatch [:ui/hide-loading]))
     (.on leaflet-map "easyPrint-failed"   #(re-frame/dispatch [:map.print/error]))
