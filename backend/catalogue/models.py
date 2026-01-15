@@ -286,7 +286,9 @@ class Layer(models.Model):
             'outputFormat': 'application/json',
             'propertyName': f"({','.join(cql_properties)})",
         }
-        r = requests.get(url=self.server_url, params=params, verify=False)
+        if self.filter:
+            params['cql_filter'] = self.filter
+        r = requests.get(url=self.server_url, params=params, verify=False, timeout=30)
         data = r.json()
 
         features_cql_properties = [
