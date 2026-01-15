@@ -6,7 +6,7 @@
             [reagent.core :as reagent]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child autosave-application-state-toggle outage-message-dialogue right-drawer]]
+            [imas-seamap.views :as views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child autosave-application-state-toggle outage-message-dialogue right-drawer]]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps]]
@@ -335,6 +335,9 @@
      [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
      [layers-search-omnibar]
      [custom-leaflet-controls]
+     [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
+      {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
+      [views/layers-control]]
      [floating-pills]
      [welcome-dialogue]
      [outage-message-dialogue]]))

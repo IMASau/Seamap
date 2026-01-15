@@ -360,13 +360,11 @@
          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index -1}}
           [basemap-layer-component (first grouped-base-layers)]])
 
-       ;; Basemap selection:
-       [leaflet/layers-control {:position "topright" :auto-z-index false}
-        (for [{:keys [id name] :as base-layer} grouped-base-layers]
-          ^{:key id}
-          [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
-           [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
-            [basemap-layer-component base-layer]]])]
+       ;; Basemap layer
+       (when active-base-layer ; Don't render unless we have a basemap
+         ^{:key (str active-base-layer)} ; Key changes with each basemap, so the layer re-renders
+         [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
+          [basemap-layer-component active-base-layer]])
        
        ;; Additional basemap layers
        (map-indexed

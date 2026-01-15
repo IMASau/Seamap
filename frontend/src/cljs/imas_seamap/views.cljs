@@ -1000,6 +1000,41 @@
        {:label "Show Help Overlay"      :combo "h"}
        [:help-layer/toggle])])))
 
+(defn layers-control
+  "Leaflet layer selection control component.
+   Replicates Leaflet's Control.Layers functionality for base layer selection.
+   See: https://leafletjs.com/reference.html#control-layers
+   
+   Has the same DOM structure as Leaflet's Control.Layers"
+  []
+  (let [expanded? (reagent/atom false)]
+    (fn []
+      (let [{:keys [grouped-base-layers active-base-layer enabled-base-layer-fn]} @(re-frame/subscribe [:map/base-layers])]
+        [:div.leaflet-control-layers.leaflet-control
+         {:class (when @expanded? "leaflet-control-layers-expanded")
+          :aria-haspopup "true"
+          :on-mouse-enter #(reset! expanded? true)
+          :on-mouse-leave #(reset! expanded? false)}
+         [:a.leaflet-control-layers-toggle]
+         [:section.leaflet-control-layers-list
+          [:div.leaflet-control-layers-base
+           (map
+            (fn [{:keys [id name] :as grouped-base-layer}]
+              ^{:key id}
+              [:label
+               {:disabled true}
+               [:span
+                [:input.leaflet-control-layers-selector
+                 {:type      "radio"
+                  :disabled  (not (enabled-base-layer-fn grouped-base-layer)) ; Disables the layer if not valid (i.e. beyond layer's max zoom level)
+                  :on-click  #(re-frame/dispatch [:map/base-layer-changed name])
+                  :checked   (= grouped-base-layer active-base-layer)
+                  :read-only true}]
+                [:span
+                 {:style (when (not (enabled-base-layer-fn grouped-base-layer)) {:color "#ccc"})} ; If the option is disabled, then show the label as disabled too
+                 name]]])
+            grouped-base-layers)]]]))))
+
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
@@ -1050,6 +1085,9 @@
      [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
      [layers-search-omnibar]
      [custom-leaflet-controls]
+     [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
+      {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
+      [layers-control]]
      [floating-pills]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 
