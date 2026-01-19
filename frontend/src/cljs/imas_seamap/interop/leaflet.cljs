@@ -14,6 +14,7 @@
             ["leaflet.nontiledlayer"]
             ["@alcalin/leaflet-tilelayer-wmts" :refer [wmts]]
             ["proj4leaflet" :as proj4leaflet]
+            ["/SideBySide/SideBySide" :as SideBySide]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (def crs-epsg4326        L/CRS.EPSG4326)
@@ -191,3 +192,5 @@
 ;;; Multiple basemaps:
 (def layers-control         (r/adapt-react-class ReactLeaflet/LayersControl))
 (def layers-control-basemap (r/adapt-react-class ReactLeaflet/LayersControl.BaseLayer))
+
+(def side-by-side (r/adapt-react-class SideBySide/default))
