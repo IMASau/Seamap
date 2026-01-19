@@ -48,7 +48,6 @@ const SideBySide = L.Control.extend({
 
   addTo: function (map) {
     this.remove()
-    console.log("map", map);
     this._map = map
 
     var container = this._container = L.DomUtil.create('div', 'leaflet-sbs', map._controlContainer)

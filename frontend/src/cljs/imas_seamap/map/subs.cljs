@@ -55,14 +55,15 @@
 
         rlc-ids ; rich-layer-children
         (reduce
-         (fn [acc {:keys [layer-id alternate-views timeline]}]
+         (fn [acc {:keys [layer-id alternate-views timeline split-layer-id]}]
            (let [children
                  (set
                   (remove
                    #(= % layer-id)
                    (set/union
                     (set (map :layer alternate-views))
-                    (set (map :layer timeline)))))]
+                    (set (map :layer timeline))
+                    (when split-layer-id #{split-layer-id}))))]
              (set/union acc children)))
          #{} rich-layers)
 

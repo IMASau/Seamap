@@ -509,7 +509,7 @@
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
-  [{:keys [id slider-label alternate-views timeline controls]
+  [{:keys [id slider-label alternate-views timeline split-layer-id controls]
     :as rich-layer} db]
   (let [{:keys [tab]
          alternate-views-selected-id :alternate-views-selected
@@ -529,6 +529,9 @@
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
 
         controls                  (mapv #(->control % rich-layer db) controls)
+
+        split-layer               (first-where #(= (:id %) split-layer-id) (get-in db [:map :layers]))
+
         cql-filter                (->>
                                    controls
                                    (map :cql-filter)
@@ -550,6 +553,7 @@
         :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
         :slider-label             slider-label
         :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
+        :split-layer              split-layer
         :cql-filter               cql-filter)))))
 
 (defn layer->rich-layer [{:keys [id] :as _layer} db]

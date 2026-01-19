@@ -560,14 +560,16 @@
      :tab_label            :tab-label
      :slider_label         :slider-label
      :alternate_view_label :alternate-view-label
-     :layer                :layer-id})
+     :layer                :layer-id
+     :split_layer          :split-layer-id})
    (update :controls #(mapv ->rich-layer-control %))))
 
 (defn- rich-layer->children
-  [{:keys [alternate-views timeline]}]
+  [{:keys [alternate-views timeline split-layer-id]}]
   (set/union
    (set (map :layer alternate-views))
-   (set (map :layer timeline))))
+   (set (map :layer timeline))
+   (when split-layer-id #{split-layer-id})))
 
 (defn- rich-layers->rich-layer-children
   "Converts a list of rich layers to a hashmap, where the keys are the rich layer

@@ -815,10 +815,11 @@ class KeyedLayer(models.Model):
 class RichLayer(models.Model):
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     tab_label = models.CharField(max_length=255)
-    slider_label = models.CharField(max_length=255)
-    alternate_view_label = models.CharField(max_length=255, default='Alternate View')
+    slider_label = models.CharField(max_length=255, blank=True)
+    alternate_view_label = models.CharField(max_length=255, default='Alternate View', blank=True)
     icon = models.CharField(max_length=255)
     tooltip = models.CharField(max_length=255)
+    split_layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name="richlayer_split_layer", blank=True, null=True)
 
     def __str__(self):
         return str(self.layer)

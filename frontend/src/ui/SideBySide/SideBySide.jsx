@@ -22,7 +22,19 @@ export default function SideBySide({ leftPane, rightPane }) {
         map.removeControl(controlRef.current);
       }
     };
-  }, [map, leftPane, rightPane]);
+  }, [map]);
+
+  useEffect(() => {
+    if (!map || !controlRef.current) return;
+    const leftPaneEl = map.getPane(leftPane);
+    controlRef.current.setLeftPane(leftPaneEl);
+  }, [leftPane]);
+
+  useEffect(() => {
+    if (!map || !controlRef.current) return;
+    const rightPaneEl = map.getPane(rightPane);
+    controlRef.current.setLeftPane(rightPaneEl);
+  }, [rightPane]);
 
   return null;
 }
