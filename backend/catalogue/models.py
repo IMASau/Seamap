@@ -819,6 +819,7 @@ class RichLayer(models.Model):
     alternate_view_label = models.CharField(max_length=255, default='Alternate View')
     icon = models.CharField(max_length=255)
     tooltip = models.CharField(max_length=255)
+    is_temporal = models.BooleanField()
 
     def __str__(self):
         return str(self.layer)

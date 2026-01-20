@@ -560,7 +560,8 @@
      :tab_label            :tab-label
      :slider_label         :slider-label
      :alternate_view_label :alternate-view-label
-     :layer                :layer-id})
+     :layer                :layer-id
+     :is_temporal          :is-temporal?})
    (update :controls #(mapv ->rich-layer-control %))))
 
 (defn- rich-layer->children
