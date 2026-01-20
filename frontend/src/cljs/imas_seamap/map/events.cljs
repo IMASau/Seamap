@@ -8,7 +8,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords layer->dynamic-pills ->dynamic-pill]]
+            [imas-seamap.map.utils :as map-utils :refer [layer-name bounds->str feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords layer->dynamic-pills ->dynamic-pill]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -278,7 +278,8 @@
        - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
        - point:         The lat lng and x y pixel coords of the clicked point"
   [{:keys [db]} [_ leaflet-props point]]
-  (let [visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers (:map db)))
+  (let [visible-split-layers (filter identity (map #(map-utils/rich-layer->visible-split-layer % db) (visible-layers (:map db))))
+        visible-layers (concat (map #(rich-layer->displayed-layer % db) (visible-layers (:map db))) visible-split-layers)
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         request-id     (gensym)
 

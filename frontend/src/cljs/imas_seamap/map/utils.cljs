@@ -573,6 +573,13 @@
   (let [rich-layer (enhance-rich-layer (layer->rich-layer layer db) db)]
     (or (:displayed-layer rich-layer) layer)))
 
+(defn rich-layer->visible-split-layer
+  "If a layer is a rich-layer with a currently visible split layer, then return
+   that split layer."
+  [layer db]
+  (let [{:keys [split-layer split-layer-visible?]} (enhance-rich-layer (layer->rich-layer layer db) db)]
+    (when (and split-layer split-layer-visible?) split-layer)))
+
 (defn rich-layer-children->parents
   [layers rich-layer-children]
   (reduce

@@ -53,6 +53,7 @@ const SideBySide = L.Control.extend({
     this._map = map
 
     var container = this._container = L.DomUtil.create('div', 'leaflet-sbs', map._controlContainer)
+    L.DomEvent.disableClickPropagation(container);
 
     this._divider = L.DomUtil.create('div', 'leaflet-sbs-divider', container)
     var range = this._range = L.DomUtil.create('input', 'leaflet-sbs-range', container)
