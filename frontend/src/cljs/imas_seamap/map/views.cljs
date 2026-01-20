@@ -386,6 +386,10 @@
             ;; made with the same name as an existing pane (causing leaflet to no longer work).
             ^{:key (str id (+ i 1 (count (:layers active-base-layer))))}
             [:<>
+             ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
+             ;; display two panes (left and right) for the two layers, and the side-by-side
+             ;; control for sliding between the two layers.
+             ;; If there's only one layer, then we render a single pane and layer.
              (if (:split-layer-visible? rich-layer)
                (let [left-pane  (str "left-" (random-uuid) (.now js/Date))
                      right-pane (str "right-" (random-uuid) (.now js/Date))]

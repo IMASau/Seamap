@@ -278,7 +278,7 @@
        - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
        - point:         The lat lng and x y pixel coords of the clicked point"
   [{:keys [db]} [_ leaflet-props point]]
-  (let [visible-split-layers (filter identity (map #(map-utils/rich-layer->visible-split-layer % db) (visible-layers (:map db))))
+  (let [visible-split-layers (filter identity (map #(map-utils/rich-layer->visible-split-layer % db) (visible-layers (:map db)))) ; Grab all the split layers (side-by-side layer comparisons) from rich layers so we query results from their servers too, if they are visible. We ignore if the request was made on the left or right side of the side-by-side slider.
         visible-layers (concat (map #(rich-layer->displayed-layer % db) (visible-layers (:map db))) visible-split-layers)
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         request-id     (gensym)
@@ -567,6 +567,7 @@
    (update :controls #(mapv ->rich-layer-control %))))
 
 (defn- rich-layer->children
+  "Returns a set of IDs for all the layers the rich layer uses."
   [{:keys [alternate-views timeline split-layer-id]}]
   (set/union
    (set (map :layer alternate-views))
@@ -900,7 +901,9 @@
   {:db       (assoc-in db [:map :rich-layers :states id :controls cql-property :value] value)
    :dispatch [:maybe-autosave]})
 
-(defn rich-layer-split-layer-visible [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-visible?]]
+(defn rich-layer-split-layer-visible
+  "Enable/disable the visibility of the split layer (side-by-side comparison) for a rich layer"
+  [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-visible?]]
   {:db       (assoc-in db [:map :rich-layers :states id :split-layer-visible?] split-layer-visible?)
    :dispatch [:maybe-autosave]})
 
