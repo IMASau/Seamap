@@ -72,8 +72,7 @@
     :info/message                         subs/user-message
     :autosave?                            subs/autosave?
     :url-base                             subs/url-base
-    ;:debug/bboxes                         msubs/debug-bboxes
-    }
+    :debug/bboxes                         msubs/debug-bboxes}
 
    :events
    {:boot                                 [fosevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
