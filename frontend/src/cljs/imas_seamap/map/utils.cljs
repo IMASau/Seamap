@@ -531,6 +531,7 @@
         controls                  (mapv #(->control % rich-layer db) controls)
 
         split-layer               (first-where #(= (:id %) split-layer-id) (get-in db [:map :layers]))
+        split-layer-visible?      (get-in db [:map :rich-layers :states id :split-layer-visible?] false)
 
         cql-filter                (->>
                                    controls
@@ -554,6 +555,7 @@
         :slider-label             slider-label
         :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
         :split-layer              split-layer
+        :split-layer-visible?     split-layer-visible?
         :cql-filter               cql-filter)))))
 
 (defn layer->rich-layer [{:keys [id] :as _layer} db]

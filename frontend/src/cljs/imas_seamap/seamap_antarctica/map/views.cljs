@@ -81,7 +81,7 @@
             ;; made with the same name as an existing pane (causing leaflet to no longer work).
             ^{:key (str id (+ i 1 (count (:layers active-base-layer))))}
             [:<>
-             (if (:split-layer rich-layer)
+             (if (:split-layer-visible? rich-layer)
                (let [left-pane  (str "left-" (random-uuid) (.now js/Date))
                      right-pane (str "right-" (random-uuid) (.now js/Date))]
                  [:<>

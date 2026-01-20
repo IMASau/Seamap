@@ -820,6 +820,7 @@ class RichLayer(models.Model):
     icon = models.CharField(max_length=255)
     tooltip = models.CharField(max_length=255)
     split_layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name="richlayer_split_layer", blank=True, null=True)
+    split_layer_label = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return str(self.layer)

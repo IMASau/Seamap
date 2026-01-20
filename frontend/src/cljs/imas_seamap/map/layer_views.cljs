@@ -391,11 +391,18 @@
  [{{:keys [label]} :control {:keys []} :rich-layer}]
   [:div label])
 
+(defn- split-layer-toggle
+  [{{{:keys [split-layer-visible? split-layer-label] :as rich-layer} :rich-layer} :layer-state}]
+  [components/form-group {:label split-layer-label}
+   [b/checkbox
+    {:checked  split-layer-visible?
+     :on-change #(re-frame/dispatch [:map.rich-layer/split-layer-visible rich-layer (not split-layer-visible?)])}]])
+
 (defn- layer-details
   "Layer details for layer card. Includes layer's legend, and tabs for selecting
    filters if the layer is a rich-layer."
   [{:keys [layer]
-    {{:keys [tab displayed-layer alternate-views timeline controls tab-label icon cql-filter] :as rich-layer} :rich-layer} :layer-state
+    {{:keys [tab displayed-layer alternate-views timeline controls tab-label icon cql-filter split-layer] :as rich-layer} :rich-layer} :layer-state
     :as props}]
   [:div.layer-details
    {:on-click #(.stopPropagation %)}
@@ -427,7 +434,8 @@
             ^{:key (:label control)}
             [cql-control
              {:control control
-              :props   props}])])}]]
+              :props   props}])
+          (when split-layer [split-layer-toggle props])])}]]
      
      [legend-display layer])])
 

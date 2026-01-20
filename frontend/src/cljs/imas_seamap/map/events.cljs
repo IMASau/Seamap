@@ -561,7 +561,8 @@
      :slider_label         :slider-label
      :alternate_view_label :alternate-view-label
      :layer                :layer-id
-     :split_layer          :split-layer-id})
+     :split_layer          :split-layer-id
+     :split_layer_label    :split-layer-label})
    (update :controls #(mapv ->rich-layer-control %))))
 
 (defn- rich-layer->children
@@ -896,6 +897,10 @@
 
 (defn rich-layer-control-selected [{:keys [db]} [_ {:keys [id] :as _rich-layer} {:keys [cql-property] :as _control} value]]
   {:db       (assoc-in db [:map :rich-layers :states id :controls cql-property :value] value)
+   :dispatch [:maybe-autosave]})
+
+(defn rich-layer-split-layer-visible [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-visible?]]
+  {:db       (assoc-in db [:map :rich-layers :states id :split-layer-visible?] split-layer-visible?)
    :dispatch [:maybe-autosave]})
 
 (defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
