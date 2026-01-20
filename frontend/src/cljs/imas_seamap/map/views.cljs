@@ -307,6 +307,7 @@
    {:url         server_url
     :attribution attribution
     :layers      layer_name
+    :transparent true
     :tiled       true
     :format      "image/png"}])
 
