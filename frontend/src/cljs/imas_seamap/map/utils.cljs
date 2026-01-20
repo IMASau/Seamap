@@ -532,6 +532,7 @@
 
         split-layer               (first-where #(= (:id %) split-layer-id) (get-in db [:map :layers]))
         split-layer-visible?      (get-in db [:map :rich-layers :states id :split-layer-visible?] false)
+        split-layer-range-value   (get-in db [:map :rich-layers :states id :split-layer-range-value] 0.5)
 
         cql-filter                (->>
                                    controls
@@ -556,6 +557,7 @@
         :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
         :split-layer              split-layer
         :split-layer-visible?     split-layer-visible?
+        :split-layer-range-value  split-layer-range-value
         :cql-filter               cql-filter)))))
 
 (defn layer->rich-layer [{:keys [id] :as _layer} db]

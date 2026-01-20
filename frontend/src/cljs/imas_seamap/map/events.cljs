@@ -903,6 +903,10 @@
   {:db       (assoc-in db [:map :rich-layers :states id :split-layer-visible?] split-layer-visible?)
    :dispatch [:maybe-autosave]})
 
+(defn rich-layer-split-layer-range-value [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-range-value]]
+  {:db       (assoc-in db [:map :rich-layers :states id :split-layer-range-value] split-layer-range-value)
+   :dispatch [:maybe-autosave]})
+
 (defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
   (merge
    {:db

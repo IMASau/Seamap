@@ -404,7 +404,11 @@
                      :boundary-filter boundary-filter
                      :layer-opacities layer-opacities
                      :cql-filter      (cql-filter-fn layer)}]]
-                  [leaflet/side-by-side {:left-pane left-pane :right-pane right-pane}]])
+                  [leaflet/side-by-side
+                   {:left-pane left-pane
+                    :right-pane right-pane
+                    :on-drag-end #(re-frame/dispatch [:map.rich-layer/split-layer-range-value rich-layer %])
+                    :range-value (:split-layer-range-value rich-layer)}]])
                [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
                 [layer-component
                  {:layer           layer

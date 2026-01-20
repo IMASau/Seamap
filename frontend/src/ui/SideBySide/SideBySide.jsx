@@ -4,7 +4,7 @@ import { sideBySide } from './leaflet-side-by-side/index'
 
 // This component doesn't render children - it just sets up the side-by-side control
 // Use it AFTER rendering your two layers, passing their pane name
-export default function SideBySide({ leftPane, rightPane }) {
+export default function SideBySide({ leftPane, rightPane, onDragEnd, rangeValue }) {
   const map = useMap();
   const controlRef = useRef(null);
 
@@ -13,7 +13,7 @@ export default function SideBySide({ leftPane, rightPane }) {
     const rightPaneEl = map.getPane(rightPane);
 
     // Load the plugin and create control
-    const sideBySideControl = sideBySide(leftPaneEl, rightPaneEl);
+    const sideBySideControl = sideBySide(leftPaneEl, rightPaneEl, { onDragEnd, rangeValue });
     sideBySideControl.addTo(map);
     controlRef.current = sideBySideControl;
 

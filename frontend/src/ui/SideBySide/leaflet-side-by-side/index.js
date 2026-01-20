@@ -27,7 +27,9 @@ function uncancelMapDrag (e) {
 const SideBySide = L.Control.extend({
   options: {
     thumbSize: 42,
-    padding: 0
+    padding: 0,
+    onDragEnd: null,
+    rangeValue: 0.5, // Where the range appears when first created
   },
 
   initialize: function (leftPane, rightPane, options) {
@@ -58,7 +60,7 @@ const SideBySide = L.Control.extend({
     range.min = 0
     range.max = 1
     range.step = 'any'
-    range.value = 0.5
+    range.value = this.options.rangeValue;
     range.style.paddingLeft = range.style.paddingRight = this.options.padding + 'px'
     this._addEvents()
     this._updateClip();
@@ -115,16 +117,27 @@ const SideBySide = L.Control.extend({
     }
   },
 
+  _dragStart: function () {
+    cancelMapDrag.call(this);
+  },
+
+  _dragEnd: function () {
+    uncancelMapDrag.call(this);
+    if (this.options.onDragEnd) {
+      this.options.onDragEnd(this._range.value);
+    }
+  },
+
   _addEvents: function () {
     var range = this._range;
     var map = this._map;
     if (!map || !range) return;
     map.on("move", this._updateClip, this);
     L.DomEvent.on(range, getRangeEvent(range), this._updateClip, this);
-    L.DomEvent.on(range, "touchstart", cancelMapDrag, this);
-    L.DomEvent.on(range, "touchend", uncancelMapDrag, this);
-    L.DomEvent.on(range, "mousedown", cancelMapDrag, this);
-    L.DomEvent.on(range, "mouseup", uncancelMapDrag, this);
+    L.DomEvent.on(range, "touchstart", this._dragStart, this);
+    L.DomEvent.on(range, "touchend", this._dragEnd, this);
+    L.DomEvent.on(range, "mousedown", this._dragStart, this);
+    L.DomEvent.on(range, "mouseup", this._dragEnd, this);
   },
 
   _removeEvents: function () {
@@ -132,10 +145,10 @@ const SideBySide = L.Control.extend({
     var map = this._map;
     if (range) {
       L.DomEvent.off(range, getRangeEvent(range), this._updateClip, this);
-      L.DomEvent.off(range, "touchstart", cancelMapDrag, this);
-      L.DomEvent.off(range, "touchend", uncancelMapDrag, this);
-      L.DomEvent.off(range, "mousedown", cancelMapDrag, this);
-      L.DomEvent.off(range, "mouseup", uncancelMapDrag, this);
+      L.DomEvent.off(range, "touchstart", this._dragStart, this);
+      L.DomEvent.off(range, "touchend", this._dragEnd, this);
+      L.DomEvent.off(range, "mousedown", this._dragStart, this);
+      L.DomEvent.off(range, "mouseup", this._dragEnd, this);
     }
     if (map) {
       map.off("move", this._updateClip, this);
