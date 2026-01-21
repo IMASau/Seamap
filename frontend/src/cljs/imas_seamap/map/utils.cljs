@@ -409,6 +409,27 @@
   [{:keys [hidden-layers active-layers]}]
   (remove #(hidden-layers %) active-layers))
 
+(defn visible-split-layers
+  "Layers that are both visible and currently in an active side-by-side view"
+  [db-map rich-layer-fn]
+  (let [split-layer-rich-layers
+        (->>
+         (visible-layers db-map)
+         (map #(assoc (rich-layer-fn %) :layer %))
+         (filter :split-layer-visible?))]
+    (map
+     (fn [{:keys [layer split-layer]}]
+       {:left-layer  layer
+        :right-layer split-layer})
+     split-layer-rich-layers)))
+
+(defn visible-regular-layers
+  "Visible *regular* layers, as opposed to *split* layers"
+  [db-map rich-layer-fn]
+  (let [visible-split-layers (visible-split-layers db-map rich-layer-fn)
+        visible-layers       (visible-layers db-map)]
+    (remove (set (map :left-layer visible-split-layers)) visible-layers)))
+
 #_(defn has-active-layers?
   "utility to simplify a check for any active layers (we want to disable
   some behaviour if there are no layers active, for example)"
