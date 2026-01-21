@@ -920,6 +920,10 @@
   {:db       (assoc-in db [:map :rich-layers :states id :controls cql-property :value] value)
    :dispatch [:maybe-autosave]})
 
+(defn rich-layer-temporal-query-timestamp-selected [{:keys [db]} [_ {:keys [id] :as _rich-layer} temporal-query-timestamp-selected]]
+  {:db       (assoc-in db [:map :rich-layers :states id :temporal-query-timestamp-selected] temporal-query-timestamp-selected)
+   :dispatch [:maybe-autosave]})
+
 (defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
   (merge
    {:db
