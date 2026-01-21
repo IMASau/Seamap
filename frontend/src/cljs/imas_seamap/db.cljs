@@ -111,6 +111,7 @@
                                  :bathymetry-statistics "habitat/bathymetrystatistics"
                                  :habitat-observations  "habitat/habitatobservations"
                                  :cql-filter-values     "habitat/cqlfiltervalues"
+                                 :temporal-query-timestamps "habitat/temporalquerytimestamps"
                                  :dynamic-pill-region-control-values "habitat/dynamicpillregioncontrolvalues"
                                  :layer-previews        "layer_previews/"
                                  :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"

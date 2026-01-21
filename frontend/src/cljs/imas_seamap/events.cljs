@@ -167,6 +167,7 @@
           bathymetry-statistics
           habitat-observations
           cql-filter-values
+          temporal-query-timestamps
           dynamic-pill-region-control-values
           layer-previews
           story-maps
@@ -197,6 +198,7 @@
       :bathymetry-statistics-url   (str api-url-base bathymetry-statistics)
       :habitat-observations-url    (str api-url-base habitat-observations)
       :cql-filter-values-url       (str api-url-base cql-filter-values)
+      :temporal-query-timestamps-url (str api-url-base temporal-query-timestamps)
       :dynamic-pill-region-control-values-url (str api-url-base dynamic-pill-region-control-values)
       :layer-previews-url          (str media-url-base layer-previews)
       :story-maps-url              (str wordpress-url-base story-maps)

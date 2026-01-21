@@ -855,6 +855,19 @@
       db values)
       (assoc-in db [:map :rich-layers :async-datas id :filter-combinations] filter_combinations))))
 
+(defn rich-layer-get-temporal-query-timestamps [{:keys [db]} [_ {{layer-id :id} :layer :keys [is-temporal?] :as rich-layer}]]
+  (if is-temporal?
+    {:http-xhrio
+     {:method          :get
+      :uri             (str (get-in db [:config :urls :temporal-query-timestamps-url]) "/" layer-id)
+      :response-format (ajax/json-response-format)
+      :on-success      [:map.rich-layer/get-temporal-query-timestamps-success rich-layer]
+      :on-failure      [:ajax/default-err-handler]}}
+    {:dispatch [:map.rich-layer/get-temporal-query-timestamps-success rich-layer {"timestamps" []}]}))
+
+(defn rich-layer-get-temporal-query-timestamps-success [db [_ {:keys [id] :as _rich-layer} {:strs [timestamps]}]]
+  (assoc-in db [:map :rich-layers :async-datas id :timestamps] timestamps))
+
 (defn rich-layer-alternate-views-selected [{:keys [db]} [_ {:keys [id] :as rich-layer} alternate-views-selected]]
   (let [{{old-timeline-value :value
           old-timeline-label :label}

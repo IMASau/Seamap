@@ -122,7 +122,8 @@
           layer-previews
           story-maps
           data-in-region
-          cql-filter-values]}
+          cql-filter-values
+          temporal-query-timestamps]}
         (get-in db [:config :url-paths])
         {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
     (assoc-in
@@ -144,7 +145,8 @@
       :layer-previews-url        (str media-url-base layer-previews)
       :story-maps-url            (str wordpress-url-base story-maps)
       :data-in-region-url        (str api-url-base data-in-region)
-      :cql-filter-values-url     (str api-url-base cql-filter-values)})))
+      :cql-filter-values-url     (str api-url-base cql-filter-values)
+      :temporal-query-timestamps-url (str api-url-base temporal-query-timestamps)})))
 
 (defn boot [{:keys [save-code hash-code] {:keys [seamap-app-state]} :local-storage/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (assoc-in

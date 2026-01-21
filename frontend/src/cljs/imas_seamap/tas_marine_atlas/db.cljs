@@ -88,6 +88,7 @@
                                  :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"
                                  :data-in-region        "habitat/datainregion"
                                  :cql-filter-values     "habitat/cqlfiltervalues"
+                                 :temporal-query-timestamps "habitat/temporalquerytimestamps"
                                  :dynamic-pill-region-control-values "habitat/dynamicpillregioncontrolvalues"}
                      :urls      nil
                      :url-base {:api-url-base       "http://localhost:8000/api/"

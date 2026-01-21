@@ -166,6 +166,8 @@
     :map.rich-layer/configure                     [mevents/rich-layer-configure]
     :map.rich-layer/get-cql-filter-values         [mevents/rich-layer-get-cql-filter-values]
     :map.rich-layer/get-cql-filter-values-success mevents/rich-layer-get-cql-filter-values-success
+    :map.rich-layer/get-temporal-query-timestamps         [mevents/rich-layer-get-temporal-query-timestamps]
+    :map.rich-layer/get-temporal-query-timestamps-success mevents/rich-layer-get-temporal-query-timestamps-success
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
     :map/update-base-layers               mevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups
