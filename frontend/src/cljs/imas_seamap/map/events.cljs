@@ -646,7 +646,8 @@
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))
         has-legend? (get-in db [:map :legends id])
         rich-layer  (enhance-rich-layer (layer->rich-layer layer db) db)
-        has-cql-filter-values? (get-in rich-layer [:controls :values])]
+        has-cql-filter-values? (get-in rich-layer [:controls :values])
+        has-temporal-query-timestamps? (get rich-layer :temporal-query-timestamps)]
     {:db         db
      :dispatch-n [[:maybe-autosave]
                   ;; Retrieve layer legend data for display if we don't already have it or aren't
@@ -655,7 +656,10 @@
                     [:map.layer/get-legend layer])
                   ;; Retrieve rich layer cql filter data if we don't already have it
                   (when (and rich-layer (not has-cql-filter-values?))
-                    [:map.rich-layer/get-cql-filter-values rich-layer])]}))
+                    [:map.rich-layer/get-cql-filter-values rich-layer])
+                  ;; Retrieve rich layer temporal query timestamps if we don't already have it
+                  (when (and rich-layer (not has-temporal-query-timestamps?))
+                    [:map.rich-layer/get-temporal-query-timestamps rich-layer])]}))
 
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
@@ -727,7 +731,7 @@
         feature-location      (get-in db [:feature :location])
         feature-leaflet-props (get-in db [:feature :leaflet-props])
         rich-layers (get-in db [:map :rich-layers :rich-layers])
-        cql-get
+        open-rich-layers ; A list of all rich layers that are active and open (i.e. legend/filter tab visible)
         (->>
          legend-ids
          (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
@@ -744,7 +748,8 @@
                      [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                    [:maybe-autosave]]
                   (mapv #(vector :map.layer/get-legend %) legends-get)
-                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) cql-get)
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) open-rich-layers)
+                  (mapv #(vector :map.rich-layer/get-temporal-query-timestamps %) open-rich-layers)
                   (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills))}))
 
 (defn update-leaflet-map [db [_ leaflet-map]]
@@ -832,7 +837,12 @@
                  (and
                   (= tab "filters")                                                                   ; If we're switching to the filters tab
                   (nil? (:values (first (get-in db [:map :rich-layers :async-datas id :controls]))))) ; and we don't have any filter values
-                  [:map.rich-layer/get-cql-filter-values rich-layer])                                 ; then get them
+                  [:map.rich-layer/get-cql-filter-values rich-layer])        
+                  (when
+                   (and
+                    (= tab "filters")                                                                  ; If we're switching to the filters tab
+                    (nil? (get-in db [:map :rich-layers :async-datas id :temporal-query-timestamps]))) ; and we don't have any temporal query timestamps
+                    [:map.rich-layer/get-temporal-query-timestamps rich-layer])                        ; then get them
                 [:maybe-autosave]]})
 
 (defn rich-layer-get-cql-filter-values [{:keys [db]} [_ {:keys [id controls] :as rich-layer}]]
@@ -855,7 +865,7 @@
       db values)
       (assoc-in db [:map :rich-layers :async-datas id :filter-combinations] filter_combinations))))
 
-(defn rich-layer-get-temporal-query-timestamps [{:keys [db]} [_ {{layer-id :id} :layer :keys [is-temporal?] :as rich-layer}]]
+(defn rich-layer-get-temporal-query-timestamps [{:keys [db]} [_ {:keys [is-temporal? layer-id] :as rich-layer}]]
   (if is-temporal?
     {:http-xhrio
      {:method          :get
@@ -866,7 +876,7 @@
     {:dispatch [:map.rich-layer/get-temporal-query-timestamps-success rich-layer {"timestamps" []}]}))
 
 (defn rich-layer-get-temporal-query-timestamps-success [db [_ {:keys [id] :as _rich-layer} {:strs [timestamps]}]]
-  (assoc-in db [:map :rich-layers :async-datas id :timestamps] timestamps))
+  (assoc-in db [:map :rich-layers :async-datas id :temporal-query-timestamps] timestamps))
 
 (defn rich-layer-alternate-views-selected [{:keys [db]} [_ {:keys [id] :as rich-layer} alternate-views-selected]]
   (let [{{old-timeline-value :value

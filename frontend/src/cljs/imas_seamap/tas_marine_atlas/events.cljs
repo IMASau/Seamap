@@ -198,7 +198,7 @@
         feature-location      (get-in db [:feature :location])
         feature-leaflet-props (get-in db [:feature :leaflet-props])
         rich-layers (get-in db [:map :rich-layers :rich-layers])
-        cql-get
+        open-rich-layers ; A list of all rich layers that are active and open (i.e. legend/filter tab visible)
         (->>
          legend-ids
          (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
@@ -214,7 +214,8 @@
          [:map/feature-info-dispatcher feature-leaflet-props feature-location])
        [:map/popup-closed]]
       (mapv #(vector :map.layer/get-legend %) (filter identity legends-get))
-      (mapv #(vector :map.rich-layer/get-cql-filter-values %) (filter identity cql-get))
+      (mapv #(vector :map.rich-layer/get-cql-filter-values %) (filter identity open-rich-layers))
+      (mapv #(vector :map.rich-layer/get-temporal-query-timestamps %) (filter identity open-rich-layers))
       (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills))}))
 
 (defn re-boot [{:keys [db]} _]
@@ -363,7 +364,7 @@
         feature-location      (get-in db [:feature :location])
         feature-leaflet-props (get-in db [:feature :leaflet-props])
         rich-layers (get-in db [:map :rich-layers :rich-layers])
-        cql-get
+        open-rich-layers ; A list of all rich layers that are active and open (i.e. legend/filter tab visible)
         (->>
          legend-ids
          (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
@@ -378,7 +379,8 @@
                      [:map/feature-info-dispatcher feature-leaflet-props feature-location])
                    [:maybe-autosave]]
                   (mapv #(vector :map.layer/get-legend %) legends-get)
-                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) cql-get)
+                  (mapv #(vector :map.rich-layer/get-cql-filter-values %) open-rich-layers)
+                  (mapv #(vector :map.rich-layer/get-temporal-query-timestamps %) open-rich-layers)
                   (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills))}))
 
 (defn data-in-region-open [{:keys [db]} [_ open?]]
