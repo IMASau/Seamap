@@ -18,12 +18,14 @@ from catalogue import models, serializers
 from catalogue.models import Layer, RegionReport, KeyedLayer, Pressure, RichLayer
 from catalogue.serializers import KeyedLayerSerializer, RegionReportSerializer, LayerSerializer, PressureSerializer
 from collections import defaultdict, namedtuple
+import habitat.utils as habitat_utils
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import connections, ProgrammingError
 from django.db.models.functions import Coalesce
 from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 from django.views.decorators.cache import cache_page
 from rest_framework.decorators import action, api_view, renderer_classes
 from rest_framework.renderers import BaseRenderer, TemplateHTMLRenderer, JSONRenderer
@@ -1493,6 +1495,26 @@ def cql_filter_values(request):
                 'values': cql_property_values['values'],
                 'filter_combinations': cql_property_values['value_combinations']
             })
+
+
+@action(detail=False)
+@cache_page(60 * 15)
+@api_view()
+def temporal_query_timestamps(_request: Request, layer_id: int):
+    """
+    Get the valid timestamps a temporal layer can query for.
+    
+    For ESRI layers this is retrieved via an ESRI 'query', and for GeoServer layers
+    this is done with a GetCapabilities request.
+
+    Args:
+        layer_id (int): ID of the Layer we want timestamps for
+    """
+    layer = get_object_or_404(Layer, id=layer_id)
+    return Response({
+        'timestamps': habitat_utils.get_layer_timestamps(layer),
+    })
+
 
 @action(detail=False)
 @cache_page(60 * 15)

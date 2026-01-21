@@ -29,6 +29,7 @@ router.register(r'dynamicpills', viewsets.DynamicPillViewset)
 
 urlpatterns = [
     path('tinymce/', include('tinymce.urls')),
+    path('api/habitat/temporalquerytimestamps/<int:layer_id>', habitat_viewsets.temporal_query_timestamps),
     re_path(r'^api/habitat/transect', habitat_viewsets.transect),
     re_path(r'^api/habitat/regions', habitat_viewsets.regions, name='habitat-regions'),
     re_path(r'^api/habitat/subset', habitat_viewsets.subset),
