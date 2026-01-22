@@ -529,6 +529,7 @@
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
 
         controls                  (mapv #(->control % rich-layer db) controls)
+        temporal-query-timestamp-selected (get state :temporal-query-timestamp-selected (first (get async-data :temporal-query-timestamps)))
         cql-filter                (->>
                                    controls
                                    (map :cql-filter)
@@ -550,6 +551,7 @@
         :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
         :slider-label             slider-label
         :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
+        :temporal-query-timestamp-selected temporal-query-timestamp-selected
         :cql-filter               cql-filter)))))
 
 (defn layer->rich-layer [{:keys [id] :as _layer} db]

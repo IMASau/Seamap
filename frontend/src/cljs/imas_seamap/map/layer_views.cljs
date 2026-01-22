@@ -391,11 +391,56 @@
  [{{:keys [label]} :control {:keys []} :rich-layer}]
   [:div label])
 
+(defn- temporal-query-timestamp-select
+  "Range slider for selecting a timestamp from a temporal layer.
+
+   This component manages both local state (slider position during drag) and external
+   state (timestamp selected via props). The complexity comes from needing to:
+
+   1. Allow the slider to update smoothly during user drag (:on-input updates range-value)
+   2. Update the slider when props change externally (e.g., programmatic selection)
+   3. Avoid resetting the slider position on every render
+   4. Avoid dispatching to re-frame on every input event (causes jank during drag)
+
+   Implementation uses prev-props tracking to detect actual prop changes. Alternative
+   approaches don't work:
+   - reagent/track! in render fn: creates new computation on every render, triggers constantly
+   - reagent/track! in outer fn: captures initial prop values, never sees updates
+   - Direct reset on every render: interferes with smooth dragging
+   - :on-input dispatching to re-frame: too slow, causes laggy slider movement"
+  [{{{:keys [_temporal-query-timestamps _temporal-query-timestamp-selected] :as _rich-layer} :rich-layer} :layer-state}]
+  (let [range-input-ref (reagent/atom nil)
+        range-value     (reagent/atom 0)
+        prev-props      (reagent/atom nil)]
+    (fn [{{{:keys [temporal-query-timestamps temporal-query-timestamp-selected] :as rich-layer} :rich-layer} :layer-state}]
+      (let [current-props [temporal-query-timestamp-selected temporal-query-timestamps]
+            index (.indexOf (vec temporal-query-timestamps) temporal-query-timestamp-selected)]
+        (when (not= @prev-props current-props)
+          (reset! prev-props current-props)
+          (reset! range-value index)))
+      [components/form-group
+       {:label "Timeline"}
+       [:input
+        {:ref      #(reset! range-input-ref %)
+         :type     "range"
+         :min      0
+         :max      (- (count temporal-query-timestamps) 1)
+         :step     1
+         :value    @range-value
+         :on-click #(.stopPropagation %)
+         :on-input #(reset! range-value (js/parseInt (-> % .-target .-value) 10))
+         :on-touch-end #(re-frame/dispatch [:map.rich-layer/temporal-query-timestamp-selected rich-layer (get temporal-query-timestamps @range-value)])
+         :on-mouse-up  #(re-frame/dispatch [:map.rich-layer/temporal-query-timestamp-selected rich-layer (get temporal-query-timestamps @range-value)])}]
+       [:div.time-range
+        [:div {:style {:flex @range-value}}]
+        [:div (get temporal-query-timestamps @range-value)]
+        [:div {:style {:flex (- (count temporal-query-timestamps) @range-value)}}]]])))
+
 (defn- layer-details
   "Layer details for layer card. Includes layer's legend, and tabs for selecting
    filters if the layer is a rich-layer."
   [{:keys [layer]
-    {{:keys [tab displayed-layer alternate-views timeline controls tab-label icon cql-filter] :as rich-layer} :rich-layer} :layer-state
+    {{:keys [tab displayed-layer alternate-views timeline controls tab-label icon cql-filter is-temporal?] :as rich-layer} :rich-layer} :layer-state
     :as props}]
   [:div.layer-details
    {:on-click #(.stopPropagation %)}
@@ -427,7 +472,8 @@
             ^{:key (:label control)}
             [cql-control
              {:control control
-              :props   props}])])}]]
+              :props   props}])
+          (when is-temporal? [temporal-query-timestamp-select props])])}]]
      
      [legend-display layer])])
 
