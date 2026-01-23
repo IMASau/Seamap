@@ -321,25 +321,25 @@
 (defn side-by-side-layer
   "Single component that gets (conditionally) rendered as the last set of layer-related rendering.
    Renders the side-by-side comparison control and the left/right layers."
-  [{:keys [left-layer right-layer boundary-filter layer-opacities cql-filter-fn z-index rich-layer-fn]}]
+  [{:keys [layer boundary-filter layer-opacities cql-filter-fn z-index rich-layer-fn]}]
   (let [left-pane  (str "left-" (random-uuid) (.now js/Date))
         right-pane (str "right-" (random-uuid) (.now js/Date))
-        rich-layer (rich-layer-fn left-layer)]
+        rich-layer (rich-layer-fn layer)]
     [:<>
      [leaflet/pane {:name left-pane :style {:z-index z-index}}
       [layer-component
-       {:layer           left-layer
-        :displayed-layer left-layer
+       {:layer           layer
+        :displayed-layer layer
         :boundary-filter boundary-filter
         :layer-opacities layer-opacities
-        :cql-filter      (cql-filter-fn left-layer)}]]
+        :cql-filter      (cql-filter-fn layer)}]]
      [leaflet/pane {:name right-pane :style {:z-index z-index}}
       [layer-component
-       {:layer           left-layer
-        :displayed-layer right-layer
+       {:layer           layer
+        :displayed-layer (:split-layer rich-layer)
         :boundary-filter boundary-filter
         :layer-opacities layer-opacities
-        :cql-filter      (cql-filter-fn left-layer)}]]
+        :cql-filter      (cql-filter-fn layer)}]]
      [leaflet/side-by-side
       {:left-pane   left-pane
        :right-pane  right-pane
@@ -348,7 +348,7 @@
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
-        {:keys [layer-opacities visible-regular-layers visible-split-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
+        {:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
@@ -406,36 +406,35 @@
        (map-indexed
         (fn [i layer]
           (let [rich-layer (rich-layer-fn layer)
-                {:keys [id] :as displayed-layer} (or (:displayed-layer rich-layer) layer)]
+                {:keys [id] :as displayed-layer} (or (:displayed-layer rich-layer) layer)
+                z-index (+ i 1 (count (:layers active-base-layer)))]
             ;; While it's not efficient, we give every layer it's own pane to simplify the
             ;; code.
             ;; Panes are given a name based on a uuid and time because if a pane is given the
             ;; same name as a previously existing pane leaflet complains about a new pane being
             ;; made with the same name as an existing pane (causing leaflet to no longer work).
             ^{:key (str id (+ i 1 (count (:layers active-base-layer))))}
-            [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
-             [layer-component
-              {:layer           layer
-               :displayed-layer displayed-layer
-               :boundary-filter boundary-filter
-               :layer-opacities layer-opacities
-               :cql-filter      (cql-filter-fn layer)}]]))
-        visible-regular-layers)
-       
-       ;; Split layers
-       (map-indexed
-        (fn [i {:keys [left-layer right-layer]}]
-          (let [z-index (+ i 1 (count (:layers active-base-layer)) (count visible-regular-layers))]
-            ^{:key (str (:id left-layer))}
-            [side-by-side-layer
-             {:left-layer      left-layer
-              :right-layer     right-layer
-              :boundary-filter boundary-filter
-              :layer-opacities layer-opacities
-              :cql-filter-fn   cql-filter-fn
-              :z-index         z-index
-              :rich-layer-fn   rich-layer-fn}]))
-        visible-split-layers)
+            [:<>
+             ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
+             ;; display two panes (left and right) for the two layers, and the side-by-side
+             ;; control for sliding between the two layers.
+             ;; If there's only one layer, then we render a single pane and layer.
+             (if (:split-layer-visible? rich-layer)
+               [side-by-side-layer
+                {:layer           layer
+                 :boundary-filter boundary-filter
+                 :layer-opacities layer-opacities
+                 :cql-filter-fn   cql-filter-fn
+                 :z-index         z-index
+                 :rich-layer-fn   rich-layer-fn}]
+               [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
+                [layer-component
+                 {:layer           layer
+                  :displayed-layer displayed-layer
+                  :boundary-filter boundary-filter
+                  :layer-opacities layer-opacities
+                  :cql-filter      (cql-filter-fn layer)}]])]))
+        visible-layers)
        
        (when query
          [leaflet/geojson-layer {:data (clj->js query)}])
