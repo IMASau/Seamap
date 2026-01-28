@@ -210,7 +210,6 @@
                    :map.rich-layers.rich-layer.control/show-invalid?]))
 (s/def :map.rich-layers.rich-layer/controls
   (s/coll-of :map.rich-layers.rich-layer/control :kind vector?))
-(s/def :map.rich-layers.rich-layer/split-layer-id :map.layer/id)
 
 (s/def :map.rich-layers/rich-layer
   (s/keys :req-un [:map.rich-layers.rich-layer/id
@@ -221,8 +220,7 @@
                    :map.rich-layers.rich-layer/tooltip
                    :map.rich-layers.rich-layer/alternate-views
                    :map.rich-layers.rich-layer/timeline
-                   :map.rich-layers.rich-layer/controls
-                   :map.rich-layers.rich-layer/split-layer-id]))
+                   :map.rich-layers.rich-layer/controls]))
 (s/def :map.rich-layers/rich-layers
   (s/coll-of :map.rich-layers/rich-layer :kind vector?))
 
@@ -237,14 +235,12 @@
   (s/keys :opt-un [:map.rich-layers.state.control/value]))
 (s/def :map.rich-layers.state/controls
   (s/map-of :map.rich-layers.rich-layer.control/cql-property :map.rich-layers.state/control))
-(s/def :map.rich-layers.state/split-layer-visible? boolean?)
 (s/def :map.rich-layers.state/split-layer-range-value number?)
 (s/def :map.rich-layers/state
   (s/keys :req-un [:map.rich-layers.state/tab
                    :map.rich-layers.state/alternate-views-selected
                    :map.rich-layers.state/timeline-selected
                    :map.rich-layers.state/controls
-                   :map.rich-layers.state/split-layer-visible?
                    :map.rich-layers.state/split-layer-range-value]))
 (s/def :map.rich-layers/states
   (s/map-of :map.rich-layers.rich-layer/id :map.rich-layers/state))

@@ -55,7 +55,7 @@
 
         rlc-ids ; rich-layer-children
         (reduce
-         (fn [acc {:keys [layer-id alternate-views timeline split-layer-id]}]
+         (fn [acc {:keys [layer-id alternate-views timeline side-by-side-views]}]
            (let [children
                  (set
                   (remove
@@ -63,7 +63,7 @@
                    (set/union
                     (set (map :layer alternate-views))
                     (set (map :layer timeline))
-                    (when split-layer-id #{split-layer-id}))))]
+                    (set (map :layer side-by-side-views)))))]
              (set/union acc children)))
          #{} rich-layers)
 
@@ -87,10 +87,7 @@
         displayed-layers->layers (set/map-invert displayed-rich-layers)
 
         rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)
-
-        visible-split-layers   (map-utils/visible-split-layers db-map rich-layer-fn)
-        visible-layers         (map-utils/visible-layers db-map)
-        visible-regular-layers (map-utils/visible-regular-layers db-map rich-layer-fn)] ; visible "regular" layers, as opposed to "split" layers
+        visible-layers  (map-utils/visible-layers db-map)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->>
                        layer-state :loading-state
@@ -102,8 +99,6 @@
      :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers
      :visible-layers  visible-layers
-     :visible-regular-layers visible-regular-layers
-     :visible-split-layers visible-split-layers
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
      :filtered-layers filtered-layers
      :sorted-layers   sorted-layers

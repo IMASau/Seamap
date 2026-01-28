@@ -278,8 +278,8 @@
        - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
        - point:         The lat lng and x y pixel coords of the clicked point"
   [{:keys [db]} [_ leaflet-props point]]
-  (let [visible-split-layers (filter identity (map #(map-utils/rich-layer->visible-split-layer % db) (visible-layers (:map db)))) ; Grab all the split layers (side-by-side layer comparisons) from rich layers so we query results from their servers too, if they are visible. We ignore if the request was made on the left or right side of the side-by-side slider.
-        visible-layers (concat (map #(rich-layer->displayed-layer % db) (visible-layers (:map db))) visible-split-layers)
+  (let [visible-side-by-side-views (filter identity (map #(map-utils/rich-layer->side-by-side-views-selected % db) (visible-layers (:map db)))) ; Grab all the split layers (side-by-side layer comparisons) from rich layers so we query results from their servers too, if they are visible. We ignore if the request was made on the left or right side of the side-by-side slider.
+        visible-layers (concat (map #(rich-layer->displayed-layer % db) (visible-layers (:map db))) visible-side-by-side-views)
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         request-id     (gensym)
 
@@ -562,17 +562,16 @@
      :slider_label         :slider-label
      :alternate_view_label :alternate-view-label
      :layer                :layer-id
-     :split_layer          :split-layer-id
-     :split_layer_label    :split-layer-label})
+     :side_by_side_views   :side-by-side-views})
    (update :controls #(mapv ->rich-layer-control %))))
 
 (defn- rich-layer->children
   "Returns a set of IDs for all the layers the rich layer uses."
-  [{:keys [alternate-views timeline split-layer-id]}]
+  [{:keys [alternate-views timeline side-by-side-views]}]
   (set/union
    (set (map :layer alternate-views))
    (set (map :layer timeline))
-   (when split-layer-id #{split-layer-id})))
+   (set (map :layer side-by-side-views))))
 
 (defn- rich-layers->rich-layer-children
   "Converts a list of rich layers to a hashmap, where the keys are the rich layer
@@ -901,10 +900,10 @@
   {:db       (assoc-in db [:map :rich-layers :states id :controls cql-property :value] value)
    :dispatch [:maybe-autosave]})
 
-(defn rich-layer-split-layer-visible
-  "Enable/disable the visibility of the split layer (side-by-side comparison) for a rich layer"
-  [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-visible?]]
-  {:db       (assoc-in db [:map :rich-layers :states id :split-layer-visible?] split-layer-visible?)
+(defn rich-layer-side-by-side-views-selected
+  "Change which layer is selected to be visible on the right side of a side-by-side view."
+  [{:keys [db]} [_ {:keys [id] :as _rich-layer} side-by-side-views-selected]]
+  {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
    :dispatch [:maybe-autosave]})
 
 (defn rich-layer-split-layer-range-value [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-range-value]]

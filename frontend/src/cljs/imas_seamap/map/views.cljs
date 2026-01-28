@@ -13,7 +13,8 @@
             ["react-leaflet" :as ReactLeaflet]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
             ["esri-leaflet-renderers"]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
+            #_[debux.cs.core :refer [dbg] :include-macros true]
+            [reagent.core :as reagent]))
 
 (defn point->latlng [[x y]] {:lat y :lng x})
 
@@ -321,30 +322,39 @@
 (defn side-by-side-layer
   "Single component that gets (conditionally) rendered as the last set of layer-related rendering.
    Renders the side-by-side comparison control and the left/right layers."
-  [{:keys [layer boundary-filter layer-opacities cql-filter-fn z-index rich-layer-fn]}]
-  (let [left-pane  (str "left-" (random-uuid) (.now js/Date))
-        right-pane (str "right-" (random-uuid) (.now js/Date))
-        rich-layer (rich-layer-fn layer)]
-    [:<>
-     [leaflet/pane {:name left-pane :style {:z-index z-index}}
-      [layer-component
-       {:layer           layer
-        :displayed-layer layer
-        :boundary-filter boundary-filter
-        :layer-opacities layer-opacities
-        :cql-filter      (cql-filter-fn layer)}]]
-     [leaflet/pane {:name right-pane :style {:z-index z-index}}
-      [layer-component
-       {:layer           layer
-        :displayed-layer (:split-layer rich-layer)
-        :boundary-filter boundary-filter
-        :layer-opacities layer-opacities
-        :cql-filter      (cql-filter-fn layer)}]]
-     [leaflet/side-by-side
-      {:left-pane   left-pane
-       :right-pane  right-pane
-       :on-drag-end #(re-frame/dispatch [:map.rich-layer/split-layer-range-value rich-layer %])
-       :range-value (:split-layer-range-value rich-layer)}]]))
+  [{:keys [_layer _boundary-filter _layer-opacities _cql-filter-fn _z-index _rich-layer-fn]}]
+  (let [left-pane  (reagent/atom nil)
+        right-pane (reagent/atom nil)]
+    (fn [{:keys [layer boundary-filter layer-opacities cql-filter-fn z-index rich-layer-fn]}]
+      (let [{:keys [side-by-side-views-selected] :as rich-layer} (rich-layer-fn layer)
+            displayed-layer (or (:displayed-layer rich-layer) layer)]
+        ^{:key (str (:id displayed-layer) (:id (:layer side-by-side-views-selected)) z-index)}
+        [:<>
+         [leaflet/pane
+          {:ref   #(reset! left-pane %)
+           :name  (str (random-uuid) (.now js/Date))
+           :style {:z-index z-index}}
+          [layer-component
+           {:layer           layer
+            :displayed-layer displayed-layer
+            :boundary-filter boundary-filter
+            :layer-opacities layer-opacities
+            :cql-filter      (cql-filter-fn layer)}]]
+         [leaflet/pane
+          {:ref   #(reset! right-pane %)
+           :name  (str (random-uuid) (.now js/Date))
+           :style {:z-index z-index}}
+          [layer-component
+           {:layer           layer
+            :displayed-layer (:layer side-by-side-views-selected)
+            :boundary-filter boundary-filter
+            :layer-opacities layer-opacities
+            :cql-filter      (cql-filter-fn layer)}]]
+         [leaflet/side-by-side
+          {:left-pane   @left-pane
+           :right-pane  @right-pane
+           :on-drag-end #(re-frame/dispatch [:map.rich-layer/split-layer-range-value rich-layer %])
+           :range-value (:split-layer-range-value rich-layer)}]]))))
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
@@ -413,13 +423,13 @@
             ;; Panes are given a name based on a uuid and time because if a pane is given the
             ;; same name as a previously existing pane leaflet complains about a new pane being
             ;; made with the same name as an existing pane (causing leaflet to no longer work).
-            ^{:key (str id (+ i 1 (count (:layers active-base-layer))))}
+            ^{:key (str id z-index)}
             [:<>
              ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
              ;; display two panes (left and right) for the two layers, and the side-by-side
              ;; control for sliding between the two layers.
              ;; If there's only one layer, then we render a single pane and layer.
-             (if (:split-layer-visible? rich-layer)
+             (if (:side-by-side-views-selected rich-layer)
                [side-by-side-layer
                 {:layer           layer
                  :boundary-filter boundary-filter

@@ -183,7 +183,6 @@
     :map.rich-layer/alternate-views-selected      [mevents/rich-layer-alternate-views-selected]
     :map.rich-layer/timeline-selected             [mevents/rich-layer-timeline-selected]
     :map.rich-layer/control-selected              [mevents/rich-layer-control-selected]
-    :map.rich-layer/split-layer-visible           [mevents/rich-layer-split-layer-visible]
     :map.rich-layer/split-layer-range-value       [mevents/rich-layer-split-layer-range-value]
     :map.rich-layer/reset-filters                 [mevents/rich-layer-reset-filters]
     :map.rich-layer/configure                     [mevents/rich-layer-configure]

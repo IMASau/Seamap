@@ -33,7 +33,7 @@ export default function SideBySide({ leftPane, rightPane, onDragEnd, rangeValue 
   useEffect(() => {
     if (!map || !controlRef.current) return;
     const rightPaneEl = map.getPane(rightPane);
-    controlRef.current.setLeftPane(rightPaneEl);
+    controlRef.current.setRightPane(rightPaneEl);
   }, [rightPane]);
 
   return null;
