@@ -37,6 +37,12 @@ class RichLayerTimelineInline(admin.TabularInline):
     fk_name = 'richlayer'
     extra = 0
 
+class RichLayerSideBySideViewInline(admin.TabularInline):
+    autocomplete_fields = ('layer',)
+    model = models.RichLayerSideBySideView
+    fk_name = 'richlayer'
+    extra = 0
+
 class RichLayerControlInline(admin.TabularInline):
     model = models.RichLayerControl
     fk_name = 'richlayer'
@@ -47,7 +53,7 @@ class RichLayerAdmin(admin.ModelAdmin):
         return super(RichLayerAdmin, self).get_queryset(request) \
             .select_related('layer')
 
-    inlines = (RichLayerAlternateViewInline, RichLayerTimelineInline, RichLayerControlInline,)
+    inlines = (RichLayerAlternateViewInline, RichLayerTimelineInline, RichLayerSideBySideViewInline, RichLayerControlInline,)
     autocomplete_fields = ('layer',)
 admin.site.register(models.RichLayer, RichLayerAdmin)
 

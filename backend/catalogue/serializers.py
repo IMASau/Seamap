@@ -106,6 +106,11 @@ class RichLayerTimelineSerializer(serializers.ModelSerializer):
         model = models.RichLayerTimeline
         exclude = ('id', 'richlayer',)
 
+class RichLayerSideBySideViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.RichLayerSideBySideView
+        exclude = ('id', 'richlayer',)
+
 class RichLayerControlSerializer(serializers.ModelSerializer):
     default_value = serializers.SerializerMethodField()
     
@@ -124,6 +129,7 @@ class RichLayerControlSerializer(serializers.ModelSerializer):
 class RichLayerSerializer(serializers.ModelSerializer):
     alternate_views = RichLayerAlternateViewSerializer(many=True, read_only=True)
     timeline = RichLayerTimelineSerializer(many=True, read_only=True)
+    side_by_side_views =RichLayerSideBySideViewSerializer(many=True, read_only=True)
     controls = RichLayerControlSerializer(many=True, read_only=True)
 
     class Meta:
