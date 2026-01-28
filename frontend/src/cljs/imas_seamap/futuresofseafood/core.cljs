@@ -31,6 +31,7 @@
    {:map/props                            msubs/map-props
     :map/layers                           msubs/map-layers
     :map/base-layers                      msubs/map-base-layers
+    :map/rich-layers-side-by-side-views   msubs/rich-layers-side-by-side-views
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
@@ -72,7 +73,8 @@
     :info/message                         subs/user-message
     :autosave?                            subs/autosave?
     :url-base                             subs/url-base
-    :debug/bboxes                         msubs/debug-bboxes}
+    ;:debug/bboxes                         msubs/debug-bboxes
+    }
 
    :events
    {:boot                                 [fosevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
@@ -162,6 +164,7 @@
     :map.rich-layer/alternate-views-selected      [mevents/rich-layer-alternate-views-selected]
     :map.rich-layer/timeline-selected             [mevents/rich-layer-timeline-selected]
     :map.rich-layer/control-selected              [mevents/rich-layer-control-selected]
+    :map.rich-layer/side-by-side-views-selected   [mevents/rich-layer-side-by-side-views-selected]
     :map.rich-layer/split-layer-range-value       [mevents/rich-layer-split-layer-range-value]
     :map.rich-layer/reset-filters                 [mevents/rich-layer-reset-filters]
     :map.rich-layer/configure                     [mevents/rich-layer-configure]

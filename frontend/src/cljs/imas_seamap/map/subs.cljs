@@ -107,6 +107,17 @@
      :rich-layer-fn   rich-layer-fn
      :cql-filter-fn   #(layer->cql-filter % db)}))
 
+(defn rich-layers-side-by-side-views [db _]
+  (let [rich-layers (map #(enhance-rich-layer % db) (get-in db [:map :rich-layers :rich-layers]))
+        active-layers (get-in db [:map :active-layers])]
+    
+    (filter
+     (fn [rich-layer]
+       (and
+        (some #{(:layer-id rich-layer)} (map :id active-layers))
+        (seq (get-in rich-layer [:side-by-side-views]))))
+     rich-layers)))
+
 (defn map-base-layers [{{:keys [grouped-base-layers active-base-layer zoom]} :map} _]
   (let [enabled-base-layer-fn (fn [{:keys [max_zoom]}] (or (nil? max_zoom) (<= zoom max_zoom))) ; Utility for checking if a basemap is "enabled" - i.e. is it a valid basemap the user can select, or are we beyond the max zoom for the layer
         enabled-base-layers (filter enabled-base-layer-fn grouped-base-layers)]

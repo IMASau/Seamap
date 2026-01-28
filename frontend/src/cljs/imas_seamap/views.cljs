@@ -763,6 +763,29 @@
       :icon icon
       :on-click #(re-frame/dispatch [:dynamic-pill/active dynamic-pill true])}]))
 
+(defn side-by-side-views-pill
+  [{:keys [layer displayed-layer side-by-side-views side-by-side-views-selected] :as rich-layer}]
+  (let [text (or (:display_name side-by-side-views-selected) (:name displayed-layer) (:name layer))]
+    [components/floating-pill-control-menu
+     {:text           text
+      :id             "state-of-knowledge-pill"
+      :icon           "arrows-horizontal"
+      :active?        (boolean side-by-side-views-selected)
+      :tooltip        text}
+     [components/form-group
+      {:label "Side-By-Side Compare"}
+      [:div
+       {:on-click #(.stopPropagation %)}
+       [components/select
+        {:value        side-by-side-views-selected
+         :options      side-by-side-views
+         :onChange     #(re-frame/dispatch [:map.rich-layer/side-by-side-views-selected rich-layer %])
+         :isSearchable true
+         :isClearable  true
+         :keyfns
+         {:id   #(get-in % [:layer :id])
+          :text #(get-in % [:display_name])}}]]]]))
+
 (defn floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
@@ -770,7 +793,8 @@
         boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])
         {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])
-        open-pill                @(re-frame/subscribe [:ui/open-pill])]
+        open-pill                @(re-frame/subscribe [:ui/open-pill])
+        rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
 
@@ -793,7 +817,10 @@
          {:expanded? (= open-pill "zones")})])
      (for [{:keys [id] :as dp} dynamic-pills]
        ^{:key (str id)}
-       [dynamic-pill dp])]))
+       [dynamic-pill dp])
+     (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
+       ^{:key (str id)}
+       [side-by-side-views-pill rich-layer])]))
 
 (defn layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])

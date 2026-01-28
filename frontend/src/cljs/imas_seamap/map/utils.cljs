@@ -514,7 +514,7 @@
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
-  [{:keys [id slider-label alternate-views timeline side-by-side-views controls]
+  [{:keys [id layer-id slider-label alternate-views timeline side-by-side-views controls]
     :as rich-layer} db]
   (let [{:keys [tab side-by-side-views-selected-id]
          alternate-views-selected-id :alternate-views-selected
@@ -551,6 +551,7 @@
        (merge state)
        (merge async-data)
        (assoc
+        :layer                    (first-where #(= (:id %) layer-id) (get-in db [:map :layers]))
         :tab                      (or tab "legend")
         :controls                 controls
         :alternate-views          alternate-views

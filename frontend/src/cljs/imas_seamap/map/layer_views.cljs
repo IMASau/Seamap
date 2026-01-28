@@ -391,27 +391,11 @@
  [{{:keys [label]} :control {:keys []} :rich-layer}]
   [:div label])
 
-(defn- side-by-side-views-select
-  [{{{:keys [side-by-side-views side-by-side-views-selected] :as rich-layer} :rich-layer} :layer-state}]
-  [components/form-group
-   {:label "Side-By-Side Compare"}
-   [:div
-    {:on-click #(.stopPropagation %)}
-    [components/select
-     {:value        side-by-side-views-selected
-      :options      side-by-side-views
-      :onChange     #(re-frame/dispatch [:map.rich-layer/side-by-side-views-selected rich-layer %])
-      :isSearchable true
-      :isClearable  true
-      :keyfns
-      {:id   #(get-in % [:layer :id])
-       :text #(get-in % [:display_name])}}]]])
-
 (defn- layer-details
   "Layer details for layer card. Includes layer's legend, and tabs for selecting
    filters if the layer is a rich-layer."
   [{:keys [layer]
-    {{:keys [tab displayed-layer alternate-views timeline side-by-side-views controls tab-label icon cql-filter] :as rich-layer} :rich-layer} :layer-state
+    {{:keys [tab displayed-layer alternate-views timeline controls tab-label icon cql-filter] :as rich-layer} :rich-layer} :layer-state
     :as props}]
   [:div.layer-details
    {:on-click #(.stopPropagation %)}
@@ -439,7 +423,6 @@
           {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
           (when (seq alternate-views) [alternate-view-select props])
           (when (seq timeline) [timeline-select props])
-          (when (seq side-by-side-views) [side-by-side-views-select props])
           (for [control controls]
             ^{:key (:label control)}
             [cql-control

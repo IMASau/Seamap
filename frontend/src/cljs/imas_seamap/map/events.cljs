@@ -916,6 +916,7 @@
     (-> db
         (update-in [:map :rich-layers :states id] dissoc :alternate-views-selected)
         (update-in [:map :rich-layers :states id] dissoc :timeline-selected)
+        (update-in [:map :rich-layers :states id] dissoc :side-by-side-views-selected-id)
         (update-in
          [:map :rich-layers :states id :controls]
          (fn [controls-state]

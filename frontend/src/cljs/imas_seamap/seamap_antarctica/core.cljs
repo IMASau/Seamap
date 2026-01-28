@@ -35,6 +35,7 @@
    {:map/props                            msubs/map-props
     :map/layers                           msubs/map-layers
     :map/base-layers                      msubs/map-base-layers
+    :map/rich-layers-side-by-side-views   msubs/rich-layers-side-by-side-views
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
