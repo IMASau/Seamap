@@ -901,10 +901,17 @@
    :dispatch [:maybe-autosave]})
 
 (defn rich-layer-side-by-side-views-selected
-  "Change which layer is selected to be visible on the right side of a side-by-side view."
+  "Change which layer is selected to be visible on the right side of a side-by-side view.
+   Automatically deselects side-by-side views for all other rich layers."
   [{:keys [db]} [_ {:keys [id] :as _rich-layer} side-by-side-views-selected]]
-  {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
-   :dispatch [:maybe-autosave]})
+  (let [rich-layer-ids (map :id (get-in db [:map :rich-layers :rich-layers]))
+        db
+        (reduce
+         (fn [db rich-layer-id]
+           (update-in db [:map :rich-layers :states rich-layer-id] dissoc :side-by-side-views-selected-id))
+         db rich-layer-ids)]
+    {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
+     :dispatch [:maybe-autosave]}))
 
 (defn rich-layer-split-layer-range-value [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-range-value]]
   {:db       (assoc-in db [:map :rich-layers :states id :split-layer-range-value] split-layer-range-value)
