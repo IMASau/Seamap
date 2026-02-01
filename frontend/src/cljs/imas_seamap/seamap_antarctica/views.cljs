@@ -46,7 +46,7 @@
         :class "catalogue"
         :title (reagent/as-element
                 [b/tooltip {:content "All available map layers"} "Catalogue"])
-        :panel (reagent/as-element [views/left-drawer-catalogue false])}]
+        :panel (reagent/as-element [views/left-drawer-catalogue])}]
 
       [b/tab
        {:id    "active-layers"
@@ -55,7 +55,7 @@
                  [:<> "Active Layers"
                   (when (seq active-layers)
                     [:div.notification-bubble (count active-layers)])]])
-        :panel (reagent/as-element [views/left-drawer-active-layers false])}]
+        :panel (reagent/as-element [views/left-drawer-active-layers])}]
 
       [b/tab
        {:id    "featured-maps"

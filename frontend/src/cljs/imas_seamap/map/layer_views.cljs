@@ -5,6 +5,7 @@
             [imas-seamap.components :as components]
             [clojure.string :as string]
             [imas-seamap.utils :refer [first-where round-to-nearest]]
+            [imas-seamap.subs.features]  ; Phase 3: feature flag subscriptions
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn- layer-status-icons
@@ -139,23 +140,24 @@
 (defn- layer-card-controls
   "To the right of the layer name. Basic controls for the layer, like getting info
    and disabling the layer."
-  [{:keys [layer tma?] {:keys [visible?]} :layer-state}]
-  [:div.layer-controls
-   
-   [layer-card-control
-    {:tooltip  (if visible? "Hide layer" "Show layer")
-     :icon     (if visible? "eye-on" "eye-off")
-     :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]
-   
-   [layer-card-control
-    {:tooltip  (if tma? "Layer info" "Layer info / Download data")
-     :icon     "info-sign"
-     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
+  [{:keys [layer] {:keys [visible?]} :layer-state}]
+  (let [layer-info-label @(re-frame/subscribe [:branding/label :layer-info])]
+    [:div.layer-controls
 
-   [layer-card-control
-    {:tooltip  "Zoom to layer"
-     :icon     "locate"
-     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
+     [layer-card-control
+      {:tooltip  (if visible? "Hide layer" "Show layer")
+       :icon     (if visible? "eye-on" "eye-off")
+       :on-click #(re-frame/dispatch [:map/toggle-layer-visibility layer])}]
+
+     [layer-card-control
+      {:tooltip  (or layer-info-label "Layer info")
+       :icon     "info-sign"
+       :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
+
+     [layer-card-control
+      {:tooltip  "Zoom to layer"
+       :icon     "locate"
+       :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]]))
 
 (defn- opacity-slider
   [{:keys [layer] {:keys [opacity]} :layer-state}]
@@ -455,31 +457,32 @@
   "To the right of the layer name. Basic controls for the layer, like getting info
    and enabling/disabling the layer. Differs from layer-card-controls in what
    controls are displayed."
-  [{:keys [layer tma?]
+  [{:keys [layer]
     {{:keys [icon tooltip] :as rich-layer} :rich-layer} :layer-state}]
-  [:div.layer-controls
+  (let [layer-info-label @(re-frame/subscribe [:branding/label :layer-info])]
+    [:div.layer-controls
 
-   (when rich-layer
+     (when rich-layer
+       [layer-control
+        {:tooltip  tooltip
+         :icon     icon
+         :on-click #(re-frame/dispatch [:map.rich-layer/configure rich-layer])}])
+
      [layer-control
-      {:tooltip  tooltip
-       :icon     icon
-       :on-click #(re-frame/dispatch [:map.rich-layer/configure rich-layer])}])
+      {:tooltip  (or layer-info-label "Layer info")
+       :icon     "info-sign"
+       :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
 
-   [layer-control
-    {:tooltip  (if tma? "Layer info" "Layer info / Download data")
-     :icon     "info-sign"
-     :on-click #(re-frame/dispatch [:map.layer/show-info layer])}]
-
-   [layer-control
-    {:tooltip  "Zoom to layer"
-     :icon     "locate"
-     :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]])
+     [layer-control
+      {:tooltip  "Zoom to layer"
+       :icon     "locate"
+       :on-click #(re-frame/dispatch [:map/pan-to-layer layer])}]]))
 
 (defn layer-catalogue-header
   "Top part of layer catalogue element. Always visible. Contains the layer status,
    name, and basic controls for the layer. Differs from layer-card-header in what
    controls are displayed."
-  [{:keys [layer _tma?] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
+  [{:keys [layer] {:keys [active? visible?] :as layer-state} :layer-state :as props}]
   [:div.layer-header
    [b/tooltip {:content (if active? "Deactivate layer" "Activate layer")}
     [b/checkbox
@@ -493,7 +496,7 @@
 (defn layer-catalogue-node
   [{{:keys [active-layers visible-layers loading-fn expanded-fn error-fn opacity-fn rich-layer-fn]} :layer-props
     {:keys [tooltip] :as layer} :layer
-    :keys [id tma?]}]
+    :keys [id]}]
   (let [active? (some #{layer} active-layers)
         {:keys [alternate-views-selected timeline-selected] :as rich-layer} (rich-layer-fn layer)
         layer-state
@@ -510,4 +513,4 @@
                  (when active? " active-layer")
                  (when (or (seq tooltip) alternate-views-selected timeline-selected) " has-tooltip"))
      :nodeData  {:previewLayer layer}
-     :label     (reagent/as-element [layer-catalogue-header {:layer layer :layer-state layer-state :tma? tma?}])}))
+     :label     (reagent/as-element [layer-catalogue-header {:layer layer :layer-state layer-state}])}))

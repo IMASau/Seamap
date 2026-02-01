@@ -16,6 +16,7 @@
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
+            [imas-seamap.subs.features]  ; Phase 3: feature flag subscriptions
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -106,7 +107,7 @@
 (defn- layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   layer-props open-all? tma?]
+   layer-props open-all?]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id].
         ;; We use the id for a stable node-id:
@@ -128,14 +129,13 @@
      :className  (-> ordering name (string/replace "_" "-"))
      :childNodes (concat
                   (if (seq ordering-remainder)
-                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all? tma?)
+                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
                     (map-indexed
                      (fn [i layer]
                        (layer-catalogue-node
                         {:id          (str id-str "-" i)
                          :layer       layer
-                         :layer-props layer-props
-                         :tma?        tma?}))
+                         :layer-props layer-props}))
                      layer-subset))
                   
                   ;; Dummy element appended inside of category ordering content for achieving styling
@@ -143,7 +143,7 @@
                     [{:id (str id-str "-" (inc (count layer-subset)))
                       :className "tree-cap"}]))}))
 
-(defn- layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all? _tma?]
+(defn- layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all?]
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes catid])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
@@ -157,9 +157,9 @@
                      (when (seq childNodes)
                        ;; If we have children, toggle expanded state, else add to map
                        (re-frame/dispatch [:ui.catalogue/toggle-node catid id]))))]
-    (fn [_catid layers ordering id layer-props open-all? tma?]
+    (fn [_catid layers ordering id layer-props open-all?]
      [:div.tab-body {:id id}
-      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all? tma?)
+      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all?)
                :onNodeCollapse on-close
                :onNodeExpand on-open
                :onNodeClick on-click
@@ -167,7 +167,7 @@
                                     (re-frame/dispatch [:map/update-preview-layer preview-layer]))
                :onNodeMouseLeave #(re-frame/dispatch [:map/update-preview-layer nil])}]])))
 
-(defn layer-catalogue [catid layers layer-props tma?]
+(defn layer-catalogue [catid layers layer-props]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab catid %1])
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
@@ -178,12 +178,12 @@
       {:id    "cat"
        :title "By Category"
        :panel (reagent/as-element
-               [layer-catalogue-tree catid layers [:category :data_classification] "cat" layer-props open-all? tma?])}]
+               [layer-catalogue-tree catid layers [:category :data_classification] "cat" layer-props open-all?])}]
      [b/tab
       {:id    "org"
        :title "By Organisation"
        :panel (reagent/as-element
-               [layer-catalogue-tree catid layers [:category :organisation :data_classification] "org" layer-props open-all? tma?])}]]))
+               [layer-catalogue-tree catid layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]))
 
 (defn- viewport-only-toggle []
   (let [[icon text] (if @(re-frame/subscribe [:map/viewport-only?])
@@ -234,7 +234,7 @@
               200))))}])))
 
 (defn- active-layer-selection-list
-  [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn rich-layer-fn tma?]}]
+  [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn rich-layer-fn]}]
   [components/items-selection-list
    {:items
     (for [{:keys [id] :as layer} layers]
@@ -249,8 +249,7 @@
           :errors?   (error-fn layer)
           :expanded? (expanded-fn layer)
           :opacity   (opacity-fn layer)
-          :rich-layer (rich-layer-fn layer)}
-         :tma? tma?}]})
+          :rich-layer (rich-layer-fn layer)}}]})
     :disabled    false
     :data-path   [:map :active-layers]
     :has-handle  false
@@ -817,7 +816,7 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
-(defn left-drawer-catalogue [tma?]
+(defn left-drawer-catalogue []
   (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
@@ -830,10 +829,9 @@
        :error-fn       error-layers
        :expanded-fn    expanded-layers
        :opacity-fn     layer-opacities
-       :rich-layer-fn  rich-layer-fn}
-      tma?]]))
+       :rich-layer-fn  rich-layer-fn}]]))
 
-(defn left-drawer-active-layers [tma?]
+(defn left-drawer-active-layers []
   (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])]
     [active-layer-selection-list
      {:layers         active-layers
@@ -842,8 +840,7 @@
       :error-fn       error-layers
       :expanded-fn    expanded-layers
       :opacity-fn     layer-opacities
-      :rich-layer-fn  rich-layer-fn
-      :tma?           tma?}]))
+      :rich-layer-fn  rich-layer-fn}]))
 
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
@@ -878,7 +875,7 @@
         :class "catalogue"
         :title (reagent/as-element
                 [b/tooltip {:content "All available map layers"} "Catalogue"])
-        :panel (reagent/as-element [left-drawer-catalogue false])}]
+        :panel (reagent/as-element [left-drawer-catalogue])}]
 
       [b/tab
        {:id    "active-layers"
@@ -887,7 +884,7 @@
                  [:<> "Active Layers"
                   (when (seq active-layers)
                     [:div.notification-bubble (count active-layers)])]])
-        :panel (reagent/as-element [left-drawer-active-layers false])}]
+        :panel (reagent/as-element [left-drawer-active-layers])}]
 
       [b/tab
        {:id    "featured-maps"
