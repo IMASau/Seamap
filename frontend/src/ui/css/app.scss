@@ -795,3 +795,115 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 .data-in-region-drawer .bp3-non-ideal-state { height: 150px; }
+
+/* Deployment Switcher Styles (dev-only UI for testing configuration system) */
+.deployment-switcher {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+}
+
+.deployment-switcher .switcher-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50px;
+  height: 50px;
+  background: #137CBD;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transition: transform 0.2s;
+}
+
+.deployment-switcher .switcher-toggle:hover {
+  transform: scale(1.1);
+}
+
+.deployment-switcher .switcher-panel {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.deployment-switcher .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e1e8ed;
+  padding-bottom: 10px;
+}
+
+.deployment-switcher .header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.deployment-switcher .deployments-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.deployment-switcher .deployment-card {
+  padding: 15px;
+}
+
+.deployment-switcher .deployment-card.current {
+  border: 2px solid #0F9960;
+}
+
+.deployment-switcher .deployment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.deployment-switcher .deployment-info .info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 0.9em;
+}
+
+.deployment-switcher .deployment-info .label {
+  font-weight: 600;
+  color: #5C7080;
+}
+
+.deployment-switcher .section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e1e8ed;
+}
+
+.deployment-switcher .feature-list ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.deployment-switcher .test-section {
+  margin: 10px 0;
+  padding: 10px;
+  background: #f5f8fa;
+  border-radius: 3px;
+}
+
+.deployment-switcher .test-result {
+  margin-top: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 3px;
+}

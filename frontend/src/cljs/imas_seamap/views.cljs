@@ -17,6 +17,7 @@
             [imas-seamap.map.utils :refer [layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
             [imas-seamap.subs.features]  ; Phase 3: feature flag subscriptions
+            [imas-seamap.dev.deployment-switcher :as dev-switcher]  ; Test harness
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -1086,5 +1087,8 @@
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [layers-control]]
      [floating-pills]
-     [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
+     [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]
+
+     ;; Test harness: Deployment switcher (only shows in dev mode)
+     [dev-switcher/switcher-panel]]))
 
