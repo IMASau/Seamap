@@ -163,6 +163,8 @@ $headings-font-family: "Poppins", "system-ui", sans-serif;
 @import 'ui/Select/Select';
 @import 'ui/SelectionList/SelectionList';
 @import 'ui/Omnibar/Omnibar';
+@import 'ui/SideBySide/leaflet-side-by-side/layout';
+@import 'ui/SideBySide/leaflet-side-by-side/range';
 @import 'thirdparty/leaflet-coordinates/leaflet-coordinates';
 @import 'thirdparty/leaflet-scalefactor/leaflet.scalefactor';
 

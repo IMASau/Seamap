@@ -132,7 +132,8 @@
 
 (defn- floating-pills []
   (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))
-        {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])]
+        {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])
+        rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
      (for [{:keys [text icon tooltip]} dynamic-pills]
@@ -140,7 +141,10 @@
        [components/floating-pill-button
         {:text    text
          :icon    icon
-         :tooltip tooltip}])]))
+         :tooltip tooltip}])
+     (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
+       ^{:key (str id)}
+       [views/side-by-side-views-pill rich-layer])]))
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])

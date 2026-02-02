@@ -71,19 +71,26 @@
        ;; Catalogue layers
        (map-indexed
         (fn [i layer]
-          (let [{:keys [id] :as displayed-layer} (or (:displayed-layer (rich-layer-fn layer)) layer)]
-            ;; While it's not efficient, we give every layer it's own pane to simplify the
-            ;; code.
-            ;; Panes are given a name based on a uuid and time because if a pane is given the
-            ;; same name as a previously existing pane leaflet complains about a new pane being
-            ;; made with the same name as an existing pane (causing leaflet to no longer work).
-            ^{:key (str id (+ i 1 (count (:layers active-base-layer))))}
-            [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
-             [map-views/layer-component
-              {:layer           layer
-               :displayed-layer displayed-layer
-               :layer-opacities layer-opacities
-               :cql-filter      (cql-filter-fn layer)}]]))
+          (let [rich-layer (rich-layer-fn layer)
+                {:keys [id] :as displayed-layer} (or (:displayed-layer rich-layer) layer)
+                z-index (+ i 1 (count (:layers active-base-layer)))]
+            ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
+            ;; display two panes (left and right) for the two layers, and the side-by-side
+            ;; control for sliding between the two layers.
+            ;; If there's only one layer, then we render a single pane and layer.
+            (if (:side-by-side-views-selected rich-layer)
+              [map-views/side-by-side-layer
+               {:layer           layer
+                :layer-opacities layer-opacities
+                :cql-filter-fn   cql-filter-fn
+                :z-index         z-index
+                :rich-layer-fn   rich-layer-fn}]
+              [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
+               [map-views/layer-component
+                {:layer           layer
+                 :displayed-layer displayed-layer
+                 :layer-opacities layer-opacities
+                 :cql-filter      (cql-filter-fn layer)}]])))
         visible-layers)
 
        (when query

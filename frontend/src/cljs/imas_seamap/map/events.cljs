@@ -8,7 +8,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords layer->dynamic-pills ->dynamic-pill]]
+            [imas-seamap.map.utils :as map-utils :refer [layer-name bounds->str feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords layer->dynamic-pills ->dynamic-pill]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -278,7 +278,8 @@
        - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
        - point:         The lat lng and x y pixel coords of the clicked point"
   [{:keys [db]} [_ leaflet-props point]]
-  (let [visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers (:map db)))
+  (let [visible-side-by-side-views (filter identity (map #(map-utils/rich-layer->side-by-side-views-selected % db) (visible-layers (:map db)))) ; Grab all the split layers (side-by-side layer comparisons) from rich layers so we query results from their servers too, if they are visible. We ignore if the request was made on the left or right side of the side-by-side slider.
+        visible-layers (concat (map #(rich-layer->displayed-layer % db) (visible-layers (:map db))) visible-side-by-side-views)
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         request-id     (gensym)
 
@@ -560,14 +561,17 @@
      :tab_label            :tab-label
      :slider_label         :slider-label
      :alternate_view_label :alternate-view-label
-     :layer                :layer-id})
+     :layer                :layer-id
+     :side_by_side_views   :side-by-side-views})
    (update :controls #(mapv ->rich-layer-control %))))
 
 (defn- rich-layer->children
-  [{:keys [alternate-views timeline]}]
+  "Returns a set of IDs for all the layers the rich layer uses."
+  [{:keys [alternate-views timeline side-by-side-views]}]
   (set/union
    (set (map :layer alternate-views))
-   (set (map :layer timeline))))
+   (set (map :layer timeline))
+   (set (map :layer side-by-side-views))))
 
 (defn- rich-layers->rich-layer-children
   "Converts a list of rich layers to a hashmap, where the keys are the rich layer
@@ -896,12 +900,30 @@
   {:db       (assoc-in db [:map :rich-layers :states id :controls cql-property :value] value)
    :dispatch [:maybe-autosave]})
 
+(defn rich-layer-side-by-side-views-selected
+  "Change which layer is selected to be visible on the right side of a side-by-side view.
+   Automatically deselects side-by-side views for all other rich layers."
+  [{:keys [db]} [_ {:keys [id] :as _rich-layer} side-by-side-views-selected]]
+  (let [rich-layer-ids (map :id (get-in db [:map :rich-layers :rich-layers]))
+        db
+        (reduce
+         (fn [db rich-layer-id]
+           (update-in db [:map :rich-layers :states rich-layer-id] dissoc :side-by-side-views-selected-id))
+         db rich-layer-ids)]
+    {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
+     :dispatch [:maybe-autosave]}))
+
+(defn rich-layer-split-layer-range-value [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-range-value]]
+  {:db       (assoc-in db [:map :rich-layers :states id :split-layer-range-value] split-layer-range-value)
+   :dispatch [:maybe-autosave]})
+
 (defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
   (merge
    {:db
     (-> db
         (update-in [:map :rich-layers :states id] dissoc :alternate-views-selected)
         (update-in [:map :rich-layers :states id] dissoc :timeline-selected)
+        (update-in [:map :rich-layers :states id] dissoc :side-by-side-views-selected-id)
         (update-in
          [:map :rich-layers :states id :controls]
          (fn [controls-state]

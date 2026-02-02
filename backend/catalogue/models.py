@@ -816,8 +816,8 @@ class KeyedLayer(models.Model):
 class RichLayer(models.Model):
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     tab_label = models.CharField(max_length=255)
-    slider_label = models.CharField(max_length=255)
-    alternate_view_label = models.CharField(max_length=255, default='Alternate View')
+    slider_label = models.CharField(max_length=255, blank=True)
+    alternate_view_label = models.CharField(max_length=255, default='Alternate View', blank=True)
     icon = models.CharField(max_length=255)
     tooltip = models.CharField(max_length=255)
 
@@ -836,6 +836,13 @@ class RichLayerTimeline(models.Model):
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     value = models.FloatField(null=False)
     label = models.CharField(max_length=255)
+
+@python_2_unicode_compatible
+class RichLayerSideBySideView(models.Model):
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT, related_name='side_by_side_views')
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
+    display_name = models.CharField(max_length=255)
 
 DATA_TYPE_CHOICES = [
     ('string', 'string'),

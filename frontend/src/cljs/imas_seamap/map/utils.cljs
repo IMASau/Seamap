@@ -433,6 +433,11 @@
         layer  (first-where #(= (:id %) layer-id) layers)]
     (assoc timeline :layer layer)))
 
+(defn ->side-by-side-view [{layer-id :layer :as side-by-side-view} db]
+  (let [layers (get-in db [:map :layers])
+        layer  (first-where #(= (:id %) layer-id) layers)]
+    (assoc side-by-side-view :layer layer)))
+
 (defn control->value [{:keys [cql-property controller-type default-value] :as _control} {:keys [id] :as _rich-layer} db]
   (let [value  (get-in db [:map :rich-layers :states id :controls cql-property :value])
         values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])]
@@ -509,9 +514,9 @@
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
-  [{:keys [id slider-label alternate-views timeline controls]
+  [{:keys [id layer-id slider-label alternate-views timeline side-by-side-views controls]
     :as rich-layer} db]
-  (let [{:keys [tab]
+  (let [{:keys [tab side-by-side-views-selected-id]
          alternate-views-selected-id :alternate-views-selected
          timeline-selected-id        :timeline-selected
          :as state}
@@ -529,6 +534,11 @@
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
 
         controls                  (mapv #(->control % rich-layer db) controls)
+
+        side-by-side-views          (mapv #(->side-by-side-view % db) side-by-side-views)
+        side-by-side-views-selected (first-where #(= (get-in % [:layer :id]) side-by-side-views-selected-id) side-by-side-views)
+        split-layer-range-value     (get-in db [:map :rich-layers :states id :split-layer-range-value] 0.5)
+
         cql-filter                (->>
                                    controls
                                    (map :cql-filter)
@@ -541,6 +551,7 @@
        (merge state)
        (merge async-data)
        (assoc
+        :layer                    (first-where #(= (:id %) layer-id) (get-in db [:map :layers]))
         :tab                      (or tab "legend")
         :controls                 controls
         :alternate-views          alternate-views
@@ -550,7 +561,10 @@
         :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
         :slider-label             slider-label
         :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
-        :cql-filter               cql-filter)))))
+        :side-by-side-views          side-by-side-views
+        :side-by-side-views-selected side-by-side-views-selected
+        :split-layer-range-value    split-layer-range-value
+        :cql-filter                 cql-filter)))))
 
 (defn layer->rich-layer [{:keys [id] :as _layer} db]
   (let [{:keys [rich-layers layer-lookup]} (get-in db [:map :rich-layers])
@@ -564,6 +578,13 @@
   [layer db]
   (let [rich-layer (enhance-rich-layer (layer->rich-layer layer db) db)]
     (or (:displayed-layer rich-layer) layer)))
+
+(defn rich-layer->side-by-side-views-selected
+  "If a layer is a rich-layer with a currently visible split layer, then return
+   that split layer."
+  [layer db]
+  (let [{:keys [side-by-side-views-selected]} (enhance-rich-layer (layer->rich-layer layer db) db)]
+    (when side-by-side-views-selected (:layer side-by-side-views-selected))))
 
 (defn rich-layer-children->parents
   [layers rich-layer-children]

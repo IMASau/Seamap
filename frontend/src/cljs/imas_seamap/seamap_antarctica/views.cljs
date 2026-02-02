@@ -13,6 +13,14 @@
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
+(defn floating-pills []
+  (let [collapsed                      (:collapsed @(re-frame/subscribe [:ui/sidebar]))
+        rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
+    [:div {:class (str "floating-pills" (when collapsed " collapsed"))}
+     (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
+       ^{:key (str id)}
+       [views/side-by-side-views-pill rich-layer])]))
+
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
@@ -116,5 +124,5 @@
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [views/layers-control]]
      ;; Definitely no state-of-knowledge, and probably no generic pills for now at least:
-     ;; [views/floating-pills]
+     [floating-pills]
      [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
