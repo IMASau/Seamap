@@ -132,7 +132,7 @@
         [:h5 "Feature Test"]
         [:div.bp3-form-group
          [:label.bp3-label "Feature Key:"]
-         [b/input
+         [b/text-input
           {:value (name (:feature-key @test-state))
            :on-change #(swap! test-state assoc :feature-key
                               (keyword (.. % -target -value)))}]]
@@ -147,7 +147,7 @@
         [:h5 "Branding Label Test"]
         [:div.bp3-form-group
          [:label.bp3-label "Label Key:"]
-         [b/input
+         [b/text-input
           {:value (name (:label-key @test-state))
            :on-change #(swap! test-state assoc :label-key
                               (keyword (.. % -target -value)))}]]

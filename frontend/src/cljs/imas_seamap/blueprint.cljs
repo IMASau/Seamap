@@ -42,6 +42,8 @@
 
 (def tab             (reagent/adapt-react-class Blueprint/Tab))
 
+(def tag             (reagent/adapt-react-class Blueprint/Tag))
+
 (def tooltip         (reagent/adapt-react-class Blueprint/Tooltip))
 
 (def tree            (reagent/adapt-react-class Blueprint/Tree))
