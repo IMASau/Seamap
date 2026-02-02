@@ -320,8 +320,12 @@
     :useGetCapabilities true}])
 
 (defn side-by-side-layer
-  "Single component that gets (conditionally) rendered as the last set of layer-related rendering.
-   Renders the side-by-side comparison control and the left/right layers."
+  "Renders a side-by-side comparison of two layers within the layer stack.
+
+   Creates two Leaflet panes (left and right) that each contain a layer-component,
+   along with the interactive side-by-side divider control. Uses the same z-index
+   based stacking and takes the same rendering parameters (layer-opacities, cql-filter,
+   boundary-filter) as other layers in the map."
   [{:keys [_layer _boundary-filter _layer-opacities _cql-filter-fn _z-index _rich-layer-fn]}]
   (let [left-pane  (reagent/atom nil)
         right-pane (reagent/atom nil)]
@@ -418,32 +422,25 @@
           (let [rich-layer (rich-layer-fn layer)
                 {:keys [id] :as displayed-layer} (or (:displayed-layer rich-layer) layer)
                 z-index (+ i 1 (count (:layers active-base-layer)))]
-            ;; While it's not efficient, we give every layer it's own pane to simplify the
-            ;; code.
-            ;; Panes are given a name based on a uuid and time because if a pane is given the
-            ;; same name as a previously existing pane leaflet complains about a new pane being
-            ;; made with the same name as an existing pane (causing leaflet to no longer work).
-            ^{:key (str id z-index)}
-            [:<>
-             ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
-             ;; display two panes (left and right) for the two layers, and the side-by-side
-             ;; control for sliding between the two layers.
-             ;; If there's only one layer, then we render a single pane and layer.
-             (if (:side-by-side-views-selected rich-layer)
-               [side-by-side-layer
+            ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
+            ;; display two panes (left and right) for the two layers, and the side-by-side
+            ;; control for sliding between the two layers.
+            ;; If there's only one layer, then we render a single pane and layer.
+            (if (:side-by-side-views-selected rich-layer)
+              [side-by-side-layer
+               {:layer           layer
+                :boundary-filter boundary-filter
+                :layer-opacities layer-opacities
+                :cql-filter-fn   cql-filter-fn
+                :z-index         z-index
+                :rich-layer-fn   rich-layer-fn}]
+              [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
+               [layer-component
                 {:layer           layer
+                 :displayed-layer displayed-layer
                  :boundary-filter boundary-filter
                  :layer-opacities layer-opacities
-                 :cql-filter-fn   cql-filter-fn
-                 :z-index         z-index
-                 :rich-layer-fn   rich-layer-fn}]
-               [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
-                [layer-component
-                 {:layer           layer
-                  :displayed-layer displayed-layer
-                  :boundary-filter boundary-filter
-                  :layer-opacities layer-opacities
-                  :cql-filter      (cql-filter-fn layer)}]])]))
+                 :cql-filter      (cql-filter-fn layer)}]])))
         visible-layers)
        
        (when query
