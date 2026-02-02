@@ -199,3 +199,10 @@
  :<- [:deployment/config]
  (fn [config _]
    (:drawers config)))
+
+;; Returns the complete layout configuration for the deployment (Phase 4).
+(re-frame/reg-sub
+ :layout/config
+ :<- [:deployment/config]
+ (fn [config _]
+   (:layout config)))

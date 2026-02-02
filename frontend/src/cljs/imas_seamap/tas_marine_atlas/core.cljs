@@ -22,6 +22,8 @@
             [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
+            [imas-seamap.subs.features]  ;; Phase 2: Feature flag subscriptions
+            [imas-seamap.subs.branding]  ;; Phase 2: Branding subscriptions
             [imas-seamap.tas-marine-atlas.subs :as tmasubs]
             [imas-seamap.tas-marine-atlas.views :refer [layout-app]]
             [imas-seamap.config :as config]
