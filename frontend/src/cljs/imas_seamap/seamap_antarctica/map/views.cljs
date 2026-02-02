@@ -79,19 +79,21 @@
             ;; display two panes (left and right) for the two layers, and the side-by-side
             ;; control for sliding between the two layers.
             ;; If there's only one layer, then we render a single pane and layer.
-            (if (:side-by-side-views-selected rich-layer)
-              [map-views/side-by-side-layer
-               {:layer           layer
-                :layer-opacities layer-opacities
-                :cql-filter-fn   cql-filter-fn
-                :z-index         z-index
-                :rich-layer-fn   rich-layer-fn}]
-              [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
-               [map-views/layer-component
+            ^{:key (str id z-index)}
+            [:<>
+             (if (:side-by-side-views-selected rich-layer)
+               [map-views/side-by-side-layer
                 {:layer           layer
-                 :displayed-layer displayed-layer
                  :layer-opacities layer-opacities
-                 :cql-filter      (cql-filter-fn layer)}]])))
+                 :cql-filter-fn   cql-filter-fn
+                 :z-index         z-index
+                 :rich-layer-fn   rich-layer-fn}]
+               [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
+                [map-views/layer-component
+                 {:layer           layer
+                  :displayed-layer displayed-layer
+                  :layer-opacities layer-opacities
+                  :cql-filter      (cql-filter-fn layer)}]])]))
         visible-layers)
 
        (when query
