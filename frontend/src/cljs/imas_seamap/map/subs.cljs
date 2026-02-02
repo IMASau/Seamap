@@ -53,17 +53,16 @@
         filter-text     (:layers filters)
         rich-layers (get-in db [:map :rich-layers :rich-layers])
 
-        rlc-ids ; rich-layer-children
+        rlc-ids ; rich-layer-children to hide from the catalogue
         (reduce
-         (fn [acc {:keys [layer-id alternate-views timeline side-by-side-views]}]
+         (fn [acc {:keys [layer-id alternate-views timeline]}]
            (let [children
                  (set
                   (remove
                    #(= % layer-id)
                    (set/union
                     (set (map :layer alternate-views))
-                    (set (map :layer timeline))
-                    (set (map :layer side-by-side-views)))))]
+                    (set (map :layer timeline)))))]
              (set/union acc children)))
          #{} rich-layers)
 
