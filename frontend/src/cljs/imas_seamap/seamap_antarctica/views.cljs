@@ -71,8 +71,56 @@
                 [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
         :panel (reagent/as-element [featured-maps])}]]]))
 
+(def hotkeys-combos
+  (let [keydown-wrapper
+        (fn [m keydown-v]
+          (assoc m :global    true
+                 :group "Keyboard Shortcuts"
+                 :onKeyDown #(re-frame/dispatch keydown-v)))]
+    ;; See note on `use-hotkeys' for rationale invoking `clj->js' here:
+    (clj->js
+     [(keydown-wrapper
+       {:label "Zoom In"                :combo "plus"}
+       [:map/zoom-in])
+      (keydown-wrapper
+       {:label "Zoom Out"               :combo "-"}
+       [:map/zoom-out])
+      (keydown-wrapper
+       {:label "Pan Up"                 :combo "up"}
+       [:map/pan-direction :up])
+      (keydown-wrapper
+       {:label "Pan Down"               :combo "down"}
+       [:map/pan-direction :down])
+      (keydown-wrapper
+       {:label "Pan Left"               :combo "left"}
+       [:map/pan-direction :left])
+      (keydown-wrapper
+       {:label "Pan Right"              :combo "right"}
+       [:map/pan-direction :right])
+      (keydown-wrapper
+       {:label "Toggle Left Drawer"     :combo "a"}
+       [:left-drawer/toggle])
+      (keydown-wrapper
+       {:label "Start/Clear Measurement"   :combo "t"}
+       [:transect.draw/toggle])
+      (keydown-wrapper
+       {:label "Cancel"                 :combo "esc"}
+       [:ui.drawing/cancel])
+      (keydown-wrapper
+       {:label "Layer Power Search"     :combo "s"}
+       [:layers-search-omnibar/toggle])
+      (keydown-wrapper
+       {:label "Reset"                  :combo "shift + r"}
+       [:re-boot])
+      (keydown-wrapper
+       {:label "Create Shareable URL"   :combo "c"}
+       [:create-save-state])
+      (keydown-wrapper
+       {:label "Show Help Overlay"      :combo "h"}
+       [:help-layer/toggle])])))
+
 (defn layout-app []
-  (let [hot-keys (use-memo (fn [] views/hotkeys-combos))
+  (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
@@ -99,7 +147,6 @@
       {:id "print-control" :helperText "Export current map view as an image"}
       {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
       {:id "transect-control" :helperText "Take a measurement"}
-      {:id "select-control" :helperText "Select a region for download (habitat data)"}
       {:id "share-control" :helperText "Create a shareable URL for current map view"}
       {:id "reset-control" :helperText "Reset the application back to its initial state"}
       {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
