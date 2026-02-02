@@ -791,7 +791,8 @@ class BaseLayer(models.Model):
 @python_2_unicode_compatible
 class SaveState(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    hashstate = models.CharField(max_length = 8000)
+    # Note: this was a CharField, but Django uses nvarchar for CharField, which can't support length > 4000
+    hashstate = models.TextField(max_length = 8000)
     description = models.TextField(blank=True, null=True)
     time_created = models.DateTimeField(default=django.utils.timezone.now)
 
