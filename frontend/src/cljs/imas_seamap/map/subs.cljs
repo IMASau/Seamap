@@ -56,14 +56,11 @@
         rlc-ids ; rich-layer-children to hide from the catalogue
         (reduce
          (fn [acc {:keys [layer-id alternate-views timeline]}]
-           (let [children
-                 (set
-                  (remove
-                   #(= % layer-id)
-                   (set/union
-                    (set (map :layer alternate-views))
-                    (set (map :layer timeline)))))]
-             (set/union acc children)))
+           (->>
+            (set/union (set (map :layer alternate-views)) (set (map :layer timeline))) ; Get all the alternate views and timeline layers for the rich layer
+            (remove #(= % layer-id))                                                   ; Ignore the ones that match the "main" layer for the rich layer (its catalogue entry)
+            set                                                                        ; Convert back to a set after the "remove" op
+            (set/union acc)))                                                          ; Add to the accumulative list of all layers to hide from the catalogue
          #{} rich-layers)
 
         catalogue-layers
