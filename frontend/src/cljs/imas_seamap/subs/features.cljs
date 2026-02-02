@@ -13,16 +13,16 @@
 ;;; DEPLOYMENT CONFIG SUBSCRIPTIONS
 ;;; =============================================================================
 
+;; Returns the complete deployment configuration from app-db.
+;; This includes all settings: features, branding, map config, etc.
 (re-frame/reg-sub
  :deployment/config
- "Returns the complete deployment configuration from app-db.
-  This includes all settings: features, branding, map config, etc."
  (fn [db _]
    (get db :deployment-config)))
 
+;; Returns the current deployment ID (e.g., :seamap-australia)
 (re-frame/reg-sub
  :deployment/id
- "Returns the current deployment ID (e.g., :seamap-australia)"
  :<- [:deployment/config]
  (fn [config _]
    (:id config)))
@@ -31,36 +31,34 @@
 ;;; FEATURE FLAG SUBSCRIPTIONS
 ;;; =============================================================================
 
+;; Check if a specific feature is enabled for the current deployment.
+;;
+;; Usage in components:
+;;   (let [has-sok? @(re-frame/subscribe [:feature/enabled? :state-of-knowledge])]
+;;     (when has-sok?
+;;       [state-of-knowledge-panel]))
+;;
+;; Or using the helper function:
+;;   (when (feature? :state-of-knowledge)
+;;     [state-of-knowledge-panel])
 (re-frame/reg-sub
  :feature/enabled?
- "Check if a specific feature is enabled for the current deployment.
-
-  Usage in components:
-    (let [has-sok? @(re-frame/subscribe [:feature/enabled? :state-of-knowledge])]
-      (when has-sok?
-        [state-of-knowledge-panel]))
-
-  Or using the helper function:
-    (when (feature? :state-of-knowledge)
-      [state-of-knowledge-panel])"
  :<- [:deployment/config]
  (fn [config [_ feature-key]]
    (contains? (:features config) feature-key)))
 
+;; Returns the set of all enabled features for the current deployment.
+;; Useful for debugging or displaying feature information.
 (re-frame/reg-sub
  :feature/all
- "Returns the set of all enabled features for the current deployment.
-
-  Useful for debugging or displaying feature information."
  :<- [:deployment/config]
  (fn [config _]
    (:features config)))
 
+;; Check if a specific feature is disabled (inverse of :feature/enabled?).
+;; Convenience subscription for conditional logic.
 (re-frame/reg-sub
  :feature/disabled?
- "Check if a specific feature is disabled (inverse of :feature/enabled?).
-
-  Convenience subscription for conditional logic."
  :<- [:deployment/config]
  (fn [config [_ feature-key]]
    (not (contains? (:features config) feature-key))))
