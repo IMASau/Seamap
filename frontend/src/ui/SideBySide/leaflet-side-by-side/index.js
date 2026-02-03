@@ -125,7 +125,7 @@ const SideBySide = L.Control.extend({
   _dragEnd: function () {
     uncancelMapDrag.call(this);
     if (this.options.onDragEnd) {
-      this.options.onDragEnd(this._range.value);
+      this.options.onDragEnd(this._range.value, this.getPosition());
     }
   },
 

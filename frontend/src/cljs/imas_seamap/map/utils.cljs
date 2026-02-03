@@ -571,6 +571,12 @@
         rich-layer-id (get layer-lookup id)]
     (first-where #(= (:id %) rich-layer-id) rich-layers)))
 
+(defn layer->rich-layer?
+  "True if a layer is a rich layer, otherwise false."
+  [{:keys [id] :as _layer} db]
+  (let [rich-layers-layer-lookup (get-in db [:map :rich-layers :layer-lookup])]
+    (boolean (get rich-layers-layer-lookup id))))
+
 (defn rich-layer->displayed-layer
   "If a layer is a rich-layer, then return the currently displayed layer (including
    default if no alternate view or timeline selected). If layer is not a
@@ -596,6 +602,27 @@
         (conj val)             ; add the layer into the set
         (set/union parents)))) ; add the layer's rich-layer parents into the set (if any exist)
    #{} layers))
+
+(defn rich-layer->layer-under-point
+  "Takes a rich layer and coordinates and returns the actual displayed layer under
+   that point. This pulls complicated \"what layer is the user actually clicking\"
+   logic for rich layers out from the \"feature-info-dispatcher\" event, leaving
+   that a bit neater."
+  [rich-layer {:keys [x] :as _point} db]
+  (let [enhanced-rich-layer (enhance-rich-layer rich-layer db)
+        side-by-side-views-selected-layer (get-in enhanced-rich-layer [:side-by-side-views-selected :layer])
+        split-layer-container-x (:split-layer-container-x enhanced-rich-layer)]
+    (js/console.log
+     (if (and side-by-side-views-selected-layer (> x split-layer-container-x)) ; if we have a split view and we click on the right side of the split view...
+       side-by-side-views-selected-layer                                       ; ...return the split view layer...
+       (or                                                                     ; ...else...
+        (:displayed-layer enhanced-rich-layer)                                 ; ...return the "displayed layer" if we have it...
+        (:layer enhanced-rich-layer))))
+    (if (and side-by-side-views-selected-layer (> x split-layer-container-x)) ; if we have a split view and we click on the right side of the split view...
+      side-by-side-views-selected-layer                                       ; ...return the split view layer...
+      (or                                                                     ; ...else...
+       (:displayed-layer enhanced-rich-layer)                                 ; ...return the "displayed layer" if we have it...
+       (:layer enhanced-rich-layer)))))                                       ; ...else return the default layer
 
 (defn layer->dynamic-pills
   "Returns the dynamic pills for a layer."

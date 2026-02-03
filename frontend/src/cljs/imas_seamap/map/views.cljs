@@ -358,7 +358,7 @@
          [leaflet/side-by-side
           {:left-pane   @left-pane
            :right-pane  @right-pane
-           :on-drag-end #(re-frame/dispatch [:map.rich-layer/split-layer-range-value rich-layer %])
+           :on-drag-end #(re-frame/dispatch [:map.rich-layer/split-layer-range-value rich-layer %1 %2])
            :range-value (:split-layer-range-value rich-layer)}]]))))
 
 (defn map-component [& children]

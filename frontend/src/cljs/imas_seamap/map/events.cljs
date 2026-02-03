@@ -278,8 +278,14 @@
        - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
        - point:         The lat lng and x y pixel coords of the clicked point"
   [{:keys [db]} [_ leaflet-props point]]
-  (let [visible-side-by-side-views (filter identity (map #(map-utils/rich-layer->side-by-side-views-selected % db) (visible-layers (:map db)))) ; Grab all the split layers (side-by-side layer comparisons) from rich layers so we query results from their servers too, if they are visible. We ignore if the request was made on the left or right side of the side-by-side slider.
-        visible-layers (concat (map #(rich-layer->displayed-layer % db) (visible-layers (:map db))) visible-side-by-side-views)
+  (let [visible-layers
+        (->>
+         (visible-layers (:map db))
+         (map
+          (fn [layer]
+            (if (map-utils/layer->rich-layer? layer db)
+              (map-utils/rich-layer->layer-under-point (map-utils/layer->rich-layer layer db) point db)
+              layer))))
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         request-id     (gensym)
 
@@ -913,8 +919,10 @@
     {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
      :dispatch [:maybe-autosave]}))
 
-(defn rich-layer-split-layer-range-value [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-range-value]]
-  {:db       (assoc-in db [:map :rich-layers :states id :split-layer-range-value] split-layer-range-value)
+(defn rich-layer-split-layer-range-value [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-range-value split-layer-container-x]]
+  {:db       (-> db
+                 (assoc-in [:map :rich-layers :states id :split-layer-range-value] split-layer-range-value)
+                 (assoc-in [:map :rich-layers :states id :split-layer-container-x] split-layer-container-x))
    :dispatch [:maybe-autosave]})
 
 (defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
