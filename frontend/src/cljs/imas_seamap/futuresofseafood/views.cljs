@@ -11,6 +11,14 @@
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]))
 
+(defn floating-pills []
+  (let [collapsed                      (:collapsed @(re-frame/subscribe [:ui/sidebar]))
+        rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
+    [:div {:class (str "floating-pills" (when collapsed " collapsed"))}
+     (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
+       ^{:key (str id)}
+       [views/side-by-side-views-pill rich-layer])]))
+
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
@@ -104,4 +112,8 @@
      [views/right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
      [views/layers-search-omnibar]
      [views/custom-leaflet-controls]
+     [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
+      {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
+      [views/layers-control]]
+     [floating-pills]
      [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))

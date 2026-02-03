@@ -5,7 +5,7 @@
   (:require [clojure.string :as string]
             [clojure.set :as set]
             [imas-seamap.utils :refer [map-on-key ids->layers]]
-            [imas-seamap.map.utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers visible-layers enhance-rich-layer rich-layer-children->parents rich-layer->displayed-layer layer->rich-layer layer->cql-filter]]
+            [imas-seamap.map.utils :as map-utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers enhance-rich-layer rich-layer-children->parents rich-layer->displayed-layer layer->rich-layer layer->cql-filter]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-props [db _] (:map db))
@@ -53,17 +53,14 @@
         filter-text     (:layers filters)
         rich-layers (get-in db [:map :rich-layers :rich-layers])
 
-        rlc-ids ; rich-layer-children
+        rlc-ids ; rich-layer-children to hide from the catalogue
         (reduce
          (fn [acc {:keys [layer-id alternate-views timeline]}]
-           (let [children
-                 (set
-                  (remove
-                   #(= % layer-id)
-                   (set/union
-                    (set (map :layer alternate-views))
-                    (set (map :layer timeline)))))]
-             (set/union acc children)))
+           (->>
+            (set/union (set (map :layer alternate-views)) (set (map :layer timeline))) ; Get all the alternate views and timeline layers for the rich layer
+            (remove #(= % layer-id))                                                   ; Ignore the ones that match the "main" layer for the rich layer (its catalogue entry)
+            set                                                                        ; Convert back to a set after the "remove" op
+            (set/union acc)))                                                          ; Add to the accumulative list of all layers to hide from the catalogue
          #{} rich-layers)
 
         catalogue-layers
@@ -83,7 +80,10 @@
                                (fn [displayed-rich-layers layer]
                                  (assoc displayed-rich-layers layer (rich-layer->displayed-layer layer db)))
                                {} (ids->layers (map :layer-id rich-layers) layers))
-        displayed-layers->layers (set/map-invert displayed-rich-layers)]
+        displayed-layers->layers (set/map-invert displayed-rich-layers)
+
+        rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)
+        visible-layers  (map-utils/visible-layers db-map)]
     {:groups          (group-by :category filtered-layers)
      :loading-layers  (->>
                        layer-state :loading-state
@@ -94,17 +94,32 @@
      :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state) db)
      :expanded-layers (->> layer-state :legend-shown set)
      :active-layers   active-layers
-     :visible-layers  (visible-layers db-map)
+     :visible-layers  visible-layers
      :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
      :filtered-layers filtered-layers
      :sorted-layers   sorted-layers
      :viewport-layers viewport-layers
      :catalogue-layers catalogue-layers
-     :rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)
+     :rich-layer-fn   rich-layer-fn
      :cql-filter-fn   #(layer->cql-filter % db)}))
 
-(defn map-base-layers [{:keys [map]} _]
-  (select-keys map [:grouped-base-layers :active-base-layer]))
+(defn rich-layers-side-by-side-views [db _]
+  (let [rich-layers (map #(enhance-rich-layer % db) (get-in db [:map :rich-layers :rich-layers]))
+        active-layers (get-in db [:map :active-layers])]
+    
+    (filter
+     (fn [rich-layer]
+       (and
+        (some #{(:layer-id rich-layer)} (map :id active-layers))
+        (seq (get-in rich-layer [:side-by-side-views]))))
+     rich-layers)))
+
+(defn map-base-layers [{{:keys [grouped-base-layers active-base-layer zoom]} :map} _]
+  (let [enabled-base-layer-fn (fn [{:keys [max_zoom]}] (or (nil? max_zoom) (<= zoom max_zoom))) ; Utility for checking if a basemap is "enabled" - i.e. is it a valid basemap the user can select, or are we beyond the max zoom for the layer
+        enabled-base-layers (filter enabled-base-layer-fn grouped-base-layers)]
+    {:grouped-base-layers   grouped-base-layers ; List of selectable basemaps (composite basemaps grouped as a single element)
+     :active-base-layer     (if (enabled-base-layer-fn active-base-layer) active-base-layer (first enabled-base-layers)) ; Active basemap is the one selected by the user, unless it's disabled. If the basemap is disabled, then switch to first enabled basemap
+     :enabled-base-layer-fn enabled-base-layer-fn}))
 
 (defn display-categories
   "Filter categories to only those that have a display name and at least one layer."

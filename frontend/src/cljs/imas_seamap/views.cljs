@@ -668,7 +668,6 @@
       :icon     "search"}]
 
     [transect-control]
-    [region-control]
 
     [control-block-child
      {:on-click #(re-frame/dispatch [:create-save-state])
@@ -763,6 +762,29 @@
       :icon icon
       :on-click #(re-frame/dispatch [:dynamic-pill/active dynamic-pill true])}]))
 
+(defn side-by-side-views-pill
+  [{:keys [layer displayed-layer side-by-side-views side-by-side-views-selected] :as rich-layer}]
+  (let [text (or (:display_name side-by-side-views-selected) (:name displayed-layer) (:name layer))]
+    [components/floating-pill-control-menu
+     {:text           text
+      :id             "state-of-knowledge-pill"
+      :icon           "arrows-horizontal"
+      :active?        (boolean side-by-side-views-selected)
+      :tooltip        text}
+     [components/form-group
+      {:label "Side-By-Side Compare"}
+      [:div
+       {:on-click #(.stopPropagation %)}
+       [components/select
+        {:value        side-by-side-views-selected
+         :options      side-by-side-views
+         :onChange     #(re-frame/dispatch [:map.rich-layer/side-by-side-views-selected rich-layer %])
+         :isSearchable true
+         :isClearable  true
+         :keyfns
+         {:id   #(get-in % [:layer :id])
+          :text #(get-in % [:display_name])}}]]]]))
+
 (defn floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
@@ -770,7 +792,8 @@
         boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])
         {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])
-        open-pill                @(re-frame/subscribe [:ui/open-pill])]
+        open-pill                @(re-frame/subscribe [:ui/open-pill])
+        rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
 
@@ -793,7 +816,10 @@
          {:expanded? (= open-pill "zones")})])
      (for [{:keys [id] :as dp} dynamic-pills]
        ^{:key (str id)}
-       [dynamic-pill dp])]))
+       [dynamic-pill dp])
+     (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
+       ^{:key (str id)}
+       [side-by-side-views-pill rich-layer])]))
 
 (defn layers-search-omnibar []
   (let [categories @(re-frame/subscribe [:map/categories-map])
@@ -1000,6 +1026,41 @@
        {:label "Show Help Overlay"      :combo "h"}
        [:help-layer/toggle])])))
 
+(defn layers-control
+  "Leaflet layer selection control component.
+   Replicates Leaflet's Control.Layers functionality for base layer selection.
+   See: https://leafletjs.com/reference.html#control-layers
+   
+   Has the same DOM structure as Leaflet's Control.Layers"
+  []
+  (let [expanded? (reagent/atom false)]
+    (fn []
+      (let [{:keys [grouped-base-layers active-base-layer enabled-base-layer-fn]} @(re-frame/subscribe [:map/base-layers])]
+        [:div.leaflet-control-layers.leaflet-control
+         {:class (when @expanded? "leaflet-control-layers-expanded")
+          :aria-haspopup "true"
+          :on-mouse-enter #(reset! expanded? true)
+          :on-mouse-leave #(reset! expanded? false)}
+         [:a.leaflet-control-layers-toggle]
+         [:section.leaflet-control-layers-list
+          [:div.leaflet-control-layers-base
+           (map
+            (fn [{:keys [id name] :as grouped-base-layer}]
+              ^{:key id}
+              [:label
+               {:disabled true}
+               [:span
+                [:input.leaflet-control-layers-selector
+                 {:type      "radio"
+                  :disabled  (not (enabled-base-layer-fn grouped-base-layer)) ; Disables the layer if not valid (i.e. beyond layer's max zoom level)
+                  :on-click  #(re-frame/dispatch [:map/base-layer-changed name])
+                  :checked   (= grouped-base-layer active-base-layer)
+                  :read-only true}]
+                [:span
+                 {:style (when (not (enabled-base-layer-fn grouped-base-layer)) {:color "#ccc"})} ; If the option is disabled, then show the label as disabled too
+                 name]]])
+            grouped-base-layers)]]]))))
+
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
@@ -1050,6 +1111,9 @@
      [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
      [layers-search-omnibar]
      [custom-leaflet-controls]
+     [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
+      {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
+      [layers-control]]
      [floating-pills]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 

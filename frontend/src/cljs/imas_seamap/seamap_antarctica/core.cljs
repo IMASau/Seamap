@@ -35,6 +35,7 @@
    {:map/props                            msubs/map-props
     :map/layers                           msubs/map-layers
     :map/base-layers                      msubs/map-base-layers
+    :map/rich-layers-side-by-side-views   msubs/rich-layers-side-by-side-views
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
@@ -109,7 +110,7 @@
     :get-save-state                       [events/get-save-state]
     :get-save-state-success               [events/get-save-state-success]
     :initialise-db                        [events/initialise-db]
-    :initialise-layers                    [events/initialise-layers]
+    :initialise-layers                    [antevents/initialise-layers]
     :loading-failed                       events/loading-failed
     :update-dynamic-pills                 events/update-dynamic-pills
     :update-site-configuration            events/update-site-configuration
@@ -184,6 +185,8 @@
     :map.rich-layer/alternate-views-selected      [mevents/rich-layer-alternate-views-selected]
     :map.rich-layer/timeline-selected             [mevents/rich-layer-timeline-selected]
     :map.rich-layer/control-selected              [mevents/rich-layer-control-selected]
+    :map.rich-layer/side-by-side-views-selected   [mevents/rich-layer-side-by-side-views-selected]
+    :map.rich-layer/split-layer-range-value       [mevents/rich-layer-split-layer-range-value]
     :map.rich-layer/reset-filters                 [mevents/rich-layer-reset-filters]
     :map.rich-layer/configure                     [mevents/rich-layer-configure]
     :map.rich-layer/get-cql-filter-values         [mevents/rich-layer-get-cql-filter-values]

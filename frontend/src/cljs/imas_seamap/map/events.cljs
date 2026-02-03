@@ -8,7 +8,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :refer [layer-name bounds->str feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords layer->dynamic-pills ->dynamic-pill]]
+            [imas-seamap.map.utils :as map-utils :refer [layer-name bounds->str feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords layer->dynamic-pills ->dynamic-pill]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -35,19 +35,39 @@
   convenient option of using the map viewport for both, as provided by
   leaflet, can cause inaccuracies when zoomed out. So, we calculate a
   smaller region by using the viewport dimensions to approximate a
-  narrower pixel region."
-  [{:keys [lat lng] :as _point}
+  narrower pixel region. This method used to be used by the geoserver
+  openlayers preview."
+  [[lng lat :as _point]
    {:keys [x y] :as _map-size}
    {:keys [north south east west] :as _map-bounds}
    {:keys [width height] :as _img-size}]
-  (let [x-scale (/ (Math/abs (- west east)) x)
-        y-scale (/ (Math/abs (- north south)) y)
+  (let [x-scale (/ (- east west) x)
+        y-scale (/ (- north south) y)
         img-x-bounds (* x-scale width)
         img-y-bounds (* y-scale height)]
     {:north (+ lat (/ img-y-bounds 2))
      :south (- lat (/ img-y-bounds 2))
      :east  (+ lng (/ img-x-bounds 2))
      :west  (- lng (/ img-x-bounds 2))}))
+
+(defn bounds-for-resolution
+  "GetFeatureInfo requires the pixel coordinates and dimensions around a
+  geographic point, to translate a click into a feature. The
+  convenient option of using the map viewport for both, as provided by
+  leaflet, can cause inaccuracies when zoomed out. So, we calculate a
+  smaller region by using the resolution (inverse of scale) to
+  construct a bounding box around the clicked point. This is the
+  method now used by OpenLayers getFeatureInfoUrl."
+  [[lng lat :as _point]
+   {:keys [width height] :as _img-size}
+   scale]
+  (let [resolution (/ 1 scale)
+        dx (/ (* resolution width) 2)
+        dy (/ (* resolution height) 2)]
+    {:north (+ lat dy)
+     :south (- lat dy)
+     :east  (+ lng dx)
+     :west  (- lng dx)}))
 
 (def ^:const INFO-FORMAT-HTML 1)
 (def ^:const INFO-FORMAT-JSON 2)
@@ -61,11 +81,29 @@
 (def feature-info-image-size
   {:width 101 :height 101})
 
+(defn crs-map-default?
+  "Compares the map CRS with the layer CRS (which may be null).
+  Represents whether the map crs is the default; ie, if the layer
+  doesn't specify a different CRS, or it is the same as the map's.
+  Note, uses keyword arguments to avoid confusion."
+  [& {:keys [map-crs layer-crs]}]
+  ;; Just support EPSG codes for now:
+  (or (string/blank? layer-crs)
+      (= (string/lower-case map-crs) (string/lower-case layer-crs))))
+
 (defmethod get-feature-info INFO-FORMAT-HTML
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
-  (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
-                  (bounds->projected #(project-coords % (-> layers first :crs)))
-                  (bounds->str (-> layers first :crs)))
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds] :as _leaflet-props} point]]
+  (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
+        request-crs (or layer-crs crs)
+        geo-point ((juxt :lng :lat) point)
+        projected-point (project-coords geo-point request-crs)
+        bbox-bounds (if (crs-map-default? :map-crs crs
+                                          :layer-crs layer-crs)
+                      (bounds-for-resolution projected-point feature-info-image-size scale)
+                      (bounds->projected
+                       #(project-coords % request-crs)
+                       (bounds-for-zoom geo-point size bounds feature-info-image-size)))
+        bbox (bounds->str request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
@@ -87,8 +125,8 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
-        :CRS           (-> layers first :crs)
-        :SRS           (-> layers first :crs)
+        :CRS           request-crs
+        :SRS           request-crs
         :FORMAT        "image/png"
         :INFO_FORMAT   "text/html"
         :SERVICE       "WMS"
@@ -99,10 +137,18 @@
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
 
 (defmethod get-feature-info INFO-FORMAT-JSON
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
-  (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
-                  (bounds->projected #(project-coords % (-> layers first :crs)))
-                  (bounds->str (-> layers first :crs)))
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds zoom] :as _leaflet-props} point]]
+  (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
+        request-crs (or layer-crs crs)
+        geo-point ((juxt :lng :lat) point)
+        projected-point (project-coords geo-point request-crs)
+        bbox-bounds (if (crs-map-default? :map-crs crs
+                                          :layer-crs layer-crs)
+                      (bounds-for-resolution projected-point feature-info-image-size scale)
+                      (bounds->projected
+                       #(project-coords % request-crs)
+                       (bounds-for-zoom projected-point size bounds feature-info-image-size)))
+        bbox (bounds->str request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
@@ -124,8 +170,8 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
-        :CRS           (-> layers first :crs)
-        :SRS           (-> layers first :crs)
+        :CRS           request-crs
+        :SRS           request-crs
         :FORMAT        "image/png"
         :INFO_FORMAT   "application/json"
         :SERVICE       "WMS"
@@ -232,7 +278,14 @@
        - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
        - point:         The lat lng and x y pixel coords of the clicked point"
   [{:keys [db]} [_ leaflet-props point]]
-  (let [visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers (:map db)))
+  (let [visible-layers
+        (->>
+         (visible-layers (:map db))
+         (map
+          (fn [layer]
+            (if (map-utils/layer->rich-layer? layer db)
+              (map-utils/rich-layer->layer-under-point (map-utils/layer->rich-layer layer db) point db)
+              layer))))
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         request-id     (gensym)
 
@@ -514,14 +567,17 @@
      :tab_label            :tab-label
      :slider_label         :slider-label
      :alternate_view_label :alternate-view-label
-     :layer                :layer-id})
+     :layer                :layer-id
+     :side_by_side_views   :side-by-side-views})
    (update :controls #(mapv ->rich-layer-control %))))
 
 (defn- rich-layer->children
-  [{:keys [alternate-views timeline]}]
+  "Returns a set of IDs for all the layers the rich layer uses."
+  [{:keys [alternate-views timeline side-by-side-views]}]
   (set/union
    (set (map :layer alternate-views))
-   (set (map :layer timeline))))
+   (set (map :layer timeline))
+   (set (map :layer side-by-side-views))))
 
 (defn- rich-layers->rich-layer-children
   "Converts a list of rich layers to a hashmap, where the keys are the rich layer
@@ -704,7 +760,6 @@
   (when (not= leaflet-map (get-in db [:map :leaflet-map]))
     (.on leaflet-map "zoomend"            #(re-frame/dispatch [:map/view-updated (leaflet-props %)]))
     (.on leaflet-map "moveend"            #(re-frame/dispatch [:map/view-updated (leaflet-props %)]))
-    (.on leaflet-map "baselayerchange"    #(re-frame/dispatch [:map/base-layer-changed (.-name %)]))
     (.on leaflet-map "click"              #(re-frame/dispatch [:map/clicked (leaflet-props %) (mouseevent->coords %)]))
     (.on leaflet-map "popupclose"         #(when-not (-> % .-popup .-options .-className (= "waiting"))  ;; Only dispatch :map/popup-closed if we're not closing a waiting popup (fixes ISA-269, caused by switching out waiting popup with info popup triggers popup closed)
                                              (re-frame/dispatch [:map/popup-closed])))
@@ -716,15 +771,22 @@
 
     (assoc-in db [:map :leaflet-map] leaflet-map)))
 
-(defn update-map-view [{{:keys [leaflet-map] old-zoom :zoom old-center :center} :map} [_ {:keys [zoom center bounds instant?]}]] 
+(defn update-map-view
+  "Update the map view (zoom/center/bounds)
+   If `instant?` is true, set the view immediately, otherwise fly to it.
+   Uses zoom/center if provided, otherwise uses bounds if provided.
+   
+   Note that zoom/center are prioritised over bounds, as bounds can be buggy in
+   stereographic polar projections."
+  [{{:keys [leaflet-map] old-zoom :zoom old-center :center} :map} [_ {:keys [zoom center bounds instant?]}]]
   (when leaflet-map
     (if instant?
-      (do
-        (when (or zoom (seq center)) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom)))
-        (when (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js))))
-      (do
-        (when (or zoom (seq center)) (.flyTo leaflet-map (clj->js (if (seq center) center old-center)) (or zoom old-zoom)))
-        (when (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js))))))
+      (cond
+        (or zoom (seq center)) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom))
+        (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js)))
+      (cond
+        (or zoom (seq center)) (.flyTo leaflet-map (clj->js (if (seq center) center old-center)) (or zoom old-zoom))
+        (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js)))))
   nil)
 
 (defn map-view-updated [{:keys [db]} [_ {:keys [zoom size center bounds]}]]
@@ -844,12 +906,32 @@
   {:db       (assoc-in db [:map :rich-layers :states id :controls cql-property :value] value)
    :dispatch [:maybe-autosave]})
 
+(defn rich-layer-side-by-side-views-selected
+  "Change which layer is selected to be visible on the right side of a side-by-side view.
+   Automatically deselects side-by-side views for all other rich layers."
+  [{:keys [db]} [_ {:keys [id] :as _rich-layer} side-by-side-views-selected]]
+  (let [rich-layer-ids (map :id (get-in db [:map :rich-layers :rich-layers]))
+        db
+        (reduce
+         (fn [db rich-layer-id]
+           (update-in db [:map :rich-layers :states rich-layer-id] dissoc :side-by-side-views-selected-id))
+         db rich-layer-ids)]
+    {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
+     :dispatch [:maybe-autosave]}))
+
+(defn rich-layer-split-layer-range-value [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-range-value split-layer-container-x]]
+  {:db       (-> db
+                 (assoc-in [:map :rich-layers :states id :split-layer-range-value] split-layer-range-value)
+                 (assoc-in [:map :rich-layers :states id :split-layer-container-x] split-layer-container-x))
+   :dispatch [:maybe-autosave]})
+
 (defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
   (merge
    {:db
     (-> db
         (update-in [:map :rich-layers :states id] dissoc :alternate-views-selected)
         (update-in [:map :rich-layers :states id] dissoc :timeline-selected)
+        (update-in [:map :rich-layers :states id] dissoc :side-by-side-views-selected-id)
         (update-in
          [:map :rich-layers :states id :controls]
          (fn [controls-state]

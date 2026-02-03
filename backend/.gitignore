@@ -6,7 +6,8 @@
 *.pot
 *.pyc
 __pycache__/
-local_settings.py
+# I keep multiple local_settings files, for each server. Renaming them makes swapping between testng apps easier.
+local_settings*.py
 db.sqlite3
 media/
 /static/

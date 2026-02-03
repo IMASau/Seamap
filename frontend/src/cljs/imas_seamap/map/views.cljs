@@ -13,7 +13,8 @@
             ["react-leaflet" :as ReactLeaflet]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
             ["esri-leaflet-renderers"]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
+            #_[debux.cs.core :refer [dbg] :include-macros true]
+            [reagent.core :as reagent]))
 
 (defn point->latlng [[x y]] {:lat y :lng x})
 
@@ -241,6 +242,28 @@
        :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
        :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}])) ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
 
+(defmethod layer-component :esri-vector-tile
+  [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
+  [leaflet/vector-tile-layer
+   {:url     server_url
+    :opacity (/ (layer-opacities layer) 100)
+    :eventHandlers
+       {:loading       #(re-frame/dispatch [:map.layer/load-start layer])
+        :tileloadstart #(re-frame/dispatch [:map.layer/tile-load-start layer])
+        :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
+        :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}])
+
+(defmethod layer-component :esri-image-map
+  [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
+  [leaflet/esri-image-map-layer
+   {:url             server_url
+    :opacity          (/ (layer-opacities layer) 100)
+    :eventHandlers
+    {:loading       #(re-frame/dispatch [:map.layer/load-start layer])
+     :tileloadstart #(re-frame/dispatch [:map.layer/tile-load-start layer])
+     :tileerror     #(re-frame/dispatch [:map.layer/load-error layer])
+     :load          #(re-frame/dispatch [:map.layer/load-finished layer])}}])
+
 (defmethod layer-component :wms-non-tiled
   [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
   [leaflet/non-tiled-layer
@@ -261,6 +284,14 @@
     (when boundary-filter (boundary-filter layer))
     (when cql-filter {:cql_filter cql-filter}))])
 
+(defmethod layer-component :wmts
+  [{:keys [layer-opacities layer] {:keys [server_url layer_name]} :displayed-layer}]
+  [leaflet/wmts-layer
+   {:url server_url
+    :layer layer_name
+    :useGetCapabilities true
+    :opacity (/ (layer-opacities layer) 100)}])
+
 (defmulti basemap-layer-component :layer_type)
 
 (defmethod basemap-layer-component :tile
@@ -271,14 +302,64 @@
   [{:keys [server_url attribution]}]
   [leaflet/vector-tile-layer {:url server_url :attribution attribution}])
 
+(defmethod basemap-layer-component :wms
+  [{:keys [server_url attribution layer_name]}]
+  [leaflet/wms-layer
+   {:url         server_url
+    :attribution attribution
+    :layers      layer_name
+    :transparent true
+    :tiled       true
+    :format      "image/png"}])
+
 (defmethod basemap-layer-component :wmts
-  [{:keys [server_url attribution]}]
+  [{:keys [server_url attribution layer_name]}]
   [leaflet/wmts-layer
    {:url server_url
     :attribution attribution
-    :layer "Antarctica_and_the_Southern_Ocean" ; TODO: Should be configurable
-    :tileMatrixSet "default028mm" ; TODO: Should be configurable
-    :tileMatrixStart 3}]) ; TODO: Should be configurable
+    :layer layer_name
+    :useGetCapabilities true}])
+
+(defn side-by-side-layer
+  "Renders a side-by-side comparison of two layers within the layer stack.
+
+   Creates two Leaflet panes (left and right) that each contain a layer-component,
+   along with the interactive side-by-side divider control. Uses the same z-index
+   based stacking and takes the same rendering parameters (layer-opacities, cql-filter,
+   boundary-filter) as other layers in the map."
+  [{:keys [_layer _boundary-filter _layer-opacities _cql-filter-fn _z-index _rich-layer-fn]}]
+  (let [left-pane  (reagent/atom nil)
+        right-pane (reagent/atom nil)]
+    (fn [{:keys [layer boundary-filter layer-opacities cql-filter-fn z-index rich-layer-fn]}]
+      (let [{:keys [side-by-side-views-selected] :as rich-layer} (rich-layer-fn layer)
+            displayed-layer (or (:displayed-layer rich-layer) layer)]
+        ^{:key (str (:id displayed-layer) (:id (:layer side-by-side-views-selected)) z-index)}
+        [:<>
+         [leaflet/pane
+          {:ref   #(reset! left-pane %)
+           :name  (str (random-uuid) (.now js/Date))
+           :style {:z-index z-index}}
+          [layer-component
+           {:layer           layer
+            :displayed-layer displayed-layer
+            :boundary-filter boundary-filter
+            :layer-opacities layer-opacities
+            :cql-filter      (cql-filter-fn layer)}]]
+         [leaflet/pane
+          {:ref   #(reset! right-pane %)
+           :name  (str (random-uuid) (.now js/Date))
+           :style {:z-index z-index}}
+          [layer-component
+           {:layer           layer
+            :displayed-layer (:layer side-by-side-views-selected)
+            :boundary-filter boundary-filter
+            :layer-opacities layer-opacities
+            :cql-filter      (cql-filter-fn layer)}]]
+         [leaflet/side-by-side
+          {:left-pane   @left-pane
+           :right-pane  @right-pane
+           :on-drag-end #(re-frame/dispatch [:map.rich-layer/split-layer-range-value rich-layer %1 %2])
+           :range-value (:split-layer-range-value rich-layer)}]]))))
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
@@ -322,13 +403,11 @@
          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index -1}}
           [basemap-layer-component (first grouped-base-layers)]])
 
-       ;; Basemap selection:
-       [leaflet/layers-control {:position "topright" :auto-z-index false}
-        (for [{:keys [id name] :as base-layer} grouped-base-layers]
-          ^{:key id}
-          [leaflet/layers-control-basemap {:name name :checked (= base-layer active-base-layer)}
-           [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
-            [basemap-layer-component base-layer]]])]
+       ;; Basemap layer
+       (when active-base-layer ; Don't render unless we have a basemap
+         ^{:key (str active-base-layer)} ; Key changes with each basemap, so the layer re-renders
+         [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
+          [basemap-layer-component active-base-layer]])
        
        ;; Additional basemap layers
        (map-indexed
@@ -341,20 +420,30 @@
        ;; Catalogue layers
        (map-indexed
         (fn [i layer]
-          (let [{:keys [id] :as displayed-layer} (or (:displayed-layer (rich-layer-fn layer)) layer)]
-            ;; While it's not efficient, we give every layer it's own pane to simplify the
-            ;; code.
-            ;; Panes are given a name based on a uuid and time because if a pane is given the
-            ;; same name as a previously existing pane leaflet complains about a new pane being
-            ;; made with the same name as an existing pane (causing leaflet to no longer work).
-            ^{:key (str id (+ i 1 (count (:layers active-base-layer))))}
-            [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
-             [layer-component
-              {:layer           layer
-               :displayed-layer displayed-layer
-               :boundary-filter boundary-filter
-               :layer-opacities layer-opacities
-               :cql-filter      (cql-filter-fn layer)}]]))
+          (let [rich-layer (rich-layer-fn layer)
+                {:keys [id] :as displayed-layer} (or (:displayed-layer rich-layer) layer)
+                z-index (+ i 1 (count (:layers active-base-layer)))]
+            ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
+            ;; display two panes (left and right) for the two layers, and the side-by-side
+            ;; control for sliding between the two layers.
+            ;; If there's only one layer, then we render a single pane and layer.
+            ^{:key (str id z-index)}
+            [:<>
+             (if (:side-by-side-views-selected rich-layer)
+               [side-by-side-layer
+                {:layer           layer
+                 :boundary-filter boundary-filter
+                 :layer-opacities layer-opacities
+                 :cql-filter-fn   cql-filter-fn
+                 :z-index         z-index
+                 :rich-layer-fn   rich-layer-fn}]
+               [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
+                [layer-component
+                 {:layer           layer
+                  :displayed-layer displayed-layer
+                  :boundary-filter boundary-filter
+                  :layer-opacities layer-opacities
+                  :cql-filter      (cql-filter-fn layer)}]])]))
         visible-layers)
        
        (when query

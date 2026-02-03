@@ -18,7 +18,7 @@
   {"EPSG:4326" (proj4 "+proj=longlat +datum=WGS84 +no_defs +type=crs")
    "EPSG:3857" (proj4 "+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs")
    "EPSG:3112" (proj4 "+proj=lcc +lat_0=0 +lon_0=134 +lat_1=-18 +lat_2=-36 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs")
-   "EPSG:3031" (proj4 "+proj=stere +lat_0=-90 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +type=crs")})
+   "EPSG:3031" (proj4 "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs")})
 
 (defn project-coords
   [coords crs]
@@ -366,8 +366,12 @@
    :west  (. bounds getWest)})
 
 (defn leaflet-props [e]
-  (let [m (. e -target)]
-    {:zoom   (. m getZoom)
+  (let [m    (. e -target)
+        zoom (. m getZoom)
+        crs  (-> m .-options .-crs)]
+    {:zoom   zoom
+     :scale  (-> crs (.scale zoom))
+     :crs    (.-code crs)
      :size   (-> m (. getSize) (js->clj :keywordize-keys true) (select-keys [:x :y]))
      :center (-> m (. getCenter) latlng->vec)
      :bounds (-> m (. getBounds) bounds->map)}))
@@ -428,6 +432,11 @@
   (let [layers (get-in db [:map :layers])
         layer  (first-where #(= (:id %) layer-id) layers)]
     (assoc timeline :layer layer)))
+
+(defn ->side-by-side-view [{layer-id :layer :as side-by-side-view} db]
+  (let [layers (get-in db [:map :layers])
+        layer  (first-where #(= (:id %) layer-id) layers)]
+    (assoc side-by-side-view :layer layer)))
 
 (defn control->value [{:keys [cql-property controller-type default-value] :as _control} {:keys [id] :as _rich-layer} db]
   (let [value  (get-in db [:map :rich-layers :states id :controls cql-property :value])
@@ -505,9 +514,9 @@
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
-  [{:keys [id slider-label alternate-views timeline controls]
+  [{:keys [id layer-id slider-label alternate-views timeline side-by-side-views controls]
     :as rich-layer} db]
-  (let [{:keys [tab]
+  (let [{:keys [tab side-by-side-views-selected-id]
          alternate-views-selected-id :alternate-views-selected
          timeline-selected-id        :timeline-selected
          :as state}
@@ -525,6 +534,11 @@
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
 
         controls                  (mapv #(->control % rich-layer db) controls)
+
+        side-by-side-views          (mapv #(->side-by-side-view % db) side-by-side-views)
+        side-by-side-views-selected (first-where #(= (get-in % [:layer :id]) side-by-side-views-selected-id) side-by-side-views)
+        split-layer-range-value     (get-in db [:map :rich-layers :states id :split-layer-range-value] 0.5)
+
         cql-filter                (->>
                                    controls
                                    (map :cql-filter)
@@ -537,6 +551,7 @@
        (merge state)
        (merge async-data)
        (assoc
+        :layer                    (first-where #(= (:id %) layer-id) (get-in db [:map :layers]))
         :tab                      (or tab "legend")
         :controls                 controls
         :alternate-views          alternate-views
@@ -546,12 +561,21 @@
         :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
         :slider-label             slider-label
         :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
-        :cql-filter               cql-filter)))))
+        :side-by-side-views          side-by-side-views
+        :side-by-side-views-selected side-by-side-views-selected
+        :split-layer-range-value    split-layer-range-value
+        :cql-filter                 cql-filter)))))
 
 (defn layer->rich-layer [{:keys [id] :as _layer} db]
   (let [{:keys [rich-layers layer-lookup]} (get-in db [:map :rich-layers])
         rich-layer-id (get layer-lookup id)]
     (first-where #(= (:id %) rich-layer-id) rich-layers)))
+
+(defn layer->rich-layer?
+  "True if a layer is a rich layer, otherwise false."
+  [{:keys [id] :as _layer} db]
+  (let [rich-layers-layer-lookup (get-in db [:map :rich-layers :layer-lookup])]
+    (boolean (get rich-layers-layer-lookup id))))
 
 (defn rich-layer->displayed-layer
   "If a layer is a rich-layer, then return the currently displayed layer (including
@@ -560,6 +584,13 @@
   [layer db]
   (let [rich-layer (enhance-rich-layer (layer->rich-layer layer db) db)]
     (or (:displayed-layer rich-layer) layer)))
+
+(defn rich-layer->side-by-side-views-selected
+  "If a layer is a rich-layer with a currently visible split layer, then return
+   that split layer."
+  [layer db]
+  (let [{:keys [side-by-side-views-selected]} (enhance-rich-layer (layer->rich-layer layer db) db)]
+    (when side-by-side-views-selected (:layer side-by-side-views-selected))))
 
 (defn rich-layer-children->parents
   [layers rich-layer-children]
@@ -571,6 +602,27 @@
         (conj val)             ; add the layer into the set
         (set/union parents)))) ; add the layer's rich-layer parents into the set (if any exist)
    #{} layers))
+
+(defn rich-layer->layer-under-point
+  "Takes a rich layer and coordinates and returns the actual displayed layer under
+   that point. This pulls complicated \"what layer is the user actually clicking\"
+   logic for rich layers out from the \"feature-info-dispatcher\" event, leaving
+   that a bit neater."
+  [rich-layer {:keys [x] :as _point} db]
+  (let [enhanced-rich-layer (enhance-rich-layer rich-layer db)
+        side-by-side-views-selected-layer (get-in enhanced-rich-layer [:side-by-side-views-selected :layer])
+        split-layer-container-x (:split-layer-container-x enhanced-rich-layer)]
+    (js/console.log
+     (if (and side-by-side-views-selected-layer (> x split-layer-container-x)) ; if we have a split view and we click on the right side of the split view...
+       side-by-side-views-selected-layer                                       ; ...return the split view layer...
+       (or                                                                     ; ...else...
+        (:displayed-layer enhanced-rich-layer)                                 ; ...return the "displayed layer" if we have it...
+        (:layer enhanced-rich-layer))))
+    (if (and side-by-side-views-selected-layer (> x split-layer-container-x)) ; if we have a split view and we click on the right side of the split view...
+      side-by-side-views-selected-layer                                       ; ...return the split view layer...
+      (or                                                                     ; ...else...
+       (:displayed-layer enhanced-rich-layer)                                 ; ...return the "displayed layer" if we have it...
+       (:layer enhanced-rich-layer)))))                                       ; ...else return the default layer
 
 (defn layer->dynamic-pills
   "Returns the dynamic pills for a layer."
@@ -616,9 +668,12 @@
 
 (defn layer->cql-filter
   "Returns the CQL filter for a layer."
-  [layer db]
-  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db))
-        dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db)))
-        cql-filters (if rich-layer-cql-filter (conj dynamic-pills-cql-filters rich-layer-cql-filter) dynamic-pills-cql-filters)
-        cql-filter (apply str (interpose " AND " cql-filters))]
-    (when (seq cql-filter) cql-filter)))
+  [{layer-cql-filter :filter :as layer} db]
+  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db)) ; string or nil
+        dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db))) ; list of strings
+        cql-filters
+        (cond-> dynamic-pills-cql-filters
+          (seq rich-layer-cql-filter) (conj rich-layer-cql-filter) ; if rich-layer cql filter exists, add it
+          (seq layer-cql-filter)      (conj layer-cql-filter))     ; if layer cql filter exists, add it
+        cql-filter (apply str (interpose " AND " cql-filters))] ; combine with AND
+    (when (seq cql-filter) cql-filter))) ; return nil if no filter

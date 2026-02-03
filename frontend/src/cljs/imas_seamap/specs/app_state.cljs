@@ -235,11 +235,13 @@
   (s/keys :opt-un [:map.rich-layers.state.control/value]))
 (s/def :map.rich-layers.state/controls
   (s/map-of :map.rich-layers.rich-layer.control/cql-property :map.rich-layers.state/control))
+(s/def :map.rich-layers.state/split-layer-range-value number?)
 (s/def :map.rich-layers/state
   (s/keys :req-un [:map.rich-layers.state/tab
                    :map.rich-layers.state/alternate-views-selected
                    :map.rich-layers.state/timeline-selected
-                   :map.rich-layers.state/controls]))
+                   :map.rich-layers.state/controls
+                   :map.rich-layers.state/split-layer-range-value]))
 (s/def :map.rich-layers/states
   (s/map-of :map.rich-layers.rich-layer/id :map.rich-layers/state))
 

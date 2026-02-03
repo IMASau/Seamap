@@ -1,4 +1,4 @@
-The build feature index run finished.
+The build feature index run for {{ site_name }} has finished.
 
 {% if errors %}
 The following layers failed in the run:
