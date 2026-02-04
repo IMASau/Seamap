@@ -771,27 +771,37 @@
         boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])
         {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])
-        open-pill                @(re-frame/subscribe [:ui/open-pill])]
+        open-pill                @(re-frame/subscribe [:ui/open-pill])
+        ;; Feature flags for individual pills
+        has-sok?                 @(re-frame/subscribe [:feature/enabled? :state-of-knowledge])
+        has-boundaries-pill?     @(re-frame/subscribe [:feature/enabled? :boundaries-pill])
+        has-zones-pill?          @(re-frame/subscribe [:feature/enabled? :zones-pill])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
 
-     [floating-state-of-knowledge-pill
-      {:expanded?       (= open-pill "state-of-knowledge")
-       :boundaries      boundaries
-       :active-boundary active-boundary}]
-     
-     (when (and state-of-knowledge-open? active-boundary)
+     ;; State of Knowledge pill - only show if feature enabled
+     (when has-sok?
+       [floating-state-of-knowledge-pill
+        {:expanded?       (= open-pill "state-of-knowledge")
+         :boundaries      boundaries
+         :active-boundary active-boundary}])
+
+     ;; Boundaries pill - only show if feature enabled AND SOK is open with boundary
+     (when (and has-boundaries-pill? state-of-knowledge-open? active-boundary)
        [floating-boundaries-pill
         (merge
          valid-boundaries
          {:expanded?       (= open-pill "boundaries")
           :active-boundary active-boundary})])
-     
-     (when (and state-of-knowledge-open? (= (:id active-boundary) "amp"))
+
+     ;; Zones pill - only show if feature enabled AND SOK is open with AMP boundary
+     (when (and has-zones-pill? state-of-knowledge-open? (= (:id active-boundary) "amp"))
        [floating-zones-pill
         (merge
          valid-boundaries
          {:expanded? (= open-pill "zones")})])
+
+     ;; Dynamic pills (always shown when floating-pills feature is enabled)
      (for [{:keys [id] :as dp} dynamic-pills]
        ^{:key (str id)}
        [dynamic-pill dp])]))
