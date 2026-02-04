@@ -669,6 +669,7 @@
 
 (defn custom-leaflet-controls []
   (let [has-settings? @(re-frame/subscribe [:feature/enabled? :settings])
+        has-region-select? @(re-frame/subscribe [:feature/enabled? :region-select])
         has-data-in-region? @(re-frame/subscribe [:feature/enabled? :data-in-region])]
     [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
      [menu-button]
@@ -686,7 +687,8 @@
       :icon     "search"}]
 
     [transect-control]
-    [region-control]
+    (when has-region-select?
+      [region-control])
     (when has-data-in-region?
       [data-in-region-control])
 

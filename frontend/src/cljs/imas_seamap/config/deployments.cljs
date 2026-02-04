@@ -13,6 +13,8 @@
    - Initial state overrides
    - Deployment-specific URL paths")
 
+;;; FIXME: if features are name-spaced we can more-easily search for them, find all uses of eg ":feature/" etc
+
 ;;; =============================================================================
 ;;; SEAMAP AUSTRALIA
 ;;; =============================================================================
@@ -49,6 +51,7 @@
                   :zones-pill
                   :plot-component
                   :transect-control
+                  :region-select
                   :data-providers
                   :data-download
                   :settings
@@ -216,6 +219,7 @@
                   :boundaries-pill
                   :zones-pill
                   :settings
+                  :region-select
                   :layer-preview}
 
    ;; Right drawer slot mappings
@@ -311,6 +315,7 @@
    :features    #{:plot-component
                   :transect-control
                   :settings
+                  :region-select
                   :layer-preview}
 
    ;; Right drawer slot mappings (empty for FoS)
