@@ -17,6 +17,7 @@
             [imas-seamap.map.utils :refer [layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
             [imas-seamap.subs.features]  ; Phase 3: feature flag subscriptions
+            [imas-seamap.config.components :as components-registry]  ; Phase 4: component registry
             [imas-seamap.dev.deployment-switcher :as dev-switcher]  ; Test harness
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -1039,12 +1040,27 @@
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
-        loading?           @(re-frame/subscribe [:app/loading?])]
-    [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
-     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
+        loading?           @(re-frame/subscribe [:app/loading?])
+
+        ;; Phase 4: Configuration-driven layout
+        css-class          @(re-frame/subscribe [:branding/css-class])
+        layout-config      @(re-frame/subscribe [:layout/config])
+        footer-components  (:footer layout-config)
+        has-floating-pills? @(re-frame/subscribe [:feature/enabled? :floating-pills])]
+    [:div#main-wrapper
+     {:class (str css-class
+                  (when catalogue-open? " catalogue-open")
+                  (when right-drawer-open? " right-drawer-open")
+                  (when loading? " loading"))}
      [:div#content-wrapper
       [map-component]
-      [plot-component]]
+
+      ;; Footer components (conditional based on layout config)
+      (when (seq footer-components)
+        (for [component-key footer-components]
+          ^{:key component-key}
+          (when-let [component (components-registry/get-component component-key)]
+            [component])))]
      
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [helper-overlay
@@ -1086,9 +1102,44 @@
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [layers-control]]
-     [floating-pills]
+
+     ;; Floating pills (conditional based on feature flag)
+     (when has-floating-pills?
+       [floating-pills])
+
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]
 
      ;; Test harness: Deployment switcher (only shows in dev mode)
      [dev-switcher/switcher-panel]]))
+
+;;; =============================================================================
+;;; Component Registration (Phase 4: Populate component registry)
+;;; =============================================================================
+
+;; Register components from this namespace into the component registry
+;; This happens once when the namespace loads, avoiding circular dependencies
+(components-registry/register-components!
+ {;; Footer components
+  :footer/plot              plot-component
+
+  ;; Drawer components
+  :drawer/catalogue         left-drawer-catalogue
+  :drawer/active-layers     left-drawer-active-layers
+
+  ;; Overlays
+  :overlay/welcome          welcome-dialogue
+  :overlay/outage           outage-message-dialogue
+  :overlay/settings         settings-overlay
+  :overlay/info-card        info-card
+  :overlay/loading          loading-display
+  :overlay/helper           helper-overlay
+  :overlay/layer-preview    layer-preview
+  :overlay/omnibar          layers-search-omnibar
+
+  ;; State of Knowledge components (from imported namespace)
+  :pill/boundaries          floating-boundaries-pill
+  :pill/zones               floating-zones-pill
+
+  ;; Story Maps components (from imported namespace)
+  :drawer/featured-map      featured-map-drawer})
 
