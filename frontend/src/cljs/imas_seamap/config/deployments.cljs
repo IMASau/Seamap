@@ -50,7 +50,8 @@
                   :plot-component
                   :transect-control
                   :data-providers
-                  :data-download}
+                  :data-download
+                  :settings}
 
    ;; Right drawer slot mappings (what can appear in the right drawer)
    :drawers     {:story-map          :featured-map/drawer
@@ -145,6 +146,7 @@
                  :zoom   7}
 
    ;; Feature flags - TMA has data-in-region instead of state-of-knowledge
+   ;; Note: TMA does NOT have :settings feature enabled
    :features    #{:featured-maps
                   :data-in-region
                   :floating-pills}
@@ -211,7 +213,8 @@
    :features    #{:state-of-knowledge
                   :floating-pills
                   :boundaries-pill
-                  :zones-pill}
+                  :zones-pill
+                  :settings}
 
    ;; Right drawer slot mappings
    :drawers     {:state-of-knowledge :sok/panel}
@@ -304,7 +307,8 @@
 
    ;; Feature flags - minimal feature set
    :features    #{:plot-component
-                  :transect-control}
+                  :transect-control
+                  :settings}
 
    ;; Right drawer slot mappings (empty for FoS)
    :drawers     {}

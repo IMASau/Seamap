@@ -654,13 +654,15 @@
      :icon     "minus"}]]))
 
 (defn custom-leaflet-controls []
-  [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
-   [menu-button]
-   [settings-button]
-   [zoom-control]
+  (let [has-settings? @(re-frame/subscribe [:feature/enabled? :settings])]
+    [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
+     [menu-button]
+     (when has-settings?
+       [settings-button])
+     [zoom-control]
 
-   [control-block
-    [print-control]
+     [control-block
+      [print-control]
 
     [control-block-child
      {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
@@ -694,7 +696,7 @@
      {:on-click #(re-frame/dispatch [:help-layer/toggle])
       :tooltip  "Show Help Overlay"
       :id       "overlay-control"
-      :icon     "help"}]]])
+      :icon     "help"}]]]))
 
 (defmulti dynamic-pill-region-control #(get-in % [:region-control :controller-type]))
 
@@ -1059,7 +1061,8 @@
         css-class          @(re-frame/subscribe [:branding/css-class])
         layout-config      @(re-frame/subscribe [:layout/config])
         footer-components  (:footer layout-config)
-        has-floating-pills? @(re-frame/subscribe [:feature/enabled? :floating-pills])]
+        has-floating-pills? @(re-frame/subscribe [:feature/enabled? :floating-pills])
+        has-settings?      @(re-frame/subscribe [:feature/enabled? :settings])]
     [:div#main-wrapper
      {:class (str css-class
                   (when catalogue-open? " catalogue-open")
@@ -1105,7 +1108,8 @@
        :helperPosition "top"}]
      [welcome-dialogue]
      [outage-message-dialogue]
-     [settings-overlay]
+     (when has-settings?
+       [settings-overlay])
      [info-card]
      [loading-display]
      [left-drawer]
