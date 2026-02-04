@@ -26,6 +26,7 @@
             [imas-seamap.subs :as subs]
             [imas-seamap.subs.features]  ;; Phase 2: Feature flag subscriptions
             [imas-seamap.subs.branding]  ;; Phase 2: Branding subscriptions
+            [imas-seamap.config.deployments]  ;; Phase 4: Deployment configurations
             [imas-seamap.views :as views]
             [imas-seamap.config :as config]
             [imas-seamap.components :as components]))
@@ -372,11 +373,40 @@
 (defn ^:export show-db []
   @re-frame.db/app-db)
 
-(defn ^:export init [api-url-base media-url-base wordpress-url-base img-url-base]
-  (register-handlers! config-handlers)
-  (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base])
-  (dev-setup)
-  (mount-root))
+(defn ^:export init
+  "Initialize the application.
+
+   Parameters:
+   - api-url-base: Base URL for API endpoints
+   - media-url-base: Base URL for media files
+   - wordpress-url-base: Base URL for WordPress content
+   - img-url-base: Base URL for images
+   - deployment-id: (optional) Deployment identifier as string (e.g., 'seamap-australia')
+                    Defaults to 'seamap-australia' if not provided
+
+   Usage from HTML:
+     <script>
+       imas_seamap.core.init(
+         'http://localhost:8000/api/',
+         'http://localhost:8000/media/',
+         'http://localhost:8888/',
+         '/img/',
+         'seamap-australia'  // or 'tas-marine-atlas', 'seamap-antarctica', 'futures-of-seafood'
+       );
+     </script>"
+  ([api-url-base media-url-base wordpress-url-base img-url-base]
+   (init api-url-base media-url-base wordpress-url-base img-url-base "seamap-australia"))
+  ([api-url-base media-url-base wordpress-url-base img-url-base deployment-id]
+   (let [;; Convert deployment-id string to keyword
+         deployment-kw (keyword deployment-id)
+         ;; Load the deployment configuration
+         deployment-config (imas-seamap.config.deployments/get-deployment deployment-kw)]
+     (js/console.log ::deployment-config deployment-config)
+     (register-handlers! config-handlers)
+     ;; Pass deployment config to boot event
+     (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base deployment-config])
+     (dev-setup)
+     (mount-root))))
 
 (defn ^:dev/after-load re-render
   []
