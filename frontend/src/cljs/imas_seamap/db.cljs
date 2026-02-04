@@ -9,6 +9,7 @@
                      :initial-bounds? true
                      :size            {}
                      :zoom            4
+                     :crs             :epsg-3857     ; Default CRS (can be overridden by deployment config)
                      :zoom-cutover    10
                      :bounds          {}
                      :categories      []

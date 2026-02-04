@@ -320,7 +320,7 @@
     :useGetCapabilities true}])
 
 (defn map-component [& children]
-  (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
+  (let [{:keys [center zoom bounds crs]} @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
@@ -335,7 +335,9 @@
       [leaflet/map-container
        (merge
         {:id                   "map"
-         :crs                  leaflet/crs-epsg3857
+         :crs                  (if crs
+                                  (leaflet/crs-from-keyword crs)
+                                  leaflet/crs-epsg3857)
          :preferCanvas         true
          :use-fly-to           false
          :center               center

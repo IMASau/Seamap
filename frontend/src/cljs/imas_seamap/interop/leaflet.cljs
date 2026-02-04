@@ -51,6 +51,16 @@
        :origin     #js[-30635955.4472718 30635955.4472718]
        :bounds     (L/bounds #js[-4898635.244666547 -4903364.755333453] #js[4898864.755333463 4898864.755333455])}))
 
+(defn crs-from-keyword
+  "Convert a CRS keyword (e.g., :epsg-3857, :epsg-3031) to a Leaflet CRS object"
+  [crs-kw]
+  (case crs-kw
+    :epsg-4326 crs-epsg4326
+    :epsg-3857 crs-epsg3857
+    :epsg-3031 crs-epsg3031
+    ;; Default to EPSG:3857 if unknown
+    crs-epsg3857))
+
 (def tile-layer          (r/adapt-react-class ReactLeaflet/TileLayer))
 ;; (def wms-layer           (r/adapt-react-class ReactLeaflet/WMSTileLayer))
 (def wms-layer           (r/adapt-react-class
