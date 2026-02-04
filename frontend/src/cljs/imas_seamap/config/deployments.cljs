@@ -63,6 +63,15 @@
    :controls    [:menu :settings :zoom :print :omnisearch
                  :transect :region :share :reset :shortcuts :help]
 
+   ;; Layout configuration (Phase 4: Unified layout)
+   :layout      {:left-drawer    {:tabs [:catalogue :active-layers :featured-maps]}
+                 :footer         [:footer/plot]
+                 :floating-pills [:pill/boundaries :pill/zones]
+                 :controls       [:control/menu :control/settings :control/zoom
+                                  :control/print :control/omnisearch :control/transect
+                                  :control/region :control/share :control/reset
+                                  :control/shortcuts :control/help]}
+
    ;; Feature-specific state initialization
    :initial-state
    {:display {:welcome-overlay false}
@@ -151,6 +160,15 @@
    :controls    [:menu :settings :zoom :print :omnisearch
                  :region :share :reset :shortcuts :help]
 
+   ;; Layout configuration (Phase 4: Unified layout)
+   :layout      {:left-drawer    {:tabs [:catalogue :active-layers :featured-maps]}
+                 :footer         []  ; No plot component for TMA
+                 :floating-pills []  ; TMA has floating-pills feature but no specific pills configured
+                 :controls       [:control/menu :control/settings :control/zoom
+                                  :control/print :control/omnisearch :control/region
+                                  :control/share :control/reset :control/shortcuts
+                                  :control/help]}
+
    ;; Feature-specific state initialization
    :initial-state
    {:display {:welcome-overlay true   ;; TMA shows welcome by default
@@ -204,6 +222,15 @@
    ;; Map controls
    :controls    [:menu :settings :zoom :print :omnisearch
                  :region :share :reset :shortcuts :help]
+
+   ;; Layout configuration (Phase 4: Unified layout)
+   :layout      {:left-drawer    {:tabs [:catalogue :active-layers]}
+                 :footer         []  ; No plot component
+                 :floating-pills [:pill/boundaries :pill/zones]
+                 :controls       [:control/menu :control/settings :control/zoom
+                                  :control/print :control/omnisearch :control/region
+                                  :control/share :control/reset :control/shortcuts
+                                  :control/help]}
 
    ;; Feature-specific state initialization (same as Australia)
    :initial-state
@@ -288,6 +315,15 @@
    ;; Map controls
    :controls    [:menu :settings :zoom :print :omnisearch
                  :transect :region :share :reset :shortcuts :help]
+
+   ;; Layout configuration (Phase 4: Unified layout)
+   :layout      {:left-drawer    {:tabs [:catalogue :active-layers]}
+                 :footer         [:footer/plot]
+                 :floating-pills []  ; No floating pills for FoS
+                 :controls       [:control/menu :control/settings :control/zoom
+                                  :control/print :control/omnisearch :control/transect
+                                  :control/region :control/share :control/reset
+                                  :control/shortcuts :control/help]}
 
    ;; Feature-specific state initialization (minimal)
    :initial-state
