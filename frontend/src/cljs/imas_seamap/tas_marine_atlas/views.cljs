@@ -145,18 +145,22 @@
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
+        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])
+        ;; Use branding subscriptions instead of hard-coded values
+        logo @(re-frame/subscribe [:branding/logo])
+        brand-url @(re-frame/subscribe [:branding/url])
+        drawer-class @(re-frame/subscribe [:branding/drawer-class])]
     [components/drawer
      {:title
       [:<>
        [:div
-        [:a {:href "https://tasmarineatlas.org/"}
-         [:img {:src "img/TMA_Banner_size_website.png"}]]]]
+        [:a {:href brand-url}
+         [:img {:src (:src logo) :alt (:alt logo)}]]]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
-      :className   "left-drawer tas-marine-atlas-drawer"
+      :className   (str "left-drawer " drawer-class)
       :isCloseButtonShown false
       :hasBackdrop false}
      [b/tabs

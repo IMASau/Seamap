@@ -16,13 +16,17 @@
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
+        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])
+        ;; Use branding subscriptions instead of hard-coded values
+        logo @(re-frame/subscribe [:branding/logo])
+        brand-url @(re-frame/subscribe [:branding/url])
+        drawer-class @(re-frame/subscribe [:branding/drawer-class])]
     [components/drawer
      {:title
       [:<>
        [:div
-        [:a {:href "https://seamapantarctica-dev.imas.utas.edu.au/"} ; TODO: Replace with the URL for Seamap Antarctica production
-         [:img {:src "img/SeaMapAntarctica_Logo_RGB_1000px.png"}]]]
+        [:a {:href brand-url}
+         [:img {:src (:src logo) :alt (:alt logo)}]]]
        [b/button
         {:icon     "double-chevron-left"
          :minimal  true
@@ -31,7 +35,7 @@
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
-      :className   "left-drawer seamap-drawer"
+      :className   (str "left-drawer " drawer-class)
       :isCloseButtonShown false
       :hasBackdrop false}
      [b/tabs
