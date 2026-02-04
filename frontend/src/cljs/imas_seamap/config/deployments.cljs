@@ -51,7 +51,8 @@
                   :transect-control
                   :data-providers
                   :data-download
-                  :settings}
+                  :settings
+                  :layer-preview}
 
    ;; Right drawer slot mappings (what can appear in the right drawer)
    :drawers     {:story-map          :featured-map/drawer
@@ -214,7 +215,8 @@
                   :floating-pills
                   :boundaries-pill
                   :zones-pill
-                  :settings}
+                  :settings
+                  :layer-preview}
 
    ;; Right drawer slot mappings
    :drawers     {:state-of-knowledge :sok/panel}
@@ -308,7 +310,8 @@
    ;; Feature flags - minimal feature set
    :features    #{:plot-component
                   :transect-control
-                  :settings}
+                  :settings
+                  :layer-preview}
 
    ;; Right drawer slot mappings (empty for FoS)
    :drawers     {}

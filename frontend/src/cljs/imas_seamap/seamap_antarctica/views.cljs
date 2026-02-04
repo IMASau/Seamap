@@ -73,7 +73,8 @@
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
-        loading?           @(re-frame/subscribe [:app/loading?])]
+        loading?           @(re-frame/subscribe [:app/loading?])
+        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :layer-preview])]
     [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
      [:div#content-wrapper
@@ -121,4 +122,6 @@
       [views/layers-control]]
      ;; Definitely no state-of-knowledge, and probably no generic pills for now at least:
      ;; [views/floating-pills]
-     [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
+     (when has-layer-preview?
+       [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])])]))
+

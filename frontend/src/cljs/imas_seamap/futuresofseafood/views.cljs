@@ -66,7 +66,8 @@
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
-        loading?           @(re-frame/subscribe [:app/loading?])]
+        loading?           @(re-frame/subscribe [:app/loading?])
+        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :layer-preview])]
     [:div#main-wrapper.futures-of-seafood ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
      [:div#content-wrapper
@@ -111,4 +112,5 @@
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [views/layers-control]]
-     [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
+     (when has-layer-preview?
+       [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])])]))

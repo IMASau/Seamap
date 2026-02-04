@@ -1062,7 +1062,8 @@
         layout-config      @(re-frame/subscribe [:layout/config])
         footer-components  (:footer layout-config)
         has-floating-pills? @(re-frame/subscribe [:feature/enabled? :floating-pills])
-        has-settings?      @(re-frame/subscribe [:feature/enabled? :settings])]
+        has-settings?      @(re-frame/subscribe [:feature/enabled? :settings])
+        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :layer-preview])]
     [:div#main-wrapper
      {:class (str css-class
                   (when catalogue-open? " catalogue-open")
@@ -1124,7 +1125,8 @@
      (when has-floating-pills?
        [floating-pills])
 
-     [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]
+     (when has-layer-preview?
+       [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])])
 
      ;; Test harness: Deployment switcher (only shows in dev mode)
      [dev-switcher/switcher-panel]]))
