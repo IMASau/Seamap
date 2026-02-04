@@ -613,6 +613,20 @@
       :disabled? (not habitat-layers?)
       :id        "select-control"}]))
 
+;;; FIXME: shares the events with the region-control, but has different effects
+(defn data-in-region-control []
+  (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
+        [tooltip icon dispatch]
+        (cond
+          selecting?            ["Cancel Selecting"    "undo"   :map.layer.selection/disable]
+          region                ["Clear Selection"     "eraser" :map.layer.selection/clear]
+          :else                 ["Find Data in Region" "path-search" :map.layer.selection/enable])]
+    [control-block-child
+     {:on-click  #(re-frame/dispatch [dispatch])
+      :tooltip   tooltip
+      :icon      icon
+      :id        "select-control"}]))
+
 (defn- leaflet-control-button [{:keys [on-click tooltip icon id]}]
   [:div.leaflet-bar.leaflet-control
    (when id {:id id})
@@ -654,7 +668,8 @@
      :icon     "minus"}]]))
 
 (defn custom-leaflet-controls []
-  (let [has-settings? @(re-frame/subscribe [:feature/enabled? :settings])]
+  (let [has-settings? @(re-frame/subscribe [:feature/enabled? :settings])
+        has-data-in-region? @(re-frame/subscribe [:feature/enabled? :data-in-region])]
     [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
      [menu-button]
      (when has-settings?
@@ -672,6 +687,8 @@
 
     [transect-control]
     [region-control]
+    (when has-data-in-region?
+      [data-in-region-control])
 
     [control-block-child
      {:on-click #(re-frame/dispatch [:create-save-state])
