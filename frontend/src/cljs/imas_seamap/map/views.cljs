@@ -327,7 +327,10 @@
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
-        boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
+        ;; Only subscribe to boundary-filter if state-of-knowledge feature is enabled
+        has-sok?                                      @(re-frame/subscribe [:feature/enabled? :state-of-knowledge])
+        boundary-filter                               (when has-sok?
+                                                        @(re-frame/subscribe [:sok/boundary-layer-filter]))
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     (into
      [:div.map-wrapper
