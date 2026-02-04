@@ -847,13 +847,16 @@
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
+        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])
+        logo @(re-frame/subscribe [:branding/logo])
+        brand-url @(re-frame/subscribe [:branding/url])
+        drawer-class @(re-frame/subscribe [:branding/drawer-class])]
     [components/drawer
      {:title
       [:<>
        [:div
-        [:a {:href "https://seamapaustralia.org/"}
-         [:img {:src "img/Seamap2_V2_RGB.png"}]]]
+        [:a {:href brand-url}
+         [:img {:src (:src logo) :alt (:alt logo)}]]]
        [b/button
         {:icon     "double-chevron-left"
          :minimal  true
@@ -862,7 +865,7 @@
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
-      :className   "left-drawer seamap-drawer"
+      :className   (str "left-drawer " drawer-class)
       :isCloseButtonShown false
       :hasBackdrop false}
      [b/tabs

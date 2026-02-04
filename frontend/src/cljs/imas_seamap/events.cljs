@@ -211,7 +211,10 @@
                                    {:api-url-base       api-url-base
                                     :media-url-base     media-url-base
                                     :wordpress-url-base wordpress-url-base
-                                    :img-url-base       img-url-base}))
+                                    :img-url-base       img-url-base})
+                         ;; Apply map configuration from deployment
+                         (assoc-in [:map :center] (get-in deployment-config [:map :center]))
+                         (assoc-in [:map :zoom] (get-in deployment-config [:map :zoom])))
                      ;; Backward compatible: use default-db without config (old approach)
                      (assoc-in db/default-db [:config :url-base]
                                {:api-url-base       api-url-base
