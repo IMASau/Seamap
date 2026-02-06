@@ -195,6 +195,7 @@
     :map/popup-closed                     [mevents/destroy-popup]
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :map/toggle-viewport-only             [mevents/toggle-viewport-only]
+    :map/set-popup-dimensions             [mevents/set-popup-dimensions]
     :map/pan-to-popup                     [mevents/pan-to-popup]
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded

@@ -1048,14 +1048,35 @@
     {:db       db
      :dispatch [:maybe-autosave]}))
 
+(defn set-popup-dimensions
+  "Set the popup dimensions when the popup loads.
+   If they are changed, dispatch an event to pan to the popup (old behaviour).
+   
+   Separated the code that pans to the popup, due to an issue where the map would
+   wrest control from the user and pan if a popup hidden by a side-by-side view
+   divider suddenly became visible."
+  [{:keys [db]} [_ {popup-width :x popup-height :y :as _popup-dimensions}]]
+  (let [old-width  (get-in db [:feature :popup-width])
+        old-height (get-in db [:feature :popup-height])
+        dimensions-changed? (or (not= popup-width old-width) (not= popup-height old-height))]
+    (merge
+     {:db
+      (->
+       db
+       (assoc-in [:feature :popup-width] popup-width)
+       (assoc-in [:feature :popup-height] popup-height))}
+     (when dimensions-changed?
+       {:dispatch [:map/pan-to-popup]}))))
+
 (defn pan-to-popup
   "Based on a known location and size of the popup, we can find out if it will be
    outside of the bounds of the map. Knowing this we can pan the map to fix this."
   [{{:keys [feature]
     {{map-width :x map-height :y} :size [map-lat map-lng] :center}
     :map :as db} :db}
-   [_ {popup-width :x popup-height :y :as _popup-dimensions}]]
-  (let [{{popup-x :x popup-y :y popup-lat :lat popup-lng :lng} :location} feature
+   _]
+  (let [{:keys [popup-width popup-height]} feature
+        {{popup-x :x popup-y :y popup-lat :lat popup-lng :lng} :location} feature
         
         view-left       (+ (if (get-in db [:display :left-drawer]) 368 0) 52)
         view-right      (if (boolean (get-in db [:state-of-knowledge :boundaries :active-boundary]))
