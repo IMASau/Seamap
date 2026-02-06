@@ -696,3 +696,11 @@
           point-x (-> leaflet-map (.latLngToContainerPoint (leaflet/latlng. lat lng)) .-x)]
       (when divider-x
         (if (> point-x divider-x) :right :left)))))
+
+(defn popup-visible?
+  "Is there a popup visibly open on the map?"
+  [db]
+  (boolean
+   (when-let [{:keys [location show? side-of-divider]} (:feature db)]
+    (let [current-side-of-divider (which-side-of-divider location db)]
+      (and show? (= current-side-of-divider side-of-divider))))))

@@ -42,16 +42,14 @@
     (scale-distance s1 s2 remainder-pct)))
 
 (defn feature-info [{:keys [feature] :as db} _]
-  (let [{:keys [status location had-insecure? responses show? side-of-divider]} feature
-        current-side-of-divider (map-utils/which-side-of-divider location db)
-        show? (and show? (= current-side-of-divider side-of-divider))]
+  (let [{:keys [status location had-insecure? responses]} feature]
     (if feature
       {:has-info?     true
        :had-insecure? had-insecure?
        :status        status
        :responses     responses
        :location      ((juxt :lat :lng) location)
-       :show?         show?}
+       :show?         (map-utils/popup-visible? db)}
       {:has-info? false})))
 
 (defn download-info [db _]

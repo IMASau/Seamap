@@ -360,7 +360,7 @@
       (get-in db [:map :controls :ignore-click])
       {:dispatch [:map/toggle-ignore-click]}
 
-      (:feature db) ; If we're clicking the map but there's a popup open, just close it
+      (map-utils/popup-visible? db) ; If we're clicking the map but there's a popup visibly open, close it
       {:dispatch [:map/popup-closed]}
 
       (and                                                     ; Only invoke if:
