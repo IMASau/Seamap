@@ -356,10 +356,10 @@
             :layer-opacities layer-opacities
             :cql-filter      (cql-filter-fn layer)}]]
          [leaflet/side-by-side
-          {:left-pane   @left-pane
-           :right-pane  @right-pane
-           :on-drag-end #(re-frame/dispatch [:map.rich-layer/split-layer-range-value rich-layer %1 %2])
-           :range-value (:split-layer-range-value rich-layer)}]]))))
+          {:left-pane        @left-pane
+           :right-pane       @right-pane
+           :on-range-updated #(re-frame/dispatch [:map.rich-layer/split-layer-range-value rich-layer %1 %2])
+           :range-value      (:split-layer-range-value rich-layer)}]]))))
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
