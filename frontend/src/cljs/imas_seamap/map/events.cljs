@@ -379,7 +379,12 @@
                            vec)
         had-insecure? (get-in db [:feature-query :had-insecure?])]
     (when (seq responses)
-      {:location point :leaflet-props (get-in db [:feature :leaflet-props]) :had-insecure? had-insecure? :responses responses :show? true})))
+      {:location point
+       :leaflet-props (get-in db [:feature :leaflet-props])
+       :had-insecure? had-insecure?
+       :responses responses
+       :show? true
+       :side-of-divider (map-utils/which-side-of-divider point db)})))
 
 (defn got-feature-info [db [_ request-id point info-format layers response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
@@ -761,8 +766,6 @@
     (.on leaflet-map "zoomend"            #(re-frame/dispatch [:map/view-updated (leaflet-props %)]))
     (.on leaflet-map "moveend"            #(re-frame/dispatch [:map/view-updated (leaflet-props %)]))
     (.on leaflet-map "click"              #(re-frame/dispatch [:map/clicked (leaflet-props %) (mouseevent->coords %)]))
-    (.on leaflet-map "popupclose"         #(when-not (-> % .-popup .-options .-className (= "waiting"))  ;; Only dispatch :map/popup-closed if we're not closing a waiting popup (fixes ISA-269, caused by switching out waiting popup with info popup triggers popup closed)
-                                             (re-frame/dispatch [:map/popup-closed])))
     (.on leaflet-map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
     (.on leaflet-map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
     (.on leaflet-map "easyPrint-start"    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))

@@ -677,3 +677,22 @@
           (seq layer-cql-filter)      (conj layer-cql-filter))     ; if layer cql filter exists, add it
         cql-filter (apply str (interpose " AND " cql-filters))] ; combine with AND
     (when (seq cql-filter) cql-filter))) ; return nil if no filter
+
+(defn- get-divider-x
+  "Gets the current x-coordinate (Leaflet container point) of the side-by-side view divider. nil if no divider is active"
+  [db]
+  (->>
+   (get-in db [:map :rich-layers :states])  ; Get hashmap of all states...
+   vals                                     ; ...then extract the states...
+   (filter :side-by-side-views-selected-id) ; ...then filter to only those with a side-by-side-view...
+   (map :split-layer-container-x)           ; ...then grab only the value for the divider position...
+   (some identity)))                        ; ...use the first truthy value (though there should only be 0 or 1 value by now)
+
+(defn which-side-of-divider
+  "Accepts a lat-lon point and returns :left, :right, and nil depending on if the point is on left or right side of the side-by-side divider (nil if no divider)"
+  [{:keys [lat lng] :as _point} db]
+  (when-let [leaflet-map (get-in db [:map :leaflet-map])]
+    (let [divider-x (get-divider-x db)
+          point-x (-> leaflet-map (.latLngToContainerPoint (leaflet/latlng. lat lng)) .-x)]
+      (when divider-x
+        (if (> point-x divider-x) :right :left)))))

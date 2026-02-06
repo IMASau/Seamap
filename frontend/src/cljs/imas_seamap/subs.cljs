@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.subs
     (:require [clojure.set :refer [rename-keys] :as set]
-              [imas-seamap.map.utils :refer [->dynamic-pill]]
+              [imas-seamap.map.utils :refer [->dynamic-pill] :as map-utils]
               [imas-seamap.utils :refer [first-where]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
               #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -41,15 +41,18 @@
         remainder-pct (/ (- pct lower) (- upper lower))]
     (scale-distance s1 s2 remainder-pct)))
 
-(defn feature-info [{:keys [feature] :as _db} _]
-  (if-let [{:keys [status location had-insecure? responses show?]} feature]
-    {:has-info?     true
-     :had-insecure? had-insecure?
-     :status        status
-     :responses     responses
-     :location      ((juxt :lat :lng) location)
-     :show?         show?}
-    {:has-info? false}))
+(defn feature-info [{:keys [feature] :as db} _]
+  (let [{:keys [status location had-insecure? responses show? side-of-divider]} feature
+        current-side-of-divider (map-utils/which-side-of-divider location db)
+        show? (and show? (= current-side-of-divider side-of-divider))]
+    (if feature
+      {:has-info?     true
+       :had-insecure? had-insecure?
+       :status        status
+       :responses     responses
+       :location      ((juxt :lat :lng) location)
+       :show?         show?}
+      {:has-info? false})))
 
 (defn download-info [db _]
   (-> db
