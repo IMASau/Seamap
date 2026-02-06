@@ -920,7 +920,9 @@
            (update-in db [:map :rich-layers :states rich-layer-id] dissoc :side-by-side-views-selected-id))
          db rich-layer-ids)]
     {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
-     :dispatch [:maybe-autosave]}))
+     :dispatch-n
+     [[:maybe-autosave]
+      [:map/popup-closed]]})) ; invalidate the popup
 
 (defn rich-layer-split-layer-range-value [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-range-value split-layer-container-x]]
   {:db       (-> db
