@@ -328,7 +328,7 @@
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         ;; Only subscribe to boundary-filter if state-of-knowledge feature is enabled
-        has-sok?                                      @(re-frame/subscribe [:feature/enabled? :state-of-knowledge])
+        has-sok?                                      @(re-frame/subscribe [:feature/enabled? :feature/state-of-knowledge])
         boundary-filter                               (when has-sok?
                                                         @(re-frame/subscribe [:sok/boundary-layer-filter]))
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]

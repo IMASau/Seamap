@@ -668,9 +668,9 @@
      :icon     "minus"}]]))
 
 (defn custom-leaflet-controls []
-  (let [has-settings? @(re-frame/subscribe [:feature/enabled? :settings])
-        has-region-select? @(re-frame/subscribe [:feature/enabled? :region-select])
-        has-data-in-region? @(re-frame/subscribe [:feature/enabled? :data-in-region])]
+  (let [has-settings? @(re-frame/subscribe [:feature/enabled? :feature/settings])
+        has-region-select? @(re-frame/subscribe [:feature/enabled? :feature/region-select])
+        has-data-in-region? @(re-frame/subscribe [:feature/enabled? :feature/data-in-region])]
     [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
      [menu-button]
      (when has-settings?
@@ -794,9 +794,9 @@
         {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])
         open-pill                @(re-frame/subscribe [:ui/open-pill])
         ;; Feature flags for individual pills
-        has-sok?                 @(re-frame/subscribe [:feature/enabled? :state-of-knowledge])
-        has-boundaries-pill?     @(re-frame/subscribe [:feature/enabled? :boundaries-pill])
-        has-zones-pill?          @(re-frame/subscribe [:feature/enabled? :zones-pill])]
+        has-sok?                 @(re-frame/subscribe [:feature/enabled? :feature/state-of-knowledge])
+        has-boundaries-pill?     @(re-frame/subscribe [:feature/enabled? :feature/boundaries-pill])
+        has-zones-pill?          @(re-frame/subscribe [:feature/enabled? :feature/zones-pill])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
 
@@ -1080,9 +1080,9 @@
         css-class          @(re-frame/subscribe [:branding/css-class])
         layout-config      @(re-frame/subscribe [:layout/config])
         footer-components  (:footer layout-config)
-        has-floating-pills? @(re-frame/subscribe [:feature/enabled? :floating-pills])
-        has-settings?      @(re-frame/subscribe [:feature/enabled? :settings])
-        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :layer-preview])]
+        has-floating-pills? @(re-frame/subscribe [:feature/enabled? :feature/floating-pills])
+        has-settings?      @(re-frame/subscribe [:feature/enabled? :feature/settings])
+        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :feature/layer-preview])]
     [:div#main-wrapper
      {:class (str css-class
                   (when catalogue-open? " catalogue-open")

@@ -34,7 +34,7 @@
 ;; Check if a specific feature is enabled for the current deployment.
 ;;
 ;; Usage in components:
-;;   (let [has-sok? @(re-frame/subscribe [:feature/enabled? :state-of-knowledge])]
+;;   (let [has-sok? @(re-frame/subscribe [:feature/enabled? :feature/state-of-knowledge])]
 ;;     (when has-sok?
 ;;       [state-of-knowledge-panel]))
 ;;

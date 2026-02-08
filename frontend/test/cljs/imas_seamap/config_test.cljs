@@ -76,10 +76,19 @@
 
 (deftest feature-sets-are-valid
   (testing "Each deployment has a valid feature set"
-    (let [valid-features #{:state-of-knowledge :data-in-region :featured-maps
-                           :floating-pills :plot-component :transect-control
-                           :data-providers :data-download :boundaries-pill
-                           :zones-pill}]
+    (let [valid-features #{:feature/state-of-knowledge
+                           :feature/data-in-region
+                           :feature/featured-maps
+                           :feature/floating-pills
+                           :feature/plot-component
+                           :feature/transect-control
+                           :feature/data-providers
+                           :feature/data-download
+                           :feature/boundaries-pill
+                           :feature/zones-pill
+                           :feature/settings
+                           :feature/region-select
+                           :feature/layer-preview}]
       (doseq [[deployment-id config] deployments/deployments]
         (testing (str "Deployment " deployment-id " features")
           (is (set? (:features config)) "Features should be a set")
@@ -95,28 +104,28 @@
           fos (deployments/get-deployment :futures-of-seafood)]
 
       (testing "State of Knowledge feature"
-        (is (contains? (:features australia) :state-of-knowledge))
-        (is (not (contains? (:features tma) :state-of-knowledge)))
-        (is (contains? (:features antarctica) :state-of-knowledge))
-        (is (not (contains? (:features fos) :state-of-knowledge))))
+        (is (contains? (:features australia) :feature/state-of-knowledge))
+        (is (not (contains? (:features tma) :feature/state-of-knowledge)))
+        (is (contains? (:features antarctica) :feature/state-of-knowledge))
+        (is (not (contains? (:features fos) :feature/state-of-knowledge))))
 
       (testing "Data in Region feature"
-        (is (not (contains? (:features australia) :data-in-region)))
-        (is (contains? (:features tma) :data-in-region))
-        (is (not (contains? (:features antarctica) :data-in-region)))
-        (is (not (contains? (:features fos) :data-in-region))))
+        (is (not (contains? (:features australia) :feature/data-in-region)))
+        (is (contains? (:features tma) :feature/data-in-region))
+        (is (not (contains? (:features antarctica) :feature/data-in-region)))
+        (is (not (contains? (:features fos) :feature/data-in-region))))
 
       (testing "Featured Maps feature"
-        (is (contains? (:features australia) :featured-maps))
-        (is (contains? (:features tma) :featured-maps))
-        (is (not (contains? (:features antarctica) :featured-maps)))
-        (is (not (contains? (:features fos) :featured-maps))))
+        (is (contains? (:features australia) :feature/featured-maps))
+        (is (contains? (:features tma) :feature/featured-maps))
+        (is (not (contains? (:features antarctica) :feature/featured-maps)))
+        (is (not (contains? (:features fos) :feature/featured-maps))))
 
       (testing "Plot Component feature"
-        (is (contains? (:features australia) :plot-component))
-        (is (not (contains? (:features tma) :plot-component)))
-        (is (not (contains? (:features antarctica) :plot-component)))
-        (is (contains? (:features fos) :plot-component))))))
+        (is (contains? (:features australia) :feature/plot-component))
+        (is (not (contains? (:features tma) :feature/plot-component)))
+        (is (not (contains? (:features antarctica) :feature/plot-component)))
+        (is (contains? (:features fos) :feature/plot-component))))))
 
 ;;; =============================================================================
 ;;; Content Registry Tests (Phase 1)
@@ -159,12 +168,12 @@
     (setup-deployment-config :seamap-australia)
 
     (testing "Returns true for enabled features"
-      (is (true? @(re-frame/subscribe [:feature/enabled? :state-of-knowledge])))
-      (is (true? @(re-frame/subscribe [:feature/enabled? :featured-maps])))
-      (is (true? @(re-frame/subscribe [:feature/enabled? :plot-component]))))
+      (is (true? @(re-frame/subscribe [:feature/enabled? :feature/state-of-knowledge])))
+      (is (true? @(re-frame/subscribe [:feature/enabled? :feature/featured-maps])))
+      (is (true? @(re-frame/subscribe [:feature/enabled? :feature/plot-component]))))
 
     (testing "Returns false for disabled features"
-      (is (false? @(re-frame/subscribe [:feature/enabled? :data-in-region])))
+      (is (false? @(re-frame/subscribe [:feature/enabled? :feature/data-in-region])))
       (is (false? @(re-frame/subscribe [:feature/enabled? :nonexistent-feature]))))))
 
 (deftest feature-all-subscription-works
@@ -172,9 +181,9 @@
     (setup-deployment-config :seamap-australia)
     (let [features @(re-frame/subscribe [:feature/all])]
       (is (set? features))
-      (is (contains? features :state-of-knowledge))
-      (is (contains? features :featured-maps))
-      (is (not (contains? features :data-in-region))))))
+      (is (contains? features :feature/state-of-knowledge))
+      (is (contains? features :feature/featured-maps))
+      (is (not (contains? features :feature/data-in-region))))))
 
 (deftest deployment-id-subscription-works
   (testing "Deployment ID subscription returns correct value"
@@ -249,12 +258,12 @@
   (testing "TMA-specific behavior now comes from configuration"
     (testing "TMA deployment"
       (setup-deployment-config :tas-marine-atlas)
-      (is (false? @(re-frame/subscribe [:feature/enabled? :data-download])))
+      (is (false? @(re-frame/subscribe [:feature/enabled? :feature/data-download])))
       (is (= "Layer info" @(re-frame/subscribe [:branding/label :layer-info]))))
 
     (testing "Australia deployment"
       (setup-deployment-config :seamap-australia)
-      (is (true? @(re-frame/subscribe [:feature/enabled? :data-download])))
+      (is (true? @(re-frame/subscribe [:feature/enabled? :feature/data-download])))
       (is (= "Layer info / Download data"
              @(re-frame/subscribe [:branding/label :layer-info]))))))
 

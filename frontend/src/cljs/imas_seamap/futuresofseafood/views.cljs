@@ -67,7 +67,7 @@
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])
-        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :layer-preview])]
+        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :feature/layer-preview])]
     [:div#main-wrapper.futures-of-seafood ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
      [:div#content-wrapper

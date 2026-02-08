@@ -44,18 +44,18 @@
                  :zoom   4}
 
    ;; Feature flags - which features are enabled for this deployment
-   :features    #{:state-of-knowledge
-                  :featured-maps
-                  :floating-pills
-                  :boundaries-pill
-                  :zones-pill
-                  :plot-component
-                  :transect-control
-                  :region-select
-                  :data-providers
-                  :data-download
-                  :settings
-                  :layer-preview}
+   :features    #{:feature/state-of-knowledge
+                  :feature/featured-maps
+                  :feature/floating-pills
+                  :feature/boundaries-pill
+                  :feature/zones-pill
+                  :feature/plot-component
+                  :feature/transect-control
+                  :feature/region-select
+                  :feature/data-providers
+                  :feature/data-download
+                  :feature/settings
+                  :feature/layer-preview}
 
    ;; Right drawer slot mappings (what can appear in the right drawer)
    :drawers     {:story-map          :featured-map/drawer
@@ -151,9 +151,9 @@
 
    ;; Feature flags - TMA has data-in-region instead of state-of-knowledge
    ;; Note: TMA does NOT have :settings feature enabled
-   :features    #{:featured-maps
-                  :data-in-region
-                  :floating-pills}
+   :features    #{:feature/featured-maps
+                  :feature/data-in-region
+                  :feature/floating-pills}
 
    ;; Right drawer slot mappings
    :drawers     {:story-map      :featured-map/drawer
@@ -214,13 +214,13 @@
                  :zoom   2}
 
    ;; Feature flags - Antarctica has state-of-knowledge and floating pills
-   :features    #{:state-of-knowledge
-                  :floating-pills
-                  :boundaries-pill
-                  :zones-pill
-                  :settings
-                  :region-select
-                  :layer-preview}
+   :features    #{:feature/state-of-knowledge
+                  :feature/floating-pills
+                  :feature/boundaries-pill
+                  :feature/zones-pill
+                  :feature/settings
+                  :feature/region-select
+                  :feature/layer-preview}
 
    ;; Right drawer slot mappings
    :drawers     {:state-of-knowledge :sok/panel}
@@ -312,11 +312,11 @@
                  :zoom   5}
 
    ;; Feature flags - minimal feature set
-   :features    #{:plot-component
-                  :transect-control
-                  :settings
-                  :region-select
-                  :layer-preview}
+   :features    #{:feature/plot-component
+                  :feature/transect-control
+                  :feature/settings
+                  :feature/region-select
+                  :feature/layer-preview}
 
    ;; Right drawer slot mappings (empty for FoS)
    :drawers     {}
