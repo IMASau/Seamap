@@ -35,9 +35,7 @@
       "http://localhost:8888/"
       "/img/"
       config])
-    (js/console.log "Switched to deployment:" deployment-id)
-    ;; Force a page reload to ensure all components re-render with new config
-    (js/location.reload)))
+    (js/console.log "Switched to deployment:" deployment-id)))
 
 (defn get-feature-count [deployment-id]
   (let [config (deployments/get-deployment deployment-id)]
