@@ -332,8 +332,9 @@
         right-pane (reagent/atom nil)]
     (fn [{:keys [layer boundary-filter layer-opacities cql-filter-fn z-index rich-layer-fn]}]
       (let [{:keys [side-by-side-views-selected] :as rich-layer} (rich-layer-fn layer)
-            displayed-layer (or (:displayed-layer rich-layer) layer)]
-        ^{:key (str (:id displayed-layer) (:id (:layer side-by-side-views-selected)) z-index)}
+            left-layer  (or (:displayed-layer rich-layer) layer)
+            right-layer (:layer side-by-side-views-selected)]
+        ^{:key (str (:id left-layer) (:id right-layer) z-index)}
         [:<>
          [leaflet/pane
           {:ref   #(reset! left-pane %)
@@ -341,7 +342,7 @@
            :style {:z-index z-index}}
           [layer-component
            {:layer           layer
-            :displayed-layer displayed-layer
+            :displayed-layer left-layer
             :boundary-filter boundary-filter
             :layer-opacities layer-opacities
             :cql-filter      (cql-filter-fn layer)}]]
@@ -351,13 +352,15 @@
            :style {:z-index z-index}}
           [layer-component
            {:layer           layer
-            :displayed-layer (:layer side-by-side-views-selected)
+            :displayed-layer right-layer
             :boundary-filter boundary-filter
             :layer-opacities layer-opacities
             :cql-filter      (cql-filter-fn layer)}]]
          [leaflet/side-by-side
           {:left-pane   @left-pane
            :right-pane  @right-pane
+           :left-label-text (:name left-layer)
+           :right-label-text (:name right-layer)
            :on-drag-end #(re-frame/dispatch [:map.rich-layer/split-layer-range-value rich-layer %1 %2])
            :range-value (:split-layer-range-value rich-layer)}]]))))
 
