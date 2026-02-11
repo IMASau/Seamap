@@ -50,8 +50,7 @@
    :region-stats    {:habitat-layer nil}
    :habitat-colours {}
    :habitat-titles  {}
-   :display         {:mouse-pos             {}
-                     :help-overlay          false
+   :display         {:help-overlay          false
                      :welcome-overlay       true
                      :settings-overlay      false
                      :left-drawer           true

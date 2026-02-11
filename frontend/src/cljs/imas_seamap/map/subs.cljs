@@ -10,6 +10,8 @@
 
 (defn map-props [db _] (:map db))
 
+(defn leaflet-map [db _] (get-in db [:map :leaflet-map]))
+
 (defn- make-re
   "Given a list of words to match, construct a regexp that matches all
   of them, in any order.  That is, [\"one\" \"two\"] should match both
