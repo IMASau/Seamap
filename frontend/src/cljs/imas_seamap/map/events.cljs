@@ -918,17 +918,17 @@
         (reduce
          (fn [db rich-layer-id]
            (update-in db [:map :rich-layers :states rich-layer-id] dissoc :side-by-side-views-selected-id))
-         db rich-layer-ids)]
+         db rich-layer-ids)
+        db
+        (if side-by-side-views-selected ; if the side-by-side view has been removed, clear the values for the divider position
+          db
+          (-> db
+              (assoc-in [:display :split-layer-range-value] nil)
+              (assoc-in [:display :split-layer-container-x] nil)))]
     {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
      :dispatch-n
      [[:maybe-autosave]
       [:map/popup-closed]]})) ; invalidate the popup
-
-(defn rich-layer-split-layer-range-value [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-range-value split-layer-container-x]]
-  {:db       (-> db
-                 (assoc-in [:map :rich-layers :states id :split-layer-range-value] split-layer-range-value)
-                 (assoc-in [:map :rich-layers :states id :split-layer-container-x] split-layer-container-x))
-   :dispatch [:maybe-autosave]})
 
 (defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
   (merge

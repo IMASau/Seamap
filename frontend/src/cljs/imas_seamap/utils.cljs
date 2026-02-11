@@ -81,6 +81,8 @@
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
                                       [:display :right-sidebars]
+                                      [:display :split-layer-range-value]
+                                      [:display :split-layer-container-x]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
@@ -112,6 +114,8 @@
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
                  [:display :right-sidebars]
+                 [:display :split-layer-range-value]
+                 [:display :split-layer-container-x]
                  [:filters :layers]
                  [:state-of-knowledge :boundaries :active-boundary]
                  [:state-of-knowledge :boundaries :active-boundary-layer]

@@ -358,8 +358,8 @@
          [leaflet/side-by-side
           {:left-pane        @left-pane
            :right-pane       @right-pane
-           :on-range-updated #(re-frame/dispatch [:map.rich-layer/split-layer-range-value rich-layer %1 %2])
-           :range-value      (:split-layer-range-value rich-layer)}]]))))
+           :on-range-updated #(re-frame/dispatch [:ui/split-layer-range-value %1 %2])
+           :range-value      @(re-frame/subscribe [:ui/split-layer-range-value])}]]))))
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])

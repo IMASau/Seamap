@@ -68,6 +68,7 @@
     :ui/right-sidebar                     subs/right-sidebar
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
+    :ui/split-layer-range-value           subs/split-layer-range-value
     :dynamic-pills                        subs/dynamic-pills
     :site-configuration/outage-message    subs/site-configuration-outage-message
     :app/loading?                         subs/app-loading?
@@ -166,7 +167,6 @@
     :map.rich-layer/timeline-selected        [mevents/rich-layer-timeline-selected]
     :map.rich-layer/control-selected         [mevents/rich-layer-control-selected]
     :map.rich-layer/side-by-side-views-selected   [mevents/rich-layer-side-by-side-views-selected]
-    :map.rich-layer/split-layer-range-value  [mevents/rich-layer-split-layer-range-value]
     :map.rich-layer/reset-filters            [mevents/rich-layer-reset-filters]
     :map.rich-layer/configure                [mevents/rich-layer-configure]
     :map.rich-layer/get-cql-filter-values         [mevents/rich-layer-get-cql-filter-values]
@@ -220,6 +220,7 @@
     :ui.right-sidebar/remove              events/right-sidebar-remove
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
+    :ui/split-layer-range-value           [events/split-layer-range-value]
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
     :left-drawer/toggle                   [events/left-drawer-toggle]
     :left-drawer/open                     [events/left-drawer-open]

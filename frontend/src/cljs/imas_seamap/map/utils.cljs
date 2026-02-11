@@ -537,7 +537,6 @@
 
         side-by-side-views          (mapv #(->side-by-side-view % db) side-by-side-views)
         side-by-side-views-selected (first-where #(= (get-in % [:layer :id]) side-by-side-views-selected-id) side-by-side-views)
-        split-layer-range-value     (get-in db [:map :rich-layers :states id :split-layer-range-value] 0.5)
 
         cql-filter                (->>
                                    controls
@@ -563,7 +562,6 @@
         :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
         :side-by-side-views          side-by-side-views
         :side-by-side-views-selected side-by-side-views-selected
-        :split-layer-range-value    split-layer-range-value
         :cql-filter                 cql-filter)))))
 
 (defn layer->rich-layer [{:keys [id] :as _layer} db]
@@ -611,7 +609,7 @@
   [rich-layer {:keys [x] :as _point} db]
   (let [enhanced-rich-layer (enhance-rich-layer rich-layer db)
         side-by-side-views-selected-layer (get-in enhanced-rich-layer [:side-by-side-views-selected :layer])
-        split-layer-container-x (:split-layer-container-x enhanced-rich-layer)]
+        split-layer-container-x (get-in db [:display :split-layer-container-x])]
     (if (and side-by-side-views-selected-layer (> x split-layer-container-x)) ; if we have a split view and we click on the right side of the split view...
       side-by-side-views-selected-layer                                       ; ...return the split view layer...
       (or                                                                     ; ...else...
@@ -675,12 +673,7 @@
 (defn- get-divider-x
   "Gets the current x-coordinate (Leaflet container point) of the side-by-side view divider. nil if no divider is active"
   [db]
-  (->>
-   (get-in db [:map :rich-layers :states])  ; Get hashmap of all states...
-   vals                                     ; ...then extract the states...
-   (filter :side-by-side-views-selected-id) ; ...then filter to only those with a side-by-side-view...
-   (map :split-layer-container-x)           ; ...then grab only the value for the divider position...
-   (some identity)))                        ; ...use the first truthy value (though there should only be 0 or 1 value by now)
+  (get-in db [:display :split-layer-container-x]))
 
 (defn which-side-of-divider
   "Accepts a lat-lon point and returns :left, :right, and nil depending on if the point is on left or right side of the side-by-side divider (nil if no divider)"

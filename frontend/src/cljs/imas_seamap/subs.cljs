@@ -201,3 +201,11 @@
     :habitat-observations-imagery-data-provider
     :habitat-observations-video-data-provider
     :habitat-observations-sediment-data-provider]))
+
+(defn split-layer-range-value
+  "Get the current value (percentage, represented between 0-1) of the divider for
+   the active side-by-side view.
+   The value 0 means the divider is on the very left side of the current map view,
+   1 on the very right, and 0.5 in the center."
+  [db _]
+  (get-in db [:display :split-layer-range-value] 0.5))
