@@ -685,7 +685,15 @@
         (if (> point-x divider-x) :right :left)))))
 
 (defn popup-visible?
-  "Is there a popup visibly open on the map?"
+  "Is there a popup visibly open on the map?
+   If there's no popup (i.e. user hasn't clicked on the map for a feature popup
+   *or* they have clicked on the map but then dismissed the feature popup) then
+   this is false.
+   If the user *has* opened a feature popup, but it's obscured because it's
+   currently on the wrong side of a side-by-side view divider, then this is also
+   false.
+   If there is a popup the user has opened, and they can currently see it, and
+   they haven't yet dismissed it, then this is true."
   [db]
   (boolean
    (when-let [{:keys [location show? side-of-divider]} (:feature db)]
