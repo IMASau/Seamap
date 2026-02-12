@@ -360,7 +360,7 @@
       (get-in db [:map :controls :ignore-click])
       {:dispatch [:map/toggle-ignore-click]}
 
-      (:feature db) ; If we're clicking the map but there's a popup open, just close it
+      (map-utils/popup-visible? db) ; If we're clicking the map but there's a popup visibly open, close it
       {:dispatch [:map/popup-closed]}
 
       (and                                                     ; Only invoke if:
@@ -379,7 +379,12 @@
                            vec)
         had-insecure? (get-in db [:feature-query :had-insecure?])]
     (when (seq responses)
-      {:location point :leaflet-props (get-in db [:feature :leaflet-props]) :had-insecure? had-insecure? :responses responses :show? true})))
+      {:location point
+       :leaflet-props (get-in db [:feature :leaflet-props])
+       :had-insecure? had-insecure?
+       :responses responses
+       :show? true
+       :side-of-divider (map-utils/which-side-of-divider point db)})))
 
 (defn got-feature-info [db [_ request-id point info-format layers response]]
   (if (not= request-id (get-in db [:feature-query :request-id]))
@@ -761,8 +766,6 @@
     (.on leaflet-map "zoomend"            #(re-frame/dispatch [:map/view-updated (leaflet-props %)]))
     (.on leaflet-map "moveend"            #(re-frame/dispatch [:map/view-updated (leaflet-props %)]))
     (.on leaflet-map "click"              #(re-frame/dispatch [:map/clicked (leaflet-props %) (mouseevent->coords %)]))
-    (.on leaflet-map "popupclose"         #(when-not (-> % .-popup .-options .-className (= "waiting"))  ;; Only dispatch :map/popup-closed if we're not closing a waiting popup (fixes ISA-269, caused by switching out waiting popup with info popup triggers popup closed)
-                                             (re-frame/dispatch [:map/popup-closed])))
     (.on leaflet-map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
     (.on leaflet-map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
     (.on leaflet-map "easyPrint-start"    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
@@ -915,15 +918,17 @@
         (reduce
          (fn [db rich-layer-id]
            (update-in db [:map :rich-layers :states rich-layer-id] dissoc :side-by-side-views-selected-id))
-         db rich-layer-ids)]
+         db rich-layer-ids)
+        db
+        (if side-by-side-views-selected ; if the side-by-side view has been removed, clear the values for the divider position
+          db
+          (-> db
+              (assoc-in [:display :split-layer-range-value] nil)
+              (assoc-in [:display :split-layer-container-x] nil)))]
     {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
-     :dispatch [:maybe-autosave]}))
-
-(defn rich-layer-split-layer-range-value [{:keys [db]} [_ {:keys [id] :as _rich-layer} split-layer-range-value split-layer-container-x]]
-  {:db       (-> db
-                 (assoc-in [:map :rich-layers :states id :split-layer-range-value] split-layer-range-value)
-                 (assoc-in [:map :rich-layers :states id :split-layer-container-x] split-layer-container-x))
-   :dispatch [:maybe-autosave]})
+     :dispatch-n
+     [[:maybe-autosave]
+      [:map/popup-closed]]})) ; invalidate the popup
 
 (defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
   (merge
@@ -1045,14 +1050,35 @@
     {:db       db
      :dispatch [:maybe-autosave]}))
 
+(defn set-popup-dimensions
+  "Set the popup dimensions when the popup loads.
+   If they are changed, dispatch an event to pan to the popup (old behaviour).
+   
+   Separated the code that pans to the popup, due to an issue where the map would
+   wrest control from the user and pan if a popup hidden by a side-by-side view
+   divider suddenly became visible."
+  [{:keys [db]} [_ {popup-width :x popup-height :y :as _popup-dimensions}]]
+  (let [old-width  (get-in db [:feature :popup-width])
+        old-height (get-in db [:feature :popup-height])
+        dimensions-changed? (or (not= popup-width old-width) (not= popup-height old-height))]
+    (merge
+     {:db
+      (->
+       db
+       (assoc-in [:feature :popup-width] popup-width)
+       (assoc-in [:feature :popup-height] popup-height))}
+     (when dimensions-changed?
+       {:dispatch [:map/pan-to-popup]}))))
+
 (defn pan-to-popup
   "Based on a known location and size of the popup, we can find out if it will be
    outside of the bounds of the map. Knowing this we can pan the map to fix this."
   [{{:keys [feature]
     {{map-width :x map-height :y} :size [map-lat map-lng] :center}
     :map :as db} :db}
-   [_ {popup-width :x popup-height :y :as _popup-dimensions}]]
-  (let [{{popup-x :x popup-y :y popup-lat :lat popup-lng :lng} :location} feature
+   _]
+  (let [{:keys [popup-width popup-height]} feature
+        {{popup-x :x popup-y :y popup-lat :lat popup-lng :lng} :location} feature
         
         view-left       (+ (if (get-in db [:display :left-drawer]) 368 0) 52)
         view-right      (if (boolean (get-in db [:state-of-knowledge :boundaries :active-boundary]))

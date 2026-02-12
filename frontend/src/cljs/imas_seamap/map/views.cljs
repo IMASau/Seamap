@@ -143,12 +143,12 @@
                                   {:title       "Invalid Info"
                                    :description "Could not query the external data provider"
                                    :icon        "warning-sign"
-                                   :ref         #(when % (re-frame/dispatch [:map/pan-to-popup {:x 305 :y 210}]))}] ; hardcoded popup contents size because we can't get the size of react elements
+                                   :ref         #(when % (re-frame/dispatch [:map/set-popup-dimensions {:x 305 :y 210}]))}] ; hardcoded popup contents size because we can't get the size of react elements
     
     :feature-info/error          [b/non-ideal-state
                                   {:title "Server Error"
                                    :icon  "error"
-                                   :ref   #(when % (re-frame/dispatch [:map/pan-to-popup {:x 305 :y 210}]))}] ; hardcoded popup contents size because we can't get the size of react elements
+                                   :ref   #(when % (re-frame/dispatch [:map/set-popup-dimensions {:x 305 :y 210}]))}] ; hardcoded popup contents size because we can't get the size of react elements
     
     ;; Default; we have actual content:
     [:div
@@ -158,7 +158,7 @@
           (set! (.-innerHTML element) nil)
           (doseq [{:keys [_body _style] :as response} responses]
             (.appendChild element (create-shadow-dom-element response)))
-          (re-frame/dispatch [:map/pan-to-popup (popup-dimensions element)])))}]))
+          (re-frame/dispatch [:map/set-popup-dimensions (popup-dimensions element)])))}]))
 
 (defn popup [{:keys [has-info? responses location status show?] :as _feature-info}]
   (when (and show? has-info?)
@@ -356,10 +356,10 @@
             :layer-opacities layer-opacities
             :cql-filter      (cql-filter-fn layer)}]]
          [leaflet/side-by-side
-          {:left-pane   @left-pane
-           :right-pane  @right-pane
-           :on-drag-end #(re-frame/dispatch [:map.rich-layer/split-layer-range-value rich-layer %1 %2])
-           :range-value (:split-layer-range-value rich-layer)}]]))))
+          {:left-pane        @left-pane
+           :right-pane       @right-pane
+           :on-range-updated #(re-frame/dispatch [:ui/split-layer-range-value %1 %2])
+           :range-value      @(re-frame/subscribe [:ui/split-layer-range-value])}]]))))
 
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
