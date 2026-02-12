@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.subs
     (:require [clojure.set :refer [rename-keys] :as set]
-              [imas-seamap.map.utils :refer [->dynamic-pill]]
+              [imas-seamap.map.utils :refer [->dynamic-pill] :as map-utils]
               [imas-seamap.utils :refer [first-where]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
               #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -41,15 +41,16 @@
         remainder-pct (/ (- pct lower) (- upper lower))]
     (scale-distance s1 s2 remainder-pct)))
 
-(defn feature-info [{:keys [feature] :as _db} _]
-  (if-let [{:keys [status location had-insecure? responses show?]} feature]
-    {:has-info?     true
-     :had-insecure? had-insecure?
-     :status        status
-     :responses     responses
-     :location      ((juxt :lat :lng) location)
-     :show?         show?}
-    {:has-info? false}))
+(defn feature-info [{:keys [feature] :as db} _]
+  (let [{:keys [status location had-insecure? responses]} feature]
+    (if feature
+      {:has-info?     true
+       :had-insecure? had-insecure?
+       :status        status
+       :responses     responses
+       :location      ((juxt :lat :lng) location)
+       :show?         (map-utils/popup-visible? db)}
+      {:has-info? false})))
 
 (defn download-info [db _]
   (-> db
@@ -200,3 +201,11 @@
     :habitat-observations-imagery-data-provider
     :habitat-observations-video-data-provider
     :habitat-observations-sediment-data-provider]))
+
+(defn split-layer-range-value
+  "Get the current value (percentage, represented between 0-1) of the divider for
+   the active side-by-side view.
+   The value 0 means the divider is on the very left side of the current map view,
+   1 on the very right, and 0.5 in the center."
+  [db _]
+  (get-in db [:display :split-layer-range-value] 0.5))

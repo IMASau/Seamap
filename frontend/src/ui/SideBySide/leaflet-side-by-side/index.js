@@ -28,7 +28,7 @@ const SideBySide = L.Control.extend({
   options: {
     thumbSize: 42,
     padding: 0,
-    onDragEnd: null,
+    onRangeUpdated: null,
     rangeValue: 0.5, // Where the range appears when first created
   },
 
@@ -144,8 +144,12 @@ const SideBySide = L.Control.extend({
 
   _dragEnd: function () {
     uncancelMapDrag.call(this);
-    if (this.options.onDragEnd) {
-      this.options.onDragEnd(this._range.value, this.getPosition());
+    this.onRangeUpdated()
+  },
+
+  onRangeUpdated: function () {
+    if (this.options.onRangeUpdated) {
+      this.options.onRangeUpdated(this._range.value, this.getPosition());
     }
   },
 
@@ -154,6 +158,7 @@ const SideBySide = L.Control.extend({
     var map = this._map;
     if (!map || !range) return;
     map.on("move", this._updateClip, this);
+    map.on("moveend", this.onRangeUpdated, this); // The range's position (container xy coordinate) also changes if the map is moved
     L.DomEvent.on(range, getRangeEvent(range), this._updateClip, this);
     L.DomEvent.on(range, "touchstart", this._dragStart, this);
     L.DomEvent.on(range, "touchend", this._dragEnd, this);
