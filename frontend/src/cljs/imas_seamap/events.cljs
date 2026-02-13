@@ -869,6 +869,12 @@
 (defn settings-overlay [db [_ open?]]
   (assoc-in db [:display :settings-overlay] open?))
 
+(defn split-layer-range-value [{:keys [db]} [_ split-layer-range-value split-layer-container-x]]
+  {:db       (-> db
+                 (assoc-in [:display :split-layer-range-value] split-layer-range-value)
+                 (assoc-in [:display :split-layer-container-x] split-layer-container-x))
+   :dispatch [:maybe-autosave]})
+
 (defn- ->dynamic-pill [dynamic-pill]
   (->
    dynamic-pill

@@ -31,6 +31,8 @@
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
                                       [:display :right-sidebars]
+                                      [:display :split-layer-range-value]
+                                      [:display :split-layer-container-x]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
@@ -59,6 +61,8 @@
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
                  [:display :right-sidebars]
+                 [:display :split-layer-range-value]
+                 [:display :split-layer-container-x]
                  [:filters :layers]
                  [:story-maps :featured-map]
                  [:transect :show?]

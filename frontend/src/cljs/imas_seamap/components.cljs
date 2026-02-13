@@ -114,7 +114,7 @@
            [b/clipped-text {:ellipsize true :class "title"} text]
            [:div
             [b/button
-             {:icon "cross"
+             {:icon "caret-up"
               :minimal true
               :on-click on-close-click}]]]
           (into [:<>] children)]]))))
