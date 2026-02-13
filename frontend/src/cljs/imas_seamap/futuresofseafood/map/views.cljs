@@ -127,6 +127,15 @@
          :labelTemplateLng "{x}"
          :useLatLngOrder   true
          :enableUserInput  false}]
+       
+       ;; TODO: fix broken components from "leaflet-timedimension"
+       #_[leaflet/time-dimension]
+       #_[leaflet/time-dimension-control
+        {:auto-play false
+         :player-options
+         {:buffer 10
+          :transitionTime 500
+          :loop true}}]
 
        (when (and mouse-pos distance) [map-views/distance-tooltip {:mouse-pos mouse-pos :distance distance}])
 

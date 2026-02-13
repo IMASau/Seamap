@@ -1,6 +1,20 @@
 ;;; Seamap: view and interact with Australian coastal habitat data
 ;;; Copyright (c) 2021, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+
+;; =============================================================================
+;; WARNING: Leaflet Import Considerations
+;;
+;; Leaflet plugins assume a single global `L`. Importing new Leaflet modules can
+;; create multiple instances, overwriting or resetting extensions added by existing
+;; plugins. 
+;;
+;; To avoid breaking existing functionality:
+;;   1. Ensure any new Leaflet plugin import does not introduce a second Leaflet
+;;      instance.
+;;   2. If a plugin causes conflicts, consider vendoring its code directly into the
+;;      project rather than importing it from npm.
+;; =============================================================================
 (ns imas-seamap.interop.leaflet
   (:require [reagent.core :as r]
             ["leaflet" :as L]
@@ -9,6 +23,7 @@
             ["esri-leaflet" :as esri]
             ["leaflet-draw"]
             ["leaflet-easyprint"]
+            ["leaflet-timedimension" :as LeafletTimeDimension]
             ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
             ["react-esri-leaflet/plugins/VectorTileLayer" :as VectorTileLayer]
             ["leaflet.nontiledlayer"]
@@ -165,6 +180,28 @@
       (when (not= (.-opacity props) (.-opacity prev-props))
         (.setOpacity instance (.-opacity props)))))))
 
+(def wms-timeseries-layer
+  (r/adapt-react-class
+   (ReactLeafletCore/createLayerComponent
+    ;; Create layer fn
+    (fn [props context]
+      (let [url (.-url props)]
+        (js-delete props "url")
+        (js-delete props "eventHandlers")
+        (let [wms-layer ((-> L/default .-tileLayer .-wms) url props)
+              instance ((-> LeafletTimeDimension/default .-timeDimension .-layer .-wms)
+                        wms-layer
+                        #js{:request-time-from-capabilities true
+                            :update-time-dimension true
+                            :wms-version "1.3.0"})]
+          #js{:instance instance :context context})))
+    ;; Update layer fn
+    (fn [instance ^js/Object props ^js/Object prev-props]
+      (when (not= (.-opacity props) (.-opacity prev-props))
+        (.setOpacity instance (.-opacity props)))
+      (when (not= (.-cql_filter props) (.-cql_filter prev-props))
+        (.setParams instance (js-obj "cql_filter" (or (.-cql_filter props) ""))))))))
+
 (def map-container       (r/adapt-react-class ReactLeaflet/MapContainer))
 (def pane                (r/adapt-react-class ReactLeaflet/Pane))
 (def marker              (r/adapt-react-class ReactLeaflet/Marker))
@@ -175,6 +212,10 @@
 (def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L/default %))))
 (def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L/default .-control .-coordinates) %))))
+(def time-dimension      (r/adapt-react-class (ReactLeafletCore/createControlComponent
+                                               (fn [options] ((-> LeafletTimeDimension/default .-timeDimension) options)))))
+(def time-dimension-control (r/adapt-react-class (ReactLeafletCore/createControlComponent
+                                                  (fn [options] ((-> LeafletTimeDimension/default .-control .-timeDimension) options)))))
 (def geojson-feature     L/geoJson)
 (def latlng              L/LatLng)
 (def esri-query          #(.query esri (clj->js %)))

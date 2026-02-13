@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@alcalin/leaflet-tilelayer-wmts": "link:./custom_modules/leaflet-tilelayer-wmts",
     "@babel/cli": "^7.14.8",
     "@babel/preset-env": "^7.15.0",
     "@blueprintjs/core": "^3.47.0",
@@ -17,7 +18,7 @@
     "leaflet-draw": "^1.0.4",
     "leaflet-easyprint": "link:./custom_modules/leaflet-easyprint",
     "leaflet-shape-markers": "^1.0.6",
-    "@alcalin/leaflet-tilelayer-wmts": "link:./custom_modules/leaflet-tilelayer-wmts",
+    "leaflet-timedimension": "link:./custom_modules/leaflet-timedimension",
     "leaflet.nontiledlayer": "link:./custom_modules/leaflet.nontiledlayer",
     "proj4": "^2.7.5",
     "proj4leaflet": "^1.0.2",

@@ -284,6 +284,25 @@
     (when boundary-filter (boundary-filter layer))
     (when cql-filter {:cql_filter cql-filter}))])
 
+(defmethod layer-component :wms-timeseries
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
+  [leaflet/wms-layer
+   (merge
+    {:url              server_url
+     :layers           layer_name
+     :eventHandlers
+     {:loading       on-load-start
+      :tileloadstart on-tile-load-start
+      :tileerror     on-tile-error
+      :load          on-load-end} ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
+     :transparent      true
+     :opacity          (/ (layer-opacities layer) 100)
+     :tiled            true
+     :format           "image/png"}
+    (when style {:styles style})
+    (when boundary-filter (boundary-filter layer))
+    (when cql-filter {:cql_filter cql-filter}))])
+
 (defmethod layer-component :wmts
   [{:keys [layer-opacities layer] {:keys [server_url layer_name]} :displayed-layer}]
   [leaflet/wmts-layer
