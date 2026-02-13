@@ -108,74 +108,6 @@ The proposal's section 5 suggests feature-based registration, but several altern
 
 ---
 
-## Option 1.5: Symbol-Based Lazy Resolution
-
-**Concept**: Like Option 1, but use symbols instead of direct function references to defer namespace loading until actually needed.
-
-```clojure
-;; src/cljs/imas_seamap/handlers/registry.cljs
-(ns imas-seamap.handlers.registry
-  (:require [imas-seamap.core :as core]))
-  ;; NOTE: No requires for feature modules!
-
-(def feature-handler-modules
-  "Maps feature flags to handler function symbols"
-  {:state-of-knowledge 'imas-seamap.state-of-knowledge.registry/handlers
-   :data-in-region     'imas-seamap.tas-marine-atlas.data-in-region.registry/handlers
-   :featured-maps      'imas-seamap.story-maps.registry/handlers})
-
-(defn register-for-features!
-  "Registers handlers for enabled features"
-  [features base-handlers]
-  ;; Register base handlers (always needed)
-  (core/register-handlers! base-handlers)
-
-  ;; Lazily load and register feature-specific handlers
-  (doseq [feature features]
-    (when-let [handler-sym (get feature-handler-modules feature)]
-      (try
-        (js/console.log "Loading and registering handlers for feature:" feature)
-        ;; requiring-resolve loads the namespace (if not loaded) and resolves the symbol
-        (let [handler-fn (requiring-resolve handler-sym)]
-          (core/register-handlers! (handler-fn)))
-        (catch js/Error e
-          (js/console.error "Failed to load handlers for feature" feature e))))))
-```
-
-**How It Works:**
-
-1. **Symbols instead of requires** - `'imas-seamap.state-of-knowledge.registry/handlers` is just data (a symbol), not a reference that forces namespace loading
-2. **`requiring-resolve` at runtime** - When a feature is enabled, `requiring-resolve` will:
-   - Require the namespace if not already loaded (triggers evaluation)
-   - Resolve the symbol to the actual function
-   - Return the function so we can call it
-3. **Truly lazy** - Feature namespaces only evaluate when their feature is enabled
-
-**Pros:**
-- ✅ **Deferred namespace evaluation** - code only runs for enabled features
-- ✅ **Faster boot time** - don't pay eval cost for unused features
-- ✅ **Clean separation** - each feature owns its handlers
-- ✅ **No handler code in configs** - keeps deployment configs declarative
-- ✅ **Simple to understand** - just a map of symbols
-
-**Cons:**
-- ❌ **Bundle size unchanged** - all compiled JS still in bundle (see concerns below)
-- ❌ **No compile-time checking** - typo in symbol = runtime error
-- ❌ **IDE can't navigate** - tooling won't jump from symbol to definition
-- ❌ **Requires ClojureScript 1.10.844+** - for `requiring-resolve`
-
-**When to Use:**
-- You have clear feature boundaries with significant handler code
-- Some deployments use very different feature sets
-- Boot time optimization is valuable
-- You're comfortable with symbol-based indirection
-
-**Compilation Concerns:**
-
-⚠️ **Advanced compilation may remove unreferenced code**. See "Dead Code Elimination Concerns" section below for details and workarounds.
-
----
-
 ## Option 2: Component Self-Registration Pattern
 
 **Concept**: Components register their own handlers when first rendered using React lifecycle hooks.
@@ -398,94 +330,7 @@ Components still use Option 2's self-registration pattern.
 
 ---
 
-## Dead Code Elimination Concerns (Option 1.5)
-
-When using symbol-based lazy resolution, there's a potential concern with ClojureScript's advanced compilation: **the Google Closure Compiler might remove code that's never directly referenced**.
-
-### The Problem
-
-If a namespace is only referenced through a symbol (like `'imas-seamap.state-of-knowledge.registry/handlers`) and never through a direct `(:require ...)` form, the Closure Compiler's dead code elimination might:
-
-1. **Remove the entire namespace** - if no direct references exist
-2. **Tree-shake functions** - if they appear unused
-3. **Optimize away code** - that looks unreachable
-
-This would cause `requiring-resolve` to fail at runtime with "No such namespace" errors.
-
-### The Reality
-
-**In practice, this is usually not a problem** because:
-
-1. **Feature namespaces typically have side effects** - They require other namespaces (events, subs), which keeps them in the dependency graph
-2. **View components require them** - If your views require the registry namespaces anywhere, they're in the bundle
-3. **ClojureScript analyzer is smart** - It tracks namespace dependencies across the entire codebase
-
-### Workarounds If Needed
-
-If you encounter issues with code being eliminated, here are solutions:
-
-#### 1. Add Sentinel Requires (Simplest)
-
-Add dummy requires in a central location to ensure namespaces are compiled in:
-
-```clojure
-;; src/cljs/imas_seamap/handlers/registry.cljs
-(ns imas-seamap.handlers.registry
-  (:require [imas-seamap.core :as core]
-            ;; Sentinel requires - forces namespaces into bundle
-            ;; (marked with :refer [] to avoid warnings about unused requires)
-            [imas-seamap.state-of-knowledge.registry :refer []]
-            [imas-seamap.tas-marine-atlas.data-in-region.registry :refer []]
-            [imas-seamap.story-maps.registry :refer []]))
-
-(def feature-handler-modules
-  {:state-of-knowledge 'imas-seamap.state-of-knowledge.registry/handlers
-   :data-in-region     'imas-seamap.tas-marine-atlas.data-in-region.registry/handlers
-   :featured-maps      'imas-seamap.story-maps.registry/handlers})
-```
-
-This keeps the symbol-based approach while guaranteeing the namespaces are in the bundle.
-
-#### 2. Use Compiler Hints
-
-Configure `:advanced` compilation to preserve namespaces:
-
-```clojure
-;; project.clj or shadow-cljs.edn
-{:compiler {:optimizations :advanced
-            :externs ["externs.js"]
-            ;; Prevent removal of dynamic namespaces
-            :pseudo-names true}}
-```
-
-Note: This is less precise and may keep more code than needed.
-
-#### 3. Test With Advanced Compilation
-
-Always test with `:advanced` optimization before deployment:
-
-```bash
-# shadow-cljs
-shadow-cljs release app
-
-# lein
-lein cljsbuild once min
-```
-
-Runtime errors about missing namespaces indicate dead code elimination issues.
-
-### Recommendation
-
-**Start with Option 1.5 without sentinel requires**. In most real-world ClojureScript applications, the namespaces will be in the bundle anyway because:
-- View components transitively depend on them
-- The analyzer tracks all namespace dependencies
-- Feature code has side effects that keep it in the dependency graph
-
-**If you see runtime errors**, add sentinel requires as shown above. This is a minimal, zero-runtime-cost solution that explicitly tells the compiler "keep these namespaces."
-
----
-
-## Recommendation: **Option 1 or 1.5 (Feature-Based Handler Modules)**
+## Recommendation: **Option 1 (Feature-Based Handler Modules)**
 
 Given the constraints and architecture, both **Option 1** and **Option 1.5** are good choices:
 
@@ -495,13 +340,7 @@ Given the constraints and architecture, both **Option 1** and **Option 1.5** are
 - Boot time is not a concern
 - You want direct function references (better IDE support)
 
-### Choose Option 1.5 if:
-- You have multiple large feature modules
-- Different deployments use significantly different features
-- Boot time optimization matters (mobile users, slower devices)
-- You're comfortable with symbol-based indirection
-
-Both options share the same core benefits:
+This has the core benefits:
 
 1. **Keeps configs clean** - No handler registration details in deployment configs
 2. **Simple mental model** - "This feature uses these handlers"
