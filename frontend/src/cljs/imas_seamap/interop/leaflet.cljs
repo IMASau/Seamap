@@ -182,6 +182,41 @@
       (when (not= (.-opacity props) (.-opacity prev-props))
         (.setOpacity instance (.-opacity props)))))))
 
+(defonce ^:private _leaflet_monkeypatching!
+  (do
+    (gobject/set (-> L/default .-TileLayer .-prototype)
+                 "getURL"
+                   (fn []
+                     (this-as this
+                       (gobject/get this "_url"))))
+    (gobject/set (-> L/default .-TileLayer .-prototype)
+                 "setLoaded"
+                 (fn [loaded]
+                   (this-as this
+                     (gobject/set this
+                                  "_loaded"
+                                  loaded))))
+    (gobject/set (-> L/default .-TileLayer .-prototype)
+               "isLoaded"
+               (fn []
+                 (this-as this
+                   (gobject/get this
+                                "_loaded"))))
+    (gobject/set (-> L/default .-TileLayer .-prototype)
+                 "hide"
+                 (fn []
+                   (this-as this
+                     (gobject/set this "_visible" false)
+                     (when-let [container (gobject/get this "_container")]
+                       (set! (.. container -style -display) "none")))))
+    (gobject/set (-> L/default .-TileLayer .-prototype)
+                 "show"
+                 (fn []
+                   (this-as this
+                     (gobject/set this "_visible" true)
+                     (when-let [container (gobject/get this "_container")]
+                       (set! (.. container -style -display) "block")))))))
+
 (def wms-timeseries-layer
   (r/adapt-react-class
    (ReactLeafletCore/createLayerComponent
@@ -192,20 +227,11 @@
         (js-delete props "url")
         (js-delete props "eventHandlers")
         (let [wms-layer ((-> L/default .-tileLayer .-wms) url props)
-              ;; WARNING: leaflet.time-dimension patches the base
-              ;; tile-layer, making it load-order dependent. For now
-              ;; we'll just dynamically patch it:
-              _ (gobject/set wms-layer
-                   "getURL"
-                   (fn []
-                     (this-as this
-                       (gobject/get this "_url"))))
               instance ((-> LeafletTimeDimension/default .-timeDimension .-layer .-wms)
                         wms-layer
                         ;; Note; automatic conversion from :snake-case to :camelCase doesn't happen for #js:
                         #js{:requestTimeFromCapabilities true
                             :updateTimeDimension true
-                            :timeDimension time-dimension
                             :wmsVersion "1.3.0"})]
           #js{:instance instance :context context})))
     ;; Update layer fn
