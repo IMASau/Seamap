@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-sidebar-v2@1.0.0/css/leaflet-sidebar.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-timedimension@1.1.1/dist/leaflet.timedimension.control.min.css" />
     <link rel="stylesheet" href="css/style.npm-packaged.css" />
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/iso8601-js-period@0.2.1/iso8601.min.js"></script>
   </head>
   <body>
     <div id="app"></div>
@@ -27,7 +26,8 @@ const
   media_url_base = "http://localhost:8000/media/",
   wordpress_url_base = "http://localhost:8888/",
   img_url_base = "/img/";
-imas_seamap.core.init(api_url_base, media_url_base, wordpress_url_base, img_url_base);
+     /* imas_seamap.core.init(api_url_base, media_url_base, wordpress_url_base, img_url_base); */
+imas_seamap.futuresofseafood.core.init(api_url_base, media_url_base, wordpress_url_base, img_url_base);
 // END ANSIBLE MANAGED BLOCK
     </script>
   </body>

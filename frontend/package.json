@@ -20,6 +20,7 @@
     "leaflet-shape-markers": "^1.0.6",
     "leaflet-timedimension": "link:./custom_modules/leaflet-timedimension",
     "leaflet.nontiledlayer": "link:./custom_modules/leaflet.nontiledlayer",
+    "iso8601-js-period": "^0.2.1",
     "proj4": "^2.7.5",
     "proj4leaflet": "^1.0.2",
     "react": "18.2.0",

@@ -25,6 +25,7 @@
             ["leaflet-draw"]
             ["leaflet-easyprint"]
             ["leaflet-timedimension" :as LeafletTimeDimension]
+            ["iso8601-js-period" :as iso8601]
             [goog.object :as gobject]
             ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
             ["react-esri-leaflet/plugins/VectorTileLayer" :as VectorTileLayer]
@@ -184,6 +185,7 @@
 
 (defonce ^:private _leaflet_monkeypatching!
   (do
+    (set! js/nezasa #js{:iso8601 iso8601})
     (gobject/set (-> L/default .-TileLayer .-prototype)
                  "getURL"
                    (fn []
