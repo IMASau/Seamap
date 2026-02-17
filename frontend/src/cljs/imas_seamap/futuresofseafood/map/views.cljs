@@ -30,6 +30,7 @@
         {:id                   "map"
          :crs                  leaflet/crs-epsg3857
          :preferCanvas         true
+         :time-dimension       true
          :use-fly-to           false
          :center               center
          :zoom                 zoom

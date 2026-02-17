@@ -24,6 +24,7 @@
             ["leaflet-draw"]
             ["leaflet-easyprint"]
             ["leaflet-timedimension" :as LeafletTimeDimension]
+            [goog.object :as gobject]
             ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
             ["react-esri-leaflet/plugins/VectorTileLayer" :as VectorTileLayer]
             ["leaflet.nontiledlayer"]
@@ -185,15 +186,26 @@
    (ReactLeafletCore/createLayerComponent
     ;; Create layer fn
     (fn [props context]
-      (let [url (.-url props)]
+      (let [url (.-url props)
+            time-dimension (.-timeDimension props)]
         (js-delete props "url")
         (js-delete props "eventHandlers")
         (let [wms-layer ((-> L/default .-tileLayer .-wms) url props)
+              ;; WARNING: leaflet.time-dimension patches the base
+              ;; tile-layer, making it load-order dependent. For now
+              ;; we'll just dynamically patch it:
+              _ (gobject/set wms-layer
+                   "getURL"
+                   (fn []
+                     (this-as this
+                       (gobject/get this "_url"))))
               instance ((-> LeafletTimeDimension/default .-timeDimension .-layer .-wms)
                         wms-layer
-                        #js{:request-time-from-capabilities true
-                            :update-time-dimension true
-                            :wms-version "1.3.0"})]
+                        ;; Note; automatic conversion from :snake-case to :camelCase doesn't happen for #js:
+                        #js{:requestTimeFromCapabilities true
+                            :updateTimeDimension true
+                            :timeDimension time-dimension
+                            :wmsVersion "1.3.0"})]
           #js{:instance instance :context context})))
     ;; Update layer fn
     (fn [instance ^js/Object props ^js/Object prev-props]
@@ -212,6 +224,7 @@
 (def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L/default %))))
 (def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L/default .-control .-coordinates) %))))
+(def time-dimension-arg  (fn [options] ((-> LeafletTimeDimension/default .-timeDimension) options)))
 (def time-dimension      (r/adapt-react-class (ReactLeafletCore/createControlComponent
                                                (fn [options] ((-> LeafletTimeDimension/default .-timeDimension) options)))))
 (def time-dimension-control (r/adapt-react-class (ReactLeafletCore/createControlComponent

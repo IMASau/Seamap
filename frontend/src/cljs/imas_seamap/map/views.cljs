@@ -286,10 +286,11 @@
 
 (defmethod layer-component :wms-timeseries
   [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
-  [leaflet/wms-layer
+  [leaflet/wms-timeseries-layer
    (merge
     {:url              server_url
      :layers           layer_name
+     :time-dimension (leaflet/time-dimension-arg nil)
      :eventHandlers
      {:loading       on-load-start
       :tileloadstart on-tile-load-start
