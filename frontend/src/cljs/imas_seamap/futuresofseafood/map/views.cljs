@@ -131,7 +131,8 @@
        
        ;; TODO: fix broken components from "leaflet-timedimension"
        #_[leaflet/time-dimension]
-       #_[leaflet/time-dimension-control
+       ;; [leaflet/time-dimension-control
+       [:f> leaflet/time-dimension-control2
         {:auto-play false
          :player-options
          {:buffer 10

@@ -18,6 +18,7 @@
 (ns imas-seamap.interop.leaflet
   (:require [reagent.core :as r]
             ["leaflet" :as L]
+            ["react" :as react]
             ["react-leaflet" :as ReactLeaflet]
             ["@react-leaflet/core" :as ReactLeafletCore]
             ["esri-leaflet" :as esri]
@@ -229,6 +230,26 @@
                                                (fn [options] ((-> LeafletTimeDimension/default .-timeDimension) options)))))
 (def time-dimension-control (r/adapt-react-class (ReactLeafletCore/createControlComponent
                                                   (fn [options] ((-> LeafletTimeDimension/default .-control .-timeDimension) options)))))
+;;; Note: needs to be rendered with [:f> time-dimension-control2 ...] not [time-dimension-control2...]
+(defn time-dimension-control2 [options]
+  (let [map (ReactLeaflet/useMap)]
+    (react/useEffect
+      (fn []
+        ;; The upstream implementation uses addInitHook on L.Map to initialise this:
+        (when (not (.-timeDimension map))
+          (set! (.-timeDimension map)
+                ((-> LeafletTimeDimension/default .-timeDimension) (clj->js options))))
+
+        (let [control (new (-> LeafletTimeDimension/default .-control .-timeDimension) (clj->js options))]
+          (.addTo control map)
+          ;; Return a function to remove the control when component unmounts:
+          (fn []
+            (.remove control))))
+      ;; Re-run if map changes (rare) or options change (common)
+      #js [map options])
+
+    ;; Return nil because Leaflet handles the DOM, not React
+    nil))
 (def geojson-feature     L/geoJson)
 (def latlng              L/LatLng)
 (def esri-query          #(.query esri (clj->js %)))
