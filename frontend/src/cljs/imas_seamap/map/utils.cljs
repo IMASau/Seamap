@@ -33,11 +33,21 @@
      :east  x1
      :north y1}))
 
-;;; Note, the namespace format (",EPSG:4326") used here has important
-;;; correlation with the WFS version used; see
-;;; https://docs.geoserver.org/latest/en/user/services/wfs/axis_order.html
-(defn bounds->str
-  ([bounds] (bounds->str 4326 bounds))
+(defn bounds->str:wms
+  "Prepare a string suitable for use in the BBOX parameter for *WMS* queries.
+  Note that this has different semantics from WFS, and is version-dependent.
+  https://docs.geoserver.org/latest/en/user/services/wms/basics.html#axis-ordering
+  For now, we ignore the epsg-code if provided, and assume this is only used with version 1.1"
+  ([bounds] (bounds->str:wms 4326 bounds))
+  ([_epsg-code {:keys [north south east west] :as _bounds}]
+   (assert (or (integer? _epsg-code) (string? _epsg-code)))
+   (string/join "," [west south east north])))
+
+(defn bounds->str:wfs
+  "Prepare a string suitable for use in the BBOX parameter for *WFS* queries.
+  Note that this has different semantics from WMS, and is version-dependent:
+  https://docs.geoserver.org/latest/en/user/services/wfs/axis_order.html  "
+  ([bounds] (bounds->str:wms 4326 bounds))
   ([epsg-code {:keys [north south east west] :as _bounds}]
    (assert (or (integer? epsg-code) (string? epsg-code)))
    (string/join "," [west south east north (if (integer? epsg-code) (str "EPSG:" epsg-code) epsg-code)])))
@@ -118,7 +128,7 @@
   (if-not bounds
     ((get-method download-link :wfs) layer bounds download-type)
     (let [base-url (str api-url-base "habitat/subset/")
-          bounds-arg (->> bounds (bounds->projected #(project-coords % "EPSG:3112")) (bounds->str 3112))]
+          bounds-arg (->> bounds (bounds->projected #(project-coords % "EPSG:3112")) (bounds->str:wfs 3112))]
       (-> (url/url base-url)
           (assoc :query {:layer_id id
                          :bounds   bounds-arg
@@ -140,7 +150,7 @@
       ;; an issue where including the bbox, for the full region,
       ;; causes issues.  I don't think this was always the case, but
       ;; not investigating further)
-      (merge-in (when bounds {:query {:bbox (bounds->str bounds)}}))
+      (merge-in (when bounds {:query {:bbox (bounds->str:wfs bounds)}}))
       str))
 
 (defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
@@ -157,7 +167,7 @@
                        :request     "GetMap"
                        :SRS         "EPSG:4326"
                        :transparent true
-                       :bbox        (bounds->str bounds)
+                       :bbox        (bounds->str:wms bounds)
                        :format      (type->format-str download-type)
                        :width       width
                        :height      (int (* ratio width))

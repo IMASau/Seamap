@@ -8,7 +8,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :as map-utils :refer [layer-name bounds->str feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords layer->dynamic-pills ->dynamic-pill]]
+            [imas-seamap.map.utils :as map-utils :refer [layer-name bounds->str:wms feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords layer->dynamic-pills ->dynamic-pill]]
             [ajax.core :as ajax]
             [imas-seamap.blueprint :as b]
             [reagent.core :as r]
@@ -103,7 +103,7 @@
                       (bounds->projected
                        #(project-coords % request-crs)
                        (bounds-for-zoom geo-point size bounds feature-info-image-size)))
-        bbox (bounds->str request-crs bbox-bounds)
+        bbox (bounds->str:wms request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
@@ -148,7 +148,7 @@
                       (bounds->projected
                        #(project-coords % request-crs)
                        (bounds-for-zoom projected-point size bounds feature-info-image-size)))
-        bbox (bounds->str request-crs bbox-bounds)
+        bbox (bounds->str:wms request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
@@ -196,7 +196,7 @@
   [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
   (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
                   (bounds->projected #(project-coords % (-> layers first :crs)))
-                  (bounds->str (-> layers first :crs)))
+                  (bounds->str:wms (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
