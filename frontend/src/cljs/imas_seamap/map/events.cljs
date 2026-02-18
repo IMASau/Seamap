@@ -2,18 +2,37 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.events
-  (:require [clojure.string :as string]
-            [clojure.set :as set]
-            [clojure.walk :refer [keywordize-keys]]
-            [re-frame.core :as re-frame]
-            [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :as map-utils :refer [layer-name bounds->str:wms feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords layer->dynamic-pills ->dynamic-pill]]
-            [ajax.core :as ajax]
-            [imas-seamap.blueprint :as b]
-            [reagent.core :as r]
-            [imas-seamap.interop.leaflet :as leaflet]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
+  (:require
+   [ajax.core :as ajax]
+   [cljs.spec.alpha :as s]
+   [clojure.set :as set]
+   [clojure.string :as string]
+   [clojure.walk :refer [keywordize-keys]]
+   [imas-seamap.blueprint :as b]
+   [imas-seamap.interop.leaflet :as leaflet]
+   [imas-seamap.map.utils :as map-utils :refer [->dynamic-pill
+                                                bounds->projected
+                                                bounds->str:wms
+                                                enhance-rich-layer
+                                                feature-info-response->display
+                                                global-time-string
+                                                has-time-dimension?
+                                                has-visible-habitat-layers?
+                                                init-layer-legend-status
+                                                init-layer-opacities
+                                                layer->cql-filter
+                                                layer->dynamic-pills
+                                                layer->rich-layer layer-name
+                                                leaflet-props map->bounds
+                                                mouseevent->coords
+                                                project-coords
+                                                region-stats-habitat-layer
+                                                rich-layer->displayed-layer
+                                                sort-by-sort-key
+                                                visible-layers]]
+   [imas-seamap.utils :refer [first-where ids->layers index-of]]
+   [re-frame.core :as re-frame]
+   [reagent.core :as r]))
 
 
 ;;; Seamap is hosted under https, meaning the browser will block ajax
@@ -105,6 +124,7 @@
                        (bounds-for-zoom geo-point size bounds feature-info-image-size)))
         bbox (bounds->str:wms request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
+        has-time? (has-time-dimension? (first layers))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
@@ -131,7 +151,8 @@
         :INFO_FORMAT   "text/html"
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
-       (when cql-filter {:CQL_FILTER cql-filter}))
+       (when cql-filter {:CQL_FILTER cql-filter})
+       (when has-time? {:TIME (global-time-string db)}))
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/html" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -150,6 +171,7 @@
                        (bounds-for-zoom projected-point size bounds feature-info-image-size)))
         bbox (bounds->str:wms request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
+        has-time? (has-time-dimension? (first layers))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
@@ -176,7 +198,8 @@
         :INFO_FORMAT   "application/json"
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
-       (when cql-filter {:CQL_FILTER cql-filter}))
+       (when cql-filter {:CQL_FILTER cql-filter})
+       (when has-time? {:TIME (global-time-string db)}))
       :response-format (ajax/json-response-format)
       :on-success      [:map/got-featureinfo request-id point "application/json" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -198,6 +221,7 @@
                   (bounds->projected #(project-coords % (-> layers first :crs)))
                   (bounds->str:wms (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
+        has-time? (has-time-dimension? (first layers))
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
@@ -224,7 +248,8 @@
         :INFO_FORMAT   "text/xml"
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
-       (when cql-filter {:CQL_FILTER cql-filter}))
+       (when cql-filter {:CQL_FILTER cql-filter})
+       (when has-time? {:TIME (global-time-string db)}))
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))

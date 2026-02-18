@@ -6,6 +6,7 @@
             [clojure.string :as string]
             [clojure.set :as set]
             [goog.dom.xml :as gxml]
+            [goog.object :as gobject]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [merge-in select-values first-where url? control->cql-filter ids->layers]]
             ["proj4" :as proj4]
@@ -71,6 +72,26 @@
            (< (:north b1) (:south b2))))))
 
 (defn habitat-layer? [layer] (-> layer :category (= :habitat)))
+
+(defn has-time-dimension? [layer] (#{:wms-timeseries} (:layer_type layer)))
+
+(defn global-time-string
+  "Return a formatted string suitable for the TIME parameter in WMS
+  queries, or nil if not applicable. Assumes that there is a global
+  time (rather than per-layer) in effect."
+  [db]
+  ;; There's a few ways this might end up implemented, and we want to
+  ;; keep the database synced with the time step; for now we'll just
+  ;; directly access the global timeDimension object:
+  (when-let [time-dimension
+             (gobject/get
+              (-> db
+                  :map :leaflet-map
+                  ;.-timeDimension
+                  ;.getCurrentTime js/Date. .toISOString
+                  )
+              "timeDimension")]
+    (-> time-dimension .getCurrentTime js/Date. .toISOString)))
 
 (defn layer-search-keywords
   "Returns the complete search keywords of a layer, space-separated."
