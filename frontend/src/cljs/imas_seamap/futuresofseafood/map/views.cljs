@@ -20,6 +20,7 @@
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
+        {:keys [show-time-slider?] :as time-info}     @(re-frame/subscribe [:map.time/info])
         download-info                                 @(re-frame/subscribe [:download/info])
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     (into
@@ -127,13 +128,14 @@
          :labelTemplateLng "{x}"
          :useLatLngOrder   true
          :enableUserInput  false}]
-       
-       [:f> leaflet/time-dimension-control
-        {:auto-play false
-         :player-options
-         {:buffer 10
-          :transitionTime 500
-          :loop true}}]
+
+       (when show-time-slider?
+         [:f> leaflet/time-dimension-control
+          {:auto-play false
+           :player-options
+           {:buffer 10
+            :transitionTime 500
+            :loop true}}])
 
        (when (and mouse-pos distance) [map-views/distance-tooltip {:mouse-pos mouse-pos :distance distance}])
 

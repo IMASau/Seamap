@@ -43,6 +43,7 @@
     :map.layer/legend                     msubs/layer-legend
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
+    :map.time/info                        msubs/time-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
     :sorting/info                         subs/sorting-info
