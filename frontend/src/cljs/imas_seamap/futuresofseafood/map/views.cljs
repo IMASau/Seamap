@@ -30,7 +30,6 @@
         {:id                   "map"
          :crs                  leaflet/crs-epsg3857
          :preferCanvas         true
-         :time-dimension       true
          :use-fly-to           false
          :center               center
          :zoom                 zoom
@@ -129,10 +128,7 @@
          :useLatLngOrder   true
          :enableUserInput  false}]
        
-       ;; TODO: fix broken components from "leaflet-timedimension"
-       #_[leaflet/time-dimension]
-       ;; [leaflet/time-dimension-control
-       [:f> leaflet/time-dimension-control2
+       [:f> leaflet/time-dimension-control
         {:auto-play false
          :player-options
          {:buffer 10

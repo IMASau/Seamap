@@ -289,7 +289,6 @@
    (merge
     {:url              server_url
      :layers           layer_name
-     :time-dimension (leaflet/time-dimension-arg nil)
      :eventHandlers
      {:loading       on-load-start
       :tileloadstart on-tile-load-start

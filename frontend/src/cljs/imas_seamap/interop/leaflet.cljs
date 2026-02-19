@@ -258,12 +258,9 @@
 (def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L/default .-control .-coordinates) %))))
 (def time-dimension-arg  (fn [options] ((-> LeafletTimeDimension/default .-timeDimension) options)))
-(def time-dimension      (r/adapt-react-class (ReactLeafletCore/createControlComponent
-                                               (fn [options] ((-> LeafletTimeDimension/default .-timeDimension) options)))))
-(def time-dimension-control (r/adapt-react-class (ReactLeafletCore/createControlComponent
-                                                  (fn [options] ((-> LeafletTimeDimension/default .-control .-timeDimension) options)))))
+
 ;;; Note: needs to be rendered with [:f> time-dimension-control2 ...] not [time-dimension-control2...]
-(defn time-dimension-control2 [options]
+(defn time-dimension-control [options]
   (let [map (ReactLeaflet/useMap)]
     (react/useEffect
       (fn []
@@ -277,7 +274,7 @@
           ;; Return a function to remove the control when component unmounts:
           (fn []
             (.remove control))))
-      ;; Re-run if map changes (rare) or options change (common)
+      ;; Re-run if map or options change
       #js [map options])
 
     ;; Return nil because Leaflet handles the DOM, not React
