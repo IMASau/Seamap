@@ -225,7 +225,11 @@
     ;; Create layer fn
     (fn [props context]
       (let [url (.-url props)
-            time-dimension (.-timeDimension props)]
+            map (.-map context)]        ; https://react-leaflet.js.org/docs/core-api/#leafletcontextinterface
+        ;; Ensure the map has a time-dimension:
+        (when (not (.-timeDimension map))
+          (set! (.-timeDimension map)
+                ((-> LeafletTimeDimension/default .-timeDimension) (clj->js props))))
         (js-delete props "url")
         (js-delete props "eventHandlers")
         (let [wms-layer ((-> L/default .-tileLayer .-wms) url props)
