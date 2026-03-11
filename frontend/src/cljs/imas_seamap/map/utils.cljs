@@ -661,7 +661,8 @@
 (defn layer->cql-filter
   "Returns the CQL filter for a layer."
   [{layer-cql-filter :filter :as layer} db]
-  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db)) ; string or nil
+  (let [rich-layer-cql-filter     (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db)) ; string or nil
+        layer-cql-filter          (:filter (rich-layer->displayed-layer layer db))
         dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db))) ; list of strings
         cql-filters
         (cond-> dynamic-pills-cql-filters
