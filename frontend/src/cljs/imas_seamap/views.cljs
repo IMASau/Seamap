@@ -679,6 +679,7 @@
       :icon     "search"}]
 
     [transect-control]
+    [region-control]
 
     [control-block-child
      {:on-click #(re-frame/dispatch [:create-save-state])

@@ -13,6 +13,49 @@
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
+(defn custom-leaflet-controls []
+  "Differs from the custom-leaflet-controls component in imas-seamap.views by removing region-control"
+  [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
+   [views/menu-button]
+   [views/settings-button]
+   [views/zoom-control]
+
+   [views/control-block
+    [views/print-control]
+
+    [views/control-block-child
+     {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
+      :tooltip  "Search All Layers"
+      :id       "omnisearch-control"
+      :icon     "search"}]
+
+    [views/transect-control]
+
+    [views/control-block-child
+     {:on-click #(re-frame/dispatch [:create-save-state])
+      :tooltip  "Create Shareable URL"
+      :id       "share-control"
+      :icon     "share"}]
+
+    [views/control-block-child
+     {:on-click #(re-frame/dispatch [:re-boot])
+      :tooltip  "Reset Interface"
+      :id       "reset-control"
+      :icon     "undo"}]]
+
+   [views/control-block
+    [views/control-block-child
+     {:on-click #(js/document.dispatchEvent (js/KeyboardEvent. "keydown" #js{:which 47 :keyCode 47 :shiftKey true :bubbles true})) ; https://github.com/palantir/blueprint/issues/1590
+      :tooltip  "Show Keyboard Shortcuts"
+      :id       "shortcuts-control"
+      :icon     "key-command"}]
+
+    [views/control-block-child
+     {:on-click #(re-frame/dispatch [:help-layer/toggle])
+      :tooltip  "Show Help Overlay"
+      :id       "overlay-control"
+      :icon     "help"}]]])
+
 (defn floating-pills []
   (let [collapsed                      (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
@@ -166,7 +209,7 @@
      [left-drawer]
      [views/right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
      [views/layers-search-omnibar]
-     [views/custom-leaflet-controls]
+     [custom-leaflet-controls]
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [views/layers-control]]
