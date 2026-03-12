@@ -98,16 +98,19 @@
 
 (def ^:private type->format-str {:map.layer.download/csv     "csv"
                                  :map.layer.download/shp     "shape-zip"
-                                 :map.layer.download/geotiff "image/geotiff"})
+                                 :map.layer.download/geotiff-wms "image/geotiff"
+                                 :map.layer.download/geotiff-wcs "image/geotiff"})
 
-(def ^:private type->servertype {:map.layer.download/csv     :wfs
-                                 :map.layer.download/shp     :api
-                                 :map.layer.download/geotiff :wms})
+(def ^:private type->servertype {:map.layer.download/csv         :wfs
+                                 :map.layer.download/shp         :api
+                                 :map.layer.download/geotiff-wms :wms
+                                 :map.layer.download/geotiff-wcs :wcs})
 
 (defn download-type->str [type-key]
-  (get {:map.layer.download/csv     "CSV"
-        :map.layer.download/shp     "Shapefile"
-        :map.layer.download/geotiff "GeoTIFF"}
+  (get {:map.layer.download/csv         "CSV"
+        :map.layer.download/shp         "Shapefile"
+        :map.layer.download/geotiff-wms "GeoTIFF"
+        :map.layer.download/geotiff-wcs "GeoTIFF"}
        type-key))
 
 (defmulti download-link (fn [_layer _bounds download-type _api-url-base] (type->servertype download-type)))
@@ -162,6 +165,21 @@
                        :width       width
                        :height      (int (* ratio width))
                        :layers      (or detail_layer layer_name)})
+        str)))
+(defmethod download-link :wcs [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
+                               bounds
+                               download-type
+                               _api-url-base]
+  (let [{:keys [north south east west] :as bounds} (or bounds bounding_box)
+        ratio (/ (- north south) (- east west))
+        width 640]
+    (-> (url/url server_url)
+        (assoc :query {:service     "WCS"
+                       :version     "2.0.1"
+                       :request     "GetCoverage"
+                       :compression "DEFLATE"
+                       :format      (type->format-str download-type)
+                       :coverageId (or detail_layer layer_name)})
         str)))
 
 (defmulti feature-info-response->display
