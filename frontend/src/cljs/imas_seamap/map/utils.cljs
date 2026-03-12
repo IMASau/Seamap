@@ -265,60 +265,61 @@
                    (apply str))
         doc (gxml/loadXml response)
         fields (gxml/selectNodes doc "/esri_wms:FeatureInfoResponse/esri_wms:FIELDS")]
-    {:style
-     (str
-      ".feature-info-xml {"
-      "    max-height: 257px;"
-      "    overflow-y: auto;"
-      "    width: 391px;"
-      "}"
+    (when (seq fields)
+      {:style
+       (str
+        ".feature-info-xml {"
+        "    max-height: 257px;"
+        "    overflow-y: auto;"
+        "    width: 391px;"
+        "}"
 
-      ".feature-info-xml table {"
-      "    border-spacing: 0;"
-      "    width: 100%;"
-      "}"
+        ".feature-info-xml table {"
+        "    border-spacing: 0;"
+        "    width: 100%;"
+        "}"
 
-      ".feature-info-xml table:not(:last-child) {"
-      "    margin-bottom: 10px;"
-      "    padding-bottom: 10px;"
-      "    border-bottom: 2px dashed rgb(235, 235, 235);"
-      "}"
+        ".feature-info-xml table:not(:last-child) {"
+        "    margin-bottom: 10px;"
+        "    padding-bottom: 10px;"
+        "    border-bottom: 2px dashed rgb(235, 235, 235);"
+        "}"
 
-      ".feature-info-xml tr:nth-child(odd) {"
-      "    background-color: rgb(235, 235, 235);"
-      "}"
+        ".feature-info-xml tr:nth-child(odd) {"
+        "    background-color: rgb(235, 235, 235);"
+        "}"
 
-      ".feature-info-xml td {"
-      "    padding: 3px 0px 3px 10px;"
-      "    vertical-align: top;"
-      "}"
+        ".feature-info-xml td {"
+        "    padding: 3px 0px 3px 10px;"
+        "    vertical-align: top;"
+        "}"
 
-      ".feature-info-xml h4 {"
-      "    width: 100%;"
-      "    text-overflow: ellipsis;"
-      "    overflow-x: hidden;"
-      "}")
-     :body
-     (render-to-string
-      [:div.feature-info-xml
-       [:h4 title]
-       (map-indexed
-        (fn [i node]
-          ^{:key i}
-          [:table
-           (map-indexed
-            (fn [j attr]
-              (let [value (if (seq (str attr.value)) (str attr.value) "-")
-                    url?  (url? value)]
-                ^{:key j}
-                [:tr
-                 [:td attr.name]
-                 [:td
-                  (if url?
-                    [:a {:href value :target "_blank"} value]
-                    value)]]))
-            node.attributes)])
-        fields)])}))
+        ".feature-info-xml h4 {"
+        "    width: 100%;"
+        "    text-overflow: ellipsis;"
+        "    overflow-x: hidden;"
+        "}")
+       :body
+       (render-to-string
+        [:div.feature-info-xml
+         [:h4 title]
+         (map-indexed
+          (fn [i node]
+            ^{:key i}
+            [:table
+             (map-indexed
+              (fn [j attr]
+                (let [value (if (seq (str attr.value)) (str attr.value) "-")
+                      url?  (url? value)]
+                  ^{:key j}
+                  [:tr
+                   [:td attr.name]
+                   [:td
+                    (if url?
+                      [:a {:href value :target "_blank"} value]
+                      value)]]))
+              node.attributes)])
+          fields)])})))
 
 (defmethod feature-info-response->display :default
   [{:keys [_info-format _response _layers]}]
