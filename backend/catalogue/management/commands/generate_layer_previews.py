@@ -12,7 +12,7 @@ import re
 from io import BytesIO
 from urllib.error import HTTPError
 from urllib.parse import urlencode
-from urllib.request import urlopen
+import urllib.request
 
 import geopandas
 import geoplot
@@ -313,7 +313,8 @@ def geoserver_retrieve_image(layer: Layer, target_crs: str, horizontal_subdivisi
     for i, h_urls in enumerate(urls):
         for j, url in enumerate(h_urls):
             try:
-                response = urlopen(url)
+                request = urllib.request.Request(url, headers={'User-Agent': 'SeamapBackend/1.0'}) # Squidle geoserver requires a user agent (ISA-694, ISA-598)
+                response = urllib.request.urlopen(request)
             except HTTPError as e:
                 raise RuntimeError(f"URL {url} returned an error response") from e
 
