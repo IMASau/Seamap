@@ -556,10 +556,16 @@
 
         controls                  (mapv #(->control % rich-layer db) controls)
 
-        side-by-side-views                  (mapv #(->side-by-side-view % db) side-by-side-views)
-        side-by-side-views-selected         (first-where #(= (get-in % [:layer :id]) side-by-side-views-selected-id) side-by-side-views)
-        side-by-side-views-left-label-text  (:name (or displayed-layer layer))
-        side-by-side-views-right-label-text (:display_name side-by-side-views-selected)
+        side-by-side-views          (mapv #(->side-by-side-view % db) side-by-side-views)
+        ;; Note that the left layer of a side-by-side view isn't "selected" in the
+        ;; traditional sense, as it's not determined at all by the side-by-side controls.
+        ;; But we do want to check if the layer is in our side-by-side views layer list to
+        ;; see if we can get a shorter "display name" to use for the labels on the split
+        ;; view slider (ISA-696).
+        side-by-side-views-left-selected    (first-where #(= (get-in % [:layer :id]) (or (:id displayed-layer) layer-id)) side-by-side-views)
+        side-by-side-views-right-selected   (first-where #(= (get-in % [:layer :id]) side-by-side-views-selected-id) side-by-side-views)
+        side-by-side-views-left-label-text  (or (:display_name side-by-side-views-left-selected) (:name layer))
+        side-by-side-views-right-label-text (:display_name side-by-side-views-right-selected)
 
         cql-filter                (->>
                                    controls
@@ -584,7 +590,7 @@
         :slider-label             slider-label
         :displayed-layer          displayed-layer
         :side-by-side-views          side-by-side-views
-        :side-by-side-views-selected side-by-side-views-selected
+        :side-by-side-views-selected side-by-side-views-right-selected
         :side-by-side-views-left-label-text  side-by-side-views-left-label-text
         :side-by-side-views-right-label-text side-by-side-views-right-label-text
         :cql-filter                 cql-filter)))))
