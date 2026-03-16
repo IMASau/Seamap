@@ -541,6 +541,7 @@
          :as state}
         (get-in db [:map :rich-layers :states id])
         async-data                (get-in db [:map :rich-layers :async-datas id])
+        layer                     (first-where #(= (:id %) layer-id) (get-in db [:map :layers]))
 
         alternate-views              (mapv #(->alternate-view % db) alternate-views)
         alternate-views-selected     (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
@@ -551,11 +552,14 @@
         timeline                  (mapv #(->timeline % db) (or (:timeline alternate-view-rich-layer) timeline))
         timeline-selected         (first-where #(= (get-in % [:layer :id]) timeline-selected-id) timeline)
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
+        displayed-layer           (:layer (or timeline-selected alternate-views-selected))
 
         controls                  (mapv #(->control % rich-layer db) controls)
 
-        side-by-side-views          (mapv #(->side-by-side-view % db) side-by-side-views)
-        side-by-side-views-selected (first-where #(= (get-in % [:layer :id]) side-by-side-views-selected-id) side-by-side-views)
+        side-by-side-views                  (mapv #(->side-by-side-view % db) side-by-side-views)
+        side-by-side-views-selected         (first-where #(= (get-in % [:layer :id]) side-by-side-views-selected-id) side-by-side-views)
+        side-by-side-views-left-label-text  (:name (or displayed-layer layer))
+        side-by-side-views-right-label-text (:display_name side-by-side-views-selected)
 
         cql-filter                (->>
                                    controls
@@ -569,7 +573,7 @@
        (merge state)
        (merge async-data)
        (assoc
-        :layer                    (first-where #(= (:id %) layer-id) (get-in db [:map :layers]))
+        :layer                    layer
         :tab                      (or tab "legend")
         :controls                 controls
         :alternate-views          alternate-views
@@ -578,9 +582,11 @@
         :timeline-selected        timeline-selected
         :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
         :slider-label             slider-label
-        :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
+        :displayed-layer          displayed-layer
         :side-by-side-views          side-by-side-views
         :side-by-side-views-selected side-by-side-views-selected
+        :side-by-side-views-left-label-text  side-by-side-views-left-label-text
+        :side-by-side-views-right-label-text side-by-side-views-right-label-text
         :cql-filter                 cql-filter)))))
 
 (defn layer->rich-layer [{:keys [id] :as _layer} db]
