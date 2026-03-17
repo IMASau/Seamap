@@ -4,7 +4,7 @@
 import catalogue.models as models
 import catalogue.serializers as serializers
 
-from django.db.models import Value
+from django.db.models import Prefetch, Value
 from django.db.models.functions import Coalesce
 from rest_framework import viewsets
 
@@ -54,7 +54,22 @@ class KeyedLayerViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.KeyedLayerSerializer
 
 class RichLayerViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = models.RichLayer.objects.prefetch_related('alternate_views', 'timeline', 'controls').all()
+    queryset = models.RichLayer.objects.prefetch_related(
+        Prefetch(
+            'alternate_views',
+            queryset=models.RichLayerAlternateView.objects \
+                .annotate(sort_key_null=Coalesce('sort_key', Value('zzzzzzzz'))) \
+                .order_by('sort_key_null')
+        ),
+        Prefetch('timeline', queryset=models.RichLayerTimeline.objects.order_by('value')),
+        Prefetch(
+            'side_by_side_views',
+            queryset=models.RichLayerSideBySideView.objects \
+                .annotate(sort_key_null=Coalesce('sort_key', Value('zzzzzzzz'))) \
+                .order_by('sort_key_null')
+        ),
+        'controls'
+    ).all()
     serializer_class = serializers.RichLayerSerializer
 
 class RegionReportViewset(viewsets.ReadOnlyModelViewSet):

@@ -98,16 +98,19 @@
 
 (def ^:private type->format-str {:map.layer.download/csv     "csv"
                                  :map.layer.download/shp     "shape-zip"
-                                 :map.layer.download/geotiff "image/geotiff"})
+                                 :map.layer.download/geotiff-wms "image/geotiff"
+                                 :map.layer.download/geotiff-wcs "image/geotiff"})
 
-(def ^:private type->servertype {:map.layer.download/csv     :wfs
-                                 :map.layer.download/shp     :api
-                                 :map.layer.download/geotiff :wms})
+(def ^:private type->servertype {:map.layer.download/csv         :wfs
+                                 :map.layer.download/shp         :api
+                                 :map.layer.download/geotiff-wms :wms
+                                 :map.layer.download/geotiff-wcs :wcs})
 
 (defn download-type->str [type-key]
-  (get {:map.layer.download/csv     "CSV"
-        :map.layer.download/shp     "Shapefile"
-        :map.layer.download/geotiff "GeoTIFF"}
+  (get {:map.layer.download/csv         "CSV"
+        :map.layer.download/shp         "Shapefile"
+        :map.layer.download/geotiff-wms "GeoTIFF"
+        :map.layer.download/geotiff-wcs "GeoTIFF"}
        type-key))
 
 (defmulti download-link (fn [_layer _bounds download-type _api-url-base] (type->servertype download-type)))
@@ -162,6 +165,21 @@
                        :width       width
                        :height      (int (* ratio width))
                        :layers      (or detail_layer layer_name)})
+        str)))
+(defmethod download-link :wcs [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
+                               bounds
+                               download-type
+                               _api-url-base]
+  (let [{:keys [north south east west] :as bounds} (or bounds bounding_box)
+        ratio (/ (- north south) (- east west))
+        width 640]
+    (-> (url/url server_url)
+        (assoc :query {:service     "WCS"
+                       :version     "2.0.1"
+                       :request     "GetCoverage"
+                       :compression "DEFLATE"
+                       :format      (type->format-str download-type)
+                       :coverageId (or detail_layer layer_name)})
         str)))
 
 (defmulti feature-info-response->display
@@ -247,60 +265,61 @@
                    (apply str))
         doc (gxml/loadXml response)
         fields (gxml/selectNodes doc "/esri_wms:FeatureInfoResponse/esri_wms:FIELDS")]
-    {:style
-     (str
-      ".feature-info-xml {"
-      "    max-height: 257px;"
-      "    overflow-y: auto;"
-      "    width: 391px;"
-      "}"
+    (when (seq fields)
+      {:style
+       (str
+        ".feature-info-xml {"
+        "    max-height: 257px;"
+        "    overflow-y: auto;"
+        "    width: 391px;"
+        "}"
 
-      ".feature-info-xml table {"
-      "    border-spacing: 0;"
-      "    width: 100%;"
-      "}"
+        ".feature-info-xml table {"
+        "    border-spacing: 0;"
+        "    width: 100%;"
+        "}"
 
-      ".feature-info-xml table:not(:last-child) {"
-      "    margin-bottom: 10px;"
-      "    padding-bottom: 10px;"
-      "    border-bottom: 2px dashed rgb(235, 235, 235);"
-      "}"
+        ".feature-info-xml table:not(:last-child) {"
+        "    margin-bottom: 10px;"
+        "    padding-bottom: 10px;"
+        "    border-bottom: 2px dashed rgb(235, 235, 235);"
+        "}"
 
-      ".feature-info-xml tr:nth-child(odd) {"
-      "    background-color: rgb(235, 235, 235);"
-      "}"
+        ".feature-info-xml tr:nth-child(odd) {"
+        "    background-color: rgb(235, 235, 235);"
+        "}"
 
-      ".feature-info-xml td {"
-      "    padding: 3px 0px 3px 10px;"
-      "    vertical-align: top;"
-      "}"
+        ".feature-info-xml td {"
+        "    padding: 3px 0px 3px 10px;"
+        "    vertical-align: top;"
+        "}"
 
-      ".feature-info-xml h4 {"
-      "    width: 100%;"
-      "    text-overflow: ellipsis;"
-      "    overflow-x: hidden;"
-      "}")
-     :body
-     (render-to-string
-      [:div.feature-info-xml
-       [:h4 title]
-       (map-indexed
-        (fn [i node]
-          ^{:key i}
-          [:table
-           (map-indexed
-            (fn [j attr]
-              (let [value (if (seq (str attr.value)) (str attr.value) "-")
-                    url?  (url? value)]
-                ^{:key j}
-                [:tr
-                 [:td attr.name]
-                 [:td
-                  (if url?
-                    [:a {:href value :target "_blank"} value]
-                    value)]]))
-            node.attributes)])
-        fields)])}))
+        ".feature-info-xml h4 {"
+        "    width: 100%;"
+        "    text-overflow: ellipsis;"
+        "    overflow-x: hidden;"
+        "}")
+       :body
+       (render-to-string
+        [:div.feature-info-xml
+         [:h4 title]
+         (map-indexed
+          (fn [i node]
+            ^{:key i}
+            [:table
+             (map-indexed
+              (fn [j attr]
+                (let [value (if (seq (str attr.value)) (str attr.value) "-")
+                      url?  (url? value)]
+                  ^{:key j}
+                  [:tr
+                   [:td attr.name]
+                   [:td
+                    (if url?
+                      [:a {:href value :target "_blank"} value]
+                      value)]]))
+              node.attributes)])
+          fields)])})))
 
 (defmethod feature-info-response->display :default
   [{:keys [_info-format _response _layers]}]
@@ -522,6 +541,7 @@
          :as state}
         (get-in db [:map :rich-layers :states id])
         async-data                (get-in db [:map :rich-layers :async-datas id])
+        layer                     (first-where #(= (:id %) layer-id) (get-in db [:map :layers]))
 
         alternate-views              (mapv #(->alternate-view % db) alternate-views)
         alternate-views-selected     (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
@@ -532,11 +552,20 @@
         timeline                  (mapv #(->timeline % db) (or (:timeline alternate-view-rich-layer) timeline))
         timeline-selected         (first-where #(= (get-in % [:layer :id]) timeline-selected-id) timeline)
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
+        displayed-layer           (:layer (or timeline-selected alternate-views-selected))
 
         controls                  (mapv #(->control % rich-layer db) controls)
 
         side-by-side-views          (mapv #(->side-by-side-view % db) side-by-side-views)
-        side-by-side-views-selected (first-where #(= (get-in % [:layer :id]) side-by-side-views-selected-id) side-by-side-views)
+        ;; Note that the left layer of a side-by-side view isn't "selected" in the
+        ;; traditional sense, as it's not determined at all by the side-by-side controls.
+        ;; But we do want to check if the layer is in our side-by-side views layer list to
+        ;; see if we can get a shorter "display name" to use for the labels on the split
+        ;; view slider (ISA-696).
+        side-by-side-views-left-selected    (first-where #(= (get-in % [:layer :id]) (or (:id displayed-layer) layer-id)) side-by-side-views)
+        side-by-side-views-right-selected   (first-where #(= (get-in % [:layer :id]) side-by-side-views-selected-id) side-by-side-views)
+        side-by-side-views-left-label-text  (or (:display_name side-by-side-views-left-selected) (:name layer))
+        side-by-side-views-right-label-text (:display_name side-by-side-views-right-selected)
 
         cql-filter                (->>
                                    controls
@@ -550,7 +579,7 @@
        (merge state)
        (merge async-data)
        (assoc
-        :layer                    (first-where #(= (:id %) layer-id) (get-in db [:map :layers]))
+        :layer                    layer
         :tab                      (or tab "legend")
         :controls                 controls
         :alternate-views          alternate-views
@@ -559,9 +588,11 @@
         :timeline-selected        timeline-selected
         :timeline-disabled?       (boolean (and alternate-views-selected (not (:timeline alternate-view-rich-layer))))
         :slider-label             slider-label
-        :displayed-layer          (:layer (or timeline-selected alternate-views-selected))
+        :displayed-layer          displayed-layer
         :side-by-side-views          side-by-side-views
-        :side-by-side-views-selected side-by-side-views-selected
+        :side-by-side-views-selected side-by-side-views-right-selected
+        :side-by-side-views-left-label-text  side-by-side-views-left-label-text
+        :side-by-side-views-right-label-text side-by-side-views-right-label-text
         :cql-filter                 cql-filter)))))
 
 (defn layer->rich-layer [{:keys [id] :as _layer} db]
@@ -661,7 +692,8 @@
 (defn layer->cql-filter
   "Returns the CQL filter for a layer."
   [{layer-cql-filter :filter :as layer} db]
-  (let [rich-layer-cql-filter (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db)) ; string or nil
+  (let [rich-layer-cql-filter     (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db)) ; string or nil
+        layer-cql-filter          (:filter (rich-layer->displayed-layer layer db))
         dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db))) ; list of strings
         cql-filters
         (cond-> dynamic-pills-cql-filters
