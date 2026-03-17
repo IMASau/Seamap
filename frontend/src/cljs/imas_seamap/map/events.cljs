@@ -1141,3 +1141,25 @@
 (defn get-layer-legend-error
   [db [_ {:keys [id] :as _layer}]]
   (assoc-in db [:map :legends id] :map.legend/error))
+
+(defn time-set-current-time
+  "Updates the current time in the app state and in the timeDimension component
+   (timeDimension is a component from the plugin that controls the timeseries
+   layers on the map).
+   We update store the time in the app state in case time dimension hasn't been set
+   up yet (i.e. app is still initialising but somehow the time has changed), and
+   for ensuring that it's saved when the website is reloaded/shared."
+  [db [_ current-time]]
+  (let [leaflet-map         (get-in db [:map :leaflet-map])
+        time-dimension      (when leaflet-map (.-timeDimension leaflet-map))]
+    ;; If:
+    ;; * the leaflet map is configured,
+    ;; * it has a timeDimension component, and
+    ;; * the time has changed from what's currently set in timeDimension,
+    ;; then do the side-effect of setting the time for the component.
+    (when time-dimension
+      (let [time-dimension-current-time (.getCurrentTime time-dimension)
+            time-changed?               (not= current-time time-dimension-current-time)]
+        (when time-changed?
+          (.setCurrentTime time-dimension current-time))))
+    (assoc-in db [:display :timeseries-current-time] current-time)))

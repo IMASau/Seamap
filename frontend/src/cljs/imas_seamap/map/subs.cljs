@@ -224,7 +224,8 @@
                          :active-layers
                          (filter has-time-dimension?))]
     {:show-time-slider? (seq time-layers)
-     :time-series-layers time-layers}))
+     :time-series-layers time-layers
+     :current-time (get-in db [:timeseries-current-time])}))
 
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))
