@@ -296,7 +296,10 @@
 
 (defmethod basemap-layer-component :tile
  [{:keys [server_url attribution]}]
- [leaflet/tile-layer {:url server_url :attribution attribution}])
+ [leaflet/tile-layer
+  {:url             server_url
+   :attribution     attribution
+   :referrer-policy "origin"}]) ; ISA-702: including referrer-policy header, because OSM requires it: https://operations.osmfoundation.org/policies/tiles/
 
 (defmethod basemap-layer-component :vector
   [{:keys [server_url attribution]}]
