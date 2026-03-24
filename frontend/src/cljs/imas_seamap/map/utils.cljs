@@ -170,9 +170,7 @@
                                bounds
                                download-type
                                _api-url-base]
-  (let [{:keys [north south east west] :as bounds} (or bounds bounding_box)
-        ratio (/ (- north south) (- east west))
-        width 640]
+  (let [{:keys [north south east west]} bounds]
     (-> (url/url server_url)
         (assoc :query {:service     "WCS"
                        :version     "2.0.1"
@@ -180,7 +178,7 @@
                        :compression "DEFLATE"
                        :format      (type->format-str download-type)
                        :coverageId (or detail_layer layer_name)})
-        str)))
+        (str (when bounds (str "&subset=Lat(" south "," north ")&subset=Long(" west "," east ")")))))) ; Add bounds params if provided. Can't be part of query dict because 'subset' param is used twice.
 
 (defmulti feature-info-response->display
   "Converts a response and info format into readable information for the feature info popup"
