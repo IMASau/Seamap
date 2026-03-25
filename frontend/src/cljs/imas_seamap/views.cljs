@@ -536,11 +536,10 @@
       [:div.bp3-dialog-footer-actions
        (when download_format
          [:<>
-          (when (= category :habitat)
-            [download-menu {:title     "Download Selection..."
-                            :layer     layer
-                            :disabled? (nil? region)
-                            :bbox      region}])
+          [download-menu {:title     "Download Selection..."
+                          :layer     layer
+                          :disabled? (nil? region)
+                          :bbox      region}]
           [download-menu {:title "Download All..."
                           :layer layer}]])
        [b/button

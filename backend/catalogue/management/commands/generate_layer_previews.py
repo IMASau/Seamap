@@ -282,7 +282,8 @@ def subdivide_requests(layer: Layer, target_crs: str, horizontal_subdivisions: i
                 'width': sub_width,
                 'height': sub_height,
                 'srs': target_crs,
-                'bbox': f'{sub_min_x},{sub_min_y},{sub_max_x},{sub_max_y}'
+                'bbox': f'{sub_min_x},{sub_min_y},{sub_max_x},{sub_max_y}',
+                'cql_filter': layer.filter or '',
             }
 
             urls[i][j] = f'{layer.server_url}?{urlencode(sub_params)}'
