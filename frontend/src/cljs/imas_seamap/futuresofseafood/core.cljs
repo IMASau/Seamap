@@ -43,6 +43,7 @@
     :map.layer/legend                     msubs/layer-legend
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
+    :map.time/info                        msubs/time-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
     :sorting/info                         subs/sorting-info
@@ -130,6 +131,7 @@
     :map/get-feature-info-map-server-step-2 [mevents/get-feature-info-map-server-step-2] ; MapServer layers need to make an additional request to determine if they are a group layer
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
+    :map.time/info                        mevents/time-set-current-time
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]
