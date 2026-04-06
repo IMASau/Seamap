@@ -13,6 +13,7 @@
                                                 rich-layer-children->parents
                                                 sort-layers viewport-layers
                                                 match-layer]]
+   [re-frame.core :as rf]
    [imas-seamap.utils :refer [ids->layers map-on-key]]))
 
 (defn map-props [db _] (:map db))
@@ -32,13 +33,21 @@
            (> (/ error-count total-count)
               0.4)))))       ; Might be nice to make this configurable eventually
 
-; TODO: Split this from one monolithic sub into multiple focused subs that form a DAG
-; Because it's one sub with all the data bundled *together*, it's harder to write
-; an intercept between the raw layers and the view (e.g. in NHAT where we want to
-; change the server URL of hazard layers) without entirely rewriting a copy of
-; this sub.
-(defn map-layers [{:keys [layer-state filters sorting] {:keys [layers active-layers bounds categories rich-layer-children] :as db-map} :map
+(rf/reg-sub :dbsubs/layer-state (fn [_ db] (get db :layer-state)))
+(rf/reg-sub :dbsubs/filters (fn [_ db] (get db :filters)))
+(rf/reg-sub :dbsubs/sorting (fn [_ db] (get db :sorting)))
+(rf/reg-sub :dbsubs.map/layers (fn [_ db] (get-in [:map :layers] db)))
+(rf/reg-sub :dbsubs.map/active-layers (fn [_ db] (get-in [:map :active-layers] db)))
+(rf/reg-sub :dbsubs.map/hidden-layers (fn [_ db] (get-in [:map :hidden-layers] db)))
+(rf/reg-sub :dbsubs.map/bounds (fn [_ db] (get-in [:map :bounds] db)))
+(rf/reg-sub :dbsubs.map/categories (fn [_ db] (get-in [:map :categories] db)))
+(rf/reg-sub :dbsubs.map/rich-layers (fn [_ db] (get-in [:map :rich-layers :rich-layers] db)))
+(rf/reg-sub :dbsubs.map/rich-layer-children (fn [_ db] (get-in [:map :rich-layer-children] db)))
+
+(defn map-layers [{:keys [layer-state filters sorting]
+                   {:keys [layers active-layers bounds categories rich-layer-children] :as db-map} :map
                    :as db} _]
+  (js/console.log "[sub] map-layers")
   (let [categories      (map-on-key categories :name)
         filter-text     (:layers filters)
         rich-layers (get-in db [:map :rich-layers :rich-layers])
@@ -53,6 +62,7 @@
             (set/union acc)))                                                          ; Add to the accumulative list of all layers to hide from the catalogue
          #{} rich-layers)
 
+        ;; TODO: can be extracted into separate sub
         catalogue-layers
         (->>
          layers
@@ -72,7 +82,8 @@
                                {} (ids->layers (map :layer-id rich-layers) layers))
         displayed-layers->layers (set/map-invert displayed-rich-layers)
 
-        rich-layer-fn   (map-utils/rich-layer-fn db)
+        rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)
+        ;; FIXME: doesn't need entire db-map, just :hidden-layers and :active-layers
         visible-layers  (map-utils/visible-layers db-map)]
     {:layers          layers
      :groups          (group-by :category filtered-layers)
