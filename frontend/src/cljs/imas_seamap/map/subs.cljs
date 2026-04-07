@@ -45,7 +45,7 @@
 (rf/reg-sub :dbsubs.map/rich-layer-children (fn [_ db] (get-in [:map :rich-layer-children] db)))
 
 (defn map-layers [{:keys [layer-state filters sorting]
-                   {:keys [layers active-layers bounds categories rich-layer-children] :as db-map} :map
+                   {:keys [layers active-layers hidden-layers bounds categories rich-layer-children]} :map
                    :as db} _]
   (js/console.log "[sub] map-layers")
   (let [categories      (map-on-key categories :name)
@@ -83,10 +83,9 @@
         displayed-layers->layers (set/map-invert displayed-rich-layers)
 
         rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)
-        ;; FIXME: doesn't need entire db-map, just :hidden-layers and :active-layers
-        visible-layers  (map-utils/visible-layers db-map)]
-    {:layers          layers
-     :groups          (group-by :category filtered-layers)
+        visible-layers  (map-utils/visible-layers {:hidden-layers hidden-layers
+                                                   :active-layers active-layers})]
+    {:groups          (group-by :category filtered-layers)
      :loading-layers  (->>
                        layer-state :loading-state
                        (filter (fn [[l st]] (= st :map.layer/loading)))
