@@ -1,7 +1,7 @@
 -- This is code specific to Seamap Antarctica.
 -- In Seamap Antarctica we had an issue with transformed bounding boxes loading
 -- slowly (ISA-704), and so we elected to abstract over the catalogue_layer table
--- with a brand-new view.
+-- with a view.
 -- This is the code to generate the abstraction.
 
 BEGIN TRANSACTION;

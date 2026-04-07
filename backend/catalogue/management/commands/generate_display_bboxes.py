@@ -9,7 +9,7 @@ Uses BBOX_SERIALIZER to transform the bounding box coordinates.
 """
 import importlib
 import logging
-from typing import Callable
+from typing import Callable, Optional
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import models
@@ -47,32 +47,36 @@ def get_bbox_fn():
         raise RuntimeError("BBOX_SERIALIZER is not definied in settings")
 
 
-def layer_display_queryset(layer_id: int, skip_existing: bool):
+def layer_queryset(layer_id: Optional[int], skip_existing: bool):
     "Queryset for which layers we'll be updating the display bbox coordinates."
-    layer_displays = LayerDisplay.objects.all()
+    layers = LayerDisplay.objects.all()
 
     # Filter by layer_id if provided
     if layer_id is not None:
-        layer_displays = layer_displays.filter(id=layer_id)
+        layers = layers.filter(id=layer_id)
 
     # Filter out objects that already have display values if skip_existing is True
     if skip_existing:
-        layer_displays = layer_displays.filter(
+        layers = layers.filter(
             Q(display_maxx__isnull=True) or
             Q(display_maxy__isnull=True) or
             Q(display_minx__isnull=True) or
             Q(display_miny__isnull=True)
         )
 
-    return layer_displays
+    return layers
 
 
-def generate_display_bbox(layer_display: LayerDisplay, bbox_fn: Callable):
-    bbox = bbox_fn(layer_display)
-    layer_display.display_maxx = bbox["east"]
-    layer_display.display_maxy = bbox["north"]
-    layer_display.display_minx = bbox["west"]
-    layer_display.display_miny = bbox["south"]
+def generate_display_bbox(layer: LayerDisplay, bbox_fn: Callable):
+    """
+    Generate the display bbox coordinates for a given LayerDisplay object, and
+    update the object with the new values.
+    """
+    bbox = bbox_fn(layer)
+    layer.display_maxx = bbox["east"]
+    layer.display_maxy = bbox["north"]
+    layer.display_minx = bbox["west"]
+    layer.display_miny = bbox["south"]
 
 
 class Command(BaseCommand):
@@ -95,7 +99,7 @@ class Command(BaseCommand):
         bbox_fn = get_bbox_fn()
 
         # Update the bounding box values for each layer, then save in bulk update
-        layer_displays = layer_display_queryset(layer_id, skip_existing)
-        for layer_display in layer_displays:
-            generate_display_bbox(layer_display, bbox_fn)
-        LayerDisplay.objects.bulk_update(layer_displays, ['display_maxx', 'display_maxy', 'display_minx', 'display_miny'])
+        layers = layer_queryset(layer_id, skip_existing)
+        for layer in layers:
+            generate_display_bbox(layer, bbox_fn)
+        LayerDisplay.objects.bulk_update(layers, ['display_maxx', 'display_maxy', 'display_minx', 'display_miny'])
