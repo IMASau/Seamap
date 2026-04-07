@@ -72,7 +72,7 @@
      {:title
       [:<>
        [:div
-        [:a {:href "https://seamapaustralia.org/"}
+        [:a {:href "https://seamapantarctica.org/"}
          [:img {:src "img/SeaMapAntarctica_Logo_RGB_1000px.png"}]]]
        [b/button
         {:icon     "double-chevron-left"
