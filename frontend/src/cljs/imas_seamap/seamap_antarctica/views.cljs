@@ -72,7 +72,7 @@
      {:title
       [:<>
        [:div
-        [:a {:href "https://seamapantarctica-dev.imas.utas.edu.au/"} ; TODO: Replace with the URL for Seamap Antarctica production
+        [:a {:href "https://seamapaustralia.org/"}
          [:img {:src "img/SeaMapAntarctica_Logo_RGB_1000px.png"}]]]
        [b/button
         {:icon     "double-chevron-left"
