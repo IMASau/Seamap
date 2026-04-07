@@ -8,7 +8,7 @@
             [goog.dom.xml :as gxml]
             [goog.object :as gobject]
             [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [merge-in select-values first-where url? control->cql-filter ids->layers]]
+            [imas-seamap.utils :refer [merge-in select-values first-where url? control->cql-filter]]
             ["proj4" :as proj4]
             [reagent.dom.server :refer [render-to-string]]
             [imas-seamap.interop.leaflet :as leaflet]
@@ -491,24 +491,60 @@
    (filter #(= (:category %) :habitat))
    seq boolean))
 
-(defn ->alternate-view [{layer-id :layer :as alternate-view} db]
-  (let [layers (get-in db [:map :layers])
-        layer  (first-where #(= (:id %) layer-id) layers)]
-    (assoc alternate-view :layer layer)))
+;;; --- Rich-layer context map ---
+;;; All rich-layer utility functions take a `ctx` map instead of the full db.
+;;; This makes data dependencies explicit and enables memoisation in the signal graph.
+;;;
+;;; ctx keys:
+;;;   :layers-by-id       {id layer-map ...}        — from [:map :layers]
+;;;   :rich-layers        [rich-layer ...]           — from [:map :rich-layers :rich-layers]
+;;;   :rich-layers-by-id  {id rich-layer ...}        — derived from above
+;;;   :rl-states          {rl-id state-map ...}      — from [:map :rich-layers :states]
+;;;   :rl-async-datas     {rl-id async-data ...}     — from [:map :rich-layers :async-datas]
+;;;   :rl-lookup          {layer-id rl-id ...}       — from [:map :rich-layers :layer-lookup]
+;;;   :dynamic-pills      [dp ...]                   — from [:dynamic-pills :dynamic-pills]
+;;;   :dp-states          {dp-id state ...}          — from [:dynamic-pills :states]
+;;;   :dp-async-datas     {dp-id async-data ...}     — from [:dynamic-pills :async-datas]
+;;;   :active-layers      [layer ...]                — from [:map :active-layers]
+;;;   :open-pill          string-or-nil              — from [:display :open-pill]
+;;;   :split-layer-container-x  number               — from [:display :split-layer-container-x]
 
-(defn ->timeline [{layer-id :layer :as timeline} db]
+(defn db->ctx
+  "Builds a rich-layer context map from the full app-state db.
+   Use this as a bridge in event handlers during migration."
+  [db]
   (let [layers (get-in db [:map :layers])
-        layer  (first-where #(= (:id %) layer-id) layers)]
-    (assoc timeline :layer layer)))
+        rich-layers (get-in db [:map :rich-layers :rich-layers])]
+    {:layers-by-id      (into {} (map (juxt :id identity)) layers)
+     :rich-layers       rich-layers
+     :rich-layers-by-id (into {} (map (juxt :id identity)) rich-layers)
+     :rl-states         (get-in db [:map :rich-layers :states])
+     :rl-async-datas    (get-in db [:map :rich-layers :async-datas])
+     :rl-lookup         (get-in db [:map :rich-layers :layer-lookup])
+     :dynamic-pills     (get-in db [:dynamic-pills :dynamic-pills])
+     :dp-states         (get-in db [:dynamic-pills :states])
+     :dp-async-datas    (get-in db [:dynamic-pills :async-datas])
+     :active-layers     (get-in db [:map :active-layers])
+     :open-pill         (get-in db [:display :open-pill])
+     :split-layer-container-x (get-in db [:display :split-layer-container-x])}))
 
-(defn ->side-by-side-view [{layer-id :layer :as side-by-side-view} db]
-  (let [layers (get-in db [:map :layers])
-        layer  (first-where #(= (:id %) layer-id) layers)]
-    (assoc side-by-side-view :layer layer)))
+(defn- resolve-layer
+  "Resolve a layer id to a full layer map via the context."
+  [{:keys [layers-by-id]} layer-id]
+  (get layers-by-id layer-id))
 
-(defn control->value [{:keys [cql-property controller-type default-value] :as _control} {:keys [id] :as _rich-layer} db]
-  (let [value  (get-in db [:map :rich-layers :states id :controls cql-property :value])
-        values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])]
+(defn ->alternate-view [{layer-id :layer :as alternate-view} ctx]
+  (assoc alternate-view :layer (resolve-layer ctx layer-id)))
+
+(defn ->timeline [{layer-id :layer :as timeline} ctx]
+  (assoc timeline :layer (resolve-layer ctx layer-id)))
+
+(defn ->side-by-side-view [{layer-id :layer :as side-by-side-view} ctx]
+  (assoc side-by-side-view :layer (resolve-layer ctx layer-id)))
+
+(defn control->value [{:keys [cql-property controller-type default-value] :as _control} {:keys [id] :as _rich-layer} {:keys [rl-states rl-async-datas]}]
+  (let [value  (get-in rl-states [id :controls cql-property :value])
+        values (get-in rl-async-datas [id :controls cql-property :values])]
     (or
      value
      default-value
@@ -516,13 +552,13 @@
 
 (defn control->value-map
   "Returns a map of the control's cql-property to its value."
-  [{:keys [cql-property] :as control} rich-layer db]
-  (let [value (control->value control rich-layer db)]
+  [{:keys [cql-property] :as control} rich-layer ctx]
+  (let [value (control->value control rich-layer ctx)]
     {cql-property value}))
 
-(defn control-is-default-value? [{:keys [cql-property controller-type default-value] :as control} {:keys [id] :as rich-layer} db]
-  (let [value  (control->value control rich-layer db)
-        values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])]
+(defn control-is-default-value? [{:keys [cql-property controller-type default-value] :as control} {:keys [id] :as rich-layer} {:keys [rl-async-datas] :as ctx}]
+  (let [value  (control->value control rich-layer ctx)
+        values (get-in rl-async-datas [id :controls cql-property :values])]
     (boolean
      (or
       (= value default-value)
@@ -545,15 +581,15 @@
       (filterv #(= (get % cql-property) value) filter-combinations))
     filter-combinations))
 
-(defn- ->control [{:keys [cql-property] :as control} {:keys [id controls] :as rich-layer} db]
-  (let [values (get-in db [:map :rich-layers :async-datas id :controls cql-property :values])
-        value  (control->value control rich-layer db)
+(defn- ->control [{:keys [cql-property] :as control} {:keys [id controls] :as rich-layer} {:keys [rl-async-datas] :as ctx}]
+  (let [values (get-in rl-async-datas [id :controls cql-property :values])
+        value  (control->value control rich-layer ctx)
         other-controls
         (->>
          controls
          (remove #(= cql-property (:cql-property %)))
-         (map #(assoc % :value (control->value % rich-layer db))))
-        filter-combinations (get-in db [:map :rich-layers :async-datas id :filter-combinations])
+         (map #(assoc % :value (control->value % rich-layer ctx))))
+        filter-combinations (get-in rl-async-datas [id :filter-combinations])
         valid-filter-combinations (reduce #(remove-incompatible-combinations %1 %2) filter-combinations other-controls)
         valid-values (set (map #(get % cql-property) valid-filter-combinations))]
     (assoc
@@ -566,46 +602,46 @@
          :valid? (boolean (some #(= % value) valid-values))))
       values)
      :value  value
-     :is-default-value? (control-is-default-value? control rich-layer db)
+     :is-default-value? (control-is-default-value? control rich-layer ctx)
      :cql-filter (control->cql-filter control value))))
 
 (defn rich-layer->controls-value-map
   "Returns a map of the rich layer's controls' CQL propeties to their values.
 
    * `rich-layer: :map.rich-layers/rich-layer`: Rich layer to get the controls from
-   * `db: :seamap/app-state`: Seamap app state
+   * `ctx`: Rich-layer context map
 
    Example: `rich-layer` -> `{\"cql-property1\" 100 \"cql-property2\" 200}`"
-  [rich-layer db]
+  [rich-layer ctx]
   (s/assert :map.rich-layers/rich-layer rich-layer)
-  (apply merge (map #(control->value-map % rich-layer db) (:controls rich-layer))))
+  (apply merge (map #(control->value-map % rich-layer ctx) (:controls rich-layer))))
 
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
   [{:keys [id layer-id slider-label alternate-views timeline side-by-side-views controls]
-    :as rich-layer} db]
+    :as rich-layer} {:keys [rl-states rl-async-datas rl-lookup rich-layers-by-id] :as ctx}]
   (let [{:keys [tab side-by-side-views-selected-id]
          alternate-views-selected-id :alternate-views-selected
          timeline-selected-id        :timeline-selected
          :as state}
-        (get-in db [:map :rich-layers :states id])
-        async-data                (get-in db [:map :rich-layers :async-datas id])
-        layer                     (first-where #(= (:id %) layer-id) (get-in db [:map :layers]))
+        (get rl-states id)
+        async-data                (get rl-async-datas id)
+        layer                     (resolve-layer ctx layer-id)
 
-        alternate-views              (mapv #(->alternate-view % db) alternate-views)
+        alternate-views              (mapv #(->alternate-view % ctx) alternate-views)
         alternate-views-selected     (first-where #(= (get-in % [:layer :id]) alternate-views-selected-id) alternate-views)
-        alternate-view-rich-layer-id (get-in db [:map :rich-layers :layer-lookup alternate-views-selected-id])
+        alternate-view-rich-layer-id (get rl-lookup alternate-views-selected-id)
         alternate-view-rich-layer-id (when-not (= alternate-view-rich-layer-id id) alternate-view-rich-layer-id)
-        alternate-view-rich-layer    (first-where #(= (:id %) alternate-view-rich-layer-id) (get-in db [:map :rich-layers :rich-layers]))
+        alternate-view-rich-layer    (get rich-layers-by-id alternate-view-rich-layer-id)
 
-        timeline                  (mapv #(->timeline % db) (or (:timeline alternate-view-rich-layer) timeline))
+        timeline                  (mapv #(->timeline % ctx) (or (:timeline alternate-view-rich-layer) timeline))
         timeline-selected         (first-where #(= (get-in % [:layer :id]) timeline-selected-id) timeline)
         slider-label              (or (:slider-label alternate-view-rich-layer) slider-label)
         displayed-layer           (:layer (or timeline-selected alternate-views-selected))
 
-        controls                  (mapv #(->control % rich-layer db) controls)
+        controls                  (mapv #(->control % rich-layer ctx) controls)
 
-        side-by-side-views          (mapv #(->side-by-side-view % db) side-by-side-views)
+        side-by-side-views          (mapv #(->side-by-side-view % ctx) side-by-side-views)
         ;; Note that the left layer of a side-by-side view isn't "selected" in the
         ;; traditional sense, as it's not determined at all by the side-by-side controls.
         ;; But we do want to check if the layer is in our side-by-side views layer list to
@@ -644,31 +680,29 @@
         :side-by-side-views-right-label-text side-by-side-views-right-label-text
         :cql-filter                 cql-filter)))))
 
-(defn layer->rich-layer [{:keys [id] :as _layer} db]
-  (let [{:keys [rich-layers layer-lookup]} (get-in db [:map :rich-layers])
-        rich-layer-id (get layer-lookup id)]
-    (first-where #(= (:id %) rich-layer-id) rich-layers)))
+(defn layer->rich-layer [{:keys [id] :as _layer} {:keys [rich-layers-by-id rl-lookup]}]
+  (let [rich-layer-id (get rl-lookup id)]
+    (get rich-layers-by-id rich-layer-id)))
 
 (defn layer->rich-layer?
   "True if a layer is a rich layer, otherwise false."
-  [{:keys [id] :as _layer} db]
-  (let [rich-layers-layer-lookup (get-in db [:map :rich-layers :layer-lookup])]
-    (boolean (get rich-layers-layer-lookup id))))
+  [{:keys [id] :as _layer} {:keys [rl-lookup]}]
+  (boolean (get rl-lookup id)))
 
 ; FIXME: This function should be removed at some point. It's very data-munging.
 (defn rich-layer->displayed-layer
   "If a layer is a rich-layer, then return the currently displayed layer (including
    default if no alternate view or timeline selected). If layer is not a
    rich-layer, then the layer is just returned."
-  [layer db]
-  (let [rich-layer (enhance-rich-layer (layer->rich-layer layer db) db)]
+  [layer ctx]
+  (let [rich-layer (enhance-rich-layer (layer->rich-layer layer ctx) ctx)]
     (or (:displayed-layer rich-layer) layer)))
 
 (defn rich-layer->side-by-side-views-selected
   "If a layer is a rich-layer with a currently visible split layer, then return
    that split layer."
-  [layer db]
-  (let [{:keys [side-by-side-views-selected]} (enhance-rich-layer (layer->rich-layer layer db) db)]
+  [layer ctx]
+  (let [{:keys [side-by-side-views-selected]} (enhance-rich-layer (layer->rich-layer layer ctx) ctx)]
     (when side-by-side-views-selected (:layer side-by-side-views-selected))))
 
 (defn rich-layer-children->parents
@@ -687,10 +721,9 @@
    that point. This pulls complicated \"what layer is the user actually clicking\"
    logic for rich layers out from the \"feature-info-dispatcher\" event, leaving
    that a bit neater."
-  [rich-layer {:keys [x] :as _point} db]
-  (let [enhanced-rich-layer (enhance-rich-layer rich-layer db)
-        side-by-side-views-selected-layer (get-in enhanced-rich-layer [:side-by-side-views-selected :layer])
-        split-layer-container-x (get-in db [:display :split-layer-container-x])]
+  [rich-layer {:keys [x] :as _point} {:keys [split-layer-container-x] :as ctx}]
+  (let [enhanced-rich-layer (enhance-rich-layer rich-layer ctx)
+        side-by-side-views-selected-layer (get-in enhanced-rich-layer [:side-by-side-views-selected :layer])]
     (if (and side-by-side-views-selected-layer (> x split-layer-container-x)) ; if we have a split view and we click on the right side of the split view...
       side-by-side-views-selected-layer                                       ; ...return the split view layer...
       (or                                                                     ; ...else...
@@ -733,39 +766,36 @@
 
 (defn layer->dynamic-pills
   "Returns the dynamic pills for a layer."
-  [{:keys [id] :as _layer} db]
-  (let [dynamic-pills (get-in db [:dynamic-pills :dynamic-pills])]
-    (filter
-     (fn [{:keys [layers] :as _dynamic-pill}]
-       (some #{id} (set (map :layer layers))))
-     dynamic-pills)))
+  [{:keys [id] :as _layer} {:keys [dynamic-pills]}]
+  (filter
+   (fn [{:keys [layers] :as _dynamic-pill}]
+     (some #{id} (set (map :layer layers))))
+   dynamic-pills))
 
-(defn ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} {{:keys [active-layers layers]} :map :as db}]
-  (let [value (get-in db [:dynamic-pills :states id :region-control :value])
+(defn ->dynamic-pill [{:keys [id region-control] :as dynamic-pill} {:keys [layers-by-id active-layers dp-states dp-async-datas open-pill] :as ctx}]
+  (let [value (get-in dp-states [id :region-control :value])
         active-layers
-        (ids->layers
-         (set/intersection
-          (set (map :layer (:layers dynamic-pill)))
-          (set (map :id active-layers)))
-         layers)
+        (let [dp-layer-ids (set (map :layer (:layers dynamic-pill)))
+              active-ids   (set/intersection dp-layer-ids (set (map :id active-layers)))]
+          (keep layers-by-id active-ids))
         displayed-layers
-        (map #(rich-layer->displayed-layer % db) active-layers)
-        displayed-rich-layer-filters (mapv #(rich-layer->controls-value-map (layer->rich-layer % db) db) displayed-layers)
-        active-layers-metadata (map (fn [layer] (:metadata (first-where #(= (:layer %) (:id layer)) (:layers dynamic-pill)))) active-layers)] ; get the metadata for the active layers, forming a list of the same arity
+        (map #(rich-layer->displayed-layer % ctx) active-layers)
+        displayed-rich-layer-filters (mapv #(rich-layer->controls-value-map (layer->rich-layer % ctx) ctx) displayed-layers)
+        active-layers-metadata (map (fn [layer] (:metadata (first-where #(= (:layer %) (:id layer)) (:layers dynamic-pill)))) active-layers)]
     (->
      dynamic-pill
-     (merge (get-in db [:dynamic-pills :states id]))
-     (merge (get-in db [:dynamic-pills :async-datas id]))
+     (merge (get dp-states id))
+     (merge (get dp-async-datas id))
      (assoc
       :region-control
       (->
        region-control
-       (merge (get-in db [:dynamic-pills :states id :region-control]))
-       (merge (get-in db [:dynamic-pills :async-datas id :region-control]))))
+       (merge (get-in dp-states [id :region-control]))
+       (merge (get-in dp-async-datas [id :region-control]))))
      (assoc
       :expanded?
       (=
-       (get-in db [:display :open-pill])
+       open-pill
        (str "dynamic-pill-" id)))
      (assoc :active-layers active-layers)
      (assoc :active-layers-metadata active-layers-metadata)
@@ -775,10 +805,10 @@
 
 (defn layer->cql-filter
   "Returns the CQL filter for a layer."
-  [{layer-cql-filter :filter :as layer} db]
-  (let [rich-layer-cql-filter     (:cql-filter (enhance-rich-layer (layer->rich-layer layer db) db)) ; string or nil
-        layer-cql-filter          (:filter (rich-layer->displayed-layer layer db))
-        dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % db)) (layer->dynamic-pills layer db))) ; list of strings
+  [{layer-cql-filter :filter :as layer} ctx]
+  (let [rich-layer-cql-filter     (:cql-filter (enhance-rich-layer (layer->rich-layer layer ctx) ctx)) ; string or nil
+        layer-cql-filter          (:filter (rich-layer->displayed-layer layer ctx))
+        dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % ctx)) (layer->dynamic-pills layer ctx))) ; list of strings
         cql-filters
         (cond-> dynamic-pills-cql-filters
           (seq rich-layer-cql-filter) (conj rich-layer-cql-filter) ; if rich-layer cql filter exists, add it

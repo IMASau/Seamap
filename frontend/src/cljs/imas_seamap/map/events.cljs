@@ -116,110 +116,8 @@
                       (bounds->projected
                        #(project-coords % request-crs)
                        (bounds-for-zoom geo-point size bounds feature-info-image-size)))
-        bbox (bounds->str:wms request-crs bbox-bounds)
-        layer-names (->> layers (map layer-name) reverse (string/join ","))
-        has-time? (has-time-dimension? (first layers))
-        current-time (get-in db [:display :current-time])
-        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
-        cql-filter (apply str (interpose ";" cql-filters))
-        cql-filter (when (seq cql-filter) cql-filter)]
-    {:http-xhrio
-     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
-     {:method          :get
-      :uri             (-> layers first :server_url)
-      :params
-      (merge
-       {:REQUEST       "GetFeatureInfo"
-        :LAYERS        layer-names
-        :QUERY_LAYERS  layer-names
-        :WIDTH         (:width feature-info-image-size)
-        :HEIGHT        (:height feature-info-image-size)
-        :BBOX          bbox
-        :FEATURE_COUNT 1000
-        :STYLES        ""
-        :X             50
-        :Y             50
-        :TRANSPARENT   true
-        :CRS           request-crs
-        :SRS           request-crs
-        :FORMAT        "image/png"
-        :INFO_FORMAT   "text/html"
-        :SERVICE       "WMS"
-        :VERSION       "1.1.1"}
-       (when cql-filter {:CQL_FILTER cql-filter})
-       (when has-time? {:TIME (ms-to-iso current-time)}))
-      :response-format (ajax/text-response-format)
-      :on-success      [:map/got-featureinfo request-id point "text/html" layers]
-      :on-failure      [:map/got-featureinfo-err request-id point]}}))
-
-(defmethod get-feature-info INFO-FORMAT-JSON
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds zoom] :as _leaflet-props} point]]
-  (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
-        request-crs (or layer-crs crs)
-        geo-point ((juxt :lng :lat) point)
-        projected-point (project-coords geo-point request-crs)
-        bbox-bounds (if (crs-map-default? :map-crs crs
-                                          :layer-crs layer-crs)
-                      (bounds-for-resolution projected-point feature-info-image-size scale)
-                      (bounds->projected
-                       #(project-coords % request-crs)
-                       (bounds-for-zoom projected-point size bounds feature-info-image-size)))
-        bbox (bounds->str:wms request-crs bbox-bounds)
-        layer-names (->> layers (map layer-name) reverse (string/join ","))
-        has-time? (has-time-dimension? (first layers))
-        current-time (get-in db [:display :current-time])
-        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
-        cql-filter (apply str (interpose ";" cql-filters))
-        cql-filter (when (seq cql-filter) cql-filter)]
-    {:http-xhrio
-     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
-     {:method          :get
-      :uri             (-> layers first :server_url)
-      :params
-      (merge
-       {:REQUEST       "GetFeatureInfo"
-        :LAYERS        layer-names
-        :QUERY_LAYERS  layer-names
-        :WIDTH         (:width feature-info-image-size)
-        :HEIGHT        (:height feature-info-image-size)
-        :BBOX          bbox
-        :FEATURE_COUNT 1000
-        :STYLES        ""
-        :X             50
-        :Y             50
-        :TRANSPARENT   true
-        :CRS           request-crs
-        :SRS           request-crs
-        :FORMAT        "image/png"
-        :INFO_FORMAT   "application/json"
-        :SERVICE       "WMS"
-        :VERSION       "1.1.1"}
-       (when cql-filter {:CQL_FILTER cql-filter})
-       (when has-time? {:TIME (ms-to-iso current-time)}))
-      :response-format (ajax/json-response-format)
-      :on-success      [:map/got-featureinfo request-id point "application/json" layers]
-      :on-failure      [:map/got-featureinfo-err request-id point]}}))
-
-(defmethod get-feature-info INFO-FORMAT-FEATURE
-  [_ [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point}]]
-  (let [query         (leaflet/esri-query {:url (-> layers first :server_url)})
-        leaflet-point (leaflet/latlng. lat lng)]
-    (.intersects query leaflet-point)
-    (.run query (fn [error feature-collection _response]
-                  (if error
-                    (re-frame/dispatch [:map/got-featureinfo-err request-id point nil])
-                    (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers (js->clj feature-collection)]))))
-    nil))
-
-(defmethod get-feature-info INFO-FORMAT-XML
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} {:keys [lat lng] :as point}]]
-  (let [bbox (->> (bounds-for-zoom [lng lat] size bounds feature-info-image-size)
-                  (bounds->projected #(project-coords % (-> layers first :crs)))
-                  (bounds->str:wms (-> layers first :crs)))
-        layer-names (->> layers (map layer-name) reverse (string/join ","))
-        has-time? (has-time-dimension? (first layers))
-        current-time (get-in db [:display :current-time])
-        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
+        ctx (db->ctx db)
+        cql-filters (->> layers (map #(layer->cql-filter % ctx)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
     {:http-xhrio
@@ -658,8 +556,9 @@
 
 (defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))
+        ctx (db->ctx db)
         has-legend? (get-in db [:map :legends id])
-        rich-layer  (enhance-rich-layer (layer->rich-layer layer db) db)
+        rich-layer  (enhance-rich-layer (layer->rich-layer layer ctx) ctx)
         has-cql-filter-values? (get-in rich-layer [:controls :values])]
     {:db         db
      :dispatch-n [[:maybe-autosave]
@@ -674,8 +573,9 @@
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ layer]]
-  (let [layer-active?  ((set (get-in db [:map :active-layers])) layer)
-        displayed-layer (rich-layer->displayed-layer layer db)
+  (let [ctx (db->ctx db)
+        layer-active?  ((set (get-in db [:map :active-layers])) layer)
+        displayed-layer (rich-layer->displayed-layer layer ctx)
         bounding_box    (:bounding_box displayed-layer)]
     {:db         db
      :dispatch-n [(when-not layer-active? [:map/add-layer layer])
@@ -868,16 +768,18 @@
       (assoc-in db [:map :rich-layers :async-datas id :filter-combinations] filter_combinations))))
 
 (defn rich-layer-alternate-views-selected [{:keys [db]} [_ {:keys [id] :as rich-layer} alternate-views-selected]]
-  (let [{{old-timeline-value :value
+  (let [ctx (db->ctx db)
+        {{old-timeline-value :value
           old-timeline-label :label}
          :timeline-selected
          old-slider-label :slider-label}
-        (enhance-rich-layer rich-layer db)
+        (enhance-rich-layer rich-layer ctx)
 
         db (assoc-in db [:map :rich-layers :states id :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
+        ctx (db->ctx db)
         {:keys [timeline]
          new-slider-label :slider-label}
-        (enhance-rich-layer rich-layer db)
+        (enhance-rich-layer rich-layer ctx)
 
         ; Find a value on the new alternate view's timeline that matches the old
         ; selected value.
@@ -992,37 +894,33 @@
 
 (defn remove-layer
   [{:keys [db]} [_ layer]]
-  (letfn [(dynamic-pill-active?
-           [db dynamic-pill]
-           "Checks if a dynamic pill has any current active layers.
-            
-            Args:
-            * `db: :seamap/app-state`: Seamap app state
-            * `dynamic-pill: :dynamic-pills/dynamic-pill`: Dynamic pill to check for active
-              layers
-            
-            Returns: `true` if the dynamic pill has any active layers, `false` otherwise."
-           (s/assert :dynamic-pills/dynamic-pill dynamic-pill)
-           (-> (->dynamic-pill dynamic-pill db) :active-layers seq boolean))]
-    (let [layers (get-in db [:map :active-layers])
-          layers (vec (remove #(= % layer) layers))
-          {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
-          rich-layer (layer->rich-layer layer db)
-          db     (->
-                  db
-                  (assoc-in [:map :active-layers] layers)
-                  (update-in [:map :hidden-layers] #(disj % layer))
-                  (cond->
-                   ((set habitat) layer)
-                    (assoc-in [:state-of-knowledge :statistics :habitat :show-layers?] false)
+  (let [ctx (db->ctx db)]
+    (letfn [(dynamic-pill-active?
+             [ctx dynamic-pill]
+             "Checks if a dynamic pill has any current active layers."
+             (s/assert :dynamic-pills/dynamic-pill dynamic-pill)
+             (-> (->dynamic-pill dynamic-pill ctx) :active-layers seq boolean))]
+      (let [layers (get-in db [:map :active-layers])
+            layers (vec (remove #(= % layer) layers))
+            {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
+            rich-layer (layer->rich-layer layer ctx)
+            db     (->
+                    db
+                    (assoc-in [:map :active-layers] layers)
+                    (update-in [:map :hidden-layers] #(disj % layer))
+                    (cond->
+                     ((set habitat) layer)
+                      (assoc-in [:state-of-knowledge :statistics :habitat :show-layers?] false)
 
-                    ((set bathymetry) layer)
-                    (assoc-in [:state-of-knowledge :statistics :bathymetry :show-layers?] false)
+                      ((set bathymetry) layer)
+                      (assoc-in [:state-of-knowledge :statistics :bathymetry :show-layers?] false)
 
-                    ((set habitat-obs) layer)
-                    (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))
-          dynamic-pills (layer->dynamic-pills layer db)
-          deactivated-dynamic-pills (filter #(not (dynamic-pill-active? db %)) dynamic-pills)]
+                      ((set habitat-obs) layer)
+                      (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))
+            ;; Rebuild ctx with updated db (active-layers changed)
+            ctx (db->ctx db)
+            dynamic-pills (layer->dynamic-pills layer ctx)
+            deactivated-dynamic-pills (filter #(not (dynamic-pill-active? ctx %)) dynamic-pills)]
       {:db db
        :dispatch-n
        (concat
@@ -1031,7 +929,7 @@
          [:map.layer.selection/maybe-clear]
          [:maybe-autosave]]
         (when (seq deactivated-dynamic-pills)
-          (map #(vector :dynamic-pill/active % false) deactivated-dynamic-pills)))})))
+          (map #(vector :dynamic-pill/active % false) deactivated-dynamic-pills)))}))))
 
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ layer]]
