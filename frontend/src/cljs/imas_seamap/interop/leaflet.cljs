@@ -1,14 +1,32 @@
 ;;; Seamap: view and interact with Australian coastal habitat data
 ;;; Copyright (c) 2021, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+
+;; =============================================================================
+;; WARNING: Leaflet Import Considerations
+;;
+;; Leaflet plugins assume a single global `L`. Importing new Leaflet modules can
+;; create multiple instances, overwriting or resetting extensions added by existing
+;; plugins. 
+;;
+;; To avoid breaking existing functionality:
+;;   1. Ensure any new Leaflet plugin import does not introduce a second Leaflet
+;;      instance.
+;;   2. If a plugin causes conflicts, consider vendoring its code directly into the
+;;      project rather than importing it from npm.
+;; =============================================================================
 (ns imas-seamap.interop.leaflet
   (:require [reagent.core :as r]
             ["leaflet" :as L]
+            ["react" :as react]
             ["react-leaflet" :as ReactLeaflet]
             ["@react-leaflet/core" :as ReactLeafletCore]
             ["esri-leaflet" :as esri]
             ["leaflet-draw"]
             ["leaflet-easyprint"]
+            ["leaflet-timedimension" :as LeafletTimeDimension]
+            ["iso8601-js-period" :as iso8601]
+            [goog.object :as gobject]
             ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
             ["react-esri-leaflet/plugins/VectorTileLayer" :as VectorTileLayer]
             ["leaflet.nontiledlayer"]
@@ -165,6 +183,70 @@
       (when (not= (.-opacity props) (.-opacity prev-props))
         (.setOpacity instance (.-opacity props)))))))
 
+(defonce ^:private _leaflet_monkeypatching!
+  (do
+    (set! js/nezasa #js{:iso8601 iso8601})
+    (gobject/set (-> L/default .-TileLayer .-prototype)
+                 "getURL"
+                   (fn []
+                     (this-as this
+                       (gobject/get this "_url"))))
+    (gobject/set (-> L/default .-TileLayer .-prototype)
+                 "setLoaded"
+                 (fn [loaded]
+                   (this-as this
+                     (gobject/set this
+                                  "_loaded"
+                                  loaded))))
+    (gobject/set (-> L/default .-TileLayer .-prototype)
+               "isLoaded"
+               (fn []
+                 (this-as this
+                   (gobject/get this
+                                "_loaded"))))
+    (gobject/set (-> L/default .-TileLayer .-prototype)
+                 "hide"
+                 (fn []
+                   (this-as this
+                     (gobject/set this "_visible" false)
+                     (when-let [container (gobject/get this "_container")]
+                       (set! (.. container -style -display) "none")))))
+    (gobject/set (-> L/default .-TileLayer .-prototype)
+                 "show"
+                 (fn []
+                   (this-as this
+                     (gobject/set this "_visible" true)
+                     (when-let [container (gobject/get this "_container")]
+                       (set! (.. container -style -display) "block")))))))
+
+(def wms-timeseries-layer
+  (r/adapt-react-class
+   (ReactLeafletCore/createLayerComponent
+    ;; Create layer fn
+    (fn [props context]
+      (let [url (.-url props)
+            map (.-map context)]        ; https://react-leaflet.js.org/docs/core-api/#leafletcontextinterface
+        ;; Ensure the map has a time-dimension:
+        (when (not (.-timeDimension map))
+          (set! (.-timeDimension map)
+                ((-> LeafletTimeDimension/default .-timeDimension) (clj->js props))))
+        (js-delete props "url")
+        (js-delete props "eventHandlers")
+        (let [wms-layer ((-> L/default .-tileLayer .-wms) url props)
+              instance ((-> LeafletTimeDimension/default .-timeDimension .-layer .-wms)
+                        wms-layer
+                        ;; Note; automatic conversion from :snake-case to :camelCase doesn't happen for #js:
+                        #js{:requestTimeFromCapabilities true
+                            :updateTimeDimension true
+                            :wmsVersion "1.3.0"})]
+          #js{:instance instance :context context})))
+    ;; Update layer fn
+    (fn [instance ^js/Object props ^js/Object prev-props]
+      (when (not= (.-opacity props) (.-opacity prev-props))
+        (.setOpacity instance (.-opacity props)))
+      (when (not= (.-cql_filter props) (.-cql_filter prev-props))
+        (.setParams instance (js-obj "cql_filter" (or (.-cql_filter props) ""))))))))
+
 (def map-container       (r/adapt-react-class ReactLeaflet/MapContainer))
 (def pane                (r/adapt-react-class ReactLeaflet/Pane))
 (def marker              (r/adapt-react-class ReactLeaflet/Marker))
@@ -175,6 +257,28 @@
 (def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L/default %))))
 (def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L/default .-control .-coordinates) %))))
+(def time-dimension-arg  (fn [options] ((-> LeafletTimeDimension/default .-timeDimension) options)))
+
+;;; Note: needs to be rendered with [:f> time-dimension-control2 ...] not [time-dimension-control2...]
+(defn time-dimension-control [options]
+  (let [map (ReactLeaflet/useMap)]
+    (react/useEffect
+      (fn []
+        ;; The upstream implementation uses addInitHook on L.Map to initialise this:
+        (when (not (.-timeDimension map))
+          (set! (.-timeDimension map)
+                ((-> LeafletTimeDimension/default .-timeDimension) (clj->js options))))
+
+        (let [control (new (-> LeafletTimeDimension/default .-control .-timeDimension) (clj->js options))]
+          (.addTo control map)
+          ;; Return a function to remove the control when component unmounts:
+          (fn []
+            (.remove control))))
+      ;; Re-run if map or options change
+      #js [map options])
+
+    ;; Return nil because Leaflet handles the DOM, not React
+    nil))
 (def geojson-feature     L/geoJson)
 (def latlng              L/LatLng)
 (def esri-query          #(.query esri (clj->js %)))

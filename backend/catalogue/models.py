@@ -89,6 +89,7 @@ LAYER_TYPE_CHOICES = [
     ('esri-vector-tile', 'esri-vector-tile'),
     ('wmts', 'wmts'),
     ('esri-image-map', 'esri-image-map'),
+    ('wms-timeseries', 'wms-timeseries')
 ]
 
 
@@ -155,6 +156,7 @@ class Layer(models.Model):
                 <li><code>wms-non-tiled</code>: special case where we want a WMS request to be made of a single image of the layer, rather than a series of tiles. This is less efficient but is used sometimes for layers that use a global render (e.g. heatmaps)</li>
                 <li><code>esri-vector-tile</code>: For ESRI VectorTileServer layers. Rendered with <a href="https://developers.arcgis.com/esri-leaflet/api-reference/esri-leaflet-vector/vector-layer/">L.esri.Vector.vectorTileLayer</a></li>
                 <li><code>esri-image-map</code>: For ESRI ImageServer layers. Rendered with <a href="https://developers.arcgis.com/esri-leaflet/api-reference/esri-leaflet/image-map-layer/">L.esri.imageMapLayer</a></li>
+                <li><code>wms-timeseries</code>: </li>
             </ol>
             <p>Extra info:</p>
             <ul>
