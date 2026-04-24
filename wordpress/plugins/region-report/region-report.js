@@ -1006,14 +1006,12 @@ class RegionReport {
 
         // set up hyperlink
         const appState = this.overviewMapAppState();
-        console.log("overviewMapAppState 1009", appState);
         this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
 
         this.overviewMap.on(
             'overlayadd',
             () => {
                 const appState = this.overviewMapAppState();
-                console.log("overviewMapAppState 1016", appState);
                 this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
             },
             this
@@ -1022,7 +1020,6 @@ class RegionReport {
             'overlayremove',
             () => {
                 const appState = this.overviewMapAppState();
-                console.log("overviewMapAppState 1025", appState);
                 this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
             },
             this
@@ -1048,7 +1045,6 @@ class RegionReport {
         }
 
         const appState = this.overviewMapAppState();
-        console.log("overviewMapAppState 1051", appState);
         this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
     }
 
