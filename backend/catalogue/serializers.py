@@ -56,6 +56,18 @@ class LayerSerializer(serializers.ModelSerializer):
         return getattr(obj.organisation, 'name', None)
 
     def get_bounding_box(self, obj):
+        # Allow customisation (currently only employed by Seamap-Antarctica)
+        if bbox_fn := getattr(settings, "BBOX_SERIALIZER", None):
+            module_name, fn_name = bbox_fn.rsplit('.', 1)
+            try:
+                plugin_module = importlib.import_module(module_name)
+                plugin_fn = getattr(plugin_module, fn_name)
+                return plugin_fn(obj)
+            except ModuleNotFoundError:
+                logger.error(f"Error trying to import bbox path {bbox_fn}", exc_info=True)
+                raise
+
+        # Default:
         return {"west": obj.minx, "south": obj.miny, "east": obj.maxx, "north": obj.maxy}
 
     class Meta:
