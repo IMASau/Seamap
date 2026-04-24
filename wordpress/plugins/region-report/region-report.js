@@ -814,146 +814,94 @@ class RegionReport {
 
         return [
             "^ ",
-            "~:autosave?",
-            true,
-            "~:filters",
-            [
+            "~:autosave?", true,
+            "~:filters", [
                 "^ ",
-                "~:layers",
-                ""
+                "~:layers", ""
             ],
-            "~:state-of-knowledge",
-            [
+            "~:state-of-knowledge", [
                 "^ ",
-                "~:boundaries",
-                [
+                "~:boundaries", [
                     "^ ",
-                    "~:active-boundary",
-                    [
+                    "~:active-boundary", [
                         "^ ",
-                        "~:id",
-                        "amp",
-                        "~:name",
-                        "Australian Marine Parks"
+                        "~:id", "amp",
+                        "~:name", "Australian Marine Parks"
                     ],
-                    "~:active-boundary-layer",
-                    [
+                    "~:active-boundary-layer", [
                         "^ ",
-                        "~:server_type",
-                        `~:${this.appBoundaryLayer.server_type.toLowerCase()}`,
-                        "~:category",
-                        `~:${this.appBoundaryLayer.category.toLowerCase()}`,
-                        "~:detail_layer",
-                        this.appBoundaryLayer.detail_layer,
-                        "~:organisation",
-                        this.appBoundaryLayer.organisation,
-                        "~:layer_name",
-                        this.appBoundaryLayer.layer_name,
-                        "~:server_url",
-                        this.appBoundaryLayer.server_url,
-                        "~:name",
-                        this.appBoundaryLayer.name,
-                        "~:info_format_type",
-                        this.appBoundaryLayer.info_format_type,
-                        "~:keywords",
-                        this.appBoundaryLayer.keywords,
-                        "~:style",
-                        this.appBoundaryLayer.style,
-                        "~:metadata_url",
-                        this.appBoundaryLayer.metadata_url,
-                        "~:id",
-                        this.appBoundaryLayer.id,
-                        "~:bounding_box",
-                        [
+                        "~:server_type", `~:${this.appBoundaryLayer.server_type.toLowerCase()}`,
+                        "~:category", `~:${this.appBoundaryLayer.category.toLowerCase()}`,
+                        "~:detail_layer", this.appBoundaryLayer.detail_layer,
+                        "~:organisation", this.appBoundaryLayer.organisation,
+                        "~:layer_name", this.appBoundaryLayer.layer_name,
+                        "~:server_url", this.appBoundaryLayer.server_url,
+                        "~:name", this.appBoundaryLayer.name,
+                        "~:info_format_type", this.appBoundaryLayer.info_format_type,
+                        "~:keywords", this.appBoundaryLayer.keywords,
+                        "~:style", this.appBoundaryLayer.style,
+                        "~:metadata_url", this.appBoundaryLayer.metadata_url,
+                        "~:id", this.appBoundaryLayer.id,
+                        "~:bounding_box", [
                             "^ ",
-                            "~:west",
-                            this.appBoundaryLayer.bounding_box.west,
-                            "~:south",
-                            this.appBoundaryLayer.bounding_box.south,
-                            "~:east",
-                            this.appBoundaryLayer.bounding_box.east,
-                            "~:north",
-                            this.appBoundaryLayer.bounding_box.north
+                            "~:west", this.appBoundaryLayer.bounding_box.west,
+                            "~:south", this.appBoundaryLayer.bounding_box.south,
+                            "~:east", this.appBoundaryLayer.bounding_box.east,
+                            "~:north", this.appBoundaryLayer.bounding_box.north
                         ],
-                        "~:table_name",
-                        this.appBoundaryLayer.table_name,
-                        "~:data_classification",
-                        this.appBoundaryLayer.data_classification,
-                        "~:tooltip",
-                        this.appBoundaryLayer.tooltip,
-                        "~:legend_url",
-                        this.appBoundaryLayer.legend_url,
-                        "~:layer_type",
-                        `~:${this.appBoundaryLayer.layer_type.toLowerCase()}`
+                        "~:table_name", this.appBoundaryLayer.table_name,
+                        "~:data_classification", this.appBoundaryLayer.data_classification,
+                        "~:tooltip", this.appBoundaryLayer.tooltip,
+                        "~:legend_url", this.appBoundaryLayer.legend_url,
+                        "~:layer_type", `~:${this.appBoundaryLayer.layer_type.toLowerCase()}`
                     ],
                     "~:amp",
                     [
                         "^ ",
-                        "~:active-network",
-                        [
+                        "~:active-network", [
                             "^ ",
-                            "~:network",
-                            this.network
+                            "~:network", this.network
                         ],
-                        "~:active-park",
-                        (
+                        "~:active-park", (
                             this.park ? [
                                 "^ ",
-                                "~:network",
-                                this.network,
-                                "~:park",
-                                this.park
+                                "~:network", this.network,
+                                "~:park", this.park
                             ] : null
                         ),
                     ]
                 ]
             ],
-            "~:story-maps",
-            [
+            "~:story-maps", [
                 "^ ",
-                "~:featured-map",
-                null
+                "~:featured-map", null
             ],
             "~:display",
             [
                 "^ ",
-                "~:left-drawer",
-                true,
-                "~:left-drawer-tab",
-                "active-layers",
-                "~:right-sidebars",
-                [
+                "~:left-drawer", true,
+                "~:left-drawer-tab", "active-layers",
+                "~:right-sidebars", [
                     [
                         "^ ",
-                        "^:",
-                        "state-of-knowledge",
-                        "~:type",
-                        "~:state-of-knowledge",
+                        "~:id", "state-of-knowledge",
+                        "~:type", "~:state-of-knowledge",
                     ],
                 ],
             ],
-            "~:map",
-            [
+            "~:map", [
                 "^ ",
-                "~:bounds",
-                [
+                "~:bounds", [
                     "^ ",
-                    "~:north",
-                    this.bounds.north,
-                    "~:south",
-                    this.bounds.south,
-                    "~:east",
-                    this.bounds.east,
-                    "~:west",
-                    this.bounds.west
+                    "~:north", this.bounds.north,
+                    "~:south", this.bounds.south,
+                    "~:east", this.bounds.east,
+                    "~:west", this.bounds.west
                 ],
-                "~:active",
-                [
-                    "~#list",
-                    layers.map(e => e.id)
+                "~:active", [
+                    "~#list", layers.map(e => e.id)
                 ],
-                "~:active-base",
-                1
+                "~:active-base", 1
             ]
         ]
     }
@@ -1058,12 +1006,14 @@ class RegionReport {
 
         // set up hyperlink
         const appState = this.overviewMapAppState();
+        console.log("overviewMapAppState 1009", appState);
         this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
 
         this.overviewMap.on(
             'overlayadd',
             () => {
                 const appState = this.overviewMapAppState();
+                console.log("overviewMapAppState 1016", appState);
                 this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
             },
             this
@@ -1072,6 +1022,7 @@ class RegionReport {
             'overlayremove',
             () => {
                 const appState = this.overviewMapAppState();
+                console.log("overviewMapAppState 1025", appState);
                 this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
             },
             this
@@ -1097,6 +1048,7 @@ class RegionReport {
         }
 
         const appState = this.overviewMapAppState();
+        console.log("overviewMapAppState 1051", appState);
         this.overviewMapHyperlink.href = `${this.mapUrlBase}/#${btoa(JSON.stringify(appState))}`;
     }
 
@@ -1351,146 +1303,93 @@ class RegionReport {
 
         return [
             "^ ",
-            "~:autosave?",
-            true,
-            "~:filters",
-            [
+            "~:autosave?", true,
+            "~:filters", [
                 "^ ",
-                "~:layers",
-                ""
+                "~:layers", ""
             ],
-            "~:state-of-knowledge",
-            [
+            "~:state-of-knowledge", [
                 "^ ",
-                "~:boundaries",
-                [
+                "~:boundaries", [
                     "^ ",
-                    "~:active-boundary",
-                    [
+                    "~:active-boundary", [
                         "^ ",
-                        "~:id",
-                        "amp",
-                        "~:name",
-                        "Australian Marine Parks"
+                        "~:id", "amp",
+                        "~:name", "Australian Marine Parks"
                     ],
-                    "~:active-boundary-layer",
-                    [
+                    "~:active-boundary-layer", [
                         "^ ",
-                        "~:server_type",
-                        `~:${this.appBoundaryLayer.server_type.toLowerCase()}`,
-                        "~:category",
-                        `~:${this.appBoundaryLayer.category.toLowerCase()}`,
-                        "~:detail_layer",
-                        this.appBoundaryLayer.detail_layer,
-                        "~:organisation",
-                        this.appBoundaryLayer.organisation,
-                        "~:layer_name",
-                        this.appBoundaryLayer.layer_name,
-                        "~:server_url",
-                        this.appBoundaryLayer.server_url,
-                        "~:name",
-                        this.appBoundaryLayer.name,
-                        "~:info_format_type",
-                        this.appBoundaryLayer.info_format_type,
-                        "~:keywords",
-                        this.appBoundaryLayer.keywords,
-                        "~:style",
-                        this.appBoundaryLayer.style,
-                        "~:metadata_url",
-                        this.appBoundaryLayer.metadata_url,
-                        "~:id",
-                        this.appBoundaryLayer.id,
-                        "~:bounding_box",
-                        [
+                        "~:server_type", `~:${this.appBoundaryLayer.server_type.toLowerCase()}`,
+                        "~:category", `~:${this.appBoundaryLayer.category.toLowerCase()}`,
+                        "~:detail_layer", this.appBoundaryLayer.detail_layer,
+                        "~:organisation", this.appBoundaryLayer.organisation,
+                        "~:layer_name", this.appBoundaryLayer.layer_name,
+                        "~:server_url", this.appBoundaryLayer.server_url,
+                        "~:name", this.appBoundaryLayer.name,
+                        "~:info_format_type", this.appBoundaryLayer.info_format_type,
+                        "~:keywords", this.appBoundaryLayer.keywords,
+                        "~:style", this.appBoundaryLayer.style,
+                        "~:metadata_url", this.appBoundaryLayer.metadata_url,
+                        "~:id", this.appBoundaryLayer.id,
+                        "~:bounding_box", [
                             "^ ",
-                            "~:west",
-                            this.appBoundaryLayer.bounding_box.west,
-                            "~:south",
-                            this.appBoundaryLayer.bounding_box.south,
-                            "~:east",
-                            this.appBoundaryLayer.bounding_box.east,
-                            "~:north",
-                            this.appBoundaryLayer.bounding_box.north
+                            "~:west", this.appBoundaryLayer.bounding_box.west,
+                            "~:south", this.appBoundaryLayer.bounding_box.south,
+                            "~:east", this.appBoundaryLayer.bounding_box.east,
+                            "~:north", this.appBoundaryLayer.bounding_box.north
                         ],
-                        "~:table_name",
-                        this.appBoundaryLayer.table_name,
-                        "~:data_classification",
-                        this.appBoundaryLayer.data_classification,
-                        "~:tooltip",
-                        this.appBoundaryLayer.tooltip,
-                        "~:legend_url",
-                        this.appBoundaryLayer.legend_url,
-                        "~:layer_type",
-                        `~:${this.appBoundaryLayer.layer_type.toLowerCase()}`
+                        "~:table_name", this.appBoundaryLayer.table_name,
+                        "~:data_classification", this.appBoundaryLayer.data_classification,
+                        "~:tooltip", this.appBoundaryLayer.tooltip,
+                        "~:legend_url", this.appBoundaryLayer.legend_url,
+                        "~:layer_type", `~:${this.appBoundaryLayer.layer_type.toLowerCase()}`
                     ],
-                    "~:amp",
-                    [
+                    "~:amp", [
                         "^ ",
-                        "~:active-network",
-                        [
+                        "~:active-network", [
                             "^ ",
-                            "~:network",
-                            this.network
+                            "~:network", this.network
                         ],
-                        "~:active-park",
-                        (
+                        "~:active-park", (
                             this.park ? [
                                 "^ ",
-                                "~:network",
-                                this.network,
-                                "~:park",
-                                this.park
+                                "~:network", this.network,
+                                "~:park", this.park
                             ] : null
                         ),
                     ]
                 ]
             ],
-            "~:story-maps",
-            [
+            "~:story-maps", [
                 "^ ",
-                "~:featured-map",
-                null
+                "~:featured-map", null
             ],
-            "~:display",
-            [
+            "~:display", [
                 "^ ",
-                "~:left-drawer",
-                true,
-                "~:left-drawer-tab",
-                "active-layers",
-                "~:right-sidebars",
-                [
+                "~:left-drawer", true,
+                "~:left-drawer-tab", "active-layers",
+                "~:right-sidebars", [
                     [
                         "^ ",
-                        "^:",
-                        "state-of-knowledge",
-                        "~:type",
-                        "~:state-of-knowledge",
+                        "~:id", "state-of-knowledge",
+                        "~:type", "~:state-of-knowledge",
                     ],
                 ],
             ],
-            "~:map",
-            [
+            "~:map", [
                 "^ ",
-                "~:bounds",
-                [
+                "~:bounds", [
                     "^ ",
-                    "~:north",
-                    this.bounds.north,
-                    "~:south",
-                    this.bounds.south,
-                    "~:east",
-                    this.bounds.east,
-                    "~:west",
-                    this.bounds.west
+                    "~:north", this.bounds.north,
+                    "~:south", this.bounds.south,
+                    "~:east", this.bounds.east,
+                    "~:west", this.bounds.west
                 ],
-                "~:active",
-                [
+                "~:active", [
                     "~#list",
                     layers.map(e => e.id)
                 ],
-                "~:active-base",
-                1
+                "~:active-base", 1
             ]
         ]
     }
@@ -1563,149 +1462,96 @@ class RegionReport {
     pressureAppState(pressureLayer, boundaryLayer, bounds, network, park) {
         return [
             "^ ",
-            "~:autosave?",
-            true,
-            "~:filters",
-            [
+            "~:autosave?", true,
+            "~:filters", [
                 "^ ",
-                "~:layers",
-                ""
+                "~:layers", ""
             ],
-            "~:state-of-knowledge",
-            [
+            "~:state-of-knowledge", [
                 "^ ",
-                "~:boundaries",
-                [
+                "~:boundaries", [
                     "^ ",
-                    "~:active-boundary",
-                    [
+                    "~:active-boundary", [
                         "^ ",
-                        "~:id",
-                        "amp",
-                        "~:name",
-                        "Australian Marine Parks"
+                        "~:id", "amp",
+                        "~:name", "Australian Marine Parks"
                     ],
-                    "~:active-boundary-layer",
-                    [
+                    "~:active-boundary-layer", [
                         "^ ",
-                        "~:server_type",
-                        `~:${boundaryLayer.server_type.toLowerCase()}`,
-                        "~:category",
-                        `~:${boundaryLayer.category.toLowerCase()}`,
-                        "~:detail_layer",
-                        boundaryLayer.detail_layer,
-                        "~:organisation",
-                        boundaryLayer.organisation,
-                        "~:layer_name",
-                        boundaryLayer.layer_name,
-                        "~:server_url",
-                        boundaryLayer.server_url,
-                        "~:name",
-                        boundaryLayer.name,
-                        "~:info_format_type",
-                        boundaryLayer.info_format_type,
-                        "~:keywords",
-                        boundaryLayer.keywords,
-                        "~:style",
-                        boundaryLayer.style,
-                        "~:metadata_url",
-                        boundaryLayer.metadata_url,
-                        "~:id",
-                        boundaryLayer.id,
-                        "~:bounding_box",
-                        [
+                        "~:server_type", `~:${boundaryLayer.server_type.toLowerCase()}`,
+                        "~:category", `~:${boundaryLayer.category.toLowerCase()}`,
+                        "~:detail_layer", boundaryLayer.detail_layer,
+                        "~:organisation", boundaryLayer.organisation,
+                        "~:layer_name", boundaryLayer.layer_name,
+                        "~:server_url", boundaryLayer.server_url,
+                        "~:name", boundaryLayer.name,
+                        "~:info_format_type", boundaryLayer.info_format_type,
+                        "~:keywords", boundaryLayer.keywords,
+                        "~:style", boundaryLayer.style,
+                        "~:metadata_url", boundaryLayer.metadata_url,
+                        "~:id", boundaryLayer.id,
+                        "~:bounding_box", [
                             "^ ",
-                            "~:west",
-                            boundaryLayer.bounding_box.west,
-                            "~:south",
-                            boundaryLayer.bounding_box.south,
-                            "~:east",
-                            boundaryLayer.bounding_box.east,
-                            "~:north",
-                            boundaryLayer.bounding_box.north
+                            "~:west", boundaryLayer.bounding_box.west,
+                            "~:south", boundaryLayer.bounding_box.south,
+                            "~:east", boundaryLayer.bounding_box.east,
+                            "~:north", boundaryLayer.bounding_box.north
                         ],
-                        "~:table_name",
-                        boundaryLayer.table_name,
-                        "~:data_classification",
-                        boundaryLayer.data_classification,
-                        "~:tooltip",
-                        boundaryLayer.tooltip,
-                        "~:legend_url",
-                        boundaryLayer.legend_url,
-                        "~:layer_type",
-                        `~:${boundaryLayer.layer_type.toLowerCase()}`
+                        "~:table_name", boundaryLayer.table_name,
+                        "~:data_classification", boundaryLayer.data_classification,
+                        "~:tooltip", boundaryLayer.tooltip,
+                        "~:legend_url", boundaryLayer.legend_url,
+                        "~:layer_type", `~:${boundaryLayer.layer_type.toLowerCase()}`
                     ],
-                    "~:amp",
-                    [
+                    "~:amp", [
                         "^ ",
-                        "~:active-network",
-                        [
+                        "~:active-network", [
                             "^ ",
-                            "~:network",
-                            network
+                            "~:network", network
                         ],
-                        "~:active-park",
-                        (
+                        "~:active-park", (
                             park ? [
                                 "^ ",
-                                "~:network",
-                                network,
-                                "~:park",
-                                park
+                                "~:network", network,
+                                "~:park", park
                             ] : null
                         ),
                     ]
                 ]
             ],
-            "~:story-maps",
-            [
+            "~:story-maps", [
                 "^ ",
-                "~:featured-map",
-                null
+                "~:featured-map", null
             ],
-            "~:display",
-            [
+            "~:display", [
                 "^ ",
-                "~:left-drawer",
-                true,
-                "~:left-drawer-tab",
-                "active-layers",
-                "~:right-sidebars",
-                [
+                "~:left-drawer", true,
+                "~:left-drawer-tab", "active-layers",
+                "~:right-sidebars", [
                     [
                         "^ ",
-                        "^:",
-                        "state-of-knowledge",
-                        "~:type",
-                        "~:state-of-knowledge",
+                        "~:id", "state-of-knowledge",
+                        "~:type", "~:state-of-knowledge",
                     ],
                 ],
             ],
-            "~:map",
-            [
+            "~:map", [
                 "^ ",
-                "~:bounds",
-                [
+                "~:bounds", [
                     "^ ",
-                    "~:north",
-                    bounds.north,
-                    "~:south",
-                    bounds.south,
-                    "~:east",
-                    bounds.east,
-                    "~:west",
-                    bounds.west
+                    "~:north", bounds.north,
+                    "~:south", bounds.south,
+                    "~:east", bounds.east,
+                    "~:west", bounds.west
                 ],
-                "~:active",
-                [
+                "~:active", [
                     "~#list",
                     [
                         pressureLayer,
                         boundaryLayer.id
                     ]
                 ],
-                "~:active-base",
-                1
+                "~:active-base", 1
             ]
         ]
     }
