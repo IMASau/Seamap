@@ -622,7 +622,7 @@
       :disabled? (not habitat-layers?)
       :id        "select-control"}]))
 
-(defn- leaflet-control-button [{:keys [on-click tooltip icon id]}]
+(defn leaflet-control-button [{:keys [on-click tooltip icon id]}]
   [:div.leaflet-bar.leaflet-control
    (when id {:id id})
    (if tooltip
