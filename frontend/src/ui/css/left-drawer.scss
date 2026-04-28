@@ -58,10 +58,14 @@
 
         > .bp3-tab-list {
             background-color: var(--deep-blue-lighter);
+            height: unset;
+            flex-wrap: wrap; // We're expecting them to wrap in nhat, because we have 4 tabs
             color: var(--color-7);
-            height: 49px;
             >* { padding: 0 12px; }
-            .bp3-tab { color: inherit; }
+            .bp3-tab {
+                color: inherit;
+                height: 49px;
+            }
 
             .bp3-tab-indicator-wrapper {
                 background-color: var(--deep-blue);
