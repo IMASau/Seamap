@@ -27,9 +27,7 @@
     [components/drawer
      {:title
       [:<>
-       [:div
-        [:a {:href "https://futuresofseafood.com.au/"}
-         [:img {:src "img/Futures-of-Seafood-Logo-Reverse-400x218.png"}]]]
+       [:div [:img {:src "img/NHAT_HeaderLogo_T.png"}]]
        [b/button
         {:icon     "double-chevron-left"
          :minimal  true
@@ -38,7 +36,7 @@
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
-      :className   "left-drawer fos-drawer"
+      :className   "left-drawer"
       :isCloseButtonShown false
       :hasBackdrop false}
      [b/tabs
