@@ -51,7 +51,7 @@
    :habitat-titles  {}
    :display         {:mouse-pos             {}
                      :help-overlay          false
-                     :welcome-overlay       true
+                     :welcome-overlay       false
                      :settings-overlay      false
                      :left-drawer           true
                      :left-drawer-tab       "catalogue"

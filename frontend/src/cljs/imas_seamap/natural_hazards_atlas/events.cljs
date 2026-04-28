@@ -36,8 +36,7 @@
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
-     :dispatch-n [[:welcome-layer/open]
-                  [:display.outage-message/open true]]
+     :dispatch [:display.outage-message/open true]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
@@ -71,8 +70,7 @@
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
-     :dispatch-n [[:welcome-layer/open]
-                  [:display.outage-message/open true]]
+     :dispatch [:display.outage-message/open true]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
@@ -106,8 +104,7 @@
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
-     :dispatch-n [[:welcome-layer/open]
-                  [:display.outage-message/open true]]
+     :dispatch [:display.outage-message/open true]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
