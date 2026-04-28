@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.events
   (:require [ajax.core :as ajax]
-            [imas-seamap.db :as db]
+            [imas-seamap.natural-hazards-atlas.db :as db]
             [imas-seamap.utils :refer [merge-in ajax-loaded-info]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
