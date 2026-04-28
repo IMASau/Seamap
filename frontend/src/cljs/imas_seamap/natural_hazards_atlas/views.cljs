@@ -5,7 +5,7 @@
   (:require [goog.string.format]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.components :as components]
-            [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.natural-hazards-atlas.map.views :refer [map-component]]
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.story-maps.views :refer [featured-maps]]
             [imas-seamap.views :as views]
