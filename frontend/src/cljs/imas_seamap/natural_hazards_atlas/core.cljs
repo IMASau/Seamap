@@ -19,6 +19,8 @@
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
+            [imas-seamap.story-maps.events :as smevents]
+            [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
             [imas-seamap.natural-hazards-atlas.views :as views]
@@ -45,6 +47,8 @@
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
+    :sm/featured-maps                     smsubs/featured-maps
+    :sm/featured-map                      smsubs/featured-map
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
@@ -91,6 +95,7 @@
     :initialise-db                        [events/initialise-db]
     :initialise-layers                    [nhatevents/initialise-layers]
     :loading-failed                       events/loading-failed
+    :update-dynamic-pills                 events/update-dynamic-pills
     :update-site-configuration            events/update-site-configuration
     :update-site-configuration/error-handler events/update-site-configuration-error-handler
     :display.outage-message/open          events/display-outage-message-open
@@ -197,6 +202,9 @@
     :map/toggle-viewport-only             [mevents/toggle-viewport-only]
     :map/set-popup-dimensions             [mevents/set-popup-dimensions]
     :map/pan-to-popup                     [mevents/pan-to-popup]
+    :sm/update-featured-maps              smevents/update-featured-maps
+    :sm/featured-map                      [smevents/featured-map]
+    :sm.featured-map/open                 [smevents/featured-map-open]
     :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]

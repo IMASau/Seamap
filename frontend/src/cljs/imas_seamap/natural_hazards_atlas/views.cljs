@@ -7,6 +7,7 @@
             [imas-seamap.components :as components]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.interop.react :refer [use-memo]]
+            [imas-seamap.story-maps.views :refer [featured-maps]]
             [imas-seamap.views :as views]
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]))
@@ -61,8 +62,13 @@
                  [:<> "Active Layers"
                   (when (seq active-layers)
                     [:div.notification-bubble (count active-layers)])]])
-        :panel (reagent/as-element [views/left-drawer-active-layers false])}]]]))
-
+        :panel (reagent/as-element [views/left-drawer-active-layers false])}]
+      
+      [b/tab
+       {:id    "featured-maps"
+        :title (reagent/as-element
+                [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
+        :panel (reagent/as-element [featured-maps])}]]]))
 
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] views/hotkeys-combos))
