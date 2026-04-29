@@ -1162,4 +1162,4 @@
             time-changed?               (not= current-time time-dimension-current-time)]
         (when time-changed?
           (.setCurrentTime time-dimension current-time))))
-    (assoc-in db [:display :timeseries-current-time] current-time)))
+    (assoc-in db [:display :current-time] current-time)))
