@@ -215,17 +215,22 @@
     (some #(and (= org-name (:name %)) %) organisations)
     organisations))
 
-(defn time-info
-  "Information about the map's (global) time status, ie if we have a
-  time-slider, and potentially other information."
+(defn timeseries-layers
+  "List of layers that are currently active and have a time dimension."
+  [map-layers _]
+  (filter has-time-dimension? (:active-layers map-layers)))
+
+(defn show-time-slider?
+  "Should the time slider be shown on the map? True if there are currently active
+   layers with a time dimension."
+  [timeseries-layers _]
+  (seq timeseries-layers))
+
+(defn current-time
+  "The current time selected for the time dimension. It is designed to be in sync
+   with the Leaflet timeDimension component."
   [db _]
-  (let [time-layers (->> db
-                         :map
-                         :active-layers
-                         (filter has-time-dimension?))]
-    {:show-time-slider? (seq time-layers)
-     :time-series-layers time-layers
-     :current-time (get-in db [:timeseries-current-time])}))
+  (get-in db [:display :current-time]))
 
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))

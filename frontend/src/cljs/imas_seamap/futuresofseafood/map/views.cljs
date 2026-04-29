@@ -4,7 +4,6 @@
 (ns imas-seamap.futuresofseafood.map.views
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
-            [goog.string :as gstring]
             [imas-seamap.map.utils :refer [bounds->geojson map->bounds]]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
@@ -20,7 +19,7 @@
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
-        {:keys [show-time-slider?] :as time-info}     @(re-frame/subscribe [:map.time/info])
+        show-time-slider?                             @(re-frame/subscribe [:map.time/show-time-slider?])
         download-info                                 @(re-frame/subscribe [:download/info])
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     (into
