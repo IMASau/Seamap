@@ -266,8 +266,11 @@
       (fn []
         ;; The upstream implementation uses addInitHook on L.Map to initialise this:
         (when (not (.-timeDimension map))
-          (set! (.-timeDimension map)
-                ((-> LeafletTimeDimension/default .-timeDimension) (clj->js options))))
+          (let [time-dimension-options (:time-dimension options)
+                time-dimension ((-> LeafletTimeDimension/default .-timeDimension) (clj->js time-dimension-options))]
+            (set! (.-timeDimension map) time-dimension)
+            (when-let [time-dimension-ref (:ref time-dimension-options)]
+              (time-dimension-ref time-dimension))))
 
         (let [control (new (-> LeafletTimeDimension/default .-control .-timeDimension) (clj->js options))]
           (.addTo control map)

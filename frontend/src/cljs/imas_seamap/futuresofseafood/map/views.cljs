@@ -130,7 +130,10 @@
 
        (when show-time-slider?
          [:f> leaflet/time-dimension-control
-          {:auto-play false
+          {:time-dimension
+           {:ref #(re-frame/dispatch [:map.time/time-dimension-ref %])
+            :current-time @(re-frame/subscribe [:map.time/current-time])}
+           :auto-play false
            :player-options
            {:buffer 10
             :transitionTime 500

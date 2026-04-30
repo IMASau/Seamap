@@ -1149,17 +1149,26 @@
    We update store the time in the app state in case time dimension hasn't been set
    up yet (i.e. app is still initialising but somehow the time has changed), and
    for ensuring that it's saved when the website is reloaded/shared."
-  [db [_ current-time]]
-  (let [leaflet-map         (get-in db [:map :leaflet-map])
-        time-dimension      (when leaflet-map (.-timeDimension leaflet-map))]
+  [{:keys [db]} [_ current-time]]
+  (let [time-dimension-ref (get-in db [:map :time-dimension-ref])]
     ;; If:
     ;; * the leaflet map is configured,
     ;; * it has a timeDimension component, and
     ;; * the time has changed from what's currently set in timeDimension,
     ;; then do the side-effect of setting the time for the component.
-    (when time-dimension
-      (let [time-dimension-current-time (.getCurrentTime time-dimension)
+    (when time-dimension-ref
+      (let [time-dimension-current-time (.getCurrentTime time-dimension-ref)
             time-changed?               (not= current-time time-dimension-current-time)]
         (when time-changed?
-          (.setCurrentTime time-dimension current-time))))
-    (assoc-in db [:display :current-time] current-time)))
+          (.setCurrentTime time-dimension-ref current-time))))
+    {:db (assoc-in db [:display :current-time] current-time)
+     :dispatch [:maybe-autosave]}))
+
+(defn time-dimension-ref
+  "For when the timeDimension component (from the leaflet-timedimension library) is
+   first created/added to the Leaflet map.
+   Stores a reference to the timeDimension, and sets up listeners to keep the
+   re-frame DB synced to the component's state."
+  [db [_ time-dimension-ref]]
+  (.on time-dimension-ref "timeload" #(re-frame/dispatch [:map.time/current-time (.-time %)]))
+  (assoc-in db [:map :time-dimension-ref] time-dimension-ref))

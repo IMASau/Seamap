@@ -83,6 +83,7 @@
                                       [:display :right-sidebars]
                                       [:display :split-layer-range-value]
                                       [:display :split-layer-container-x]
+                                      [:display :current-time]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
@@ -116,8 +117,8 @@
                  [:display :right-sidebars]
                  [:display :split-layer-range-value]
                  [:display :split-layer-container-x]
-                 [:filters :layers]
                  [:display :current-time]
+                 [:filters :layers]
                  [:state-of-knowledge :boundaries :active-boundary]
                  [:state-of-knowledge :boundaries :active-boundary-layer]
                  [:state-of-knowledge :boundaries :amp :active-network]
