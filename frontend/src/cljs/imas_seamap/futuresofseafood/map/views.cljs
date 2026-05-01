@@ -132,7 +132,7 @@
          [:f> leaflet/time-dimension-control
           {:time-dimension
            {:ref #(re-frame/dispatch [:map.time/time-dimension-ref %])
-            :current-time @(re-frame/subscribe [:map.time/current-time])}
+            :defaultTime @(re-frame/subscribe [:map.time/current-time])}
            :auto-play false
            :player-options
            {:buffer 10

@@ -40,6 +40,7 @@ LeafletTimeDimension.TimeDimension = (L.Layer || L.Class).extend({
         this._loadingTimeIndex = -1;
         this._loadingTimeout = this.options.loadingTimeout || 3000;
         this._syncedLayers = [];
+        this._defaultTime = this.options.defaultTime ?? 0;
         if (this._availableTimes.length > 0) {
             this.setCurrentTime(this.options.currentTime || this._getDefaultCurrentTime());
         }
@@ -385,6 +386,9 @@ LeafletTimeDimension.TimeDimension = (L.Layer || L.Class).extend({
     },
     getUpperLimitIndex: function () {
         return this._upperLimit;
+    },
+    getDefaultTime: function () {
+        return this._defaultTime;
     }
 });
 
@@ -1000,7 +1004,7 @@ LeafletTimeDimension.TimeDimension.Layer.WMS = LeafletTimeDimension.TimeDimensio
                 this._setDefaultTime = this._setDefaultTime || (this._timeDimension && this._timeDimension.getAvailableTimes().length == 0);
                 this.setAvailableTimes(this._parseTimeDimensionFromCapabilities(data));
                 if (this._setDefaultTime && this._timeDimension) {
-                    this._timeDimension.setCurrentTime(this._defaultTime);
+                    this._timeDimension.setCurrentTime(this._timeDimension.getDefaultTime() ?? this._defaultTime);
                 }
             }
         }).bind(this));
