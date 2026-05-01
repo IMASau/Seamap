@@ -15,7 +15,7 @@
                                                 bounds->str:wms
                                                 enhance-rich-layer
                                                 feature-info-response->display
-                                                global-time-string
+                                                datetime-epoch-milliseconds-to-iso
                                                 has-time-dimension?
                                                 has-visible-habitat-layers?
                                                 init-layer-legend-status
@@ -125,6 +125,7 @@
         bbox (bounds->str:wms request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         has-time? (has-time-dimension? (first layers))
+        current-time (get-in db [:display :current-time])
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
@@ -152,7 +153,7 @@
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
        (when cql-filter {:CQL_FILTER cql-filter})
-       (when has-time? {:TIME (global-time-string db)}))
+       (when has-time? {:TIME (datetime-epoch-milliseconds-to-iso current-time)}))
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/html" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -172,6 +173,7 @@
         bbox (bounds->str:wms request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         has-time? (has-time-dimension? (first layers))
+        current-time (get-in db [:display :current-time])
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
@@ -199,7 +201,7 @@
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
        (when cql-filter {:CQL_FILTER cql-filter})
-       (when has-time? {:TIME (global-time-string db)}))
+       (when has-time? {:TIME (datetime-epoch-milliseconds-to-iso current-time)}))
       :response-format (ajax/json-response-format)
       :on-success      [:map/got-featureinfo request-id point "application/json" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -222,6 +224,7 @@
                   (bounds->str:wms (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         has-time? (has-time-dimension? (first layers))
+        current-time (get-in db [:display :current-time])
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
@@ -249,7 +252,7 @@
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
        (when cql-filter {:CQL_FILTER cql-filter})
-       (when has-time? {:TIME (global-time-string db)}))
+       (when has-time? {:TIME (datetime-epoch-milliseconds-to-iso current-time)}))
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))

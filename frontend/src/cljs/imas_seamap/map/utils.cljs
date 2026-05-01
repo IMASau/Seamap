@@ -75,23 +75,15 @@
 
 (defn has-time-dimension? [layer] (#{:wms-timeseries} (:layer_type layer)))
 
-(defn global-time-string
-  "Return a formatted string suitable for the TIME parameter in WMS
-  queries, or nil if not applicable. Assumes that there is a global
-  time (rather than per-layer) in effect."
-  [db]
-  ;; There's a few ways this might end up implemented, and we want to
-  ;; keep the database synced with the time step; for now we'll just
-  ;; directly access the global timeDimension object:
-  (when-let [time-dimension
-             (gobject/get
-              (-> db
-                  :map :leaflet-map
-                  ;.-timeDimension
-                  ;.getCurrentTime js/Date. .toISOString
-                  )
-              "timeDimension")]
-    (-> time-dimension .getCurrentTime js/Date. .toISOString)))
+(defn datetime-epoch-milliseconds-to-iso
+  "Converts a Unix timestamp in milliseconds (milliseconds since the Unix epoch, 1970-01-01T00:00:00Z) into an ISO 8601 formatted UTC timestamp string.
+   
+   Args:
+   * `epoch-milliseconds`: Milliseconds since the Unix epoch.
+  
+    Returns: ISO 8601 timestamp (e.g. `\"2026-05-01T06:27:10.336Z\"`)."
+  [epoch-milliseconds]
+  (-> epoch-milliseconds js/Date. .toISOString))
 
 (defn layer-search-keywords
   "Returns the complete search keywords of a layer, space-separated."
