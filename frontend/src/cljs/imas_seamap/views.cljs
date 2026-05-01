@@ -466,37 +466,51 @@
          [:p.download-instructions
           "Downloading implies acceptance of all citation and usage requirements."])])))
 
-(defn- download-menu [{:keys [title disabled? layer bbox]}]
+(defn- download-menu [{:keys [title disabled? bbox] {:keys [download_format] :as layer} :layer}]
+  "Download menu for layers.
+   Layers with the WFS download format will have GeoTIFF, SHP, and CSV available, while WCS will only have GeoTIFF available.
+   Assumption for now that WFS and WCS are the only download formats that need to be supported."
   [b/popover {:position           b/BOTTOM
               :disabled           disabled?
               :popover-class-name "bp3-minimal"
-              :content            (reagent/as-element
-                                   [b/menu
-                                    [b/menu-item {:text     "GeoTIFF"
-                                                  :label    (reagent/as-element [b/icon {:icon "globe"}])
-                                                  :on-click (handler-dispatch [:map.layer/download
-                                                                               layer
-                                                                               bbox
-                                                                               :map.layer.download/geotiff])}]
-                                    [b/menu-item {:text     "SHP File"
-                                                  :label    (reagent/as-element [b/icon {:icon "polygon-filter"}])
-                                                  :on-click (handler-dispatch [:map.layer/download
-                                                                               layer
-                                                                               bbox
-                                                                               :map.layer.download/shp])}]
-                                    [b/menu-item {:text     "CSV"
-                                                  :label    (reagent/as-element [b/icon {:icon "th"}])
-                                                  :on-click (handler-dispatch [:map.layer/download
-                                                                               layer
-                                                                               bbox
-                                                                               :map.layer.download/csv])}]])}
+              :content
+              (reagent/as-element
+               [b/menu
+                (when (= download_format :map.layer.download-format/wfs)
+                  [b/menu-item {:text     "GeoTIFF"
+                                :label    (reagent/as-element [b/icon {:icon "globe"}])
+                                :on-click (handler-dispatch [:map.layer/download
+                                                             layer
+                                                             bbox
+                                                             :map.layer.download/geotiff-wms])}])
+                (when (= download_format :map.layer.download-format/wfs)
+                  [b/menu-item {:text     "SHP File"
+                                :label    (reagent/as-element [b/icon {:icon "polygon-filter"}])
+                                :on-click (handler-dispatch [:map.layer/download
+                                                             layer
+                                                             bbox
+                                                             :map.layer.download/shp])}])
+                (when (= download_format :map.layer.download-format/wfs)
+                  [b/menu-item {:text     "CSV"
+                                :label    (reagent/as-element [b/icon {:icon "th"}])
+                                :on-click (handler-dispatch [:map.layer/download
+                                                             layer
+                                                             bbox
+                                                             :map.layer.download/csv])}])
+                (when (= download_format :map.layer.download-format/wcs)
+                  [b/menu-item {:text     "GeoTIFF"
+                                :label    (reagent/as-element [b/icon {:icon "globe"}])
+                                :on-click (handler-dispatch [:map.layer/download
+                                                             layer
+                                                             bbox
+                                                             :map.layer.download/geotiff-wcs])}])])}
    [b/button {:text       title
               :disabled   disabled?
               :right-icon "caret-down"}]])
 
 (defn info-card []
   (let [layer-info       @(re-frame/subscribe [:map.layer/info])
-        {:keys [metadata_url category] :as layer} (:layer layer-info)
+        {:keys [metadata_url category download_format] :as layer} (:layer layer-info)
         title            (or (get-in layer-info [:layer :name]) "Layer Information")
         {:keys [region]} @(re-frame/subscribe [:map.layer.selection/info])]
     [b/dialogue {:title    title
@@ -520,11 +534,7 @@
      
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions
-       (when
-        (and
-         metadata_url
-         (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog\.search#/metadata/[-0-9a-zA-Z]+$" metadata_url)
-         (= category :habitat))
+       (when download_format
          [:<>
           [download-menu {:title     "Download Selection..."
                           :layer     layer
@@ -668,6 +678,7 @@
       :icon     "search"}]
 
     [transect-control]
+    [region-control]
 
     [control-block-child
      {:on-click #(re-frame/dispatch [:create-save-state])

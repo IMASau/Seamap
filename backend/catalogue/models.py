@@ -101,6 +101,13 @@ CRS_CHOICES = [
 ]
 
 
+DOWNLOAD_FORMAT_CHOICES = [
+    (None, None),
+    ('wfs', 'wfs'),
+    ('wcs', 'wcs'),
+]
+
+
 @python_2_unicode_compatible
 class Layer(models.Model):
     name = models.CharField(max_length = 200)
@@ -108,7 +115,7 @@ class Layer(models.Model):
     legend_url = models.URLField(max_length = 250, null=True, blank=True)
     layer_name = models.CharField(max_length = 200)
     detail_layer = models.CharField(max_length = 200, blank=True, null=True)
-    table_name = models.CharField(max_length = 200, blank=True, null=True)
+    table_name = models.CharField(max_length = 200, blank=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
     data_classification = models.ForeignKey(DataClassification, blank=True, null=True, on_delete=models.PROTECT)
     organisation = models.ForeignKey(Organisation, blank=True, null=True, on_delete=models.PROTECT)
@@ -117,7 +124,7 @@ class Layer(models.Model):
     miny = models.DecimalField(max_digits=20, decimal_places=17)
     maxx = models.DecimalField(max_digits=20, decimal_places=17)
     maxy = models.DecimalField(max_digits=20, decimal_places=17)
-    metadata_url = models.URLField(max_length = 250)
+    metadata_url = models.URLField(max_length = 250, blank=True, null=True)
     server_type = models.ForeignKey(ServerType, on_delete=models.PROTECT)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
     info_format_type = models.IntegerField(
@@ -168,6 +175,7 @@ class Layer(models.Model):
         help_text="Dictates if a layer should generate a new layer preview each week, even if a preview already exists. If no preview image exists for the layer, this property will be ignored."
     )
     filter = models.CharField(max_length=255, null=True, blank=True, help_text="CQL filter to apply to the layer")
+    download_format = models.CharField(max_length=200, null=True, blank=True, choices=DOWNLOAD_FORMAT_CHOICES)
 
     def __str__(self):
         return self.name

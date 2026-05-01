@@ -4,9 +4,11 @@
 import catalogue.models as models
 import catalogue.serializers as serializers
 
-from django.db.models import Value
+from django.core.cache import cache
+from django.db.models import Prefetch, Value
 from django.db.models.functions import Coalesce
 from rest_framework import viewsets
+from rest_framework.response import Response
 
 
 class OrganisationViewset(viewsets.ReadOnlyModelViewSet):
@@ -33,6 +35,22 @@ class LayerViewset(viewsets.ReadOnlyModelViewSet):
                                   .order_by('sort_key_null', 'name')
     serializer_class = serializers.LayerSerializer
 
+    def list(self, request, *args, **kwargs):
+        """
+        Override default list method to manually cache the response.
+        By manually caching the response, we can give it an infinite timeout, so the
+        cache may only be cleared by an explicit call to cache.clear()
+        """
+        cache_key = "layer_list"
+
+        data = cache.get(cache_key)
+        if data is not None:
+            return Response(data)
+
+        response = super().list(request, *args, **kwargs)
+
+        cache.set(cache_key, response.data, timeout=None)
+        return response
 
 class BaseLayerViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.BaseLayer.objects.all()
@@ -54,7 +72,22 @@ class KeyedLayerViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.KeyedLayerSerializer
 
 class RichLayerViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = models.RichLayer.objects.prefetch_related('alternate_views', 'timeline', 'controls').all()
+    queryset = models.RichLayer.objects.prefetch_related(
+        Prefetch(
+            'alternate_views',
+            queryset=models.RichLayerAlternateView.objects \
+                .annotate(sort_key_null=Coalesce('sort_key', Value('zzzzzzzz'))) \
+                .order_by('sort_key_null')
+        ),
+        Prefetch('timeline', queryset=models.RichLayerTimeline.objects.order_by('value')),
+        Prefetch(
+            'side_by_side_views',
+            queryset=models.RichLayerSideBySideView.objects \
+                .annotate(sort_key_null=Coalesce('sort_key', Value('zzzzzzzz'))) \
+                .order_by('sort_key_null')
+        ),
+        'controls'
+    ).all()
     serializer_class = serializers.RichLayerSerializer
 
 class RegionReportViewset(viewsets.ReadOnlyModelViewSet):

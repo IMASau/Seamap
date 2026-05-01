@@ -139,9 +139,10 @@
 (s/def :map/organisations (s/coll-of :map.layer/organisation))
 
 (s/def :map.controls/transect boolean?)
-(s/def :map.controls.download/type #{:map.layer.download/geotiff
+(s/def :map.controls.download/type #{:map.layer.download/geotiff-wms
                                      :map.layer.download/shp
-                                     :map.layer.download/csv})
+                                     :map.layer.download/csv
+                                     :map.layer.download/geotiff-wcs})
 (s/def :map.controls.download/selecting boolean?)
 (s/def :map.controls.download/layer :map/layer)
 (s/def :map.controls.download/link string?)

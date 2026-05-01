@@ -46,7 +46,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'tinymce',
     'webapp',
-    'catalogue',
+    'catalogue.apps.CatalogueConfig',
     'habitat',
     'sql',
     'carbonabatementsidebar',
@@ -180,7 +180,8 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
     }
 }
 

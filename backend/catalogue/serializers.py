@@ -62,7 +62,7 @@ class LayerSerializer(serializers.ModelSerializer):
             try:
                 plugin_module = importlib.import_module(module_name)
                 plugin_fn = getattr(plugin_module, fn_name)
-                return plugin_fn(self, obj)
+                return plugin_fn(obj)
             except ModuleNotFoundError:
                 logger.error(f"Error trying to import bbox path {bbox_fn}", exc_info=True)
                 raise

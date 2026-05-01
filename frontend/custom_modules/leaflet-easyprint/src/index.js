@@ -124,7 +124,7 @@ L.Control.EasyPrint = L.Control.extend({
 
   _createImagePlaceholder: function (sizeMode) {
     var plugin = this;
-    domtoimage.toPng(this.mapContainer, {
+    domtoimage.toPng(this.mapContainer, { // This fails after 30 seconds, which is a big part of why print screen is broken in some cases (ISA-701). If you notice print screen failing after exactly 30 seconds, it's because the requests to the layer server were taking too long.
         width: parseInt(this.originalState.mapWidth.replace('px')),
         height: parseInt(this.originalState.mapHeight.replace('px')),
         cacheBust: true
@@ -144,6 +144,7 @@ L.Control.EasyPrint = L.Control.extend({
       })
       .catch(function (error) {
           console.error('oops, something went wrong!', error);
+          plugin._removeOuterContainer(plugin.mapContainer, plugin.outerContainer, plugin.blankDiv);
           plugin._map.fire("easyPrint-failed", error);
       });
   },
@@ -187,7 +188,7 @@ L.Control.EasyPrint = L.Control.extend({
     if (this.originalState.widthWasAuto && sizemode === 'CurrentSize' || this.originalState.widthWasPercentage && sizemode === 'CurrentSize') {
       widthForExport = this.originalState.mapWidth
     }
-    domtoimage.toPng(plugin.mapContainer, {
+    domtoimage.toPng(plugin.mapContainer, { // This fails after 30 seconds, which is a big part of why print screen is broken in some cases (ISA-701). If you notice print screen failing after exactly 30 seconds, it's because the requests to the layer server were taking too long.
         width: parseInt(widthForExport),
         height: parseInt(plugin.mapContainer.style.height.replace('px')),
         cacheBust: true
@@ -337,7 +338,7 @@ L.Control.EasyPrint = L.Control.extend({
   _removeOuterContainer: function (mapDiv, outerContainer, blankDiv) {
     if (outerContainer.parentNode) {
       outerContainer.parentNode.insertBefore(mapDiv, outerContainer);
-      outerContainer.parentNode.removeChild(blankDiv);
+      if (blankDiv) outerContainer.parentNode.removeChild(blankDiv);
       outerContainer.parentNode.removeChild(outerContainer);      
     }
   },

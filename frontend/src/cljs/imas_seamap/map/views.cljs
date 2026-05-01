@@ -314,7 +314,10 @@
 
 (defmethod basemap-layer-component :tile
  [{:keys [server_url attribution]}]
- [leaflet/tile-layer {:url server_url :attribution attribution}])
+ [leaflet/tile-layer
+  {:url             server_url
+   :attribution     attribution
+   :referrer-policy "origin"}]) ; ISA-702: including referrer-policy header, because OSM requires it: https://operations.osmfoundation.org/policies/tiles/
 
 (defmethod basemap-layer-component :vector
   [{:keys [server_url attribution]}]
@@ -349,7 +352,7 @@
   (let [left-pane  (reagent/atom nil)
         right-pane (reagent/atom nil)]
     (fn [{:keys [layer boundary-filter layer-opacities cql-filter-fn z-index rich-layer-fn]}]
-      (let [{:keys [side-by-side-views-selected] :as rich-layer} (rich-layer-fn layer)
+      (let [{:keys [side-by-side-views-selected side-by-side-views-left-label-text side-by-side-views-right-label-text] :as rich-layer} (rich-layer-fn layer)
             left-layer  (or (:displayed-layer rich-layer) layer)
             right-layer (:layer side-by-side-views-selected)]
         ^{:key (str (:id left-layer) (:id right-layer) z-index)}
@@ -377,8 +380,8 @@
          [leaflet/side-by-side
           {:left-pane        @left-pane
            :right-pane       @right-pane
-           :left-label-text (:name left-layer)
-           :right-label-text (:name right-layer)
+           :left-label-text  side-by-side-views-left-label-text
+           :right-label-text side-by-side-views-right-label-text
            :on-range-updated #(re-frame/dispatch [:ui/split-layer-range-value %1 %2])
            :range-value      @(re-frame/subscribe [:ui/split-layer-range-value])}]]))))
 

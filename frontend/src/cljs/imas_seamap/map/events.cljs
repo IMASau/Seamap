@@ -218,8 +218,8 @@
     nil))
 
 (defmethod get-feature-info INFO-FORMAT-XML
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} point]]
-  (let [bbox (->> (bounds-for-zoom point size bounds feature-info-image-size)
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} {:keys [lat lng] :as point}]]
+  (let [bbox (->> (bounds-for-zoom [lng lat] size bounds feature-info-image-size)
                   (bounds->projected #(project-coords % (-> layers first :crs)))
                   (bounds->str:wms (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
@@ -454,11 +454,17 @@
     {:db       db
      :dispatch [:maybe-autosave]}))
 
+(def ^:private ^{:doc "Maps download format strings from the API to internal namespaced keywords."}
+  download-format-str->keyword
+  {"wfs" :map.layer.download-format/wfs
+   "wcs" :map.layer.download-format/wcs})
+
 (defn process-layer [layer]
   (-> layer
       (update :category    (comp keyword string/lower-case))
       (update :server_type (comp keyword string/lower-case))
-      (update :layer_type  (comp keyword string/lower-case))))
+      (update :layer_type  (comp keyword string/lower-case))
+      (update :download_format download-format-str->keyword)))
 
 (defn process-layers [layers]
   (mapv process-layer layers))
