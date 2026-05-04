@@ -6,6 +6,7 @@
             [clojure.string :as string]
             [clojure.set :as set]
             [goog.dom.xml :as gxml]
+            [goog.object :as gobject]
             [cljs.spec.alpha :as s]
             [imas-seamap.utils :refer [merge-in select-values first-where url? control->cql-filter ids->layers]]
             ["proj4" :as proj4]
@@ -33,11 +34,21 @@
      :east  x1
      :north y1}))
 
-;;; Note, the namespace format (",EPSG:4326") used here has important
-;;; correlation with the WFS version used; see
-;;; https://docs.geoserver.org/latest/en/user/services/wfs/axis_order.html
-(defn bounds->str
-  ([bounds] (bounds->str 4326 bounds))
+(defn bounds->str:wms
+  "Prepare a string suitable for use in the BBOX parameter for *WMS* queries.
+  Note that this has different semantics from WFS, and is version-dependent.
+  https://docs.geoserver.org/latest/en/user/services/wms/basics.html#axis-ordering
+  For now, we ignore the epsg-code if provided, and assume this is only used with version 1.1"
+  ([bounds] (bounds->str:wms 4326 bounds))
+  ([_epsg-code {:keys [north south east west] :as _bounds}]
+   (assert (or (integer? _epsg-code) (string? _epsg-code)))
+   (string/join "," [west south east north])))
+
+(defn bounds->str:wfs
+  "Prepare a string suitable for use in the BBOX parameter for *WFS* queries.
+  Note that this has different semantics from WMS, and is version-dependent:
+  https://docs.geoserver.org/latest/en/user/services/wfs/axis_order.html  "
+  ([bounds] (bounds->str:wms 4326 bounds))
   ([epsg-code {:keys [north south east west] :as _bounds}]
    (assert (or (integer? epsg-code) (string? epsg-code)))
    (string/join "," [west south east north (if (integer? epsg-code) (str "EPSG:" epsg-code) epsg-code)])))
@@ -61,6 +72,18 @@
            (< (:north b1) (:south b2))))))
 
 (defn habitat-layer? [layer] (-> layer :category (= :habitat)))
+
+(defn has-time-dimension? [layer] (#{:wms-timeseries} (:layer_type layer)))
+
+(defn ms-to-iso
+  "Converts a Unix timestamp in milliseconds (milliseconds since the Unix epoch, 1970-01-01T00:00:00Z) into an ISO 8601 formatted UTC timestamp string.
+   
+   Args:
+   * `epoch-milliseconds`: Milliseconds since the Unix epoch.
+  
+    Returns: ISO 8601 timestamp (e.g. `\"2026-05-01T06:27:10.336Z\"`)."
+  [epoch-milliseconds]
+  (-> epoch-milliseconds js/Date. .toISOString))
 
 (defn layer-search-keywords
   "Returns the complete search keywords of a layer, space-separated."
@@ -121,7 +144,7 @@
   (if-not bounds
     ((get-method download-link :wfs) layer bounds download-type)
     (let [base-url (str api-url-base "habitat/subset/")
-          bounds-arg (->> bounds (bounds->projected #(project-coords % "EPSG:3112")) (bounds->str 3112))]
+          bounds-arg (->> bounds (bounds->projected #(project-coords % "EPSG:3112")) (bounds->str:wfs 3112))]
       (-> (url/url base-url)
           (assoc :query {:layer_id id
                          :bounds   bounds-arg
@@ -143,7 +166,7 @@
       ;; an issue where including the bbox, for the full region,
       ;; causes issues.  I don't think this was always the case, but
       ;; not investigating further)
-      (merge-in (when bounds {:query {:bbox (bounds->str bounds)}}))
+      (merge-in (when bounds {:query {:bbox (bounds->str:wfs bounds)}}))
       str))
 
 (defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
@@ -160,7 +183,7 @@
                        :request     "GetMap"
                        :SRS         "EPSG:4326"
                        :transparent true
-                       :bbox        (bounds->str bounds)
+                       :bbox        (bounds->str:wms bounds)
                        :format      (type->format-str download-type)
                        :width       width
                        :height      (int (* ratio width))

@@ -43,6 +43,9 @@
     :map.layer/legend                     msubs/layer-legend
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
+    :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]
+    :map.time/show-time-slider?           [:<- [:map.time/timeseries-layers] msubs/show-time-slider?]
+    :map.time/current-time                msubs/current-time
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
     :sorting/info                         subs/sorting-info
@@ -130,6 +133,8 @@
     :map/get-feature-info-map-server-step-2 [mevents/get-feature-info-map-server-step-2] ; MapServer layers need to make an additional request to determine if they are a group layer
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
+    :map.time/current-time                [mevents/time-set-current-time]
+    :map.time/time-dimension-ref          mevents/time-dimension-ref
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]
@@ -278,7 +283,9 @@
 
 (defn register-handlers! [{:keys [subs events]}]
   (doseq [[sym handler] subs]
-    (re-frame/reg-sub sym handler))
+    (if (sequential? handler)
+      (apply re-frame/reg-sub sym handler)
+      (re-frame/reg-sub sym handler)))
   (doseq [[sym handler] events]
     (if (sequential? handler)
       (re-frame/reg-event-fx

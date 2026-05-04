@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.views
   (:require [clojure.string :as string]
-            [reagent.core :as r]
+            [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [copy-text handler-dispatch create-shadow-dom-element format-number] :include-macros true]
@@ -13,8 +13,7 @@
             ["react-leaflet" :as ReactLeaflet]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
             ["esri-leaflet-renderers"]
-            #_[debux.cs.core :refer [dbg] :include-macros true]
-            [reagent.core :as reagent]))
+            #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn point->latlng [[x y]] {:lat y :lng x})
 
@@ -137,7 +136,7 @@
 (defn popup-contents [{:keys [status responses]}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
-                                  {:icon (r/as-element [b/spinner {:intent "success"}])}]
+                                  {:icon (reagent/as-element [b/spinner {:intent "success"}])}]
     
     :feature-info/none-queryable [b/non-ideal-state
                                   {:title       "Invalid Info"
@@ -284,6 +283,25 @@
     (when boundary-filter (boundary-filter layer))
     (when cql-filter {:cql_filter cql-filter}))])
 
+(defmethod layer-component :wms-timeseries
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
+  [leaflet/wms-timeseries-layer
+   (merge
+    {:url              server_url
+     :layers           layer_name
+     :eventHandlers
+     {:loading       on-load-start
+      :tileloadstart on-tile-load-start
+      :tileerror     on-tile-error
+      :load          on-load-end} ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
+     :transparent      true
+     :opacity          (/ (layer-opacities layer) 100)
+     :tiled            true
+     :format           "image/png"}
+    (when style {:styles style})
+    (when boundary-filter (boundary-filter layer))
+    (when cql-filter {:cql_filter cql-filter}))])
+
 (defmethod layer-component :wmts
   [{:keys [layer-opacities layer] {:keys [server_url layer_name]} :displayed-layer}]
   [leaflet/wmts-layer
@@ -398,7 +416,7 @@
        ;; Unfortunately, only map container children in react-leaflet v4 are able to
        ;; obtain a reference to the leaflet map through useMap. We make a dummy child here
        ;; to get around the issue and obtain the map.
-       (r/create-element
+       (reagent/create-element
         #(when-let [leaflet-map (ReactLeaflet/useMap)]
            (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
            nil))
