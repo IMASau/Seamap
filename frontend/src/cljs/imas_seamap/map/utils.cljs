@@ -75,7 +75,7 @@
 
 (defn has-time-dimension? [layer] (#{:wms-timeseries} (:layer_type layer)))
 
-(defn datetime-epoch-milliseconds-to-iso
+(defn ms-to-iso
   "Converts a Unix timestamp in milliseconds (milliseconds since the Unix epoch, 1970-01-01T00:00:00Z) into an ISO 8601 formatted UTC timestamp string.
    
    Args:

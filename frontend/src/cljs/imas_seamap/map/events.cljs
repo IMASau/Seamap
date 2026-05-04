@@ -15,7 +15,7 @@
                                                 bounds->str:wms
                                                 enhance-rich-layer
                                                 feature-info-response->display
-                                                datetime-epoch-milliseconds-to-iso
+                                                ms-to-iso
                                                 has-time-dimension?
                                                 has-visible-habitat-layers?
                                                 init-layer-legend-status
@@ -153,7 +153,7 @@
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
        (when cql-filter {:CQL_FILTER cql-filter})
-       (when has-time? {:TIME (datetime-epoch-milliseconds-to-iso current-time)}))
+       (when has-time? {:TIME (ms-to-iso current-time)}))
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/html" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -201,7 +201,7 @@
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
        (when cql-filter {:CQL_FILTER cql-filter})
-       (when has-time? {:TIME (datetime-epoch-milliseconds-to-iso current-time)}))
+       (when has-time? {:TIME (ms-to-iso current-time)}))
       :response-format (ajax/json-response-format)
       :on-success      [:map/got-featureinfo request-id point "application/json" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -252,7 +252,7 @@
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
        (when cql-filter {:CQL_FILTER cql-filter})
-       (when has-time? {:TIME (datetime-epoch-milliseconds-to-iso current-time)}))
+       (when has-time? {:TIME (ms-to-iso current-time)}))
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
