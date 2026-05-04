@@ -136,7 +136,7 @@
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])]
-    [:div#main-wrapper.futures-of-seafood ;{:on-key-down handle-keydown :on-key-up handle-keyup}
+    [:div#main-wrapper.natural-hazards-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
      [:div#content-wrapper
       [map-component]

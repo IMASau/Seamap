@@ -315,7 +315,7 @@
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
-  (js/document.body.classList.add "futures-of-seafood")
+  (js/document.body.classList.add "natural-hazards-atlas")
   (.render
    root
    (r/as-element [hotkeys-provider
