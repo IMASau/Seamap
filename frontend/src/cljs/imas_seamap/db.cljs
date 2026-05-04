@@ -86,7 +86,8 @@
                      :open-pill             nil
                      :outage-message-open?  false
                      :split-layer-range-value nil
-                     :split-layer-container-x nil}
+                     :split-layer-container-x nil
+                     :timeseries-current-time nil}
    :dynamic-pills {:dynamic-pills []
                    :states        {}
                    :async-datas   {}}

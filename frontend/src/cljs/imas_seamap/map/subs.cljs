@@ -2,11 +2,19 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
-  (:require [clojure.string :as string]
-            [clojure.set :as set]
-            [imas-seamap.utils :refer [map-on-key ids->layers]]
-            [imas-seamap.map.utils :as map-utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers enhance-rich-layer rich-layer-children->parents rich-layer->displayed-layer layer->rich-layer layer->cql-filter]]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
+  (:require
+   [clojure.set :as set]
+   [clojure.string :as string]
+   [imas-seamap.map.utils :as map-utils :refer [enhance-rich-layer
+                                                has-time-dimension?
+                                                layer->cql-filter
+                                                layer->rich-layer
+                                                layer-search-keywords
+                                                region-stats-habitat-layer
+                                                rich-layer->displayed-layer
+                                                rich-layer-children->parents
+                                                sort-layers viewport-layers]]
+   [imas-seamap.utils :refer [ids->layers map-on-key]]))
 
 (defn map-props [db _] (:map db))
 
@@ -206,6 +214,23 @@
   (if org-name
     (some #(and (= org-name (:name %)) %) organisations)
     organisations))
+
+(defn timeseries-layers
+  "List of layers that are currently active and have a time dimension."
+  [map-layers _]
+  (filter has-time-dimension? (:active-layers map-layers)))
+
+(defn show-time-slider?
+  "Should the time slider be shown on the map? True if there are currently active
+   layers with a time dimension."
+  [timeseries-layers _]
+  (seq timeseries-layers))
+
+(defn current-time
+  "The current time selected for the time dimension. It is designed to be in sync
+   with the Leaflet timeDimension component."
+  [db _]
+  (get-in db [:display :current-time]))
 
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))
