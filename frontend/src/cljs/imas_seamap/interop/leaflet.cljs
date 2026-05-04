@@ -257,7 +257,6 @@
 (def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L/default %))))
 (def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L/default .-control .-coordinates) %))))
-(def time-dimension-arg  (fn [options] ((-> LeafletTimeDimension/default .-timeDimension) options)))
 
 ;;; Note: needs to be rendered with [:f> time-dimension-control2 ...] not [time-dimension-control2...]
 (defn time-dimension-control [options]
