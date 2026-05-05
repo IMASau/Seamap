@@ -76,6 +76,49 @@
        ^{:key (str id)}
        [views/side-by-side-views-pill rich-layer])]))
 
+(defn- current-view
+  "Layer configuration panel where model, scenario, and time parameters are
+   selected. Each parameter affects the map appearance and projection data."
+  []
+  [:div.current-view
+   [:div
+    {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
+    [:div {:style {:flex 1}}
+     [components/form-group
+      {:label "Model"}
+      [components/select
+       {:value        @(re-frame/subscribe [:current-view/selected-model])
+        :options      @(re-frame/subscribe [:current-view/models])
+        :onChange     #(re-frame/dispatch [:current-view/selected-model %])
+        :isSearchable true
+        :isClearable  true
+        :keyfns
+        {:id   :id
+         :text :name}}]]]
+    [:div {:style {:flex 1}}
+     [components/form-group
+      {:label "Scenario"}
+      [components/select
+       {:value        @(re-frame/subscribe [:current-view/selected-scenario])
+        :options      @(re-frame/subscribe [:current-view/scenarios])
+        :onChange     #(re-frame/dispatch [:current-view/selected-scenario %])
+        :isSearchable true
+        :isClearable  true
+        :keyfns
+        {:id   :id
+         :text :name}}]]]]
+   [components/form-group
+    {:label "Seasonal Data"}
+    [components/select
+     {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data])
+      :options      @(re-frame/subscribe [:current-view/seasonal-datas])
+      :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data %])
+      :isSearchable true
+      :isClearable  true
+      :keyfns
+      {:id   :id
+       :text :name}}]]])
+
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
@@ -127,7 +170,7 @@
        {:id    "current-view"
         :title (reagent/as-element
                 [b/tooltip {:content "Configure the map layers"} "Current View"])
-        :panel (reagent/as-element [:p "WIP"])}]]]))
+        :panel (reagent/as-element [current-view])}]]]))
 
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] views/hotkeys-combos))
