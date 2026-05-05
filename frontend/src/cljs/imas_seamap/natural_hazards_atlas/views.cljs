@@ -90,8 +90,6 @@
        {:value        @(re-frame/subscribe [:current-view/selected-model])
         :options      @(re-frame/subscribe [:current-view/models])
         :onChange     #(re-frame/dispatch [:current-view/selected-model %])
-        :isSearchable true
-        :isClearable  true
         :keyfns
         {:id   :id
          :text :name}}]]]
@@ -102,8 +100,6 @@
        {:value        @(re-frame/subscribe [:current-view/selected-scenario])
         :options      @(re-frame/subscribe [:current-view/scenarios])
         :onChange     #(re-frame/dispatch [:current-view/selected-scenario %])
-        :isSearchable true
-        :isClearable  true
         :keyfns
         {:id   :id
          :text :name}}]]]]
@@ -113,8 +109,6 @@
      {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data])
       :options      @(re-frame/subscribe [:current-view/seasonal-datas])
       :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data %])
-      :isSearchable true
-      :isClearable  true
       :keyfns
       {:id   :id
        :text :name}}]]])

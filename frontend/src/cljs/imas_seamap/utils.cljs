@@ -91,6 +91,9 @@
                                       [:feature :location]
                                       [:feature :leaflet-props]
                                       [:dynamic-pills :states]
+                                      [:current-view :selected-model-id]
+                                      [:current-view :selected-scenario-id]
+                                      [:current-view :selected-seasonal-data-id]
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc-in [:state-of-knowledge :boundaries] pruned-boundaries)
@@ -147,6 +150,9 @@
                  [:feature :location]
                  [:feature :leaflet-props]
                  [:dynamic-pills :states]
+                 [:current-view :selected-model-id]
+                 [:current-view :selected-scenario-id]
+                 [:current-view :selected-seasonal-data-id]
                  :legend-ids
                  :opacity-ids
                  :autosave?

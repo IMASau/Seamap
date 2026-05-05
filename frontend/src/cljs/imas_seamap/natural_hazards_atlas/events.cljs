@@ -224,18 +224,21 @@
   [{:keys [db]} [_ {model-id :id :as model}]]
   (let [models (get-in db [:current-view :models])]
     (assert (some #{model-id} (map :id models)) (str "Selected model " model " is not a valid option"))
-    {:db (assoc-in db [:current-view :selected-model-id] model-id)}))
+    {:db (assoc-in db [:current-view :selected-model-id] model-id)
+     :dispatch [:maybe-autosave]}))
 
 (defn current-view-selected-scenario
   "Scientific scenario to analyze the hazard data"
   [{:keys [db]} [_ {scenario-id :id :as scenario}]]
   (let [scenarios (get-in db [:current-view :scenarios])]
     (assert (some #{scenario-id} (map :id scenarios)) (str "Selected scenario " scenario " is not a valid option"))
-    {:db (assoc-in db [:current-view :selected-scenario-id] scenario-id)}))
+    {:db (assoc-in db [:current-view :selected-scenario-id] scenario-id)
+     :dispatch [:maybe-autosave]}))
 
 (defn current-view-selected-seasonal-data
   "Season to view the hazard data under"
   [{:keys [db]} [_ {seasonal-data-id :id :as seasonal-data}]]
   (let [seasonal-datas (get-in db [:current-view :seasonal-datas])]
     (assert (some #{seasonal-data-id} (map :id seasonal-datas)) (str "Selected seasonal data " seasonal-data " is not a valid option"))
-    {:db (assoc-in db [:current-view :selected-seasonal-data-id] seasonal-data-id)}))
+    {:db (assoc-in db [:current-view :selected-seasonal-data-id] seasonal-data-id)
+     :dispatch [:maybe-autosave]}))
