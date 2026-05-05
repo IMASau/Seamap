@@ -119,15 +119,15 @@
         :panel (reagent/as-element [views/left-drawer-active-layers false])}]
       [:div {:style {:flex-basis "100%" :height 0}}] ; spacer to push the next tabs to a new line
       [b/tab
-       {:id    "featured-maps"
-        :title (reagent/as-element
-                [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
-        :panel (reagent/as-element [featured-maps])}]
-      [b/tab
        {:id    "current-view"
         :title (reagent/as-element
                 [b/tooltip {:content "Configure the map layers"} "Current View"])
-        :panel (reagent/as-element [:p "WIP"])}]]]))
+        :panel (reagent/as-element [:p "WIP"])}]
+      [b/tab
+       {:id    "featured-maps"
+        :title (reagent/as-element
+                [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
+        :panel (reagent/as-element [featured-maps])}]]]))
 
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] views/hotkeys-combos))

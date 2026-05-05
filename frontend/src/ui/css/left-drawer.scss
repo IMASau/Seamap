@@ -187,7 +187,12 @@
         }
     }
 }
-
+.natural-hazards-atlas .left-drawer .left-drawer-tabs>.bp3-tab-list .bp3-tab {
+    flex: 1;
+    >* {
+        margin: auto;
+    }
+}
 
 .data-in-region-drawer {
     overflow-y: hidden;
