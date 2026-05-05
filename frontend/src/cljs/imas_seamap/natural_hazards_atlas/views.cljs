@@ -12,6 +12,13 @@
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]))
 
+(defn menu-button []
+  (let [icon (if @(re-frame/subscribe [:left-drawer/open?]) "double-chevron-left" "double-chevron-right")]
+    [views/leaflet-control-button
+     {:on-click #(re-frame/dispatch [:left-drawer/toggle])
+      :id       "menu-button"
+      :icon     icon}]))
+
 (defn autosave-toggle-button []
   (let [[icon text] (if @(re-frame/subscribe [:autosave?])
                       ["floppy-disk" "Application autosave is currently enabled"]
@@ -30,7 +37,7 @@
    - added autosave toggle"
   []
   [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
-   [views/menu-button]
+   [menu-button]
    [autosave-toggle-button]
    [views/zoom-control]
 
@@ -81,13 +88,7 @@
         tab   @(re-frame/subscribe [:left-drawer/tab])
         {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
-     {:title
-      [:<>
-       [:div [:img {:src "img/NHAT_HeaderLogo_T.png"}]]
-       [b/button
-        {:icon     "double-chevron-left"
-         :minimal  true
-         :on-click #(re-frame/dispatch [:left-drawer/close])}]]
+     {:title [:div [:img {:src "img/NHAT_HeaderLogo_T.png"}]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
