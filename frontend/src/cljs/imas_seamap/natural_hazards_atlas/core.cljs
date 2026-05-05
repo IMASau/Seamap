@@ -15,6 +15,7 @@
             [imas-seamap.blueprint :refer [hotkeys-provider]]
             [imas-seamap.events :as events]
             [imas-seamap.natural-hazards-atlas.events :as nhatevents]
+            [imas-seamap.natural-hazards-atlas.subs :as nhasubs]
             [imas-seamap.fx]
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
@@ -80,7 +81,13 @@
     :app/load-error-msg                   subs/load-error-msg
     :info/message                         subs/user-message
     :autosave?                            subs/autosave?
-    :url-base                             subs/url-base}
+    :url-base                             subs/url-base
+    :current-view/models                  nhasubs/current-view-models
+    :current-view/scenarios               nhasubs/current-view-scenarios
+    :current-view/seasonal-datas          nhasubs/current-view-seasonal-datas
+    :current-view/selected-model          nhasubs/current-view-selected-model
+    :current-view/selected-scenario       nhasubs/current-view-selected-scenario
+    :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data}
 
    :events
    {:boot                                 [nhatevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
@@ -242,7 +249,10 @@
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close
-    :download-click                       (fn [db [_ {:keys [_link]}]] db)}})
+    :download-click                       (fn [db [_ {:keys [_link]}]] db)
+    :current-view/selected-model          [nhatevents/current-view-selected-model]
+    :current-view/selected-scenario       [nhatevents/current-view-selected-scenario]
+    :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]}})
 
 (def events-for-analytics
   [:help-layer/open
