@@ -48,3 +48,22 @@
     (when selected-seasonal-data-id
       (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
     selected-seasonal-data))
+
+(defn current-view-time-periods
+  "Time periods to analyze the hazard data.
+   
+   TODO: This is a half-baked implementation, because we haven't nailed-down what
+   time periods span what years, and all the currently available data is historic."
+  [available-times _]
+  {:time-periods
+   [{:id "all" :name "All"}
+    {:id "historic" :name "Historic"}
+    {:id "short" :name "Short"}
+    {:id "medium" :name "Medium"}
+    {:id "long" :name "Long"}]
+   :counts
+   {"all"      (count available-times)
+    "historic" (count available-times)
+    "short"    0
+    "medium"   0
+    "long"     0}})

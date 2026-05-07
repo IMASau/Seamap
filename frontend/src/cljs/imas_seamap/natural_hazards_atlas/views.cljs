@@ -83,6 +83,23 @@
        ^{:key (str id)}
        [views/side-by-side-views-pill rich-layer])]))
 
+(defn- time-period-select
+  []
+  (let [{:keys [time-periods counts]} @(re-frame/subscribe [:current-view/time-periods])]
+    [:div
+     {:style {:width "100%" :overflow-x "auto"}}
+     [b/button-group 
+      {:fill true}
+      (for [{:keys [id name]} time-periods]
+        (let [count (get counts id)]
+          ^{:key id}
+          [b/button
+           {:text (str name " (" count ")")
+            :style {:flex "0 0 auto"}
+            ;; :on-click #(re-frame/dispatch [:current-view/selected-time-period id])
+            ;; :active (= id @(re-frame/subscribe [:current-view/selected-time-period]))
+            }]))]]))
+
 (defn- current-view
   "Layer configuration panel where model, scenario, and time parameters are
    selected. Each parameter affects the map appearance and projection data."
@@ -118,7 +135,8 @@
       :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data %])
       :keyfns
       {:id   :id
-       :text :name}}]]])
+       :text :name}}]]
+   [b/card [time-period-select]]])
 
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])

@@ -88,7 +88,8 @@
     :current-view/seasonal-datas          nhasubs/current-view-seasonal-datas
     :current-view/selected-model          nhasubs/current-view-selected-model
     :current-view/selected-scenario       nhasubs/current-view-selected-scenario
-    :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data}
+    :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data
+    :current-view/time-periods            [:<- [:map.time/available-times] nhasubs/current-view-time-periods]}
 
    :events
    {:boot                                 [nhatevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
