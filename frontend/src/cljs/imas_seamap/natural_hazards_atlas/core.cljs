@@ -147,6 +147,7 @@
     :map/got-featureinfo-err              mevents/got-feature-info-error
     :map.time/current-time                [mevents/time-set-current-time]
     :map.time/time-dimension-ref          mevents/time-dimension-ref
+    :map.time/time-dimension-control-ref  mevents/time-dimension-control-ref
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]

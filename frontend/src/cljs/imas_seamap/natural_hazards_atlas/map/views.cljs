@@ -133,6 +133,7 @@
           {:time-dimension
            {:ref #(re-frame/dispatch [:map.time/time-dimension-ref %])
             :defaultTime @(re-frame/subscribe [:map.time/current-time])}
+           :ref #(re-frame/dispatch [:map.time/time-dimension-control-ref %])
            :auto-play false
            :player-options
            {:buffer 10

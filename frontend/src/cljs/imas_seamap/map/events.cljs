@@ -1181,3 +1181,10 @@
   [db [_ time-dimension-ref]]
   (.on time-dimension-ref "timeload" #(re-frame/dispatch [:map.time/current-time (.-time %)]))
   (assoc-in db [:map :time-dimension-ref] time-dimension-ref))
+
+(defn time-dimension-control-ref
+  "For when the control.timeDimension component (from the leaflet-timedimension
+   library) is created/added to the Leaflet map.
+   Stores a reference to the control.timeDimension so we can drive it's state from re-frame events."
+  [db [_ time-dimension-control-ref]]
+  (assoc-in db [:map :time-dimension-control-ref] time-dimension-control-ref))

@@ -262,22 +262,24 @@
 (defn time-dimension-control [options]
   (let [map (ReactLeaflet/useMap)]
     (react/useEffect
-      (fn []
-        ;; The upstream implementation uses addInitHook on L.Map to initialise this:
-        (when (not (.-timeDimension map))
-          (let [time-dimension-options (:time-dimension options)
-                time-dimension ((-> LeafletTimeDimension/default .-timeDimension) (clj->js time-dimension-options))]
-            (set! (.-timeDimension map) time-dimension)
-            (when-let [time-dimension-ref (:ref time-dimension-options)]
-              (time-dimension-ref time-dimension))))
+     (fn []
+       ;; The upstream implementation uses addInitHook on L.Map to initialise this:
+       (when (not (.-timeDimension map))
+         (let [time-dimension-options (:time-dimension options)
+               time-dimension (LeafletTimeDimension/default.timeDimension (clj->js time-dimension-options))]
+           (set! (.-timeDimension map) time-dimension)
+           (when-let [time-dimension-ref (:ref time-dimension-options)]
+             (time-dimension-ref time-dimension))))
 
-        (let [control (new (-> LeafletTimeDimension/default .-control .-timeDimension) (clj->js options))]
-          (.addTo control map)
-          ;; Return a function to remove the control when component unmounts:
-          (fn []
-            (.remove control))))
-      ;; Re-run if map or options change
-      #js [map options])
+       (let [control (LeafletTimeDimension/default.control.timeDimension (clj->js options))]
+         (.addTo control map)
+         (when-let [ref (:ref options)]
+           (ref control))
+         ;; Return a function to remove the control when component unmounts:
+         (fn []
+           (.remove control))))
+     ;; Re-run if map or options change
+     #js [map options])
 
     ;; Return nil because Leaflet handles the DOM, not React
     nil))
