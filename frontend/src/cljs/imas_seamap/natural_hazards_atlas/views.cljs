@@ -85,20 +85,21 @@
 
 (defn- time-period-select
   []
-  (let [{:keys [time-periods counts]} @(re-frame/subscribe [:current-view/time-periods])]
+  (let [{:keys [time-periods counts]} @(re-frame/subscribe [:current-view/time-periods])
+         selected-time-period         @(re-frame/subscribe [:current-view/selected-time-period])]
     [:div
      {:style {:width "100%" :overflow-x "auto"}}
      [b/button-group 
       {:fill true}
-      (for [{:keys [id name]} time-periods]
+      (for [{:keys [id name] :as time-period} time-periods]
         (let [count (get counts id)]
           ^{:key id}
           [b/button
            {:text (str name " (" count ")")
             :style {:flex "0 0 auto"}
-            ;; :on-click #(re-frame/dispatch [:current-view/selected-time-period id])
-            ;; :active (= id @(re-frame/subscribe [:current-view/selected-time-period]))
-            }]))]]))
+            :on-click #(re-frame/dispatch [:current-view/selected-time-period time-period])
+            :active (= id (:id selected-time-period))
+            :disabled (zero? count)}]))]]))
 
 (defn- current-view
   "Layer configuration panel where model, scenario, and time parameters are
