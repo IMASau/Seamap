@@ -163,7 +163,7 @@
    {:type "range"
     :min 0 :max 100 :value opacity
     :on-click #(.stopPropagation %)
-    :on-input #(re-frame/dispatch [:map.layer/opacity-changed layer (.. % -target -value)])}])
+    :on-input #(re-frame/dispatch [:map.layer/opacity-changed layer (js/parseInt (.. % -target -value))])}])
 
 (defn- layer-card-header
   "Top part of layer card. Always visible. Contains the layer status, name, and

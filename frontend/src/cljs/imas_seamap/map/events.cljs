@@ -449,7 +449,7 @@
   (assoc-in db [:filters :other-layers] filter-text))
 
 (defn layer-set-opacity [{:keys [db]} [_ layer opacity]]
-  (s/assert (s/int-in 0 100) opacity)
+  (s/assert (s/int-in 0 101) opacity) ; opacity is an integer percentage from 0 to 100 inclusive
   (let [db (assoc-in db [:layer-state :opacity layer] opacity)]
     {:db       db
      :dispatch [:maybe-autosave]}))
