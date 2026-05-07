@@ -232,6 +232,11 @@
   [db _]
   (get-in db [:display :current-time]))
 
+(defn time-available-times
+  "The available times for the layers, driven by the timeDimension component."
+  [db _]
+  (get-in db [:display :available-times]))
+
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))
 

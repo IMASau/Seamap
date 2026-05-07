@@ -49,6 +49,7 @@
     :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]
     :map.time/show-time-slider?           [:<- [:map.time/timeseries-layers] msubs/show-time-slider?]
     :map.time/current-time                msubs/current-time
+    :map.time/available-times             msubs/time-available-times
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
     :sm/featured-maps                     smsubs/featured-maps
@@ -146,6 +147,7 @@
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
     :map.time/current-time                [mevents/time-set-current-time]
+    :map.time/available-times             mevents/time-available-times
     :map.time/time-dimension-ref          mevents/time-dimension-ref
     :map.time/time-dimension-control-ref  mevents/time-dimension-control-ref
     :map/toggle-layer                     [mevents/toggle-layer]
