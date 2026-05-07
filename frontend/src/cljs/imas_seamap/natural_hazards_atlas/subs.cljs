@@ -2,7 +2,8 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.subs
-  (:require [imas-seamap.utils :refer [first-where]]))
+  (:require [imas-seamap.utils :refer [first-where]]
+            [imas-seamap.natural-hazards-atlas.utils :as nhatutils]))
 
 (defn current-view-models
   "List of scientific models available to analyze the hazard data"
@@ -50,20 +51,23 @@
     selected-seasonal-data))
 
 (defn current-view-time-periods
-  "Time periods to analyze the hazard data.
+  "List of time periods available to analyze the hazard data.
    
    TODO: This is a half-baked implementation, because we haven't nailed-down what
    time periods span what years, and all the currently available data is historic."
   [available-times _]
-  {:time-periods
-   [{:id "all" :name "All"}
-    {:id "historic" :name "Historic"}
-    {:id "short" :name "Short"}
-    {:id "medium" :name "Medium"}
-    {:id "long" :name "Long"}]
+  {:time-periods nhatutils/time-periods
    :counts
    {"all"      (count available-times)
     "historic" (count available-times)
     "short"    0
     "medium"   0
     "long"     0}})
+
+(defn current-view-selected-time-period
+  "Time period to analyze the hazard data"
+  [db _]
+  (let [selected-time-period-id (get-in db [:current-view :selected-time-period-id])
+        selected-time-period    (first-where #(= (:id %) selected-time-period-id) nhatutils/time-periods)]
+    (assert selected-time-period (str "Selected time period id " selected-time-period-id " not found in time periods list"))
+    selected-time-period))

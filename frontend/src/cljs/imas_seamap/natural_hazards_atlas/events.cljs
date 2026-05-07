@@ -4,7 +4,9 @@
 (ns imas-seamap.natural-hazards-atlas.events
   (:require [ajax.core :as ajax]
             [imas-seamap.natural-hazards-atlas.db :as db]
-            [imas-seamap.utils :refer [merge-in ajax-loaded-info]]
+            [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
+            [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities rich-layer->displayed-layer]]
+            [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn- boot-flow
@@ -124,12 +126,72 @@
                  (seq seamap-app-state) (boot-flow-hash-state seamap-app-state) ; Same as hash-code, except that we use the one stored in local storage
                  :else              (boot-flow))})                      ; No information, so we start with an empty DB
 
+(defn merge-state
+  "Takes a hash-code and merges it into the current application state.
+   
+   Like imas-seamap.events/merge-state, but uses the NHAT version of parse-state,
+   which doesn't include state of knowledge, but does include the current view
+   (selections of model, scenario, seasonal data, and time period)."
+  [{:keys [db]} [_ hash-code]]
+  (let [parsed-state (-> (nhatutils/parse-state hash-code)
+                         (dissoc :story-maps))
+        parsed-state (-> parsed-state
+                         (update
+                          :display
+                          dissoc
+                          :left-drawer ; discard the left drawer open/closed state
+                          :right-sidebars) ; discard the right sidebar state
+                         (cond->
+                          (not (get-in parsed-state [:display :left-drawer])) ; if the left drawer was closed, then discard the tab state
+                           (update :display dissoc :left-drawer-tab)))
+        db           (merge-in db parsed-state)
+        {:keys [active active-base zoom center]} (:map db)
+        startup-layers (get-in db [:map :keyed-layers :startup] [])
+
+        active-layers (if active
+                        (vec (ids->layers active (get-in db [:map :layers])))
+                        startup-layers)
+        active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
+        db            (-> db
+                          (assoc-in [:map :active-layers] active-layers)
+                          (assoc-in [:map :active-base-layer] active-base))
+
+        {:keys [legend-ids opacity-ids]} db
+        layers        (get-in db [:map :layers])
+        legends-shown (init-layer-legend-status layers legend-ids)
+        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
+        db            (-> db
+                          (assoc-in [:layer-state :legend-shown] legends-shown)
+                          (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
+
+        feature-location      (get-in db [:feature :location])
+        feature-leaflet-props (get-in db [:feature :leaflet-props])
+        rich-layers (get-in db [:map :rich-layers :rich-layers])
+        cql-get
+        (->>
+         legend-ids
+         (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
+
+        dynamic-pills (get-in db [:dynamic-pills :dynamic-pills])
+        active-dynamic-pills (filter #(get-in db [:dynamic-pills :states (:id %) :active?]) dynamic-pills)]
+    {:db         db
+     :dispatch-n
+     (concat
+      [[:map/update-map-view {:zoom zoom :center center}]
+       (when (and feature-location feature-leaflet-props)
+         [:map/feature-info-dispatcher feature-leaflet-props feature-location])
+       [:map/popup-closed]]
+      (mapv #(vector :map.layer/get-legend %) (filter identity legends-get))
+      (mapv #(vector :map.rich-layer/get-cql-filter-values %) (filter identity cql-get))
+      (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills))}))
+
 (defn re-boot
   "Identical to imas-seamap.events/re-boot, just triggers the private versions of
    the boot flow functions that don't load region reports and state of knowledge
    data."
  [{:keys [db]} _]
-  (let [db (merge-in db/default-db (ajax-loaded-info db))
+  (let [db (merge-in db/default-db (nhatutils/ajax-loaded-info db))
         startup-layers (get-in db [:map :keyed-layers :startup] [])
         db (-> db
                (assoc-in [:map :active-layers] startup-layers)
@@ -219,6 +281,32 @@
                    :on-success      [:sm/update-featured-maps]
                    :on-failure      [:sm/update-featured-maps []]}]}))
 
+(defn create-save-state
+  "Like imas-seamap.events/create-save-state, but uses the NHAT version of
+   encode-state, which doesn't include state of knowledge, but does include the
+   current view (selections of model, scenario, seasonal data, and time period)."
+  [{:keys [db]} _]
+  (copy-text js/location.href)
+  (let [save-state-url (get-in db [:config :urls :save-state-url])]
+    {:http-xhrio [{:method          :post
+                   :uri             save-state-url
+                   :params          {:hashstate (nhatutils/encode-state db)}
+                   :format          (ajax/json-request-format)
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:create-save-state-success]
+                   :on-failure      [:create-save-state-failure]}]}))
+
+(defn maybe-autosave
+  "Like imas-seamap.events/maybe-autosave, but uses the NHAT version of
+   encode-state, which doesn't include state of knowledge, but does include the
+   current view (selections of model, scenario, seasonal data, and time period)."
+  [{{:keys [autosave?] :as db} :db} _]
+  (when autosave?
+    {:local-storage/set
+     {:name  :seamap-app-state
+      :value (nhatutils/encode-state db)}
+     :put-hash   ""}))
+
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data"
   [{:keys [db]} [_ {model-id :id :as model}]]
@@ -242,3 +330,10 @@
     (assert (some #{seasonal-data-id} (map :id seasonal-datas)) (str "Selected seasonal data " seasonal-data " is not a valid option"))
     {:db (assoc-in db [:current-view :selected-seasonal-data-id] seasonal-data-id)
      :dispatch [:maybe-autosave]}))
+
+(defn current-view-selected-time-period
+  "Time period to analyze the hazard data"
+  [{:keys [db]} [_ {time-period-id :id :as time-period}]]
+  (assert (some #{time-period-id} (map :id nhatutils/time-periods)) (str "Selected time period " time-period " is not a valid option"))
+  {:db (assoc-in db [:current-view :selected-time-period-id] time-period-id)
+   :dispatch [:maybe-autosave]})

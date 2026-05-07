@@ -89,12 +89,13 @@
     :current-view/selected-model          nhasubs/current-view-selected-model
     :current-view/selected-scenario       nhasubs/current-view-selected-scenario
     :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data
-    :current-view/time-periods            [:<- [:map.time/available-times] nhasubs/current-view-time-periods]}
+    :current-view/time-periods            [:<- [:map.time/available-times] nhasubs/current-view-time-periods]
+    :current-view/selected-time-period    nhasubs/current-view-selected-time-period}
 
    :events
    {:boot                                 [nhatevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
     :construct-urls                       events/construct-urls
-    :merge-state                          [events/merge-state]
+    :merge-state                          [nhatevents/merge-state]
     :re-boot                              [nhatevents/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
@@ -116,11 +117,11 @@
     :help-layer/close                     events/help-layer-close
     :welcome-layer/open                   [events/welcome-layer-open (re-frame/inject-cofx :cookie/get [:seen-welcome])]
     :welcome-layer/close                  [events/welcome-layer-close]
-    :create-save-state                    [events/create-save-state]
+    :create-save-state                    [nhatevents/create-save-state]
     :create-save-state-success            [events/create-save-state-success]
     :create-save-state-failure            [events/create-save-state-failure]
     :toggle-autosave                      [events/toggle-autosave]
-    :maybe-autosave                       [events/maybe-autosave]
+    :maybe-autosave                       [nhatevents/maybe-autosave]
     :info/show-message                    [events/show-message]
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]
@@ -256,7 +257,8 @@
     :download-click                       (fn [db [_ {:keys [_link]}]] db)
     :current-view/selected-model          [nhatevents/current-view-selected-model]
     :current-view/selected-scenario       [nhatevents/current-view-selected-scenario]
-    :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]}})
+    :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]
+    :current-view/selected-time-period    [nhatevents/current-view-selected-time-period]}})
 
 (def events-for-analytics
   [:help-layer/open

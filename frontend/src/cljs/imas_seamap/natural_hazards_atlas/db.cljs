@@ -75,7 +75,8 @@
                    :seasonal-datas            [{:id 1 :name "Summer"} {:id 2 :name "Autumn"} {:id 3 :name "Winter"} {:id 4 :name "Spring"}]
                    :selected-model-id         2
                    :selected-scenario-id      1
-                   :selected-seasonal-data-id 3}
+                   :selected-seasonal-data-id 3
+                   :selected-time-period-id   "all"}
    :autosave?       false
    :config          {:url-paths {:site-configuration    "siteconfiguration/"
                                  :layer                 "layers/"
