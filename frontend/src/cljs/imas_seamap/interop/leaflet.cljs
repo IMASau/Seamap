@@ -278,8 +278,13 @@
          ;; Return a function to remove the control when component unmounts:
          (fn []
            (.remove control))))
-     ;; Re-run if map or options change
-     #js [map options])
+     ;; Re-run if map changes.
+     ;; `options` used to be a dependency here, but clojurescript objs don't play nice
+     ;; with React's dependency checking, owing to issues in determining equality
+     ;; If we need to add `options` back as a dependency, it will have to be done by
+     ;; extracting the primitive values of each key, using those as dependencies
+     ;; instead.
+     #js [map])
 
     ;; Return nil because Leaflet handles the DOM, not React
     nil))
