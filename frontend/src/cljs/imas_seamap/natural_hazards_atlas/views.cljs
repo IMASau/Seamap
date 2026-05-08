@@ -84,10 +84,15 @@
        [views/side-by-side-views-pill rich-layer])]))
 
 (defn- time-period-select
+  "Select the time period of the hazard data to view on the map.
+   This is a half-baked implementation, because we haven't nailed-down what time
+   periods span what years, and all the currently available data is historic."
   []
   (let [{:keys [time-periods counts]} @(re-frame/subscribe [:current-view/time-periods])
          selected-time-period         @(re-frame/subscribe [:current-view/selected-time-period])]
-    [:div
+    [components/form-group
+     {:label "Time Period"}
+     [:div
      {:style {:width "100%" :overflow-x "auto"}}
      [b/button-group 
       {:fill true}
@@ -99,7 +104,22 @@
             :style {:flex "0 0 auto"}
             :on-click #(re-frame/dispatch [:current-view/selected-time-period time-period])
             :active (= id (:id selected-time-period))
-            :disabled (zero? count)}]))]]))
+            :disabled (zero? count)}]))]]]))
+
+(defn- timeline-select
+  "Slider to select the date (year) of data to view."
+  []
+  (let [available-times @(re-frame/subscribe [:map.time/available-times])
+        label-renderer #(.getFullYear (js/Date. %))
+        label-values (conj (take-nth 10 available-times) (last available-times))]
+    [components/form-group
+     {:label "Year"}
+     [components/snap-slider
+      {:value     @(re-frame/subscribe [:map.time/current-time])
+       :values    available-times
+       :on-change #(re-frame/dispatch [:map.time/current-time %])
+       :label-values label-values
+       :label-renderer label-renderer}]]))
 
 (defn- current-view
   "Layer configuration panel where model, scenario, and time parameters are
@@ -137,7 +157,10 @@
       :keyfns
       {:id   :id
        :text :name}}]]
-   [b/card [time-period-select]]])
+   (when @(re-frame/subscribe [:map.time/available-times])
+    [b/card
+     [time-period-select]
+     [timeline-select]])])
 
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])

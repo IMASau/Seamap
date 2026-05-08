@@ -236,6 +236,7 @@
            :description "We are unable to display any legend data at this time."
            :icon        "info-sign"}]))]))
 
+;; TODO: Migrate this to use the new snap-slider component in components.cljs
 (defn- alternate-view-select
   [{{{:keys [alternate-views alternate-views-selected alternate-view-label] :as rich-layer} :rich-layer} :layer-state}]
   [components/form-group
@@ -340,6 +341,7 @@
        :text #(-> % :value str)
        :is-disabled? #(-> % :valid? not)}}]]])
 
+;; TODO: Migrate this to use the new snap-slider component in components.cljs
 (defmethod cql-control "slider"
   [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
   (let [gaps (:gaps
