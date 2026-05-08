@@ -6,7 +6,7 @@
             [cljs.spec.alpha :as s]
             [imas-seamap.blueprint :as b]
             [imas-seamap.interop.ui-controls :as ui-controls]
-            [imas-seamap.utils :refer [first-where]]
+            [imas-seamap.utils :refer [first-where round-to-nearest]]
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]))
 
@@ -255,3 +255,47 @@
             ^{:key i}
             [b/hotkey hotkey])
           hotkeys)]]])}))
+
+
+(defn snap-slider
+  "Slider component that snaps to discrete values.
+   
+   Args:
+   * `value`: The current value of the slider. Should be one of the values in the
+       `values` list.
+   * `values`: A list of values that the slider can snap to.
+   * `on-change`: Event that fires when the slider value changes. Will be called with
+       the new value as an argument.
+   * `label-values` (optional): A list of values to display as labels along the
+       slider. Should be a subset of `values`.
+   * `label-renderer` (optional): A function that takes a value and returns the label
+       to display for that value. If not given, the value itself will be used as the
+       label."
+  [{:keys [value values on-change label-values label-renderer]}]
+  (let [handle-change
+        (fn [event]
+          (let [new-value (.. event -target -value)
+                nearest-value (round-to-nearest new-value values)]
+            (on-change nearest-value)))
+        label-min (apply min label-values)
+        label-max (apply max label-values)
+        get-label-percentage #(* (/ (- % label-min) (- label-max label-min)) 100)]
+    [:div.snap-slider
+     [:input
+      {:type      "range"
+       :min       (apply min values)
+       :max       (apply max values)
+       :value     value
+       :on-change handle-change}]
+     (when (seq label-values)
+       [:div.snap-slider-labels
+        (map
+         (fn [v]
+           [:div.snap-slider-label
+            {:key   v
+             :style {:left (str (get-label-percentage v) "%")}}
+            (if label-renderer (label-renderer v) v)])
+         label-values)
+        [:div.snap-slider-handle-label
+         {:style {:left (str (get-label-percentage value) "%")}}
+         (if label-renderer (label-renderer value) value)]])]))

@@ -272,3 +272,33 @@
     }
 
 }
+
+.snap-slider {
+    height: 38px;
+    input[type="range"] {
+        cursor: pointer;
+        accent-color: var(--deep-blue);
+        margin: 0;
+        width: 100%;
+        &:disabled { accent-color: rgb(203, 203, 203); }
+    }
+
+    .snap-slider-labels {
+        position: relative;
+        margin: 0 8px;
+
+        .snap-slider-label,
+        .snap-slider-handle-label {
+            -webkit-transform: translate(-50%, -2px);
+            transform: translate(-50%, -2px);
+            font-size: 11px;
+            position: absolute;
+            padding: 2px 5px;
+        }
+        .snap-slider-handle-label {
+            background: #394b59;
+            border-radius: 3px;
+            color: white;
+        }
+    }
+}
