@@ -113,7 +113,8 @@
     [b/button-group
      [b/button
       {:icon "step-backward"
-       :disabled (not can-step-backward?)}]
+       :disabled (not can-step-backward?)
+       :on-click #(re-frame/dispatch [:current-view.time/step-backward])}]
      [b/button
       {:icon (if is-playing? "pause" "play")
        :on-click
@@ -122,16 +123,18 @@
          #(re-frame/dispatch [:map.time/play]))}]
      [b/button
       {:icon "step-forward"
-       :disabled (not can-step-forward?)}]]))
+       :disabled (not can-step-forward?)
+       :on-click #(re-frame/dispatch [:current-view.time/step-forward])}]]))
 
 (defn- timeline-slider
   "Slider to select the date (year) of data to view."
   []
   (let [available-times @(re-frame/subscribe [:map.time/available-times])
         label-renderer #(.getFullYear (js/Date. %))
-        label-values (conj (take-nth 10 available-times) (last available-times))]
+        label-values (conj (take-nth 10 available-times) (last available-times))
+        value @(re-frame/subscribe [:map.time/current-time])]
     [components/snap-slider
-     {:value     @(re-frame/subscribe [:map.time/current-time])
+     {:value     value
       :values    available-times
       :on-change #(re-frame/dispatch [:map.time/current-time %])
       :label-values label-values
@@ -184,7 +187,7 @@
       :keyfns
       {:id   :id
        :text :name}}]]
-   (when @(re-frame/subscribe [:map.time/available-times])
+   (when (and @(re-frame/subscribe [:map.time/current-time]) (seq @(re-frame/subscribe [:map.time/available-times])))
     [b/card
      [time-period-select]
      [timeline-select]])])

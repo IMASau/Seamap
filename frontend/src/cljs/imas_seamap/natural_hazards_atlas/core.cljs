@@ -262,7 +262,9 @@
     :current-view/selected-model          [nhatevents/current-view-selected-model]
     :current-view/selected-scenario       [nhatevents/current-view-selected-scenario]
     :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]
-    :current-view/selected-time-period    [nhatevents/current-view-selected-time-period]}})
+    :current-view/selected-time-period    [nhatevents/current-view-selected-time-period]
+    :current-view.time/step-forward       [nhatevents/current-view-time-step-forward]
+    :current-view.time/step-backward      [nhatevents/current-view-time-step-backward]}})
 
 (def events-for-analytics
   [:help-layer/open

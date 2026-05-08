@@ -337,3 +337,27 @@
   (assert (some #{time-period-id} (map :id nhatutils/time-periods)) (str "Selected time period " time-period " is not a valid option"))
   {:db (assoc-in db [:current-view :selected-time-period-id] time-period-id)
    :dispatch [:maybe-autosave]})
+
+(defn current-view-time-step-forward
+  "Move forward one time step in the hazard data"
+  [{:keys [db]} _]
+  (let [available-times (get-in db [:display :available-times])
+        current-time    (get-in db [:display :current-time])
+        current-index   (.indexOf available-times current-time)
+        next-index      (mod (inc current-index) (count available-times))
+        next-time       (nth available-times next-index)]
+    (assert (seq available-times) "No available times to step through")
+    (assert current-time "Current time is not set")
+    {:dispatch [:map.time/current-time next-time]}))
+
+(defn current-view-time-step-backward
+  "Move backward one time step in the hazard data"
+  [{:keys [db]} _]
+  (let [available-times (get-in db [:display :available-times])
+        current-time    (get-in db [:display :current-time])
+        current-index   (.indexOf available-times current-time)
+        prev-index      (mod (dec current-index) (count available-times))
+        prev-time       (nth available-times prev-index)]
+    (assert (seq available-times) "No available times to step through")
+    (assert current-time "Current time is not set")
+    {:dispatch [:map.time/current-time prev-time]}))
