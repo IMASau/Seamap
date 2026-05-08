@@ -193,9 +193,18 @@
       {:id   :id
        :text :name}}]]
    (when (and @(re-frame/subscribe [:map.time/current-time]) (seq @(re-frame/subscribe [:map.time/available-times])))
-    [b/card
-     [time-period-select]
-     [timeline-select]])])
+     [b/card
+      [time-period-select]
+      [timeline-select]])
+   [:div {:style {:position "absolute" :top "200px" :right "16px"}}
+    [b/tooltip
+     {:content
+      (reagent/as-element
+       [b/non-ideal-state
+        {:title       "Work In Progress"
+         :description "Current View is a work in progress. Model, Scenario, and Seasonal Data parameters are non-functional."
+         :icon        "info-sign"}])}
+     [b/icon {:icon "info-sign"}]]]])
 
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
