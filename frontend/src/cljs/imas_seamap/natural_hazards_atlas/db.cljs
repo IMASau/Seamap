@@ -69,7 +69,8 @@
                      :split-layer-container-x nil
                      :current-time            nil
                      :available-times         []
-                     :time-is-playing?        false}
+                     :time-is-playing?        false
+                     :time-is-loading?        false}
    :dynamic-pills {:dynamic-pills []
                    :states        {}
                    :async-datas   {}}

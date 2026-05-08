@@ -1202,6 +1202,12 @@
       (.. time-dimension-control-ref -_player pause))
     (assoc-in db [:display :time-is-playing?] false)))
 
+(defn time-is-loading?
+  "The timeDimension component is currently loading a new time, driven by the
+   timeDimension control player component."
+  [db [_ loading?]]
+  (assoc-in db [:display :time-is-loading?] loading?))
+
 (defn time-dimension-ref
   "For when the timeDimension component (from the leaflet-timedimension library) is
    first created/added to the Leaflet map.
@@ -1217,4 +1223,6 @@
    library) is created/added to the Leaflet map.
    Stores a reference to the control.timeDimension so we can drive it's state from re-frame events."
   [db [_ time-dimension-control-ref]]
+  (.on (.-_player time-dimension-control-ref) "waiting" #(re-frame/dispatch [:map.time/is-loading? true]))
+  (.on (.-_player time-dimension-control-ref) "running" #(re-frame/dispatch [:map.time/is-loading? false]))
   (assoc-in db [:map :time-dimension-control-ref] time-dimension-control-ref))

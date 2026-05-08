@@ -242,6 +242,12 @@
   [db _]
   (get-in db [:display :time-is-playing?]))
 
+(defn time-is-loading?
+  "Whether the time dimension is currently loading a new time, driven by
+   the timeDimension component."
+  [db _]
+  (get-in db [:display :time-is-loading?]))
+
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))
 

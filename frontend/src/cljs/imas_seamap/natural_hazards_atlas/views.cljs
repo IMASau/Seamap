@@ -109,7 +109,7 @@
 (defn- timeline-media-controls
   "Media-style controls to play through the timeline of hazard data."
   []
-  (let [{:keys [is-playing? can-step-forward? can-step-backward?] :as a} @(re-frame/subscribe [:current-view/timeline-media-controls])]
+  (let [{:keys [is-playing? is-loading? can-step-forward? can-step-backward?]} @(re-frame/subscribe [:current-view/timeline-media-controls])]
     [b/button-group
      [b/button
       {:icon "step-backward"
@@ -124,7 +124,11 @@
      [b/button
       {:icon "step-forward"
        :disabled (not can-step-forward?)
-       :on-click #(re-frame/dispatch [:current-view.time/step-forward])}]]))
+       :on-click #(re-frame/dispatch [:current-view.time/step-forward])}]
+     [b/button
+      {:icon "tick-circle"
+       :loading is-loading?
+       :disabled true}]]))
 
 (defn- timeline-slider
   "Slider to select the date (year) of data to view."
