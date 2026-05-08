@@ -50,6 +50,7 @@
     :map.time/show-time-slider?           [:<- [:map.time/timeseries-layers] msubs/show-time-slider?]
     :map.time/current-time                msubs/current-time
     :map.time/available-times             msubs/time-available-times
+    :map.time/is-playing?                 msubs/time-is-playing?
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
     :sm/featured-maps                     smsubs/featured-maps
@@ -90,7 +91,8 @@
     :current-view/selected-scenario       nhasubs/current-view-selected-scenario
     :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data
     :current-view/time-periods            [:<- [:map.time/available-times] nhasubs/current-view-time-periods]
-    :current-view/selected-time-period    nhasubs/current-view-selected-time-period}
+    :current-view/selected-time-period    nhasubs/current-view-selected-time-period
+    :current-view/timeline-media-controls [:<- [:map.time/current-time] :<- [:map.time/available-times] :<- [:map.time/is-playing?] nhasubs/current-view-timeline-media-controls]}
 
    :events
    {:boot                                 [nhatevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
@@ -150,6 +152,8 @@
     :map/got-featureinfo-err              mevents/got-feature-info-error
     :map.time/current-time                [mevents/time-set-current-time]
     :map.time/available-times             mevents/time-available-times
+    :map.time/play                        mevents/time-play
+    :map.time/pause                       mevents/time-pause
     :map.time/time-dimension-ref          mevents/time-dimension-ref
     :map.time/time-dimension-control-ref  mevents/time-dimension-control-ref
     :map/toggle-layer                     [mevents/toggle-layer]

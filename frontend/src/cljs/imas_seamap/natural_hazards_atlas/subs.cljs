@@ -71,3 +71,10 @@
         selected-time-period    (first-where #(= (:id %) selected-time-period-id) nhatutils/time-periods)]
     (assert selected-time-period (str "Selected time period id " selected-time-period-id " not found in time periods list"))
     selected-time-period))
+
+(defn current-view-timeline-media-controls
+  "State for the media-style controls to play through the timeline of hazard data."
+  [[current-time available-times is-playing?] _]
+  {:is-playing?        is-playing?
+   :can-step-forward?  (not= current-time (last available-times))
+   :can-step-backward? (not= current-time (first available-times))})

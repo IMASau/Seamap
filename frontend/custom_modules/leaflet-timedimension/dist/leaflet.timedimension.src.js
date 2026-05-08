@@ -1375,6 +1375,7 @@ LeafletTimeDimension.TimeDimension.Player = (L.Layer || L.Class).extend({
 
 
     _tick: function() {
+        if (this._timeDimension.isLoading()) return;
         var maxIndex = this._getMaxIndex();
         var maxForward = (this._timeDimension.getCurrentTimeIndex() >= maxIndex) && (this._steps > 0);
         var maxBackward = (this._timeDimension.getCurrentTimeIndex() == 0) && (this._steps < 0);

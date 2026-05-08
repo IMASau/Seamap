@@ -135,10 +135,10 @@
             :defaultTime @(re-frame/subscribe [:map.time/current-time])}
            :ref #(re-frame/dispatch [:map.time/time-dimension-control-ref %])
            :auto-play false
-           :player-options
+           :playerOptions
            {:buffer 10
             :transitionTime 500
-            :loop true}}])
+            :startOver true}}])
 
        (when (and mouse-pos distance) [map-views/distance-tooltip {:mouse-pos mouse-pos :distance distance}])
 

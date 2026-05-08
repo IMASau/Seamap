@@ -106,20 +106,47 @@
             :active (= id (:id selected-time-period))
             :disabled (zero? count)}]))]]]))
 
-(defn- timeline-select
+(defn- timeline-media-controls
+  "Media-style controls to play through the timeline of hazard data."
+  []
+  (let [{:keys [is-playing? can-step-forward? can-step-backward?] :as a} @(re-frame/subscribe [:current-view/timeline-media-controls])]
+    [b/button-group
+     [b/button
+      {:icon "step-backward"
+       :disabled (not can-step-backward?)}]
+     [b/button
+      {:icon (if is-playing? "pause" "play")
+       :on-click
+       (if is-playing?
+         #(re-frame/dispatch [:map.time/pause])
+         #(re-frame/dispatch [:map.time/play]))}]
+     [b/button
+      {:icon "step-forward"
+       :disabled (not can-step-forward?)}]]))
+
+(defn- timeline-slider
   "Slider to select the date (year) of data to view."
   []
   (let [available-times @(re-frame/subscribe [:map.time/available-times])
         label-renderer #(.getFullYear (js/Date. %))
         label-values (conj (take-nth 10 available-times) (last available-times))]
-    [components/form-group
-     {:label "Year"}
-     [components/snap-slider
-      {:value     @(re-frame/subscribe [:map.time/current-time])
-       :values    available-times
-       :on-change #(re-frame/dispatch [:map.time/current-time %])
-       :label-values label-values
-       :label-renderer label-renderer}]]))
+    [components/snap-slider
+     {:value     @(re-frame/subscribe [:map.time/current-time])
+      :values    available-times
+      :on-change #(re-frame/dispatch [:map.time/current-time %])
+      :label-values label-values
+      :label-renderer label-renderer}]))
+
+(defn- timeline-select
+  "Controls for selecting the time (year) of hazard data to view.
+   Should only be shown if there are available times to select from."
+  []
+  [components/form-group
+   {:label "Year"}
+   [:div
+    {:style {:display "flex" :gap "8px" :align-items "start"}}
+    [timeline-media-controls]
+    [:div {:style {:flex 1}} [timeline-slider]]]])
 
 (defn- current-view
   "Layer configuration panel where model, scenario, and time parameters are

@@ -237,6 +237,11 @@
   [db _]
   (get-in db [:display :available-times]))
 
+(defn time-is-playing?
+  "Whether the time dimension is currently playing or paused."
+  [db _]
+  (get-in db [:display :time-is-playing?]))
+
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))
 

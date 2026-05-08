@@ -1159,7 +1159,9 @@
    up yet (i.e. app is still initialising but somehow the time has changed), and
    for ensuring that it's saved when the website is reloaded/shared."
   [{:keys [db]} [_ current-time]]
-  (let [time-dimension-ref (get-in db [:map :time-dimension-ref])]
+  (let [time-dimension-ref (get-in db [:map :time-dimension-ref])
+        available-times    (get-in db [:display :available-times])
+        is-last-available? (= current-time (last available-times))]
     ;; If:
     ;; * the leaflet map is configured,
     ;; * it has a timeDimension component, and
@@ -1170,13 +1172,35 @@
             time-changed?               (not= current-time time-dimension-current-time)]
         (when time-changed?
           (.setCurrentTime time-dimension-ref current-time))))
-    {:db (assoc-in db [:display :current-time] current-time)
+    {:db
+     (-> db
+         (assoc-in [:display :current-time] current-time)
+         (cond-> is-last-available? (assoc-in [:display :time-is-playing?] false))) ; if we've reached the end of the available times, set time-is-playing? to false
      :dispatch [:maybe-autosave]}))
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component."
   [db [_ available-times]]
   (assoc-in db [:display :available-times] available-times))
+
+(defn time-play
+  "Starts playback in the timeDimension component (from the leaflet-timedimension
+   library), and updates the app state to reflect that.
+   If we've reached the end of the available times, reset to the beginning before playing."
+  [db _]
+  (let [time-dimension-control-ref (get-in db [:map :time-dimension-control-ref])]
+    (when time-dimension-control-ref 
+      (.. time-dimension-control-ref -_player start))
+    (assoc-in db [:display :time-is-playing?] true)))
+
+(defn time-pause
+  "Pauses playback in the timeDimension component (from the leaflet-timedimension
+   library), and updates the app state to reflect that."
+  [db _]
+  (let [time-dimension-control-ref (get-in db [:map :time-dimension-control-ref])]
+    (when time-dimension-control-ref
+      (.. time-dimension-control-ref -_player pause))
+    (assoc-in db [:display :time-is-playing?] false)))
 
 (defn time-dimension-ref
   "For when the timeDimension component (from the leaflet-timedimension library) is
