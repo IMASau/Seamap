@@ -1188,9 +1188,12 @@
    library), and updates the app state to reflect that.
    If we've reached the end of the available times, reset to the beginning before playing."
   [db _]
-  (let [time-dimension-control-ref (get-in db [:map :time-dimension-control-ref])]
-    (when time-dimension-control-ref 
-      (.. time-dimension-control-ref -_player start))
+  (let [time-dimension-control-ref (get-in db [:map :time-dimension-control-ref])
+        player                    (.-_player time-dimension-control-ref)]
+    (when time-dimension-control-ref
+      (if (.isPlaying player) ; different definition to time-is-playing? in the app state, as time-dimension considers a paused but not stopped state as playing
+        (.release player)
+        (.start player)))
     (assoc-in db [:display :time-is-playing?] true)))
 
 (defn time-pause

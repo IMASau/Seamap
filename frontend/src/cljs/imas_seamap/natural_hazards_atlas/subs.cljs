@@ -76,6 +76,6 @@
   "State for the media-style controls to play through the timeline of hazard data."
   [[current-time available-times is-playing? is-loading?] _]
   {:is-playing?        is-playing?
-   :is-loading?        is-loading?
+   :is-loading?        (and is-loading? is-playing?)
    :can-step-forward?  (not= current-time (last available-times))
    :can-step-backward? (not= current-time (first available-times))})

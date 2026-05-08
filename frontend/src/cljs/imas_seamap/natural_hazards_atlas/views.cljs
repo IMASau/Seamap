@@ -120,7 +120,8 @@
        :on-click
        (if is-playing?
          #(re-frame/dispatch [:map.time/pause])
-         #(re-frame/dispatch [:map.time/play]))}]
+         #(re-frame/dispatch [:map.time/play]))
+       :active is-playing?}]
      [b/button
       {:icon "step-forward"
        :disabled (not can-step-forward?)
@@ -151,7 +152,7 @@
   [components/form-group
    {:label "Year"}
    [:div
-    {:style {:display "flex" :gap "8px" :align-items "start"}}
+    {:style {:display "flex" :gap "12px" :align-items "start"}}
     [timeline-media-controls]
     [:div {:style {:flex 1}} [timeline-slider]]]])
 
