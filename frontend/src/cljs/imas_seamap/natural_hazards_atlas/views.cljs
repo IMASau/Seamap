@@ -151,10 +151,9 @@
   []
   [components/form-group
    {:label "Year"}
-   [:div
-    {:style {:display "flex" :gap "12px" :align-items "start"}}
-    [timeline-media-controls]
-    [:div {:style {:flex 1}} [timeline-slider]]]])
+   [:<>
+    [timeline-slider]
+    [timeline-media-controls]]])
 
 (defn- current-view
   "Layer configuration panel where model, scenario, and time parameters are
