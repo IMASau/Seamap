@@ -89,22 +89,16 @@
    periods span what years, and all the currently available data is historic."
   []
   (let [{:keys [time-periods counts]} @(re-frame/subscribe [:current-view/time-periods])
-         selected-time-period         @(re-frame/subscribe [:current-view/selected-time-period])]
+        label-fn #(str (:name %) " (" (get counts (:id %)) ")")]
     [components/form-group
      {:label "Time Period"}
-     [:div
-     {:style {:width "100%" :overflow-x "auto"}}
-     [b/button-group 
-      {:fill true}
-      (for [{:keys [id name] :as time-period} time-periods]
-        (let [count (get counts id)]
-          ^{:key id}
-          [b/button
-           {:text (str name " (" count ")")
-            :style {:flex "0 0 auto"}
-            :on-click #(re-frame/dispatch [:current-view/selected-time-period time-period])
-            :active (= id (:id selected-time-period))
-            :disabled (zero? count)}]))]]]))
+     [components/select
+      {:value        @(re-frame/subscribe [:current-view/selected-time-period])
+       :options      time-periods
+       :onChange     #(re-frame/dispatch [:current-view/selected-time-period %])
+       :keyfns
+       {:id   :id
+        :text label-fn}}]]))
 
 (defn- timeline-media-controls
   "Media-style controls to play through the timeline of hazard data."
