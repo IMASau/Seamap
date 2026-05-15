@@ -1,3 +1,4 @@
+.backlog/
 .dir-locals.el
 .clj-kondo
 **/.lsp/
