@@ -50,6 +50,7 @@ INSTALLED_APPS = (
     'habitat',
     'sql',
     'carbonabatementsidebar',
+    'nhat',
 )
 
 MIDDLEWARE = (
