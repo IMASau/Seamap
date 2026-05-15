@@ -204,12 +204,12 @@
         tab   @(re-frame/subscribe [:left-drawer/tab])
         {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
-     {:title [:div [:img {:src "img/NHAT_HeaderLogo_T.png"}]]
+     {:title [:div [:img {:src "img/Climate Futures + NHAT logo – COLOUR.png"}]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
       :onClose     #(re-frame/dispatch [:left-drawer/close])
-      :className   "left-drawer"
+      :className   "natural-hazards-atlas-drawer left-drawer"
       :isCloseButtonShown false
       :hasBackdrop false}
      [b/tabs

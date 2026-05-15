@@ -50,6 +50,9 @@
             height: 86px;
         }
     }
+    &.natural-hazards-atlas-drawer {
+        .bp3-drawer-header h4 { height: 100%; }
+    }
     .left-drawer-tabs {
         overflow-y: hidden;
         display: flex;
@@ -57,7 +60,7 @@
         height: 100%;
 
         > .bp3-tab-list {
-            background-color: var(--deep-blue-lighter);
+            background-color: var(--tab-color);
             height: unset;
             flex-wrap: wrap; // We're expecting them to wrap in nhat, because we have 4 tabs
             color: var(--color-7);
@@ -68,7 +71,7 @@
             }
 
             .bp3-tab-indicator-wrapper {
-                background-color: var(--deep-blue);
+                background-color: var(--tab-color-selected);
 
                 .bp3-tab-indicator {
                     background-color: var(--color-7);
