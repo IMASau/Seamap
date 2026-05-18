@@ -27,7 +27,7 @@ router.register(r'keyedlayers', viewsets.KeyedLayerViewset)
 router.register(r'richlayers', viewsets.RichLayerViewset)
 router.register(r'regionreports', viewsets.RegionReportViewset)
 router.register(r'dynamicpills', viewsets.DynamicPillViewset)
-router.register(r'nhatlayers', nhat.viewsets.LayerViewset)
+router.register(r'nhatlayers', nhat.viewsets.LayerViewset, basename='nhatlayer')
 
 urlpatterns = [
     path('tinymce/', include('tinymce.urls')),
