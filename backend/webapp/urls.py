@@ -13,6 +13,7 @@ import habitat.viewsets as habitat_viewsets
 import carbonabatementsidebar.views
 import carbonabatementsidebar.viewsets
 import webapp.viewsets
+import nhat.viewsets
 
 router = DefaultRouter()
 router.register(r'classifications', viewsets.ClassificationViewset)
@@ -26,6 +27,7 @@ router.register(r'keyedlayers', viewsets.KeyedLayerViewset)
 router.register(r'richlayers', viewsets.RichLayerViewset)
 router.register(r'regionreports', viewsets.RegionReportViewset)
 router.register(r'dynamicpills', viewsets.DynamicPillViewset)
+router.register(r'nhatlayers', nhat.viewsets.LayerViewset)
 
 urlpatterns = [
     path('tinymce/', include('tinymce.urls')),
