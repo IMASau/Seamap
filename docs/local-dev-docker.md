@@ -199,6 +199,35 @@ USE_SQLITE=1 docker compose up backend frontend
 `docker_settings.py` routes both `default` and `transects` aliases to a
 local SQLite file inside the backend container.
 
+## Working in a git worktree
+
+Doing dev-stack work in a `git worktree` keeps the main checkout free for
+other branches. One gotcha: docker compose names its project after the
+checkout directory, and **named volumes are scoped to the project name**, so
+moving to a worktree will normally spawn empty new volumes (fresh WP install,
+empty SQL Server, etc.) rather than reusing the main checkout's data.
+
+To keep the existing volumes, pin the project name in the worktree's `.env`:
+
+```bash
+echo 'COMPOSE_PROJECT_NAME=seamap' >> .env
+```
+
+`COMPOSE_PROJECT_NAME=seamap` matches the default project name used by the
+main checkout at `~/repos/IMASau/Seamap/`, so `docker compose up` from either
+directory talks to the same `seamap_wp-data`, `seamap_mssql-data`, etc.
+volumes.
+
+A few sharp edges to know about:
+
+- `.env` is git-ignored, so you'll need to seed the worktree's `.env` from
+  the main checkout (`cp ../Seamap/.env .env`) before bringing things up.
+- ACF Pro (`wordpress/plugins/advanced-custom-fields-pro/`) is also
+  git-ignored. If you're moving an in-progress dev environment, copy or move
+  it from the main checkout's `wordpress/plugins/` into the worktree's.
+- Only one checkout should run the stack at a time — port bindings collide
+  even if the project name matches.
+
 ## Common operations
 
 ```bash

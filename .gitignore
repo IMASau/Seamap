@@ -2,3 +2,23 @@
 .dir-locals.el
 .clj-kondo
 **/.lsp/
+
+# Per-developer config
+.env
+
+# Playwright MCP session artefacts (screenshots, console/network logs)
+.playwright-mcp/
+
+# Serena MCP cache
+.serena/
+
+# Python bytecode caches (backend/.gitignore covers backend/; this catches
+# scripts/ and any other top-level python that picks up __pycache__)
+__pycache__/
+*.pyc
+
+# Personal FSM-workflow framework / scratch templates — don't belong in the
+# project repo. Project-specific research dossiers (e.g.
+# backlog/research/task-13-shadow-cljs-hotreload/) are NOT gitignored — the
+# leading underscore is the marker for "framework, not project content".
+backlog/research/_*/
