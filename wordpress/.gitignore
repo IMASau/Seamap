@@ -1,0 +1,5 @@
+# ACF Pro is paid plugin source — vendored locally for the wp container to
+# bind-mount, but not committed. Obtain a copy from a deployed instance (e.g.
+# /var/www/seamapaustralia-dev.imas.utas.edu.au/wp-content/plugins/advanced-custom-fields-pro)
+# and drop it here.
+plugins/advanced-custom-fields-pro/

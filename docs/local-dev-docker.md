@@ -30,6 +30,7 @@ Then:
 | shadow-cljs dev server  | http://localhost:9630 (hot-reload websocket lives here; must be reachable from the host browser for live `.cljs` reload) |
 | SQL Server              | localhost:1435 (sa / `MSSQL_SA_PASSWORD` from `.env`) |
 | GeoServer admin         | http://localhost:8080/geoserver/web/ (admin / geoserver) |
+| WordPress (story maps)  | http://localhost:8888 — REST at `/wp-json/wp/v2/story_map?acf_format=standard`; admin at `/wp-admin/` (admin / admin) |
 
 The default `.env.example` ports avoid clashing with sibling IMAS stacks
 (`imas-craybase` uses 1433, `imas-immerse` uses 1434).
@@ -99,6 +100,91 @@ docker compose exec mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa \
     -C -P "$MSSQL_SA_PASSWORD" -d seamap \
     -i /database/Views/VW_TIMELINE_COUNT_STATS_NETWORKS.sql
 ```
+
+## WordPress (story maps + region reports)
+
+Production Seamap puts "story maps" and "region report" pages on a sibling
+WordPress install at the same domain as the frontend. Both are bespoke custom
+post types — `story_map` and `region_report` — registered in PHP by the
+`wordpress/plugins/story-map/` and `wordpress/plugins/region-report/` plugins
+(Condense-authored, AGPL). ACF Pro provides the field-group machinery; the
+field group itself is also registered in PHP (`story-map.php` →
+`acf_add_local_field_group(...)`), so there is no field-group export to
+import — activating the plugin is enough to produce the right REST shape.
+
+The frontend reads:
+
+```
+GET http://localhost:8888/wp-json/wp/v2/story_map?acf_format=standard
+→ [{ id, title.rendered, acf.description, acf.image, acf.map_links[] }, ...]
+```
+
+See `frontend/src/cljs/imas_seamap/story_maps/events.cljs:7` for the
+response-shape contract.
+
+### Boot
+
+```bash
+docker compose up -d wp-db wordpress     # MariaDB + WP image (no install yet)
+docker compose run --rm wp-init          # one-shot: wp core install,
+                                         #          activate plugins,
+                                         #          set permalinks
+```
+
+`wp-init` is idempotent. Re-run it after pulling a plugin change or after
+`docker compose down` (the WP install survives in the `wp-data` named volume;
+`down -v` wipes it).
+
+Admin is at <http://localhost:8888/wp-admin/> with `WP_ADMIN_USER` /
+`WP_ADMIN_PASSWORD` from `.env` (default `admin` / `admin` — change in `.env`
+if the box is reachable beyond loopback).
+
+### Authoring a story map
+
+`wp-admin` → **Story Maps** → **Add New**. Fill in title + the ACF "Story Map"
+sidebar (Image, Description, one or more Map Links rows with a `shortcode`
+that resolves against the Django `save-state` API). On save, the post appears
+in the frontend at <http://localhost:3451> under the left-drawer **Featured
+Maps** tab.
+
+### Layout
+
+```
+wordpress/
+├── plugins/
+│   ├── story-map/                       (vendored, AGPL — registers CPT + ACF group)
+│   ├── region-report/                   (vendored, AGPL — registers CPT + chart widget)
+│   └── advanced-custom-fields-pro/      (paid plugin, .gitignored — see below)
+├── themes/
+│   └── h-code-child/                    (vendored — currently unused locally;
+│                                         needs the commercial h-code parent
+│                                         to activate)
+└── init/
+    └── bootstrap.sh                     (wp-init container entrypoint)
+```
+
+ACF Pro is paid plugin source and is not committed — `wordpress/.gitignore`
+keeps the directory out of git. Obtain a copy from a deployed instance:
+
+```bash
+ssh seamapaus-dev "tar czf - -C /var/www/seamapaustralia-dev.imas.utas.edu.au \
+  wp-content/plugins/advanced-custom-fields-pro" \
+  | tar xzf - -C wordpress/  --strip-components=1
+```
+
+(The plugin works without a licence key — you just don't get auto-updates.)
+
+### What's intentionally omitted
+
+- **Production theme (`h-code`)** — commercial; the frontend never visits a
+  themed WP page, so a default theme is fine locally. `h-code-child` is
+  vendored for parity but won't activate cleanly without the parent.
+- **Elementor / WPBakery / HCode addons** — page-builders for the WP
+  front-end. The Seamap SPA only consumes ACF fields via REST, so these
+  don't affect the contract.
+- **Content snapshot** — story_map posts and region_report pages from prod
+  aren't imported. Hand-author what you need, or pull a WXR via the wp-admin
+  Tools → Export UI on a deployed instance.
 
 ## Faster iteration with SQLite
 
@@ -190,3 +276,6 @@ For shapefiles / GeoTIFFs you keep on the host, uncomment the
   `custom_modules/`, which npm doesn't support. The entrypoint runs
   `yarn install --frozen-lockfile` on first start.
 - **SQL Server on Apple Silicon** — runs via Rosetta. Slow but functional.
+- **No WordPress content snapshot** — local WP boots empty; story_map and
+  region_report posts have to be hand-authored or imported manually (see
+  the WordPress section above).

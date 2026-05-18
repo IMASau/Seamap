@@ -8,6 +8,9 @@
 #                 configure workspaces / layers via the web UI or REST API.
 #   - backend   : Django dev server on :8000 with webapp.docker_settings.
 #   - frontend  : shadow-cljs watch on :3451, nREPL on :8777.
+#   - wp-db     : MariaDB for WordPress.
+#   - wordpress : Apache + WP on :8888 — story-maps + region-reports authoring.
+#   - wp-init   : one-shot wp-cli bootstrap (install, activate plugins, permalinks).
 
 services:
   mssql:
@@ -129,8 +132,92 @@ services:
       retries: 20
       start_period: 90s
 
+  # ──────────────────────────────────────────────────────────────────────────
+  # WordPress — production Seamap uses WP for "story maps" and "region report"
+  # pages. Both are bespoke CPTs (story_map, region_report) registered in PHP
+  # by the wordpress/plugins/story-map and wordpress/plugins/region-report
+  # plugins; the frontend reads them via the WP REST API (acf_format=standard).
+  # See docs/local-dev-docker.md for the authoring workflow.
+  wp-db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: "${WP_DB_NAME:-wordpress}"
+      MARIADB_USER: "${WP_DB_USER:-wordpress}"
+      MARIADB_PASSWORD: "${WP_DB_PASSWORD:-wordpress}"
+      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+    volumes:
+      - wp-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost --silent || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  wordpress:
+    image: wordpress:6.6-apache
+    depends_on:
+      wp-db:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: wp-db
+      WORDPRESS_DB_NAME: "${WP_DB_NAME:-wordpress}"
+      WORDPRESS_DB_USER: "${WP_DB_USER:-wordpress}"
+      WORDPRESS_DB_PASSWORD: "${WP_DB_PASSWORD:-wordpress}"
+    ports:
+      - "${WP_HOST_PORT:-8888}:80"
+    volumes:
+      # The official image populates wp-core + wp-content on first start into
+      # this named volume so the install survives `docker compose down`.
+      - wp-data:/var/www/html
+      # Overlay bespoke plugins + child theme on top of the image. Read-only
+      # so a wp plugin install inside the container can't mutate in-repo source.
+      - ./wordpress/plugins/story-map:/var/www/html/wp-content/plugins/story-map:ro
+      - ./wordpress/plugins/region-report:/var/www/html/wp-content/plugins/region-report:ro
+      - ./wordpress/plugins/advanced-custom-fields-pro:/var/www/html/wp-content/plugins/advanced-custom-fields-pro:ro
+      - ./wordpress/themes/h-code-child:/var/www/html/wp-content/themes/h-code-child:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/wp-login.php > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  wp-init:
+    image: wordpress:cli
+    depends_on:
+      wordpress:
+        condition: service_healthy
+    # wp-cli image runs as user 33 (www-data) — matches the apache uid in the
+    # wordpress image so file ownership on the shared volume stays consistent.
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: wp-db
+      WORDPRESS_DB_NAME: "${WP_DB_NAME:-wordpress}"
+      WORDPRESS_DB_USER: "${WP_DB_USER:-wordpress}"
+      WORDPRESS_DB_PASSWORD: "${WP_DB_PASSWORD:-wordpress}"
+      WP_URL: "${WP_URL:-http://localhost:8888}"
+      WP_TITLE: "${WP_TITLE:-Seamap Local}"
+      WP_ADMIN_USER: "${WP_ADMIN_USER:-admin}"
+      WP_ADMIN_PASSWORD: "${WP_ADMIN_PASSWORD:-admin}"
+      WP_ADMIN_EMAIL: "${WP_ADMIN_EMAIL:-admin@example.com}"
+    volumes:
+      - wp-data:/var/www/html
+      # Mirror the bind-mounts from the wordpress service so wp-cli sees the
+      # same wp-content/ as Apache does. Without these, `wp plugin activate
+      # story-map` errors with "plugin could not be found".
+      - ./wordpress/plugins/story-map:/var/www/html/wp-content/plugins/story-map:ro
+      - ./wordpress/plugins/region-report:/var/www/html/wp-content/plugins/region-report:ro
+      - ./wordpress/plugins/advanced-custom-fields-pro:/var/www/html/wp-content/plugins/advanced-custom-fields-pro:ro
+      - ./wordpress/themes/h-code-child:/var/www/html/wp-content/themes/h-code-child:ro
+      - ./wordpress/init:/init:ro
+    entrypoint: ["/init/bootstrap.sh"]
+    restart: "no"
+
 volumes:
   mssql-data:
   frontend-node-modules:
   frontend-shadow-cache:
   geoserver-data:
+  wp-db-data:
+  wp-data:
