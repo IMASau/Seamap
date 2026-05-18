@@ -129,7 +129,7 @@
 
 (def time-periods
   [{:id "all" :name "All"}
-   {:id "historic" :name "Historic"}
-   {:id "short" :name "Short"}
-   {:id "medium" :name "Medium"}
-   {:id "long" :name "Long"}])
+   {:id "historic" :name "Historic (1995-2014)"}
+   {:id "short" :name "Short (2020-2039)"}
+   {:id "medium" :name "Medium (2050-2069)"}
+   {:id "long" :name "Long (2080-2099)"}])
