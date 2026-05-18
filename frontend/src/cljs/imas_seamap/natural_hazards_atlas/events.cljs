@@ -14,7 +14,7 @@
    region reports and state of knowledge data since those aren't present in the
    Natural Hazards Atlas."
   []
-  {:first-dispatch [:ui/show-loading]
+  {:first-dispatch [:ui/show-loading "Loading Natural Hazards Atlas..."]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
     {:when :seen? :events :construct-urls :dispatch [:initialise-layers]}
@@ -47,7 +47,7 @@
      that load region reports and state of knowledge data since those aren't present
      in the Natural Hazards Atlas."
   [hash-code]
-  {:first-dispatch [:ui/show-loading]
+  {:first-dispatch [:ui/show-loading "Loading Natural Hazards Atlas..."]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
     {:when :seen? :events :construct-urls :dispatch [:load-hash-state hash-code]}
@@ -81,7 +81,7 @@
    that load region reports and state of knowledge data since those aren't present
    in the Natural Hazards Atlas."
   [shortcode]
-  {:first-dispatch [:ui/show-loading]
+  {:first-dispatch [:ui/show-loading "Loading Natural Hazards Atlas..."]
    :rules
    [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
     {:when :seen? :events :construct-urls :dispatch [:get-save-state shortcode [:load-hash-state]]}
