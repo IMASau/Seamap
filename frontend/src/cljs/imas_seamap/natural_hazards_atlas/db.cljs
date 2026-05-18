@@ -83,7 +83,7 @@
                    :selected-time-period-id   "all"}
    :autosave?       false
    :config          {:url-paths {:site-configuration    "siteconfiguration/"
-                                 :layer                 "layers/"
+                                 :layer                 "nhatlayers/"
                                  :base-layer            "baselayers/"
                                  :base-layer-group      "baselayergroups/"
                                  :organisation          "organisations/"

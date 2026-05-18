@@ -3,9 +3,11 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.events
   (:require [ajax.core :as ajax]
+            [clojure.string :as string]
             [imas-seamap.natural-hazards-atlas.db :as db]
             [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
             [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities rich-layer->displayed-layer]]
+            [imas-seamap.map.events :refer [download-format-str->keyword]]
             [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
