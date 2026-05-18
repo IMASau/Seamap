@@ -163,16 +163,50 @@ wordpress/
     └── bootstrap.sh                     (wp-init container entrypoint)
 ```
 
+### Fetching ACF Pro
+
 ACF Pro is paid plugin source and is not committed — `wordpress/.gitignore`
-keeps the directory out of git. Obtain a copy from a deployed instance:
+keeps the directory out of this public repo. The `acf-fetch` compose service
+pulls a pinned zip from a private IMAS-org GitHub release on `docker compose
+up` and unpacks it into `wordpress/plugins/advanced-custom-fields-pro/`.
+
+The plugin works without a licence key — you just don't get auto-updates from
+within wp-admin.
+
+**Per-developer setup**: in `.env`, set `GITHUB_TOKEN` to a PAT with read
+access to the vendor repo. A fine-grained PAT scoped to `IMASau/seamap-vendor`
+with `Contents: read` is the lowest-blast-radius option. `gh auth token` works
+for quick local use.
+
+If `GITHUB_TOKEN` is unset, `acf-fetch` exits cleanly with a hint message —
+the stack still boots, but `wp-init` will skip story-map / region-report
+activation.
+
+**Vendor repo one-time setup** (IMAS team only, not per-developer):
 
 ```bash
+gh repo create IMASau/seamap-vendor --private
+
+# Zip the working ACF Pro source from a deployed instance:
 ssh seamapaus-dev "tar czf - -C /var/www/seamapaustralia-dev.imas.utas.edu.au \
   wp-content/plugins/advanced-custom-fields-pro" \
-  | tar xzf - -C wordpress/  --strip-components=1
+  | tar xzf - -C /tmp/  --strip-components=2
+( cd /tmp && zip -qr /tmp/advanced-custom-fields-pro.zip advanced-custom-fields-pro )
+
+gh release create acf-pro-6.8.0.1 \
+  --repo IMASau/seamap-vendor \
+  --title "ACF Pro 6.8.0.1" \
+  --notes "Mirror for Seamap local dev" \
+  /tmp/advanced-custom-fields-pro.zip
 ```
 
-(The plugin works without a licence key — you just don't get auto-updates.)
+To bump the version: upload a new release (e.g. `acf-pro-6.9.0`), update
+`ACF_PRO_RELEASE_TAG` in `.env`, then
+`rm -rf wordpress/plugins/advanced-custom-fields-pro && docker compose up acf-fetch`.
+
+**Offline / no-token fallback**: drop an unzipped plugin tree into
+`wordpress/plugins/advanced-custom-fields-pro/` by any means (scp, sneakernet)
+and `acf-fetch` will detect `acf.php` and skip.
 
 ### What's intentionally omitted
 
@@ -223,8 +257,9 @@ A few sharp edges to know about:
 - `.env` is git-ignored, so you'll need to seed the worktree's `.env` from
   the main checkout (`cp ../Seamap/.env .env`) before bringing things up.
 - ACF Pro (`wordpress/plugins/advanced-custom-fields-pro/`) is also
-  git-ignored. If you're moving an in-progress dev environment, copy or move
-  it from the main checkout's `wordpress/plugins/` into the worktree's.
+  git-ignored. The `acf-fetch` service re-downloads it on first `up` in the
+  worktree, or you can hard-link / copy the existing dir from the main
+  checkout to skip the network round-trip.
 - Only one checkout should run the stack at a time — port bindings collide
   even if the project name matches.
 

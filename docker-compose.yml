@@ -10,6 +10,10 @@
 #   - frontend  : shadow-cljs watch on :3451, nREPL on :8777.
 #   - wp-db     : MariaDB for WordPress.
 #   - wordpress : Apache + WP on :8888 — story-maps + region-reports authoring.
+#   - acf-fetch : one-shot — pulls pinned ACF Pro zip from the IMAS vendor
+#                 GitHub release into the bind-mounted plugin dir. Gated on
+#                 GITHUB_TOKEN; skips cleanly when unset or plugin already
+#                 present (preserves the manual-drop escape hatch).
 #   - wp-init   : one-shot wp-cli bootstrap (install, activate plugins, permalinks).
 
 services:
@@ -183,11 +187,26 @@ services:
       retries: 30
       start_period: 30s
 
+  acf-fetch:
+    image: alpine:3.20
+    environment:
+      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+      ACF_PRO_REPO: "${ACF_PRO_REPO:-IMASau/seamap-vendor}"
+      ACF_PRO_RELEASE_TAG: "${ACF_PRO_RELEASE_TAG:-acf-pro-6.8.0.1}"
+      ACF_PRO_ASSET: "${ACF_PRO_ASSET:-advanced-custom-fields-pro.zip}"
+    volumes:
+      - ./wordpress/plugins/advanced-custom-fields-pro:/dest
+      - ./wordpress/init:/init:ro
+    entrypoint: ["/init/fetch-acf-pro.sh"]
+    restart: "no"
+
   wp-init:
     image: wordpress:cli
     depends_on:
       wordpress:
         condition: service_healthy
+      acf-fetch:
+        condition: service_completed_successfully
     # wp-cli image runs as user 33 (www-data) — matches the apache uid in the
     # wordpress image so file ownership on the shared volume stays consistent.
     user: "33:33"
