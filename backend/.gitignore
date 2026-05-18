@@ -8,6 +8,8 @@
 __pycache__/
 # I keep multiple local_settings files, for each server. Renaming them makes swapping between testng apps easier.
 local_settings*.py
+# dev_settings.py holds UTAS dev DB credentials for scripts/capture-schema.sh — keep out of git.
+dev_settings.py
 db.sqlite3
 media/
 /static/

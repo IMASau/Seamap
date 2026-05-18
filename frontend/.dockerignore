@@ -1,0 +1,10 @@
+node_modules
+.shadow-cljs
+.cpcache
+.git
+.gitignore
+.idea
+.vscode
+resources/public/js
+target
+*.log
