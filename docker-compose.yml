@@ -1,0 +1,136 @@
+# Local-only dev stack. See docs/local-dev-docker.md for the workflow.
+#
+# Service summary:
+#   - mssql     : SQL Server 2022 (amd64 image, runs under Rosetta on Apple Silicon).
+#   - dbinit    : one-shot — ensures the DB exists, optionally loads database/*.sql
+#                 via LOAD_SCHEMA=1.
+#   - geoserver : OSGeo GeoServer 2.24.4 on :8080 (admin / geoserver). Starts empty;
+#                 configure workspaces / layers via the web UI or REST API.
+#   - backend   : Django dev server on :8000 with webapp.docker_settings.
+#   - frontend  : shadow-cljs watch on :3451, nREPL on :8777.
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64  # no native arm64 image; Rosetta works for dev.
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-SeamapDev123!}"
+    ports:
+      - "${MSSQL_HOST_PORT:-1435}:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          /opt/mssql-tools18/bin/sqlcmd -C
+          -S localhost -U sa -P "$$MSSQL_SA_PASSWORD"
+          -Q "SELECT 1" -l 2 -b
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  dbinit:
+    build:
+      context: ./backend
+    image: seamap-backend:dev
+    # sqlpackage is linux-x64 only; pin to amd64 so both dbinit and backend
+    # share the same image. Capture (sqlpackage) and runtime (sqlcmd) both
+    # work under Rosetta on Apple Silicon.
+    platform: linux/amd64
+    depends_on:
+      mssql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mssql
+      DB_PORT: "1433"
+      DB_NAME: "${DB_NAME:-seamap}"
+      DB_USER: "${DB_USER:-sa}"
+      DB_PASSWORD: "${MSSQL_SA_PASSWORD:-SeamapDev123!}"
+      LOAD_SCHEMA: "${LOAD_SCHEMA:-0}"
+    volumes:
+      - ./database:/database:ro
+      - ./backend/docker:/srv/docker:ro
+    entrypoint: ["python", "/srv/docker/dbinit.py"]
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+    image: seamap-backend:dev
+    # See dbinit — shared image, sqlpackage forces linux/amd64.
+    platform: linux/amd64
+    depends_on:
+      mssql:
+        condition: service_healthy
+      dbinit:
+        condition: service_completed_successfully
+    environment:
+      DJANGO_SETTINGS_MODULE: webapp.docker_settings
+      DB_HOST: mssql
+      DB_PORT: "1433"
+      DB_NAME: "${DB_NAME:-seamap}"
+      DB_USER: "${DB_USER:-sa}"
+      DB_PASSWORD: "${MSSQL_SA_PASSWORD:-SeamapDev123!}"
+      USE_SQLITE: "${USE_SQLITE:-0}"
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "${BACKEND_HOST_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - ./database:/database:ro
+    command: python manage.py runserver 0.0.0.0:8000
+
+  frontend:
+    build:
+      context: ./frontend
+    image: seamap-frontend:dev
+    ports:
+      - "${FRONTEND_HOST_PORT:-3451}:3451"
+      - "${FRONTEND_NREPL_PORT:-8777}:8777"
+      # shadow-cljs's own HTTP+websocket server. The compiled :dev bundle
+      # hard-codes server_port=9630 with use_document_host=true, so the host
+      # browser opens ws://localhost:9630/... — must be reachable for hot reload.
+      - "${FRONTEND_SHADOW_PORT:-9630}:9630"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+      - frontend-shadow-cache:/app/.shadow-cljs
+    command: yarn run watch
+
+  geoserver:
+    # Official OSGeo image, multi-arch (arm64 + amd64) — runs JVM-native on
+    # Apple Silicon, no Rosetta needed.
+    image: docker.osgeo.org/geoserver:2.24.4
+    environment:
+      # GeoServer admin login. Override in .env for anything beyond local dev.
+      GEOSERVER_ADMIN_USER: "${GEOSERVER_ADMIN_USER:-admin}"
+      GEOSERVER_ADMIN_PASSWORD: "${GEOSERVER_ADMIN_PASSWORD:-geoserver}"
+      # Disable the welcome banner so the container starts faster.
+      SKIP_DEMO_DATA: "true"
+      # JVM heap — adjust if you load chunky datasets.
+      JAVA_OPTS: "-Xms512m -Xmx1536m"
+    ports:
+      - "${GEOSERVER_HOST_PORT:-8080}:8080"
+    volumes:
+      - geoserver-data:/opt/geoserver_data
+    # Optional: bind-mount a host folder for shapefiles / GeoTIFFs you want to
+    # serve. Uncomment and adjust if you have a local data tree.
+    #   - ./geoserver-input:/opt/geoserver_input:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "curl -fsS http://localhost:8080/geoserver/web/ > /dev/null || exit 1"
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+volumes:
+  mssql-data:
+  frontend-node-modules:
+  frontend-shadow-cache:
+  geoserver-data:
