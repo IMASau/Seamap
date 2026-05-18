@@ -199,6 +199,40 @@
          :icon        "info-sign"}])}
      [b/icon {:icon "info-sign"}]]]])
 
+(defn layer-catalogue [catid layers layer-props tma?]
+  (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
+        select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab catid %1])
+        open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
+    [b/tabs {:selected-tab-id selected-tab
+             :on-change       select-tab
+             :render-active-tab-panel-only true} ; doing this re-renders ellipsized text on tab switch, fixing ISA-359
+     [b/tab
+      {:id    "hazards"
+       :title "Hazards"
+       :panel (reagent/as-element
+               [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/hazard-layers]) [:category :data_classification] "hazards" layer-props open-all? tma?])}]
+     [b/tab
+      {:id    "supporting-layers"
+       :title "Supporting Layers"
+       :panel (reagent/as-element
+               [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}]]))
+
+(defn left-drawer-catalogue [tma?]
+  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+        viewport-only? @(re-frame/subscribe [:map/viewport-only?])
+        catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
+    [:<>
+     [views/layer-search-filter]
+     [layer-catalogue :main catalogue-layers
+      {:active-layers  active-layers
+       :visible-layers visible-layers
+       :loading-fn     loading-layers
+       :error-fn       error-layers
+       :expanded-fn    expanded-layers
+       :opacity-fn     layer-opacities
+       :rich-layer-fn  rich-layer-fn}
+      tma?]]))
+
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
@@ -224,7 +258,7 @@
         :class "catalogue"
         :title (reagent/as-element
                 [b/tooltip {:content "All available map layers"} "Catalogue"])
-        :panel (reagent/as-element [views/left-drawer-catalogue false])}]
+        :panel (reagent/as-element [left-drawer-catalogue false])}]
 
       [b/tab
        {:id    "active-layers"

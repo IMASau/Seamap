@@ -56,9 +56,9 @@
                      :left-drawer           true
                      :left-drawer-tab       "catalogue"
                      :layers-search-omnibar false
-                     :catalogue             {:main {:tab      "cat"
+                     :catalogue             {:main {:tab      "hazards"
                                                     :expanded #{}}
-                                             :region {:tab      "cat"
+                                             :region {:tab      "hazards"
                                                       :expanded #{}}}
                      :sidebar               {:collapsed false
                                              :selected  "tab-activelayers"}

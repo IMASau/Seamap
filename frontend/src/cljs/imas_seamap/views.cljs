@@ -143,7 +143,7 @@
                     [{:id (str id-str "-" (inc (count layer-subset)))
                       :className "tree-cap"}]))}))
 
-(defn- layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all? _tma?]
+(defn layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all? _tma?]
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes catid])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
@@ -207,7 +207,7 @@
       :on-click #(re-frame/dispatch [:toggle-autosave])
       :text     text}]))
 
-(defn- layer-search-filter []
+(defn layer-search-filter []
   (let [timeout-id (reagent/atom nil)] ; To store the timeout ID for the filter event dispatch
     (fn []
       [b/text-input

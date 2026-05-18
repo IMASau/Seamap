@@ -93,7 +93,9 @@
     :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data
     :current-view/time-periods            [:<- [:map.time/available-times] nhasubs/current-view-time-periods]
     :current-view/selected-time-period    nhasubs/current-view-selected-time-period
-    :current-view/timeline-media-controls [:<- [:map.time/current-time] :<- [:map.time/available-times] :<- [:map.time/is-playing?] :<- [:map.time/is-loading?] nhasubs/current-view-timeline-media-controls]}
+    :current-view/timeline-media-controls [:<- [:map.time/current-time] :<- [:map.time/available-times] :<- [:map.time/is-playing?] :<- [:map.time/is-loading?] nhasubs/current-view-timeline-media-controls]
+    :map.layers/hazard-layers             [:<- [:map/layers] nhasubs/hazard-layers]
+    :map.layers/supporting-layers         [:<- [:map/layers] nhasubs/supporting-layers]}
 
    :events
    {:boot                                 [nhatevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]

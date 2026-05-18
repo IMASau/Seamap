@@ -79,3 +79,13 @@
    :is-loading?        (and is-loading? is-playing?)
    :can-step-forward?  (not= current-time (last available-times))
    :can-step-backward? (not= current-time (first available-times))})
+
+(defn hazard-layers
+  "List of currently available hazard layers, with metadata for display in the UI."
+  [{:keys [catalogue-layers]} _]
+  (filterv #(and (not= (:category %) :supporting_layers) (not= (:category %) :testing)) catalogue-layers))
+
+(defn supporting-layers
+  "List of currently available supporting layers, with metadata for display in the UI."
+  [{:keys [catalogue-layers]} _]
+  (filterv #(= (:category %) :supporting_layers) catalogue-layers))
