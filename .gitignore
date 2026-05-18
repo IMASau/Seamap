@@ -17,8 +17,5 @@
 __pycache__/
 *.pyc
 
-# Personal FSM-workflow framework / scratch templates — don't belong in the
-# project repo. Project-specific research dossiers (e.g.
-# backlog/research/task-13-shadow-cljs-hotreload/) are NOT gitignored — the
-# leading underscore is the marker for "framework, not project content".
-backlog/research/_*/
+# Backlog.md task/research dossiers — kept local, not shared via git.
+backlog/
