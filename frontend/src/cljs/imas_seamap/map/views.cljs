@@ -183,7 +183,7 @@
 (defmulti layer-component (comp :layer_type :displayed-layer))
 
 (defmethod layer-component :wms
-  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [nhatlayer]} :layer {:keys [server_url layer_name style]} :displayed-layer}]
   [leaflet/wms-layer
    (merge
     {:url              server_url
@@ -199,7 +199,12 @@
      :format           "image/png"}
     (when style {:styles style})
     (when boundary-filter (boundary-filter layer))
-    (when cql-filter {:cql_filter cql-filter}))])
+    (when cql-filter {:cql_filter cql-filter})
+    (when nhatlayer
+      {:styles (str "default-scalar/" (:color_palette nhatlayer))
+       :colorscalerange (str (:color_scale_range_min nhatlayer) "," (:color_scale_range_max nhatlayer))
+       :abovemaxcolor (:above_max_color nhatlayer)
+       :belowmincolor (:below_min_color nhatlayer)}))])
 
 (defmethod layer-component :tile
   [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
