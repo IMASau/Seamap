@@ -2,7 +2,7 @@
 -- Baseline rows for django_migrations, derived from the codebase's
 -- on-disk migration graph at capture time. Apply with:
 --   sqlcmd -i migrations_baseline.sql -v DatabaseName=<target>
--- Rows: 51
+-- Rows: 53
 USE [$(DatabaseName)];
 GO
 INSERT INTO [dbo].[django_migrations] ([app], [name], [applied]) VALUES ('admin', '0001_initial', '2000-01-01T00:00:00');
@@ -53,7 +53,9 @@ INSERT INTO [dbo].[django_migrations] ([app], [name], [applied]) VALUES ('catalo
 INSERT INTO [dbo].[django_migrations] ([app], [name], [applied]) VALUES ('catalogue', '0031_ampdepthzones_squidleannotationsdataview_and_more', '2000-01-01T00:00:00');
 INSERT INTO [dbo].[django_migrations] ([app], [name], [applied]) VALUES ('catalogue', '0032_auto_20260202_0500', '2000-01-01T00:00:00');
 INSERT INTO [dbo].[django_migrations] ([app], [name], [applied]) VALUES ('catalogue', '0033_layer_download_format', '2000-01-01T00:00:00');
+INSERT INTO [dbo].[django_migrations] ([app], [name], [applied]) VALUES ('catalogue', '0034_auto_20260518_0437', '2000-01-01T00:00:00');
 INSERT INTO [dbo].[django_migrations] ([app], [name], [applied]) VALUES ('contenttypes', '0001_initial', '2000-01-01T00:00:00');
 INSERT INTO [dbo].[django_migrations] ([app], [name], [applied]) VALUES ('contenttypes', '0002_remove_content_type_name', '2000-01-01T00:00:00');
+INSERT INTO [dbo].[django_migrations] ([app], [name], [applied]) VALUES ('nhat', '0001_initial', '2000-01-01T00:00:00');
 INSERT INTO [dbo].[django_migrations] ([app], [name], [applied]) VALUES ('sessions', '0001_initial', '2000-01-01T00:00:00');
 GO
