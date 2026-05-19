@@ -4,8 +4,19 @@
 #   - mssql     : SQL Server 2022 (amd64 image, runs under Rosetta on Apple Silicon).
 #   - dbinit    : one-shot — ensures the DB exists, optionally loads database/*.sql
 #                 via LOAD_SCHEMA=1.
-#   - geoserver : OSGeo GeoServer 2.24.4 on :8080 (admin / geoserver). Starts empty;
-#                 configure workspaces / layers via the web UI or REST API.
+#   - geoserver-fetch : one-shot — downloads the latest "master" GeoServer WAR
+#                 from IMASau/geoserver-build releases into the geoserver-war
+#                 named volume. Idempotent; force-refresh with GEOSERVER_WAR_FORCE_REFRESH=1.
+#   - geoserver-config-init : one-shot — seeds the geoserver-data named
+#                 volume from a RO bind mount of the user's sibling clone of
+#                 IMASau/geoserver-config-imas (default ../geoserver-config-imas;
+#                 override via GEOSERVER_CONFIG_PATH). Drops a dev admin user
+#                 on top. Run scripts/geoserver-config-clone.sh to populate
+#                 the clone first. Force re-seed with GEOSERVER_CONFIG_FORCE_REINIT=1.
+#   - geoserver : Tomcat 9 + JRE 17 running the IMAS-built GeoServer WAR
+#                 (currently 2.28.0, with AODN extensions — layer-filter, NCWMS,
+#                 SqlServer JDBC, CORS patches). Mirrors imas-data-infrastructure's
+#                 roles/geoserver/ Ansible deploy.
 #   - backend   : Django dev server on :8000 with webapp.docker_settings.
 #   - frontend  : shadow-cljs watch on :3451, nREPL on :8777.
 #   - wp-db     : MariaDB for WordPress.
@@ -108,25 +119,64 @@ services:
       - frontend-shadow-cache:/app/.shadow-cljs
     command: yarn run watch
 
-  geoserver:
-    # Official OSGeo image, multi-arch (arm64 + amd64) — runs JVM-native on
-    # Apple Silicon, no Rosetta needed.
-    image: docker.osgeo.org/geoserver:2.24.4
+  geoserver-fetch:
+    # One-shot: downloads the IMAS GeoServer WAR (with AODN extensions) from
+    # the latest "master" release of IMASau/geoserver-build into the
+    # geoserver-war named volume. Idempotent — skips if the WAR is already
+    # cached unless GEOSERVER_WAR_FORCE_REFRESH=1.
+    image: alpine:3.20
     environment:
-      # GeoServer admin login. Override in .env for anything beyond local dev.
-      GEOSERVER_ADMIN_USER: "${GEOSERVER_ADMIN_USER:-admin}"
-      GEOSERVER_ADMIN_PASSWORD: "${GEOSERVER_ADMIN_PASSWORD:-geoserver}"
-      # Disable the welcome banner so the container starts faster.
-      SKIP_DEMO_DATA: "true"
-      # JVM heap — adjust if you load chunky datasets.
-      JAVA_OPTS: "-Xms512m -Xmx1536m"
+      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+      GEOSERVER_WAR_REPO: "${GEOSERVER_WAR_REPO:-IMASau/geoserver-build}"
+      GEOSERVER_WAR_TAG_FILTER: "${GEOSERVER_WAR_TAG_FILTER:-master}"
+      GEOSERVER_WAR_ASSET_PREFIX: "${GEOSERVER_WAR_ASSET_PREFIX:-geoserver}"
+      GEOSERVER_WAR_FORCE_REFRESH: "${GEOSERVER_WAR_FORCE_REFRESH:-0}"
+    volumes:
+      - geoserver-war:/srv/war
+      - ./geoserver:/srv/init:ro
+    entrypoint: ["/srv/init/fetch-war.sh"]
+    restart: "no"
+
+  geoserver-config-init:
+    # One-shot: rsync's the user's geoserver-config-imas clone (RO bind mount)
+    # into the geoserver-data named volume, then overlays a dev admin user.
+    # This keeps the user's git checkout pristine — GeoServer normalises SLDs
+    # and writes logs/ into GEOSERVER_DATA_DIR at runtime, which we don't want
+    # leaking back into their working tree. Idempotent; force re-seed with
+    # GEOSERVER_CONFIG_FORCE_REINIT=1 or `docker compose down -v geoserver`.
+    image: alpine:3.20
+    environment:
+      GEOSERVER_CONFIG_FORCE_REINIT: "${GEOSERVER_CONFIG_FORCE_REINIT:-0}"
+    volumes:
+      - "${GEOSERVER_CONFIG_PATH:-../geoserver-config-imas}:/srv/seed:ro"
+      - geoserver-data:/data/geoserver
+      - ./geoserver:/srv/init:ro
+    entrypoint: ["/srv/init/seed-data.sh"]
+    restart: "no"
+
+  geoserver:
+    # Tomcat 9 + JRE 17 + IMAS WAR. Matches prod's tomcat 9.0.89 / jre-17
+    # (imas-data-infrastructure/group_vars/all.yml + data-imas.yml). The WAR
+    # comes in from geoserver-fetch; the data dir is seeded from the user's
+    # IMASau/geoserver-config-imas clone by geoserver-config-init.
+    build:
+      context: ./geoserver
+    image: seamap-geoserver:dev
+    depends_on:
+      geoserver-fetch:
+        condition: service_completed_successfully
+      geoserver-config-init:
+        condition: service_completed_successfully
+    environment:
+      # Heap — prod runs -Xms8G -Xmx8G; this leaner default suits a laptop.
+      GEOSERVER_HEAP: "${GEOSERVER_HEAP:--Xms512m -Xmx2g}"
+      # Extra -D flags appended to CATALINA_OPTS if you need them.
+      GEOSERVER_EXTRA_OPTS: "${GEOSERVER_EXTRA_OPTS:-}"
     ports:
       - "${GEOSERVER_HOST_PORT:-8080}:8080"
     volumes:
-      - geoserver-data:/opt/geoserver_data
-    # Optional: bind-mount a host folder for shapefiles / GeoTIFFs you want to
-    # serve. Uncomment and adjust if you have a local data tree.
-    #   - ./geoserver-input:/opt/geoserver_input:ro
+      - geoserver-war:/srv/war:ro
+      - geoserver-data:/data/geoserver
     healthcheck:
       test:
         - CMD-SHELL
@@ -134,7 +184,8 @@ services:
       interval: 15s
       timeout: 5s
       retries: 20
-      start_period: 90s
+      # WAR explode + data dir scan on first start is slow — give it room.
+      start_period: 180s
 
   # ──────────────────────────────────────────────────────────────────────────
   # WordPress — production Seamap uses WP for "story maps" and "region report"
@@ -237,6 +288,7 @@ volumes:
   mssql-data:
   frontend-node-modules:
   frontend-shadow-cache:
+  geoserver-war:
   geoserver-data:
   wp-db-data:
   wp-data:
