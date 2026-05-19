@@ -86,6 +86,19 @@
   (filterv #(and (not= (:category %) :supporting_layers) (not= (:category %) :testing)) catalogue-layers))
 
 (defn supporting-layers
-  "List of currently available supporting layers, with metadata for display in the UI."
+  "List of currently available supporting layers, with metadata for display in the
+   UI."
   [{:keys [catalogue-layers]} _]
   (filterv #(= (:category %) :supporting_layers) catalogue-layers))
+
+(defn filtered-hazard-layers
+  "List of currently available hazard layers, filtered by the user's search in the
+   layer catalogue."
+  [[{:keys [filtered-layers]} hazard-layers] _]
+  (filterv (set filtered-layers) hazard-layers))
+
+(defn filtered-supporting-layers
+  "List of currently available supporting layers, filtered by the user's search in
+   the layer catalogue."
+  [[{:keys [filtered-layers]} supporting-layers] _]
+  (filterv (set filtered-layers) supporting-layers))

@@ -209,12 +209,12 @@
       {:id    "hazards"
        :title "Hazards"
        :panel (reagent/as-element
-               [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/hazard-layers]) [:category :data_classification] "hazards" layer-props open-all? tma?])}]
+               [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-hazard-layers]) [:category :data_classification] "hazards" layer-props open-all? tma?])}]
      [b/tab
       {:id    "supporting-layers"
        :title "Supporting Layers"
        :panel (reagent/as-element
-               [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}]]))
+               [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}]]))
 
 (defn left-drawer-catalogue [tma?]
   (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
