@@ -23,8 +23,9 @@
 #   - wordpress : Apache + WP on :8888 — story-maps + region-reports authoring.
 #   - acf-fetch : one-shot — pulls pinned ACF Pro zip from the IMAS vendor
 #                 GitHub release into the bind-mounted plugin dir. Gated on
-#                 GITHUB_TOKEN; skips cleanly when unset or plugin already
-#                 present (preserves the manual-drop escape hatch).
+#                 ACF_GITHUB_TOKEN; exit 0 (soft skip) when token unset or
+#                 plugin already present; exit 1 when a configured fetch
+#                 fails, so wp-init's depends_on catches it.
 #   - wp-init   : one-shot wp-cli bootstrap (install, activate plugins, permalinks).
 
 services:
@@ -241,7 +242,10 @@ services:
   acf-fetch:
     image: alpine:3.20
     environment:
-      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+      # Container-side var is GITHUB_TOKEN (what curl reads); host-side var is
+      # ACF_GITHUB_TOKEN so each private-GH-release fetcher can carry its own
+      # least-privilege PAT without colliding (cf. GEOSERVER_GITHUB_TOKEN).
+      GITHUB_TOKEN: "${ACF_GITHUB_TOKEN:-}"
       ACF_PRO_REPO: "${ACF_PRO_REPO:-IMASau/seamap-vendor}"
       ACF_PRO_RELEASE_TAG: "${ACF_PRO_RELEASE_TAG:-acf-pro-6.8.0.1}"
       ACF_PRO_ASSET: "${ACF_PRO_ASSET:-advanced-custom-fields-pro.zip}"

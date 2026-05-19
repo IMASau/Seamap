@@ -185,12 +185,12 @@ up` and unpacks it into `wordpress/plugins/advanced-custom-fields-pro/`.
 The plugin works without a licence key — you just don't get auto-updates from
 within wp-admin.
 
-**Per-developer setup**: in `.env`, set `GITHUB_TOKEN` to a PAT with read
+**Per-developer setup**: in `.env`, set `ACF_GITHUB_TOKEN` to a PAT with read
 access to the vendor repo. A fine-grained PAT scoped to `IMASau/seamap-vendor`
 with `Contents: read` is the lowest-blast-radius option. `gh auth token` works
 for quick local use.
 
-If `GITHUB_TOKEN` is unset, `acf-fetch` exits cleanly with a hint message —
+If `ACF_GITHUB_TOKEN` is unset, `acf-fetch` exits cleanly with a hint message —
 the stack still boots, but `wp-init` will skip story-map / region-report
 activation.
 
