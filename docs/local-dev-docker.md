@@ -7,17 +7,29 @@ a JVM, or SQL Server installed on the host.
 ## Prerequisites
 
 - Docker Desktop with the Compose v2 plugin.
-- ~6 GB of free disk for images and the SQL Server data volume.
+- ~8 GB of free disk for images, the SQL Server data volume, and the
+  seeded GeoServer data dir.
 - macOS Apple Silicon: SQL Server's image is amd64 only and runs under
   Rosetta. First boot is 30–60 seconds; queries are slower than native.
+- (Optional, for GeoServer) a clone of `IMASau/geoserver-config-imas`
+  as a sibling of this repo — see [Local GeoServer](#local-geoserver).
+  Skip if you only need backend / frontend / DB.
 
 ## First run
 
 ```bash
-cp .env.example .env             # tweak passwords/ports if other IMAS stacks are running
-docker compose build             # ~5 min once GDAL/ODBC layers are cached
-docker compose up -d              # boots mssql → dbinit → backend → frontend
+cp .env.example .env                       # tweak passwords/ports if other IMAS stacks are running
+scripts/geoserver-config-clone.sh          # optional; ~620 MB sibling clone for GeoServer
+docker compose build                       # ~5 min once GDAL/ODBC layers are cached
+docker compose up -d                       # boots mssql → dbinit → backend → frontend → geoserver → wordpress
 docker compose exec backend python manage.py migrate
+```
+
+Skip the clone step if you're not bringing GeoServer up — `docker compose
+up -d` without GeoServer still works:
+
+```bash
+docker compose up -d backend frontend wordpress
 ```
 
 Then:
@@ -29,7 +41,7 @@ Then:
 | shadow-cljs nREPL       | localhost:8777               |
 | shadow-cljs dev server  | http://localhost:9630 (hot-reload websocket lives here; must be reachable from the host browser for live `.cljs` reload) |
 | SQL Server              | localhost:1435 (sa / `MSSQL_SA_PASSWORD` from `.env`) |
-| GeoServer admin         | http://localhost:8080/geoserver/web/ (admin / geoserver) |
+| GeoServer admin         | http://localhost:8080/geoserver/web/ (admin / geoserver) — populated from a sibling clone of `IMASau/geoserver-config-imas`; see [Local GeoServer](#local-geoserver) |
 | WordPress (story maps)  | http://localhost:8888 — REST at `/wp-json/wp/v2/story_map?acf_format=standard`; admin at `/wp-admin/` (admin / admin) |
 
 The default `.env.example` ports avoid clashing with sibling IMAS stacks
@@ -286,41 +298,127 @@ the running shadow-cljs build.
 
 ## Local GeoServer
 
-The stack includes a vanilla OSGeo GeoServer 2.24.4 on
-http://localhost:8080/geoserver/web/ (admin / `geoserver`). It starts empty
-— the `geoserver-data` named volume persists workspaces / layers across
-restarts.
+Mirrors the production deploy from
+`imas-data-infrastructure/roles/geoserver/`: Tomcat 9 + JRE 17 running
+the IMAS-built GeoServer WAR (currently `geoserver-2.28.0-imas.war` from
+`IMASau/geoserver-build` "master" releases — includes AODN extensions:
+layer-filter plugin, NCWMS, CSV+metadata WFS output, SqlServer JDBC,
+CORS patches). `GEOSERVER_DATA_DIR` is seeded from a sibling clone of
+`IMASau/geoserver-config-imas`, so workspaces / layers / styles /
+GeoWebCache config match prod (18 workspaces — `imas`, `seamap`,
+`NESP`, `RERI`, `bluecarbon`, …).
 
-For higher-fidelity reproduction of production GeoServer behaviour:
+### One-time setup
 
-- **Layers / workspaces / styles**: `github.com/IMASau/geoserver-config-imas`
-  is the production GeoServer data directory. Clone it and point GeoServer
-  at it by replacing the `geoserver-data:/opt/geoserver_data` volume with a
-  bind mount of the clone. ~600 MB on disk.
-- **IMAS GeoServer image** (with AODN extensions, layer-filter plugin,
-  etc.): `github.com/IMASau/geoserver-build` builds the production WAR.
-  Swap the `image:` in `docker-compose.yml` for the artifact that build
-  produces if you need the same GeoServer extensions as production.
+```bash
+scripts/geoserver-config-clone.sh        # ~620 MB; clones into ../geoserver-config-imas
+docker compose up -d geoserver           # builds the image, fetches the WAR, seeds, starts Tomcat
+```
 
-The vanilla OSGeo image is enough for testing the Django-side handling of
-WMS/WFS responses (timeouts, malformed XML, etc.) — those Sentry tasks
-are about client-side resilience, not GeoServer-specific quirks.
+Three orchestrated services do the work:
 
-`catalogue.Layer.server_url` is per-row in the database, so a fresh local
-DB will still point most layers at `geoserver.imas.utas.edu.au`. To route
-a specific layer through the local instance:
+1. **`geoserver-fetch`** (alpine, one-shot) — downloads the latest "master"
+   release of `IMASau/geoserver-build` (currently `geoserver-2.28.0-imas.war`,
+   ~123 MB) into the `geoserver-war` named volume. Idempotent; force a
+   re-download with `GEOSERVER_WAR_FORCE_REFRESH=1 docker compose up geoserver-fetch`.
+   Pin a specific build by setting `GEOSERVER_WAR_TAG_FILTER=versionbump-2.28.0`
+   (or any substring of the release name) in `.env`.
+2. **`geoserver-config-init`** (alpine + rsync, one-shot) — RO-mounts the
+   user's clone of `IMASau/geoserver-config-imas` and rsyncs it into the
+   `geoserver-data` named volume, then overlays a plaintext `admin/geoserver`
+   user. The clone path defaults to `../geoserver-config-imas`; override
+   with `GEOSERVER_CONFIG_PATH=/your/path` in `.env`. We rsync (rather
+   than bind-mount the clone directly) because GeoServer mutates the
+   data dir at runtime — normalises SLDs, writes `logs/`, prunes
+   `legendsamples/` — and macOS case-folding between sibling files like
+   `SeamapAus_MEOW_REALM.sld` vs `…_realm.sld` would otherwise dirty the
+   user's git checkout on every boot.
+3. **`geoserver`** (custom image: `tomcat:9-jre17-temurin` + the fetched WAR)
+   — drops the WAR into `webapps/`, sets
+   `CATALINA_OPTS=-DGEOSERVER_DATA_DIR=/data/geoserver -Xms512m -Xmx2g`
+   (override heap with `GEOSERVER_HEAP` in `.env`; prod runs `-Xms8G -Xmx8G`).
 
-1. Add the workspace + layer in the GeoServer admin UI (or import a data
-   directory dump under `/opt/geoserver_data`).
-2. Update the corresponding `catalogue_layer.server_url` row to
-   `http://geoserver:8080/geoserver/wms` (the in-compose hostname) — or
-   `http://host.docker.internal:8080/geoserver/wms` if you want both
-   containerised and host-based clients to hit the same URL.
+Login: **admin / geoserver**. We don't replicate the production Ansible
+`users.xml` template (it encodes against a keystore whose master password
+isn't in the repo) — `geoserver-config-init` substitutes a plain-text
+admin user instead. The upstream `roles.xml` (admin → ADMIN) is kept as-is.
 
-For shapefiles / GeoTIFFs you keep on the host, uncomment the
-`./geoserver-input:/opt/geoserver_input:ro` bind mount in
-`docker-compose.yml` and point GeoServer data stores at
-`/opt/geoserver_input/...`.
+To re-seed the data dir after upstream config changes (or to undo a local
+mistake), either set `GEOSERVER_CONFIG_FORCE_REINIT=1` in `.env` and
+restart, or wipe the volume completely:
+
+```bash
+git -C ../geoserver-config-imas pull --ff-only
+docker compose down -v geoserver         # nukes geoserver-data + geoserver-war
+docker compose up -d geoserver           # re-seeds and re-fetches
+```
+
+### Routing local layers through the local instance
+
+`catalogue.Layer.server_url` is per-row in the database, so a fresh
+local DB still points most layers at `geoserver.imas.utas.edu.au`.
+To route a specific layer through the local container:
+
+```sql
+UPDATE catalogue_layer
+SET server_url = 'http://geoserver:8080/geoserver/wms'
+WHERE name = 'imas:my_workspace:my_layer';
+```
+
+Use `http://geoserver:8080/...` for in-container clients (backend),
+`http://host.docker.internal:8080/...` if a host-side browser also needs
+to hit the same URL directly.
+
+### Bumping the WAR version
+
+The fetch script takes the newest release whose `.name` contains
+`GEOSERVER_WAR_TAG_FILTER` (default `master`) and grabs the first asset
+whose name starts with `GEOSERVER_WAR_ASSET_PREFIX` (default `geoserver`).
+That mirrors the Ansible `git_release` role's query. To pull a fresh
+build after IMAS publishes a new release:
+
+```bash
+GEOSERVER_WAR_FORCE_REFRESH=1 docker compose up geoserver-fetch
+docker compose restart geoserver
+```
+
+Set `GITHUB_TOKEN` in `.env` if you hit the 60/hr unauthenticated GitHub
+API rate limit — the repo is public so the token is optional.
+
+### Verifying the install
+
+```bash
+# Version + git revision of the running WAR
+curl -fsS -u admin:geoserver http://localhost:8080/geoserver/rest/about/version.json
+
+# 18 production workspaces (imas, seamap, NESP, RERI, bluecarbon, …)
+curl -fsS -u admin:geoserver http://localhost:8080/geoserver/rest/workspaces.json
+
+# AODN extensions are loaded
+curl -fsS -u admin:geoserver \
+  'http://localhost:8080/geoserver/rest/about/manifest.json?manifest=.*layer-filter.*'
+curl -fsS -u admin:geoserver \
+  'http://localhost:8080/geoserver/rest/about/manifest.json?manifest=.*ncwms.*'
+```
+
+### Host-side data files
+
+For shapefiles / GeoTIFFs you keep on the host, add a bind mount under
+`geoserver.volumes` in `docker-compose.yml` (e.g.
+`./geoserver-input:/data/geoserver-input:ro`) and reference the
+in-container path from new GeoServer data stores.
+
+### Falling back to the vanilla OSGeo image
+
+If you can't reach GitHub releases (offline, behind a strict proxy) and
+just need a GeoServer to test Django-side WMS/WFS handling — timeouts,
+malformed XML, the Sentry-flagged `ReadTimeout` work — replace the
+three-service block (`geoserver-fetch`, `geoserver-config-init`,
+`geoserver`) with a single service running
+`docker.osgeo.org/geoserver:2.28.x` (or whichever 2.28-line tag is
+current — see https://hub.docker.com/r/osgeo/geoserver/tags), and drop the `geoserver-war` + `geoserver-data` named
+volumes. No AODN extensions or production layer set, but enough for
+client-resilience testing. Restore from git when you're back online.
 
 ## Known limitations
 
