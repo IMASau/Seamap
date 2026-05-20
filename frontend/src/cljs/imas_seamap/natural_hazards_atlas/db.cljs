@@ -83,7 +83,7 @@
                    :selected-time-period-id   "all"}
    :autosave?       false
    :config          {:url-paths {:site-configuration    "siteconfiguration/"
-                                 :layer                 "nhatlayers/"
+                                 :layer                 "nhatlayers/" ; Has the same information as the "layers/" API endpoint, but with extra Thredds styling information that we're not using in Seamap
                                  :base-layer            "baselayers/"
                                  :base-layer-group      "baselayergroups/"
                                  :organisation          "organisations/"
@@ -95,7 +95,7 @@
                                  :keyed-layers          "keyedlayers/"
                                  :rich-layers           "richlayers/"
                                  :dynamic-pills         "dynamicpills/"
-                                 :layer-legend          "layerlegend/"
+                                 :layer-legend          "nhatlayerlegend/" ; Uses the extra Thredds styling information we have in NHAT to build a more accurate legend than the "layerlegend/" API endpoint
                                  :layer-previews        "layer_previews/"
                                  :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"
                                  :data-in-region        "habitat/datainregion"

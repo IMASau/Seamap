@@ -1,14 +1,27 @@
+"""
+Viewsets for Natural Hazards Atlas API endpoints.
+"""
 import catalogue.models
-from . import serializers
+from . import models, serializers
 
 from django.core.cache import cache
 from django.db.models import Value
 from django.db.models.functions import Coalesce
+from django.views.decorators.cache import cache_page
 from rest_framework import viewsets
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
+from rest_framework.request import Request
+import requests
 
+# pylint: disable=line-too-long
 
 class LayerViewset(viewsets.ReadOnlyModelViewSet):
+    """
+    Viewset for Natural Hazards Atlas layers.
+    Based on the LayerViewset in catalogue.viewsets, but modified to include the
+    related NhatLayer model.
+    """
     queryset = catalogue.models.Layer.objects.all() \
         .prefetch_related(
             'category',
@@ -37,3 +50,64 @@ class LayerViewset(viewsets.ReadOnlyModelViewSet):
 
         cache.set(cache_key, response.data, timeout=None)
         return response
+
+
+def _get_nhat_thredds_legend(layer: catalogue.models.Layer) -> str:
+    """
+    Constructs the URL for the legend graphic image for a Thredds Natural Hazards
+    Atlas layer.
+
+    Returns:
+        str: The URL of the legend graphic image in PNG format.
+
+    Example:
+        >>> _get_nhat_thredds_legend(layer)
+        "https://thredds...?service=WMS&version=1.1.1&request=GetLegendGraphic&layer=...&format=image/png&transparent=True"
+
+    Note:
+    - The method assumes that `layer.server_url` points to a valid Thredds server that
+        returns data in the expected format.
+    """
+    params = {
+        'service': 'WMS',
+        'version': '1.1.1',
+        'request': 'GetLegendGraphic',
+        'layer': layer.layer_name,
+        'format': 'image/png',
+        'transparent': True,
+        'style': 'default-scalar/psu-viridis',
+    }
+    if layer.style:
+        params['style'] = layer.style
+
+    if hasattr(layer, "nhatlayer"):
+        params.update({
+            'styles': f"default-scalar/{layer.nhatlayer.color_palette}",
+            'colorscalerange': f"{layer.nhatlayer.color_scale_range_min},{layer.nhatlayer.color_scale_range_max}",
+            'abovemaxcolor': layer.nhatlayer.above_max_color,
+            'belowmincolor': layer.nhatlayer.below_min_color,
+        })
+    return requests.get(url=layer.server_url, params=params).url
+
+
+@action(methods=['GET'], detail=False)
+# @cache_page(60 * 15)
+@api_view()
+def layer_legend(request: Request, layer_id: int):
+    """
+    Get the legend for a layer in Natural Hazards Atlas.
+    Based on the base layer_legend API view in habitat.viewsets, but modified to...
+    """
+    try:
+        layer = models.Layer.objects.get(id=layer_id)
+    except models.Layer.DoesNotExist:
+        return Response("Layer not found", status=400)
+
+    try:
+        if layer.server_type.name == 'thredds':
+            legend = _get_nhat_thredds_legend(layer)
+        else:
+            legend = layer.get_legend()
+        return Response(legend)
+    except ValueError:
+        return Response("No legend available for this layer", status=400)

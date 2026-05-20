@@ -759,7 +759,7 @@ class Layer(models.Model):
             return self._get_esri_image_map_legend()
 
         # ...otherwise, if the layer is a WMS layer
-        elif self.layer_type in ['wms', 'wms-non-tiled']:
+        elif self.layer_type in ['wms', 'wms-non-tiled', 'wms-timeseries']:
             return self._get_geoserver_legend()
 
         # ...otherwise, layer type is not supported
