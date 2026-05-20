@@ -1,5 +1,7 @@
+"""Database models for the NHAT app."""
 from django.db import models
 from catalogue.models import Layer
+
 
 COLOR_PALETTE_CHOICES = [
     ('default', 'default'),
@@ -51,7 +53,8 @@ COLOR_PALETTE_CHOICES = [
     ('x-Sst', 'x-Sst'),
 ]
 
-class NhatLayer(models.Model):
+class HazardLayer(models.Model):
+    """Hazard layer info added to a standard Thredds server layer."""
     layer = models.OneToOneField(
         Layer,
         on_delete=models.CASCADE,

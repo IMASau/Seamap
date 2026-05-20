@@ -4,11 +4,11 @@ from . import models
 from rest_framework import serializers
 
 
-class NhatLayerSerializer(serializers.ModelSerializer):
+class HazardLayerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.NhatLayer
+        model = models.HazardLayer
         fields = '__all__'
 
 
 class LayerSerializer(catalogue.serializers.LayerSerializer):
-    nhatlayer = NhatLayerSerializer(read_only=True)
+    hazardlayer = HazardLayerSerializer(read_only=True)

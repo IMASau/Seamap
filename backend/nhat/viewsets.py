@@ -20,7 +20,7 @@ class LayerViewset(viewsets.ReadOnlyModelViewSet):
     """
     Viewset for Natural Hazards Atlas layers.
     Based on the LayerViewset in catalogue.viewsets, but modified to include the
-    related NhatLayer model.
+    related HazardLayer model.
     """
     queryset = catalogue.models.Layer.objects.all() \
         .prefetch_related(
@@ -29,7 +29,7 @@ class LayerViewset(viewsets.ReadOnlyModelViewSet):
             'organisation',
             'server_type'
         ) \
-        .select_related('nhatlayer') \
+        .select_related('hazardlayer') \
         .annotate(sort_key_null=Coalesce('sort_key', Value('zzzzzzzz'))) \
         .order_by('sort_key_null', 'name')
     serializer_class = serializers.LayerSerializer
@@ -80,12 +80,12 @@ def _get_nhat_thredds_legend(layer: catalogue.models.Layer) -> str:
     if layer.style:
         params['style'] = layer.style
 
-    if hasattr(layer, "nhatlayer"):
+    if hasattr(layer, "hazardlayer"):
         params.update({
-            'styles': f"default-scalar/{layer.nhatlayer.color_palette}",
-            'colorscalerange': f"{layer.nhatlayer.color_scale_range_min},{layer.nhatlayer.color_scale_range_max}",
-            'abovemaxcolor': layer.nhatlayer.above_max_color,
-            'belowmincolor': layer.nhatlayer.below_min_color,
+            'styles': f"default-scalar/{layer.hazardlayer.color_palette}",
+            'colorscalerange': f"{layer.hazardlayer.color_scale_range_min},{layer.hazardlayer.color_scale_range_max}",
+            'abovemaxcolor': layer.hazardlayer.above_max_color,
+            'belowmincolor': layer.hazardlayer.below_min_color,
         })
     return requests.get(url=layer.server_url, params=params).url
 
