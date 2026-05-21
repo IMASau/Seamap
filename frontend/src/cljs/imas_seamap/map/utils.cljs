@@ -752,3 +752,24 @@
    (when-let [{:keys [location show? side-of-divider]} (:feature db)]
     (let [current-side-of-divider (which-side-of-divider location db)]
       (and show? (= current-side-of-divider side-of-divider))))))
+
+(defn- make-re
+  "Given a list of words to match, construct a regexp that matches all
+  of them, in any order.  That is, [\"one\" \"two\"] should match both
+  \"onetwo\" and \"twoone\"."
+  [words]
+  (re-pattern
+   (str "(?i)^"
+        (string/join (map #(str "(?=.*" % ")") words))
+        ".*$")))
+
+(defn match-layer
+  "Given a string of search words, attempt to match them *all* against
+  a layer (designed so it can be used to filter a list of layers, in
+  conjunction with partial)."
+  [filter-text categories layer]
+  (if-let [search-re (try
+                       (-> filter-text string/trim (string/split #"\s+") make-re)
+                       (catch :default e nil))]
+    (re-find search-re (layer-search-keywords categories layer))
+    false))

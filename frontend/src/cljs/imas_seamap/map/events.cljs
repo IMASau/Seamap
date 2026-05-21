@@ -450,7 +450,7 @@
 
 (defn layer-set-opacity [{:keys [db]} [_ layer opacity]]
   (s/assert (s/int-in 0 101) opacity) ; opacity is an integer percentage from 0 to 100 inclusive
-  (let [db (assoc-in db [:layer-state :opacity layer] opacity)]
+  (let [db (assoc-in db [:layer-state :opacity layer] opacity)] ; FIXME: Instead of storing by layer we should store by layer ID
     {:db       db
      :dispatch [:maybe-autosave]}))
 
@@ -684,7 +684,7 @@
   [{:keys [db]} [_ layer]]
   (let [hidden-layers (get-in db [:map :hidden-layers])
         hidden? (contains? hidden-layers layer)
-        db (update-in db [:map :hidden-layers] #((if hidden? disj conj) % layer))]
+        db (update-in db [:map :hidden-layers] #((if hidden? disj conj) % layer))] ; FIXME: Instead of storing a list of layers, we should store a list of layer IDs and hydrate them in the sub. It's bad practice to have multiple sources for the layer in the DB!
     {:db         db
      :dispatch-n [[:map/popup-closed]
                   [:map.layer.selection/maybe-clear]
@@ -1016,7 +1016,7 @@
                               below         (subvec active-layers 0 index)
                               above         (subvec active-layers index)
                               active-layers (vec (concat below [layer] above))]
-                          (assoc-in db [:map :active-layers] active-layers))
+                          (assoc-in db [:map :active-layers] active-layers)) ; FIXME: Instead of storing a list of layers, we should store a list of layer IDs and hydrate them in the sub. It's bad practice to have multiple sources for the layer in the DB!
 
                         :else                       ; else, add the layer to the end of the list
                         (update-in db [:map :active-layers] conj layer))]
