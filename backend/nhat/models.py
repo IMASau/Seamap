@@ -73,10 +73,19 @@ class ScientificModel(models.Model):
     """Scientific model to analyze the hazard data."""
     name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.name
+
 class Scenario(models.Model):
     """Scenario to analyze the hazard data."""
     name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.name
+
 class Season(models.Model):
     """Seasonal data to analyze the hazard data."""
     name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name

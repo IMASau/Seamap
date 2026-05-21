@@ -74,9 +74,9 @@
    :dynamic-pills {:dynamic-pills []
                    :states        {}
                    :async-datas   {}}
-   :current-view  {:models                    [{:id 1 :name "CMIP5"} {:id 2 :name "CMIP6"}]
-                   :scenarios                 [{:id 1 :name "SSP1"} {:id 2 :name "SSP2"}]
-                   :seasonal-datas            [{:id 1 :name "All"} {:id 2 :name "Summer"} {:id 3 :name "Autumn"} {:id 4 :name "Winter"} {:id 5 :name "Spring"}]
+   :current-view  {:models                    [{:id 1 :name "CMIP5"} {:id 2 :name "CMIP6"}] ; These might come from a server at some point
+                   :scenarios                 [{:id 1 :name "SSP1"} {:id 2 :name "SSP2"}] ; Ditto
+                   :seasonal-datas            [{:id 1 :name "All"} {:id 2 :name "Summer"} {:id 3 :name "Autumn"} {:id 4 :name "Winter"} {:id 5 :name "Spring"}] ; Ditto
                    :selected-model-id         2
                    :selected-scenario-id      1
                    :selected-seasonal-data-id 1
