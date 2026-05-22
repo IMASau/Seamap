@@ -14,7 +14,9 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 import requests
 
+
 # pylint: disable=line-too-long
+# pylint: disable=missing-class-docstring
 
 class LayerViewset(viewsets.ReadOnlyModelViewSet):
     """
@@ -50,6 +52,21 @@ class LayerViewset(viewsets.ReadOnlyModelViewSet):
 
         cache.set(cache_key, response.data, timeout=None)
         return response
+
+
+class ScientificModelViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = models.ScientificModel.objects.all()
+    serializer_class = serializers.ScientificModelSerializer
+
+
+class ScenarioViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = models.Scenario.objects.all()
+    serializer_class = serializers.ScenarioSerializer
+
+
+class SeasonViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = models.Season.objects.all()
+    serializer_class = serializers.SeasonSerializer
 
 
 def _get_nhat_thredds_legend(layer: catalogue.models.Layer) -> str:
@@ -91,7 +108,7 @@ def _get_nhat_thredds_legend(layer: catalogue.models.Layer) -> str:
 
 
 @action(methods=['GET'], detail=False)
-# @cache_page(60 * 15)
+@cache_page(60 * 15)
 @api_view()
 def layer_legend(request: Request, layer_id: int):
     """
