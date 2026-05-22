@@ -24,32 +24,17 @@
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data"
   [db _]
-  (let [models            (get-in db [:current-view :models])
-        selected-model-id (get-in db [:current-view :selected-model-id])
-        selected-model    (first-where #(= (:id %) selected-model-id) models)]
-    (when selected-model-id
-      (assert selected-model (str "Selected model id " selected-model-id " not found in models list")))
-    selected-model))
+  (nhatutils/current-view-selected-model db))
 
 (defn current-view-selected-scenario
   "Scenario to analyze the hazard data"
   [db _]
-  (let [scenarios               (get-in db [:current-view :scenarios])
-        selected-scenario-id    (get-in db [:current-view :selected-scenario-id])
-        selected-scenario       (first-where #(= (:id %) selected-scenario-id) scenarios)]
-    (when selected-scenario-id
-      (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list")))
-    selected-scenario))
+  (nhatutils/current-view-selected-scenario db))
 
 (defn current-view-selected-seasonal-data
   "Seasonal data to analyze the hazard data"
   [db _]
-  (let [seasonal-datas               (get-in db [:current-view :seasonal-datas])
-        selected-seasonal-data-id    (get-in db [:current-view :selected-seasonal-data-id])
-        selected-seasonal-data       (first-where #(= (:id %) selected-seasonal-data-id) seasonal-datas)]
-    (when selected-seasonal-data-id
-      (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
-    selected-seasonal-data))
+  (nhatutils/current-view-selected-seasonal-data db))
 
 (defn current-view-time-periods
   "List of time periods available to analyze the hazard data.
@@ -117,16 +102,4 @@
    `variable_heatwave_amplitude_scenario_historical_format.nc` becomes
    `variable_heatwave_amplitude_scenario_historical_format_cmip6_ssp1_summer.nc`"
   [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-model selected-scenario selected-seasonal-data] _]
-  (let [hazard-layers (set hazard-layers)
-        hazard-layer-server-url-fn #(string/replace % #"\.nc$" (str "_" (:name selected-model) "_" (:name selected-scenario) (when (not= (:name selected-seasonal-data) "All") (str "_" (:name selected-seasonal-data))) ".nc"))]
-    (->>
-     (reduce
-      (fn [m layer]
-        (assoc m layer (or (:displayed-layer (rich-layer-fn layer)) layer)))
-      {} layers)
-     (reduce-kv
-      (fn [m layer displayed-layer]
-        (if (hazard-layers displayed-layer)
-          (assoc m layer (assoc displayed-layer :server_url (hazard-layer-server-url-fn (:server_url displayed-layer)))) ; if we have a hazard layer, use the function to replace the server URL
-          (assoc m layer displayed-layer)))
-      {}))))
+  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data))

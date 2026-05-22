@@ -34,12 +34,6 @@
    [re-frame.core :as re-frame]
    [reagent.core :as r]))
 
-
-;;; Seamap is hosted under https, meaning the browser will block ajax
-;;; (ie, getfeatureinfo) requests to plain http URLs.  Servers still
-;;; using http need specil handling:
-(defn- is-insecure? [url] (-> url string/lower-case (string/starts-with? "http:")))
-
 (defn base-layer-changed [{:keys [db]} [_ layer-name]]
   (let [grouped-base-layers (-> db :map :grouped-base-layers)
         selected-base-layer (first-where (comp #(= layer-name %) :name) grouped-base-layers)]
@@ -308,7 +302,7 @@
   [{:keys [db]} [_ leaflet-props point]]
   (let [visible-layers
         (map-utils/displayed-layers-under-point (visible-layers (:map db)) point db)
-        secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
+        secure-layers  (remove #(map-utils/is-insecure? (:server_url %)) visible-layers)
         request-id     (gensym)
 
         ;; Requests used to be grouped by server URL, but has since been changed to be
@@ -321,7 +315,7 @@
                         (fn [{:keys [info_format_type] :as layer}]
                           [:map/get-feature-info info_format_type [layer] request-id leaflet-props point])
                         secure-layers)
-        had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
+        had-insecure?  (some #(map-utils/is-insecure? (:server_url %)) visible-layers)
         db             (if had-insecure?
                          (assoc db :feature {:status :feature-info/none-queryable :location point :show? true}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
                          (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response

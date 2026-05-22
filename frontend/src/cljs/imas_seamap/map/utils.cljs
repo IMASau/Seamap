@@ -808,3 +808,8 @@
                        (catch :default e nil))]
     (re-find search-re (layer-search-keywords categories layer))
     false))
+
+;;; Seamap is hosted under https, meaning the browser will block ajax
+;;; (ie, getfeatureinfo) requests to plain http URLs.  Servers still
+;;; using http need specil handling:
+(defn is-insecure? [url] (-> url string/lower-case (string/starts-with? "http:")))

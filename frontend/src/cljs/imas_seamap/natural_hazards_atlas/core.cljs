@@ -156,7 +156,7 @@
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map.feature/show                     mevents/show-popup
     :map/clicked                          [mevents/map-click-dispatcher]
-    :map/feature-info-dispatcher          [mevents/feature-info-dispatcher]
+    :map/feature-info-dispatcher          [nhatevents/feature-info-dispatcher]
     :map/get-feature-info                 [mevents/get-feature-info]
     :map/get-feature-info-map-server-step-2 [mevents/get-feature-info-map-server-step-2] ; MapServer layers need to make an additional request to determine if they are a group layer
     :map/got-featureinfo                  mevents/got-feature-info

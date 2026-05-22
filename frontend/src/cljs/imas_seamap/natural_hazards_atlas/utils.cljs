@@ -3,9 +3,11 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.utils
   (:require [clojure.set :refer [rename-keys]]
+            [clojure.string :as string]
             [goog.crypt.base64 :as b64]
             [cognitect.transit :as t]
-            [imas-seamap.utils :refer [select-keys*]]))
+            [imas-seamap.utils :refer [select-keys* first-where]]
+            [imas-seamap.map.utils :as map-utils]))
 
 (defn encode-state
   "Returns a string suitable for storing in the URL's hash"
@@ -133,3 +135,77 @@
    {:id "short" :name "Short (2020-2039)"}
    {:id "medium" :name "Medium (2050-2069)"}
    {:id "long" :name "Long (2080-2099)"}])
+
+; Extracted function from a sub so that it can be used (sparingly) in events.
+(defn current-view-selected-model
+  "Scientific model to analyze the hazard data"
+  [db]
+  (let [models            (get-in db [:current-view :models])
+        selected-model-id (get-in db [:current-view :selected-model-id])
+        selected-model    (first-where #(= (:id %) selected-model-id) models)]
+    (when selected-model-id
+      (assert selected-model (str "Selected model id " selected-model-id " not found in models list")))
+    selected-model))
+
+; Extracted function from a sub so that it can be used (sparingly) in events.
+(defn current-view-selected-scenario
+  "Scenario to analyze the hazard data"
+  [db]
+  (let [scenarios               (get-in db [:current-view :scenarios])
+        selected-scenario-id    (get-in db [:current-view :selected-scenario-id])
+        selected-scenario       (first-where #(= (:id %) selected-scenario-id) scenarios)]
+    (when selected-scenario-id
+      (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list")))
+    selected-scenario))
+
+; Extracted function from a sub so that it can be used (sparingly) in events.
+(defn current-view-selected-seasonal-data
+  "Seasonal data to analyze the hazard data"
+  [db]
+  (let [seasonal-datas               (get-in db [:current-view :seasonal-datas])
+        selected-seasonal-data-id    (get-in db [:current-view :selected-seasonal-data-id])
+        selected-seasonal-data       (first-where #(= (:id %) selected-seasonal-data-id) seasonal-datas)]
+    (when selected-seasonal-data-id
+      (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
+    selected-seasonal-data))
+
+; Extracted function from a sub so that it can be used (sparingly) in events.
+(defn hazard-layers
+  "List of currently available hazard layers, with metadata for display in the UI."
+  [catalogue-layers]
+  (filterv :hazardlayer catalogue-layers))
+
+; Extracted function from a sub so that it can be used (sparingly) in events.
+(defn layer-displayed-layers-lookup
+  "A lookup map of the raw (catalogue) layer to what layers should actually be
+   displayed on the map.
+
+   Replaces hazard layer server URLs with whatever scientific model, scenario, and
+   season is selected.
+
+   The format for hazard layer URLs is
+   `<layer_name>_<model>_<scenario>_<season>.nc`, i.e.
+   `variable_heatwave_amplitude_scenario_historical_format.nc` becomes
+   `variable_heatwave_amplitude_scenario_historical_format_cmip6_ssp1_summer.nc`"
+  [layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data]
+  (let [hazard-layers (set hazard-layers)
+        hazard-layer-server-url-fn #(string/replace % #"\.nc$" (str "_" (:name selected-model) "_" (:name selected-scenario) (when (not= (:name selected-seasonal-data) "All") (str "_" (:name selected-seasonal-data))) ".nc"))]
+    (->>
+     (map-utils/layer-displayed-layers-lookup layers rich-layer-fn)
+     (reduce-kv
+      (fn [m layer displayed-layer]
+        (if (hazard-layers displayed-layer)
+          (assoc m layer (assoc displayed-layer :server_url (hazard-layer-server-url-fn (:server_url displayed-layer)))) ; if we have a hazard layer, use the function to replace the server URL
+          (assoc m layer displayed-layer)))
+      {}))))
+
+; TODO: Refactor so that `db` isn't a necessary argument
+(defn displayed-layers-under-point
+  "From the list of visible layers on the map, get the layers displayed on the map
+   under the current point.
+
+   The current point can matter for things like split view layers."
+  [visible-layers layer-displayed-layers-lookup point db]
+  (map
+   #(get layer-displayed-layers-lookup %)
+   (map-utils/displayed-layers-under-point visible-layers point db)))

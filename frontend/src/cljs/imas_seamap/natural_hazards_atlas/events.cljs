@@ -3,11 +3,9 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.events
   (:require [ajax.core :as ajax]
-            [clojure.string :as string]
             [imas-seamap.natural-hazards-atlas.db :as db]
             [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
             [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities rich-layer->displayed-layer]]
-            [imas-seamap.map.events :refer [download-format-str->keyword]]
             [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -363,3 +361,61 @@
     (assert (seq available-times) "No available times to step through")
     (assert current-time "Current time is not set")
     {:dispatch [:map.time/current-time prev-time]}))
+
+(defn feature-info-dispatcher
+  "Takes a map click event, and dispatches :map/get-feature-info events for each
+   visible layer.
+
+   Overrides imas-seamap.map.events/feature-info-dispatcher by using
+   `nhatutils/displayed-layers-under-point` instead of
+   `mutils/displayed-layers-under-point`, which uses uses the NHAT
+   `layer-displayed-layers-lookup` function that changes hazard layers server URLs.
+
+   Args:
+   - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
+   - point:         The lat lng and x y pixel coords of the clicked point"
+  [{:keys [db]} [_ leaflet-props point]]
+  (let [layers                        (get-in db [:map :layers])
+        rich-layer-fn                 (mutils/rich-layer-fn db)
+        hazard-layers                 (nhatutils/hazard-layers layers)
+        selected-model                (nhatutils/current-view-selected-model db)
+        selected-scenario             (nhatutils/current-view-selected-scenario db)
+        selected-seasonal-data        (nhatutils/current-view-selected-seasonal-data db)
+        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data)
+        
+        visible-layers
+        (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup point db)
+        secure-layers  (remove #(mutils/is-insecure? (:server_url %)) visible-layers)
+        request-id     (gensym)
+
+        ;; Requests used to be grouped by server URL, but has since been changed to be
+        ;; per-layer (many reasons, but the  triggering factor was separating the CQL
+        ;; filters per layer).
+        ;; We now generate just one :map/get-feature-info event per layer.
+        ;; :map/get-feature-info hasn't been updated to remove the multiple layers
+        ;; parameter, but sending in a vector of a single layer works fine.
+        requests       (map
+                        (fn [{:keys [info_format_type] :as layer}]
+                          [:map/get-feature-info info_format_type [layer] request-id leaflet-props point])
+                        secure-layers)
+        had-insecure?  (some #(mutils/is-insecure? (:server_url %)) visible-layers)
+        db             (if had-insecure?
+                         (assoc db :feature {:status :feature-info/none-queryable :location point :show? true}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
+                         (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
+                          db
+                          :feature-query
+                          {:request-id        request-id
+                           :response-remain   (count requests)
+                           :had-insecure?     had-insecure?
+                           :responses         []}
+                          :feature
+                          {:status   :feature-info/waiting
+                           :leaflet-props leaflet-props
+                           :location point
+                           :show?    false}))]
+    (merge
+     {:db db
+      :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
+     (if (and (seq requests) (not had-insecure?))
+       {:dispatch-n requests}
+       {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))
