@@ -107,7 +107,7 @@
 
    :events
    {:boot                                 [nhatevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
-    :construct-urls                       events/construct-urls
+    :construct-urls                       nhatevents/construct-urls
     :merge-state                          [nhatevents/merge-state]
     :re-boot                              [nhatevents/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
@@ -271,6 +271,9 @@
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close
     :download-click                       (fn [db [_ {:keys [_link]}]] db)
+    :current-view/update-models           [nhatevents/current-view-update-models]
+    :current-view/update-scenarios        [nhatevents/current-view-update-scenarios]
+    :current-view/update-seasonal-datas   [nhatevents/current-view-update-seasonal-datas]
     :current-view/selected-model          [nhatevents/current-view-selected-model]
     :current-view/selected-scenario       [nhatevents/current-view-selected-scenario]
     :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]

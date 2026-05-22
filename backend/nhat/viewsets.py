@@ -5,7 +5,7 @@ import catalogue.models
 from . import models, serializers
 
 from django.core.cache import cache
-from django.db.models import Value
+from django.db.models import F, Value
 from django.db.models.functions import Coalesce
 from django.views.decorators.cache import cache_page
 from rest_framework import viewsets
@@ -55,17 +55,20 @@ class LayerViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class ScientificModelViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = models.ScientificModel.objects.all()
+    queryset = models.ScientificModel.objects.all() \
+        .order_by(F('sort_key').asc(nulls_last=True))
     serializer_class = serializers.ScientificModelSerializer
 
 
 class ScenarioViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = models.Scenario.objects.all()
+    queryset = models.Scenario.objects.all() \
+        .order_by(F('sort_key').asc(nulls_last=True))
     serializer_class = serializers.ScenarioSerializer
 
 
 class SeasonViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = models.Season.objects.all()
+    queryset = models.Season.objects.all() \
+        .order_by(F('sort_key').asc(nulls_last=True))
     serializer_class = serializers.SeasonSerializer
 
 

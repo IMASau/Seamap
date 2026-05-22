@@ -74,12 +74,12 @@
    :dynamic-pills {:dynamic-pills []
                    :states        {}
                    :async-datas   {}}
-   :current-view  {:models                    [{:id 1 :name "CMIP5"} {:id 2 :name "CMIP6"}] ; These might come from a server at some point
-                   :scenarios                 [{:id 1 :name "SSP1"} {:id 2 :name "SSP2"}] ; Ditto
-                   :seasonal-datas            [{:id 1 :name "All"} {:id 2 :name "Summer"} {:id 3 :name "Autumn"} {:id 4 :name "Winter"} {:id 5 :name "Spring"}] ; Ditto
-                   :selected-model-id         2
-                   :selected-scenario-id      1
-                   :selected-seasonal-data-id 1
+   :current-view  {:models                    []
+                   :scenarios                 []
+                   :seasonal-datas            []
+                   :selected-model-id         nil
+                   :selected-scenario-id      nil
+                   :selected-seasonal-data-id nil
                    :selected-time-period-id   "all"}
    :autosave?       false
    :config          {:url-paths {:site-configuration    "siteconfiguration/"
@@ -100,7 +100,10 @@
                                  :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"
                                  :data-in-region        "habitat/datainregion"
                                  :cql-filter-values     "habitat/cqlfiltervalues"
-                                 :dynamic-pill-region-control-values "habitat/dynamicpillregioncontrolvalues"}
+                                 :dynamic-pill-region-control-values "habitat/dynamicpillregioncontrolvalues"
+                                 :scientific-models     "nhatscientificmodels/"
+                                 :scenarios             "nhatscenarios/"
+                                 :seasons               "nhatseasons/"}
                      :urls      nil
                      :url-base {:api-url-base       "http://localhost:8000/api/"
                                 :media-url-base     "http://localhost:8000/media/"

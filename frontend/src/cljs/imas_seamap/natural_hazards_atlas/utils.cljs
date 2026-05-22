@@ -143,7 +143,7 @@
   (let [models            (get-in db [:current-view :models])
         selected-model-id (get-in db [:current-view :selected-model-id])
         selected-model    (first-where #(= (:id %) selected-model-id) models)]
-    (when selected-model-id
+    (when (and (seq models) selected-model-id)
       (assert selected-model (str "Selected model id " selected-model-id " not found in models list")))
     selected-model))
 
@@ -154,7 +154,7 @@
   (let [scenarios               (get-in db [:current-view :scenarios])
         selected-scenario-id    (get-in db [:current-view :selected-scenario-id])
         selected-scenario       (first-where #(= (:id %) selected-scenario-id) scenarios)]
-    (when selected-scenario-id
+    (when (and (seq scenarios) selected-scenario-id)
       (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list")))
     selected-scenario))
 
@@ -165,7 +165,7 @@
   (let [seasonal-datas               (get-in db [:current-view :seasonal-datas])
         selected-seasonal-data-id    (get-in db [:current-view :selected-seasonal-data-id])
         selected-seasonal-data       (first-where #(= (:id %) selected-seasonal-data-id) seasonal-datas)]
-    (when selected-seasonal-data-id
+    (when (and (seq seasonal-datas) selected-seasonal-data-id)
       (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
     selected-seasonal-data))
 

@@ -72,6 +72,7 @@ class HazardLayer(models.Model):
 class ScientificModel(models.Model):
     """Scientific model to analyze the hazard data."""
     name = models.CharField(max_length=50)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -79,6 +80,7 @@ class ScientificModel(models.Model):
 class Scenario(models.Model):
     """Scenario to analyze the hazard data."""
     name = models.CharField(max_length=50)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -86,6 +88,7 @@ class Scenario(models.Model):
 class Season(models.Model):
     """Seasonal data to analyze the hazard data."""
     name = models.CharField(max_length=50)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
         return self.name
