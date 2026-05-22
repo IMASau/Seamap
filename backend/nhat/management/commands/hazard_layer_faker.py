@@ -30,13 +30,22 @@ class Command(BaseCommand):
         netcdf_file_basename = re.sub(r'[^a-z0-9]+', '_', layer_name.lower()).strip('_')
         # Generate NetCDF files
         for scientific_model in models.ScientificModel.objects.all():
+            scientific_model_offset = np.random.rand()
             for scenario in models.Scenario.objects.all():
+                scenario_offset = np.random.rand() + scientific_model_offset
                 for season in models.Season.objects.all():
+                    season_offset = np.random.rand() + scenario_offset
                     netcdf_file_name = f"{netcdf_file_basename}_{scientific_model.name}_{scenario.name}_{season.name}"
                     cur_ds_out = xr.Dataset(data_vars=dict(
-                        value = (["lat","lon","time"],np.random.rand(97,141,8))),
+                        value = (["lat","lon","time"],np.random.rand(97,141,8)+season_offset)),
                         coords={'lat':lat,'lon':lon,'time':cur_date_range})
                     cur_ds_out.to_netcdf(f"{netcdf_file_name}.nc")
+                no_season_offset = np.random.rand() + scenario_offset
+                netcdf_file_name = f"{netcdf_file_basename}_{scientific_model.name}_{scenario.name}"
+                cur_ds_out = xr.Dataset(data_vars=dict(
+                    value = (["lat","lon","time"],np.random.rand(97,141,8)+no_season_offset)),
+                    coords={'lat':lat,'lon':lon,'time':cur_date_range})
+                cur_ds_out.to_netcdf(f"{netcdf_file_name}.nc")
         layer = catalogue.models.Layer.objects.create(
             name = layer_name,
             server_url = f"https://thredds-nhat-dev.its.utas.edu.au/thredds/wms/data/{netcdf_file_basename}.nc",
@@ -54,6 +63,6 @@ class Command(BaseCommand):
         models.HazardLayer.objects.create(
             layer = layer,
             color_scale_range_min = 0,
-            color_scale_range_max = 1,
+            color_scale_range_max = 4,
             color_palette = 'seq-GreysRev'
         )
