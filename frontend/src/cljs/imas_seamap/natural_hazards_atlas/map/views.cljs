@@ -15,6 +15,7 @@
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
+        displayed-layers-lookup                       @(re-frame/subscribe [:map.layer/displayed-layers-lookup])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
@@ -72,7 +73,7 @@
        (map-indexed
         (fn [i layer]
           (let [rich-layer (rich-layer-fn layer)
-                {:keys [id] :as displayed-layer} (or (:displayed-layer rich-layer) layer)
+                {:keys [id] :as displayed-layer} (get displayed-layers-lookup layer)
                 z-index (+ i 1 (count (:layers active-base-layer)))]
             ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
             ;; display two panes (left and right) for the two layers, and the side-by-side

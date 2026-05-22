@@ -183,7 +183,7 @@
 (defmulti layer-component (comp :layer_type :displayed-layer))
 
 (defmethod layer-component :wms
-  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [nhatlayer]} :layer {:keys [server_url layer_name style]} :displayed-layer}]
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [hazardlayer]} :layer {:keys [server_url layer_name style]} :displayed-layer}]
   [leaflet/wms-layer
    (merge
     {:url              server_url
@@ -200,11 +200,11 @@
     (when style {:styles style})
     (when boundary-filter (boundary-filter layer))
     (when cql-filter {:cql_filter cql-filter})
-    (when nhatlayer
-      {:styles (str "default-scalar/" (:color_palette nhatlayer))
-       :colorscalerange (str (:color_scale_range_min nhatlayer) "," (:color_scale_range_max nhatlayer))
-       :abovemaxcolor (:above_max_color nhatlayer)
-       :belowmincolor (:below_min_color nhatlayer)}))])
+    (when hazardlayer
+      {:styles (str "default-scalar/" (:color_palette hazardlayer))
+       :colorscalerange (str (:color_scale_range_min hazardlayer) "," (:color_scale_range_max hazardlayer))
+       :abovemaxcolor (:above_max_color hazardlayer)
+       :belowmincolor (:below_min_color hazardlayer)}))])
 
 (defmethod layer-component :tile
   [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
@@ -289,7 +289,7 @@
     (when cql-filter {:cql_filter cql-filter}))])
 
 (defmethod layer-component :wms-timeseries
-  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [nhatlayer]} :layer {:keys [server_url layer_name style]} :displayed-layer}]
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [hazardlayer]} :layer {:keys [server_url layer_name style]} :displayed-layer}]
   [leaflet/wms-timeseries-layer
    (merge
     {:url              server_url
@@ -305,11 +305,11 @@
      :format           "image/png"}
     (when style {:styles style})
     (when boundary-filter (boundary-filter layer))
-    (when cql-filter {:cql_filter cql-filter}) (when nhatlayer
-      {:styles (str "default-scalar/" (:color_palette nhatlayer))
-       :colorscalerange (str (:color_scale_range_min nhatlayer) "," (:color_scale_range_max nhatlayer))
-       :abovemaxcolor (:above_max_color nhatlayer)
-       :belowmincolor (:below_min_color nhatlayer)}))])
+    (when cql-filter {:cql_filter cql-filter}) (when hazardlayer
+      {:styles (str "default-scalar/" (:color_palette hazardlayer))
+       :colorscalerange (str (:color_scale_range_min hazardlayer) "," (:color_scale_range_max hazardlayer))
+       :abovemaxcolor (:above_max_color hazardlayer)
+       :belowmincolor (:below_min_color hazardlayer)}))])
 
 (defmethod layer-component :wmts
   [{:keys [layer-opacities layer] {:keys [server_url layer_name]} :displayed-layer}]
@@ -397,6 +397,7 @@
 (defn map-component [& children]
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
+        displayed-layers-lookup                       @(re-frame/subscribe [:map.layer/displayed-layers-lookup])
         {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
@@ -454,7 +455,7 @@
        (map-indexed
         (fn [i layer]
           (let [rich-layer (rich-layer-fn layer)
-                {:keys [id] :as displayed-layer} (or (:displayed-layer rich-layer) layer)
+                {:keys [id] :as displayed-layer} (get displayed-layers-lookup layer)
                 z-index (+ i 1 (count (:layers active-base-layer)))]
             ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
             ;; display two panes (left and right) for the two layers, and the side-by-side

@@ -74,7 +74,8 @@
 
         rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)
         visible-layers  (map-utils/visible-layers db-map)]
-    {:groups          (group-by :category filtered-layers)
+    {:layers          layers
+     :groups          (group-by :category filtered-layers)
      :loading-layers  (->>
                        layer-state :loading-state
                        (filter (fn [[l st]] (= st :map.layer/loading)))
@@ -92,6 +93,19 @@
      :catalogue-layers catalogue-layers
      :rich-layer-fn   rich-layer-fn
      :cql-filter-fn   #(layer->cql-filter % db)}))
+
+; This sub is something that would have formerly been in the monolithic
+; 'map-layers' sub above. This sub is part of a new strategy to break up the
+; monolothic sub into smaller subs that are easier to manage and take advantage of
+; the the re-frame subscription DAG. 
+(defn layer-displayed-layers-lookup
+  "A lookup map of the raw (catalogue) layer to what layers should actually be
+   displayed on the map."
+  [{:keys [layers rich-layer-fn] :as _map-layers} _]
+  (reduce
+   (fn [m layer]
+     (assoc m layer (or (:displayed-layer (rich-layer-fn layer)) layer)))
+   {} layers))
 
 (defn rich-layers-side-by-side-views [db _]
   (let [rich-layers (map #(enhance-rich-layer % db) (get-in db [:map :rich-layers :rich-layers]))
