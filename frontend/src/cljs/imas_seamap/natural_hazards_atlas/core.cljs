@@ -44,7 +44,12 @@
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legend
-    :map.layer/displayed-layers-lookup    [:<- [:map/layers] msubs/layer-displayed-layers-lookup] ; TODO: Use the :map/layers sub in flow, and make sure all cores have this update plus the update to use flow. That should fix the issue that you're currently testing with in Seamap Australia dev!
+    :map.layer/displayed-layers-lookup    [:<- [:map/layers]
+                                           :<- [:map.layers/hazard-layers]
+                                           :<- [:current-view/selected-model]
+                                           :<- [:current-view/selected-scenario]
+                                           :<- [:current-view/selected-seasonal-data]
+                                           nhasubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]

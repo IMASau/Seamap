@@ -2,7 +2,8 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.subs
-  (:require [imas-seamap.utils :refer [first-where]]
+  (:require [clojure.string :as string]
+            [imas-seamap.utils :refer [first-where]]
             [imas-seamap.natural-hazards-atlas.utils :as nhatutils]))
 
 (defn current-view-models
@@ -83,13 +84,13 @@
 (defn hazard-layers
   "List of currently available hazard layers, with metadata for display in the UI."
   [{:keys [catalogue-layers]} _]
-  (filterv #(and (not= (:category %) :supporting_layers) (not= (:category %) :testing)) catalogue-layers))
+  (filterv :hazardlayer catalogue-layers))
 
 (defn supporting-layers
   "List of currently available supporting layers, with metadata for display in the
    UI."
   [{:keys [catalogue-layers]} _]
-  (filterv #(= (:category %) :supporting_layers) catalogue-layers))
+  (filterv (comp not :hazardlayer) catalogue-layers))
 
 (defn filtered-hazard-layers
   "List of currently available hazard layers, filtered by the user's search in the
@@ -102,3 +103,30 @@
    the layer catalogue."
   [[{:keys [filtered-layers]} supporting-layers] _]
   (filterv (set filtered-layers) supporting-layers))
+
+(defn layer-displayed-layers-lookup
+  "A lookup map of the raw (catalogue) layer to what layers should actually be
+   displayed on the map.
+
+   Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to replace
+   hazard layer server URLs with whatever scientific model, scenario, and season
+   is selected.
+
+   The format for hazard layer URLs is
+   `<layer_name>_<model>_<scenario>_<season>.nc`, i.e.
+   `variable_heatwave_amplitude_scenario_historical_format.nc` becomes
+   `variable_heatwave_amplitude_scenario_historical_format_cmip6_ssp1_summer.nc`"
+  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-model selected-scenario selected-seasonal-data] _]
+  (let [hazard-layers (set hazard-layers)
+        hazard-layer-server-url-fn #(string/replace % #"\.nc$" (str "_" (:name selected-model) "_" (:name selected-scenario) (when (not= (:name selected-seasonal-data) "All") (str "_" (:name selected-seasonal-data))) ".nc"))]
+    (->>
+     (reduce
+      (fn [m layer]
+        (assoc m layer (or (:displayed-layer (rich-layer-fn layer)) layer)))
+      {} layers)
+     (reduce-kv
+      (fn [m layer displayed-layer]
+        (if (hazard-layers displayed-layer)
+          (assoc m layer (assoc displayed-layer :server_url (hazard-layer-server-url-fn (:server_url displayed-layer)))) ; if we have a hazard layer, use the function to replace the server URL
+          (assoc m layer displayed-layer)))
+      {}))))
