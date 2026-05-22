@@ -627,6 +627,7 @@
   (let [rich-layers-layer-lookup (get-in db [:map :rich-layers :layer-lookup])]
     (boolean (get rich-layers-layer-lookup id))))
 
+; FIXME: This function should be removed at some point. It's very data-munging.
 (defn rich-layer->displayed-layer
   "If a layer is a rich-layer, then return the currently displayed layer (including
    default if no alternate view or timeline selected). If layer is not a
@@ -667,6 +668,40 @@
       (or                                                                     ; ...else...
        (:displayed-layer enhanced-rich-layer)                                 ; ...return the "displayed layer" if we have it...
        (:layer enhanced-rich-layer)))))                                       ; ...else return the default layer
+
+; Extracted function from the monolithic map-layers sub so that it can be used
+; (sparingly) in events.
+; Hopefully with some refactoring of map-layers, it won't be necessary hand off
+; the entire db to this utility. At the same time, we can remove/refactor the use
+; of the "enhance-rich-layer" utility.
+(defn rich-layer-fn
+  "Function that gets an \"enchanced\" rich layer from a layer passed to it"
+  [db]
+  #(enhance-rich-layer (layer->rich-layer % db) db))
+
+; Extracted function from a sub so that it can be used (sparingly) in events.
+(defn layer-displayed-layers-lookup
+  "A lookup map of the raw (catalogue) layer to what layers should actually be
+   displayed on the map."
+  [layers rich-layer-fn]
+  (reduce
+   (fn [m layer]
+     (assoc m layer (or (:displayed-layer (rich-layer-fn layer)) layer)))
+   {} layers))
+
+; TODO: Refactor so that `db` isn't a necessary argument
+(defn displayed-layers-under-point
+  "From the list of visible layers on the map, get the layers displayed on the map
+   under the current point.
+
+   The current point can matter for things like split view layers."
+  [visible-layers point db]
+  (map
+   (fn [layer]
+     (if (layer->rich-layer? layer db)
+       (rich-layer->layer-under-point (layer->rich-layer layer db) point db)
+       layer))
+   visible-layers))
 
 (defn layer->dynamic-pills
   "Returns the dynamic pills for a layer."

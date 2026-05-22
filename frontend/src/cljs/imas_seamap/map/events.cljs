@@ -307,13 +307,7 @@
        - point:         The lat lng and x y pixel coords of the clicked point"
   [{:keys [db]} [_ leaflet-props point]]
   (let [visible-layers
-        (->>
-         (visible-layers (:map db))
-         (map
-          (fn [layer]
-            (if (map-utils/layer->rich-layer? layer db)
-              (map-utils/rich-layer->layer-under-point (map-utils/layer->rich-layer layer db) point db)
-              layer))))
+        (map-utils/displayed-layers-under-point (visible-layers (:map db)) point db)
         secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
         request-id     (gensym)
 

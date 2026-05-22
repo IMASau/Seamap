@@ -72,7 +72,7 @@
                                {} (ids->layers (map :layer-id rich-layers) layers))
         displayed-layers->layers (set/map-invert displayed-rich-layers)
 
-        rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)
+        rich-layer-fn   (map-utils/rich-layer-fn db)
         visible-layers  (map-utils/visible-layers db-map)]
     {:layers          layers
      :groups          (group-by :category filtered-layers)
@@ -102,10 +102,7 @@
   "A lookup map of the raw (catalogue) layer to what layers should actually be
    displayed on the map."
   [{:keys [layers rich-layer-fn] :as _map-layers} _]
-  (reduce
-   (fn [m layer]
-     (assoc m layer (or (:displayed-layer (rich-layer-fn layer)) layer)))
-   {} layers))
+  (map-utils/layer-displayed-layers-lookup layers rich-layer-fn))
 
 (defn rich-layers-side-by-side-views [db _]
   (let [rich-layers (map #(enhance-rich-layer % db) (get-in db [:map :rich-layers :rich-layers]))
