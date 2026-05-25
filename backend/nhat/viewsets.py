@@ -4,6 +4,8 @@ Viewsets for Natural Hazards Atlas API endpoints.
 import catalogue.models
 from . import models, serializers
 
+import re
+import requests
 from django.core.cache import cache
 from django.db.models import F, Value
 from django.db.models.functions import Coalesce
@@ -12,7 +14,6 @@ from rest_framework import viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.request import Request
-import requests
 
 
 # pylint: disable=line-too-long
@@ -88,6 +89,7 @@ def _get_nhat_thredds_legend(layer: catalogue.models.Layer) -> str:
     - The method assumes that `layer.server_url` points to a valid Thredds server that
         returns data in the expected format.
     """
+    server_url = layer.server_url
     params = {
         'service': 'WMS',
         'version': '1.1.1',
@@ -107,7 +109,10 @@ def _get_nhat_thredds_legend(layer: catalogue.models.Layer) -> str:
             'abovemaxcolor': layer.hazardlayer.above_max_color,
             'belowmincolor': layer.hazardlayer.below_min_color,
         })
-    return requests.get(url=layer.server_url, params=params).url
+        default_scientific_model = models.ScientificModel.objects.order_by(F('sort_key').asc(nulls_last=True)).first()
+        default_scenario = models.Scenario.objects.order_by(F('sort_key').asc(nulls_last=True)).first()
+        server_url = re.sub(r'\.nc$', f"_{default_scientific_model.name}_{default_scenario.name}.nc", layer.server_url)
+    return requests.get(url=server_url, params=params).url
 
 
 @action(methods=['GET'], detail=False)
