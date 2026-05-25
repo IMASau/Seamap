@@ -3,11 +3,9 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.events
   (:require [ajax.core :as ajax]
-            [clojure.string :as string]
             [imas-seamap.natural-hazards-atlas.db :as db]
             [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
             [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities rich-layer->displayed-layer]]
-            [imas-seamap.map.events :refer [download-format-str->keyword]]
             [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -36,7 +34,10 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/join-keyed-layers
-                                  :map/join-rich-layers]
+                                  :map/join-rich-layers
+                                  :current-view/update-models
+                                  :current-view/update-scenarios
+                                  :current-view/update-seasonal-datas]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -70,7 +71,10 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/join-keyed-layers
-                                  :map/join-rich-layers]
+                                  :map/join-rich-layers
+                                  :current-view/update-models
+                                  :current-view/update-scenarios
+                                  :current-view/update-seasonal-datas]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
@@ -104,13 +108,67 @@
                                   :map/update-categories
                                   :map/update-keyed-layers
                                   :map/join-keyed-layers
-                                  :map/join-rich-layers]
+                                  :map/join-rich-layers
+                                  :current-view/update-models
+                                  :current-view/update-scenarios
+                                  :current-view/update-seasonal-datas]
      :dispatch-n [[:map/initialise-display]
                   [:transect/maybe-query]]}
     {:when :seen? :events :ui/hide-loading
      :dispatch [:display.outage-message/open true]
      :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
+
+(defn construct-urls [db _]
+  (let [{:keys
+         [site-configuration
+          layer
+          base-layer
+          base-layer-group
+          organisation
+          classification
+          region-stats
+          descriptor
+          save-state
+          category
+          keyed-layers
+          rich-layers
+          region-reports
+          dynamic-pills
+          layer-legend
+          cql-filter-values
+          dynamic-pill-region-control-values
+          layer-previews
+          story-maps
+          scientific-models
+          scenarios
+          seasons]}
+        (get-in db [:config :url-paths])
+        {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
+    (assoc-in
+     db [:config :urls]
+     {:site-configuration-url      (str api-url-base site-configuration)
+      :layer-url                   (str api-url-base layer)
+      :base-layer-url              (str api-url-base base-layer)
+      :base-layer-group-url        (str api-url-base base-layer-group)
+      :organisation-url            (str api-url-base organisation)
+      :classification-url          (str api-url-base classification)
+      :region-stats-url            (str api-url-base region-stats)
+      :descriptor-url              (str api-url-base descriptor)
+      :save-state-url              (str api-url-base save-state)
+      :category-url                (str api-url-base category)
+      :keyed-layers-url            (str api-url-base keyed-layers)
+      :rich-layers-url             (str api-url-base rich-layers)
+      :region-reports-url          (str api-url-base region-reports)
+      :dynamic-pills-url           (str api-url-base dynamic-pills)
+      :layer-legend-url            (str api-url-base layer-legend)
+      :cql-filter-values-url       (str api-url-base cql-filter-values)
+      :dynamic-pill-region-control-values-url (str api-url-base dynamic-pill-region-control-values)
+      :layer-previews-url          (str media-url-base layer-previews)
+      :story-maps-url              (str wordpress-url-base story-maps)
+      :scientific-models-url       (str api-url-base scientific-models)
+      :scenarios-url               (str api-url-base scenarios)
+      :seasons-url                 (str api-url-base seasons)})))
 
 (defn boot
   "Identical to imas-seamap.events/boot, just triggers the private versions of the
@@ -220,7 +278,10 @@
                 keyed-layers-url
                 rich-layers-url
                 dynamic-pills-url
-                story-maps-url]} (get-in db [:config :urls])]
+                story-maps-url
+                scientific-models-url
+                scenarios-url
+                seasons-url]} (get-in db [:config :urls])]
     {:db         db
      :http-xhrio [{:method          :get
                    :uri             site-configuration-url
@@ -281,7 +342,22 @@
                    :uri             story-maps-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:sm/update-featured-maps]
-                   :on-failure      [:sm/update-featured-maps []]}]}))
+                   :on-failure      [:sm/update-featured-maps []]}
+                  {:method          :get
+                   :uri             scientific-models-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:current-view/update-models]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             scenarios-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:current-view/update-scenarios]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             seasons-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:current-view/update-seasonal-datas]
+                   :on-failure      [:ajax/default-err-handler]}]}))
 
 (defn create-save-state
   "Like imas-seamap.events/create-save-state, but uses the NHAT version of
@@ -308,6 +384,37 @@
      {:name  :seamap-app-state
       :value (nhatutils/encode-state db)}
      :put-hash   ""}))
+
+(defn current-view-update-models
+  "From the REST API, update the scientific models the user can select in the
+   current view.
+
+   Update the selected model to be the first in the list, if no selected model
+   exists."
+  [{:keys [db]} [_ models]]
+  (let [selected-model-id (get-in db [:current-view :selected-model-id])]
+    {:db (assoc-in db [:current-view :models] models)
+     :dispatch (when-not selected-model-id [:current-view/selected-model (first models)])}))
+
+(defn current-view-update-scenarios
+  "From the REST API, update the scenarios the user can select in the current view.
+∂
+   Update the selected scenario to be the first in the list, if no selected
+   scenario exists."
+  [{:keys [db]} [_ scenarios]]
+  (let [selected-scenario-id (get-in db [:current-view :selected-scenario-id])]
+    {:db (assoc-in db [:current-view :scenarios] scenarios)
+     :dispatch (when-not selected-scenario-id [:current-view/selected-scenario (first scenarios)])}))
+
+(defn current-view-update-seasonal-datas
+  "From the REST API, update the seasons the user can select in the current view.
+
+   Update the selected season to be the first in the list, if no selected season
+   exists."
+  [{:keys [db]} [_ seasonal-datas]]
+  (let [selected-seasonal-data-id (get-in db [:current-view :selected-seasonal-data-id])]
+    {:db (assoc-in db [:current-view :seasonal-datas] seasonal-datas)
+     :dispatch (when-not selected-seasonal-data-id [:current-view/selected-seasonal-data (first seasonal-datas)])}))
 
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data"
@@ -363,3 +470,61 @@
     (assert (seq available-times) "No available times to step through")
     (assert current-time "Current time is not set")
     {:dispatch [:map.time/current-time prev-time]}))
+
+(defn feature-info-dispatcher
+  "Takes a map click event, and dispatches :map/get-feature-info events for each
+   visible layer.
+
+   Overrides imas-seamap.map.events/feature-info-dispatcher by using
+   `nhatutils/displayed-layers-under-point` instead of
+   `mutils/displayed-layers-under-point`, which uses uses the NHAT
+   `layer-displayed-layers-lookup` function that changes hazard layers server URLs.
+
+   Args:
+   - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
+   - point:         The lat lng and x y pixel coords of the clicked point"
+  [{:keys [db]} [_ leaflet-props point]]
+  (let [layers                        (get-in db [:map :layers])
+        rich-layer-fn                 (mutils/rich-layer-fn db)
+        hazard-layers                 (nhatutils/hazard-layers layers)
+        selected-model                (nhatutils/current-view-selected-model db)
+        selected-scenario             (nhatutils/current-view-selected-scenario db)
+        selected-seasonal-data        (nhatutils/current-view-selected-seasonal-data db)
+        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data)
+        
+        visible-layers
+        (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup point db)
+        secure-layers  (remove #(mutils/is-insecure? (:server_url %)) visible-layers)
+        request-id     (gensym)
+
+        ;; Requests used to be grouped by server URL, but has since been changed to be
+        ;; per-layer (many reasons, but the  triggering factor was separating the CQL
+        ;; filters per layer).
+        ;; We now generate just one :map/get-feature-info event per layer.
+        ;; :map/get-feature-info hasn't been updated to remove the multiple layers
+        ;; parameter, but sending in a vector of a single layer works fine.
+        requests       (map
+                        (fn [{:keys [info_format_type] :as layer}]
+                          [:map/get-feature-info info_format_type [layer] request-id leaflet-props point])
+                        secure-layers)
+        had-insecure?  (some #(mutils/is-insecure? (:server_url %)) visible-layers)
+        db             (if had-insecure?
+                         (assoc db :feature {:status :feature-info/none-queryable :location point :show? true}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
+                         (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
+                          db
+                          :feature-query
+                          {:request-id        request-id
+                           :response-remain   (count requests)
+                           :had-insecure?     had-insecure?
+                           :responses         []}
+                          :feature
+                          {:status   :feature-info/waiting
+                           :leaflet-props leaflet-props
+                           :location point
+                           :show?    false}))]
+    (merge
+     {:db db
+      :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
+     (if (and (seq requests) (not had-insecure?))
+       {:dispatch-n requests}
+       {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))

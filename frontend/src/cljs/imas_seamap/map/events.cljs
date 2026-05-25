@@ -34,12 +34,6 @@
    [re-frame.core :as re-frame]
    [reagent.core :as r]))
 
-
-;;; Seamap is hosted under https, meaning the browser will block ajax
-;;; (ie, getfeatureinfo) requests to plain http URLs.  Servers still
-;;; using http need specil handling:
-(defn- is-insecure? [url] (-> url string/lower-case (string/starts-with? "http:")))
-
 (defn base-layer-changed [{:keys [db]} [_ layer-name]]
   (let [grouped-base-layers (-> db :map :grouped-base-layers)
         selected-base-layer (first-where (comp #(= layer-name %) :name) grouped-base-layers)]
@@ -307,14 +301,8 @@
        - point:         The lat lng and x y pixel coords of the clicked point"
   [{:keys [db]} [_ leaflet-props point]]
   (let [visible-layers
-        (->>
-         (visible-layers (:map db))
-         (map
-          (fn [layer]
-            (if (map-utils/layer->rich-layer? layer db)
-              (map-utils/rich-layer->layer-under-point (map-utils/layer->rich-layer layer db) point db)
-              layer))))
-        secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
+        (map-utils/displayed-layers-under-point (visible-layers (:map db)) point db)
+        secure-layers  (remove #(map-utils/is-insecure? (:server_url %)) visible-layers)
         request-id     (gensym)
 
         ;; Requests used to be grouped by server URL, but has since been changed to be
@@ -327,7 +315,7 @@
                         (fn [{:keys [info_format_type] :as layer}]
                           [:map/get-feature-info info_format_type [layer] request-id leaflet-props point])
                         secure-layers)
-        had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
+        had-insecure?  (some #(map-utils/is-insecure? (:server_url %)) visible-layers)
         db             (if had-insecure?
                          (assoc db :feature {:status :feature-info/none-queryable :location point :show? true}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
                          (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
@@ -450,7 +438,7 @@
 
 (defn layer-set-opacity [{:keys [db]} [_ layer opacity]]
   (s/assert (s/int-in 0 101) opacity) ; opacity is an integer percentage from 0 to 100 inclusive
-  (let [db (assoc-in db [:layer-state :opacity layer] opacity)]
+  (let [db (assoc-in db [:layer-state :opacity layer] opacity)] ; FIXME: Instead of storing by layer we should store by layer ID
     {:db       db
      :dispatch [:maybe-autosave]}))
 
@@ -684,7 +672,7 @@
   [{:keys [db]} [_ layer]]
   (let [hidden-layers (get-in db [:map :hidden-layers])
         hidden? (contains? hidden-layers layer)
-        db (update-in db [:map :hidden-layers] #((if hidden? disj conj) % layer))]
+        db (update-in db [:map :hidden-layers] #((if hidden? disj conj) % layer))] ; FIXME: Instead of storing a list of layers, we should store a list of layer IDs and hydrate them in the sub. It's bad practice to have multiple sources for the layer in the DB!
     {:db         db
      :dispatch-n [[:map/popup-closed]
                   [:map.layer.selection/maybe-clear]
@@ -1016,7 +1004,7 @@
                               below         (subvec active-layers 0 index)
                               above         (subvec active-layers index)
                               active-layers (vec (concat below [layer] above))]
-                          (assoc-in db [:map :active-layers] active-layers))
+                          (assoc-in db [:map :active-layers] active-layers)) ; FIXME: Instead of storing a list of layers, we should store a list of layer IDs and hydrate them in the sub. It's bad practice to have multiple sources for the layer in the DB!
 
                         :else                       ; else, add the layer to the end of the list
                         (update-in db [:map :active-layers] conj layer))]

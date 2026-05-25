@@ -41,6 +41,7 @@
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legend
+    :map.layer/displayed-layers-lookup    [:<- [:map/layers] msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]

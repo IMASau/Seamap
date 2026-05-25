@@ -44,6 +44,7 @@
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legend
+    :map.layer/displayed-layers-lookup    [:<- [:map/layers] msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
@@ -338,7 +339,9 @@
 
 (defn register-handlers! [{:keys [subs events]}]
   (doseq [[sym handler] subs]
-    (re-frame/reg-sub sym handler))
+    (if (sequential? handler)
+      (apply re-frame/reg-sub sym handler)
+      (re-frame/reg-sub sym handler)))
   (doseq [[sym handler] events]
     (if (sequential? handler)
       (re-frame/reg-event-fx

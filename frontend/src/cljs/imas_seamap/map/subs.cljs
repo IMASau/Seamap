@@ -4,40 +4,18 @@
 (ns imas-seamap.map.subs
   (:require
    [clojure.set :as set]
-   [clojure.string :as string]
    [imas-seamap.map.utils :as map-utils :refer [enhance-rich-layer
                                                 has-time-dimension?
                                                 layer->cql-filter
                                                 layer->rich-layer
-                                                layer-search-keywords
                                                 region-stats-habitat-layer
                                                 rich-layer->displayed-layer
                                                 rich-layer-children->parents
-                                                sort-layers viewport-layers]]
+                                                sort-layers viewport-layers
+                                                match-layer]]
    [imas-seamap.utils :refer [ids->layers map-on-key]]))
 
 (defn map-props [db _] (:map db))
-
-(defn- make-re
-  "Given a list of words to match, construct a regexp that matches all
-  of them, in any order.  That is, [\"one\" \"two\"] should match both
-  \"onetwo\" and \"twoone\"."
-  [words]
-  (re-pattern
-   (str "(?i)^"
-        (string/join (map #(str "(?=.*" % ")") words))
-        ".*$")))
-
-(defn match-layer
-  "Given a string of search words, attempt to match them *all* against
-  a layer (designed so it can be used to filter a list of layers, in
-  conjunction with partial)."
-  [filter-text categories layer]
-  (if-let [search-re (try
-                       (-> filter-text string/trim (string/split #"\s+") make-re)
-                       (catch :default e nil))]
-    (re-find search-re (layer-search-keywords categories layer))
-    false))
 
 (defn- make-error-fn
   "Given maps of layer->error-count and layer->total-tile-count, returns
@@ -54,8 +32,12 @@
            (> (/ error-count total-count)
               0.4)))))       ; Might be nice to make this configurable eventually
 
-(defn map-layers [{:keys [layer-state filters sorting]
-                   {:keys [layers active-layers bounds categories rich-layer-children] :as db-map} :map
+; TODO: Split this from one monolithic sub into multiple focused subs that form a DAG
+; Because it's one sub with all the data bundled *together*, it's harder to write
+; an intercept between the raw layers and the view (e.g. in NHAT where we want to
+; change the server URL of hazard layers) without entirely rewriting a copy of
+; this sub.
+(defn map-layers [{:keys [layer-state filters sorting] {:keys [layers active-layers bounds categories rich-layer-children] :as db-map} :map
                    :as db} _]
   (let [categories      (map-on-key categories :name)
         filter-text     (:layers filters)
@@ -90,9 +72,10 @@
                                {} (ids->layers (map :layer-id rich-layers) layers))
         displayed-layers->layers (set/map-invert displayed-rich-layers)
 
-        rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)
+        rich-layer-fn   (map-utils/rich-layer-fn db)
         visible-layers  (map-utils/visible-layers db-map)]
-    {:groups          (group-by :category filtered-layers)
+    {:layers          layers
+     :groups          (group-by :category filtered-layers)
      :loading-layers  (->>
                        layer-state :loading-state
                        (filter (fn [[l st]] (= st :map.layer/loading)))
@@ -110,6 +93,16 @@
      :catalogue-layers catalogue-layers
      :rich-layer-fn   rich-layer-fn
      :cql-filter-fn   #(layer->cql-filter % db)}))
+
+; This sub is something that would have formerly been in the monolithic
+; 'map-layers' sub above. This sub is part of a new strategy to break up the
+; monolothic sub into smaller subs that are easier to manage and take advantage of
+; the the re-frame subscription DAG. 
+(defn layer-displayed-layers-lookup
+  "A lookup map of the raw (catalogue) layer to what layers should actually be
+   displayed on the map."
+  [{:keys [layers rich-layer-fn] :as _map-layers} _]
+  (map-utils/layer-displayed-layers-lookup layers rich-layer-fn))
 
 (defn rich-layers-side-by-side-views [db _]
   (let [rich-layers (map #(enhance-rich-layer % db) (get-in db [:map :rich-layers :rich-layers]))

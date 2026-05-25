@@ -44,6 +44,12 @@
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legend
+    :map.layer/displayed-layers-lookup    [:<- [:map/layers]
+                                           :<- [:map.layers/hazard-layers]
+                                           :<- [:current-view/selected-model]
+                                           :<- [:current-view/selected-scenario]
+                                           :<- [:current-view/selected-seasonal-data]
+                                           nhasubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]
@@ -101,7 +107,7 @@
 
    :events
    {:boot                                 [nhatevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
-    :construct-urls                       events/construct-urls
+    :construct-urls                       nhatevents/construct-urls
     :merge-state                          [nhatevents/merge-state]
     :re-boot                              [nhatevents/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
@@ -150,7 +156,7 @@
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map.feature/show                     mevents/show-popup
     :map/clicked                          [mevents/map-click-dispatcher]
-    :map/feature-info-dispatcher          [mevents/feature-info-dispatcher]
+    :map/feature-info-dispatcher          [nhatevents/feature-info-dispatcher]
     :map/get-feature-info                 [mevents/get-feature-info]
     :map/get-feature-info-map-server-step-2 [mevents/get-feature-info-map-server-step-2] ; MapServer layers need to make an additional request to determine if they are a group layer
     :map/got-featureinfo                  mevents/got-feature-info
@@ -265,6 +271,9 @@
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close
     :download-click                       (fn [db [_ {:keys [_link]}]] db)
+    :current-view/update-models           [nhatevents/current-view-update-models]
+    :current-view/update-scenarios        [nhatevents/current-view-update-scenarios]
+    :current-view/update-seasonal-datas   [nhatevents/current-view-update-seasonal-datas]
     :current-view/selected-model          [nhatevents/current-view-selected-model]
     :current-view/selected-scenario       [nhatevents/current-view-selected-scenario]
     :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]

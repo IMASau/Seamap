@@ -2,7 +2,8 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.subs
-  (:require [imas-seamap.utils :refer [first-where]]
+  (:require [clojure.string :as string]
+            [imas-seamap.utils :refer [first-where]]
             [imas-seamap.natural-hazards-atlas.utils :as nhatutils]))
 
 (defn current-view-models
@@ -23,32 +24,17 @@
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data"
   [db _]
-  (let [models            (get-in db [:current-view :models])
-        selected-model-id (get-in db [:current-view :selected-model-id])
-        selected-model    (first-where #(= (:id %) selected-model-id) models)]
-    (when selected-model-id
-      (assert selected-model (str "Selected model id " selected-model-id " not found in models list")))
-    selected-model))
+  (nhatutils/current-view-selected-model db))
 
 (defn current-view-selected-scenario
   "Scenario to analyze the hazard data"
   [db _]
-  (let [scenarios               (get-in db [:current-view :scenarios])
-        selected-scenario-id    (get-in db [:current-view :selected-scenario-id])
-        selected-scenario       (first-where #(= (:id %) selected-scenario-id) scenarios)]
-    (when selected-scenario-id
-      (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list")))
-    selected-scenario))
+  (nhatutils/current-view-selected-scenario db))
 
 (defn current-view-selected-seasonal-data
   "Seasonal data to analyze the hazard data"
   [db _]
-  (let [seasonal-datas               (get-in db [:current-view :seasonal-datas])
-        selected-seasonal-data-id    (get-in db [:current-view :selected-seasonal-data-id])
-        selected-seasonal-data       (first-where #(= (:id %) selected-seasonal-data-id) seasonal-datas)]
-    (when selected-seasonal-data-id
-      (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
-    selected-seasonal-data))
+  (nhatutils/current-view-selected-seasonal-data db))
 
 (defn current-view-time-periods
   "List of time periods available to analyze the hazard data.
@@ -83,13 +69,13 @@
 (defn hazard-layers
   "List of currently available hazard layers, with metadata for display in the UI."
   [{:keys [catalogue-layers]} _]
-  (filterv #(and (not= (:category %) :supporting_layers) (not= (:category %) :testing)) catalogue-layers))
+  (filterv :hazardlayer catalogue-layers))
 
 (defn supporting-layers
   "List of currently available supporting layers, with metadata for display in the
    UI."
   [{:keys [catalogue-layers]} _]
-  (filterv #(= (:category %) :supporting_layers) catalogue-layers))
+  (filterv (comp not :hazardlayer) catalogue-layers))
 
 (defn filtered-hazard-layers
   "List of currently available hazard layers, filtered by the user's search in the
@@ -102,3 +88,18 @@
    the layer catalogue."
   [[{:keys [filtered-layers]} supporting-layers] _]
   (filterv (set filtered-layers) supporting-layers))
+
+(defn layer-displayed-layers-lookup
+  "A lookup map of the raw (catalogue) layer to what layers should actually be
+   displayed on the map.
+
+   Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to replace
+   hazard layer server URLs with whatever scientific model, scenario, and season
+   is selected.
+
+   The format for hazard layer URLs is
+   `<layer_name>_<model>_<scenario>_<season>.nc`, i.e.
+   `variable_heatwave_amplitude_scenario_historical_format.nc` becomes
+   `variable_heatwave_amplitude_scenario_historical_format_cmip6_ssp1_summer.nc`"
+  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-model selected-scenario selected-seasonal-data] _]
+  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data))
