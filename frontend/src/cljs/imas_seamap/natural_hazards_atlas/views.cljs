@@ -12,14 +12,43 @@
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]))
 
-(defn menu-button []
+(defn- welcome-dialogue []
+  (let [dont-show-again? (reagent/atom false)]
+   (fn []
+     (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
+       [b/dialogue
+        {:title
+         (reagent/as-element
+          [:<> "Welcome to the" [:br] "Natural Hazards Atlas"])
+         :class    "welcome-splash"
+         :is-open  open?
+         :on-close #(re-frame/dispatch [:welcome-layer/close false])}
+        [:div.bp3-dialog-body
+         [:div.overview
+          [:p "The Natural Hazards Atlas for Tasmania is an interactive platform developed by the University of Tasmania that brings together climate-driven natural hazards data, mapping and science communication to support disaster preparedness, resilience and informed decision-making across Tasmania."]
+          [:p "Explore the interactive map and visit " [:a {:href "https://nathaz-dev.its.utas.edu.au/" :target "_blank"} "here"] " to learn more about the atlas tools and features."]]]
+        [:div.bp3-dialog-footer
+         [:div
+          [:input
+           {:type     "checkbox"
+            :name     "dont-show-this-again"
+            :on-click #(reset! dont-show-again? (.. % -target -checked))
+            :checked  @dont-show-again?}]
+          [:label {:for "dont-show-this-again"} "Don't show this again"]]
+         [b/button
+          {:text       "Get Started!"
+           :intent     b/INTENT-PRIMARY
+           :auto-focus true
+           :on-click   #(re-frame/dispatch [:welcome-layer/close @dont-show-again?])}]]]))))
+
+(defn- menu-button []
   (let [icon (if @(re-frame/subscribe [:left-drawer/open?]) "double-chevron-left" "double-chevron-right")]
     [views/leaflet-control-button
      {:on-click #(re-frame/dispatch [:left-drawer/toggle])
       :id       "menu-button"
       :icon     icon}]))
 
-(defn autosave-toggle-button []
+(defn- autosave-toggle-button []
   (let [[icon text] (if @(re-frame/subscribe [:autosave?])
                       ["floppy-disk" "Application autosave is currently enabled"]
                       ["disable" "Application autosave is currently disabled"])]
@@ -29,7 +58,7 @@
       :id       "autosave-button"
       :icon     icon}]))
 
-(defn custom-leaflet-controls
+(defn- custom-leaflet-controls
   "Changes from imas-seamap.views/custom-leaflet-controls:
    - removed region control
    - removed transect control
@@ -75,7 +104,7 @@
       :id       "overlay-control"
       :icon     "help"}]]])
 
-(defn floating-pills []
+(defn- floating-pills []
   (let [collapsed                      (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
     [:div {:class (str "floating-pills" (when collapsed " collapsed"))}
@@ -198,7 +227,7 @@
          :icon        "info-sign"}])}
      [b/icon {:icon "info-sign"}]]]])
 
-(defn layer-catalogue [catid layers layer-props tma?]
+(defn- layer-catalogue [catid layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab catid %1])
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
@@ -216,13 +245,11 @@
        :panel (reagent/as-element
                [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}]]))
 
-(defn left-drawer-catalogue [tma?]
-  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
-        viewport-only? @(re-frame/subscribe [:map/viewport-only?])
-        catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
+(defn- left-drawer-catalogue [tma?]
+  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])]
     [:<>
      [views/layer-search-filter]
-     [layer-catalogue :main catalogue-layers
+     [layer-catalogue :main
       {:active-layers  active-layers
        :visible-layers visible-layers
        :loading-fn     loading-layers
@@ -232,7 +259,7 @@
        :rich-layer-fn  rich-layer-fn}
       tma?]]))
 
-(defn left-drawer []
+(defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
         {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
@@ -318,7 +345,7 @@
       {:id "plot-footer"
        :helperText "Draw a transect to show a depth profile of habitat data"
        :helperPosition "top"}]
-     [views/welcome-dialogue]
+     [welcome-dialogue]
      [views/outage-message-dialogue]
      [views/settings-overlay]
      [views/info-card]

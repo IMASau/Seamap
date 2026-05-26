@@ -436,10 +436,9 @@
   (if-not (and (:seen-welcome cookies) (not force-open))
     {:db (assoc-in db [:display :welcome-overlay] true)}))
 
-(defn welcome-layer-close [{:keys [db]} _]
-  {:db         (assoc-in db [:display :welcome-overlay] false)
-   :cookie/set {:name  :seen-welcome
-                :value true}})
+(defn welcome-layer-close [{:keys [db]} [_ dont-show-again?]]
+  (cond-> {:db (assoc-in db [:display :welcome-overlay] false)}
+    dont-show-again? (assoc :cookie/set {:name :seen-welcome :value true}))) ; Can't do a simple :cookie/set `:value dont-show-again?` because that sets the value of the cookie to "false" instead of false, which is truthy. Better to only set the cookie if we are given a value.
 
 (defn layer-show-info [{:keys [db]} [_ layer]]
   (let [{:keys [metadata_url] :as displayed-layer}

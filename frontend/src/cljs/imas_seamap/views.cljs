@@ -316,7 +316,7 @@
        [:<> "Welcome to" [:br] "Seamap Australia."])
       :class    "welcome-splash"
       :is-open  open?
-      :on-close #(re-frame/dispatch [:welcome-layer/close])}
+      :on-close #(re-frame/dispatch [:welcome-layer/close true])}
      [:div.bp3-dialog-body
       [:div.overview
        "Seamap Australia is a nationally synthesised product of
@@ -329,7 +329,7 @@
        {:text       "Get Started!"
         :intent     b/INTENT-PRIMARY
         :auto-focus true
-        :on-click   #(re-frame/dispatch [:welcome-layer/close])}]]
+        :on-click   #(re-frame/dispatch [:welcome-layer/close true])}]]
      [:div.bp3-dialog-footer
       [:h3 "Citations"]
       [:div.citation-section
@@ -476,6 +476,12 @@
               :content
               (reagent/as-element
                [b/menu
+                [b/menu-item {:text     "NetCDF"
+                              :label    (reagent/as-element [b/icon {:icon "doughnut-chart"}])
+                              :on-click (handler-dispatch [:map.layer/download
+                                                           layer
+                                                           bbox
+                                                           :map.layer.download/shp])}]
                 (when (= download_format :map.layer.download-format/wfs)
                   [b/menu-item {:text     "GeoTIFF"
                                 :label    (reagent/as-element [b/icon {:icon "globe"}])
