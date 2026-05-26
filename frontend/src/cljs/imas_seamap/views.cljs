@@ -476,12 +476,6 @@
               :content
               (reagent/as-element
                [b/menu
-                [b/menu-item {:text     "NetCDF"
-                              :label    (reagent/as-element [b/icon {:icon "doughnut-chart"}])
-                              :on-click (handler-dispatch [:map.layer/download
-                                                           layer
-                                                           bbox
-                                                           :map.layer.download/shp])}]
                 (when (= download_format :map.layer.download-format/wfs)
                   [b/menu-item {:text     "GeoTIFF"
                                 :label    (reagent/as-element [b/icon {:icon "globe"}])
