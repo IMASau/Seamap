@@ -15,6 +15,60 @@ import xarray as xr
 # pylint: disable=missing-class-docstring
 # pylint: disable=redefined-outer-name
 
+
+def _netcdf_dataset(time, lat, lon, value):
+    """Generates an xarray dataset for a CF Conventions compliant NetCDF file."""
+    return xr.Dataset(
+        data_vars=dict(
+            value=(
+                ["time", "lat", "lon"],
+                value,
+                {
+                    "standard_name": "air_temperature",
+                    "long_name": "Random Test Variable",
+                    "units": "degC",
+                    "_FillValue": np.float32(np.nan),
+                    "coordinates": "time lat lon",
+                },
+            )
+        ),
+        coords={
+            "lat": (
+                ["lat"],
+                lat,
+                {
+                    "units": "degrees_north",
+                    "standard_name": "latitude",
+                    "long_name": "latitude",
+                    "axis": "Y",
+                },
+            ),
+            "lon": (
+                ["lon"],
+                lon,
+                {
+                    "units": "degrees_east",
+                    "standard_name": "longitude",
+                    "long_name": "longitude",
+                    "axis": "X",
+                },
+            ),
+            "time": (
+                ["time"],
+                time,
+                {
+                    "standard_name": "time",
+                    "long_name": "time",
+                    "axis": "T",
+                },
+            ),
+        },
+        attrs={
+            "Conventions": "CF-1.8",
+            "title": "WCS Test Dataset",
+        },
+    )
+
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
@@ -23,7 +77,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         layer_name = options['layer_name']
-        cur_date_range = xr.date_range(start="1970-01-01",end="2009-01-01", freq="5YS-JAN",use_cftime=True,calendar='noleap')
+        time = xr.date_range(
+            start="1970-01-01",
+            end="2009-01-01",
+            freq="5YS-JAN",
+            use_cftime=True,
+            calendar="noleap",
+        )
         lat = np.arange(-44,-39.19,0.05)
         lon = np.arange(143,150.01,0.05)
 
@@ -35,17 +95,15 @@ class Command(BaseCommand):
                 scenario_offset = np.random.rand() + scientific_model_offset
                 for season in models.Season.objects.all():
                     season_offset = np.random.rand() + scenario_offset
-                    netcdf_file_name = f"{netcdf_file_basename}_{scientific_model.name}_{scenario.name}_{season.name}"
-                    cur_ds_out = xr.Dataset(data_vars=dict(
-                        value = (["lat","lon","time"],np.random.rand(97,141,8)+season_offset)),
-                        coords={'lat':lat,'lon':lon,'time':cur_date_range})
+                    netcdf_file_name = (
+                        f"{netcdf_file_basename}_{scientific_model.name}_{scenario.name}" +
+                        (f"_{season.name}" if season.name != "All" else "")
+                    )
+                    cur_ds_out = _netcdf_dataset(time, lat, lon, (np.random.rand(len(time), len(lat), len(lon))+season_offset).astype(np.float32))
                     cur_ds_out.to_netcdf(f"{netcdf_file_name}.nc")
-                no_season_offset = np.random.rand() + scenario_offset
-                netcdf_file_name = f"{netcdf_file_basename}_{scientific_model.name}_{scenario.name}"
-                cur_ds_out = xr.Dataset(data_vars=dict(
-                    value = (["lat","lon","time"],np.random.rand(97,141,8)+no_season_offset)),
-                    coords={'lat':lat,'lon':lon,'time':cur_date_range})
-                cur_ds_out.to_netcdf(f"{netcdf_file_name}.nc")
+        cur_ds_out = _netcdf_dataset(time, lat, lon, (np.random.rand(len(time), len(lat), len(lon))*4).astype(np.float32))
+        cur_ds_out.to_netcdf(f"{netcdf_file_basename}.nc")
+
         layer = catalogue.models.Layer.objects.create(
             name = layer_name,
             server_url = f"https://thredds-nhat-dev.its.utas.edu.au/thredds/wms/data/{netcdf_file_basename}.nc",
