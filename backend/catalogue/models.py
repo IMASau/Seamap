@@ -2,15 +2,16 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 
-import re
-from typing import Union
-from django.core.validators import MinValueValidator, RegexValidator
 import django.utils.timezone
+import re
+import requests
+import xml.etree.ElementTree as ET
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from six import python_2_unicode_compatible
+from tinymce.models import HTMLField
+from typing import Union
 from uuid import uuid4
-import requests
-import xml.etree.ElementTree as ET 
 
 # pylint: disable=line-too-long
 
@@ -177,6 +178,7 @@ class Layer(models.Model):
     )
     filter = models.CharField(max_length=255, null=True, blank=True, help_text="CQL filter to apply to the layer")
     download_format = models.CharField(max_length=200, null=True, blank=True, choices=DOWNLOAD_FORMAT_CHOICES)
+    metadata_content = HTMLField(null=True, blank=True)
 
     def __str__(self):
         return self.name
