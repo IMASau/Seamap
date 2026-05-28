@@ -503,7 +503,21 @@
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/geotiff-wcs])}])])}
+                                                             :map.layer.download/geotiff-wcs])}])
+                (when (= download_format :map.layer.download-format/thredds-wcs)
+                  [b/menu-item {:text     "NetCDF"
+                                :label    (reagent/as-element [b/icon {:icon "doughnut-chart"}])
+                                :on-click (handler-dispatch [:map.layer/download
+                                                             layer
+                                                             bbox
+                                                             :map.layer.download/netcdf-thredds-wcs])}])
+                (when (= download_format :map.layer.download-format/thredds-wcs)
+                      [b/menu-item {:text     "GeoTIFF"
+                                    :label    (reagent/as-element [b/icon {:icon "globe"}])
+                                    :on-click (handler-dispatch [:map.layer/download
+                                                                 layer
+                                                                 bbox
+                                                                 :map.layer.download/geotiff-thredds-wcs])}])])}
    [b/button {:text       title
               :disabled   disabled?
               :right-icon "caret-down"}]])

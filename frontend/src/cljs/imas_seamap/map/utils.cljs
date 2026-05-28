@@ -119,21 +119,27 @@
     #(< %1 %2) ; comparator so nil is always last (instead of first)
     layers)))
 
-(def ^:private type->format-str {:map.layer.download/csv     "csv"
-                                 :map.layer.download/shp     "shape-zip"
-                                 :map.layer.download/geotiff-wms "image/geotiff"
-                                 :map.layer.download/geotiff-wcs "image/geotiff"})
+(def ^:private type->format-str {:map.layer.download/csv                 "csv"
+                                 :map.layer.download/shp                 "shape-zip"
+                                 :map.layer.download/geotiff-wms         "image/geotiff"
+                                 :map.layer.download/geotiff-wcs         "image/geotiff"
+                                 :map.layer.download/netcdf-thredds-wcs  "NetCDF3"
+                                 :map.layer.download/geotiff-thredds-wcs "GeoTIFF"})
 
 (def ^:private type->servertype {:map.layer.download/csv         :wfs
                                  :map.layer.download/shp         :api
                                  :map.layer.download/geotiff-wms :wms
-                                 :map.layer.download/geotiff-wcs :wcs})
+                                 :map.layer.download/geotiff-wcs :wcs
+                                 :map.layer.download/netcdf-thredds-wcs  :thredds-wcs
+                                 :map.layer.download/geotiff-thredds-wcs :thredds-wcs})
 
 (defn download-type->str [type-key]
-  (get {:map.layer.download/csv         "CSV"
-        :map.layer.download/shp         "Shapefile"
-        :map.layer.download/geotiff-wms "GeoTIFF"
-        :map.layer.download/geotiff-wcs "GeoTIFF"}
+  (get {:map.layer.download/csv                 "CSV"
+        :map.layer.download/shp                 "Shapefile"
+        :map.layer.download/geotiff-wms         "GeoTIFF"
+        :map.layer.download/geotiff-wcs         "GeoTIFF"
+        :map.layer.download/netcdf-thredds-wcs  "NetCDF"
+        :map.layer.download/geotiff-thredds-wcs "GeoTIFF"}
        type-key))
 
 (defmulti download-link (fn [_layer _bounds download-type _api-url-base] (type->servertype download-type)))
@@ -202,6 +208,23 @@
                        :format      (type->format-str download-type)
                        :coverageId (or detail_layer layer_name)})
         (str (when bounds (str "&subset=Lat(" south "," north ")&subset=Long(" west "," east ")")))))) ; Add bounds params if provided. Can't be part of query dict because 'subset' param is used twice.
+
+(defmethod download-link :thredds-wcs [{:keys [server_url detail_layer layer_name] :as _layer}
+                               bounds
+                               download-type
+                               _api-url-base]
+  (-> (url/url (string/replace server_url "/wms/" "/wcs/"))
+      (assoc :query (merge
+                     {:service     "WCS"
+                      :version     "1.0.0"
+                      :request     "GetCoverage"
+                      :coverage    (or detail_layer layer_name)
+                      :crs         "OGC:CRS84" ; EPSG:4326
+                      :width       141
+                      :height      97
+                      :format      (type->format-str download-type)}
+                     (when bounds {:bbox (bounds->str:wms bounds)})))
+      str))
 
 (defmulti feature-info-response->display
   "Converts a response and info format into readable information for the feature info popup"

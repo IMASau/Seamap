@@ -105,6 +105,7 @@ DOWNLOAD_FORMAT_CHOICES = [
     (None, None),
     ('wfs', 'wfs'),
     ('wcs', 'wcs'),
+    ('thredds-wcs', 'thredds-wcs')
 ]
 
 

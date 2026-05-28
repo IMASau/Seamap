@@ -142,7 +142,9 @@
 (s/def :map.controls.download/type #{:map.layer.download/geotiff-wms
                                      :map.layer.download/shp
                                      :map.layer.download/csv
-                                     :map.layer.download/geotiff-wcs})
+                                     :map.layer.download/geotiff-wcs
+                                     :map.layer.download/netcdf-thredds-wcs
+                                     :map.layer.download/geotiff-thredds-wcs})
 (s/def :map.controls.download/selecting boolean?)
 (s/def :map.controls.download/layer :map/layer)
 (s/def :map.controls.download/link string?)

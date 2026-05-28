@@ -444,8 +444,9 @@
 
 (def ^:private ^{:doc "Maps download format strings from the API to internal namespaced keywords."}
   download-format-str->keyword
-  {"wfs" :map.layer.download-format/wfs
-   "wcs" :map.layer.download-format/wcs})
+  {"wfs"         :map.layer.download-format/wfs
+   "wcs"         :map.layer.download-format/wcs
+   "thredds-wcs" :map.layer.download-format/thredds-wcs})
 
 (defn process-layer [layer]
   (-> layer

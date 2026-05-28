@@ -58,6 +58,19 @@
       :id       "autosave-button"
       :icon     icon}]))
 
+(defn- region-control []
+  (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
+        [tooltip icon dispatch]
+        (cond
+          selecting? ["Cancel Selecting"    "undo"   :map.layer.selection/disable]
+          region     ["Clear Selection"     "eraser" :map.layer.selection/clear]
+          :else      ["Select Habitat Data" "widget" :map.layer.selection/enable])]
+    [views/control-block-child
+     {:on-click  #(re-frame/dispatch [dispatch])
+      :tooltip   tooltip
+      :icon      icon
+      :id        "select-control"}]))
+
 (defn- custom-leaflet-controls
   "Changes from imas-seamap.views/custom-leaflet-controls:
    - removed region control
@@ -78,6 +91,8 @@
       :tooltip  "Search All Layers"
       :id       "omnisearch-control"
       :icon     "search"}]
+    
+    [region-control]
 
     [views/control-block-child
      {:on-click #(re-frame/dispatch [:create-save-state])
