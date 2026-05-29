@@ -192,16 +192,14 @@
     [timeline-slider]
     [timeline-media-controls]]])
 
-(defn- current-view
-  "Layer configuration panel where model, scenario, and time parameters are
-   selected. Each parameter affects the map appearance and projection data."
+(defn- current-view-analysis
   []
-  [:div.current-view
+  [:div#current-view-analysis
+   {:style {:margin-bottom "8px"}}
    [:div
     {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
     [:div {:style {:flex 1}}
-     [components/form-group
-      {:label "Model"}
+     [components/form-group {:label "Model"}
       [components/select
        {:value        @(re-frame/subscribe [:current-view/selected-model])
         :options      @(re-frame/subscribe [:current-view/models])
@@ -227,20 +225,18 @@
       :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data %])
       :keyfns
       {:id   :id
-       :text :name}}]]
+       :text :name}}]]])
+
+(defn- current-view
+  "Layer configuration panel where model, scenario, and time parameters are
+   selected. Each parameter affects the map appearance and projection data."
+  []
+  [:div.current-view
+   [current-view-analysis]
    (when (and @(re-frame/subscribe [:map.time/current-time]) (seq @(re-frame/subscribe [:map.time/available-times])))
-     [b/card
+     [b/card {:id "time-control"}
       [time-period-select]
-      [timeline-select]])
-   [:div {:style {:position "absolute" :top "200px" :right "16px"}}
-    [b/tooltip
-     {:content
-      (reagent/as-element
-       [b/non-ideal-state
-        {:title       "Work In Progress"
-         :description "Current View is a work in progress. Model, Scenario, and Seasonal Data parameters are non-functional."
-         :icon        "info-sign"}])}
-     [b/icon {:icon "info-sign"}]]]])
+      [timeline-select]])])
 
 (defn- layer-catalogue [catid layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
@@ -321,8 +317,56 @@
                 [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
         :panel (reagent/as-element [featured-maps])}]]]))
 
+(def hotkeys-combos
+  (let [keydown-wrapper
+        (fn [m keydown-v]
+          (assoc m :global    true
+                 :group "Keyboard Shortcuts"
+                 :onKeyDown #(re-frame/dispatch keydown-v)))]
+    ;; See note on `use-hotkeys' for rationale invoking `clj->js' here:
+    (clj->js
+     [(keydown-wrapper
+       {:label "Zoom In"                :combo "plus"}
+       [:map/zoom-in])
+      (keydown-wrapper
+       {:label "Zoom Out"               :combo "-"}
+       [:map/zoom-out])
+      (keydown-wrapper
+       {:label "Pan Up"                 :combo "up"}
+       [:map/pan-direction :up])
+      (keydown-wrapper
+       {:label "Pan Down"               :combo "down"}
+       [:map/pan-direction :down])
+      (keydown-wrapper
+       {:label "Pan Left"               :combo "left"}
+       [:map/pan-direction :left])
+      (keydown-wrapper
+       {:label "Pan Right"              :combo "right"}
+       [:map/pan-direction :right])
+      (keydown-wrapper
+       {:label "Toggle Left Drawer"     :combo "a"}
+       [:left-drawer/toggle])
+      (keydown-wrapper
+       {:label "Start/Clear Region Select" :combo "r"}
+       [:map.layer.selection/toggle])
+      (keydown-wrapper
+       {:label "Cancel"                 :combo "esc"}
+       [:ui.drawing/cancel])
+      (keydown-wrapper
+       {:label "Layer Power Search"     :combo "s"}
+       [:layers-search-omnibar/toggle])
+      (keydown-wrapper
+       {:label "Reset"                  :combo "shift + r"}
+       [:re-boot])
+      (keydown-wrapper
+       {:label "Create Shareable URL"   :combo "c"}
+       [:create-save-state])
+      (keydown-wrapper
+       {:label "Show Help Overlay"      :combo "h"}
+       [:help-layer/toggle])])))
+
 (defn layout-app []
-  (let [hot-keys (use-memo (fn [] views/hotkeys-combos))
+  (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
@@ -331,8 +375,7 @@
     [:div#main-wrapper.natural-hazards-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
      [:div#content-wrapper
-      [map-component]
-      [views/plot-component]]
+      [map-component]]
 
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [views/helper-overlay
@@ -344,7 +387,7 @@
        :helperText     "Select from available basemaps"
        :helperPosition "left"}
       {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
-      {:id "settings-button" :helperText "Select from user-configurable settings"}
+      {:id "autosave-button" :helperText "Toggle autosave for the application"}
       {:id "print-control" :helperText "Export current map view as an image"}
       {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
       {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
@@ -354,12 +397,15 @@
       {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
       {:id "overlay-control" :helperText "You are here!"}
       {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
-       :helperText     "Filter layers by category or responsible organisation"
+       :helperText     "Filter by Hazard Layers or Supporting Layers"
        :helperPosition "bottom"
        :padding        0}
-      {:id "plot-footer"
-       :helperText "Draw a transect to show a depth profile of habitat data"
-       :helperPosition "top"}]
+      {:id             "current-view-analysis"
+       :helperText     "Select a scientific model, scenario, and season to analyze the hazard data under"
+       :helperPosition "bottom"}
+      {:id             "time-control"
+       :helperText     "Control the time period for hazard data analysis"
+       :helperPosition "bottom"}]
      [welcome-dialogue]
      [views/outage-message-dialogue]
      [views/settings-overlay]
