@@ -5,12 +5,12 @@
 
 (def default-db
   {:initialised     false               ; Flag to prevent early updates
-   :map             {:center          [-41.7 145.4]
+   :map             {:center          nil ; use bounds instead, to ensure complete coverage of Tasmania
                      :initial-bounds? true
                      :size            {}
-                     :zoom            8
+                     :zoom            7
                      :zoom-cutover    10
-                     :bounds          {}
+                     :bounds          {:west 142.975 :south -44.025 :east 150.025 :north -39.175}
                      :categories      []
                      :layers          []
                      :base-layers     []

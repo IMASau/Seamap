@@ -808,10 +808,10 @@
   (when leaflet-map
     (if instant?
       (cond
-        (or zoom (seq center)) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom))
+        (and zoom (seq center)) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom))
         (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js)))
       (cond
-        (or zoom (seq center)) (.flyTo leaflet-map (clj->js (if (seq center) center old-center)) (or zoom old-zoom))
+        (and zoom (seq center)) (.flyTo leaflet-map (clj->js (if (seq center) center old-center)) (or zoom old-zoom))
         (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js)))))
   nil)
 
