@@ -55,7 +55,7 @@
     :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]
     :map.time/show-time-slider?           [:<- [:map.time/timeseries-layers] msubs/show-time-slider?]
     :map.time/current-time                msubs/current-time
-    :map.time/available-times             msubs/time-available-times
+    :map.time/available-times             nhasubs/time-available-times
     :map.time/is-playing?                 msubs/time-is-playing?
     :map.time/is-loading?                 msubs/time-is-loading?
     ;:map/region-stats                     msubs/region-stats
@@ -97,7 +97,7 @@
     :current-view/selected-model          nhasubs/current-view-selected-model
     :current-view/selected-scenario       nhasubs/current-view-selected-scenario
     :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data
-    :current-view/time-periods            [:<- [:map.time/available-times] nhasubs/current-view-time-periods]
+    :current-view/time-periods            nhasubs/current-view-time-periods
     :current-view/selected-time-period    nhasubs/current-view-selected-time-period
     :current-view/timeline-media-controls [:<- [:map.time/current-time] :<- [:map.time/available-times] :<- [:map.time/is-playing?] :<- [:map.time/is-loading?] nhasubs/current-view-timeline-media-controls]
     :map.layers/hazard-layers             [:<- [:map/layers] nhasubs/hazard-layers]

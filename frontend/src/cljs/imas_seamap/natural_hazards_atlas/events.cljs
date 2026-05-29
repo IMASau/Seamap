@@ -444,11 +444,21 @@
      :dispatch [:maybe-autosave]}))
 
 (defn current-view-selected-time-period
-  "Time period to analyze the hazard data"
+  "Time period to analyze the hazard data.
+
+   If the currently selected time isn't avaliable in the new period, reset to the
+   first available time in the range."
   [{:keys [db]} [_ {time-period-id :id :as time-period}]]
   (assert (some #{time-period-id} (map :id nhatutils/time-periods)) (str "Selected time period " time-period " is not a valid option"))
-  {:db (assoc-in db [:current-view :selected-time-period-id] time-period-id)
-   :dispatch [:maybe-autosave]})
+  (let [{:keys [start-year end-year]} (first-where  #(= (:id %) time-period-id) nhatutils/time-periods)
+        current-time                  (get-in db [:display :current-time])
+        available-times               (get-in db [:display :available-times])
+        current-time-in-range?        (nhatutils/time-in-range? current-time start-year end-year)
+        first-time-in-range           (first (filter #(nhatutils/time-in-range? % start-year end-year) available-times))]
+    {:db (assoc-in db [:current-view :selected-time-period-id] time-period-id)
+     :dispatch-n
+     [(when-not current-time-in-range? [:map.time/current-time first-time-in-range])
+      [:maybe-autosave]]}))
 
 (defn current-view-time-step-forward
   "Move forward one time step in the hazard data"

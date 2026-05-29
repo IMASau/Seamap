@@ -132,7 +132,7 @@
    This is a half-baked implementation, because we haven't nailed-down what time
    periods span what years, and all the currently available data is historic."
   []
-  (let [{:keys [time-periods]} @(re-frame/subscribe [:current-view/time-periods])]
+  (let [time-periods @(re-frame/subscribe [:current-view/time-periods])]
     [components/form-group
      {:label "Time Period"}
      [components/select
@@ -141,7 +141,7 @@
        :onChange     #(re-frame/dispatch [:current-view/selected-time-period %])
        :keyfns
        {:id   :id
-        :text :name}}]]))
+        :text (fn [{:keys [name start-year end-year]}] (str name (when (and start-year end-year) (str " (" start-year "-" end-year ")"))))}}]]))
 
 (defn- timeline-media-controls
   "Media-style controls to play through the timeline of hazard data."

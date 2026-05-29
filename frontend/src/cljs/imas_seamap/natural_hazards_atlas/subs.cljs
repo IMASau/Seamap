@@ -37,26 +37,14 @@
   (nhatutils/current-view-selected-seasonal-data db))
 
 (defn current-view-time-periods
-  "List of time periods available to analyze the hazard data.
-   
-   TODO: This is a half-baked implementation, because we haven't nailed-down what
-   time periods span what years, and all the currently available data is historic."
-  [available-times _]
-  {:time-periods nhatutils/time-periods
-   :counts
-   {"all"      (count available-times)
-    "historic" (count available-times)
-    "short"    0
-    "medium"   0
-    "long"     0}})
+  "List of time periods available to analyze the hazard data."
+  [_db _]
+  nhatutils/time-periods)
 
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data"
   [db _]
-  (let [selected-time-period-id (get-in db [:current-view :selected-time-period-id])
-        selected-time-period    (first-where #(= (:id %) selected-time-period-id) nhatutils/time-periods)]
-    (assert selected-time-period (str "Selected time period id " selected-time-period-id " not found in time periods list"))
-    selected-time-period))
+  (nhatutils/current-view-selected-time-period db))
 
 (defn current-view-timeline-media-controls
   "State for the media-style controls to play through the timeline of hazard data."
@@ -103,3 +91,13 @@
    `variable_heatwave_amplitude_scenario_historical_format_cmip6_ssp1_summer.nc`"
   [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-model selected-scenario selected-seasonal-data] _]
   (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data))
+
+(defn time-available-times
+  "The available times for the layers, driven by the timeDimension component.
+
+   Availability of times is filtered by the range of the currently selected time
+   period in current view."
+  [db _]
+  (let [all-available-times           (get-in db [:display :available-times])
+        {:keys [start-year end-year]} (nhatutils/current-view-selected-time-period db)] ; Alternative is registering :current-view/selected-time-period as an input signal to this sub, but then we lose access to db for getting [:display :available-times], so another sub would be necessary.
+    (filter #(nhatutils/time-in-range? % start-year end-year) all-available-times)))

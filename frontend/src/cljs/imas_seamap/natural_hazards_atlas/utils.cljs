@@ -130,11 +130,11 @@
     :config]))
 
 (def time-periods
-  [{:id "all" :name "All"}
-   {:id "historic" :name "Historic (1995-2014)"}
-   {:id "short" :name "Short (2020-2039)"}
-   {:id "medium" :name "Medium (2050-2069)"}
-   {:id "long" :name "Long (2080-2099)"}])
+  [{:id "all"      :name "All"      :start-year nil  :end-year nil}
+   {:id "historic" :name "Historic" :start-year 1995 :end-year 2014}
+   {:id "short"    :name "Short"    :start-year 2020 :end-year 2039}
+   {:id "medium"   :name "Medium"   :start-year 2050 :end-year 2069}
+   {:id "long"     :name "Long"     :start-year 2080 :end-year 2099}])
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-model
@@ -168,6 +168,15 @@
     (when (and (seq seasonal-datas) selected-seasonal-data-id)
       (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
     selected-seasonal-data))
+
+; Extracted function from a sub so that it can be used (sparingly) in events.
+(defn current-view-selected-time-period
+  "Time period to analyze the hazard data"
+  [db]
+  (let [selected-time-period-id (get-in db [:current-view :selected-time-period-id])
+        selected-time-period    (first-where #(= (:id %) selected-time-period-id) time-periods)]
+    (assert selected-time-period (str "Selected time period id " selected-time-period-id " not found in time periods list"))
+    selected-time-period))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn hazard-layers
@@ -209,3 +218,10 @@
   (map
    #(get layer-displayed-layers-lookup %)
    (map-utils/displayed-layers-under-point visible-layers point db)))
+
+(defn time-in-range?
+  "Is the given time (in ms) in the given range of years"
+  [time start-year end-year]
+  (let [start-ms (if start-year (js/Date.UTC start-year) ##-Inf)
+        end-ms   (if end-year (js/Date.UTC end-year) ##Inf)]
+    (and (>= time start-ms) (<= time end-ms))))
