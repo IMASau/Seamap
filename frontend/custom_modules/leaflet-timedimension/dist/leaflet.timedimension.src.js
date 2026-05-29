@@ -401,11 +401,78 @@ LeafletTimeDimension.timeDimension = function (options) {
  */
 
 LeafletTimeDimension.TimeDimension.Util = {
-    getTimeDuration: function(ISODuration) {
-        if (typeof nezasa === 'undefined') {
-            throw "iso8601-js-period library is required for Leatlet.TimeDimension: https://github.com/nezasa/iso8601-js-period";
+    /**
+     * Based on nezasa.iso8601.Period.parse, but modified due to issues with the
+     * overflow limits with excessively high days and not working with "noleap"
+     * calendars: (https://chatgpt.com/share/6a17e8cf-d584-83ec-af7c-cdb6440b1f72)
+     */
+    parsePeriodStringNoLeap(period, _distributeOverflow) {
+        // regex splits as follows
+        // grp0 omitted as it is equal to the sample
+        //
+        // | sample            | grp1   | grp2 | grp3 | grp4 | grp5 | grp6       | grp7 | grp8 | grp9 |
+        // --------------------------------------------------------------------------------------------
+        // | P1Y2M3W           | 1Y2M3W | 1Y   | 2M   | 3W   | 4D   | T12H30M17S | 12H  | 30M  | 17S  |
+        // | P3Y6M4DT12H30M17S | 3Y6M4D | 3Y   | 6M   |      | 4D   | T12H30M17S | 12H  | 30M  | 17S  |
+        // | P1M               | 1M     |      | 1M   |      |      |            |      |      |      |
+        // | PT1M              | 3Y6M4D |      |      |      |      | T1M        |      | 1M   |      |
+        // --------------------------------------------------------------------------------------------
+
+        var distributeOverflow = (_distributeOverflow) ? _distributeOverflow : false;
+        var valueIndexes       = [2, null, null, 5, 7, 8, 9]; // Joshua's modification from [2, 3, 4, 5, 7, 8, 9], so that months and weeks are ignored from the regular expression - they shouldn't exist in a noleap calendar, and their presence breaks the distributeOverflow code
+        var duration           = [0, 0, 0, 0, 0, 0, 0];
+        var overflowLimits     = [0, 1, 1, 365, 24, 60, 60]; // Joshua's modification from [0, 12, 4, 7, 24, 60, 60], so that days overflow directly into years
+        var struct;
+
+        // upcase the string just in case people don't follow the letter of the law
+        period = period.toUpperCase();
+
+        // input validation
+        if (!period) {
+            return duration;
         }
-        return nezasa.iso8601.Period.parse(ISODuration, true);
+        else if (typeof period !== "string") {
+            throw new Error("Invalid iso8601 period string '" + period + "'");
+        }
+
+        // parse the string
+        if (struct = /^P((\d+Y)?(\d+M)?(\d+W)?(\d+D)?)?(T(\d+H)?(\d+M)?(\d+S)?)?$/.exec(period)) {
+
+            // remove letters, replace by 0 if not defined
+            for (var i = 0; i < valueIndexes.length; i++) {
+                var structIndex = valueIndexes[i];
+                if (structIndex) {
+                    duration[i] = struct[structIndex] ? +struct[structIndex].replace(/[A-Za-z]+/g, '') : 0;
+                }
+            }
+        }
+        else {
+            throw new Error("String '" + period + "' is not a valid ISO8601 period.");
+        }
+
+        if (distributeOverflow) {
+            // note: stop at 1 to ignore overflow of years
+            for (var i = duration.length - 1; i > 0; i--) {
+                if (duration[i] >= overflowLimits[i]) {
+                    duration[i-1] = duration[i-1] + Math.floor(duration[i]/overflowLimits[i]);
+                    duration[i] = duration[i] % overflowLimits[i];
+                }
+            }
+        }
+
+        return duration;
+    },
+
+    getTimeDuration: function(ISODuration, calendar) {
+        if (calendar == "noleap") {
+            return this.parsePeriodStringNoLeap(ISODuration, true);
+        }
+        else {
+            if (typeof nezasa === 'undefined') {
+                throw "iso8601-js-period library is required for Leatlet.TimeDimension: https://github.com/nezasa/iso8601-js-period";
+            }
+            return nezasa.iso8601.Period.parse(ISODuration, true);
+        }
     },
 
     addTimeDuration: function(date, duration, utc) {
@@ -454,7 +521,7 @@ LeafletTimeDimension.TimeDimension.Util = {
         this.addTimeDuration(date, subDuration, utc);
     },
 
-    parseAndExplodeTimeRange: function(timeRange, overwritePeriod) {
+    parseAndExplodeTimeRange: function(timeRange, overwritePeriod, calendar) {
         var tr = timeRange.split('/');
         var startTime = new Date(Date.parse(tr[0]));
         var endTime = new Date(Date.parse(tr[1]));
@@ -462,11 +529,11 @@ LeafletTimeDimension.TimeDimension.Util = {
         if (overwritePeriod !== undefined && overwritePeriod !== null){
             period = overwritePeriod;
         }
-        return this.explodeTimeRange(startTime, endTime, period);
+        return this.explodeTimeRange(startTime, endTime, period, undefined, calendar);
     },
 
-    explodeTimeRange: function(startTime, endTime, ISODuration, validTimeRange) {
-        var duration = this.getTimeDuration(ISODuration);
+    explodeTimeRange: function(startTime, endTime, ISODuration, validTimeRange, calendar) {
+        var duration = this.getTimeDuration(ISODuration, calendar);
         var result = [];
         var currentTime = new Date(startTime.getTime());
         var minHour = null,
@@ -528,7 +595,7 @@ LeafletTimeDimension.TimeDimension.Util = {
         return [startTime, endTime];
     },
 
-    parseTimesExpression: function(times, overwritePeriod) {
+    parseTimesExpression: function(times, overwritePeriod, calendar) {
         var result = [];
         if (!times) {
             return result;
@@ -540,7 +607,7 @@ LeafletTimeDimension.TimeDimension.Util = {
             for (var i=0, l=timeRanges.length; i<l; i++){
                 timeRange = timeRanges[i];
                 if (timeRange.split("/").length == 3) {
-                    result = result.concat(this.parseAndExplodeTimeRange(timeRange, overwritePeriod));
+                    result = result.concat(this.parseAndExplodeTimeRange(timeRange, overwritePeriod, calendar));
                 } else {
                     timeValue = Date.parse(timeRange);
                     if (!isNaN(timeValue)) {
@@ -1002,7 +1069,9 @@ LeafletTimeDimension.TimeDimension.Layer.WMS = LeafletTimeDimension.TimeDimensio
             if (data !== null){
                 this._defaultTime = Date.parse(this._getDefaultTimeFromCapabilities(data));
                 this._setDefaultTime = this._setDefaultTime || (this._timeDimension && this._timeDimension.getAvailableTimes().length == 0);
-                this.setAvailableTimes(this._parseTimeDimensionFromCapabilities(data));
+                const times = this._parseTimeDimensionFromCapabilities(data);
+                const calendar = this._parseTimeCalendarFromCapabilities(data);
+                this.setAvailableTimes(times, calendar);
                 if (this._setDefaultTime && this._timeDimension) {
                     this._timeDimension.setCurrentTime(this._timeDimension.getDefaultTime() ?? this._defaultTime);
                 }
@@ -1060,6 +1129,55 @@ LeafletTimeDimension.TimeDimension.Layer.WMS = LeafletTimeDimension.TimeDimensio
         return times;
     },
 
+    /**
+     * Gets the calendar type of the layer from the layer capabilities.
+     *
+     * CF Conventions allow for different possible calendars (see 4.4.1. Calendar:
+     * https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/cf-conventions.html#calendar),
+     * which can affect what available times there are when parsing the time period
+     * expression.
+     */
+    _parseTimeCalendarFromCapabilities: function(xml) {
+        const layers = xml.querySelectorAll('Layer[queryable="1"]');
+        const layerName = this._baseLayer.wmsParams.layers;
+        let layer, calendar;
+
+        layers.forEach(function(current) {
+            if (current.querySelector("Name").innerHTML === layerName) {
+                layer = current;
+            }
+        });
+        if (layer) {
+            calendar = this._getTimeCalendarFromLayerCapabilities(layer);
+            if (!calendar) {
+                calendar = this._getTimeCalendarFromLayerCapabilities(layer.parentNode);
+            }
+        }
+
+        return calendar;
+    },
+
+    /**
+     * Gets the calendar type of the layer from the layer capabilities.
+     *
+     * CF Conventions allow for different possible calendars (see 4.4.1. Calendar:
+     * https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/cf-conventions.html#calendar),
+     * which can affect what available times there are when parsing the time period
+     * expression.
+     */
+    _getTimeCalendarFromLayerCapabilities: function(layer) {
+        const nodes = Array.from(layer.children);
+        for (const node of nodes) {
+            if (
+                (node.nodeName == 'Extent' || node.nodeName == 'Dimension') &&
+                node.getAttribute('name') == 'time' &&
+                node.textContent.length
+            ) {
+                return node.getAttribute('units');
+            }
+        }
+    },
+
     _getDefaultTimeFromCapabilities: function(xml) {
         var layers = xml.querySelectorAll('Layer[queryable="1"]');
         var layerName = this._baseLayer.wmsParams.layers;
@@ -1095,8 +1213,8 @@ LeafletTimeDimension.TimeDimension.Layer.WMS = LeafletTimeDimension.TimeDimensio
         return defaultTime;
     },
 
-    setAvailableTimes: function(times) {
-        this._availableTimes = LeafletTimeDimension.TimeDimension.Util.parseTimesExpression(times, this._period);
+    setAvailableTimes: function(times, calendar) {
+        this._availableTimes = LeafletTimeDimension.TimeDimension.Util.parseTimesExpression(times, this._period, calendar);
         this._updateTimeDimensionAvailableTimes();
     },
 

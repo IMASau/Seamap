@@ -173,7 +173,7 @@
   []
   (let [available-times @(re-frame/subscribe [:map.time/available-times])
         label-renderer #(.getFullYear (js/Date. %))
-        label-values (conj (take-nth 10 available-times) (last available-times))
+        label-values [(first available-times) (last available-times)]
         value @(re-frame/subscribe [:map.time/current-time])]
     [components/snap-slider
      {:value     value
