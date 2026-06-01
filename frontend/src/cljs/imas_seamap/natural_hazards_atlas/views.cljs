@@ -381,7 +381,10 @@
        :helperText     "Select from available basemaps"
        :helperPosition "left"}
       {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
+      {:id "menu-button" :helperText (if catalogue-open? "Collapse menu sidebar" "Expand menu sidebar")}
       {:id "autosave-button" :helperText "Toggle autosave for the application"}
+      {:id "zoom-in-control" :helperText "Zoom in"}
+      {:id "zoom-out-control" :helperText "Zoom out"}
       {:id "print-control" :helperText "Export current map view as an image"}
       {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
       {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
