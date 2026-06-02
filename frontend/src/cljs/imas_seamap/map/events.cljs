@@ -337,29 +337,6 @@
        {:dispatch-n requests}
        {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))
 
-(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
-  (let [visible-layers (visible-layers (:map db))
-        boundary       (first-where #(= (:category %) :boundaries) visible-layers)
-        habitat        (region-stats-habitat-layer db)
-        [x y]          (project-coords ((juxt :lng :lat) point) "EPSG:3112")
-        request-id     (gensym)]
-    (when (and boundary habitat)
-      {:http-xhrio {:method          :get
-                    :uri             (get-in db [:config :urls :region-stats-url])
-                    :params          {:boundary (:id boundary)
-                                      :habitat  (:id habitat)
-                                      :x        x
-                                      :y        y}
-                    :response-format (ajax/text-response-format)
-                    :on-success      [:map/got-featureinfo request-id point "text/html" []]
-                    :on-failure      [:map/got-featureinfo-err request-id point]}
-       :db         (assoc db :feature-query {:request-id        request-id
-                                             :response-remain   1
-                                             :responses         []}
-                          :feature       {:status   :feature-info/waiting
-                                          :location point
-                                          :show?    false})})))
-
 (defn show-popup [db [_ request-id]]
   (cond-> db
     (and (:feature db) (= (get-in db [:feature-query :request-id]) request-id))
