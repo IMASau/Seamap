@@ -20,12 +20,10 @@
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
-        download-info                                 @(re-frame/subscribe [:download/info])
-        boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     (into
      [:div.map-wrapper
-      [map-views/download-component download-info]
+      [map-views/download-component]
       [leaflet/map-container
        (merge
         {:id                   "map"

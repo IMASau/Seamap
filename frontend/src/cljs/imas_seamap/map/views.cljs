@@ -51,8 +51,9 @@
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
     (re-frame/dispatch [:map.layer/load-finished layer])))
 
-(defn download-component [{:keys [display-link link bbox download-type download-layer] :as _download-info}]
-  (let [type-str (download-type->str download-type)]
+(defn download-component []
+  (let [{:keys [display-link link bbox download-type download-layer]} @(re-frame/subscribe [:download/info])
+        type-str (download-type->str download-type)]
     [b/dialogue
      {:is-open   display-link
       :title     (str "Download " type-str)
@@ -402,12 +403,11 @@
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
-        download-info                                 @(re-frame/subscribe [:download/info])
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     (into
      [:div.map-wrapper
-      [download-component download-info]
+      [download-component]
       [leaflet/map-container
        (merge
         {:id                   "map"

@@ -21,11 +21,10 @@
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         show-time-slider?                             @(re-frame/subscribe [:map.time/show-time-slider?])
-        download-info                                 @(re-frame/subscribe [:download/info])
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     (into
      [:div.map-wrapper
-      [map-views/download-component download-info]
+      [map-views/download-component]
       [leaflet/map-container
        (merge
         {:id                   "map"
