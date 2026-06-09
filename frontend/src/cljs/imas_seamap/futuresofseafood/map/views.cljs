@@ -23,7 +23,6 @@
         show-time-slider?                             @(re-frame/subscribe [:map.time/show-time-slider?])
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     [:div.map-wrapper
-     [map-views/download-component]
      [leaflet/map-container
       (merge
        {:id                   "map"

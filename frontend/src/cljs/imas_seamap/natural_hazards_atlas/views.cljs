@@ -407,6 +407,7 @@
      [views/outage-message-dialogue]
      [views/settings-overlay]
      [views/info-card]
+     [views/download-component]
      [views/loading-display]
      [left-drawer]
      [views/right-drawer @(re-frame/subscribe [:ui/right-sidebar])]

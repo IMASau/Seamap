@@ -51,27 +51,6 @@
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
     (re-frame/dispatch [:map.layer/load-finished layer])))
 
-(defn download-component []
-  (let [{:keys [display-link link bbox download-type download-layer]} @(re-frame/subscribe [:download/info])
-        type-str (download-type->str download-type)]
-    [b/dialogue
-     {:is-open   display-link
-      :title     (str "Download " type-str)
-      :icon      "import"
-      :on-close  #(re-frame/dispatch [:ui.download/close-dialogue])}
-     [:div.bp3-dialog-body
-      [:a
-       {:href     link
-        :target   "_blank"
-        :on-click #(re-frame/dispatch [:download-click {:link link :layer download-layer :type type-str}])}
-       "Click here to download " (when bbox "region ") "as " type-str]]
-     [:div.bp3-dialog-footer
-      [:div.bp3-dialog-footer-actions
-       [b/button
-        {:text     "Done"
-         :intent   b/INTENT-PRIMARY
-         :on-click #(re-frame/dispatch [:ui.download/close-dialogue])}]]]]))
-
 (defn draw-transect-control []
   [leaflet/feature-group
    [leaflet/edit-control
@@ -406,7 +385,6 @@
         boundary-filter                               @(re-frame/subscribe [:sok/boundary-layer-filter])
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     [:div.map-wrapper
-     [download-component]
      [leaflet/map-container
       (merge
        {:id                   "map"

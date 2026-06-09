@@ -14,7 +14,7 @@
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch first-where append-query-params] :include-macros true]
             [imas-seamap.components :as components]
-            [imas-seamap.map.utils :refer [layer-search-keywords]]
+            [imas-seamap.map.utils :refer [download-type->str layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -565,6 +565,27 @@
          :auto-focus true
          :intent     b/INTENT-PRIMARY
          :on-click   #(re-frame/dispatch [:map.layer/close-info])}]]]]))
+
+(defn download-component []
+  (let [{:keys [display-link link bbox download-type download-layer]} @(re-frame/subscribe [:download/info])
+        type-str (download-type->str download-type)]
+    [b/dialogue
+     {:is-open   display-link
+      :title     (str "Download " type-str)
+      :icon      "import"
+      :on-close  #(re-frame/dispatch [:ui.download/close-dialogue])}
+     [:div.bp3-dialog-body
+      [:a
+       {:href     link
+        :target   "_blank"
+        :on-click #(re-frame/dispatch [:download-click {:link link :layer download-layer :type type-str}])}
+       "Click here to download " (when bbox "region ") "as " type-str]]
+     [:div.bp3-dialog-footer
+      [:div.bp3-dialog-footer-actions
+       [b/button
+        {:text     "Done"
+         :intent   b/INTENT-PRIMARY
+         :on-click #(re-frame/dispatch [:ui.download/close-dialogue])}]]]]))
 
 (defn control-block [& children]
   (into [:div.leaflet-bar.leaflet-control.leaflet-control-block] children))
@@ -1135,6 +1156,7 @@
      [outage-message-dialogue]
      [settings-overlay]
      [info-card]
+     [download-component]
      [loading-display]
      [left-drawer]
      [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]

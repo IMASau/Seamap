@@ -22,7 +22,6 @@
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
     [:div.map-wrapper
-     [map-views/download-component]
      [leaflet/map-container
       (merge
        {:id                   "map"
