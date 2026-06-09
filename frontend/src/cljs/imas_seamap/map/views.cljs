@@ -396,16 +396,9 @@
        :scaleFactor          true
        :minZoom              2
        :keyboard             false ; handled externally
-       :close-popup-on-click false} ; We'll handle that ourselves
+       :close-popup-on-click false ; We'll handle that ourselves
+       :ref                  #(when % (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
       (when (seq bounds) {:bounds (map->bounds bounds)}))
-    
-     ;; Unfortunately, only map container children in react-leaflet v4 are able to
-     ;; obtain a reference to the leaflet map through useMap. We make a dummy child here
-     ;; to get around the issue and obtain the map.
-     (reagent/create-element
-      #(when-let [leaflet-map (ReactLeaflet/useMap)]
-         (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
-         nil))
     
      ;; When the current active layer is a vector tile layer, display the default
      ;; basemap layer underneath, since vector tile layers don't support printing.
