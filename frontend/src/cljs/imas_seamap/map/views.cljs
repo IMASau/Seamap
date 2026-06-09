@@ -374,11 +374,34 @@
            :on-range-updated #(re-frame/dispatch [:ui/split-layer-range-value %1 %2])
            :range-value      @(re-frame/subscribe [:ui/split-layer-range-value])}]]))))
 
+(defn basemap-layers []
+  (let [{:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])]
+    [:<>
+     ;; When the current active layer is a vector tile layer, display the default
+     ;; basemap layer underneath, since vector tile layers don't support printing.
+     (when (= (:layer_type active-base-layer) :vector)
+       [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index -1}}
+        [basemap-layer-component (first grouped-base-layers)]])
+
+     ;; Basemap layer
+     (when active-base-layer ; Don't render unless we have a basemap
+       ^{:key (str active-base-layer)} ; Key changes with each basemap, so the layer re-renders
+       [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
+        [basemap-layer-component active-base-layer]])
+
+     ;; Additional basemap layers
+     (map-indexed
+      (fn [i {:keys [id] :as base-layer}]
+        ^{:key (str id (+ i 1))}
+        [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1)}}
+         [basemap-layer-component base-layer]])
+      (:layers active-base-layer))]))
+
 (defn map-component []
   (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
         {:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
         displayed-layers-lookup                       @(re-frame/subscribe [:map.layer/displayed-layers-lookup])
-        {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
+        {:keys [active-base-layer]}                   @(re-frame/subscribe [:map/base-layers])
         feature-info                                  @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
@@ -400,26 +423,8 @@
        :ref                  #(when % (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
       (when (seq bounds) {:bounds (map->bounds bounds)}))
     
-     ;; When the current active layer is a vector tile layer, display the default
-     ;; basemap layer underneath, since vector tile layers don't support printing.
-     (when (= (:layer_type active-base-layer) :vector)
-       [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index -1}}
-        [basemap-layer-component (first grouped-base-layers)]])
-    
-     ;; Basemap layer
-     (when active-base-layer ; Don't render unless we have a basemap
-       ^{:key (str active-base-layer)} ; Key changes with each basemap, so the layer re-renders
-       [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
-        [basemap-layer-component active-base-layer]])
-    
-     ;; Additional basemap layers
-     (map-indexed
-      (fn [i {:keys [id] :as base-layer}]
-        ^{:key (str id (+ i 1))}
-        [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1)}}
-         [basemap-layer-component base-layer]])
-      (:layers active-base-layer))
-    
+     [basemap-layers]
+     
      ;; Catalogue layers
      (map-indexed
       (fn [i layer]
