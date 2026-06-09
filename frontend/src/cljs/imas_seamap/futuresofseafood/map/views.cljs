@@ -22,121 +22,120 @@
         {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
         show-time-slider?                             @(re-frame/subscribe [:map.time/show-time-slider?])
         mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
-    [:div.map-wrapper
-     [leaflet/map-container
-      (merge
-       {:id                   "map"
-        :crs                  leaflet/crs-epsg3857
-        :preferCanvas         true
-        :use-fly-to           false
-        :center               center
-        :zoom                 zoom
-        :zoomControl          true
-        :scaleFactor          true
-        :minZoom              2
-        :keyboard             false ; handled externally
-        :close-popup-on-click false} ; We'll handle that ourselves
-       (when (seq bounds) {:bounds (map->bounds bounds)}))
+    [leaflet/map-container
+     (merge
+      {:id                   "map"
+       :crs                  leaflet/crs-epsg3857
+       :preferCanvas         true
+       :use-fly-to           false
+       :center               center
+       :zoom                 zoom
+       :zoomControl          true
+       :scaleFactor          true
+       :minZoom              2
+       :keyboard             false ; handled externally
+       :close-popup-on-click false} ; We'll handle that ourselves
+      (when (seq bounds) {:bounds (map->bounds bounds)}))
     
-      ;; Unfortunately, only map container children in react-leaflet v4 are able to
-      ;; obtain a reference to the leaflet map through useMap. We make a dummy child here
-      ;; to get around the issue and obtain the map.
-      (r/create-element
-       #(when-let [leaflet-map (ReactLeaflet/useMap)]
-          (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
-          nil))
+     ;; Unfortunately, only map container children in react-leaflet v4 are able to
+     ;; obtain a reference to the leaflet map through useMap. We make a dummy child here
+     ;; to get around the issue and obtain the map.
+     (r/create-element
+      #(when-let [leaflet-map (ReactLeaflet/useMap)]
+         (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
+         nil))
     
-      ;; When the current active layer is a vector tile layer, display the default
-      ;; basemap layer underneath, since vector tile layers don't support printing.
-      (when (= (:layer_type active-base-layer) :vector)
-        [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index -1}}
-         [map-views/basemap-layer-component (first grouped-base-layers)]])
+     ;; When the current active layer is a vector tile layer, display the default
+     ;; basemap layer underneath, since vector tile layers don't support printing.
+     (when (= (:layer_type active-base-layer) :vector)
+       [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index -1}}
+        [map-views/basemap-layer-component (first grouped-base-layers)]])
     
-      ;; Basemap layer
-      (when active-base-layer ; Don't render unless we have a basemap
-        ^{:key (str active-base-layer)} ; Key changes with each basemap, so the layer re-renders
-        [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
-         [map-views/basemap-layer-component active-base-layer]])
+     ;; Basemap layer
+     (when active-base-layer ; Don't render unless we have a basemap
+       ^{:key (str active-base-layer)} ; Key changes with each basemap, so the layer re-renders
+       [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
+        [map-views/basemap-layer-component active-base-layer]])
     
-      ;; Additional basemap layers
-      (map-indexed
-       (fn [i {:keys [id] :as base-layer}]
-         ^{:key (str id (+ i 1))}
-         [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1)}}
-          [map-views/basemap-layer-component base-layer]])
-       (:layers active-base-layer))
+     ;; Additional basemap layers
+     (map-indexed
+      (fn [i {:keys [id] :as base-layer}]
+        ^{:key (str id (+ i 1))}
+        [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1)}}
+         [map-views/basemap-layer-component base-layer]])
+      (:layers active-base-layer))
     
-      ;; Catalogue layers
-      (map-indexed
-       (fn [i layer]
-         (let [rich-layer (rich-layer-fn layer)
-               {:keys [id server_url] :as displayed-layer} (get displayed-layers-lookup layer)
-               z-index (+ i 1 (count (:layers active-base-layer)))]
-           ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
-           ;; display two panes (left and right) for the two layers, and the side-by-side
-           ;; control for sliding between the two layers.
-           ;; If there's only one layer, then we render a single pane and layer.
-           ^{:key (str id server_url z-index)}
-           [:<>
-            (if (:side-by-side-views-selected rich-layer)
-              [map-views/side-by-side-layer
+     ;; Catalogue layers
+     (map-indexed
+      (fn [i layer]
+        (let [rich-layer (rich-layer-fn layer)
+              {:keys [id server_url] :as displayed-layer} (get displayed-layers-lookup layer)
+              z-index (+ i 1 (count (:layers active-base-layer)))]
+          ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
+          ;; display two panes (left and right) for the two layers, and the side-by-side
+          ;; control for sliding between the two layers.
+          ;; If there's only one layer, then we render a single pane and layer.
+          ^{:key (str id server_url z-index)}
+          [:<>
+           (if (:side-by-side-views-selected rich-layer)
+             [map-views/side-by-side-layer
+              {:layer           layer
+               :layer-opacities layer-opacities
+               :cql-filter-fn   cql-filter-fn
+               :z-index         z-index
+               :rich-layer-fn   rich-layer-fn}]
+             [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
+              [map-views/layer-component
                {:layer           layer
+                :displayed-layer displayed-layer
                 :layer-opacities layer-opacities
-                :cql-filter-fn   cql-filter-fn
-                :z-index         z-index
-                :rich-layer-fn   rich-layer-fn}]
-              [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
-               [map-views/layer-component
-                {:layer           layer
-                 :displayed-layer displayed-layer
-                 :layer-opacities layer-opacities
-                 :cql-filter      (cql-filter-fn layer)}]])]))
-       visible-layers)
+                :cql-filter      (cql-filter-fn layer)}]])]))
+      visible-layers)
     
-      (when query
-        [leaflet/geojson-layer {:data (clj->js query)}])
-      (when region
-        [leaflet/geojson-layer {:data (clj->js (bounds->geojson region))}])
-      (when (and query mouse-loc)
-        [leaflet/circle-marker {:center      mouse-loc
-                                :radius      3
-                                :fillColor   "#3f8ffa"
-                                :color       "#3f8ffa"
-                                :opacity     1
-                                :fillOpacity 1}])
+     (when query
+       [leaflet/geojson-layer {:data (clj->js query)}])
+     (when region
+       [leaflet/geojson-layer {:data (clj->js (bounds->geojson region))}])
+     (when (and query mouse-loc)
+       [leaflet/circle-marker {:center      mouse-loc
+                               :radius      3
+                               :fillColor   "#3f8ffa"
+                               :color       "#3f8ffa"
+                               :opacity     1
+                               :fillOpacity 1}])
     
-      (when (:drawing? transect-info)
-        [map-views/draw-transect-control])
-      (when (:selecting? region-info)
-        [map-views/draw-region-control])
+     (when (:drawing? transect-info)
+       [map-views/draw-transect-control])
+     (when (:selecting? region-info)
+       [map-views/draw-region-control])
     
-      ;; This control needs to exist so we can trigger its functions programmatically in
-      ;; the control-block element.
-      [leaflet/print-control
-       {:position   "topleft" :title "Export as PNG"
-        :export-only true
-        :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
+     ;; This control needs to exist so we can trigger its functions programmatically in
+     ;; the control-block element.
+     [leaflet/print-control
+      {:position   "topleft" :title "Export as PNG"
+       :export-only true
+       :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
     
-      [leaflet/scale-control]
+     [leaflet/scale-control]
     
-      [leaflet/coordinates-control
-       {:decimals 2
-        :labelTemplateLat "{y}"
-        :labelTemplateLng "{x}"
-        :useLatLngOrder   true
-        :enableUserInput  false}]
+     [leaflet/coordinates-control
+      {:decimals 2
+       :labelTemplateLat "{y}"
+       :labelTemplateLng "{x}"
+       :useLatLngOrder   true
+       :enableUserInput  false}]
     
-      (when show-time-slider?
-        [:f> leaflet/time-dimension-control
-         {:time-dimension
-          {:ref #(re-frame/dispatch [:map.time/time-dimension-ref %])
-           :defaultTime @(re-frame/subscribe [:map.time/current-time])}
-          :auto-play false
-          :playerOptions
-          {:buffer 10
-           :transitionTime 500
-           :startOver true}}])
+     (when show-time-slider?
+       [:f> leaflet/time-dimension-control
+        {:time-dimension
+         {:ref #(re-frame/dispatch [:map.time/time-dimension-ref %])
+          :defaultTime @(re-frame/subscribe [:map.time/current-time])}
+         :auto-play false
+         :playerOptions
+         {:buffer 10
+          :transitionTime 500
+          :startOver true}}])
     
-      (when (and mouse-pos distance) [map-views/distance-tooltip {:mouse-pos mouse-pos :distance distance}])
+     (when (and mouse-pos distance) [map-views/distance-tooltip {:mouse-pos mouse-pos :distance distance}])
     
-      [map-views/popup feature-info]]]))
+     [map-views/popup feature-info]]))
