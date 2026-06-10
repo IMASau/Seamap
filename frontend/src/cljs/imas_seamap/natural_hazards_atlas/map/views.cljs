@@ -176,4 +176,22 @@
             :ref   #(reset! map-b %)}
            [map-views/basemap-layers]
            [map-b-layers]
+
+           (when query
+             [leaflet/geojson-layer {:data (clj->js query)}])
+           (when region
+             [leaflet/geojson-layer {:data (clj->js (bounds->geojson region))}])
+           (when (and query mouse-loc)
+             [leaflet/circle-marker {:center      mouse-loc
+                                     :radius      3
+                                     :fillColor   "#3f8ffa"
+                                     :color       "#3f8ffa"
+                                     :opacity     1
+                                     :fillOpacity 1}])
+           
+           (when (:drawing? transect-info)
+             [map-views/draw-transect-control])
+           (when (:selecting? region-info)
+             [map-views/draw-region-control])
+
            [map-views/popup feature-info]]]]))))
