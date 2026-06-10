@@ -14,11 +14,18 @@
 (defn- divider
   "Vertical divider that can be dragged left and right to adjust the split ratio of
    the maps.
+
    Styling is based on the divider from the Leaflet Side-by-Side library (though
-   otherwise has nothing to do with that library)."
+   otherwise has nothing to do with that library).
+
+   Visible only when side-by-side mode is active. This is consistent with the
+   behaviour of \"map B\" of the side-by-side view, which is done so we aren't
+   removing and re-adding maps from the DOM."
   []
-  (let [split-ratio @(re-frame/subscribe [:ui.side-by-side/split-ratio])]
+  (let [split-ratio @(re-frame/subscribe [:ui.side-by-side/split-ratio])
+        side-by-side-active? @(re-frame/subscribe [:ui.side-by-side/active?])]
     [:div.leaflet-sbs
+     {:style {:display (if side-by-side-active? "block" "none")}}
      [:div.leaflet-sbs-divider
       {:style {:left (str split-ratio "%")}}]
      [:input.leaflet-sbs-range
@@ -31,29 +38,32 @@
        :style {:position "absolute" :left "-20px" :width "calc(100% + 40px)"}}]]))
 
 (defn map-component []
-  (let [map-a       (r/atom nil)
-        map-b       (r/atom nil)
-        split-ratio (re-frame/subscribe [:ui.side-by-side/split-ratio])]
+  (let [map-a                (r/atom nil)
+        map-b                (r/atom nil)
+        side-by-side-active? (re-frame/subscribe [:ui.side-by-side/active?])
+        split-ratio          (re-frame/subscribe [:ui.side-by-side/split-ratio])]
     (r/track! #(when (and @map-a @map-b) (.sync @map-a @map-b) (.sync @map-b @map-a)))
     (r/track!
      (fn []
-       (let [_ @split-ratio]
-         (js/setTimeout
-          #(do
-             (when @map-a (.invalidateSize @map-a))
-             (when @map-b (.invalidateSize @map-b)))
-          50))))
+       @split-ratio          ; re-render when split ratio changes
+       @side-by-side-active? ; re-render when side-by-side mode is toggled
+       (js/setTimeout
+        #(do
+           (when @map-a (.invalidateSize @map-a))
+           (when @map-b (.invalidateSize @map-b)))
+        50)))
     (fn []
       (let [{:keys [center zoom bounds]}                @(re-frame/subscribe [:map/props])
             feature-info                                @(re-frame/subscribe [:map.feature/info])
             {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
             {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])
             show-time-slider?                           @(re-frame/subscribe [:map.time/show-time-slider?])
+            side-by-side-active?                        @side-by-side-active?
             split-ratio                                 @split-ratio]
         [:div
          {:style {:display "flex" :height "100vh"}}
          [divider]
-         [:div {:style {:height "100%" :width (str split-ratio "%")}}
+         [:div {:style {:height "100%" :width (if side-by-side-active? (str split-ratio "%") "100%")}}
           [leaflet/map-container
            (merge
             {:style                {:height "100%"}
@@ -121,7 +131,9 @@
            [map-views/distance-tooltip]
 
            [map-views/popup feature-info]]]
-         [:div {:style {:height "100%" :width (str (- 100 split-ratio) "%")}}
+
+         [:div
+          {:style {:height "100%" :width (str (- 100 split-ratio) "%") :display (if side-by-side-active? "block" "none")}}
           [leaflet/map-container
            {:style {:height "100%"}
             :ref   #(reset! map-b %)}

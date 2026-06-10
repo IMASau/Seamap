@@ -210,6 +210,13 @@
   [db _]
   (get-in db [:display :split-layer-range-value] 0.5))
 
+(defn side-by-side-active?
+  "Whether the side-by-side maps are currently active.
+   True will show the split maps and divider, false will hide them and show a
+   single map."
+  [db _]
+  (get-in db [:display :side-by-side :active?] false))
+
 (defn side-by-side-split-ratio
   "The current value (percentage, represented between 0-100) of the divider for the
    side-by-side maps.

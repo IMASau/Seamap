@@ -76,6 +76,7 @@
     :layers-search-omnibar/open?          subs/layers-search-omnibar-open?
     :ui.catalogue/tab                     subs/catalogue-tab
     :ui.catalogue/nodes                   subs/catalogue-nodes
+    :ui.side-by-side/active?              subs/side-by-side-active?
     :ui.side-by-side/split-ratio          subs/side-by-side-split-ratio
     :ui/preview-layer-url                 subs/preview-layer-url
     :ui/sidebar                           subs/sidebar-state
@@ -256,6 +257,7 @@
     :ui.right-sidebar/pop                 events/right-sidebar-pop
     :ui.right-sidebar/bring-to-front      events/right-sidebar-bring-to-front
     :ui.right-sidebar/remove              events/right-sidebar-remove
+    :ui.side-by-side/active?              [events/side-by-side-active?]
     :ui.side-by-side/split-ratio          [events/side-by-side-split-ratio]
     :ui/open-pill                         events/open-pill
     :ui/mouse-pos                         events/mouse-pos

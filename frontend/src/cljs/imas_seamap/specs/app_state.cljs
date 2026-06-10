@@ -378,7 +378,11 @@
 
 (s/def :display/open-pill (s/nilable string?))
 (s/def :display/outage-message-open? boolean?)
-(s/def :display/split-ratio (s/and number? #(>= % 0) #(<= % 100)))
+(s/def :display.side-by-side/active? boolean?)
+(s/def :display.side-by-side/split-ratio (s/and number? #(>= % 0) #(<= % 100)))
+(s/def :display/side-by-side
+  (s/keys :req-un [:display.side-by-side/active?
+                   :display.side-by-side/split-ratio]))
 
 
 ;; state of knowledge
@@ -579,7 +583,7 @@
                    :display/right-sidebars
                    :display/open-pill
                    :display/outage-message-open?
-                   :display/split-ratio]))
+                   :display/side-by-side]))
 
 
 ;; filters
