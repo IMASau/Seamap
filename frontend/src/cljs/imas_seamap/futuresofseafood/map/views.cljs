@@ -13,12 +13,11 @@
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn map-component []
-  (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
-        feature-info                                  @(re-frame/subscribe [:map.feature/info])
-        {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
-        {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
-        show-time-slider?                             @(re-frame/subscribe [:map.time/show-time-slider?])
-        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
+  (let [{:keys [center zoom bounds]}                @(re-frame/subscribe [:map/props])
+        feature-info                                @(re-frame/subscribe [:map.feature/info])
+        {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
+        {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])
+        show-time-slider?                           @(re-frame/subscribe [:map.time/show-time-slider?])]
     [leaflet/map-container
      (merge
       {:id                   "map"
@@ -82,6 +81,6 @@
           :transitionTime 500
           :startOver true}}])
     
-     (when (and mouse-pos distance) [map-views/distance-tooltip {:mouse-pos mouse-pos :distance distance}])
+     [map-views/distance-tooltip]
     
      [map-views/popup feature-info]]))

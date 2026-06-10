@@ -151,14 +151,17 @@
 
      ^{:key (str status responses)} [popup-contents {:status status :responses responses}]]))
 
-(defn distance-tooltip [{:keys [distance] {:keys [x y]} :mouse-pos}]
-  [:div.leaflet-draw-tooltip.distance-tooltip
-   {:style {:visibility "inherit"
-            :transform  (str "translate3d(" x "px, " y "px, 0px)")
-            :z-index    700}}
-   (if (> distance 1000)
-     (str (format-number (/ distance 1000) 2) "km")
-     (str (format-number distance 0) "m"))])
+(defn distance-tooltip []
+  (let [{:keys [x y] :as mouse-pos} @(re-frame/subscribe [:ui/mouse-pos])
+        {:keys [distance]}          @(re-frame/subscribe [:transect/info])
+        visible? (and mouse-pos distance)]
+    [:div.leaflet-draw-tooltip.distance-tooltip
+     {:style {:visibility (if visible? "visible" "hidden")
+              :transform  (str "translate3d(" x "px, " y "px, 0px)")
+              :z-index    700}}
+     (if (> distance 1000)
+       (str (format-number (/ distance 1000) 2) "km")
+       (str (format-number distance 0) "m"))]))
 
 (defmulti layer-component (comp :layer_type :displayed-layer))
 
@@ -431,11 +434,11 @@
      visible-layers)))
 
 (defn map-component []
-  (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
-        feature-info                                  @(re-frame/subscribe [:map.feature/info])
-        {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
-        {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
-        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
+  (let [{:keys [center zoom bounds]}                @(re-frame/subscribe [:map/props])
+        feature-info                                @(re-frame/subscribe [:map.feature/info])
+        {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
+        {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])]
+    (js/console.log "Rerender map-component")
     [leaflet/map-container
      (merge
       {:id                   "map"
@@ -488,6 +491,6 @@
        :useLatLngOrder   true
        :enableUserInput  false}]
     
-     (when (and mouse-pos distance) [distance-tooltip {:mouse-pos mouse-pos :distance distance}])
+     [distance-tooltip]
     
      [popup feature-info]]))
