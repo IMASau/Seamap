@@ -62,6 +62,7 @@
     :map/viewport-only?                   msubs/viewport-only?
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
+    :sok/boundary-layer-filter            (fn [] #(identity nil))
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info

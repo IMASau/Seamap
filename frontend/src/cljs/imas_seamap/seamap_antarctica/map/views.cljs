@@ -39,33 +39,7 @@
       (when (seq bounds) {:bounds (map->bounds bounds)}))
     
      [map-views/basemap-layers]
-    
-     ;; Catalogue layers
-     (map-indexed
-      (fn [i layer]
-        (let [rich-layer (rich-layer-fn layer)
-              {:keys [id server_url] :as displayed-layer} (get displayed-layers-lookup layer)
-              z-index (+ i 1 (count (:layers active-base-layer)))]
-          ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
-          ;; display two panes (left and right) for the two layers, and the side-by-side
-          ;; control for sliding between the two layers.
-          ;; If there's only one layer, then we render a single pane and layer.
-          ^{:key (str id server_url z-index)}
-          [:<>
-           (if (:side-by-side-views-selected rich-layer)
-             [map-views/side-by-side-layer
-              {:layer           layer
-               :layer-opacities layer-opacities
-               :cql-filter-fn   cql-filter-fn
-               :z-index         z-index
-               :rich-layer-fn   rich-layer-fn}]
-             [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
-              [map-views/layer-component
-               {:layer           layer
-                :displayed-layer displayed-layer
-                :layer-opacities layer-opacities
-                :cql-filter      (cql-filter-fn layer)}]])]))
-      visible-layers)
+     [map-views/catalogue-layers]
     
      (when query
        [leaflet/geojson-layer {:data (clj->js query)}])

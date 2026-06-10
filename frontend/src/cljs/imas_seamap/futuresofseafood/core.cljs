@@ -49,6 +49,7 @@
     :map.time/current-time                msubs/current-time
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
+    :sok/boundary-layer-filter            (fn [] #(identity nil))
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
