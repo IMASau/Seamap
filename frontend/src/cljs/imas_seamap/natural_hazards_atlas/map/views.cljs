@@ -7,81 +7,124 @@
             [imas-seamap.map.utils :refer [bounds->geojson map->bounds]]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
-            ["react-leaflet" :as ReactLeaflet]
+            ["react-leaflet"]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
-            ["esri-leaflet-renderers"]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
+            ["esri-leaflet-renderers"]))
+
+(defn- divider
+  "Vertical divider that can be dragged left and right to adjust the split ratio of
+   the maps.
+   Styling is based on the divider from the Leaflet Side-by-Side library (though
+   otherwise has nothing to do with that library)."
+  []
+  (let [split-ratio @(re-frame/subscribe [:ui.side-by-side/split-ratio])]
+    [:div.leaflet-sbs
+     [:div.leaflet-sbs-divider
+      {:style {:left (str split-ratio "%")}}]
+     [:input.leaflet-sbs-range
+      {:type "range"
+       :min 0
+       :max 100
+       :value split-ratio
+       :step "any"
+       :on-input #(re-frame/dispatch [:ui.side-by-side/split-ratio (js/parseFloat (.. % -target -value))])
+       :style {:position "absolute" :left "-20px" :width "calc(100% + 40px)"}}]]))
 
 (defn map-component []
-  (let [{:keys [center zoom bounds]}                @(re-frame/subscribe [:map/props])
-        feature-info                                @(re-frame/subscribe [:map.feature/info])
-        {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
-        {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])
-        show-time-slider?                           @(re-frame/subscribe [:map.time/show-time-slider?])]
-    [leaflet/map-container
-     (merge
-      {:id                   "map"
-       :crs                  leaflet/crs-epsg3857
-       :preferCanvas         true
-       :use-fly-to           false
-       :center               center
-       :zoom                 zoom
-       :zoomControl          true
-       :scaleFactor          true
-       :minZoom              2
-       :keyboard             false ; handled externally
-       :close-popup-on-click false ; We'll handle that ourselves
-       :ref                  #(when % (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
-      (when (seq bounds) {:bounds (map->bounds bounds)}))
-    
-     [map-views/basemap-layers] 
-     [map-views/catalogue-layers]
-    
-     (when query
-       [leaflet/geojson-layer {:data (clj->js query)}])
-     (when region
-       [leaflet/geojson-layer {:data (clj->js (bounds->geojson region))}])
-     (when (and query mouse-loc)
-       [leaflet/circle-marker {:center      mouse-loc
-                               :radius      3
-                               :fillColor   "#3f8ffa"
-                               :color       "#3f8ffa"
-                               :opacity     1
-                               :fillOpacity 1}])
-    
-     (when (:drawing? transect-info)
-       [map-views/draw-transect-control])
-     (when (:selecting? region-info)
-       [map-views/draw-region-control])
-    
-     ;; This control needs to exist so we can trigger its functions programmatically in
-     ;; the control-block element.
-     [leaflet/print-control
-      {:position   "topleft" :title "Export as PNG"
-       :export-only true
-       :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
-    
-     [leaflet/scale-control]
-    
-     [leaflet/coordinates-control
-      {:decimals 2
-       :labelTemplateLat "{y}"
-       :labelTemplateLng "{x}"
-       :useLatLngOrder   true
-       :enableUserInput  false}]
-    
-     (when show-time-slider?
-       [:f> leaflet/time-dimension-control
-        {:time-dimension
-         {:ref #(re-frame/dispatch [:map.time/time-dimension-ref %])
-          :defaultTime @(re-frame/subscribe [:map.time/current-time])}
-         :ref #(re-frame/dispatch [:map.time/time-dimension-control-ref %])
-         :auto-play false
-         :playerOptions
-         {:buffer 10
-          :transitionTime 500
-          :startOver true}}])
-    
-     [map-views/distance-tooltip]
-    
-     [map-views/popup feature-info]]))
+  (let [map-a       (r/atom nil)
+        map-b       (r/atom nil)
+        split-ratio (re-frame/subscribe [:ui.side-by-side/split-ratio])]
+    (r/track! #(when (and @map-a @map-b) (.sync @map-a @map-b) (.sync @map-b @map-a)))
+    (r/track!
+     (fn []
+       (let [_ @split-ratio]
+         (js/setTimeout
+          #(do
+             (when @map-a (.invalidateSize @map-a))
+             (when @map-b (.invalidateSize @map-b)))
+          50))))
+    (fn []
+      (let [{:keys [center zoom bounds]}                @(re-frame/subscribe [:map/props])
+            feature-info                                @(re-frame/subscribe [:map.feature/info])
+            {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
+            {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])
+            show-time-slider?                           @(re-frame/subscribe [:map.time/show-time-slider?])
+            split-ratio                                 @split-ratio]
+        [:div
+         {:style {:display "flex" :height "100vh"}}
+         [divider]
+         [:div {:style {:height "100%" :width (str split-ratio "%")}}
+          [leaflet/map-container
+           (merge
+            {:style                {:height "100%"}
+             :crs                  leaflet/crs-epsg3857
+             :preferCanvas         true
+             :use-fly-to           false
+             :center               center
+             :zoom                 zoom
+             :zoomControl          true
+             :scaleFactor          true
+             :minZoom              2
+             :keyboard             false ; handled externally
+             :close-popup-on-click false ; We'll handle that ourselves
+             :ref                  #(do (reset! map-a %) (when % (re-frame/dispatch [:map/update-leaflet-map %])))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
+            (when (seq bounds) {:bounds (map->bounds bounds)}))
+
+           [map-views/basemap-layers]
+           [map-views/catalogue-layers]
+
+           (when query
+             [leaflet/geojson-layer {:data (clj->js query)}])
+           (when region
+             [leaflet/geojson-layer {:data (clj->js (bounds->geojson region))}])
+           (when (and query mouse-loc)
+             [leaflet/circle-marker {:center      mouse-loc
+                                     :radius      3
+                                     :fillColor   "#3f8ffa"
+                                     :color       "#3f8ffa"
+                                     :opacity     1
+                                     :fillOpacity 1}])
+
+           (when (:drawing? transect-info)
+             [map-views/draw-transect-control])
+           (when (:selecting? region-info)
+             [map-views/draw-region-control])
+
+           ;; This control needs to exist so we can trigger its functions programmatically in
+           ;; the control-block element.
+           [leaflet/print-control
+            {:position   "topleft" :title "Export as PNG"
+             :export-only true
+             :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
+
+           [leaflet/scale-control]
+
+           [leaflet/coordinates-control
+            {:decimals 2
+             :labelTemplateLat "{y}"
+             :labelTemplateLng "{x}"
+             :useLatLngOrder   true
+             :enableUserInput  false}]
+
+           (when show-time-slider?
+             [:f> leaflet/time-dimension-control
+              {:time-dimension
+               {:ref #(re-frame/dispatch [:map.time/time-dimension-ref %])
+                :defaultTime @(re-frame/subscribe [:map.time/current-time])}
+               :ref #(re-frame/dispatch [:map.time/time-dimension-control-ref %])
+               :auto-play false
+               :playerOptions
+               {:buffer 10
+                :transitionTime 500
+                :startOver true}}])
+
+           [map-views/distance-tooltip]
+
+           [map-views/popup feature-info]]]
+         [:div {:style {:height "100%" :width (str (- 100 split-ratio) "%")}}
+          [leaflet/map-container
+           {:style {:height "100%"}
+            :ref   #(reset! map-b %)}
+           [map-views/basemap-layers]
+           [map-views/catalogue-layers]
+           [map-views/popup feature-info]]]]))))

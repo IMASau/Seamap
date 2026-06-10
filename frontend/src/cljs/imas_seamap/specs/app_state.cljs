@@ -378,6 +378,7 @@
 
 (s/def :display/open-pill (s/nilable string?))
 (s/def :display/outage-message-open? boolean?)
+(s/def :display/split-ratio (s/and number? #(>= % 0) #(<= % 100)))
 
 
 ;; state of knowledge
@@ -577,7 +578,8 @@
                    :display/left-drawer
                    :display/right-sidebars
                    :display/open-pill
-                   :display/outage-message-open?]))
+                   :display/outage-message-open?
+                   :display/split-ratio]))
 
 
 ;; filters
