@@ -50,6 +50,12 @@
                                            :<- [:current-view/selected-scenario]
                                            :<- [:current-view/selected-seasonal-data]
                                            nhasubs/layer-displayed-layers-lookup]
+    :map.layer/displayed-layers-lookup-map-b [:<- [:map/layers]
+                                           :<- [:map.layers/hazard-layers]
+                                           :<- [:current-view/selected-model]
+                                           :<- [:current-view/selected-scenario]
+                                           :<- [:current-view/selected-seasonal-data]
+                                           nhasubs/layer-displayed-layers-lookup-map-b]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]

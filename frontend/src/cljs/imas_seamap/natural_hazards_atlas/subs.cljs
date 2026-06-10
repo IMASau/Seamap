@@ -92,6 +92,11 @@
   [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-model selected-scenario selected-seasonal-data] _]
   (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data))
 
+;; Proof-of-concept for having separate information in map B
+(defn layer-displayed-layers-lookup-map-b
+  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-model selected-scenario selected-seasonal-data] _]
+  (nhatutils/layer-displayed-layers-lookup-map-b layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data))
+
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component.
 

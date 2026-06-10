@@ -37,6 +37,43 @@
        :on-input #(re-frame/dispatch [:ui.side-by-side/split-ratio (js/parseFloat (.. % -target -value))])
        :style {:position "absolute" :left "-20px" :width "calc(100% + 40px)"}}]]))
 
+;; Proof-of-concept for having separate information in map B
+(defn map-b-layers
+  "Displays the same layers as map A, but hazard layers are always tuned to the SSP2 scenario."
+  []
+  (let [{:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
+        displayed-layers-lookup     @(re-frame/subscribe [:map.layer/displayed-layers-lookup-map-b])
+        {:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
+        boundary-filter             @(re-frame/subscribe [:sok/boundary-layer-filter])]
+    [:<>
+     (map-indexed
+      (fn [i layer]
+        (let [rich-layer (rich-layer-fn layer)
+              {:keys [id server_url] :as displayed-layer} (get displayed-layers-lookup layer)
+              z-index (+ i 1 (count (:layers active-base-layer)))]
+          ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
+          ;; display two panes (left and right) for the two layers, and the side-by-side
+          ;; control for sliding between the two layers.
+          ;; If there's only one layer, then we render a single pane and layer.
+          ^{:key (str id server_url z-index)}
+          [:<>
+           (if (:side-by-side-views-selected rich-layer)
+             [map-views/side-by-side-layer
+              {:layer           layer
+               :boundary-filter boundary-filter
+               :layer-opacities layer-opacities
+               :cql-filter-fn   cql-filter-fn
+               :z-index         z-index
+               :rich-layer-fn   rich-layer-fn}]
+             [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
+              [map-views/layer-component
+               {:layer           layer
+                :displayed-layer displayed-layer
+                :boundary-filter boundary-filter
+                :layer-opacities layer-opacities
+                :cql-filter      (cql-filter-fn layer)}]])]))
+      visible-layers)]))
+
 (defn map-component []
   (let [map-a                (r/atom nil)
         map-b                (r/atom nil)
@@ -138,5 +175,5 @@
            {:style {:height "100%"}
             :ref   #(reset! map-b %)}
            [map-views/basemap-layers]
-           [map-views/catalogue-layers]
+           [map-b-layers]
            [map-views/popup feature-info]]]]))))
