@@ -1,0 +1,45 @@
+# Local development stack for Seamap.
+#
+#   docker compose up
+#
+# Backend (Django dev server):  http://localhost:8000
+# Frontend (shadow-cljs):       http://localhost:3451   (nREPL on 8777)
+#
+# The backend connects to the *remote* SQL Server configured in
+# backend/webapp/local_settings.py (gitignored). Copy local_settings.py.example
+# to local_settings.py and fill in the DB host/credentials before starting.
+# If the DB is on the UTAS network, the host must be on the VPN.
+
+services:
+  backend:
+    build: ./backend
+    # Live code reload: source is mounted over the image's /app.
+    # Installed Python packages live in site-packages, so they survive the mount.
+    volumes:
+      - ./backend:/app
+      # Keep the heavy SQL Server schema/etl tree reachable from settings.
+      - ./database:/database
+    ports:
+      - "8000:8000"
+    # Re-stated here for clarity; matches manage.py's default.
+    environment:
+      DJANGO_SETTINGS_MODULE: webapp.local_settings
+    command: python manage.py runserver 0.0.0.0:8000
+
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      # Named volumes shadow the bind mount so the image's node_modules and
+      # the Maven/Clojure dep cache aren't clobbered by the host tree.
+      - frontend_node_modules:/app/node_modules
+      - frontend_m2:/root/.m2
+    ports:
+      - "3451:3451"  # shadow-cljs dev http
+      - "8777:8777"  # shadow-cljs nREPL
+      - "9630:9630"  # shadow-cljs server: hot-reload websocket + dashboard
+    command: yarn watch
+
+volumes:
+  frontend_node_modules:
+  frontend_m2:
