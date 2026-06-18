@@ -8,11 +8,11 @@ $blue3: var(--color-3);
 // $pt-line-height: 4;
 
 
-@import "~@blueprintjs/core/lib/scss/variables";
-@import "~@blueprintjs/core/src/common/colors";
-@import "~@blueprintjs/core/src/reset";
-@import "~@blueprintjs/icons/src/icons";
-@import "~@blueprintjs/core/src/components/index";
+@import "node_modules/@blueprintjs/core/lib/scss/variables";
+@import "node_modules/@blueprintjs/core/src/common/colors";
+@import "node_modules/@blueprintjs/core/src/reset";
+@import "node_modules/@blueprintjs/icons/src/icons";
+@import "node_modules/@blueprintjs/core/src/components/index";
 
 // Patch solution for missing checkbox image – likely other Blueprint images missing too
 .bp3-control.bp3-checkbox input:checked~.bp3-control-indicator::before {
