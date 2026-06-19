@@ -5,6 +5,7 @@ import catalogue.models
 import nhat.models as models
 
 from django.core.management.base import BaseCommand
+from django.db.models import F
 import numpy as np
 import re
 import xarray as xr
@@ -88,20 +89,34 @@ class Command(BaseCommand):
         lon = np.arange(143,150.01,0.05)
 
         netcdf_file_basename = re.sub(r'[^a-z0-9]+', '_', layer_name.lower()).strip('_')
-        # Generate NetCDF files
-        for scientific_model in models.ScientificModel.objects.all():
-            scientific_model_offset = np.random.rand()
-            for scenario in models.Scenario.objects.all():
-                scenario_offset = np.random.rand() + scientific_model_offset
-                for season in models.Season.objects.all():
-                    season_offset = np.random.rand() + scenario_offset
-                    netcdf_file_name = (
-                        f"{netcdf_file_basename}_{scientific_model.name}_{scenario.name}" +
-                        (f"_{season.name}" if season.name != "All" else "")
-                    )
-                    cur_ds_out = _netcdf_dataset(time, lat, lon, (np.random.rand(len(time), len(lat), len(lon))+season_offset).astype(np.float32))
-                    cur_ds_out.to_netcdf(f"{netcdf_file_name}.nc")
-        cur_ds_out = _netcdf_dataset(time, lat, lon, (np.random.rand(len(time), len(lat), len(lon))*4).astype(np.float32))
+        
+        # Generate NetCDF files for each CMIP phase, scientific model, scenario, and season
+        cmip_phases = models.CmipPhase.objects.order_by(F('sort_key').asc(nulls_last=True)) # [models.CmipPhase(name="CMIP6"), models.CmipPhase(name="Other CMIP (For Testing)")]
+        scientific_models = models.ScientificModel.objects.order_by(F('sort_key').asc(nulls_last=True)) # [models.ScientificModel(name="Multi-model median"), models.ScientificModel(name="Other Model (For Testing)")]
+        scenarios = models.Scenario.objects.order_by(F('sort_key').asc(nulls_last=True)) # [models.Scenario(name="SSP1-2.6"), models.Scenario(name="SSP3-7.0")]
+        seasons = models.Season.objects.order_by(F('sort_key').asc(nulls_last=True))
+        cmip_phases_count = len(cmip_phases)
+        scientific_models_count = len(scientific_models)
+        scenarios_count = len(scenarios)
+        seasons_count = len(seasons)
+
+        for index, cmip_phase in enumerate(cmip_phases):
+            cmip_phase_offset = index / (cmip_phases_count - 1) if cmip_phases_count > 1 else 0.5
+            for index, scientific_model in enumerate(scientific_models):
+                scientific_model_offset = index / (scientific_models_count - 1) if scientific_models_count > 1 else 0.5
+                for index, scenario in enumerate(scenarios):
+                    scenario_offset = index / (scenarios_count - 1) if scenarios_count > 1 else 0.5
+                    for index, season in enumerate(seasons):
+                        season_offset = index / (seasons_count - 1) if seasons_count > 1 else 0.5
+                        netcdf_file_name = (
+                            f"{netcdf_file_basename}_{cmip_phase.name}_{scientific_model.name}_{scenario.name}" +
+                            (f"_{season.name}" if season.name != "All" else "")
+                        )
+                        offset = cmip_phase_offset + scientific_model_offset + scenario_offset + season_offset
+                        value = (np.random.rand(len(time), len(lat), len(lon)) + offset).astype(np.float32)
+                        cur_ds_out = _netcdf_dataset(time, lat, lon, value)
+                        cur_ds_out.to_netcdf(f"{netcdf_file_name}.nc")
+        cur_ds_out = _netcdf_dataset(time, lat, lon, (np.random.rand(len(time), len(lat), len(lon)) * 5).astype(np.float32))
         cur_ds_out.to_netcdf(f"{netcdf_file_basename}.nc")
 
         layer = catalogue.models.Layer.objects.create(
@@ -116,7 +131,8 @@ class Command(BaseCommand):
             server_type = catalogue.models.ServerType.objects.get(name="thredds"),
             info_format_type = 1,
             layer_type = "wms-timeseries",
-            crs = "EPSG:4326"
+            crs = "EPSG:4326",
+            download_format = "thredds-wcs",
         )
         models.HazardLayer.objects.create(
             layer = layer,
