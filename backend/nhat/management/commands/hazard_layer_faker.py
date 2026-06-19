@@ -137,6 +137,6 @@ class Command(BaseCommand):
         models.HazardLayer.objects.create(
             layer = layer,
             color_scale_range_min = 0,
-            color_scale_range_max = 4,
+            color_scale_range_max = 5,
             color_palette = 'seq-GreysRev'
         )
