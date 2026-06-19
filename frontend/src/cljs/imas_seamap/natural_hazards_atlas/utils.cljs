@@ -137,6 +137,18 @@
    {:id "long"     :name "Long"     :start-year 2080 :end-year 2099}])
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
+(defn current-view-selected-cmip-phase
+  "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
+   scenarios for analyzing hazard data."
+  [db]
+  (let [cmip-phases            (get-in db [:current-view :cmip-phases])
+        selected-cmip-phase-id (get-in db [:current-view :selected-cmip-phase-id])
+        selected-cmip-phase    (first-where #(= (:id %) selected-cmip-phase-id) cmip-phases)]
+    (when (and (seq cmip-phases) selected-cmip-phase-id)
+      (assert selected-cmip-phase (str "Selected CMIP phase id " selected-cmip-phase-id " not found in CMIP phases list")))
+    selected-cmip-phase))
+
+; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data"
   [db]

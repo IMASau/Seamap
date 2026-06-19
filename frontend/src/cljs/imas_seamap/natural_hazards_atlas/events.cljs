@@ -441,6 +441,15 @@
     {:db (assoc-in db [:current-view :seasonal-datas] seasonal-datas)
      :dispatch (when-not selected-seasonal-data-id [:current-view/selected-seasonal-data (first seasonal-datas)])}))
 
+(defn current-view-selected-cmip-phase
+  "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
+   scenarios for analyzing hazard data."
+  [{:keys [db]} [_ {cmip-phase-id :id :as cmip-phase}]]
+  (let [cmip-phases (get-in db [:current-view :cmip-phases])]
+    (assert (some #{cmip-phase-id} (map :id cmip-phases)) (str "Selected CMIP phase " cmip-phase " is not a valid option"))
+    {:db (assoc-in db [:current-view :selected-cmip-phase-id] cmip-phase-id)
+     :dispatch [:maybe-autosave]}))
+
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data"
   [{:keys [db]} [_ {model-id :id :as model}]]
@@ -522,10 +531,11 @@
   (let [layers                        (get-in db [:map :layers])
         rich-layer-fn                 (mutils/rich-layer-fn db)
         hazard-layers                 (nhatutils/hazard-layers layers)
+        selected-cmip-phase           (nhatutils/current-view-selected-cmip-phase db)
         selected-model                (nhatutils/current-view-selected-model db)
         selected-scenario             (nhatutils/current-view-selected-scenario db)
         selected-seasonal-data        (nhatutils/current-view-selected-seasonal-data db)
-        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data)
+        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data)
         
         visible-layers
         (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup point db)

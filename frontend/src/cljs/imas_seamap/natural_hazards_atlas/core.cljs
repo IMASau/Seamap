@@ -91,9 +91,11 @@
     :info/message                         subs/user-message
     :autosave?                            subs/autosave?
     :url-base                             subs/url-base
+    :current-view/cmip-phases             nhasubs/current-view-cmip-phases
     :current-view/models                  nhasubs/current-view-models
     :current-view/scenarios               nhasubs/current-view-scenarios
     :current-view/seasonal-datas          nhasubs/current-view-seasonal-datas
+    :current-view/selected-cmip-phase     nhasubs/current-view-selected-cmip-phase
     :current-view/selected-model          nhasubs/current-view-selected-model
     :current-view/selected-scenario       nhasubs/current-view-selected-scenario
     :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data
@@ -275,6 +277,7 @@
     :current-view/update-models           [nhatevents/current-view-update-models]
     :current-view/update-scenarios        [nhatevents/current-view-update-scenarios]
     :current-view/update-seasonal-datas   [nhatevents/current-view-update-seasonal-datas]
+    :current-view/selected-cmip-phase     [nhatevents/current-view-selected-cmip-phase]
     :current-view/selected-model          [nhatevents/current-view-selected-model]
     :current-view/selected-scenario       [nhatevents/current-view-selected-scenario]
     :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]

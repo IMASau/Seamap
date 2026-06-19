@@ -2,9 +2,13 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.subs
-  (:require [clojure.string :as string]
-            [imas-seamap.utils :refer [first-where]]
-            [imas-seamap.natural-hazards-atlas.utils :as nhatutils]))
+  (:require [imas-seamap.natural-hazards-atlas.utils :as nhatutils]))
+
+(defn current-view-cmip-phases
+  "List of CMIP (Coupled Model Intercomparison Project) phases available to
+   organize models and scenarios for analyzing hazard data."
+  [db _]
+  (get-in db [:current-view :cmip-phases]))
 
 (defn current-view-models
   "List of scientific models available to analyze the hazard data"
@@ -20,6 +24,12 @@
   "List of seasonal data available to analyze the hazard data"
   [db _]
   (get-in db [:current-view :seasonal-datas]))
+
+(defn current-view-selected-cmip-phase
+  "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
+   scenarios for analyzing hazard data."
+  [db _]
+  (nhatutils/current-view-selected-cmip-phase db))
 
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data"
