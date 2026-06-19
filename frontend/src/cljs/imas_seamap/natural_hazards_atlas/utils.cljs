@@ -205,12 +205,12 @@
    season is selected.
 
    The format for hazard layer URLs is
-   `<layer_name>_<model>_<scenario>_<season>.nc`, i.e.
+   `<layer_name>_<cmip>_<model>_<scenario>_<season>.nc`, i.e.
    `variable_heatwave_amplitude_scenario_historical_format.nc` becomes
-   `variable_heatwave_amplitude_scenario_historical_format_cmip6_ssp1_summer.nc`"
-  [layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data]
+   `variable_heatwave_amplitude_scenario_historical_format_cmip6_multi-model-mean_ssp1_summer.nc`"
+  [layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data]
   (let [hazard-layers (set hazard-layers)
-        hazard-layer-server-url-fn #(string/replace % #"\.nc$" (str "_" (:name selected-model) "_" (:name selected-scenario) (when (not= (:name selected-seasonal-data) "All") (str "_" (:name selected-seasonal-data))) ".nc"))]
+        hazard-layer-server-url-fn #(string/replace % #"\.nc$" (str "_" (:name selected-cmip-phase) "_" (:name selected-model) "_" (:name selected-scenario) (when (not= (:name selected-seasonal-data) "All") (str "_" (:name selected-seasonal-data))) ".nc"))]
     (->>
      (map-utils/layer-displayed-layers-lookup layers rich-layer-fn)
      (reduce-kv

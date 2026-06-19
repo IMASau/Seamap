@@ -99,8 +99,8 @@
    `<layer_name>_<model>_<scenario>_<season>.nc`, i.e.
    `variable_heatwave_amplitude_scenario_historical_format.nc` becomes
    `variable_heatwave_amplitude_scenario_historical_format_cmip6_ssp1_summer.nc`"
-  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-model selected-scenario selected-seasonal-data] _]
-  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data))
+  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data] _]
+  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data))
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component.

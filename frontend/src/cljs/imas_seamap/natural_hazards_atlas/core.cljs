@@ -46,6 +46,7 @@
     :map.layer/legend                     msubs/layer-legend
     :map.layer/displayed-layers-lookup    [:<- [:map/layers]
                                            :<- [:map.layers/hazard-layers]
+                                           :<- [:current-view/selected-cmip-phase]
                                            :<- [:current-view/selected-model]
                                            :<- [:current-view/selected-scenario]
                                            :<- [:current-view/selected-seasonal-data]
