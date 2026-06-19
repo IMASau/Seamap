@@ -69,6 +69,20 @@ class HazardLayer(models.Model):
     def __str__(self):
         return self.layer.name
 
+class CmipPhase(models.Model):
+    """
+    CMIP (Coupled Model Intercomparison Project) phase that organizes models and
+    scenarios for analyzing hazard data.
+    """
+    name = models.CharField(max_length=50)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = "CMIP phase"
+
 class ScientificModel(models.Model):
     """Scientific model to analyze the hazard data."""
     name = models.CharField(max_length=50)

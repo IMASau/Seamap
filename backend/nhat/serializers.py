@@ -17,6 +17,12 @@ class LayerSerializer(catalogue.serializers.LayerSerializer):
     hazardlayer = HazardLayerSerializer(read_only=True)
 
 
+class CmipPhaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.CmipPhase
+        fields = '__all__'
+
+
 class ScientificModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ScientificModel
