@@ -56,6 +56,7 @@ build the CSS and the Leaflet web worker once (and after changing them):
 
 ```sh
 docker compose exec frontend yarn build-css
+docker compose exec frontend yarn build-js
 docker compose exec frontend yarn build-blueprint-css
 docker compose exec frontend yarn build-worker
 ```
