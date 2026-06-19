@@ -35,6 +35,7 @@
                                   :map/update-keyed-layers
                                   :map/join-keyed-layers
                                   :map/join-rich-layers
+                                  :current-view/update-cmip-phases
                                   :current-view/update-models
                                   :current-view/update-scenarios
                                   :current-view/update-seasonal-datas]
@@ -73,6 +74,7 @@
                                   :map/update-keyed-layers
                                   :map/join-keyed-layers
                                   :map/join-rich-layers
+                                  :current-view/update-cmip-phases
                                   :current-view/update-models
                                   :current-view/update-scenarios
                                   :current-view/update-seasonal-datas]
@@ -111,6 +113,7 @@
                                   :map/update-keyed-layers
                                   :map/join-keyed-layers
                                   :map/join-rich-layers
+                                  :current-view/update-cmip-phases
                                   :current-view/update-models
                                   :current-view/update-scenarios
                                   :current-view/update-seasonal-datas]
@@ -143,6 +146,7 @@
           dynamic-pill-region-control-values
           layer-previews
           story-maps
+          cmip-phases
           scientific-models
           scenarios
           seasons]}
@@ -169,6 +173,7 @@
       :dynamic-pill-region-control-values-url (str api-url-base dynamic-pill-region-control-values)
       :layer-previews-url          (str media-url-base layer-previews)
       :story-maps-url              (str wordpress-url-base story-maps)
+      :cmip-phases-url             (str api-url-base cmip-phases)
       :scientific-models-url       (str api-url-base scientific-models)
       :scenarios-url               (str api-url-base scenarios)
       :seasons-url                 (str api-url-base seasons)})))
@@ -282,6 +287,7 @@
                 rich-layers-url
                 dynamic-pills-url
                 story-maps-url
+                cmip-phases-url
                 scientific-models-url
                 scenarios-url
                 seasons-url]} (get-in db [:config :urls])]
@@ -347,6 +353,11 @@
                    :on-success      [:sm/update-featured-maps]
                    :on-failure      [:sm/update-featured-maps []]}
                   {:method          :get
+                   :uri             cmip-phases-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:current-view/update-cmip-phases]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
                    :uri             scientific-models-url
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:current-view/update-models]
@@ -388,6 +399,17 @@
       :value (nhatutils/encode-state db)}
      :put-hash   ""}))
 
+(defn current-view-update-cmip-phases
+  "From the REST API, update the CMIP phases the user can select in the current
+   view.
+
+   Update the selected CMIP phase to be the first in the list, if no selected phase
+   exists."
+  [{:keys [db]} [_ cmip-phases]]
+  (let [selected-cmip-phase-id (get-in db [:current-view :selected-cmip-phase-id])]
+    {:db (assoc-in db [:current-view :cmip-phases] cmip-phases)
+     :dispatch (when-not selected-cmip-phase-id [:current-view/selected-cmip-phase (first cmip-phases)])}))
+
 (defn current-view-update-models
   "From the REST API, update the scientific models the user can select in the
    current view.
@@ -401,7 +423,7 @@
 
 (defn current-view-update-scenarios
   "From the REST API, update the scenarios the user can select in the current view.
-∂
+
    Update the selected scenario to be the first in the list, if no selected
    scenario exists."
   [{:keys [db]} [_ scenarios]]
