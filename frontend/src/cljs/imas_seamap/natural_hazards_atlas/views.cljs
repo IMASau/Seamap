@@ -199,6 +199,15 @@
    [:div
     {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
     [:div {:style {:flex 1}}
+     [components/form-group {:label "CMIP"}
+      [components/select
+       {:value        @(re-frame/subscribe [:current-view/selected-cmip-phase])
+        :options      @(re-frame/subscribe [:current-view/cmip-phases])
+        :onChange     #(re-frame/dispatch [:current-view/selected-cmip-phase %])
+        :keyfns
+        {:id   :id
+         :text :name}}]]]
+    [:div {:style {:flex 1}}
      [components/form-group {:label "Model"}
       [components/select
        {:value        @(re-frame/subscribe [:current-view/selected-model])
@@ -206,7 +215,8 @@
         :onChange     #(re-frame/dispatch [:current-view/selected-model %])
         :keyfns
         {:id   :id
-         :text :name}}]]]
+         :text :name}}]]]]
+   [:div {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
     [:div {:style {:flex 1}}
      [components/form-group
       {:label "Scenario"}
@@ -216,16 +226,17 @@
         :onChange     #(re-frame/dispatch [:current-view/selected-scenario %])
         :keyfns
         {:id   :id
-         :text :name}}]]]]
-   [components/form-group
-    {:label "Seasonal Data"}
-    [components/select
-     {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data])
-      :options      @(re-frame/subscribe [:current-view/seasonal-datas])
-      :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data %])
-      :keyfns
-      {:id   :id
-       :text :name}}]]])
+         :text :name}}]]]
+    [:div {:style {:flex 1}}
+     [components/form-group
+      {:label "Seasonal Data"}
+      [components/select
+       {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data])
+        :options      @(re-frame/subscribe [:current-view/seasonal-datas])
+        :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data %])
+        :keyfns
+        {:id   :id
+         :text :name}}]]]]])
 
 (defn- current-view
   "Layer configuration panel where model, scenario, and time parameters are
