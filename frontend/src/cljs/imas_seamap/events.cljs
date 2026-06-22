@@ -448,7 +448,7 @@
     ;; alpha-nums with optional hyphens. I assume this is from records
     ;; re-hosted in our server, but with IDs created externally, but
     ;; it's just not that important to be strict here, regardless:
-    (if (re-matches #"(?i)^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}$" metadata_url)
+    (if (and metadata_url (re-matches #"(?i)^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}$" metadata_url))
       {:db         (assoc-in db [:display :info-card] :display.info/loading)
        :http-xhrio {:method          :get
                     :uri             (-> displayed-layer :metadata_url geonetwork-force-xml)
@@ -693,12 +693,15 @@
   (assoc-in db [:transect :mouse-percentage] nil))
 
 (defn download-show-link [db [_ layer bounds download-type]]
-  (update-in db [:map :controls :download]
-             merge {:link         (download-link layer bounds download-type (get-in db [:config :url-base :api-url-base]))
-                    :layer        layer
-                    :type         download-type
-                    :bbox         bounds
-                    :display-link true}))
+  (let [api-url-base (get-in db [:config :url-base :api-url-base])
+        time         (mutils/ms-to-iso (get-in db [:display :current-time]))] ; time is necessary for GeoTIFF of Thredds layers. Without image x-axis is lat and y-axis is time, with x-axis is lon and y-axis is lat
+    (update-in
+     db [:map :controls :download]
+     merge {:link         (download-link layer bounds download-type api-url-base time)
+            :layer        layer
+            :type         download-type
+            :bbox         bounds
+            :display-link true})))
 
 (defn close-download-dialogue [db _]
   (assoc-in db [:map :controls :download :display-link] false))
