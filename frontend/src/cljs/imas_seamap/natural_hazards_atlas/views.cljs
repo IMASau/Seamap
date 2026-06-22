@@ -380,7 +380,7 @@
       {:selector       ".leaflet-control-layers-toggle"
        :helperText     "Select from available basemaps"
        :helperPosition "left"}
-      {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
+      {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords" :helperPosition "top"}
       {:id "menu-button" :helperText (if catalogue-open? "Collapse menu sidebar" "Expand menu sidebar")}
       {:id "autosave-button" :helperText "Toggle autosave for the application"}
       {:id "zoom-in-control" :helperText "Zoom in"}
