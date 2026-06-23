@@ -45,7 +45,13 @@ WORKDIR /app
 COPY requirements.txt base_requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Seeds webapp/local_settings.py from the env-driven template on first start.
+# Copied into the image (not bind-mounted) so it's always on PATH.
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 EXPOSE 8000
 
 # manage.py defaults DJANGO_SETTINGS_MODULE to webapp.local_settings.
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -10,21 +10,25 @@ It runs the same two dev processes you'd run by hand:
 | `backend`  | `python manage.py runserver`        | http://localhost:8000   |
 | `frontend` | `yarn watch` (shadow-cljs)          | http://localhost:3451   |
 
-The backend connects to the **remote SQL Server** in your
-`backend/webapp/local_settings.py`. There is no local database container — if
-the DB is on the UTAS network you must be on the VPN.
+The backend connects to the **remote SQL Server** configured through
+environment variables. There is no local database container — if the DB is on
+the UTAS network you must be on the VPN.
 
 ## One-time setup
 
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
    (or Docker Engine + Compose v2).
 
-2. Create your Django settings file from the template and fill in the DB
-   credentials (ask a team member for the host / user / password):
+2. Create your `.env` file from the template and fill in the DB credentials
+   (ask a team member for the host / user / password):
 
    ```sh
-   cp backend/webapp/local_settings.py.example backend/webapp/local_settings.py
+   cp .env.example .env
    ```
+
+   `docker compose` passes these values into the backend container. On first
+   start the container seeds `backend/webapp/local_settings.py` (gitignored)
+   from an env-driven template, so there's no settings file to edit by hand.
 
 ## Start everything
 
@@ -82,9 +86,13 @@ docker compose down -v
 ## Notes / troubleshooting
 
 - **DB connection refused / timeout:** confirm you're on the UTAS VPN and that
-  the host/credentials in `local_settings.py` are correct. Docker reaches the
-  network through your host, so the VPN must be up on the host machine.
-- **`local_settings.py` not found:** you skipped step 2 of one-time setup.
+  the host/credentials in `.env` are correct. Docker reaches the network
+  through your host, so the VPN must be up on the host machine.
+- **Changed `.env` but the backend didn't pick it up:** `env_file` values are
+  read into the container at start, so restart the backend
+  (`docker compose up -d backend`). If you'd already started once, the seeded
+  `backend/webapp/local_settings.py` still reads from the (new) environment, so
+  no need to delete it — but you can, and it'll be re-seeded on next start.
 - **Frontend dep not found after a change (e.g. `node-sass: not found`):** the
   `frontend_node_modules` named volume is only seeded from the image the first
   time it's created, so it keeps shadowing the image with stale modules even

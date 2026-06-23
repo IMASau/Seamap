@@ -1,17 +1,25 @@
-# Copy this file to local_settings.py and fill in your database credentials.
+# Django local settings — values are read from the environment.
 #
-#   cp webapp/local_settings.py.example webapp/local_settings.py
-#
-# local_settings.py is gitignored (pattern: local_settings*.py) — keep real
-# credentials out of git. manage.py loads this module by default
+# Under Docker this file is copied to local_settings.py automatically the first
+# time the backend container starts (see backend/docker/entrypoint.sh), and the
+# values below are populated from the variables in the repo-root .env file (see
+# .env.example). manage.py loads this module by default
 # (DJANGO_SETTINGS_MODULE=webapp.local_settings).
+#
+# local_settings.py is gitignored (pattern: local_settings*.py) so any local
+# overrides you make to the copy stay out of git.
 from .settings import *  # noqa: F401,F403
 import os
 
-DEBUG = True
+
+def env_bool(name, default=False):
+    return os.environ.get(name, str(default)).strip().lower() in ('1', 'true', 'yes', 'on')
+
+
+DEBUG = env_bool('DEBUG', True)
 
 # Generate your own, e.g. `python -c "import secrets; print(secrets.token_urlsafe(50))"`.
-SECRET_KEY = 'change-me-to-a-random-string'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-to-a-random-string')
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -26,18 +34,19 @@ MEDIA_URL = URL_ROOT + '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 
 # Remote SQL Server connection. The host typically lives on the UTAS network,
-# so you must be on the VPN for the backend to reach it.
-# Ask a team member for the host / database / credentials.
+# so you must be on the VPN for the backend to reach it. Ask a team member for
+# the host / database / credentials and set them in .env.
 DATABASES = {
     'default': {
-        'ENGINE': 'mssql',
-        'NAME': 'YOUR_DB_NAME',
-        'USER': 'YOUR_DB_USER',
-        'PASSWORD': 'YOUR_DB_PASSWORD',
-        'HOST': 'your-db-host.its.utas.edu.au',
+        'ENGINE': os.environ.get('DB_ENGINE', 'mssql'),
+        'NAME': os.environ.get('DB_NAME', 'YOUR_DB_NAME'),
+        'USER': os.environ.get('DB_USER', 'YOUR_DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'YOUR_DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST', 'your-db-host.its.utas.edu.au'),
+        'PORT': os.environ.get('DB_PORT', '1433'),
         'OPTIONS': {
-            'driver': 'ODBC Driver 18 for SQL Server',
-            'extra_params': 'TrustServerCertificate=yes;',
+            'driver': os.environ.get('DB_DRIVER', 'ODBC Driver 18 for SQL Server'),
+            'extra_params': os.environ.get('DB_EXTRA_PARAMS', 'TrustServerCertificate=yes;'),
         },
     }
 }
@@ -53,16 +62,16 @@ CORS_ORIGIN_WHITELIST = [
 ]
 
 # Path to ogr2ogr (provided by gdal-bin in the Docker image).
-OGR2OGR_PATH = 'ogr2ogr'
+OGR2OGR_PATH = os.environ.get('OGR2OGR_PATH', 'ogr2ogr')
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-WORDPRESS_URL = ''
+WORDPRESS_URL = os.environ.get('WORDPRESS_URL', '')
 
 # Ask a team member if you need a working key; leave blank otherwise.
-SQUIDLE_API_KEY = ''
+SQUIDLE_API_KEY = os.environ.get('SQUIDLE_API_KEY', '')
 
-IS_PRODUCTION = False
+IS_PRODUCTION = env_bool('IS_PRODUCTION', False)
 
 # Human-readable app name for emails.
-SITE_NAME = "Seamap Australia"
+SITE_NAME = os.environ.get('SITE_NAME', 'Seamap Australia')

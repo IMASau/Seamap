@@ -5,9 +5,10 @@
 # Backend (Django dev server):  http://localhost:8000
 # Frontend (shadow-cljs):       http://localhost:3451   (nREPL on 8777)
 #
-# The backend connects to the *remote* SQL Server configured in
-# backend/webapp/local_settings.py (gitignored). Copy local_settings.py.example
-# to local_settings.py and fill in the DB host/credentials before starting.
+# The backend connects to the *remote* SQL Server configured via environment
+# variables. Copy .env.example to .env and fill in the DB host/credentials
+# before starting; the container seeds webapp/local_settings.py (gitignored)
+# from the env-driven template on first run.
 # If the DB is on the UTAS network, the host must be on the VPN.
 
 services:
@@ -21,6 +22,12 @@ services:
       - ./database:/database
     ports:
       - "8000:8000"
+    # DB credentials and other config; webapp/local_settings.py reads these.
+    # Optional so compose still runs before setup — the settings template falls
+    # back to placeholder defaults (which won't reach a real DB).
+    env_file:
+      - path: .env
+        required: false
     # Re-stated here for clarity; matches manage.py's default.
     environment:
       DJANGO_SETTINGS_MODULE: webapp.local_settings
