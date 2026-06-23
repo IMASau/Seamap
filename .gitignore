@@ -3,3 +3,6 @@ backlog/
 .dir-locals.el
 .clj-kondo
 **/.lsp/
+
+# Docker dev stack secrets (keep .env.example tracked)
+.env
