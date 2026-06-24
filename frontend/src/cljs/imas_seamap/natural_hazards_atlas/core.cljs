@@ -46,10 +46,7 @@
     :map.layer/legend                     msubs/layer-legend
     :map.layer/displayed-layers-lookup    [:<- [:map/layers]
                                            :<- [:map.layers/hazard-layers]
-                                           :<- [:current-view/selected-cmip-phase]
-                                           :<- [:current-view/selected-model]
-                                           :<- [:current-view/selected-scenario]
-                                           :<- [:current-view/selected-seasonal-data]
+                                           :<- [:current-view/current-view-hazard-layer-slug]
                                            nhasubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
@@ -100,6 +97,11 @@
     :current-view/selected-model          nhasubs/current-view-selected-model
     :current-view/selected-scenario       nhasubs/current-view-selected-scenario
     :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data
+    :current-view/current-view-hazard-layer-slug [:<- [:current-view/selected-cmip-phase]
+                                                  :<- [:current-view/selected-model]
+                                                  :<- [:current-view/selected-scenario]
+                                                  :<- [:current-view/selected-seasonal-data]
+                                                  nhasubs/current-view-hazard-layer-slug]
     :current-view/time-periods            nhasubs/current-view-time-periods
     :current-view/selected-time-period    nhasubs/current-view-selected-time-period
     :current-view/timeline-media-controls [:<- [:map.time/current-time] :<- [:map.time/available-times] :<- [:map.time/is-playing?] :<- [:map.time/is-loading?] nhasubs/current-view-timeline-media-controls]

@@ -46,6 +46,12 @@
   [db _]
   (nhatutils/current-view-selected-seasonal-data db))
 
+(defn current-view-hazard-layer-slug
+  "Slug inserted into hazard layer's server URL to show the correct NetCDF file
+   from the server."
+  [[selected-cmip-phase selected-model selected-scenario selected-seasonal-data] _]
+  (nhatutils/current-view-hazard-layer-slug selected-cmip-phase selected-model selected-scenario selected-seasonal-data))
+
 (defn current-view-time-periods
   "List of time periods available to analyze the hazard data."
   [_db _]
@@ -91,16 +97,10 @@
   "A lookup map of the raw (catalogue) layer to what layers should actually be
    displayed on the map.
 
-   Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to replace
-   hazard layer server URLs with whatever scientific model, scenario, and season
-   is selected.
-
-   The format for hazard layer URLs is
-   `<layer_name>_<model>_<scenario>_<season>.nc`, i.e.
-   `variable_heatwave_amplitude_scenario_historical_format.nc` becomes
-   `variable_heatwave_amplitude_scenario_historical_format_cmip6_ssp1_summer.nc`"
-  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data] _]
-  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data))
+   Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
+   hazard layer slug from the current view into the hazard layer server URLs."
+  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers hazard-layer-slug] _]
+  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers hazard-layer-slug))
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component.

@@ -183,6 +183,17 @@
       (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
     selected-seasonal-data))
 
+(defn current-view-hazard-layer-slug
+  "Slug inserted into hazard layer's server URL to show the correct NetCDF file
+   from the server."
+  [selected-cmip-phase selected-model selected-scenario selected-seasonal-data]
+  (str
+   (:name selected-cmip-phase) "_"
+   (:name selected-model) "_"
+   (:name selected-scenario)
+   (when (not= (:name selected-seasonal-data) "All")
+     (str "_" (:name selected-seasonal-data)))))
+
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data"
@@ -201,18 +212,13 @@
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn layer-displayed-layers-lookup
   "A lookup map of the raw (catalogue) layer to what layers should actually be
-   displayed on the map.
-
-   Replaces hazard layer server URLs with whatever scientific model, scenario, and
-   season is selected.
-
-   The format for hazard layer URLs is
-   `<layer_name>_<cmip>_<model>_<scenario>_<season>.nc`, i.e.
-   `variable_heatwave_amplitude_scenario_historical_format.nc` becomes
-   `variable_heatwave_amplitude_scenario_historical_format_cmip6_multi-model-mean_ssp1_summer.nc`"
-  [layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data]
+     displayed on the map.
+  
+     Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
+     hazard layer slug from the current view into the hazard layer server URLs."
+  [layers rich-layer-fn hazard-layers hazard-layer-slug]
   (let [hazard-layers (set hazard-layers)
-        hazard-layer-server-url-fn #(string/replace % #"\.nc$" (str "_" (:name selected-cmip-phase) "_" (:name selected-model) "_" (:name selected-scenario) (when (not= (:name selected-seasonal-data) "All") (str "_" (:name selected-seasonal-data))) ".nc"))]
+        hazard-layer-server-url-fn #(string/replace % #"(?=\.nc$)" (str "_" hazard-layer-slug))]
     (->>
      (map-utils/layer-displayed-layers-lookup layers rich-layer-fn)
      (reduce-kv
