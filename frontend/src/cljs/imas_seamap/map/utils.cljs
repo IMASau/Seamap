@@ -142,9 +142,9 @@
         :map.layer.download/geotiff-thredds-wcs "GeoTIFF"}
        type-key))
 
-(defmulti download-link (fn [_layer _bounds download-type _api-url-base] (type->servertype download-type)))
+(defmulti download-link (fn [_layer _bounds download-type _api-url-base _time] (type->servertype download-type)))
 
-(defmethod download-link :api [{:keys [id] :as layer} bounds download-type api-url-base]
+(defmethod download-link :api [{:keys [id] :as layer} bounds download-type api-url-base _time]
   ;; At the moment we still use geoserver for CSV downloads (all), and
   ;; shp downloads of the entire data, ie when bounds arg is nil.
   (if-not bounds
@@ -160,7 +160,8 @@
 (defmethod download-link :wfs [{:keys [server_url detail_layer layer_name] :as _layer}
                                bounds
                                download-type
-                               _api-url-base]
+                               _api-url-base
+                               _time]
   (-> (url/url server_url)
       (assoc :query {:service      "wfs"
                      :version      "1.1.0"
@@ -178,7 +179,8 @@
 (defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
                                bounds
                                download-type
-                               _api-url-base]
+                               _api-url-base
+                               _time]
   ;; Crude ratio calculations for approximating image dimensions (note, bbox could be param or layer extent):
   (let [{:keys [north south east west] :as bounds} (or bounds bounding_box)
         ratio (/ (- north south) (- east west))
@@ -198,7 +200,8 @@
 (defmethod download-link :wcs [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
                                bounds
                                download-type
-                               _api-url-base]
+                               _api-url-base
+                               _time]
   (let [{:keys [north south east west]} bounds]
     (-> (url/url server_url)
         (assoc :query {:service     "WCS"
@@ -209,21 +212,23 @@
                        :coverageId (or detail_layer layer_name)})
         (str (when bounds (str "&subset=Lat(" south "," north ")&subset=Long(" west "," east ")")))))) ; Add bounds params if provided. Can't be part of query dict because 'subset' param is used twice.
 
-(defmethod download-link :thredds-wcs [{:keys [server_url detail_layer layer_name] :as _layer}
-                               bounds
-                               download-type
-                               _api-url-base]
+(defmethod download-link :thredds-wcs
+  [{:keys [server_url detail_layer layer_name] :as _layer}
+   bounds
+   download-type
+   _api-url-base
+   time]
   (-> (url/url (string/replace server_url "/wms/" "/wcs/"))
       (assoc :query (merge
                      {:service     "WCS"
                       :version     "1.0.0"
                       :request     "GetCoverage"
                       :coverage    (or detail_layer layer_name)
-                      :crs         "OGC:CRS84" ; EPSG:4326
-                      :width       141
-                      :height      97
+                      :crs         "OGC:CRS84"
                       :format      (type->format-str download-type)}
-                     (when bounds {:bbox (bounds->str:wms bounds)})))
+                     (when bounds {:bbox (bounds->str:wms bounds)})
+                     (when (= download-type :map.layer.download/geotiff-thredds-wcs)
+                       {:time time})))
       str))
 
 (defmulti feature-info-response->display
