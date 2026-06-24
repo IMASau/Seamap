@@ -206,7 +206,7 @@
         :onChange     #(re-frame/dispatch [:current-view/selected-cmip-phase %])
         :keyfns
         {:id   :id
-         :text :name}}]]]
+         :text :display_name}}]]]
     [:div {:style {:flex 1}}
      [components/form-group {:label "Model"}
       [components/select
@@ -215,7 +215,7 @@
         :onChange     #(re-frame/dispatch [:current-view/selected-model %])
         :keyfns
         {:id   :id
-         :text :name}}]]]]
+         :text :display_name}}]]]]
    [:div {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
     [:div {:style {:flex 1}}
      [components/form-group
@@ -226,7 +226,7 @@
         :onChange     #(re-frame/dispatch [:current-view/selected-scenario %])
         :keyfns
         {:id   :id
-         :text :name}}]]]
+         :text :display_name}}]]]
     [:div {:style {:flex 1}}
      [components/form-group
       {:label "Seasonal Data"}
@@ -236,7 +236,7 @@
         :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data %])
         :keyfns
         {:id   :id
-         :text :name}}]]]]])
+         :text :display_name}}]]]]])
 
 (defn- current-view
   "Layer configuration panel where model, scenario, and time parameters are
