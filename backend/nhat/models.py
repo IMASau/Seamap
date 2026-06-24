@@ -74,35 +74,39 @@ class CmipPhase(models.Model):
     CMIP (Coupled Model Intercomparison Project) phase that organizes models and
     scenarios for analyzing hazard data.
     """
-    name = models.CharField(max_length=50)
+    name = models.SlugField(unique=True)
+    display_name = models.CharField(max_length=50, unique=True)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
     
     def __str__(self):
-        return self.name
+        return self.display_name
     
     class Meta:
         verbose_name = "CMIP phase"
 
 class ScientificModel(models.Model):
     """Scientific model to analyze the hazard data."""
-    name = models.CharField(max_length=50)
+    name = models.SlugField(unique=True)
+    display_name = models.CharField(max_length=50, unique=True)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.display_name
 
 class Scenario(models.Model):
     """Scenario to analyze the hazard data."""
-    name = models.CharField(max_length=50)
+    name = models.SlugField(unique=True)
+    display_name = models.CharField(max_length=50, unique=True)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.display_name
 
 class Season(models.Model):
     """Seasonal data to analyze the hazard data."""
-    name = models.CharField(max_length=50)
+    name = models.SlugField(unique=True)
+    display_name = models.CharField(max_length=50, unique=True)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.display_name
