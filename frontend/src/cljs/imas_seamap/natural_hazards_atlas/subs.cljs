@@ -25,6 +25,20 @@
   [db _]
   (get-in db [:current-view :seasonal-datas]))
 
+(defn current-view-filtered-models
+  "Filtered list of scientific models available to analyze the hazard data.
+
+   Only models found in the current CMIP phase are accessible."
+  [[models selected-cmip-phase] _]
+  (nhatutils/current-view-filtered-models models selected-cmip-phase))
+
+(defn current-view-filtered-scenarios
+  "Filtered list of scenarios models available to analyze the hazard data.
+
+   Only scenarios found in the current model are accessible."
+  [[scenarios selected-model] _]
+  (nhatutils/current-view-filtered-scenarios scenarios selected-model))
+
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
    scenarios for analyzing hazard data."
@@ -32,12 +46,18 @@
   (nhatutils/current-view-selected-cmip-phase db))
 
 (defn current-view-selected-model
-  "Scientific model to analyze the hazard data"
+  "Scientific model to analyze the hazard data.
+
+   If the value selected by the user isn't one of the models found in the current
+   CMIP phase, then default to the first available model."
   [db _]
   (nhatutils/current-view-selected-model db))
 
 (defn current-view-selected-scenario
-  "Scenario to analyze the hazard data"
+  "Scenario to analyze the hazard data.
+
+   If the value selected by the user isn't one of the scenarios found in the
+   current scientific model, then default to the first available scenario."
   [db _]
   (nhatutils/current-view-selected-scenario db))
 

@@ -93,6 +93,12 @@
     :current-view/models                  nhasubs/current-view-models
     :current-view/scenarios               nhasubs/current-view-scenarios
     :current-view/seasonal-datas          nhasubs/current-view-seasonal-datas
+    :current-view/filtered-models         [:<- [:current-view/models]
+                                           :<- [:current-view/selected-cmip-phase]
+                                           nhasubs/current-view-filtered-models]
+    :current-view/filtered-scenarios      [:<- [:current-view/scenarios]
+                                           :<- [:current-view/selected-model]
+                                           nhasubs/current-view-filtered-scenarios]
     :current-view/selected-cmip-phase     nhasubs/current-view-selected-cmip-phase
     :current-view/selected-model          nhasubs/current-view-selected-model
     :current-view/selected-scenario       nhasubs/current-view-selected-scenario

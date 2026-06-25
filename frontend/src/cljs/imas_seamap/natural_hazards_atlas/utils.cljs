@@ -138,6 +138,22 @@
    {:id "medium"   :name "Medium"   :start-year 2050 :end-year 2069}
    {:id "long"     :name "Long"     :start-year 2080 :end-year 2099}])
 
+; Extracted function from a sub so that it can be used (sparingly) in events
+(defn current-view-filtered-models
+  "Filtered list of scientific models available to analyze the hazard data.
+
+   Only models found in the current CMIP phase are accessible."
+  [models selected-cmip-phase]
+  (filter #((set (:scientific_models selected-cmip-phase)) (:id %)) models))
+
+; Extracted function from a sub so that it can be used (sparingly) in events
+(defn current-view-filtered-scenarios
+  "Filtered list of scenarios models available to analyze the hazard data.
+
+   Only scenarios found in the current model are accessible."
+  [scenarios selected-model]
+  (filter #((set (:scenarios selected-model)) (:id %)) scenarios))
+
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
@@ -152,23 +168,37 @@
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-model
-  "Scientific model to analyze the hazard data"
+  "Scientific model to analyze the hazard data.
+
+   If the value selected by the user isn't one of the models found in the current
+   CMIP phase, then default to the first available model."
   [db]
-  (let [models            (get-in db [:current-view :models])
-        selected-model-id (get-in db [:current-view :selected-model-id])
-        selected-model    (first-where #(= (:id %) selected-model-id) models)]
-    (when (and (seq models) selected-model-id)
+  (let [models              (get-in db [:current-view :models])
+        selected-cmip-phase (current-view-selected-cmip-phase db)
+        filtered-models     (current-view-filtered-models models selected-cmip-phase)
+        selected-model-id   (get-in db [:current-view :selected-model-id])
+        selected-model      (if ((set (:scientific_models selected-cmip-phase)) selected-model-id)
+                              (first-where #(= (:id %) selected-model-id) models)
+                              (first filtered-models))]
+    (when (and (seq filtered-models) selected-model-id)
       (assert selected-model (str "Selected model id " selected-model-id " not found in models list")))
     selected-model))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-scenario
-  "Scenario to analyze the hazard data"
+  "Scenario to analyze the hazard data.
+
+   If the value selected by the user isn't one of the scenarios found in the
+   current scientific model, then default to the first available scenario."
   [db]
   (let [scenarios               (get-in db [:current-view :scenarios])
+        selected-model          (current-view-selected-model db)
+        filtered-scenarios      (current-view-filtered-scenarios scenarios selected-model)
         selected-scenario-id    (get-in db [:current-view :selected-scenario-id])
-        selected-scenario       (first-where #(= (:id %) selected-scenario-id) scenarios)]
-    (when (and (seq scenarios) selected-scenario-id)
+        selected-scenario       (if ((set (:scenarios selected-model)) selected-scenario-id)
+                                  (first-where #(= (:id %) selected-scenario-id) scenarios)
+                                  (first filtered-scenarios))]
+    (when (and (seq filtered-scenarios) selected-scenario-id)
       (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list")))
     selected-scenario))
 
