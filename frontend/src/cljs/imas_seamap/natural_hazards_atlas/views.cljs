@@ -199,33 +199,44 @@
    [:div
     {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
     [:div {:style {:flex 1}}
+     [components/form-group {:label "CMIP"}
+      [components/select
+       {:value        @(re-frame/subscribe [:current-view/selected-cmip-phase])
+        :options      @(re-frame/subscribe [:current-view/cmip-phases])
+        :onChange     #(re-frame/dispatch [:current-view/selected-cmip-phase %])
+        :keyfns
+        {:id   :id
+         :text :display_name}}]]]
+    [:div {:style {:flex 1}}
      [components/form-group {:label "Model"}
       [components/select
        {:value        @(re-frame/subscribe [:current-view/selected-model])
-        :options      @(re-frame/subscribe [:current-view/models])
+        :options      @(re-frame/subscribe [:current-view/filtered-models])
         :onChange     #(re-frame/dispatch [:current-view/selected-model %])
         :keyfns
         {:id   :id
-         :text :name}}]]]
+         :text :display_name}}]]]]
+   [:div {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
     [:div {:style {:flex 1}}
      [components/form-group
       {:label "Scenario"}
       [components/select
        {:value        @(re-frame/subscribe [:current-view/selected-scenario])
-        :options      @(re-frame/subscribe [:current-view/scenarios])
+        :options      @(re-frame/subscribe [:current-view/filtered-scenarios])
         :onChange     #(re-frame/dispatch [:current-view/selected-scenario %])
         :keyfns
         {:id   :id
-         :text :name}}]]]]
-   [components/form-group
-    {:label "Seasonal Data"}
-    [components/select
-     {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data])
-      :options      @(re-frame/subscribe [:current-view/seasonal-datas])
-      :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data %])
-      :keyfns
-      {:id   :id
-       :text :name}}]]])
+         :text :display_name}}]]]
+    [:div {:style {:flex 1}}
+     [components/form-group
+      {:label "Seasonal Data"}
+      [components/select
+       {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data])
+        :options      @(re-frame/subscribe [:current-view/seasonal-datas])
+        :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data %])
+        :keyfns
+        {:id   :id
+         :text :display_name}}]]]]])
 
 (defn- side-by-side-toggle []
   [:<>

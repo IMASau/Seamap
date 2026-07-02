@@ -69,26 +69,122 @@ class HazardLayer(models.Model):
     def __str__(self):
         return self.layer.name
 
+class CmipPhase(models.Model):
+    """
+    CMIP (Coupled Model Intercomparison Project) phase that organizes models and
+    scenarios for analyzing hazard data.
+    """
+    name = models.SlugField(
+        unique=True,
+        help_text="""
+            Unique slug used for the NetCDF file name to associate it with this CMIP phase.
+        """,
+    )
+    display_name = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Name displayed for this CMIP phase in the interactive map.",
+    )
+    sort_key = models.CharField(
+        max_length=10,
+        null=True,
+        blank=True,
+        help_text="""
+            Determines the order CMIP phases are shown in the app. Sorted
+            alphabetically/numerically, with blanks last. First CMIP phase in order is the
+            default selection when the app is first loaded.
+        """
+    )
+    scientific_models = models.ManyToManyField(
+        "ScientificModel",
+        help_text="Scientific models available under this scientific CMIP phase.",
+    )
+    
+    def __str__(self):
+        return self.display_name
+    
+    class Meta:
+        verbose_name = "CMIP phase"
+
 class ScientificModel(models.Model):
     """Scientific model to analyze the hazard data."""
-    name = models.CharField(max_length=50)
-    sort_key = models.CharField(max_length=10, null=True, blank=True)
+    name = models.SlugField(
+        unique=True,
+        help_text="""
+            Unique slug used for the NetCDF file name to associate it with this model.
+        """,
+    )
+    display_name = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Name displayed for this model in the interactive map.",
+    )
+    sort_key = models.CharField(
+        max_length=10,
+        null=True,
+        blank=True,
+        help_text="""
+            Determines the order scientific models are shown in the app. Sorted
+            alphabetically/numerically, with blanks last. First model in order is the
+            default selection when the app is first loaded.
+        """,
+    )
+    scenarios = models.ManyToManyField(
+        "Scenario",
+        help_text="Scenarios available under this scientific model.",
+    )
 
     def __str__(self):
-        return self.name
+        return self.display_name
 
 class Scenario(models.Model):
     """Scenario to analyze the hazard data."""
-    name = models.CharField(max_length=50)
-    sort_key = models.CharField(max_length=10, null=True, blank=True)
+    name = models.SlugField(
+        unique=True,
+        help_text="""
+            Unique slug used for the NetCDF file name to associate it with this scenario.
+        """,
+    )
+    display_name = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Name displayed for this scenario in the interactive map.",
+    )
+    sort_key = models.CharField(
+        max_length=10,
+        null=True,
+        blank=True,
+        help_text="""
+            Determines the order scenarios are shown in the app. Sorted
+            alphabetically/numerically, with blanks last. First scenario in order is the
+            default selection when the app is first loaded.
+        """,
+    )
 
     def __str__(self):
-        return self.name
+        return self.display_name
 
 class Season(models.Model):
     """Seasonal data to analyze the hazard data."""
-    name = models.CharField(max_length=50)
-    sort_key = models.CharField(max_length=10, null=True, blank=True)
+    name = models.SlugField(
+        unique=True,
+        help_text="""
+            Unique slug used for the NetCDF file name to associate it with this season.
+        """,
+    )
+    display_name = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Name displayed for this season in the interactive map.",
+    )
+    sort_key = models.CharField(
+        max_length=10,
+        null=True,
+        blank=True,
+        help_text="""
+            Determines the order seasons are shown in the app. Sorted alphabetically/numerically, with blanks last. First CMIP phase in order is the default selection when the app is first loaded.
+        """,
+    )
 
     def __str__(self):
-        return self.name
+        return self.display_name

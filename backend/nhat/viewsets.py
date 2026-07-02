@@ -55,6 +55,12 @@ class LayerViewset(viewsets.ReadOnlyModelViewSet):
         return response
 
 
+class CmipPhaseViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = models.CmipPhase.objects.all() \
+        .order_by(F('sort_key').asc(nulls_last=True))
+    serializer_class = serializers.CmipPhaseSerializer
+
+
 class ScientificModelViewset(viewsets.ReadOnlyModelViewSet):
     queryset = models.ScientificModel.objects.all() \
         .order_by(F('sort_key').asc(nulls_last=True))
