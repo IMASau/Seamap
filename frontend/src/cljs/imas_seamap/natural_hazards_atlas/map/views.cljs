@@ -79,16 +79,17 @@
         map-b                (r/atom nil)
         side-by-side-active? (re-frame/subscribe [:ui.side-by-side/active?])
         split-ratio          (re-frame/subscribe [:ui.side-by-side/split-ratio])]
-    (r/track! #(when (and @map-a @map-b) (.sync @map-a @map-b) (.sync @map-b @map-a)))
+    (r/track!
+     #(when (and @map-a @map-b)
+        (if @side-by-side-active?
+          (do (.sync @map-a @map-b) (.sync @map-b @map-a))
+          (do (.unsync @map-a @map-b) (.unsync @map-b @map-a)))))
     (r/track!
      (fn []
        @split-ratio          ; re-render when split ratio changes
        @side-by-side-active? ; re-render when side-by-side mode is toggled
-       (js/setTimeout
-        #(do
-           (when @map-a (.invalidateSize @map-a))
-           (when @map-b (.invalidateSize @map-b)))
-        50)))
+       (when @map-a (.invalidateSize @map-a))
+       (when @map-b (.invalidateSize @map-b))))
     (fn []
       (let [{:keys [center zoom bounds]}                @(re-frame/subscribe [:map/props])
             feature-info                                @(re-frame/subscribe [:map.feature/info])

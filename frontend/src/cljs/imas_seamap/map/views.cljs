@@ -439,7 +439,6 @@
         feature-info                                @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])]
-    (js/console.log "Rerender map-component")
     [leaflet/map-container
      (merge
       {:id                   "map"
