@@ -42,6 +42,7 @@
                                       [:feature :location]
                                       [:feature :leaflet-props]
                                       [:dynamic-pills :states]
+                                      [:current-view :selected-cmip-phase-id]
                                       [:current-view :selected-model-id]
                                       [:current-view :selected-scenario-id]
                                       [:current-view :selected-seasonal-data-id]
@@ -85,6 +86,7 @@
                  [:feature :location]
                  [:feature :leaflet-props]
                  [:dynamic-pills :states]
+                 [:current-view :selected-cmip-phase-id]
                  [:current-view :selected-model-id]
                  [:current-view :selected-scenario-id]
                  [:current-view :selected-seasonal-data-id]
@@ -136,25 +138,67 @@
    {:id "medium"   :name "Medium"   :start-year 2050 :end-year 2069}
    {:id "long"     :name "Long"     :start-year 2080 :end-year 2099}])
 
+; Extracted function from a sub so that it can be used (sparingly) in events
+(defn current-view-filtered-models
+  "Filtered list of scientific models available to analyze the hazard data.
+
+   Only models found in the current CMIP phase are accessible."
+  [models selected-cmip-phase]
+  (filter #((set (:scientific_models selected-cmip-phase)) (:id %)) models))
+
+; Extracted function from a sub so that it can be used (sparingly) in events
+(defn current-view-filtered-scenarios
+  "Filtered list of scenarios models available to analyze the hazard data.
+
+   Only scenarios found in the current model are accessible."
+  [scenarios selected-model]
+  (filter #((set (:scenarios selected-model)) (:id %)) scenarios))
+
+; Extracted function from a sub so that it can be used (sparingly) in events.
+(defn current-view-selected-cmip-phase
+  "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
+   scenarios for analyzing hazard data."
+  [db]
+  (let [cmip-phases            (get-in db [:current-view :cmip-phases])
+        selected-cmip-phase-id (get-in db [:current-view :selected-cmip-phase-id])
+        selected-cmip-phase    (first-where #(= (:id %) selected-cmip-phase-id) cmip-phases)]
+    (when (and (seq cmip-phases) selected-cmip-phase-id)
+      (assert selected-cmip-phase (str "Selected CMIP phase id " selected-cmip-phase-id " not found in CMIP phases list")))
+    selected-cmip-phase))
+
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-model
-  "Scientific model to analyze the hazard data"
+  "Scientific model to analyze the hazard data.
+
+   If the value selected by the user isn't one of the models found in the current
+   CMIP phase, then default to the first available model."
   [db]
-  (let [models            (get-in db [:current-view :models])
-        selected-model-id (get-in db [:current-view :selected-model-id])
-        selected-model    (first-where #(= (:id %) selected-model-id) models)]
-    (when (and (seq models) selected-model-id)
+  (let [models              (get-in db [:current-view :models])
+        selected-cmip-phase (current-view-selected-cmip-phase db)
+        filtered-models     (current-view-filtered-models models selected-cmip-phase)
+        selected-model-id   (get-in db [:current-view :selected-model-id])
+        selected-model      (if ((set (:scientific_models selected-cmip-phase)) selected-model-id)
+                              (first-where #(= (:id %) selected-model-id) models)
+                              (first filtered-models))]
+    (when (and (seq filtered-models) selected-model-id)
       (assert selected-model (str "Selected model id " selected-model-id " not found in models list")))
     selected-model))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-scenario
-  "Scenario to analyze the hazard data"
+  "Scenario to analyze the hazard data.
+
+   If the value selected by the user isn't one of the scenarios found in the
+   current scientific model, then default to the first available scenario."
   [db]
   (let [scenarios               (get-in db [:current-view :scenarios])
+        selected-model          (current-view-selected-model db)
+        filtered-scenarios      (current-view-filtered-scenarios scenarios selected-model)
         selected-scenario-id    (get-in db [:current-view :selected-scenario-id])
-        selected-scenario       (first-where #(= (:id %) selected-scenario-id) scenarios)]
-    (when (and (seq scenarios) selected-scenario-id)
+        selected-scenario       (if ((set (:scenarios selected-model)) selected-scenario-id)
+                                  (first-where #(= (:id %) selected-scenario-id) scenarios)
+                                  (first filtered-scenarios))]
+    (when (and (seq filtered-scenarios) selected-scenario-id)
       (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list")))
     selected-scenario))
 
@@ -168,6 +212,17 @@
     (when (and (seq seasonal-datas) selected-seasonal-data-id)
       (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
     selected-seasonal-data))
+
+(defn current-view-hazard-layer-slug
+  "Slug inserted into hazard layer's server URL to show the correct NetCDF file
+   from the server."
+  [selected-cmip-phase selected-model selected-scenario selected-seasonal-data]
+  (str
+   (:name selected-cmip-phase) "_"
+   (:name selected-model) "_"
+   (:name selected-scenario)
+   (when (not= (:name selected-seasonal-data) "All")
+     (str "_" (:name selected-seasonal-data)))))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-time-period
@@ -187,18 +242,13 @@
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn layer-displayed-layers-lookup
   "A lookup map of the raw (catalogue) layer to what layers should actually be
-   displayed on the map.
-
-   Replaces hazard layer server URLs with whatever scientific model, scenario, and
-   season is selected.
-
-   The format for hazard layer URLs is
-   `<layer_name>_<model>_<scenario>_<season>.nc`, i.e.
-   `variable_heatwave_amplitude_scenario_historical_format.nc` becomes
-   `variable_heatwave_amplitude_scenario_historical_format_cmip6_ssp1_summer.nc`"
-  [layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data]
+     displayed on the map.
+  
+     Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
+     hazard layer slug from the current view into the hazard layer server URLs."
+  [layers rich-layer-fn hazard-layers hazard-layer-slug]
   (let [hazard-layers (set hazard-layers)
-        hazard-layer-server-url-fn #(string/replace % #"\.nc$" (str "_" (:name selected-model) "_" (:name selected-scenario) (when (not= (:name selected-seasonal-data) "All") (str "_" (:name selected-seasonal-data))) ".nc"))]
+        hazard-layer-server-url-fn #(string/replace % #"(?=\.nc$)" (str "_" hazard-layer-slug))]
     (->>
      (map-utils/layer-displayed-layers-lookup layers rich-layer-fn)
      (reduce-kv

@@ -46,9 +46,7 @@
     :map.layer/legend                     msubs/layer-legend
     :map.layer/displayed-layers-lookup    [:<- [:map/layers]
                                            :<- [:map.layers/hazard-layers]
-                                           :<- [:current-view/selected-model]
-                                           :<- [:current-view/selected-scenario]
-                                           :<- [:current-view/selected-seasonal-data]
+                                           :<- [:current-view/current-view-hazard-layer-slug]
                                            nhasubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
@@ -91,12 +89,25 @@
     :info/message                         subs/user-message
     :autosave?                            subs/autosave?
     :url-base                             subs/url-base
+    :current-view/cmip-phases             nhasubs/current-view-cmip-phases
     :current-view/models                  nhasubs/current-view-models
     :current-view/scenarios               nhasubs/current-view-scenarios
     :current-view/seasonal-datas          nhasubs/current-view-seasonal-datas
+    :current-view/filtered-models         [:<- [:current-view/models]
+                                           :<- [:current-view/selected-cmip-phase]
+                                           nhasubs/current-view-filtered-models]
+    :current-view/filtered-scenarios      [:<- [:current-view/scenarios]
+                                           :<- [:current-view/selected-model]
+                                           nhasubs/current-view-filtered-scenarios]
+    :current-view/selected-cmip-phase     nhasubs/current-view-selected-cmip-phase
     :current-view/selected-model          nhasubs/current-view-selected-model
     :current-view/selected-scenario       nhasubs/current-view-selected-scenario
     :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data
+    :current-view/current-view-hazard-layer-slug [:<- [:current-view/selected-cmip-phase]
+                                                  :<- [:current-view/selected-model]
+                                                  :<- [:current-view/selected-scenario]
+                                                  :<- [:current-view/selected-seasonal-data]
+                                                  nhasubs/current-view-hazard-layer-slug]
     :current-view/time-periods            nhasubs/current-view-time-periods
     :current-view/selected-time-period    nhasubs/current-view-selected-time-period
     :current-view/timeline-media-controls [:<- [:map.time/current-time] :<- [:map.time/available-times] :<- [:map.time/is-playing?] :<- [:map.time/is-loading?] nhasubs/current-view-timeline-media-controls]
@@ -271,9 +282,11 @@
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close
     :download-click                       (fn [db [_ {:keys [_link]}]] db)
+    :current-view/update-cmip-phases      [nhatevents/current-view-update-cmip-phases]
     :current-view/update-models           [nhatevents/current-view-update-models]
     :current-view/update-scenarios        [nhatevents/current-view-update-scenarios]
     :current-view/update-seasonal-datas   [nhatevents/current-view-update-seasonal-datas]
+    :current-view/selected-cmip-phase     [nhatevents/current-view-selected-cmip-phase]
     :current-view/selected-model          [nhatevents/current-view-selected-model]
     :current-view/selected-scenario       [nhatevents/current-view-selected-scenario]
     :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]

@@ -74,9 +74,11 @@
    :dynamic-pills {:dynamic-pills []
                    :states        {}
                    :async-datas   {}}
-   :current-view  {:models                    []
+   :current-view  {:cmip-phases               []
+                   :models                    []
                    :scenarios                 []
                    :seasonal-datas            []
+                   :selected-cmip-phase-id    nil
                    :selected-model-id         nil
                    :selected-scenario-id      nil
                    :selected-seasonal-data-id nil
@@ -101,6 +103,7 @@
                                  :data-in-region        "habitat/datainregion"
                                  :cql-filter-values     "habitat/cqlfiltervalues"
                                  :dynamic-pill-region-control-values "habitat/dynamicpillregioncontrolvalues"
+                                 :cmip-phases           "nhatcmipphases/"
                                  :scientific-models     "nhatscientificmodels/"
                                  :scenarios             "nhatscenarios/"
                                  :seasons               "nhatseasons/"}

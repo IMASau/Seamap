@@ -2,9 +2,13 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.subs
-  (:require [clojure.string :as string]
-            [imas-seamap.utils :refer [first-where]]
-            [imas-seamap.natural-hazards-atlas.utils :as nhatutils]))
+  (:require [imas-seamap.natural-hazards-atlas.utils :as nhatutils]))
+
+(defn current-view-cmip-phases
+  "List of CMIP (Coupled Model Intercomparison Project) phases available to
+   organize models and scenarios for analyzing hazard data."
+  [db _]
+  (get-in db [:current-view :cmip-phases]))
 
 (defn current-view-models
   "List of scientific models available to analyze the hazard data"
@@ -21,13 +25,39 @@
   [db _]
   (get-in db [:current-view :seasonal-datas]))
 
+(defn current-view-filtered-models
+  "Filtered list of scientific models available to analyze the hazard data.
+
+   Only models found in the current CMIP phase are accessible."
+  [[models selected-cmip-phase] _]
+  (nhatutils/current-view-filtered-models models selected-cmip-phase))
+
+(defn current-view-filtered-scenarios
+  "Filtered list of scenarios models available to analyze the hazard data.
+
+   Only scenarios found in the current model are accessible."
+  [[scenarios selected-model] _]
+  (nhatutils/current-view-filtered-scenarios scenarios selected-model))
+
+(defn current-view-selected-cmip-phase
+  "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
+   scenarios for analyzing hazard data."
+  [db _]
+  (nhatutils/current-view-selected-cmip-phase db))
+
 (defn current-view-selected-model
-  "Scientific model to analyze the hazard data"
+  "Scientific model to analyze the hazard data.
+
+   If the value selected by the user isn't one of the models found in the current
+   CMIP phase, then default to the first available model."
   [db _]
   (nhatutils/current-view-selected-model db))
 
 (defn current-view-selected-scenario
-  "Scenario to analyze the hazard data"
+  "Scenario to analyze the hazard data.
+
+   If the value selected by the user isn't one of the scenarios found in the
+   current scientific model, then default to the first available scenario."
   [db _]
   (nhatutils/current-view-selected-scenario db))
 
@@ -35,6 +65,12 @@
   "Seasonal data to analyze the hazard data"
   [db _]
   (nhatutils/current-view-selected-seasonal-data db))
+
+(defn current-view-hazard-layer-slug
+  "Slug inserted into hazard layer's server URL to show the correct NetCDF file
+   from the server."
+  [[selected-cmip-phase selected-model selected-scenario selected-seasonal-data] _]
+  (nhatutils/current-view-hazard-layer-slug selected-cmip-phase selected-model selected-scenario selected-seasonal-data))
 
 (defn current-view-time-periods
   "List of time periods available to analyze the hazard data."
@@ -81,16 +117,10 @@
   "A lookup map of the raw (catalogue) layer to what layers should actually be
    displayed on the map.
 
-   Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to replace
-   hazard layer server URLs with whatever scientific model, scenario, and season
-   is selected.
-
-   The format for hazard layer URLs is
-   `<layer_name>_<model>_<scenario>_<season>.nc`, i.e.
-   `variable_heatwave_amplitude_scenario_historical_format.nc` becomes
-   `variable_heatwave_amplitude_scenario_historical_format_cmip6_ssp1_summer.nc`"
-  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-model selected-scenario selected-seasonal-data] _]
-  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data))
+   Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
+   hazard layer slug from the current view into the hazard layer server URLs."
+  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers hazard-layer-slug] _]
+  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers hazard-layer-slug))
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component.
