@@ -49,7 +49,7 @@
     :map.time/current-time                msubs/current-time
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
-    :sok/boundary-layer-filter            (fn [] #(identity nil))
+    :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in Futures of Seafood, but the sub is required by catalogue-layers component in map views
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info

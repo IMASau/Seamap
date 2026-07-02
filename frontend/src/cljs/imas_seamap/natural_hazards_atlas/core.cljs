@@ -66,7 +66,7 @@
     :map/viewport-only?                   msubs/viewport-only?
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
-    :sok/boundary-layer-filter            (fn [] #(identity nil))
+    :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in Natural Hazards Atlas, but the sub is required by catalogue-layers component in map views
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
