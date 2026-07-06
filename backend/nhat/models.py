@@ -95,14 +95,10 @@ class CmipPhase(models.Model):
             default selection when the app is first loaded.
         """
     )
-    scientific_models = models.ManyToManyField(
-        "ScientificModel",
-        help_text="Scientific models available under this scientific CMIP phase.",
-    )
-    
+
     def __str__(self):
         return self.display_name
-    
+
     class Meta:
         verbose_name = "CMIP phase"
 
@@ -128,10 +124,6 @@ class ScientificModel(models.Model):
             alphabetically/numerically, with blanks last. First model in order is the
             default selection when the app is first loaded.
         """,
-    )
-    scenarios = models.ManyToManyField(
-        "Scenario",
-        help_text="Scenarios available under this scientific model.",
     )
 
     def __str__(self):
