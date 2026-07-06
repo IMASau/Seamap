@@ -1,5 +1,6 @@
 """Database models for the NHAT app."""
 from django.db import models
+from django.db.models import Q
 from catalogue.models import Layer
 
 
@@ -57,11 +58,9 @@ class HazardLayer(models.Model):
     """Hazard layer info added to a standard Thredds server layer."""
     layer = models.OneToOneField(
         Layer,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         primary_key=True,
     )
-    color_scale_range_min = models.IntegerField(default=0)
-    color_scale_range_max = models.IntegerField(default=100)
     above_max_color = models.CharField(max_length=8, default='0x000000')
     below_min_color = models.CharField(max_length=8, default='0x000000')
     color_palette = models.CharField(max_length=50, choices=COLOR_PALETTE_CHOICES, default='default')
@@ -186,3 +185,72 @@ class Season(models.Model):
 
     def __str__(self):
         return self.display_name
+
+class HazardLayerDataset(models.Model):
+    """Dataset associated with a hazard layer."""
+    hazard_layer = models.ForeignKey(
+        HazardLayer,
+        related_name="datasets",
+        on_delete=models.PROTECT,
+    )
+    cmip_phase = models.ForeignKey(
+        CmipPhase,
+        related_name="datasets",
+        on_delete=models.PROTECT,
+    )
+    scientific_model = models.ForeignKey(
+        ScientificModel,
+        related_name="datasets",
+        on_delete=models.PROTECT,
+    )
+    scenario = models.ForeignKey(
+        Scenario,
+        related_name="datasets",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT
+    )
+    season = models.ForeignKey(
+        Season,
+        related_name="datasets",
+        on_delete=models.PROTECT,
+    )
+    color_scale_range_min = models.FloatField(default=0)
+    color_scale_range_max = models.FloatField(default=100)
+    is_historical = models.BooleanField(default=False)
+
+    def __str__(self):
+        scenario_display = "Historical" if self.is_historical else self.scenario
+        return f"{self.hazard_layer} Dataset ({self.cmip_phase} / {self.scientific_model} / {scenario_display} / {self.season})"
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    (Q(is_historical=True) & Q(scenario__isnull=True)) |
+                    (Q(is_historical=False) & Q(scenario__isnull=False))
+                ),
+                name="historical_requires_null_scenario",
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "hazard_layer",
+                    "cmip_phase",
+                    "scientific_model",
+                    "season",
+                ],
+                condition=Q(is_historical=True),
+                name="unique_historical_dataset",
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "hazard_layer",
+                    "cmip_phase",
+                    "scientific_model",
+                    "scenario",
+                    "season",
+                ],
+                condition=Q(is_historical=False),
+                name="unique_projected_dataset",
+            ),
+        ]
