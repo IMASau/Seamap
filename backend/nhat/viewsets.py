@@ -7,7 +7,7 @@ from . import models, serializers
 import re
 import requests
 from django.core.cache import cache
-from django.db.models import F, Value
+from django.db.models import F, Prefetch, Value
 from django.db.models.functions import Coalesce
 from django.views.decorators.cache import cache_page
 from rest_framework import viewsets
@@ -30,7 +30,16 @@ class LayerViewset(viewsets.ReadOnlyModelViewSet):
             'category',
             'data_classification',
             'organisation',
-            'server_type'
+            'server_type',
+            Prefetch(
+                'hazardlayer__datasets',
+                queryset=models.HazardLayerDataset.objects.select_related(
+                    'cmip_phase',
+                    'scientific_model',
+                    'scenario',
+                    'season',
+                ),
+            ),
         ) \
         .select_related('hazardlayer') \
         .annotate(sort_key_null=Coalesce('sort_key', Value('zzzzzzzz'))) \
