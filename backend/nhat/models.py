@@ -102,6 +102,11 @@ class CmipPhase(models.Model):
     class Meta:
         verbose_name = "CMIP phase"
 
+DATA_CATEGORY_CHOICES = [
+    ('ensemble_statistic', 'ensemble_statistic'),
+    ('model', 'model'),
+]
+
 class ScientificModel(models.Model):
     """Scientific model to analyze the hazard data."""
     name = models.SlugField(
@@ -125,6 +130,7 @@ class ScientificModel(models.Model):
             default selection when the app is first loaded.
         """,
     )
+    data_category = models.CharField(max_length=50, choices=DATA_CATEGORY_CHOICES)
 
     def __str__(self):
         return self.display_name
