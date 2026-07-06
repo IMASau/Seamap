@@ -70,6 +70,7 @@ class HazardLayer(models.Model):
     above_max_color = models.CharField(max_length=8, default='0x000000')
     below_min_color = models.CharField(max_length=8, default='0x000000')
     color_palette = models.CharField(max_length=50, choices=COLOR_PALETTE_CHOICES, default='default')
+    human_readable_units = models.CharField(max_length=50, default='units')
 
     def __str__(self):
         return self.layer.name
