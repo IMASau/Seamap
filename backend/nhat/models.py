@@ -61,6 +61,12 @@ class HazardLayer(models.Model):
         on_delete=models.PROTECT,
         primary_key=True,
     )
+    name = models.SlugField(
+        unique=True,
+        help_text="""
+            Unique slug used for the NetCDF file name to associate it with this hazard layer.
+        """,
+    )
     above_max_color = models.CharField(max_length=8, default='0x000000')
     below_min_color = models.CharField(max_length=8, default='0x000000')
     color_palette = models.CharField(max_length=50, choices=COLOR_PALETTE_CHOICES, default='default')
