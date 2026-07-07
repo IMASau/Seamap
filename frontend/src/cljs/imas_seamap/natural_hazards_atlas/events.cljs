@@ -474,6 +474,12 @@
     {:db (assoc-in db [:current-view :selected-seasonal-data-id] seasonal-data-id)
      :dispatch [:maybe-autosave]}))
 
+(defn current-view-is-historic?
+  "Indicates whether the current view is for historic data."
+  [{:keys [db]} [_ is-historic?]]
+  {:db (assoc-in db [:current-view :is-historic?] is-historic?)
+   :dispatch [:maybe-autosave]})
+
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data.
 
@@ -535,7 +541,8 @@
         selected-model                (nhatutils/current-view-selected-model db)
         selected-scenario             (nhatutils/current-view-selected-scenario db)
         selected-seasonal-data        (nhatutils/current-view-selected-seasonal-data db)
-        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data)
+        is-historic?                  (nhatutils/current-view-is-historic? db)
+        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?)
         
         visible-layers
         (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup point db)

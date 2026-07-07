@@ -46,6 +46,7 @@
                                       [:current-view :selected-model-id]
                                       [:current-view :selected-scenario-id]
                                       [:current-view :selected-seasonal-data-id]
+                                      [:current-view :is-historic?]
                                       [:current-view :selected-time-period-id]
                                       :autosave?])
                        (assoc :map pruned-map)
@@ -91,6 +92,7 @@
                  [:current-view :selected-scenario-id]
                  [:current-view :selected-seasonal-data-id]
                  [:current-view :selected-time-period-id]
+                 [:current-view :is-historic?]
                  :legend-ids
                  :opacity-ids
                  :autosave?
@@ -133,7 +135,6 @@
 
 (def time-periods
   [{:id "all"      :name "All"      :start-year nil  :end-year nil}
-   {:id "historic" :name "Historic" :start-year 1995 :end-year 2014}
    {:id "short"    :name "Short"    :start-year 2020 :end-year 2039}
    {:id "medium"   :name "Medium"   :start-year 2050 :end-year 2069}
    {:id "long"     :name "Long"     :start-year 2080 :end-year 2099}])
@@ -189,11 +190,18 @@
       (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
     selected-seasonal-data))
 
+(defn current-view-is-historic?
+  "Indicates whether the current view is for historic data."
+  [db]
+  (get-in db [:current-view :is-historic?]))
+
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data"
   [db]
   (let [selected-time-period-id (get-in db [:current-view :selected-time-period-id])
+        is-historic?            (get-in db [:current-view :is-historic?])
+        selected-time-period-id (if is-historic? "all" selected-time-period-id)
         selected-time-period    (first-where #(= (:id %) selected-time-period-id) time-periods)]
     (assert selected-time-period (str "Selected time period id " selected-time-period-id " not found in time periods list"))
     selected-time-period))
@@ -206,17 +214,16 @@
 
 
 (defn- hazard-layer-dataset
-  "Get the hazard layer dataset for the given hazard layer, CMIP phase, model, scenario, and seasonal data.
-
-   TODO: Update for is_historical."
-  [hazard-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data]
+  "Get the hazard layer dataset for the given hazard layer, CMIP phase, model, scenario, and seasonal data."
+  [hazard-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?]
   (let [datasets (get-in hazard-layer [:hazardlayer :datasets])]
     (first-where
      (fn [dataset]
        (and (= (:cmip_phase dataset) (:name selected-cmip-phase))
             (= (:scientific_model dataset) (:name selected-model))
-            (= (:scenario dataset) (:name selected-scenario))
-            (= (:season dataset) (:name selected-seasonal-data))))
+            (= (:scenario dataset) (when-not is-historic? (:name selected-scenario))) ; historical data exclusive with scenario
+            (= (:season dataset) (:name selected-seasonal-data))
+            (= (:is_historical dataset) is-historic?)))
      datasets)))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
@@ -227,7 +234,7 @@
    Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to grab the
    server URL and layer_name from whatever hazard layer dataset is selected by the
    current view."
-  [layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data]
+  [layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?]
   (let [hazard-layers (set hazard-layers)]
     (->>
      (map-utils/layer-displayed-layers-lookup layers rich-layer-fn)
@@ -235,7 +242,7 @@
       (fn [m layer displayed-layer]
         (if (hazard-layers displayed-layer)
           ; If the layer is a hazard layer, then override the server URL and layer_name with the values from the selected hazard layer dataset.
-          (let [hazard-layer-dataset (hazard-layer-dataset displayed-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data)
+          (let [hazard-layer-dataset (hazard-layer-dataset displayed-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?)
                 displayed-layer
                 (-> displayed-layer
                     (assoc-in [:server_url] (:server_url hazard-layer-dataset))

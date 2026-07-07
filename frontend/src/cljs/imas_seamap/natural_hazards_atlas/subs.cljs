@@ -52,6 +52,11 @@
   [db _]
   (nhatutils/current-view-selected-seasonal-data db))
 
+(defn current-view-is-historic?
+  "Indicates whether the current view is for historic data."
+  [db _]
+  (nhatutils/current-view-is-historic? db))
+
 (defn current-view-time-periods
   "List of time periods available to analyze the hazard data."
   [_db _]
@@ -99,8 +104,8 @@
 
    Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
    hazard layer slug from the current view into the hazard layer server URLs."
-  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data] _]
-  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data))
+  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?] _]
+  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?))
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component.

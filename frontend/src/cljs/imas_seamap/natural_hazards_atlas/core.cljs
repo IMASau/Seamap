@@ -50,6 +50,7 @@
                                            :<- [:current-view/selected-model]
                                            :<- [:current-view/selected-scenario]
                                            :<- [:current-view/selected-seasonal-data]
+                                           :<- [:current-view/is-historic?]
                                            nhasubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
@@ -100,6 +101,7 @@
     :current-view/selected-model          nhasubs/current-view-selected-model
     :current-view/selected-scenario       nhasubs/current-view-selected-scenario
     :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data
+    :current-view/is-historic?            nhasubs/current-view-is-historic?
     :current-view/time-periods            nhasubs/current-view-time-periods
     :current-view/selected-time-period    nhasubs/current-view-selected-time-period
     :current-view/timeline-media-controls [:<- [:map.time/current-time] :<- [:map.time/available-times] :<- [:map.time/is-playing?] :<- [:map.time/is-loading?] nhasubs/current-view-timeline-media-controls]
@@ -282,6 +284,7 @@
     :current-view/selected-model          [nhatevents/current-view-selected-model]
     :current-view/selected-scenario       [nhatevents/current-view-selected-scenario]
     :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]
+    :current-view/is-historic?            [nhatevents/current-view-is-historic?]
     :current-view/selected-time-period    [nhatevents/current-view-selected-time-period]
     :current-view.time/step-forward       [nhatevents/current-view-time-step-forward]
     :current-view.time/step-backward      [nhatevents/current-view-time-step-backward]}})

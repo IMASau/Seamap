@@ -132,16 +132,32 @@
    This is a half-baked implementation, because we haven't nailed-down what time
    periods span what years, and all the currently available data is historic."
   []
-  (let [time-periods @(re-frame/subscribe [:current-view/time-periods])]
+  (let [time-periods @(re-frame/subscribe [:current-view/time-periods])
+        is-historic? @(re-frame/subscribe [:current-view/is-historic?])]
     [components/form-group
      {:label "Time Period"}
-     [components/select
-      {:value        @(re-frame/subscribe [:current-view/selected-time-period])
-       :options      time-periods
-       :onChange     #(re-frame/dispatch [:current-view/selected-time-period %])
-       :keyfns
-       {:id   :id
-        :text (fn [{:keys [name start-year end-year]}] (str name (when (and start-year end-year) (str " (" start-year "-" end-year ")"))))}}]]))
+     [:<>
+      [b/button-group
+       {:style {:margin-bottom "8px"}
+        :fill true}
+       [b/button
+        {:text     "Historic Data"
+         :on-click #(re-frame/dispatch [:current-view/is-historic? true])
+         :active   is-historic?
+         :small true}]
+       [b/button
+        {:text     "Projected Data"
+         :on-click #(re-frame/dispatch [:current-view/is-historic? false])
+         :active (not is-historic?)
+         :small true}]]
+      (when (not is-historic?)
+        [components/select
+         {:value        @(re-frame/subscribe [:current-view/selected-time-period])
+          :options      time-periods
+          :onChange     #(re-frame/dispatch [:current-view/selected-time-period %])
+          :keyfns
+          {:id   :id
+           :text (fn [{:keys [name start-year end-year]}] (str name (when (and start-year end-year) (str " (" start-year "-" end-year ")"))))}}])]]))
 
 (defn- timeline-media-controls
   "Media-style controls to play through the timeline of hazard data."
@@ -188,9 +204,11 @@
   []
   [components/form-group
    {:label "Year"}
-   [:<>
-    [timeline-slider]
-    [timeline-media-controls]]])
+   (if (and @(re-frame/subscribe [:map.time/current-time]) (seq @(re-frame/subscribe [:map.time/available-times])))
+     [:<>
+      [timeline-slider]
+      [timeline-media-controls]]
+     [b/spinner])])
 
 (defn- current-view-analysis
   []
@@ -244,10 +262,9 @@
   []
   [:div.current-view
    [current-view-analysis]
-   (when (and @(re-frame/subscribe [:map.time/current-time]) (seq @(re-frame/subscribe [:map.time/available-times])))
-     [b/card {:id "time-control"}
-      [time-period-select]
-      [timeline-select]])])
+   [b/card {:id "time-control"}
+    [time-period-select]
+    [timeline-select]]])
 
 (defn- layer-catalogue [catid layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])

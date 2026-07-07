@@ -238,6 +238,7 @@
                         ;; Note; automatic conversion from :snake-case to :camelCase doesn't happen for #js:
                         #js{:requestTimeFromCapabilities true
                             :updateTimeDimension true
+                            :updateTimeDimensionMode "replace"
                             :wmsVersion "1.3.0"})]
           #js{:instance instance :context context})))
     ;; Update layer fn
