@@ -25,3 +25,7 @@ django-tinymce==4.1.0
 requests==2.32.0
 sqapi==0.50
 pyquery==2.0.0
+xarray==2024.7.0
+h5netcdf==1.8.1
+h5py==3.14.0
+cftime==1.6.4.post1
