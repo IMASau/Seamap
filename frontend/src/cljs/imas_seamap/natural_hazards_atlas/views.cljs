@@ -257,26 +257,52 @@
          :text :display_name}}]]]]])
 
 (defn- side-by-side-toggle []
-  [:<>
-   [:input
-    {:type "checkbox"
-     :id "side-by-side-toggle"
-     :checked   @(re-frame/subscribe [:ui.side-by-side/active?])
-     :on-change #(re-frame/dispatch [:ui.side-by-side/active? (.. % -target -checked)])}]
-   [:label
-    {:for "side-by-side-toggle"}
-    "Compare Maps"]])
+  [:div#side-by-side-toggle
+   [b/checkbox
+    {:checked   @(re-frame/subscribe [:ui.side-by-side/active?])
+     :on-change #(re-frame/dispatch [:ui.side-by-side/active? (.. % -target -checked)])
+     :label     "Compare Maps"}]])
 
-(defn- current-view
-  "Layer configuration panel where model, scenario, and time parameters are
-   selected. Each parameter affects the map appearance and projection data."
-  []
-  [:div.current-view
+(defn- current-view-map-controls
+  "Set of controls to select model, scenario, and time parameters.
+
+   Each parameter affects the map appearance and projection data."
+  [{:keys [map-id]}]
+  [:div
+   {:class (str "current-view " (when map-id "dark"))}
    [current-view-analysis]
    [b/card {:id "time-control"}
     [time-period-select]
-    [timeline-select]]
-   [side-by-side-toggle]])
+    [timeline-select]]])
+
+(defn- current-view
+  "Control tab to select the current view of the hazard data.
+
+   The current view is defined by the CMIP phase, model, scenario, seasonal data,
+   and time period selected by the user.
+   
+   Side-by-side comparison can be enabled to compare two different current views."
+  []
+  (let [selected-tab (reagent/atom "map-1")]
+    (fn []
+      [:<>
+       (if @(re-frame/subscribe [:ui.side-by-side/active?])
+         [b/tabs {:class           "current-view-tabs"
+                  :selected-tab-id @selected-tab
+                  :on-change       #(reset! selected-tab %)
+                  :render-active-tab-panel-only true} ; doing this re-renders ellipsized text on tab switch, fixing ISA-359
+          [b/tab
+           {:id    "map-1"
+            :title "Map 1"
+            :panel (reagent/as-element
+                    [current-view-map-controls])}]
+          [b/tab
+           {:id    "map-2"
+            :title "Map 2"
+            :panel (reagent/as-element
+                    [current-view-map-controls {:map-id :map-2}])}]]
+         [current-view-map-controls])
+       [side-by-side-toggle]])))
 
 (defn- layer-catalogue [catid layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
