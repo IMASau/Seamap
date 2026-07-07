@@ -183,7 +183,7 @@
 (defmulti layer-component (comp :layer_type :displayed-layer))
 
 (defmethod layer-component :wms
-  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [hazardlayer]} :layer {:keys [server_url layer_name style]} :displayed-layer}]
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style hazardlayer]} :displayed-layer}]
   [leaflet/wms-layer
    (merge
     {:url              server_url
@@ -289,7 +289,7 @@
     (when cql-filter {:cql_filter cql-filter}))])
 
 (defmethod layer-component :wms-timeseries
-  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [hazardlayer]} :layer {:keys [server_url layer_name style]} :displayed-layer}]
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style hazardlayer]} :displayed-layer}]
   [leaflet/wms-timeseries-layer
    (merge
     {:url              server_url
@@ -305,7 +305,8 @@
      :format           "image/png"}
     (when style {:styles style})
     (when boundary-filter (boundary-filter layer))
-    (when cql-filter {:cql_filter cql-filter}) (when hazardlayer
+    (when cql-filter {:cql_filter cql-filter})
+    (when hazardlayer
       {:styles (str "default-scalar/" (:color_palette hazardlayer))
        :colorscalerange (str (:color_scale_range_min hazardlayer) "," (:color_scale_range_max hazardlayer))
        :abovemaxcolor (:above_max_color hazardlayer)

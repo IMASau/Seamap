@@ -236,9 +236,12 @@
         (if (hazard-layers displayed-layer)
           ; If the layer is a hazard layer, then override the server URL and layer_name with the values from the selected hazard layer dataset.
           (let [hazard-layer-dataset (hazard-layer-dataset displayed-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data)
-                server-url           (:server_url hazard-layer-dataset)
-                layer-name           (:layer_name hazard-layer-dataset)
-                displayed-layer      (assoc displayed-layer :server_url server-url :layer_name layer-name)]
+                displayed-layer
+                (-> displayed-layer
+                    (assoc-in [:server_url] (:server_url hazard-layer-dataset))
+                    (assoc-in [:layer_name] (:layer_name hazard-layer-dataset))
+                    (assoc-in [:hazardlayer :color_scale_range_min] (:color_scale_range_min hazard-layer-dataset))
+                    (assoc-in [:hazardlayer :color_scale_range_max] (:color_scale_range_max hazard-layer-dataset)))]
             (assoc m layer displayed-layer))
           (assoc m layer displayed-layer)))
       {}))))
