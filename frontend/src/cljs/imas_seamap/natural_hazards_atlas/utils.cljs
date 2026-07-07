@@ -255,15 +255,22 @@
 
 ;; Proof-of-concept for having separate information in map B
 (defn layer-displayed-layers-lookup-map-b
-  [layers rich-layer-fn hazard-layers selected-model _selected-scenario selected-seasonal-data]
-  (let [hazard-layers (set hazard-layers)
-        hazard-layer-server-url-fn #(string/replace % #"\.nc$" (str "_" (:name selected-model) "_SSP2" (when (not= (:name selected-seasonal-data) "All") (str "_" (:name selected-seasonal-data))) ".nc"))]
+  [layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?]
+  (let [hazard-layers (set hazard-layers)]
     (->>
      (map-utils/layer-displayed-layers-lookup layers rich-layer-fn)
      (reduce-kv
       (fn [m layer displayed-layer]
         (if (hazard-layers displayed-layer)
-          (assoc m layer (assoc displayed-layer :server_url (hazard-layer-server-url-fn (:server_url displayed-layer)))) ; if we have a hazard layer, use the function to replace the server URL
+            ; If the layer is a hazard layer, then override the server URL and layer_name with the values from the selected hazard layer dataset.
+          (let [hazard-layer-dataset (hazard-layer-dataset displayed-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?)
+                displayed-layer
+                (-> displayed-layer
+                    (assoc-in [:server_url] (:server_url hazard-layer-dataset))
+                    (assoc-in [:layer_name] (:layer_name hazard-layer-dataset))
+                    (assoc-in [:hazardlayer :color_scale_range_min] (:color_scale_range_min hazard-layer-dataset))
+                    (assoc-in [:hazardlayer :color_scale_range_max] (:color_scale_range_max hazard-layer-dataset)))]
+            (assoc m layer displayed-layer))
           (assoc m layer displayed-layer)))
       {}))))
 
