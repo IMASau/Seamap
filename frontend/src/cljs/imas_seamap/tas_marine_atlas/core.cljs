@@ -48,7 +48,7 @@
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
-    :sok/boundary-layer-filter            (fn [] #(identity nil))
+    :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in Tas Marine Atlas, but the sub is required by catalogue-layers component in map views
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
     :sorting/info                         subs/sorting-info
@@ -222,7 +222,7 @@
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :ui/split-layer-range-value           [events/split-layer-range-value]
-    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
+    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder] ; TODO: Remove event, unused
     :left-drawer/toggle                   [events/left-drawer-toggle]
     :left-drawer/open                     [events/left-drawer-open]
     :left-drawer/close                    [events/left-drawer-close]

@@ -253,6 +253,20 @@
           (assoc m layer displayed-layer)))
       {}))))
 
+;; Proof-of-concept for having separate information in map B
+(defn layer-displayed-layers-lookup-map-b
+  [layers rich-layer-fn hazard-layers selected-model _selected-scenario selected-seasonal-data]
+  (let [hazard-layers (set hazard-layers)
+        hazard-layer-server-url-fn #(string/replace % #"\.nc$" (str "_" (:name selected-model) "_SSP2" (when (not= (:name selected-seasonal-data) "All") (str "_" (:name selected-seasonal-data))) ".nc"))]
+    (->>
+     (map-utils/layer-displayed-layers-lookup layers rich-layer-fn)
+     (reduce-kv
+      (fn [m layer displayed-layer]
+        (if (hazard-layers displayed-layer)
+          (assoc m layer (assoc displayed-layer :server_url (hazard-layer-server-url-fn (:server_url displayed-layer)))) ; if we have a hazard layer, use the function to replace the server URL
+          (assoc m layer displayed-layer)))
+      {}))))
+
 ; TODO: Refactor so that `db` isn't a necessary argument
 (defn displayed-layers-under-point
   "From the list of visible layers on the map, get the layers displayed on the map

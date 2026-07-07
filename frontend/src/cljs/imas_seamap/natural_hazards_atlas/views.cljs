@@ -256,6 +256,17 @@
         {:id   :id
          :text :display_name}}]]]]])
 
+(defn- side-by-side-toggle []
+  [:<>
+   [:input
+    {:type "checkbox"
+     :id "side-by-side-toggle"
+     :checked   @(re-frame/subscribe [:ui.side-by-side/active?])
+     :on-change #(re-frame/dispatch [:ui.side-by-side/active? (.. % -target -checked)])}]
+   [:label
+    {:for "side-by-side-toggle"}
+    "Compare Maps"]])
+
 (defn- current-view
   "Layer configuration panel where model, scenario, and time parameters are
    selected. Each parameter affects the map appearance and projection data."
@@ -264,7 +275,8 @@
    [current-view-analysis]
    [b/card {:id "time-control"}
     [time-period-select]
-    [timeline-select]]])
+    [timeline-select]]
+   [side-by-side-toggle]])
 
 (defn- layer-catalogue [catid layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
@@ -435,6 +447,7 @@
      [views/outage-message-dialogue]
      [views/settings-overlay]
      [views/info-card]
+     [views/download-component]
      [views/loading-display]
      [left-drawer]
      [views/right-drawer @(re-frame/subscribe [:ui/right-sidebar])]

@@ -52,6 +52,12 @@
                                            :<- [:current-view/selected-seasonal-data]
                                            :<- [:current-view/is-historic?]
                                            nhasubs/layer-displayed-layers-lookup]
+    :map.layer/displayed-layers-lookup-map-b [:<- [:map/layers]
+                                           :<- [:map.layers/hazard-layers]
+                                           :<- [:current-view/selected-model]
+                                           :<- [:current-view/selected-scenario]
+                                           :<- [:current-view/selected-seasonal-data]
+                                           nhasubs/layer-displayed-layers-lookup-map-b]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]
@@ -64,6 +70,7 @@
     :map/viewport-only?                   msubs/viewport-only?
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
+    :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in Natural Hazards Atlas, but the sub is required by catalogue-layers component in map views
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
@@ -77,6 +84,8 @@
     :layers-search-omnibar/open?          subs/layers-search-omnibar-open?
     :ui.catalogue/tab                     subs/catalogue-tab
     :ui.catalogue/nodes                   subs/catalogue-nodes
+    :ui.side-by-side/active?              subs/side-by-side-active?
+    :ui.side-by-side/split-ratio          subs/side-by-side-split-ratio
     :ui/preview-layer-url                 subs/preview-layer-url
     :ui/sidebar                           subs/sidebar-state
     :ui/right-sidebar                     subs/right-sidebar
@@ -259,11 +268,13 @@
     :ui.right-sidebar/pop                 events/right-sidebar-pop
     :ui.right-sidebar/bring-to-front      events/right-sidebar-bring-to-front
     :ui.right-sidebar/remove              events/right-sidebar-remove
+    :ui.side-by-side/active?              [events/side-by-side-active?]
+    :ui.side-by-side/split-ratio          [events/side-by-side-split-ratio]
     :ui/open-pill                         events/open-pill
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :ui/split-layer-range-value           [events/split-layer-range-value]
-    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
+    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder] ; TODO: Remove event, unused
     :left-drawer/toggle                   [events/left-drawer-toggle]
     :left-drawer/open                     [events/left-drawer-open]
     :left-drawer/close                    [events/left-drawer-close]

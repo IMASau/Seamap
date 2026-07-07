@@ -334,6 +334,7 @@
        :helperPosition "bottom"
        :padding        0}]
      [info-card]
+     [views/download-component]
      [loading-display]
      [left-drawer]
      [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
