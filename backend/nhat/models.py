@@ -169,7 +169,7 @@ class ScientificModel(models.Model):
         """,
     )
     display_name = models.CharField(
-        max_length=50,
+        max_length=200,
         unique=True,
         help_text="Name displayed for this model in the interactive map.",
     )
