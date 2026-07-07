@@ -54,7 +54,7 @@ class HazardLayerDatasetSerializer(serializers.ModelSerializer):
     def get_server_url(self, obj: models.HazardLayerDataset) -> str:
         scenario = "historical" if obj.is_historical else obj.scenario.name
         netcdf_file_name = f"{obj.cmip_phase.name}_{obj.hazard_layer.name}_{scenario}_{obj.season.name}.nc"
-        return f"{obj.hazard_layer.layer.server_url}/{netcdf_file_name}"
+        return f"{obj.hazard_layer.layer.server_url}{obj.hazard_layer.name}/{netcdf_file_name}"
 
     class Meta:
         model = models.HazardLayerDataset
