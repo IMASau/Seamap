@@ -3,6 +3,7 @@ Management command to load hazard layers from a THREDDS server.
 """
 
 import io
+import re
 import requests
 import xarray as xr
 import xml.etree.ElementTree as ET
@@ -71,6 +72,54 @@ class Command(BaseCommand):
             assert isinstance(hazard_layer, models.HazardLayer) # assert silences mypy strict type checking
             return hazard_layer
 
+    def get_netcdf_cmip(self, netcdf_name: str) -> str:
+        """
+        Extract the CMIP from the NetCDF name using regex.
+
+        Using regex over the file name is unreliable; suggest to Climate Futures
+        including CMIP in NetCDF global attributes in the future.
+        """
+        pattern = re.compile(
+            r'^(?P<cmip>[^_]+)_[^_]+_(?P<scenario>[^_]+)_(?P<season>[^_]+)\.nc$'
+        )
+        match = pattern.search(netcdf_name)
+        if match:
+            return match.group('cmip')
+        else:
+            raise ValueError(f"Could not find CMIP in NetCDF name: {netcdf_name}")
+
+    def get_netcdf_scenario(self, netcdf_name: str) -> str:
+        """
+        Extract the scenario from the NetCDF name using regex.
+
+        Using regex over the file name is unreliable; suggest to Climate Futures
+        including scenario in NetCDF global attributes in the future.
+        """
+        pattern = re.compile(
+            r'^(?P<cmip>[^_]+)_[^_]+_(?P<scenario>[^_]+)_(?P<season>[^_]+)\.nc$'
+        )
+        match = pattern.search(netcdf_name)
+        if match:
+            return match.group('scenario')
+        else:
+            raise ValueError(f"Could not find scenario in NetCDF name: {netcdf_name}")
+
+    def get_netcdf_season(self, netcdf_name: str) -> str:
+        """
+        Extract the season from the NetCDF name using regex.
+
+        Using regex over the file name is unreliable; suggest to Climate Futures
+        including season in NetCDF global attributes in the future.
+        """
+        pattern = re.compile(
+            r'^(?P<cmip>[^_]+)_[^_]+_(?P<scenario>[^_]+)_(?P<season>[^_]+)\.nc$'
+        )
+        match = pattern.search(netcdf_name)
+        if match:
+            return match.group('season')
+        else:
+            raise ValueError(f"Could not find season in NetCDF name: {netcdf_name}")
+
     def load_netcdf(self, server_url: str, hazard_layer_name: str, netcdf_name: str) -> None:
         netcdf_url = f"{server_url}fileServer/data/{hazard_layer_name}/{netcdf_name}"
         self.stdout.write(f"Loading NetCDF from {netcdf_url}...")
@@ -79,11 +128,51 @@ class Command(BaseCommand):
         ds = xr.open_dataset(io.BytesIO(response.content))
 
         hazard_layer = self.get_or_create_hazard_layer(hazard_layer_name, server_url, ds.attrs)
+        cmip_name = self.get_netcdf_cmip(netcdf_name)
+        scenario_name = self.get_netcdf_scenario(netcdf_name)
+        season_name = self.get_netcdf_season(netcdf_name)
+        is_historical = scenario_name == "historical"
+        cmip, _ = models.CmipPhase.objects.get_or_create(name=cmip_name, defaults={"display_name": cmip_name})
+        scenario = None
+        if not is_historical:
+            scenario, _ = models.Scenario.objects.get_or_create(name=scenario_name, defaults={"display_name": scenario_name})
+        season, _ = models.Season.objects.get_or_create(name=season_name, defaults={"display_name": season_name})
 
         for var_name in ds.data_vars:
             var = ds[var_name]
-            # TODO: Use regex to pull CMIP, scenario, and season, then create or update corresponding model objects
-            # TODO: Create HazardLayerDataset
+            model, _ = models.ScientificModel.objects.get_or_create(
+                name=var_name,
+                defaults={
+                    "display_name": var.attrs["name"],
+                    "data_category": var.attrs["data_category"],
+                },
+            )
+
+            try:
+                hazard_layer_dataset = models.HazardLayerDataset.objects.get(
+                    hazard_layer=hazard_layer,
+                    scientific_model=model,
+                    cmip_phase=cmip,
+                    scenario=scenario if not is_historical else None,
+                    season=season,
+                    is_historical=is_historical,
+                )
+                self.stdout.write(f"Updating existing Hazard Layer Dataset: {hazard_layer_dataset}")
+                hazard_layer_dataset.color_scale_range_min = var.attrs["colour_scale_range_min"] # "color" vs "colour" noted
+                hazard_layer_dataset.color_scale_range_max = var.attrs["colour_scale_range_max"]
+                hazard_layer_dataset.save() # Probably some efficiency to be gained by bulk updating, but this is fine for now
+            except models.HazardLayerDataset.DoesNotExist:
+                self.stdout.write(f"Creating new Hazard Layer Dataset for {hazard_layer.name}, {model.name}, {cmip.name}, {scenario.name if scenario else 'historical'}, {season.name}...")
+                hazard_layer_dataset = models.HazardLayerDataset.objects.create(
+                    hazard_layer=hazard_layer,
+                    scientific_model=model,
+                    cmip_phase=cmip,
+                    scenario=scenario if not is_historical else None,
+                    season=season,
+                    is_historical=is_historical,
+                    color_scale_range_min=var.attrs["colour_scale_range_min"], # "color" vs "colour" noted
+                    color_scale_range_max=var.attrs["colour_scale_range_max"],
+                )
 
     def load_hazard_layers(self, server_url: str, hazard_layer_name: str) -> None:
         """
