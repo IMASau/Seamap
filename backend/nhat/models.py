@@ -163,6 +163,7 @@ DATA_CATEGORY_CHOICES = [
 class ScientificModel(models.Model):
     """Scientific model to analyze the hazard data."""
     name = models.SlugField(
+        max_length=200,
         unique=True,
         help_text="""
             Unique slug used for the NetCDF file name to associate it with this model.
