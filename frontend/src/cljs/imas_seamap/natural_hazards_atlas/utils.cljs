@@ -138,22 +138,6 @@
    {:id "medium"   :name "Medium"   :start-year 2050 :end-year 2069}
    {:id "long"     :name "Long"     :start-year 2080 :end-year 2099}])
 
-; Extracted function from a sub so that it can be used (sparingly) in events
-(defn current-view-filtered-models
-  "Filtered list of scientific models available to analyze the hazard data.
-
-   Only models found in the current CMIP phase are accessible."
-  [models selected-cmip-phase]
-  (filter #((set (:scientific_models selected-cmip-phase)) (:id %)) models))
-
-; Extracted function from a sub so that it can be used (sparingly) in events
-(defn current-view-filtered-scenarios
-  "Filtered list of scenarios models available to analyze the hazard data.
-
-   Only scenarios found in the current model are accessible."
-  [scenarios selected-model]
-  (filter #((set (:scenarios selected-model)) (:id %)) scenarios))
-
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
@@ -174,13 +158,9 @@
    CMIP phase, then default to the first available model."
   [db]
   (let [models              (get-in db [:current-view :models])
-        selected-cmip-phase (current-view-selected-cmip-phase db)
-        filtered-models     (current-view-filtered-models models selected-cmip-phase)
         selected-model-id   (get-in db [:current-view :selected-model-id])
-        selected-model      (if ((set (:scientific_models selected-cmip-phase)) selected-model-id)
-                              (first-where #(= (:id %) selected-model-id) models)
-                              (first filtered-models))]
-    (when (and (seq filtered-models) selected-model-id)
+        selected-model      (first-where #(= (:id %) selected-model-id) models)]
+    (when (and (seq models) selected-model-id)
       (assert selected-model (str "Selected model id " selected-model-id " not found in models list")))
     selected-model))
 
@@ -192,13 +172,9 @@
    current scientific model, then default to the first available scenario."
   [db]
   (let [scenarios               (get-in db [:current-view :scenarios])
-        selected-model          (current-view-selected-model db)
-        filtered-scenarios      (current-view-filtered-scenarios scenarios selected-model)
         selected-scenario-id    (get-in db [:current-view :selected-scenario-id])
-        selected-scenario       (if ((set (:scenarios selected-model)) selected-scenario-id)
-                                  (first-where #(= (:id %) selected-scenario-id) scenarios)
-                                  (first filtered-scenarios))]
-    (when (and (seq filtered-scenarios) selected-scenario-id)
+        selected-scenario       (first-where #(= (:id %) selected-scenario-id) scenarios)]
+    (when (and (seq scenarios) selected-scenario-id)
       (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list")))
     selected-scenario))
 
@@ -212,17 +188,6 @@
     (when (and (seq seasonal-datas) selected-seasonal-data-id)
       (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
     selected-seasonal-data))
-
-(defn current-view-hazard-layer-slug
-  "Slug inserted into hazard layer's server URL to show the correct NetCDF file
-   from the server."
-  [selected-cmip-phase selected-model selected-scenario selected-seasonal-data]
-  (str
-   (:name selected-cmip-phase) "_"
-   (:name selected-model) "_"
-   (:name selected-scenario)
-   (when (not= (:name selected-seasonal-data) "All")
-     (str "_" (:name selected-seasonal-data)))))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-time-period
@@ -239,22 +204,42 @@
   [catalogue-layers]
   (filterv :hazardlayer catalogue-layers))
 
+
+(defn- hazard-layer-dataset
+  "Get the hazard layer dataset for the given hazard layer, CMIP phase, model, scenario, and seasonal data.
+
+   TODO: Update for is_historical."
+  [hazard-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data]
+  (let [datasets (get-in hazard-layer [:hazardlayer :datasets])]
+    (first-where
+     (fn [dataset]
+       (and (= (:cmip_phase dataset) (:name selected-cmip-phase))
+            (= (:scientific_model dataset) (:name selected-model))
+            (= (:scenario dataset) (:name selected-scenario))
+            (= (:season dataset) (:name selected-seasonal-data))))
+     datasets)))
+
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn layer-displayed-layers-lookup
   "A lookup map of the raw (catalogue) layer to what layers should actually be
-     displayed on the map.
-  
-     Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
-     hazard layer slug from the current view into the hazard layer server URLs."
-  [layers rich-layer-fn hazard-layers hazard-layer-slug]
-  (let [hazard-layers (set hazard-layers)
-        hazard-layer-server-url-fn #(string/replace % #"(?=\.nc$)" (str "_" hazard-layer-slug))]
+   displayed on the map.
+
+   Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to grab the
+   server URL and layer_name from whatever hazard layer dataset is selected by the
+   current view."
+  [layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data]
+  (let [hazard-layers (set hazard-layers)]
     (->>
      (map-utils/layer-displayed-layers-lookup layers rich-layer-fn)
      (reduce-kv
       (fn [m layer displayed-layer]
         (if (hazard-layers displayed-layer)
-          (assoc m layer (assoc displayed-layer :server_url (hazard-layer-server-url-fn (:server_url displayed-layer)))) ; if we have a hazard layer, use the function to replace the server URL
+          ; If the layer is a hazard layer, then override the server URL and layer_name with the values from the selected hazard layer dataset.
+          (let [hazard-layer-dataset (hazard-layer-dataset displayed-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data)
+                server-url           (:server_url hazard-layer-dataset)
+                layer-name           (:layer_name hazard-layer-dataset)
+                displayed-layer      (assoc displayed-layer :server_url server-url :layer_name layer-name)]
+            (assoc m layer displayed-layer))
           (assoc m layer displayed-layer)))
       {}))))
 

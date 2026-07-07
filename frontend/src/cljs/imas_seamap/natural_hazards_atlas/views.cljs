@@ -211,7 +211,7 @@
      [components/form-group {:label "Model"}
       [components/select
        {:value        @(re-frame/subscribe [:current-view/selected-model])
-        :options      @(re-frame/subscribe [:current-view/filtered-models])
+        :options      @(re-frame/subscribe [:current-view/models])
         :onChange     #(re-frame/dispatch [:current-view/selected-model %])
         :keyfns
         {:id   :id
@@ -222,7 +222,7 @@
       {:label "Scenario"}
       [components/select
        {:value        @(re-frame/subscribe [:current-view/selected-scenario])
-        :options      @(re-frame/subscribe [:current-view/filtered-scenarios])
+        :options      @(re-frame/subscribe [:current-view/scenarios])
         :onChange     #(re-frame/dispatch [:current-view/selected-scenario %])
         :keyfns
         {:id   :id

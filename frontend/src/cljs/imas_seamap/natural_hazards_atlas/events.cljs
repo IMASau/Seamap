@@ -535,8 +535,7 @@
         selected-model                (nhatutils/current-view-selected-model db)
         selected-scenario             (nhatutils/current-view-selected-scenario db)
         selected-seasonal-data        (nhatutils/current-view-selected-seasonal-data db)
-        hazard-layer-slug             (nhatutils/current-view-hazard-layer-slug selected-cmip-phase selected-model selected-scenario selected-seasonal-data)
-        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers hazard-layer-slug)
+        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data)
         
         visible-layers
         (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup point db)

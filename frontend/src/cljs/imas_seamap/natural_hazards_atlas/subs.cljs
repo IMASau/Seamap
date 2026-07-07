@@ -25,20 +25,6 @@
   [db _]
   (get-in db [:current-view :seasonal-datas]))
 
-(defn current-view-filtered-models
-  "Filtered list of scientific models available to analyze the hazard data.
-
-   Only models found in the current CMIP phase are accessible."
-  [[models selected-cmip-phase] _]
-  (nhatutils/current-view-filtered-models models selected-cmip-phase))
-
-(defn current-view-filtered-scenarios
-  "Filtered list of scenarios models available to analyze the hazard data.
-
-   Only scenarios found in the current model are accessible."
-  [[scenarios selected-model] _]
-  (nhatutils/current-view-filtered-scenarios scenarios selected-model))
-
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
    scenarios for analyzing hazard data."
@@ -65,12 +51,6 @@
   "Seasonal data to analyze the hazard data"
   [db _]
   (nhatutils/current-view-selected-seasonal-data db))
-
-(defn current-view-hazard-layer-slug
-  "Slug inserted into hazard layer's server URL to show the correct NetCDF file
-   from the server."
-  [[selected-cmip-phase selected-model selected-scenario selected-seasonal-data] _]
-  (nhatutils/current-view-hazard-layer-slug selected-cmip-phase selected-model selected-scenario selected-seasonal-data))
 
 (defn current-view-time-periods
   "List of time periods available to analyze the hazard data."
@@ -119,8 +99,8 @@
 
    Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
    hazard layer slug from the current view into the hazard layer server URLs."
-  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers hazard-layer-slug] _]
-  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers hazard-layer-slug))
+  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data] _]
+  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data))
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component.
