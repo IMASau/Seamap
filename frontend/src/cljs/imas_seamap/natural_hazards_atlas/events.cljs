@@ -510,12 +510,12 @@
         first-time-in-range           (first (filter #(nhatutils/time-in-range? % start-year end-year) available-times))]
     {:db (utils/assoc-independent-map-state db map-id [:current-view :selected-time-period-id] time-period-id)
      :dispatch-n
-     [(when-not current-time-in-range? [:map.time/current-time first-time-in-range])
+     [(when-not current-time-in-range? [:map.time/current-time first-time-in-range map-id])
       [:maybe-autosave]]}))
 
 (defn current-view-time-step-forward
   "Move forward one time step in the hazard data"
-  [{:keys [db]} _]
+  [{:keys [db]} [_ map-id]]
   (let [available-times (get-in db [:display :available-times])
         current-time    (get-in db [:display :current-time])
         current-index   (.indexOf available-times current-time)
@@ -523,11 +523,11 @@
         next-time       (nth available-times next-index)]
     (assert (seq available-times) "No available times to step through")
     (assert current-time "Current time is not set")
-    {:dispatch [:map.time/current-time next-time]}))
+    {:dispatch [:map.time/current-time next-time map-id]}))
 
 (defn current-view-time-step-backward
   "Move backward one time step in the hazard data"
-  [{:keys [db]} _]
+  [{:keys [db]} [_ map-id]]
   (let [available-times (get-in db [:display :available-times])
         current-time    (get-in db [:display :current-time])
         current-index   (.indexOf available-times current-time)
@@ -535,7 +535,7 @@
         prev-time       (nth available-times prev-index)]
     (assert (seq available-times) "No available times to step through")
     (assert current-time "Current time is not set")
-    {:dispatch [:map.time/current-time prev-time]}))
+    {:dispatch [:map.time/current-time prev-time map-id]}))
 
 (defn feature-info-dispatcher
   "Takes a map click event, and dispatches :map/get-feature-info events for each

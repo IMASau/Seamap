@@ -30,7 +30,7 @@
                                                 rich-layer->displayed-layer
                                                 sort-by-sort-key
                                                 visible-layers]]
-   [imas-seamap.utils :refer [first-where ids->layers index-of]]
+   [imas-seamap.utils :as utils :refer [first-where ids->layers index-of]]
    [re-frame.core :as re-frame]
    [reagent.core :as r]))
 
@@ -1124,8 +1124,8 @@
    We update store the time in the app state in case time dimension hasn't been set
    up yet (i.e. app is still initialising but somehow the time has changed), and
    for ensuring that it's saved when the website is reloaded/shared."
-  [{:keys [db]} [_ current-time]]
-  (let [time-dimension-ref (get-in db [:map :time-dimension-ref])
+  [{:keys [db]} [_ current-time map-id]]
+  (let [time-dimension-ref (utils/get-independent-map-state db map-id [:map :time-dimension-ref])
         available-times    (get-in db [:display :available-times])
         is-last-available? (= current-time (last available-times))]
     ;; If:
@@ -1140,8 +1140,8 @@
           (.setCurrentTime time-dimension-ref current-time))))
     {:db
      (-> db
-         (assoc-in [:display :current-time] current-time)
-         (cond-> is-last-available? (assoc-in [:display :time-is-playing?] false))) ; if we've reached the end of the available times, set time-is-playing? to false
+         (utils/assoc-independent-map-state map-id [:display :current-time] current-time)
+         (cond-> is-last-available? (utils/assoc-independent-map-state map-id [:display :time-is-playing?] false))) ; if we've reached the end of the available times, set time-is-playing? to false
      :dispatch [:maybe-autosave]}))
 
 (defn time-available-times
@@ -1153,45 +1153,45 @@
   "Starts playback in the timeDimension component (from the leaflet-timedimension
    library), and updates the app state to reflect that.
    If we've reached the end of the available times, reset to the beginning before playing."
-  [db _]
-  (let [time-dimension-control-ref (get-in db [:map :time-dimension-control-ref])
+  [db [_ map-id]]
+  (let [time-dimension-control-ref (utils/get-independent-map-state db map-id [:map :time-dimension-control-ref])
         player                    (.-_player time-dimension-control-ref)]
     (when time-dimension-control-ref
       (if (.isPlaying player) ; different definition to time-is-playing? in the app state, as time-dimension considers a paused but not stopped state as playing
         (.release player)
         (.start player)))
-    (assoc-in db [:display :time-is-playing?] true)))
+    (utils/assoc-independent-map-state db map-id [:display :time-is-playing?] true)))
 
 (defn time-pause
   "Pauses playback in the timeDimension component (from the leaflet-timedimension
    library), and updates the app state to reflect that."
-  [db _]
-  (let [time-dimension-control-ref (get-in db [:map :time-dimension-control-ref])]
+  [db [_ map-id]]
+  (let [time-dimension-control-ref (utils/get-independent-map-state db map-id [:map :time-dimension-control-ref])]
     (when time-dimension-control-ref
       (.. time-dimension-control-ref -_player pause))
-    (assoc-in db [:display :time-is-playing?] false)))
+    (utils/assoc-independent-map-state db map-id [:display :time-is-playing?] false)))
 
 (defn time-is-loading?
   "The timeDimension component is currently loading a new time, driven by the
    timeDimension control player component."
-  [db [_ loading?]]
-  (assoc-in db [:display :time-is-loading?] loading?))
+  [db [_ loading? map-id]]
+  (utils/assoc-independent-map-state db map-id [:display :time-is-loading?] loading?))
 
 (defn time-dimension-ref
   "For when the timeDimension component (from the leaflet-timedimension library) is
    first created/added to the Leaflet map.
    Stores a reference to the timeDimension, and sets up listeners to keep the
    re-frame DB synced to the component's state."
-  [db [_ time-dimension-ref]]
-  (.on time-dimension-ref "timeload" #(re-frame/dispatch [:map.time/current-time (.-time %)]))
+  [db [_ time-dimension-ref map-id]]
+  (.on time-dimension-ref "timeload" #(re-frame/dispatch [:map.time/current-time (.-time %) map-id]))
   (.on time-dimension-ref "availabletimeschanged" #(re-frame/dispatch [:map.time/available-times (vec (js->clj (.-availableTimes %)))]))
-  (assoc-in db [:map :time-dimension-ref] time-dimension-ref))
+  (utils/assoc-independent-map-state db map-id [:map :time-dimension-ref] time-dimension-ref))
 
 (defn time-dimension-control-ref
   "For when the control.timeDimension component (from the leaflet-timedimension
    library) is created/added to the Leaflet map.
    Stores a reference to the control.timeDimension so we can drive it's state from re-frame events."
-  [db [_ time-dimension-control-ref]]
-  (.on (.-_player time-dimension-control-ref) "waiting" #(re-frame/dispatch [:map.time/is-loading? true]))
-  (.on (.-_player time-dimension-control-ref) "running" #(re-frame/dispatch [:map.time/is-loading? false]))
-  (assoc-in db [:map :time-dimension-control-ref] time-dimension-control-ref))
+  [db [_ time-dimension-control-ref map-id]]
+  (.on (.-_player time-dimension-control-ref) "waiting" #(re-frame/dispatch [:map.time/is-loading? true map-id]))
+  (.on (.-_player time-dimension-control-ref) "running" #(re-frame/dispatch [:map.time/is-loading? false map-id]))
+  (utils/assoc-independent-map-state db map-id [:map :time-dimension-control-ref] time-dimension-control-ref))
