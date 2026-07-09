@@ -131,9 +131,9 @@
   "Select the time period of the hazard data to view on the map.
    This is a half-baked implementation, because we haven't nailed-down what time
    periods span what years, and all the currently available data is historic."
-  []
+  [{:keys [map-id]}]
   (let [time-periods @(re-frame/subscribe [:current-view/time-periods])
-        is-historic? @(re-frame/subscribe [:current-view/is-historic?])]
+        is-historic? @(re-frame/subscribe [:current-view/is-historic? map-id])]
     [components/form-group
      {:label "Time Period"}
      [:<>
@@ -142,19 +142,19 @@
         :fill true}
        [b/button
         {:text     "Historic Data"
-         :on-click #(re-frame/dispatch [:current-view/is-historic? true])
+         :on-click #(re-frame/dispatch [:current-view/is-historic? true map-id])
          :active   is-historic?
          :small true}]
        [b/button
         {:text     "Projected Data"
-         :on-click #(re-frame/dispatch [:current-view/is-historic? false])
+         :on-click #(re-frame/dispatch [:current-view/is-historic? false map-id])
          :active (not is-historic?)
          :small true}]]
       (when (not is-historic?)
         [components/select
-         {:value        @(re-frame/subscribe [:current-view/selected-time-period])
+         {:value        @(re-frame/subscribe [:current-view/selected-time-period map-id])
           :options      time-periods
-          :onChange     #(re-frame/dispatch [:current-view/selected-time-period %])
+          :onChange     #(re-frame/dispatch [:current-view/selected-time-period % map-id])
           :keyfns
           {:id   :id
            :text (fn [{:keys [name start-year end-year]}] (str name (when (and start-year end-year) (str " (" start-year "-" end-year ")"))))}}])]]))
@@ -211,7 +211,7 @@
      [b/spinner])])
 
 (defn- current-view-analysis
-  []
+  [{:keys [map-id]}]
   [:div#current-view-analysis
    {:style {:margin-bottom "8px"}}
    [:div
@@ -219,18 +219,18 @@
     [:div {:style {:flex 1}}
      [components/form-group {:label "CMIP"}
       [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-cmip-phase])
+       {:value        @(re-frame/subscribe [:current-view/selected-cmip-phase map-id])
         :options      @(re-frame/subscribe [:current-view/cmip-phases])
-        :onChange     #(re-frame/dispatch [:current-view/selected-cmip-phase %])
+        :onChange     #(re-frame/dispatch [:current-view/selected-cmip-phase % map-id])
         :keyfns
         {:id   :id
          :text :display_name}}]]]
     [:div {:style {:flex 1}}
      [components/form-group {:label "Model"}
       [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-model])
+       {:value        @(re-frame/subscribe [:current-view/selected-model map-id])
         :options      @(re-frame/subscribe [:current-view/models])
-        :onChange     #(re-frame/dispatch [:current-view/selected-model %])
+        :onChange     #(re-frame/dispatch [:current-view/selected-model % map-id])
         :keyfns
         {:id   :id
          :text :display_name}}]]]]
@@ -239,9 +239,9 @@
      [components/form-group
       {:label "Scenario"}
       [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-scenario])
+       {:value        @(re-frame/subscribe [:current-view/selected-scenario map-id])
         :options      @(re-frame/subscribe [:current-view/scenarios])
-        :onChange     #(re-frame/dispatch [:current-view/selected-scenario %])
+        :onChange     #(re-frame/dispatch [:current-view/selected-scenario % map-id])
         :keyfns
         {:id   :id
          :text :display_name}}]]]
@@ -249,9 +249,9 @@
      [components/form-group
       {:label "Seasonal Data"}
       [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data])
+       {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data map-id])
         :options      @(re-frame/subscribe [:current-view/seasonal-datas])
-        :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data %])
+        :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data % map-id])
         :keyfns
         {:id   :id
          :text :display_name}}]]]]])
@@ -270,9 +270,9 @@
   [{:keys [map-id]}]
   [:div
    {:class (str "current-view " (when map-id "dark"))}
-   [current-view-analysis]
+   [current-view-analysis {:map-id map-id}]
    [b/card {:id "time-control"}
-    [time-period-select]
+    [time-period-select {:map-id map-id}]
     [timeline-select]]])
 
 (defn- current-view

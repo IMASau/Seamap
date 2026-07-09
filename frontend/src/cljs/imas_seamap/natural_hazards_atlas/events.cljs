@@ -444,40 +444,40 @@
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
    scenarios for analyzing hazard data."
-  [{:keys [db]} [_ {cmip-phase-id :id :as cmip-phase}]]
+  [{:keys [db]} [_ {cmip-phase-id :id :as cmip-phase} map-id]]
   (let [cmip-phases (get-in db [:current-view :cmip-phases])]
     (assert (some #{cmip-phase-id} (map :id cmip-phases)) (str "Selected CMIP phase " cmip-phase " is not a valid option"))
-    {:db (assoc-in db [:current-view :selected-cmip-phase-id] cmip-phase-id)
+    {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :selected-cmip-phase-id] cmip-phase-id)
      :dispatch [:maybe-autosave]}))
 
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data"
-  [{:keys [db]} [_ {model-id :id :as model}]]
+  [{:keys [db]} [_ {model-id :id :as model} map-id]]
   (let [models (get-in db [:current-view :models])]
     (assert (some #{model-id} (map :id models)) (str "Selected model " model " is not a valid option"))
-    {:db (assoc-in db [:current-view :selected-model-id] model-id)
+    {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :selected-model-id] model-id)
      :dispatch [:maybe-autosave]}))
 
 (defn current-view-selected-scenario
   "Scientific scenario to analyze the hazard data"
-  [{:keys [db]} [_ {scenario-id :id :as scenario}]]
+  [{:keys [db]} [_ {scenario-id :id :as scenario} map-id]]
   (let [scenarios (get-in db [:current-view :scenarios])]
     (assert (some #{scenario-id} (map :id scenarios)) (str "Selected scenario " scenario " is not a valid option"))
-    {:db (assoc-in db [:current-view :selected-scenario-id] scenario-id)
+    {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :selected-scenario-id] scenario-id)
      :dispatch [:maybe-autosave]}))
 
 (defn current-view-selected-seasonal-data
   "Season to view the hazard data under"
-  [{:keys [db]} [_ {seasonal-data-id :id :as seasonal-data}]]
+  [{:keys [db]} [_ {seasonal-data-id :id :as seasonal-data} map-id]]
   (let [seasonal-datas (get-in db [:current-view :seasonal-datas])]
     (assert (some #{seasonal-data-id} (map :id seasonal-datas)) (str "Selected seasonal data " seasonal-data " is not a valid option"))
-    {:db (assoc-in db [:current-view :selected-seasonal-data-id] seasonal-data-id)
+    {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :selected-seasonal-data-id] seasonal-data-id)
      :dispatch [:maybe-autosave]}))
 
 (defn current-view-is-historic?
   "Indicates whether the current view is for historic data."
-  [{:keys [db]} [_ is-historic?]]
-  {:db (assoc-in db [:current-view :is-historic?] is-historic?)
+  [{:keys [db]} [_ is-historic? map-id]]
+  {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :is-historic?] is-historic?)
    :dispatch [:maybe-autosave]})
 
 (defn current-view-selected-time-period
@@ -485,14 +485,14 @@
 
    If the currently selected time isn't avaliable in the new period, reset to the
    first available time in the range."
-  [{:keys [db]} [_ {time-period-id :id :as time-period}]]
+  [{:keys [db]} [_ {time-period-id :id :as time-period} map-id]]
   (assert (some #{time-period-id} (map :id nhatutils/time-periods)) (str "Selected time period " time-period " is not a valid option"))
   (let [{:keys [start-year end-year]} (first-where  #(= (:id %) time-period-id) nhatutils/time-periods)
         current-time                  (get-in db [:display :current-time])
         available-times               (get-in db [:display :available-times])
         current-time-in-range?        (nhatutils/time-in-range? current-time start-year end-year)
         first-time-in-range           (first (filter #(nhatutils/time-in-range? % start-year end-year) available-times))]
-    {:db (assoc-in db [:current-view :selected-time-period-id] time-period-id)
+    {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :selected-time-period-id] time-period-id)
      :dispatch-n
      [(when-not current-time-in-range? [:map.time/current-time first-time-in-range])
       [:maybe-autosave]]}))

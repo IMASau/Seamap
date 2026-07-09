@@ -139,17 +139,37 @@
    {:id "medium"   :name "Medium"   :start-year 2050 :end-year 2069}
    {:id "long"     :name "Long"     :start-year 2080 :end-year 2099}])
 
+(defn independent-map-state-path
+  "Path to value for the state of a map by given map-id."
+  [map-id path]
+  (concat (when map-id [:independent-map-state map-id]) path))
+
+(defn get-independent-map-state
+  "Gets the independent map state for a given path. If no state for the given map
+   ID, defaults to value from single map state."
+  [db map-id path]
+  (let [independent-map-state-path (independent-map-state-path map-id path)]
+    (get-in db independent-map-state-path (get-in db path))))
+
+(defn assoc-independent-map-state
+  "Assocs the given value at the given path for the independent map state for the
+   given map ID. If no given map ID, defaults to associng in the single map state."
+  [db map-id path val]
+  (let [independent-map-state-path (independent-map-state-path map-id path)]
+    (assoc-in db independent-map-state-path val)))
+
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
    scenarios for analyzing hazard data."
-  [db]
-  (let [cmip-phases            (get-in db [:current-view :cmip-phases])
-        selected-cmip-phase-id (get-in db [:current-view :selected-cmip-phase-id])
-        selected-cmip-phase    (first-where #(= (:id %) selected-cmip-phase-id) cmip-phases)]
-    (when (and (seq cmip-phases) selected-cmip-phase-id)
-      (assert selected-cmip-phase (str "Selected CMIP phase id " selected-cmip-phase-id " not found in CMIP phases list")))
-    selected-cmip-phase))
+  ([db] (current-view-selected-cmip-phase db nil))
+  ([db map-id]
+   (let [cmip-phases            (get-in db [:current-view :cmip-phases])
+         selected-cmip-phase-id (get-independent-map-state db map-id [:current-view :selected-cmip-phase-id])
+         selected-cmip-phase    (first-where #(= (:id %) selected-cmip-phase-id) cmip-phases)]
+     (when (and (seq cmip-phases) selected-cmip-phase-id)
+       (assert selected-cmip-phase (str "Selected CMIP phase id " selected-cmip-phase-id " not found in CMIP phases list")))
+     selected-cmip-phase)))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-model
@@ -157,13 +177,14 @@
 
    If the value selected by the user isn't one of the models found in the current
    CMIP phase, then default to the first available model."
-  [db]
-  (let [models              (get-in db [:current-view :models])
-        selected-model-id   (get-in db [:current-view :selected-model-id])
-        selected-model      (first-where #(= (:id %) selected-model-id) models)]
-    (when (and (seq models) selected-model-id)
-      (assert selected-model (str "Selected model id " selected-model-id " not found in models list")))
-    selected-model))
+  ([db] (current-view-selected-model db nil))
+  ([db map-id]
+   (let [models              (get-in db [:current-view :models])
+         selected-model-id   (get-independent-map-state db map-id [:current-view :selected-model-id])
+         selected-model      (first-where #(= (:id %) selected-model-id) models)]
+     (when (and (seq models) selected-model-id)
+       (assert selected-model (str "Selected model id " selected-model-id " not found in models list")))
+     selected-model)))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-scenario
@@ -171,40 +192,44 @@
 
    If the value selected by the user isn't one of the scenarios found in the
    current scientific model, then default to the first available scenario."
-  [db]
-  (let [scenarios               (get-in db [:current-view :scenarios])
-        selected-scenario-id    (get-in db [:current-view :selected-scenario-id])
-        selected-scenario       (first-where #(= (:id %) selected-scenario-id) scenarios)]
-    (when (and (seq scenarios) selected-scenario-id)
-      (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list")))
-    selected-scenario))
+  ([db] (current-view-selected-scenario db nil))
+  ([db map-id]
+   (let [scenarios               (get-in db [:current-view :scenarios])
+         selected-scenario-id    (get-independent-map-state db map-id [:current-view :selected-scenario-id])
+         selected-scenario       (first-where #(= (:id %) selected-scenario-id) scenarios)]
+     (when (and (seq scenarios) selected-scenario-id)
+       (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list")))
+     selected-scenario)))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-seasonal-data
   "Seasonal data to analyze the hazard data"
-  [db]
-  (let [seasonal-datas               (get-in db [:current-view :seasonal-datas])
-        selected-seasonal-data-id    (get-in db [:current-view :selected-seasonal-data-id])
-        selected-seasonal-data       (first-where #(= (:id %) selected-seasonal-data-id) seasonal-datas)]
-    (when (and (seq seasonal-datas) selected-seasonal-data-id)
-      (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
-    selected-seasonal-data))
+  ([db] (current-view-selected-seasonal-data db nil))
+  ([db map-id]
+   (let [seasonal-datas               (get-in db [:current-view :seasonal-datas])
+         selected-seasonal-data-id    (get-independent-map-state db map-id [:current-view :selected-seasonal-data-id])
+         selected-seasonal-data       (first-where #(= (:id %) selected-seasonal-data-id) seasonal-datas)]
+     (when (and (seq seasonal-datas) selected-seasonal-data-id)
+       (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
+     selected-seasonal-data)))
 
 (defn current-view-is-historic?
   "Indicates whether the current view is for historic data."
-  [db]
-  (get-in db [:current-view :is-historic?]))
+  ([db] (current-view-is-historic? db nil))
+  ([db map-id]
+   (get-independent-map-state db map-id [:current-view :is-historic?])))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data"
-  [db]
-  (let [selected-time-period-id (get-in db [:current-view :selected-time-period-id])
-        is-historic?            (get-in db [:current-view :is-historic?])
-        selected-time-period-id (if is-historic? "all" selected-time-period-id)
-        selected-time-period    (first-where #(= (:id %) selected-time-period-id) time-periods)]
-    (assert selected-time-period (str "Selected time period id " selected-time-period-id " not found in time periods list"))
-    selected-time-period))
+  ([db] (current-view-is-historic? db nil))
+  ([db map-id]
+   (let [selected-time-period-id (get-in db [:current-view :selected-time-period-id])
+         is-historic?            (get-independent-map-state db map-id [:current-view :is-historic?])
+         selected-time-period-id (if is-historic? "all" selected-time-period-id)
+         selected-time-period    (first-where #(= (:id %) selected-time-period-id) time-periods)]
+     (assert selected-time-period (str "Selected time period id " selected-time-period-id " not found in time periods list"))
+     selected-time-period)))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn hazard-layers

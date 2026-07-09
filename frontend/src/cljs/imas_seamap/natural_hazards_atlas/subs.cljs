@@ -28,34 +28,34 @@
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
    scenarios for analyzing hazard data."
-  [db _]
-  (nhatutils/current-view-selected-cmip-phase db))
+  [db [_ map-id]]
+  (nhatutils/current-view-selected-cmip-phase db map-id))
 
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data.
 
    If the value selected by the user isn't one of the models found in the current
    CMIP phase, then default to the first available model."
-  [db _]
-  (nhatutils/current-view-selected-model db))
+  [db [_ map-id]]
+  (nhatutils/current-view-selected-model db map-id))
 
 (defn current-view-selected-scenario
   "Scenario to analyze the hazard data.
 
    If the value selected by the user isn't one of the scenarios found in the
    current scientific model, then default to the first available scenario."
-  [db _]
-  (nhatutils/current-view-selected-scenario db))
+  [db [_ map-id]]
+  (nhatutils/current-view-selected-scenario db map-id))
 
 (defn current-view-selected-seasonal-data
   "Seasonal data to analyze the hazard data"
-  [db _]
-  (nhatutils/current-view-selected-seasonal-data db))
+  [db [_ map-id]]
+  (nhatutils/current-view-selected-seasonal-data db map-id))
 
 (defn current-view-is-historic?
   "Indicates whether the current view is for historic data."
-  [db _]
-  (nhatutils/current-view-is-historic? db))
+  [db [_ map-id]]
+  (nhatutils/current-view-is-historic? db map-id))
 
 (defn current-view-time-periods
   "List of time periods available to analyze the hazard data."
@@ -64,8 +64,8 @@
 
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data"
-  [db _]
-  (nhatutils/current-view-selected-time-period db))
+  [db [_ map-id]]
+  (nhatutils/current-view-selected-time-period db map-id))
 
 (defn current-view-timeline-media-controls
   "State for the media-style controls to play through the timeline of hazard data."
