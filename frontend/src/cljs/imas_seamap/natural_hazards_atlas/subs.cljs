@@ -4,7 +4,8 @@
 (ns imas-seamap.natural-hazards-atlas.subs
   (:require
    [re-frame.core :as re-frame]
-   [imas-seamap.natural-hazards-atlas.utils :as nhatutils]))
+   [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
+   [imas-seamap.utils :as utils]))
 
 (defn current-view-cmip-phases
   "List of CMIP (Coupled Model Intercomparison Project) phases available to
@@ -75,7 +76,7 @@
    Signals function is a necessity, in order to pass through subscription args"
   [[_ map-id]]
   [(re-frame/subscribe [:map.time/current-time map-id])
-   (re-frame/subscribe [:map.time/available-times])
+   (re-frame/subscribe [:map.time/available-times map-id])
    (re-frame/subscribe [:map.time/is-playing? map-id])
    (re-frame/subscribe [:map.time/is-loading? map-id])])
 
@@ -137,7 +138,7 @@
 
    Availability of times is filtered by the range of the currently selected time
    period in current view."
-  [db _]
-  (let [all-available-times           (get-in db [:display :available-times])
-        {:keys [start-year end-year]} (nhatutils/current-view-selected-time-period db)] ; Alternative is registering :current-view/selected-time-period as an input signal to this sub, but then we lose access to db for getting [:display :available-times], so another sub would be necessary.
+  [db [_ map-id]]
+  (let [all-available-times           (utils/get-independent-map-state db map-id [:display :available-times])
+        {:keys [start-year end-year]} (nhatutils/current-view-selected-time-period db map-id)] ; Alternative is registering :current-view/selected-time-period as an input signal to this sub, but then we lose access to db for getting [:display :available-times], so another sub would be necessary.
     (filter #(nhatutils/time-in-range? % start-year end-year) all-available-times)))

@@ -187,7 +187,7 @@
 (defn- timeline-slider
   "Slider to select the date (year) of data to view."
   [{:keys [map-id]}]
-  (let [available-times @(re-frame/subscribe [:map.time/available-times])
+  (let [available-times @(re-frame/subscribe [:map.time/available-times map-id])
         label-renderer #(.getFullYear (js/Date. %))
         label-values [(first available-times) (last available-times)]
         value @(re-frame/subscribe [:map.time/current-time map-id])]
@@ -204,7 +204,7 @@
   [{:keys [map-id]}]
   [components/form-group
    {:label "Year"}
-   (if (and @(re-frame/subscribe [:map.time/current-time map-id]) (seq @(re-frame/subscribe [:map.time/available-times])))
+   (if (and @(re-frame/subscribe [:map.time/current-time map-id]) (seq @(re-frame/subscribe [:map.time/available-times map-id])))
      [:<>
       [timeline-slider {:map-id map-id}]
       [timeline-media-controls {:map-id map-id}]]

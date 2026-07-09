@@ -1146,8 +1146,8 @@
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component."
-  [db [_ available-times]]
-  (assoc-in db [:display :available-times] available-times))
+  [db [_ available-times map-id]]
+  (utils/assoc-independent-map-state db map-id [:display :available-times] available-times))
 
 (defn time-play
   "Starts playback in the timeDimension component (from the leaflet-timedimension
@@ -1184,7 +1184,7 @@
    re-frame DB synced to the component's state."
   [db [_ time-dimension-ref map-id]]
   (.on time-dimension-ref "timeload" #(re-frame/dispatch [:map.time/current-time (.-time %) map-id]))
-  (.on time-dimension-ref "availabletimeschanged" #(re-frame/dispatch [:map.time/available-times (vec (js->clj (.-availableTimes %)))]))
+  (.on time-dimension-ref "availabletimeschanged" #(re-frame/dispatch [:map.time/available-times (vec (js->clj (.-availableTimes %))) map-id]))
   (utils/assoc-independent-map-state db map-id [:map :time-dimension-ref] time-dimension-ref))
 
 (defn time-dimension-control-ref
