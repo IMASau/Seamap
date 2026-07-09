@@ -803,11 +803,8 @@ input.leaflet-control-layers-selector[type="radio"] {
 .current-view {
     padding: 12px 24px;
     &.dark {
-        background-color: var(--color-2);
-        .form-group > :first-child { color: white }
-        #time-control {
-            background-color: var(--tab-color);
-        }
+        background-color: #eeebef;
+        #time-control { background-color: #eeebef; }
     }
 }
 #side-by-side-toggle { padding: 12px 24px; }

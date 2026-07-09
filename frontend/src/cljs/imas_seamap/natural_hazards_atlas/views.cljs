@@ -286,21 +286,18 @@
   (let [selected-tab (reagent/atom "map-1")]
     (fn []
       [:<>
-       (if @(re-frame/subscribe [:ui.side-by-side/active?])
-         [b/tabs {:class           "current-view-tabs"
-                  :selected-tab-id @selected-tab
-                  :on-change       #(reset! selected-tab %)
-                  :render-active-tab-panel-only true} ; doing this re-renders ellipsized text on tab switch, fixing ISA-359
-          [b/tab
-           {:id    "map-1"
-            :title "Map 1"
-            :panel (reagent/as-element
-                    [current-view-map-controls])}]
-          [b/tab
-           {:id    "map-2"
-            :title "Map 2"
-            :panel (reagent/as-element
-                    [current-view-map-controls {:map-id :map-2}])}]]
+       (when @(re-frame/subscribe [:ui.side-by-side/active?])
+         [b/button-group {:fill true}
+          [b/button
+           {:text     "Map 1"
+            :on-click #(reset! selected-tab "map-1")
+            :active   (= @selected-tab "map-1")}]
+          [b/button
+           {:text     "Map 2"
+            :on-click #(reset! selected-tab "map-2")
+            :active   (= @selected-tab "map-2")}]])
+       (if (and @(re-frame/subscribe [:ui.side-by-side/active?]) (= @selected-tab "map-2"))
+         [current-view-map-controls {:map-id :map-2}]
          [current-view-map-controls])
        [side-by-side-toggle]])))
 
