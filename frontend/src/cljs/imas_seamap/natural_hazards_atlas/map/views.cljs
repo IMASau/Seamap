@@ -157,5 +157,17 @@
              [map-views/draw-transect-control])
            (when (:selecting? region-info)
              [map-views/draw-region-control])
+           
+           (when show-time-slider?
+             [:f> leaflet/time-dimension-control
+              {:time-dimension
+               {:ref #(re-frame/dispatch [:map.time/time-dimension-ref % :map-2])        ; hardcoded second map ID
+                :defaultTime @(re-frame/subscribe [:map.time/current-time :map-2])}      ; ditto
+               :ref #(re-frame/dispatch [:map.time/time-dimension-control-ref % :map-2]) ; ditto
+               :auto-play false
+               :playerOptions
+               {:buffer 10
+                :transitionTime 500
+                :startOver true}}])
 
            [map-views/popup feature-info]]]]))))

@@ -161,24 +161,24 @@
 
 (defn- timeline-media-controls
   "Media-style controls to play through the timeline of hazard data."
-  []
+  [{:keys [map-id]}]
   (let [{:keys [is-playing? is-loading? can-step-forward? can-step-backward?]} @(re-frame/subscribe [:current-view/timeline-media-controls])]
     [b/button-group
      [b/button
       {:icon "step-backward"
        :disabled (not can-step-backward?)
-       :on-click #(re-frame/dispatch [:current-view.time/step-backward])}]
+       :on-click #(re-frame/dispatch [:current-view.time/step-backward map-id])}]
      [b/button
       {:icon (if is-playing? "pause" "play")
        :on-click
        (if is-playing?
-         #(re-frame/dispatch [:map.time/pause])
-         #(re-frame/dispatch [:map.time/play]))
+         #(re-frame/dispatch [:map.time/pause map-id])
+         #(re-frame/dispatch [:map.time/play map-id]))
        :active is-playing?}]
      [b/button
       {:icon "step-forward"
        :disabled (not can-step-forward?)
-       :on-click #(re-frame/dispatch [:current-view.time/step-forward])}]
+       :on-click #(re-frame/dispatch [:current-view.time/step-forward map-id])}]
      [b/button
       {:icon "tick-circle"
        :loading is-loading?
@@ -186,28 +186,28 @@
 
 (defn- timeline-slider
   "Slider to select the date (year) of data to view."
-  []
+  [{:keys [map-id]}]
   (let [available-times @(re-frame/subscribe [:map.time/available-times])
         label-renderer #(.getFullYear (js/Date. %))
         label-values [(first available-times) (last available-times)]
-        value @(re-frame/subscribe [:map.time/current-time])]
+        value @(re-frame/subscribe [:map.time/current-time map-id])]
     [components/snap-slider
      {:value     value
       :values    available-times
-      :on-change #(re-frame/dispatch [:map.time/current-time %])
+      :on-change #(re-frame/dispatch [:map.time/current-time % map-id])
       :label-values label-values
       :label-renderer label-renderer}]))
 
 (defn- timeline-select
   "Controls for selecting the time (year) of hazard data to view.
    Should only be shown if there are available times to select from."
-  []
+  [{:keys [map-id]}]
   [components/form-group
    {:label "Year"}
-   (if (and @(re-frame/subscribe [:map.time/current-time]) (seq @(re-frame/subscribe [:map.time/available-times])))
+   (if (and @(re-frame/subscribe [:map.time/current-time map-id]) (seq @(re-frame/subscribe [:map.time/available-times])))
      [:<>
-      [timeline-slider]
-      [timeline-media-controls]]
+      [timeline-slider {:map-id map-id}]
+      [timeline-media-controls {:map-id map-id}]]
      [b/spinner])])
 
 (defn- current-view-analysis
@@ -274,7 +274,7 @@
    [current-view-analysis {:map-id map-id}]
    [b/card {:id "time-control"}
     [time-period-select {:map-id map-id}]
-    [timeline-select]]])
+    [timeline-select {:map-id map-id}]]])
 
 (defn- current-view
   "Control tab to select the current view of the hazard data.
@@ -298,7 +298,7 @@
             :on-click #(reset! selected-tab "map-2")
             :active   (= @selected-tab "map-2")}]])
        (if (and @(re-frame/subscribe [:ui.side-by-side/active?]) (= @selected-tab "map-2"))
-         [current-view-map-controls {:map-id :map-2}]
+         [current-view-map-controls {:map-id :map-2}] ; hardcoded second map ID
          [current-view-map-controls])
        [side-by-side-toggle]])))
 
