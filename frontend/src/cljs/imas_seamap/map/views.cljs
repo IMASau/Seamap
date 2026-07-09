@@ -401,9 +401,9 @@
          [basemap-layer-component base-layer]])
       (:layers active-base-layer))]))
 
-(defn catalogue-layers []
+(defn catalogue-layers [{:keys [map-id]}]
   (let [{:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
-        displayed-layers-lookup     @(re-frame/subscribe [:map.layer/displayed-layers-lookup])
+        displayed-layers-lookup     @(re-frame/subscribe [:map.layer/displayed-layers-lookup map-id])
         {:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         boundary-filter             @(re-frame/subscribe [:sok/boundary-layer-filter])]
     [:<>

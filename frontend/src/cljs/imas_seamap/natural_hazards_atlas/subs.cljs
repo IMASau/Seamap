@@ -2,7 +2,9 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.subs
-  (:require [imas-seamap.natural-hazards-atlas.utils :as nhatutils]))
+  (:require
+   [re-frame.core :as re-frame]
+   [imas-seamap.natural-hazards-atlas.utils :as nhatutils]))
 
 (defn current-view-cmip-phases
   "List of CMIP (Coupled Model Intercomparison Project) phases available to
@@ -98,19 +100,27 @@
   [[{:keys [filtered-layers]} supporting-layers] _]
   (filterv (set filtered-layers) supporting-layers))
 
+(defn layer-displayed-layers-lookup-signals
+  "Signals function for layer-displayed-layers-lookup.
+   
+   Signals function is a necessity, in order to pass through subscription args"
+  [[_ map-id]]
+  [(re-frame/subscribe [:map/layers])
+   (re-frame/subscribe [:map.layers/hazard-layers])
+   (re-frame/subscribe [:current-view/selected-cmip-phase map-id])
+   (re-frame/subscribe [:current-view/selected-model map-id])
+   (re-frame/subscribe [:current-view/selected-scenario map-id])
+   (re-frame/subscribe [:current-view/selected-seasonal-data map-id])
+   (re-frame/subscribe [:current-view/is-historic? map-id])])
+
 (defn layer-displayed-layers-lookup
   "A lookup map of the raw (catalogue) layer to what layers should actually be
    displayed on the map.
 
    Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
    hazard layer slug from the current view into the hazard layer server URLs."
-  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?] _]
+  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?]]
   (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?))
-
-;; Proof-of-concept for having separate information in map B
-(defn layer-displayed-layers-lookup-map-b
-  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?] _]
-  (nhatutils/layer-displayed-layers-lookup-map-b layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?))
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component.

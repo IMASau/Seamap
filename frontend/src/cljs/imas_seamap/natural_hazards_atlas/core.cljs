@@ -44,22 +44,8 @@
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legend
-    :map.layer/displayed-layers-lookup    [:<- [:map/layers]
-                                           :<- [:map.layers/hazard-layers]
-                                           :<- [:current-view/selected-cmip-phase]
-                                           :<- [:current-view/selected-model]
-                                           :<- [:current-view/selected-scenario]
-                                           :<- [:current-view/selected-seasonal-data]
-                                           :<- [:current-view/is-historic?]
+    :map.layer/displayed-layers-lookup    [nhasubs/layer-displayed-layers-lookup-signals
                                            nhasubs/layer-displayed-layers-lookup]
-    :map.layer/displayed-layers-lookup-map-b [:<- [:map/layers]
-                                              :<- [:map.layers/hazard-layers]
-                                              :<- [:current-view/selected-cmip-phase]
-                                              :<- [:current-view/selected-model]
-                                              :<- [:current-view/selected-scenario]
-                                              :<- [:current-view/selected-seasonal-data]
-                                              :<- [:current-view/is-historic?]
-                                           nhasubs/layer-displayed-layers-lookup-map-b]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]
