@@ -399,6 +399,22 @@
       :value (nhatutils/encode-state db)}
      :put-hash   ""}))
 
+(defn side-by-side-active?
+  "Whether the side-by-side maps are currently active.
+   True will show the split maps and divider, false will hide them and show a
+   single map.
+
+   Duplicates the current view for :map-2 (hardcoded) so that it is independently
+   controlled from the default single map."
+  [{:keys [db]} [_ active?]]
+  (let [current-view (get db :current-view)]
+    {:db
+     (->
+      db
+      (assoc-in [:display :side-by-side :active?] active?)
+      (assoc-in [:independent-map-state :map-2 :current-view] current-view))
+     :dispatch [:maybe-autosave]}))
+
 (defn current-view-update-cmip-phases
   "From the REST API, update the CMIP phases the user can select in the current
    view.

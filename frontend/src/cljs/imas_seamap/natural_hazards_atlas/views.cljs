@@ -242,6 +242,7 @@
        {:value        @(re-frame/subscribe [:current-view/selected-scenario map-id])
         :options      @(re-frame/subscribe [:current-view/scenarios])
         :onChange     #(re-frame/dispatch [:current-view/selected-scenario % map-id])
+        :isDisabled   @(re-frame/subscribe [:current-view/is-historic? map-id])
         :keyfns
         {:id   :id
          :text :display_name}}]]]

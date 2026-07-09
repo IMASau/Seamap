@@ -256,7 +256,7 @@
     :ui.right-sidebar/pop                 events/right-sidebar-pop
     :ui.right-sidebar/bring-to-front      events/right-sidebar-bring-to-front
     :ui.right-sidebar/remove              events/right-sidebar-remove
-    :ui.side-by-side/active?              [events/side-by-side-active?]
+    :ui.side-by-side/active?              [nhatevents/side-by-side-active?]
     :ui.side-by-side/split-ratio          [events/side-by-side-split-ratio]
     :ui/open-pill                         events/open-pill
     :ui/mouse-pos                         events/mouse-pos
