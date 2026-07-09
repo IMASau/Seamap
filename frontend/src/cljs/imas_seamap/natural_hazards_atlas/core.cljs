@@ -101,7 +101,7 @@
     :current-view/is-historic?            nhasubs/current-view-is-historic?
     :current-view/time-periods            nhasubs/current-view-time-periods
     :current-view/selected-time-period    nhasubs/current-view-selected-time-period
-    :current-view/timeline-media-controls [:<- [:map.time/current-time] :<- [:map.time/available-times] :<- [:map.time/is-playing?] :<- [:map.time/is-loading?] nhasubs/current-view-timeline-media-controls]
+    :current-view/timeline-media-controls [nhasubs/current-view-timeline-media-controls-signals nhasubs/current-view-timeline-media-controls]
     :map.layers/hazard-layers             [:<- [:map/layers] nhasubs/hazard-layers]
     :map.layers/supporting-layers         [:<- [:map/layers] nhasubs/supporting-layers]
     :map.layers/filtered-hazard-layers    [:<- [:map/layers] :<- [:map.layers/hazard-layers] nhasubs/filtered-hazard-layers]

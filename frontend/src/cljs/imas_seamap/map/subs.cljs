@@ -13,7 +13,7 @@
                                                 rich-layer-children->parents
                                                 sort-layers viewport-layers
                                                 match-layer]]
-   [imas-seamap.utils :refer [ids->layers map-on-key]]))
+   [imas-seamap.utils :as utils :refer [ids->layers map-on-key]]))
 
 (defn map-props [db _] (:map db))
 
@@ -222,8 +222,8 @@
 (defn current-time
   "The current time selected for the time dimension. It is designed to be in sync
    with the Leaflet timeDimension component."
-  [db _]
-  (get-in db [:display :current-time]))
+  [db [_ map-id]]
+  (utils/get-independent-map-state db map-id [:display :current-time]))
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component."
@@ -232,14 +232,14 @@
 
 (defn time-is-playing?
   "Whether the time dimension is currently playing or paused."
-  [db _]
-  (get-in db [:display :time-is-playing?]))
+  [db [_ map-id]]
+  (utils/get-independent-map-state db map-id [:display :time-is-playing?]))
 
 (defn time-is-loading?
   "Whether the time dimension is currently loading a new time, driven by
    the timeDimension component."
-  [db _]
-  (get-in db [:display :time-is-loading?]))
+  [db [_ map-id]]
+  (utils/get-independent-map-state db map-id [:display :time-is-loading?]))
 
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))

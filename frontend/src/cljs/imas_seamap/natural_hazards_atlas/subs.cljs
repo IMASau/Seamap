@@ -69,6 +69,16 @@
   [db [_ map-id]]
   (nhatutils/current-view-selected-time-period db map-id))
 
+(defn current-view-timeline-media-controls-signals
+  "Signals function for current-view-timeline-media-controls.
+
+   Signals function is a necessity, in order to pass through subscription args"
+  [[_ map-id]]
+  [(re-frame/subscribe [:map.time/current-time map-id])
+   (re-frame/subscribe [:map.time/available-times])
+   (re-frame/subscribe [:map.time/is-playing? map-id])
+   (re-frame/subscribe [:map.time/is-loading? map-id])])
+
 (defn current-view-timeline-media-controls
   "State for the media-style controls to play through the timeline of hazard data."
   [[current-time available-times is-playing? is-loading?] _]
@@ -102,7 +112,7 @@
 
 (defn layer-displayed-layers-lookup-signals
   "Signals function for layer-displayed-layers-lookup.
-   
+
    Signals function is a necessity, in order to pass through subscription args"
   [[_ map-id]]
   [(re-frame/subscribe [:map/layers])
