@@ -761,6 +761,15 @@
     :current-view/selected-scenario-id
     :current-view/selected-seasonal-data-id]))
 
+(s/def ::independent-map-state-val ; value in key-value map of independent-map-state
+  (s/keys :req-un [::current-view])) ; current view can change between left and right maps, so needs to be independent
+
+(s/def ::independent-map-state-key ; key in key-value map of independent-map-state
+  #{:map-2}) ; only one possible key for now, because we're only supporting one additional map (the right map) from the single main map
+
+(s/def ::independent-map-state ; Storage for values that differ between different possible map views (for now, just the left and right side-by-side maps)
+  (s/map-of ::independent-map-state-key ::independent-map-state-val))
+
 (s/def :nhat/app-state ; unused
   (s/keys :req-un [::config
                    ::site-configuration
@@ -774,4 +783,5 @@
                    ::map
                    ::dynamic-pills
                    ::transect
-                   ::current-view]))
+                   ::current-view
+                   ::independent-map-state]))
