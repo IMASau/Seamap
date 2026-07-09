@@ -407,13 +407,17 @@
    Duplicates the current view for :map-2 (hardcoded) so that it is independently
    controlled from the default single map."
   [{:keys [db]} [_ active?]]
-  (let [current-view (get db :current-view)]
+  (let [current-view (get db :current-view)
+        current-time (get-in db [:display :current-time])]
     {:db
      (->
       db
       (assoc-in [:display :side-by-side :active?] active?)
-      (assoc-in [:independent-map-state :map-2 :current-view] current-view))
-     :dispatch [:maybe-autosave]}))
+      (utils/assoc-independent-map-state :map-2 [:current-view] current-view)
+      (utils/assoc-independent-map-state :map-2 [:display :load-time] current-time)) ; time that is set after time dimension loads (if this is the first time the time dimension has loaded)
+     :dispatch-n
+     [[:maybe-autosave]
+      [:map.time/current-time current-time :map-2]]}))
 
 (defn current-view-update-cmip-phases
   "From the REST API, update the CMIP phases the user can select in the current
@@ -504,11 +508,14 @@
   [{:keys [db]} [_ {time-period-id :id :as time-period} map-id]]
   (assert (some #{time-period-id} (map :id nhatutils/time-periods)) (str "Selected time period " time-period " is not a valid option"))
   (let [{:keys [start-year end-year]} (first-where  #(= (:id %) time-period-id) nhatutils/time-periods)
-        current-time                  (get-in db [:display :current-time])
-        available-times               (get-in db [:display :available-times])
+        current-time                  (utils/get-independent-map-state db map-id [:display :current-time])
+        available-times               (utils/get-independent-map-state db map-id [:display :available-times])
         current-time-in-range?        (nhatutils/time-in-range? current-time start-year end-year)
         first-time-in-range           (first (filter #(nhatutils/time-in-range? % start-year end-year) available-times))]
-    {:db (utils/assoc-independent-map-state db map-id [:current-view :selected-time-period-id] time-period-id)
+    {:db
+     (cond-> db
+       true                   (utils/assoc-independent-map-state map-id [:current-view :selected-time-period-id] time-period-id)
+       current-time-in-range? (utils/assoc-independent-map-state map-id [:display :load-time] first-time-in-range))
      :dispatch-n
      [(when-not current-time-in-range? [:map.time/current-time first-time-in-range map-id])
       [:maybe-autosave]]}))
@@ -516,8 +523,8 @@
 (defn current-view-time-step-forward
   "Move forward one time step in the hazard data"
   [{:keys [db]} [_ map-id]]
-  (let [available-times (get-in db [:display :available-times])
-        current-time    (get-in db [:display :current-time])
+  (let [available-times (utils/get-independent-map-state db map-id [:display :available-times])
+        current-time    (utils/get-independent-map-state db map-id [:display :current-time])
         current-index   (.indexOf available-times current-time)
         next-index      (mod (inc current-index) (count available-times))
         next-time       (nth available-times next-index)]
@@ -528,8 +535,8 @@
 (defn current-view-time-step-backward
   "Move backward one time step in the hazard data"
   [{:keys [db]} [_ map-id]]
-  (let [available-times (get-in db [:display :available-times])
-        current-time    (get-in db [:display :current-time])
+  (let [available-times (utils/get-independent-map-state db map-id [:display :available-times])
+        current-time    (utils/get-independent-map-state db map-id [:display :current-time])
         current-index   (.indexOf available-times current-time)
         prev-index      (mod (dec current-index) (count available-times))
         prev-time       (nth available-times prev-index)]

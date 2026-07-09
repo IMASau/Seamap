@@ -164,7 +164,7 @@
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
     :map.time/current-time                [mevents/time-set-current-time]
-    :map.time/available-times             mevents/time-available-times
+    :map.time/available-times             [mevents/time-available-times]
     :map.time/play                        mevents/time-play
     :map.time/pause                       mevents/time-pause
     :map.time/is-loading?                 mevents/time-is-loading?

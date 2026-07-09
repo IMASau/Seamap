@@ -1146,8 +1146,10 @@
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component."
-  [db [_ available-times map-id]]
-  (utils/assoc-independent-map-state db map-id [:display :available-times] available-times))
+  [{:keys [db]} [_ available-times map-id]]
+  (let [load-time (utils/get-independent-map-state db map-id [:display :load-time])]
+    {:db (utils/assoc-independent-map-state db map-id [:display :available-times] available-times)
+     :dispatch [:map.time/current-time load-time map-id]}))
 
 (defn time-play
   "Starts playback in the timeDimension component (from the leaflet-timedimension
