@@ -4,7 +4,7 @@
 (ns imas-seamap.natural-hazards-atlas.events
   (:require [ajax.core :as ajax]
             [imas-seamap.natural-hazards-atlas.db :as db]
-            [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
+            [imas-seamap.utils :as utils :refer [copy-text merge-in ids->layers first-where]]
             [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities rich-layer->displayed-layer]]
             [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -463,7 +463,7 @@
   [{:keys [db]} [_ {cmip-phase-id :id :as cmip-phase} map-id]]
   (let [cmip-phases (get-in db [:current-view :cmip-phases])]
     (assert (some #{cmip-phase-id} (map :id cmip-phases)) (str "Selected CMIP phase " cmip-phase " is not a valid option"))
-    {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :selected-cmip-phase-id] cmip-phase-id)
+    {:db (utils/assoc-independent-map-state db map-id [:current-view :selected-cmip-phase-id] cmip-phase-id)
      :dispatch [:maybe-autosave]}))
 
 (defn current-view-selected-model
@@ -471,7 +471,7 @@
   [{:keys [db]} [_ {model-id :id :as model} map-id]]
   (let [models (get-in db [:current-view :models])]
     (assert (some #{model-id} (map :id models)) (str "Selected model " model " is not a valid option"))
-    {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :selected-model-id] model-id)
+    {:db (utils/assoc-independent-map-state db map-id [:current-view :selected-model-id] model-id)
      :dispatch [:maybe-autosave]}))
 
 (defn current-view-selected-scenario
@@ -479,7 +479,7 @@
   [{:keys [db]} [_ {scenario-id :id :as scenario} map-id]]
   (let [scenarios (get-in db [:current-view :scenarios])]
     (assert (some #{scenario-id} (map :id scenarios)) (str "Selected scenario " scenario " is not a valid option"))
-    {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :selected-scenario-id] scenario-id)
+    {:db (utils/assoc-independent-map-state db map-id [:current-view :selected-scenario-id] scenario-id)
      :dispatch [:maybe-autosave]}))
 
 (defn current-view-selected-seasonal-data
@@ -487,13 +487,13 @@
   [{:keys [db]} [_ {seasonal-data-id :id :as seasonal-data} map-id]]
   (let [seasonal-datas (get-in db [:current-view :seasonal-datas])]
     (assert (some #{seasonal-data-id} (map :id seasonal-datas)) (str "Selected seasonal data " seasonal-data " is not a valid option"))
-    {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :selected-seasonal-data-id] seasonal-data-id)
+    {:db (utils/assoc-independent-map-state db map-id [:current-view :selected-seasonal-data-id] seasonal-data-id)
      :dispatch [:maybe-autosave]}))
 
 (defn current-view-is-historic?
   "Indicates whether the current view is for historic data."
   [{:keys [db]} [_ is-historic? map-id]]
-  {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :is-historic?] is-historic?)
+  {:db (utils/assoc-independent-map-state db map-id [:current-view :is-historic?] is-historic?)
    :dispatch [:maybe-autosave]})
 
 (defn current-view-selected-time-period
@@ -508,7 +508,7 @@
         available-times               (get-in db [:display :available-times])
         current-time-in-range?        (nhatutils/time-in-range? current-time start-year end-year)
         first-time-in-range           (first (filter #(nhatutils/time-in-range? % start-year end-year) available-times))]
-    {:db (nhatutils/assoc-independent-map-state db map-id [:current-view :selected-time-period-id] time-period-id)
+    {:db (utils/assoc-independent-map-state db map-id [:current-view :selected-time-period-id] time-period-id)
      :dispatch-n
      [(when-not current-time-in-range? [:map.time/current-time first-time-in-range])
       [:maybe-autosave]]}))

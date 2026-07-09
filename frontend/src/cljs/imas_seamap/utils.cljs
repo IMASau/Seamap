@@ -370,3 +370,22 @@
         (interpose " OR " (map #(value->cql-filter cql-property data-type %) value)))
        ")"))
     (when value (value->cql-filter cql-property data-type value))))
+
+(defn independent-map-state-path
+  "Path to value for the state of a map by given map-id."
+  [map-id path]
+  (concat (when map-id [:independent-map-state map-id]) path))
+
+(defn get-independent-map-state
+  "Gets the independent map state for a given path. If no state for the given map
+   ID, defaults to value from single map state."
+  [db map-id path]
+  (let [independent-map-state-path (independent-map-state-path map-id path)]
+    (get-in db independent-map-state-path (get-in db path))))
+
+(defn assoc-independent-map-state
+  "Assocs the given value at the given path for the independent map state for the
+   given map ID. If no given map ID, defaults to associng in the single map state."
+  [db map-id path val]
+  (let [independent-map-state-path (independent-map-state-path map-id path)]
+    (assoc-in db independent-map-state-path val)))
