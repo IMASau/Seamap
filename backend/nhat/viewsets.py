@@ -123,9 +123,12 @@ def _get_nhat_thredds_legend(layer: catalogue.models.Layer) -> str:
         params.update({
             'layer': dataset.layer_name,
             'styles': f"default-scalar/{layer.hazardlayer.color_palette}",
-            'colorscalerange': f"{dataset.color_scale_range_min},{dataset.color_scale_range_max}",
             'abovemaxcolor': layer.hazardlayer.above_max_color,
             'belowmincolor': layer.hazardlayer.below_min_color,
+            'colorbaronly': True,
+            'height': 400,
+            'width': 50,
+            'palette': layer.hazardlayer.color_palette,
         })
     legend_url = requests.get(url=server_url, params=params, timeout=30).url
     assert isinstance(legend_url, str) # assert silences mypy strict type checking
