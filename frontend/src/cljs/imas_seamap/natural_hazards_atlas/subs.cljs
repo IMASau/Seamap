@@ -93,6 +93,27 @@
   [{:keys [catalogue-layers]} _]
   (filterv :hazardlayer catalogue-layers))
 
+(defn hazard-layers-color-scale-range
+  "Merged scale range for hazard layers across map 1 and 2."
+  [[hazard-layers
+    cmip-phase-1 model-1 scenario-1 seasonal-data-1 is-historic?-1
+    cmip-phase-2 model-2 scenario-2 seasonal-data-2 is-historic?-2]
+   [_ layer]]
+  (letfn [(get-hazard-layer-min-max
+           [layer]
+           (let [{min-1 :color_scale_range_min max-1 :color_scale_range_max}
+                 (nhatutils/hazard-layer-dataset layer cmip-phase-1 model-1 scenario-1 seasonal-data-1 is-historic?-1)
+                 {min-2 :color_scale_range_min max-2 :color_scale_range_max}
+                 (nhatutils/hazard-layer-dataset layer cmip-phase-2 model-2 scenario-2 seasonal-data-2 is-historic?-2)]
+             {:color-scale-range-min (min min-1 min-2)
+              :color-scale-range-max (max max-1 max-2)}))]
+    (if layer
+      (get-hazard-layer-min-max layer)
+      (reduce
+       (fn [m layer]
+         (assoc m layer (get-hazard-layer-min-max layer)))
+       {} hazard-layers))))
+
 (defn supporting-layers
   "List of currently available supporting layers, with metadata for display in the
    UI."
@@ -130,7 +151,7 @@
 
    Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
    hazard layer slug from the current view into the hazard layer server URLs."
-  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?]]
+  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?] _]
   (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?))
 
 (defn time-available-times

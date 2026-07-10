@@ -219,7 +219,7 @@
   (filterv :hazardlayer catalogue-layers))
 
 
-(defn- hazard-layer-dataset
+(defn hazard-layer-dataset
   "Get the hazard layer dataset for the given hazard layer, CMIP phase, model, scenario, and seasonal data."
   [hazard-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?]
   (let [datasets (get-in hazard-layer [:hazardlayer :datasets])]
@@ -251,8 +251,9 @@
           (let [hazard-layer-dataset (hazard-layer-dataset displayed-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?)
                 displayed-layer
                 (-> displayed-layer
-                    (assoc-in [:server_url] (:server_url hazard-layer-dataset))
-                    (assoc-in [:layer_name] (:layer_name hazard-layer-dataset))
+                    (assoc :server_url (:server_url hazard-layer-dataset))
+                    (assoc :layer_name (:layer_name hazard-layer-dataset))
+                    (assoc :style (str "default-scalar/" (get-in displayed-layer [:hazardlayer :color_palette])))
                     (assoc-in [:hazardlayer :color_scale_range_min] (:color_scale_range_min hazard-layer-dataset))
                     (assoc-in [:hazardlayer :color_scale_range_max] (:color_scale_range_max hazard-layer-dataset)))]
             (assoc m layer displayed-layer))

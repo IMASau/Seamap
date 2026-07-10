@@ -103,6 +103,18 @@
     :current-view/selected-time-period    nhasubs/current-view-selected-time-period
     :current-view/timeline-media-controls [nhasubs/current-view-timeline-media-controls-signals nhasubs/current-view-timeline-media-controls]
     :map.layers/hazard-layers             [:<- [:map/layers] nhasubs/hazard-layers]
+    :map.layers.hazard-layers/color-scale-range [:<- [:map.layers/hazard-layers]
+                                                 :<- [:current-view/selected-cmip-phase]
+                                                 :<- [:current-view/selected-model]
+                                                 :<- [:current-view/selected-scenario]
+                                                 :<- [:current-view/selected-seasonal-data]
+                                                 :<- [:current-view/is-historic?]
+                                                 :<- [:current-view/selected-cmip-phase :map-2]
+                                                 :<- [:current-view/selected-model :map-2]
+                                                 :<- [:current-view/selected-scenario :map-2]
+                                                 :<- [:current-view/selected-seasonal-data :map-2]
+                                                 :<- [:current-view/is-historic? :map-2]
+                                                 nhasubs/hazard-layers-color-scale-range]
     :map.layers/supporting-layers         [:<- [:map/layers] nhasubs/supporting-layers]
     :map.layers/filtered-hazard-layers    [:<- [:map/layers] :<- [:map.layers/hazard-layers] nhasubs/filtered-hazard-layers]
     :map.layers/filtered-supporting-layers [:<- [:map/layers] :<- [:map.layers/supporting-layers] nhasubs/filtered-supporting-layers]}
