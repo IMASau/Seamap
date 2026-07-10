@@ -278,6 +278,16 @@ class HazardLayerDataset(models.Model):
         scenario_display = "Historical" if self.is_historical else self.scenario
         return f"{self.hazard_layer} Dataset ({self.cmip_phase} / {self.scientific_model} / {scenario_display} / {self.season})"
 
+    @property
+    def server_url(self) -> str:
+        scenario = "historical" if self.is_historical else self.scenario.name
+        netcdf_file_name = f"{self.cmip_phase.name}_{self.hazard_layer.name}_{scenario}_{self.season.name}.nc"
+        return f"{self.hazard_layer.layer.server_url}{self.hazard_layer.name}/{netcdf_file_name}"
+
+    @property
+    def layer_name(self) -> str:
+        return self.scientific_model.name
+
     class Meta:
         constraints = [
             models.CheckConstraint(

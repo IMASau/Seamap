@@ -118,29 +118,31 @@ def _get_nhat_thredds_legend(layer: catalogue.models.Layer) -> str:
         params['style'] = layer.style
 
     if hasattr(layer, "hazardlayer"):
+        dataset = layer.hazardlayer.datasets.all().first()
+        server_url = dataset.server_url
         params.update({
+            'layer': dataset.layer_name,
             'styles': f"default-scalar/{layer.hazardlayer.color_palette}",
-            'colorscalerange': f"{layer.hazardlayer.color_scale_range_min},{layer.hazardlayer.color_scale_range_max}",
+            'colorscalerange': f"{dataset.color_scale_range_min},{dataset.color_scale_range_max}",
             'abovemaxcolor': layer.hazardlayer.above_max_color,
             'belowmincolor': layer.hazardlayer.below_min_color,
         })
-        default_scientific_model = models.ScientificModel.objects.order_by(F('sort_key').asc(nulls_last=True)).first()
-        default_scenario = models.Scenario.objects.order_by(F('sort_key').asc(nulls_last=True)).first()
-        server_url = re.sub(r'\.nc$', f"_{default_scientific_model.name}_{default_scenario.name}.nc", layer.server_url)
-    return requests.get(url=server_url, params=params).url
+    legend_url = requests.get(url=server_url, params=params, timeout=30).url
+    assert isinstance(legend_url, str) # assert silences mypy strict type checking
+    return legend_url
 
 
 @action(methods=['GET'], detail=False)
 @cache_page(60 * 15)
 @api_view()
-def layer_legend(request: Request, layer_id: int):
+def layer_legend(_request: Request, layer_id: int) -> Response:
     """
     Get the legend for a layer in Natural Hazards Atlas.
     Based on the base layer_legend API view in habitat.viewsets, but modified to...
     """
     try:
-        layer = models.Layer.objects.get(id=layer_id)
-    except models.Layer.DoesNotExist:
+        layer = catalogue.models.Layer.objects.get(id=layer_id)
+    except catalogue.models.Layer.DoesNotExist:
         return Response("Layer not found", status=400)
 
     try:

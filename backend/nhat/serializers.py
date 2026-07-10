@@ -48,13 +48,8 @@ class HazardLayerDatasetSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field='name'
     )
-    server_url = serializers.SerializerMethodField()
-    layer_name = serializers.SlugField(source='scientific_model.name', read_only=True)
-
-    def get_server_url(self, obj: models.HazardLayerDataset) -> str:
-        scenario = "historical" if obj.is_historical else obj.scenario.name
-        netcdf_file_name = f"{obj.cmip_phase.name}_{obj.hazard_layer.name}_{scenario}_{obj.season.name}.nc"
-        return f"{obj.hazard_layer.layer.server_url}{obj.hazard_layer.name}/{netcdf_file_name}"
+    server_url = serializers.ReadOnlyField()
+    layer_name = serializers.ReadOnlyField()
 
     class Meta:
         model = models.HazardLayerDataset
