@@ -43,7 +43,7 @@
     :map.layers/lookup                    msubs/map-layer-lookup
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
-    :map.layer/legend                     msubs/layer-legend
+    :map.layer/legend                     nhasubs/layer-legend
     :map.layer/displayed-layers-lookup    [nhasubs/layer-displayed-layers-lookup-signals
                                            nhasubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
@@ -115,6 +115,7 @@
                                                  :<- [:current-view/selected-seasonal-data :map-2]
                                                  :<- [:current-view/is-historic? :map-2]
                                                  nhasubs/hazard-layers-color-scale-range]
+    :map.layers.hazard-layers/units       [:<- [:map.layers/hazard-layers] nhasubs/hazard-layers-units]
     :map.layers/supporting-layers         [:<- [:map/layers] nhasubs/supporting-layers]
     :map.layers/filtered-hazard-layers    [:<- [:map/layers] :<- [:map.layers/hazard-layers] nhasubs/filtered-hazard-layers]
     :map.layers/filtered-supporting-layers [:<- [:map/layers] :<- [:map.layers/supporting-layers] nhasubs/filtered-supporting-layers]}

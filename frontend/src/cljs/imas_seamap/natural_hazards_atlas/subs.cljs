@@ -4,6 +4,7 @@
 (ns imas-seamap.natural-hazards-atlas.subs
   (:require
    [re-frame.core :as re-frame]
+   [imas-seamap.map.subs :as msubs]
    [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
    [imas-seamap.utils :as utils]))
 
@@ -114,6 +115,17 @@
          (assoc m layer (get-hazard-layer-min-max layer)))
        {} hazard-layers))))
 
+(defn hazard-layers-units
+  "Units for hazard layers"
+  [[hazard-layers] [_ layer]]
+  (letfn [(get-hazard-layer-units [layer] (get-in layer [:hazardlayer :human_readable_units]))]
+    (if layer
+      (get-hazard-layer-units layer)
+      (reduce
+       (fn [m layer]
+         (assoc m layer (get-hazard-layer-units layer)))
+       {} hazard-layers))))
+
 (defn supporting-layers
   "List of currently available supporting layers, with metadata for display in the
    UI."
@@ -163,3 +175,7 @@
   (let [all-available-times           (utils/get-independent-map-state db map-id [:display :available-times])
         {:keys [start-year end-year]} (nhatutils/current-view-selected-time-period db map-id)] ; Alternative is registering :current-view/selected-time-period as an input signal to this sub, but then we lose access to db for getting [:display :available-times], so another sub would be necessary.
     (filter #(nhatutils/time-in-range? % start-year end-year) all-available-times)))
+
+(defn layer-legend [db [_ {:keys [id] :as layer}]]
+  (let [layer-legend (msubs/layer-legend db [_ layer])]
+    (assoc layer-legend :type :color-scale-bar)))
