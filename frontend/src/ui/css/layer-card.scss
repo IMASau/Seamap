@@ -170,6 +170,24 @@
     min-width: 0;
 }
 
+.color-scale-bar-legend {
+    .color-scale-bar-units {
+        font-size: 14px;
+        font-weight: bold;
+    }
+    .color-scale-percentiles {
+        position: relative;
+        margin: 12.5px 0;
+        .color-scale-percentile {
+            -webkit-transform: translateY(50%);
+            transform: translateY(50%);
+            font-size: 14px;
+            position: absolute;
+            padding: 2px 5px;
+        }
+    }
+}
+
 .layer-details {
     h2 {
         font-size: 14px;
