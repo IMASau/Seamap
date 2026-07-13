@@ -6,7 +6,8 @@
               [imas-seamap.map.utils :refer [->dynamic-pill] :as map-utils]
               [imas-seamap.utils :refer [first-where]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
-              #_[debux.cs.core :refer [dbg] :include-macros true]))
+              #_[debux.cs.core :refer [dbg] :include-macros true]
+              [imas-seamap.utils :as utils]))
 
 (defn scale-distance
   "Given a line from two x-y points and a percentage, return the point
@@ -41,8 +42,8 @@
         remainder-pct (/ (- pct lower) (- upper lower))]
     (scale-distance s1 s2 remainder-pct)))
 
-(defn feature-info [{:keys [feature] :as db} _]
-  (let [{:keys [status location had-insecure? responses]} feature]
+(defn feature-info [db [_ map-id]]
+  (let [{:keys [status location had-insecure? responses] :as feature} (utils/get-independent-map-state db map-id [:feature])]
     (if feature
       {:has-info?     true
        :had-insecure? had-insecure?

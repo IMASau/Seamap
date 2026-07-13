@@ -549,49 +549,89 @@
    - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
    - point:         The lat lng and x y pixel coords of the clicked point"
   [{:keys [db]} [_ leaflet-props point]]
-  (let [layers                        (get-in db [:map :layers])
-        rich-layer-fn                 (mutils/rich-layer-fn db)
-        hazard-layers                 (nhatutils/hazard-layers layers)
-        selected-cmip-phase           (nhatutils/current-view-selected-cmip-phase db)
-        selected-model                (nhatutils/current-view-selected-model db)
-        selected-scenario             (nhatutils/current-view-selected-scenario db)
-        selected-seasonal-data        (nhatutils/current-view-selected-seasonal-data db)
-        is-historic?                  (nhatutils/current-view-is-historic? db)
-        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?)
-        
-        visible-layers
-        (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup point db)
-        secure-layers  (remove #(mutils/is-insecure? (:server_url %)) visible-layers)
-        request-id     (gensym)
+  (let [layers                          (get-in db [:map :layers])
+        rich-layer-fn                   (mutils/rich-layer-fn db)
+        hazard-layers                   (nhatutils/hazard-layers layers)
 
-        ;; Requests used to be grouped by server URL, but has since been changed to be
-        ;; per-layer (many reasons, but the  triggering factor was separating the CQL
-        ;; filters per layer).
-        ;; We now generate just one :map/get-feature-info event per layer.
-        ;; :map/get-feature-info hasn't been updated to remove the multiple layers
-        ;; parameter, but sending in a vector of a single layer works fine.
-        requests       (map
-                        (fn [{:keys [info_format_type] :as layer}]
-                          [:map/get-feature-info info_format_type [layer] request-id leaflet-props point])
-                        secure-layers)
-        had-insecure?  (some #(mutils/is-insecure? (:server_url %)) visible-layers)
-        db             (if had-insecure?
-                         (assoc db :feature {:status :feature-info/none-queryable :location point :show? true}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
-                         (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
-                          db
-                          :feature-query
-                          {:request-id        request-id
-                           :response-remain   (count requests)
-                           :had-insecure?     had-insecure?
-                           :responses         []}
-                          :feature
-                          {:status   :feature-info/waiting
-                           :leaflet-props leaflet-props
-                           :location point
-                           :show?    false}))]
+        selected-cmip-phase-1           (nhatutils/current-view-selected-cmip-phase db)
+        selected-model-1                (nhatutils/current-view-selected-model db)
+        selected-scenario-1             (nhatutils/current-view-selected-scenario db)
+        selected-seasonal-data-1        (nhatutils/current-view-selected-seasonal-data db)
+        is-historic?-1                  (nhatutils/current-view-is-historic? db)
+        layer-displayed-layers-lookup-1 (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase-1 selected-model-1 selected-scenario-1 selected-seasonal-data-1 is-historic?-1)
+
+        selected-cmip-phase-2           (nhatutils/current-view-selected-cmip-phase db :map-2)
+        selected-model-2                (nhatutils/current-view-selected-model db :map-2)
+        selected-scenario-2             (nhatutils/current-view-selected-scenario db :map-2)
+        selected-seasonal-data-2        (nhatutils/current-view-selected-seasonal-data db :map-2)
+        is-historic?-2                  (nhatutils/current-view-is-historic? db :map-2)
+        layer-displayed-layers-lookup-2 (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase-2 selected-model-2 selected-scenario-2 selected-seasonal-data-2 is-historic?-2)
+
+        request-id (gensym)
+
+        visible-layers-1 (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup-1 point db)
+        requests-1 ; requests for map 1
+        (->>
+         visible-layers-1
+         (remove #(mutils/is-insecure? (:server_url %)))
+         (map (fn [{:keys [info_format_type] :as layer}] [:map/get-feature-info info_format_type [layer] request-id leaflet-props point]))) ; 1 request per layer (per map)
+        visible-layers-2 (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup-2 point db)
+        requests-2 ; requests for map 2
+        (->>
+         visible-layers-2
+         (remove #(mutils/is-insecure? (:server_url %)))
+         (map (fn [{:keys [info_format_type] :as layer}] [:map/get-feature-info info_format_type [layer] request-id leaflet-props point :map-2]))) ; 1 request per layer (per map)
+
+        had-insecure? (some #(mutils/is-insecure? (:server_url %)) (concat visible-layers-1 visible-layers-2)) ; if any insecure layers on either map 1 or 2
+        will-request? (and (seq requests-1) (seq requests-2) (not had-insecure?))] ; will we request, or show "no data" popup?
     (merge
-     {:db db
+     {:db
+      (cond-> db
+        had-insecure?
+        (-> ;; Fall-through case for "layers are visible, but they're http so we can't query them":
+         (utils/assoc-independent-map-state nil [:feature] {:status :feature-info/none-queryable :location point :show? true})
+         (utils/assoc-independent-map-state :map-2 [:feature] {:status :feature-info/none-queryable :location point :show? true}))
+        (not had-insecure?)
+        (->
+         (utils/assoc-independent-map-state
+          nil
+          [:feature-query]
+          {:request-id        request-id
+           :response-remain   (count requests-1)
+           :had-insecure?     had-insecure?
+           :responses         []})
+         (utils/assoc-independent-map-state
+          nil
+          [:feature]
+          {:status   :feature-info/waiting
+           :leaflet-props leaflet-props
+           :location point
+           :show?    false})
+         (utils/assoc-independent-map-state
+          :map-2
+          [:feature-query]
+          {:request-id        request-id
+           :response-remain   (count requests-2)
+           :had-insecure?     had-insecure?
+           :responses         []})
+         (utils/assoc-independent-map-state
+          :map-2
+          [:feature]
+          {:status   :feature-info/waiting
+           :leaflet-props leaflet-props
+           :location point
+           :show?    false})))
       :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
-     (if (and (seq requests) (not had-insecure?))
-       {:dispatch-n requests}
-       {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))
+      (when will-request? {:dispatch-n (concat requests-1 requests-2)})
+      (when-not will-request? {:dispatch [:map/got-featureinfo request-id point nil nil [] nil]})))) ; shows "no data" popup
+
+(defn destroy-popup
+  "Overrides imas-seamap.map.events/destroy-popup to destroy the popups for both
+   side-by-side maps."
+  [{:keys [db]} _]
+  {:db
+   (->
+    db
+    (utils/assoc-independent-map-state nil [:feature] nil)
+    (utils/assoc-independent-map-state :map-2 [:feature] nil))
+   :put-hash ""})

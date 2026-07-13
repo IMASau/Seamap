@@ -389,3 +389,10 @@
   [db map-id path val]
   (let [independent-map-state-path (independent-map-state-path map-id path)]
     (assoc-in db independent-map-state-path val)))
+
+(defn update-independent-map-state
+  "Updates the given value at the given path for the independent map state for the
+   given map ID. If no given map ID, defaults to updating in the single map state."
+  [db map-id path f]
+  (let [independent-map-state-path (independent-map-state-path map-id path)]
+    (update-in db independent-map-state-path f)))

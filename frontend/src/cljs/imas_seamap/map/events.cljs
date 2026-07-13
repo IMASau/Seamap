@@ -105,7 +105,7 @@
       (= (string/lower-case map-crs) (string/lower-case layer-crs))))
 
 (defmethod get-feature-info INFO-FORMAT-HTML
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds] :as _leaflet-props} point]]
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds] :as _leaflet-props} point map-id]]
   (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
         request-crs (or layer-crs crs)
         geo-point ((juxt :lng :lat) point)
@@ -119,7 +119,7 @@
         bbox (bounds->str:wms request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         has-time? (has-time-dimension? (first layers))
-        current-time (get-in db [:display :current-time])
+        current-time (utils/get-independent-map-state db map-id [:display :current-time])
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
@@ -149,11 +149,11 @@
        (when cql-filter {:CQL_FILTER cql-filter})
        (when has-time? {:TIME (ms-to-iso current-time)}))
       :response-format (ajax/text-response-format)
-      :on-success      [:map/got-featureinfo request-id point "text/html" layers]
-      :on-failure      [:map/got-featureinfo-err request-id point]}}))
+      :on-success      [:map/got-featureinfo request-id point "text/html" layers map-id]
+      :on-failure      [:map/got-featureinfo-err request-id point map-id]}}))
 
 (defmethod get-feature-info INFO-FORMAT-JSON
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds zoom] :as _leaflet-props} point]]
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds zoom] :as _leaflet-props} point map-id]]
   (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
         request-crs (or layer-crs crs)
         geo-point ((juxt :lng :lat) point)
@@ -167,7 +167,7 @@
         bbox (bounds->str:wms request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         has-time? (has-time-dimension? (first layers))
-        current-time (get-in db [:display :current-time])
+        current-time (utils/get-independent-map-state db map-id [:display :current-time])
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
@@ -197,28 +197,28 @@
        (when cql-filter {:CQL_FILTER cql-filter})
        (when has-time? {:TIME (ms-to-iso current-time)}))
       :response-format (ajax/json-response-format)
-      :on-success      [:map/got-featureinfo request-id point "application/json" layers]
-      :on-failure      [:map/got-featureinfo-err request-id point]}}))
+      :on-success      [:map/got-featureinfo request-id point "application/json" layers map-id]
+      :on-failure      [:map/got-featureinfo-err request-id point map-id]}}))
 
 (defmethod get-feature-info INFO-FORMAT-FEATURE
-  [_ [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point}]]
+  [_ [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point} map-id]]
   (let [query         (leaflet/esri-query {:url (-> layers first :server_url)})
         leaflet-point (leaflet/latlng. lat lng)]
     (.intersects query leaflet-point)
     (.run query (fn [error feature-collection _response]
                   (if error
-                    (re-frame/dispatch [:map/got-featureinfo-err request-id point nil])
-                    (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers (js->clj feature-collection)]))))
+                    (re-frame/dispatch [:map/got-featureinfo-err request-id point map-id nil])
+                    (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers (js->clj feature-collection) map-id]))))
     nil))
 
 (defmethod get-feature-info INFO-FORMAT-XML
-  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} {:keys [lat lng] :as point}]]
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} {:keys [lat lng] :as point} map-id]]
   (let [bbox (->> (bounds-for-zoom [lng lat] size bounds feature-info-image-size)
                   (bounds->projected #(project-coords % (-> layers first :crs)))
                   (bounds->str:wms (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
         has-time? (has-time-dimension? (first layers))
-        current-time (get-in db [:display :current-time])
+        current-time (utils/get-independent-map-state db map-id [:display :current-time])
         cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
@@ -248,23 +248,23 @@
        (when cql-filter {:CQL_FILTER cql-filter})
        (when has-time? {:TIME (ms-to-iso current-time)}))
       :response-format (ajax/text-response-format)
-      :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
-      :on-failure      [:map/got-featureinfo-err request-id point]}}))
+      :on-success      [:map/got-featureinfo request-id point "text/xml" layers map-id]
+      :on-failure      [:map/got-featureinfo-err request-id point map-id]}}))
 
 (defmethod get-feature-info INFO-FORMAT-MAP-SERVER
-  [_ [_ info-format-type layers request-id leaflet-props point]]
+  [_ [_ info-format-type layers request-id leaflet-props point map-id]]
   {:http-xhrio
    {:method :get
     :uri    (-> layers first :server_url)
     :params {:f "json"}
     :response-format (ajax/json-response-format {:keywords? true})
-    :on-success      [:map/get-feature-info-map-server-step-2 info-format-type layers request-id leaflet-props point]
-    :on-failure      [:map/got-featureinfo-err request-id point]}})
+    :on-success      [:map/get-feature-info-map-server-step-2 info-format-type layers request-id leaflet-props point map-id]
+    :on-failure      [:map/got-featureinfo-err request-id point map-id]}})
 
 ;; MapServer layers need to make an additional request to determine if they are a
 ;; group layer
 (defn get-feature-info-map-server-step-2
-  [{:keys [db]} [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point} map-server-layer-data]]
+  [{:keys [db]} [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point} map-server-layer-data map-id]]
   (let [layer-server-ids (concat [(:id map-server-layer-data)] (map :id (:subLayers map-server-layer-data)))
         url              (string/join "/" (butlast (string/split (-> layers first :server_url) "/")))
         leaflet-map      (get-in db [:map :leaflet-map])
@@ -275,7 +275,7 @@
      leaflet-point
      (fn [error feature-collection _response]
        (if error
-         (re-frame/dispatch [:map/got-featureinfo-err request-id point nil])
+         (re-frame/dispatch [:map/got-featureinfo-err request-id point map-id nil])
          (let [feature-collection
                (as-> (js->clj feature-collection) feature-collection
                  (assoc
@@ -285,12 +285,12 @@
                      (some #{(get % "layerId")} layer-server-ids)       ; check it's a layer we're querying for (not a different layer on the server)
                      (not= (get-in % ["properties" "Pixel Value"]) "NoData")) ; check the layer has associated data
                    (get feature-collection "features"))))]
-           (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers feature-collection])))))
+           (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers feature-collection map-id])))))
     nil))
 
 (defmethod get-feature-info :default
-  [_ [_ _info-format-type layers request-id _leaflet-props point]]
-  {:dispatch [:map/got-featureinfo request-id point nil nil layers]})
+  [_ [_ _info-format-type layers request-id _leaflet-props point map-id]]
+  {:dispatch [:map/got-featureinfo request-id point nil nil layers map-id]})
 
 (defn feature-info-dispatcher
   "Takes a map click event, and dispatches :map/get-feature-info events for each
@@ -335,7 +335,7 @@
       :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
      (if (and (seq requests) (not had-insecure?))
        {:dispatch-n requests}
-       {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))
+       {:dispatch   [:map/got-featureinfo request-id point nil nil [] nil]}))))
 
 (defn show-popup [db [_ request-id]]
   (cond-> db
@@ -365,40 +365,40 @@
 (defn toggle-ignore-click [db _]
   (update-in db [:map :controls :ignore-click] not))
 
-(defn responses-feature-info [db point]
-  (let [responses     (->> (get-in db [:feature-query :responses])
+(defn responses-feature-info [db point map-id]
+  (let [responses     (->> (utils/get-independent-map-state db map-id [:feature-query :responses])
                            (map feature-info-response->display)
                            (remove nil?)
                            vec)
-        had-insecure? (get-in db [:feature-query :had-insecure?])]
+        had-insecure? (utils/get-independent-map-state db map-id [:feature-query :had-insecure?])]
     (when (seq responses)
       {:location point
-       :leaflet-props (get-in db [:feature :leaflet-props])
+       :leaflet-props (utils/get-independent-map-state db map-id [:feature :leaflet-props])
        :had-insecure? had-insecure?
        :responses responses
        :show? true
        :side-of-divider (map-utils/which-side-of-divider point db)})))
 
-(defn got-feature-info [db [_ request-id point info-format layers response]]
-  (if (not= request-id (get-in db [:feature-query :request-id]))
+(defn got-feature-info [db [_ request-id point info-format layers map-id response]]
+  (if (not= request-id (utils/get-independent-map-state db map-id [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
     (let [db (-> db
-                 (update-in [:feature-query :response-remain] dec)
-                 (update-in [:feature-query :responses] conj {:response response :info-format info-format :layers layers}))]
+                 (utils/update-independent-map-state map-id [:feature-query :response-remain] dec)
+                 (utils/update-independent-map-state map-id [:feature-query :responses] #(conj % {:response response :info-format info-format :layers layers})))]
 
-      (if-not (pos? (get-in db [:feature-query :response-remain]))
-        (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
+      (if-not (pos? (utils/get-independent-map-state db map-id [:feature-query :response-remain]))
+        (utils/assoc-independent-map-state db map-id [:feature] (responses-feature-info db point map-id)) ;; If this is the last response expected, update the displayed feature
         db))))
 
-(defn got-feature-info-error [db [_ request-id point _]]
-  (if (not= request-id (get-in db [:feature-query :request-id]))
+(defn got-feature-info-error [db [_ request-id point map-id _]]
+  (if (not= request-id (utils/get-independent-map-state db map-id [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
     (let [db (-> db
-                 (update-in [:feature-query :response-remain] dec)
-                 (update-in [:feature-query :responses] conj nil))]
+                 (utils/update-independent-map-state map-id [:feature-query :response-remain] dec)
+                 (utils/update-independent-map-state map-id [:feature-query :responses] #(conj % nil)))]
       
-      (if-not (pos? (get-in db [:feature-query :response-remain]))
-        (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
+      (if-not (pos? (utils/get-independent-map-state db map-id [:feature-query :response-remain]))
+        (utils/assoc-independent-map-state db map-id [:feature] (responses-feature-info db point map-id)) ;; If this is the last response expected, update the displayed feature
         db))))  
 
 (defn destroy-popup [{:keys [db]} _]

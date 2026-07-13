@@ -55,7 +55,8 @@
        (when @map-b (.invalidateSize @map-b))))
     (fn []
       (let [{:keys [center zoom bounds]}                @(re-frame/subscribe [:map/props])
-            feature-info                                @(re-frame/subscribe [:map.feature/info])
+            feature-info-1                              @(re-frame/subscribe [:map.feature/info])
+            feature-info-2                              @(re-frame/subscribe [:map.feature/info :map-2])
             {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
             {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])
             show-time-slider?                           @(re-frame/subscribe [:map.time/show-time-slider?])
@@ -131,7 +132,7 @@
 
            [map-views/distance-tooltip]
 
-           [map-views/popup feature-info]]]
+           [map-views/popup feature-info-1]]]
 
          [:div
           {:style {:height "100%" :width (str (- 100 split-ratio) "%") :display (if side-by-side-active? "block" "none")}}
@@ -170,4 +171,4 @@
                 :transitionTime 500
                 :startOver true}}])
 
-           [map-views/popup feature-info]]]]))))
+           [map-views/popup feature-info-2]]]]))))
