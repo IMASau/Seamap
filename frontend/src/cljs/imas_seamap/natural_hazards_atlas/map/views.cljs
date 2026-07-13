@@ -4,7 +4,7 @@
 (ns imas-seamap.natural-hazards-atlas.map.views
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
-            [imas-seamap.map.utils :refer [bounds->geojson map->bounds]]
+            [imas-seamap.map.utils :refer [bounds->geojson map->bounds] :as map-utils]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
             ["react-leaflet"]
@@ -138,7 +138,12 @@
           {:style {:height "100%" :width (str (- 100 split-ratio) "%") :display (if side-by-side-active? "block" "none")}}
           [leaflet/map-container
            {:style {:height "100%"}
-            :ref   #(reset! map-b %)}
+            :ref
+            (fn [leaflet-map]
+              (when (and leaflet-map (not= leaflet-map @map-b))
+                (js/console.log "LOG: Registering")
+                (reset! map-b leaflet-map)
+                (.on leaflet-map "click" #(re-frame/dispatch [:map/clicked (map-utils/leaflet-props %) (map-utils/mouseevent->coords %)]))))}
            [map-views/basemap-layers]
            [map-views/catalogue-layers {:map-id :map-2}]
 
