@@ -425,10 +425,8 @@
 
    Update the selected CMIP phase to be the first in the list, if no selected phase
    exists."
-  [{:keys [db]} [_ cmip-phases]]
-  (let [selected-cmip-phase-id (get-in db [:current-view :selected-cmip-phase-id])]
-    {:db (assoc-in db [:current-view :cmip-phases] cmip-phases)
-     :dispatch (when-not selected-cmip-phase-id [:current-view/selected-cmip-phase (first cmip-phases)])}))
+  [db [_ cmip-phases]]
+  (assoc-in db [:current-view :cmip-phases] cmip-phases))
 
 (defn current-view-update-models
   "From the REST API, update the scientific models the user can select in the
@@ -436,30 +434,24 @@
 
    Update the selected model to be the first in the list, if no selected model
    exists."
-  [{:keys [db]} [_ models]]
-  (let [selected-model-id (get-in db [:current-view :selected-model-id])]
-    {:db (assoc-in db [:current-view :models] models)
-     :dispatch (when-not selected-model-id [:current-view/selected-model (first models)])}))
+  [db [_ models]]
+  (assoc-in db [:current-view :models] models))
 
 (defn current-view-update-scenarios
   "From the REST API, update the scenarios the user can select in the current view.
 
    Update the selected scenario to be the first in the list, if no selected
    scenario exists."
-  [{:keys [db]} [_ scenarios]]
-  (let [selected-scenario-id (get-in db [:current-view :selected-scenario-id])]
-    {:db (assoc-in db [:current-view :scenarios] scenarios)
-     :dispatch (when-not selected-scenario-id [:current-view/selected-scenario (first scenarios)])}))
+  [db [_ scenarios]]
+  (assoc-in db [:current-view :scenarios] scenarios))
 
 (defn current-view-update-seasonal-datas
   "From the REST API, update the seasons the user can select in the current view.
 
    Update the selected season to be the first in the list, if no selected season
    exists."
-  [{:keys [db]} [_ seasonal-datas]]
-  (let [selected-seasonal-data-id (get-in db [:current-view :selected-seasonal-data-id])]
-    {:db (assoc-in db [:current-view :seasonal-datas] seasonal-datas)
-     :dispatch (when-not selected-seasonal-data-id [:current-view/selected-seasonal-data (first seasonal-datas)])}))
+  [db [_ seasonal-datas]]
+  (assoc-in db [:current-view :seasonal-datas] seasonal-datas))
 
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and

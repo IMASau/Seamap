@@ -125,6 +125,10 @@
     [:map :rich-layers :rich-layers]
     [:map :rich-layers :async-datas]
     [:map :rich-layers :layer-lookup]
+    [:current-view :cmip-phases]
+    [:current-view :models]
+    [:current-view :scenarios]
+    [:current-view :seasonal-datas]
     [:story-maps :featured-maps]
     [:dynamic-pills :dynamic-pills]
     [:dynamic-pills :async-datas]
@@ -148,39 +152,39 @@
    (let [cmip-phases            (get-in db [:current-view :cmip-phases])
          selected-cmip-phase-id (utils/get-independent-map-state db map-id [:current-view :selected-cmip-phase-id])
          selected-cmip-phase    (first-where #(= (:id %) selected-cmip-phase-id) cmip-phases)]
-     (when (and (seq cmip-phases) selected-cmip-phase-id)
-       (assert selected-cmip-phase (str "Selected CMIP phase id " selected-cmip-phase-id " not found in CMIP phases list")))
-     selected-cmip-phase)))
+     (if (and (seq cmip-phases) selected-cmip-phase-id)
+       (do
+         (assert selected-cmip-phase (str "Selected CMIP phase id " selected-cmip-phase-id " not found in CMIP phases list"))
+         selected-cmip-phase)
+       (first cmip-phases)))))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-model
-  "Scientific model to analyze the hazard data.
-
-   If the value selected by the user isn't one of the models found in the current
-   CMIP phase, then default to the first available model."
+  "Scientific model to analyze the hazard data."
   ([db] (current-view-selected-model db nil))
   ([db map-id]
    (let [models              (get-in db [:current-view :models])
          selected-model-id   (utils/get-independent-map-state db map-id [:current-view :selected-model-id])
          selected-model      (first-where #(= (:id %) selected-model-id) models)]
-     (when (and (seq models) selected-model-id)
-       (assert selected-model (str "Selected model id " selected-model-id " not found in models list")))
-     selected-model)))
+     (if (and (seq models) selected-model-id)
+       (do
+         (assert selected-model (str "Selected model id " selected-model-id " not found in models list"))
+         selected-model)
+       (first models)))))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-scenario
-  "Scenario to analyze the hazard data.
-
-   If the value selected by the user isn't one of the scenarios found in the
-   current scientific model, then default to the first available scenario."
+  "Scenario to analyze the hazard data."
   ([db] (current-view-selected-scenario db nil))
   ([db map-id]
    (let [scenarios               (get-in db [:current-view :scenarios])
          selected-scenario-id    (utils/get-independent-map-state db map-id [:current-view :selected-scenario-id])
          selected-scenario       (first-where #(= (:id %) selected-scenario-id) scenarios)]
-     (when (and (seq scenarios) selected-scenario-id)
-       (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list")))
-     selected-scenario)))
+     (if (and (seq scenarios) selected-scenario-id)
+       (do
+         (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list"))
+         selected-scenario)
+       (first scenarios)))))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-seasonal-data
@@ -190,9 +194,11 @@
    (let [seasonal-datas               (get-in db [:current-view :seasonal-datas])
          selected-seasonal-data-id    (utils/get-independent-map-state db map-id [:current-view :selected-seasonal-data-id])
          selected-seasonal-data       (first-where #(= (:id %) selected-seasonal-data-id) seasonal-datas)]
-     (when (and (seq seasonal-datas) selected-seasonal-data-id)
-       (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
-     selected-seasonal-data)))
+     (if (and (seq seasonal-datas) selected-seasonal-data-id)
+       (do
+         (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list"))
+         selected-seasonal-data)
+       (first seasonal-datas)))))
 
 (defn current-view-is-historic?
   "Indicates whether the current view is for historic data."

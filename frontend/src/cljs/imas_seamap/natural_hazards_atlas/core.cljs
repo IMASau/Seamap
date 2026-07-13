@@ -288,10 +288,10 @@
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close
     :download-click                       (fn [db [_ {:keys [_link]}]] db)
-    :current-view/update-cmip-phases      [nhatevents/current-view-update-cmip-phases]
-    :current-view/update-models           [nhatevents/current-view-update-models]
-    :current-view/update-scenarios        [nhatevents/current-view-update-scenarios]
-    :current-view/update-seasonal-datas   [nhatevents/current-view-update-seasonal-datas]
+    :current-view/update-cmip-phases      nhatevents/current-view-update-cmip-phases
+    :current-view/update-models           nhatevents/current-view-update-models
+    :current-view/update-scenarios        nhatevents/current-view-update-scenarios
+    :current-view/update-seasonal-datas   nhatevents/current-view-update-seasonal-datas
     :current-view/selected-cmip-phase     [nhatevents/current-view-selected-cmip-phase]
     :current-view/selected-model          [nhatevents/current-view-selected-model]
     :current-view/selected-scenario       [nhatevents/current-view-selected-scenario]
