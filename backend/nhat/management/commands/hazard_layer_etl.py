@@ -57,7 +57,7 @@ class Command(BaseCommand):
                 maxx = ds_attrs["maxx"],
                 maxy = ds_attrs["maxy"],
                 server_type = thredds_server_type,
-                info_format_type = 1,
+                info_format_type = 5,
                 layer_type = "wms-timeseries",
                 tooltip = ds_attrs.get("tooltip", None),
                 crs = "EPSG:4326",
@@ -80,7 +80,7 @@ class Command(BaseCommand):
         including CMIP in NetCDF global attributes in the future.
         """
         pattern = re.compile(
-            r'^(?P<cmip>[^_]+)_[^_]+_(?P<scenario>[^_]+)_(?P<season>[^_]+)\.nc$'
+            r'^(?P<cmip>[^_]+)_.+_(?P<scenario>[^_]+)_(?P<season>[^_]+)\.nc$'
         )
         match = pattern.search(netcdf_name)
         if match:
@@ -96,7 +96,7 @@ class Command(BaseCommand):
         including scenario in NetCDF global attributes in the future.
         """
         pattern = re.compile(
-            r'^(?P<cmip>[^_]+)_[^_]+_(?P<scenario>[^_]+)_(?P<season>[^_]+)\.nc$'
+            r'^(?P<cmip>[^_]+)_.+_(?P<scenario>[^_]+)_(?P<season>[^_]+)\.nc$'
         )
         match = pattern.search(netcdf_name)
         if match:
@@ -112,7 +112,7 @@ class Command(BaseCommand):
         including season in NetCDF global attributes in the future.
         """
         pattern = re.compile(
-            r'^(?P<cmip>[^_]+)_[^_]+_(?P<scenario>[^_]+)_(?P<season>[^_]+)\.nc$'
+            r'^(?P<cmip>[^_]+)_.+_(?P<scenario>[^_]+)_(?P<season>[^_]+)\.nc$'
         )
         match = pattern.search(netcdf_name)
         if match:
