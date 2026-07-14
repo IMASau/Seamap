@@ -226,7 +226,7 @@
         [vector-legend-entry entry])
       legend-info)]))
 
-(defn- legend-display [{:keys [legend_url] :as layer}]
+(defn legend-display [{:keys [legend_url] :as layer}]
   (let [{:keys [status info type]} @(re-frame/subscribe [:map.layer/legend layer])]
     [:div.legend-wrapper
      (if legend_url 

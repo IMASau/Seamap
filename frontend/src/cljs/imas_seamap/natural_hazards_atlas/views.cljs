@@ -5,6 +5,7 @@
   (:require [goog.string.format]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.components :as components]
+            [imas-seamap.map.layer-views :refer [legend-display]]
             [imas-seamap.natural-hazards-atlas.map.views :refer [map-component]]
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.story-maps.views :refer [featured-maps]]
@@ -375,6 +376,12 @@
                 [b/tooltip {:content "Configure the map layers"} "Current View"])
         :panel (reagent/as-element [current-view])}]]]))
 
+(defn- hazard-layer-legend []
+  (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]
+    (when active-hazard-layer
+      [:div.custom-leaflet-controls.leaflet-bottom.leaflet-left.leaflet-touch
+       [:div.hazard-layer-legend.leaflet-control [legend-display active-hazard-layer]]])))
+
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [m keydown-v]
@@ -480,5 +487,6 @@
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [views/layers-control]]
+     [hazard-layer-legend]
      [floating-pills]
      [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
