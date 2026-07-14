@@ -28,6 +28,7 @@
             ["iso8601-js-period" :as iso8601]
             [goog.object :as gobject]
             ["/leaflet-coordinates/leaflet-coordinates"] ; Cannot use Leaflet.Coordinates module directly, because clojurescript isn't friendly with dots in module import names.
+            ["/leaflet-scalefactor/leaflet.scalefactor"]
             ["react-esri-leaflet/plugins/VectorTileLayer" :as VectorTileLayer]
             ["leaflet.nontiledlayer"]
             ["@alcalin/leaflet-tilelayer-wmts" :refer [wmts]]
@@ -261,6 +262,7 @@
 (def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L/default %))))
 (def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L/default .-control .-coordinates) %))))
+(def scale-factor-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L/default .-control .-scaleFactor) %))))
 
 ;;; Note: needs to be rendered with [:f> time-dimension-control2 ...] not [time-dimension-control2...]
 (defn time-dimension-control [options]
