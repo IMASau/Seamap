@@ -287,21 +287,27 @@
   []
   (let [selected-tab (reagent/atom "map-1")]
     (fn []
-      [:<>
-       (when @(re-frame/subscribe [:ui.side-by-side/active?])
-         [b/button-group {:fill true}
-          [b/button
-           {:text     "Map 1"
-            :on-click #(reset! selected-tab "map-1")
-            :active   (= @selected-tab "map-1")}]
-          [b/button
-           {:text     "Map 2"
-            :on-click #(reset! selected-tab "map-2")
-            :active   (= @selected-tab "map-2")}]])
-       (if (and @(re-frame/subscribe [:ui.side-by-side/active?]) (= @selected-tab "map-2"))
-         [current-view-map-controls {:map-id :map-2}] ; hardcoded second map ID
-         [current-view-map-controls])
-       [side-by-side-toggle]])))
+      (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]
+        (if active-hazard-layer ; only show controls when we have an active hazard layer, else show message to select a hazard layer
+          [:<> (when @(re-frame/subscribe [:ui.side-by-side/active?])
+                 [b/button-group {:fill true}
+                  [b/button
+                   {:text     "Map 1"
+                    :on-click #(reset! selected-tab "map-1")
+                    :active   (= @selected-tab "map-1")}]
+                  [b/button
+                   {:text     "Map 2"
+                    :on-click #(reset! selected-tab "map-2")
+                    :active   (= @selected-tab "map-2")}]])
+           (if (and @(re-frame/subscribe [:ui.side-by-side/active?]) (= @selected-tab "map-2"))
+             [current-view-map-controls {:map-id :map-2}] ; hardcoded second map ID
+             [current-view-map-controls])
+           [side-by-side-toggle]]
+          [:div
+           [b/non-ideal-state
+            {:title       "No Data"
+             :description "Select a hazard layer to configure hazard parameters."
+             :icon        "info-sign"}]])))))
 
 (defn- layer-catalogue [catid layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
