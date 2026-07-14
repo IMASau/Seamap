@@ -9,6 +9,7 @@
    [clojure.string :as string]
    [clojure.walk :refer [keywordize-keys]]
    [imas-seamap.blueprint :as b]
+   [imas-seamap.interop.dom-to-image :refer [element-to-png]]
    [imas-seamap.interop.leaflet :as leaflet]
    [imas-seamap.map.utils :as map-utils :refer [->dynamic-pill
                                                 bounds->projected
@@ -705,6 +706,17 @@
                                            (+ x (* horiz (- east  west)))])]
     {:dispatch [:map/update-map-view {:center (shift-centre (get-in db [:map :center]))}]}))
 
+
+(defn map-print-start [{:keys [db]} _]
+  (js/setTimeout (fn [] (element-to-png "#content-wrapper" "map.png" #(re-frame/dispatch [:map.print/end]))) 200) ; print after subs for "is-printing" have gone through and updated the page to be print ready
+  {:db       (assoc db :is-printing? true)
+   :dispatch [:ui/show-loading "Preparing Image..."]
+   })
+
+(defn map-print-end [{:keys [db]} _]
+  {:db       (assoc db :is-printing? false)
+   :dispatch [:ui/hide-loading]})
+
 (defn map-print-error [{:keys [db]} _]
   {:message  ["Failed to generate map export image!" b/INTENT-DANGER]
    :dispatch [:ui/hide-loading]})
@@ -767,9 +779,6 @@
     (.on leaflet-map "click"              #(re-frame/dispatch [:map/clicked (leaflet-props %) (mouseevent->coords %)]))
     (.on leaflet-map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
     (.on leaflet-map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
-    (.on leaflet-map "easyPrint-start"    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
-    (.on leaflet-map "easyPrint-finished" #(re-frame/dispatch [:ui/hide-loading]))
-    (.on leaflet-map "easyPrint-failed"   #(re-frame/dispatch [:map.print/error]))
 
     (assoc-in db [:map :leaflet-map] leaflet-map)))
 

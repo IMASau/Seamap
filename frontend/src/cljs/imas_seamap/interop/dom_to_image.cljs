@@ -12,8 +12,10 @@
    The first DOM node matching `selectors` is converted.
 
    Args:
-   * `selectors: string`: JavaScript query selector for the DOM node."
-  [selectors file-name]
+   * `selectors: string`: JavaScript query selector for the DOM node.
+   * `file-name: string`: Name to save PNG image file as.
+   * `on-end: fn`: Callback function for after print has ended."
+  [selectors file-name on-end]
   (let [element (js/document.querySelector selectors)]
     (.then
      (dom-to-image/toPng element)
@@ -22,4 +24,5 @@
              binary-data (js/atob data)
              bytes       (js/Uint8Array.from binary-data #(.charCodeAt % 0))
              blob (js/Blob. #js[bytes] #js{:type mime-type})]
-         (file-saver/saveAs blob file-name))))))
+         (file-saver/saveAs blob file-name)
+         (on-end))))))

@@ -68,12 +68,13 @@
   (let [hot-keys (use-memo (fn [] views/hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         plot-open?         @(re-frame/subscribe [:transect.plot/show?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])]
     [:div#main-wrapper.futures-of-seafood ;{:on-key-down handle-keydown :on-key-up handle-keyup}
-     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when plot-open? " plot-open"))}
+     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when plot-open? " plot-open") (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
       [views/plot-component]]

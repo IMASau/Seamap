@@ -278,3 +278,6 @@
   (let [displayed-layers (map #(get displayed-layers-lookup %) visible-layers)
         visible-layers-legends (map #(get layer-legends (:id %) {:status :map.legend/none}) displayed-layers)]
     (reverse visible-layers-legends)))
+
+(defn print-is-printing? [db _]
+  (get db :is-printing?))

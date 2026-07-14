@@ -136,13 +136,6 @@
            (when (:selecting? region-info)
              [map-views/draw-region-control])
 
-           ;; This control needs to exist so we can trigger its functions programmatically in
-           ;; the control-block element.
-           [leaflet/print-control
-            {:position   "topleft" :title "Export as PNG"
-             :export-only true
-             :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
-
            [leaflet/coordinates-control
             {:decimals 2
              :labelTemplateLat "{y}"

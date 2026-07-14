@@ -627,21 +627,10 @@
        [b/icon {:icon icon :size 18}]])))
 
 (defn print-control []
-  [:div.print-control
-   [:a
-    {:id       "print-control"
-     :on-click #(-> "CurrentSize" js/document.getElementsByClassName first .click)
-     :title    "Export at Current Size"}
-    [b/icon {:icon "media" :size 18}]]
-   [:div.options
-    [:a
-     {:on-click #(-> "A4Landscape page" js/document.getElementsByClassName first .click)
-      :title    "A4 Landscape"}
-     [b/icon {:icon "document" :size 18 :style {:transform "rotate(-90deg)"}}]]
-    [:a
-     {:on-click #(-> "A4Portrait page" js/document.getElementsByClassName first .click)
-      :title    "A4 Portrait"}
-     [b/icon {:icon "document" :size 18}]]]])
+  [control-block-child
+   {:on-click #(re-frame/dispatch [:map.print/start])
+    :id       "print-control"
+    :icon     "media"}])
 
 (defn transect-control []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -1142,12 +1131,13 @@
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         plot-open?         @(re-frame/subscribe [:transect.plot/show?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])]
     [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
-     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when plot-open? " plot-open"))}
+     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when plot-open? " plot-open") (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
       [plot-component]]
