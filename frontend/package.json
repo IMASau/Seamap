@@ -19,7 +19,6 @@
     "iso8601-js-period": "^0.2.1",
     "leaflet": "1.9.0",
     "leaflet-draw": "^1.0.4",
-    "leaflet-easyprint": "link:./custom_modules/leaflet-easyprint",
     "leaflet-shape-markers": "^1.0.6",
     "leaflet-timedimension": "link:./custom_modules/leaflet-timedimension",
     "leaflet.nontiledlayer": "link:./custom_modules/leaflet.nontiledlayer",

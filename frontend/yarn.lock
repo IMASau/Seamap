@@ -8510,10 +8510,6 @@ leaflet-draw@^1.0.4:
   resolved "https://registry.yarnpkg.com/leaflet-draw/-/leaflet-draw-1.0.4.tgz#45be92f378ed253e7202fdeda1fcc71885198d46"
   integrity sha512-rsQ6saQO5ST5Aj6XRFylr5zvarWgzWnrg46zQ1MEOEIHsppdC/8hnN8qMoFvACsPvTioAuysya/TVtog15tyAQ==
 
-"leaflet-easyprint@link:./custom_modules/leaflet-easyprint":
-  version "0.0.0"
-  uid ""
-
 leaflet-shape-markers@^1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/leaflet-shape-markers/-/leaflet-shape-markers-1.0.6.tgz#d54056a4e533828120107a71a237b1efc1a07649"
