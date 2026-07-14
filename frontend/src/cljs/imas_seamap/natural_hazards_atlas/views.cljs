@@ -385,7 +385,7 @@
 (defn- hazard-layer-legend []
   (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]
     (when active-hazard-layer
-      [:div.custom-leaflet-controls.leaflet-bottom.leaflet-left.leaflet-touch
+      [:div.leaflet-bottom.leaflet-left.leaflet-touch
        [:div.hazard-layer-legend.leaflet-control [legend-display active-hazard-layer]]])))
 
 (def hotkeys-combos
@@ -440,13 +440,15 @@
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])]
     [:div#main-wrapper.natural-hazards-atlas
-     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
+     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when is-printing? " map-printing"))}
      [:div#content-wrapper
-      [map-component]]
+      [map-component]
+      [hazard-layer-legend]]
 
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [views/helper-overlay
@@ -493,6 +495,5 @@
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [views/layers-control]]
-     [hazard-layer-legend]
      [floating-pills]
      [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))

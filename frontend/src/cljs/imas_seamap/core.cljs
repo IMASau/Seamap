@@ -49,6 +49,7 @@
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
+    :map.print/is-printing?               msubs/print-is-printing?
     :sok/habitat-statistics               soksubs/habitat-statistics
     :sok/habitat-statistics-download-url  soksubs/habitat-statistics-download-url
     :sok/bathymetry-statistics            soksubs/bathymetry-statistics
@@ -210,6 +211,8 @@
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          [mevents/map-zoom-in]
     :map/zoom-out                         [mevents/map-zoom-out]
+    :map.print/start                      [mevents/map-print-start]
+    :map.print/end                        [mevents/map-print-end]
     :map.print/error                      [mevents/map-print-error]
     :map/pan-direction                    [mevents/map-pan-direction]
     :map/update-leaflet-map               mevents/update-leaflet-map

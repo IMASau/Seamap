@@ -244,6 +244,9 @@
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))
 
+(defn print-is-printing? [db _]
+  (get db :is-printing?))
+
 (defn layer-legend [db [_ {:keys [id] :as _layer}]]
   (let [legend-info (get-in db [:map :legends id])
         status      (cond

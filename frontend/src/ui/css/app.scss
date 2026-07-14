@@ -659,27 +659,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     display: none;
 }
 
-.print-control {
-    .options {
-        display: none;
-        position: absolute;
-        top: -2px;
-        left: $leaflet-control-width;
-        flex-direction: row;
-        border: 2px solid rgba(0,0,0,0.2);
-        border-left: 0;
-
-        >*, >*:hover {
-            border: 0;
-            border-left: 1px solid #ccc;
-        }
-    }
-
-    &:hover .options {
-        display: inline-flex;
-    }
-}
-
 // top-left is where our custom controls are, so we don't display any of leaflets'
 .leaflet-control-container .leaflet-top.leaflet-left {
     display: none;
@@ -821,4 +800,17 @@ input.leaflet-control-layers-selector[type="radio"] {
     height: 457px;
     width: 160px;
     user-select: none;
+}
+
+// Hide elements we don't want to see while the map is printing
+.map-printing {
+    .leaflet-control-attribution,
+    .leaflet-control-coordinates,
+    .leaflet-sbs-range {
+        display: none !important;
+    }
+    .leaflet-left {
+        left: 0 !important;
+        transition: left 0;
+    }
 }

@@ -48,6 +48,7 @@
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
+    :map.print/is-printing?               msubs/print-is-printing?
     :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in Tas Marine Atlas, but the sub is required by catalogue-layers component in map views
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
@@ -190,6 +191,8 @@
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          [mevents/map-zoom-in]
     :map/zoom-out                         [mevents/map-zoom-out]
+    :map.print/start                      [mevents/map-print-start]
+    :map.print/end                        [mevents/map-print-end]
     :map.print/error                      [mevents/map-print-error]
     :map/pan-direction                    [mevents/map-pan-direction]
     :map/update-leaflet-map               mevents/update-leaflet-map

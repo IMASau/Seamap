@@ -100,13 +100,6 @@
            (when (:selecting? region-info)
              [map-views/draw-region-control])
 
-           ;; This control needs to exist so we can trigger its functions programmatically in
-           ;; the control-block element.
-           [leaflet/print-control
-            {:position   "topleft" :title "Export as PNG"
-             :export-only true
-             :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
-
            [leaflet/coordinates-control
             {:decimals 2
              :labelTemplateLat "{y}"
@@ -162,6 +155,15 @@
              [map-views/draw-transect-control])
            (when (:selecting? region-info)
              [map-views/draw-region-control])
+           
+           [leaflet/coordinates-control
+            {:decimals 2
+             :labelTemplateLat "{y}"
+             :labelTemplateLng "{x}"
+             :useLatLngOrder   true
+             :enableUserInput  false}]
+           [leaflet/scale-factor-control {:position "bottomright"}]
+           [leaflet/scale-control {:position "bottomright"}]
            
            (when show-time-slider?
              [:f> leaflet/time-dimension-control
