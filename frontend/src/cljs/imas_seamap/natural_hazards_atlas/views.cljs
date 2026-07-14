@@ -5,6 +5,7 @@
   (:require [goog.string.format]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.components :as components]
+            [imas-seamap.map.layer-views :refer [legend-display]]
             [imas-seamap.natural-hazards-atlas.map.views :refer [map-component]]
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.story-maps.views :refer [featured-maps]]
@@ -286,21 +287,27 @@
   []
   (let [selected-tab (reagent/atom "map-1")]
     (fn []
-      [:<>
-       (when @(re-frame/subscribe [:ui.side-by-side/active?])
-         [b/button-group {:fill true}
-          [b/button
-           {:text     "Map 1"
-            :on-click #(reset! selected-tab "map-1")
-            :active   (= @selected-tab "map-1")}]
-          [b/button
-           {:text     "Map 2"
-            :on-click #(reset! selected-tab "map-2")
-            :active   (= @selected-tab "map-2")}]])
-       (if (and @(re-frame/subscribe [:ui.side-by-side/active?]) (= @selected-tab "map-2"))
-         [current-view-map-controls {:map-id :map-2}] ; hardcoded second map ID
-         [current-view-map-controls])
-       [side-by-side-toggle]])))
+      (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]
+        (if active-hazard-layer ; only show controls when we have an active hazard layer, else show message to select a hazard layer
+          [:<> (when @(re-frame/subscribe [:ui.side-by-side/active?])
+                 [b/button-group {:fill true}
+                  [b/button
+                   {:text     "Map 1"
+                    :on-click #(reset! selected-tab "map-1")
+                    :active   (= @selected-tab "map-1")}]
+                  [b/button
+                   {:text     "Map 2"
+                    :on-click #(reset! selected-tab "map-2")
+                    :active   (= @selected-tab "map-2")}]])
+           (if (and @(re-frame/subscribe [:ui.side-by-side/active?]) (= @selected-tab "map-2"))
+             [current-view-map-controls {:map-id :map-2}] ; hardcoded second map ID
+             [current-view-map-controls])
+           [side-by-side-toggle]]
+          [:div
+           [b/non-ideal-state
+            {:title       "No Data"
+             :description "Select a hazard layer to configure hazard parameters."
+             :icon        "info-sign"}]])))))
 
 (defn- layer-catalogue [catid layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
@@ -374,6 +381,12 @@
         :title (reagent/as-element
                 [b/tooltip {:content "Configure the map layers"} "Current View"])
         :panel (reagent/as-element [current-view])}]]]))
+
+(defn- hazard-layer-legend []
+  (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]
+    (when active-hazard-layer
+      [:div.custom-leaflet-controls.leaflet-bottom.leaflet-left.leaflet-touch
+       [:div.hazard-layer-legend.leaflet-control [legend-display active-hazard-layer]]])))
 
 (def hotkeys-combos
   (let [keydown-wrapper
@@ -480,5 +493,6 @@
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [views/layers-control]]
+     [hazard-layer-legend]
      [floating-pills]
      [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))

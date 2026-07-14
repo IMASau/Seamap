@@ -812,3 +812,13 @@ input.leaflet-control-layers-selector[type="radio"] {
 .natural-hazards-atlas .leaflet-bar-timecontrol {
     display: none;
 }
+
+// Similar styling for map legend to other controls
+.hazard-layer-legend {
+    border: 2px solid #777;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 8px;
+    height: 457px;
+    width: 160px;
+    user-select: none;
+}
