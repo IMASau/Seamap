@@ -23,7 +23,6 @@
             ["@react-leaflet/core" :as ReactLeafletCore]
             ["esri-leaflet" :as esri]
             ["leaflet-draw"]
-            ["leaflet-easyprint"]
             ["leaflet-timedimension" :as LeafletTimeDimension]
             ["iso8601-js-period" :as iso8601]
             [goog.object :as gobject]
@@ -256,7 +255,6 @@
 (def feature-group       (r/adapt-react-class ReactLeaflet/FeatureGroup))
 (def edit-control        (r/adapt-react-class (ReactLeafletCore/createControlComponent #(new (.. L/default -Control -Draw) %)))) ; horrible workaround for react-leaflet-draw not working; using leaflet-draw directly
 (def circle-marker       (r/adapt-react-class ReactLeaflet/CircleMarker))
-(def print-control       (r/adapt-react-class (ReactLeafletCore/createControlComponent #(.easyPrint L/default %))))
 (def scale-control       (r/adapt-react-class ReactLeaflet/ScaleControl))
 (def coordinates-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L/default .-control .-coordinates) %))))
 (def scale-factor-control (r/adapt-react-class (ReactLeafletCore/createControlComponent #((-> L/default .-control .-scaleFactor) %))))

@@ -690,10 +690,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     border-bottom: 1px solid #ccc;
 }
 
-.leaflet-control-easyPrint {
-    display: none;
-}
-
 // top-left is where our custom controls are, so we don't display any of leaflets'
 .leaflet-control-container .leaflet-top.leaflet-left {
     display: none;
