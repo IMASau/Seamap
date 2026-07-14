@@ -115,6 +115,12 @@
          (assoc m layer (get-hazard-layer-min-max layer)))
        {} hazard-layers))))
 
+(defn hazard-layers-active-hazard-layer
+  "There should only be one hazard layer active at a time, per spec. This is handy
+   for retrieving that single layer for showing its legend on the map."
+  [[{:keys [active-layers]} hazard-layers] _]
+  (->> hazard-layers (filter (set active-layers)) first))
+
 (defn hazard-layers-units
   "Units for hazard layers"
   [[hazard-layers] [_ layer]]

@@ -5,6 +5,7 @@
   (:require [ajax.core :as ajax]
             [imas-seamap.natural-hazards-atlas.db :as db]
             [imas-seamap.utils :as utils :refer [copy-text merge-in ids->layers first-where]]
+            [imas-seamap.map.events :as mevents]
             [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities rich-layer->displayed-layer]]
             [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -603,3 +604,23 @@
      (if (and (seq requests) (not had-insecure?))
        {:dispatch-n requests}
        {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))
+
+(defn add-layer
+  "Adds a layer to the list of active layers.
+   
+   Overrides imas-seamap.map.events/add-layer to disallow multiple hazard layers
+   from being active at a time, while also triggering a get-legend for layers
+   whenever they are activated (should be included in core Seamap?)
+   
+   Args:
+    - layer: Layer you wish to add to active layers
+    - target-layer (optional): If supplied, the new layer will be added just beneath
+      this layer in the active layers list."
+  [{:keys [db]} [_ layer target-layer]]
+  (let [{:keys [db dispatch-n]} (mevents/add-layer {:db db} [_ layer target-layer]) ; base event
+        db (update-in
+            db [:map :active-layers]
+            (fn [active-layers] (->> active-layers (remove #(and (:hazardlayer %) (not= % layer))) vec)))
+        dispatch-n (vec (conj dispatch-n [:map.layer/get-legend layer]))]
+    {:db         db
+     :dispatch-n dispatch-n}))
