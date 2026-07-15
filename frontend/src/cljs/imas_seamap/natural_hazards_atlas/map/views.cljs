@@ -133,7 +133,6 @@
             :ref
             (fn [leaflet-map]
               (when (and leaflet-map (not= leaflet-map @map-b))
-                (js/console.log "LOG: Registering")
                 (reset! map-b leaflet-map)
                 (.on leaflet-map "click" #(re-frame/dispatch [:map/clicked (map-utils/leaflet-props %) (map-utils/mouseevent->coords %)]))))}
            [map-views/basemap-layers]
