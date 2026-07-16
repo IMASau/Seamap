@@ -272,6 +272,14 @@
      :local-storage/remove
      {:name :seamap-app-state}}))
 
+(defn load-hash-state
+  [{:keys [db]} [_ hash-code]]
+  (let [db (merge-in db (nhatutils/parse-state hash-code))]
+    (merge
+     {:db db}
+     (when (and hash-code (not= hash-code "null"))
+       {:dispatch [:map/update-map-view (assoc (:map db) :instant? true)]}))))
+
 (defn initialise-layers
   "Like imas-seamap.events/initialise-layers, but we don't dispatch requests for
    region reports or state of knowledge data."

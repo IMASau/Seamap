@@ -35,6 +35,8 @@
                                       [:display :split-layer-range-value]
                                       [:display :split-layer-container-x]
                                       [:display :current-time]
+                                      [:display :side-by-side :active?]
+                                      [:display :side-by-side :split-ratio]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
@@ -48,12 +50,22 @@
                                       [:current-view :selected-seasonal-data-id]
                                       [:current-view :is-historic?]
                                       [:current-view :selected-time-period-id]
+                                      (utils/independent-map-state-path :map-2 [:display :current-time])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-cmip-phase-id])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-model-id])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-scenario-id])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-seasonal-data-id])
+                                      (utils/independent-map-state-path :map-2 [:current-view :is-historic?])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-time-period-id])
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc :story-maps pruned-story-maps)
                        #_(update-in [:display :catalogue :expanded] #(into {} (filter second %))))
         legends    (->> db :layer-state :legend-shown (map :id))
         opacities  (->> db :layer-state :opacity (reduce (fn [acc [k v]] (if (= v 100) acc (conj acc [(:id k) v]))) {}))
+        
+        db (assoc-in db [:display :load-time] (get-in db [:display :current-time]))
+        db (utils/assoc-independent-map-state db :map-2 [:display :load-time] (utils/get-independent-map-state db :map-2 [:display :current-time]))
         db*        (-> db
                        (dissoc :layer-state)
                        (assoc :legend-ids legends)
@@ -73,6 +85,9 @@
                  [:display :split-layer-range-value]
                  [:display :split-layer-container-x]
                  [:display :current-time]
+                 [:display :load-time]
+                 [:display :side-by-side :active?]
+                 [:display :side-by-side :split-ratio]
                  [:filters :layers]
                  [:story-maps :featured-map]
                  [:transect :show?]
@@ -93,6 +108,14 @@
                  [:current-view :selected-seasonal-data-id]
                  [:current-view :selected-time-period-id]
                  [:current-view :is-historic?]
+                 (utils/independent-map-state-path :map-2 [:display :current-time])
+                 (utils/independent-map-state-path :map-2 [:display :load-time])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-cmip-phase-id])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-model-id])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-scenario-id])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-seasonal-data-id])
+                 (utils/independent-map-state-path :map-2 [:current-view :is-historic?])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-time-period-id])
                  :legend-ids
                  :opacity-ids
                  :autosave?
