@@ -634,6 +634,27 @@
       (when will-request? {:dispatch-n (concat requests-1 requests-2)})
       (when-not will-request? {:dispatch [:map/got-featureinfo request-id point nil nil [] nil]})))) ; shows "no data" popup
 
+(defn download-show-link [db [_ layer bounds download-type]]
+  (let [api-url-base (get-in db [:config :url-base :api-url-base])
+        time         (mutils/ms-to-iso (get-in db [:display :current-time])) ; time is necessary for GeoTIFF of Thredds layers. Without image x-axis is lat and y-axis is time, with x-axis is lon and y-axis is lat
+        
+        layers                        (get-in db [:map :layers])
+        rich-layer-fn                 (mutils/rich-layer-fn db)
+        hazard-layers                 (nhatutils/hazard-layers layers)
+        selected-cmip-phase           (nhatutils/current-view-selected-cmip-phase db)
+        selected-model                (nhatutils/current-view-selected-model db)
+        selected-scenario             (nhatutils/current-view-selected-scenario db)
+        selected-seasonal-data        (nhatutils/current-view-selected-seasonal-data db)
+        is-historic?                  (nhatutils/current-view-is-historic? db)
+        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?)
+        displayed-layer (get layer-displayed-layers-lookup layer)]
+    (update-in
+     db [:map :controls :download]
+     merge {:link         (mutils/download-link displayed-layer bounds download-type api-url-base time)
+            :layer        layer
+            :type         download-type
+            :bbox         bounds
+            :display-link true})))
 
 (defn destroy-popup
   "Overrides imas-seamap.map.events/destroy-popup to destroy the popups for both

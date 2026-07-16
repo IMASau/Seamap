@@ -199,7 +199,7 @@
     :map.layer/close-info                 events/layer-close-info
     :map.layer/update-metadata            events/layer-receive-metadata
     :map.layer/metadata-error             events/layer-receive-metadata-err
-    :map.layer/download                   events/download-show-link
+    :map.layer/download                   nhatevents/download-show-link
     :map.layer/opacity-changed            [mevents/layer-set-opacity]
     :map.layer/metadata-click             (fn [db [_ {:keys [_link _layer]}]] db)
     :map.layers/filter                    [mevents/map-set-layer-filter]
