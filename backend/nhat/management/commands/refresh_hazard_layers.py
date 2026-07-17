@@ -10,7 +10,7 @@ import xarray as xr
 import xml.etree.ElementTree as ET
 from django.core.management.base import BaseCommand, CommandParser
 from django.db import transaction
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Optional
 
 import catalogue.models
 import nhat.models as models
@@ -40,7 +40,7 @@ class NetCdfAttributes(NamedTuple):
     miny: float
     maxx: float
     maxy: float
-    tooltip: str | None
+    tooltip: Optional[str]
     human_readable_units: str
     colour_palette: str
     variable_attributes: list[NetCdfVariableAttributes]
