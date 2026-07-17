@@ -4,7 +4,7 @@ from django.db.models.query import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.urls import path, reverse, URLPattern
-from typing import cast
+from typing import cast, Optional
 from django.contrib.messages import get_messages
 
 import nhat.models as models
@@ -29,7 +29,7 @@ class HazardLayerAdmin(admin.ModelAdmin):
         ]
         return my_urls + urls # Yes, this is how Django suggests doing this: https://docs.djangoproject.com/en/6.0/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_urls
 
-    def changelist_view(self, request: HttpRequest, extra_context: dict[str, str] | None = None) -> HttpResponse:
+    def changelist_view(self, request: HttpRequest, extra_context: Optional[dict[str, str]] = None) -> HttpResponse:
         extra_context = extra_context or {}
         extra_context["refresh_url"] = reverse("admin:hazardlayer_refreshfromserver")
 
