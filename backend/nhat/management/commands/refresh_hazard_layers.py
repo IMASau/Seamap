@@ -50,6 +50,7 @@ class Command(BaseCommand):
     THREDDS_XML_NS = {"t": "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"}
     server_url: str
     thredds_server_type: catalogue.models.ServerType
+    is_failure = False
 
     def retrieve_netcdf_names(self, catalog_ref_name: str) -> list[str]:
         """
@@ -218,7 +219,10 @@ class Command(BaseCommand):
         """Load hazard layers from a THREDDS server."""
         catalog_ref_names = self.retrieve_netcdf_catalog_ref_names()
         for catalog_ref_name in catalog_ref_names:
-            self.load_hazard_layer(catalog_ref_name)
+            try:
+                self.load_hazard_layer(catalog_ref_name)
+            except Exception: # pylint: disable=broad-except
+                self.is_failure = True
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
