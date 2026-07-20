@@ -779,6 +779,7 @@
     (.on leaflet-map "click"              #(re-frame/dispatch [:map/clicked (leaflet-props %) (mouseevent->coords %)]))
     (.on leaflet-map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
     (.on leaflet-map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
+    (.on leaflet-map "popupclose"         #(re-frame/dispatch [:map/popup-closed]))
 
     (assoc-in db [:map :leaflet-map] leaflet-map)))
 
