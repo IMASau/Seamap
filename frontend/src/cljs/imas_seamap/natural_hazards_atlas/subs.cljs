@@ -184,4 +184,6 @@
 
 (defn layer-legend [db [_ {:keys [id] :as layer}]]
   (let [layer-legend (msubs/layer-legend db [_ layer])]
-    (assoc layer-legend :type :color-scale-bar)))
+    (if (:hazardlayer layer)
+      (assoc layer-legend :type :color-scale-bar)
+      layer-legend)))

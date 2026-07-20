@@ -680,9 +680,11 @@
       this layer in the active layers list."
   [{:keys [db]} [_ layer target-layer]]
   (let [{:keys [db dispatch-n]} (mevents/add-layer {:db db} [_ layer target-layer]) ; base event
-        db (update-in
-            db [:map :active-layers]
-            (fn [active-layers] (->> active-layers (remove #(and (:hazardlayer %) (not= % layer))) vec)))
+        db (if (:hazardlayer layer) ; if the added layer is a hazard layer, disable other hazard layers
+             (update-in
+              db [:map :active-layers]
+              (fn [active-layers] (->> active-layers (remove #(and (:hazardlayer %) (not= % layer))) vec)))
+             db)
         dispatch-n (vec (conj dispatch-n [:map.layer/get-legend layer]))]
     {:db         db
      :dispatch-n dispatch-n}))
