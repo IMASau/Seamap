@@ -51,6 +51,7 @@ class Command(BaseCommand):
     server_url: str
     thredds_server_type: catalogue.models.ServerType
     is_failure = False
+    warnings: set[str] = set()
 
     def retrieve_netcdf_names(self, catalog_ref_name: str) -> list[str]:
         """
@@ -202,6 +203,8 @@ class Command(BaseCommand):
                             "data_category": netcdf_variable_attributes.data_category,
                         },
                     )
+                    if netcdf_variable_attributes.colour_scale_range_min > netcdf_variable_attributes.colour_scale_range_max:
+                        self.warnings.add("Some hazard layer colour scale ranges have min values greater than their max values")
                     models.HazardLayerDataset.objects.update_or_create(
                         hazard_layer=hazard_layer,
                         scientific_model=model,

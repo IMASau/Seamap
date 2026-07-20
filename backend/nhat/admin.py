@@ -55,12 +55,28 @@ class HazardLayerAdmin(admin.ModelAdmin):
                 messages.SUCCESS,
             )
 
+        for warning in command.warnings:
+            self.message_user(
+                request,
+                warning,
+                messages.WARNING
+            )
+
         return redirect("../")
 
 
 @admin.register(models.HazardLayerDataset)
 class HazardLayerDatasetAdmin(admin.ModelAdmin):
     list_display = (
+        'hazard_layer',
+        'cmip_phase',
+        'scientific_model',
+        'scenario',
+        'season',
+        'is_historical',
+    )
+
+    list_filter = (
         'hazard_layer',
         'cmip_phase',
         'scientific_model',
