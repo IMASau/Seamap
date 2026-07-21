@@ -178,9 +178,7 @@
    Availability of times is filtered by the range of the currently selected time
    period in current view."
   [db [_ map-id]]
-  (let [all-available-times           (utils/get-independent-map-state db map-id [:display :available-times])
-        {:keys [start-year end-year]} (nhatutils/current-view-selected-time-period db map-id)] ; Alternative is registering :current-view/selected-time-period as an input signal to this sub, but then we lose access to db for getting [:display :available-times], so another sub would be necessary.
-    (filter #(nhatutils/time-in-range? % start-year end-year) all-available-times)))
+  (nhatutils/time-available-times db map-id))
 
 (defn layer-legend [db [_ {:keys [id] :as layer}]]
   (let [layer-legend (msubs/layer-legend db [_ layer])]

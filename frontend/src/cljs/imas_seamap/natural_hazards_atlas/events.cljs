@@ -689,3 +689,18 @@
     {:db         db
      :dispatch-n dispatch-n}))
 
+(defn time-set-current-time
+  "Updates the current time in the app state and in the timeDimension component
+   (timeDimension is a component from the plugin that controls the timeseries
+   layers on the map).
+
+   Overrides imas-seamap.map.events/time-set-current-time to stop playback when it
+   reaches the end of the available times."
+  [{:keys [db]} [_ current-time map-id]]
+  (let [{:keys [db dispatch]} (mevents/time-set-current-time {:db db} [_ current-time map-id])
+        time-available-times  (nhatutils/time-available-times db map-id)
+        is-last-time?         (= current-time (last time-available-times))]
+    {:db db
+     :dispatch-n
+     (cond-> [dispatch]
+       is-last-time? (conj [:map.time/pause map-id]))}))

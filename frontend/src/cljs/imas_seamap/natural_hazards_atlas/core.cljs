@@ -178,7 +178,7 @@
     :map/get-feature-info-map-server-step-2 [mevents/get-feature-info-map-server-step-2] ; MapServer layers need to make an additional request to determine if they are a group layer
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
-    :map.time/current-time                [mevents/time-set-current-time]
+    :map.time/current-time                [nhatevents/time-set-current-time]
     :map.time/available-times             [mevents/time-available-times]
     :map.time/play                        mevents/time-play
     :map.time/pause                       mevents/time-pause

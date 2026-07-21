@@ -326,3 +326,13 @@
   [time start-year end-year]
   (let [year (-> time js/Date. .getFullYear)]
     (and (>= year (or start-year ##-Inf)) (<= year (or end-year ##Inf)))))
+
+(defn time-available-times
+  "The available times for the layers, driven by the timeDimension component.
+
+   Availability of times is filtered by the range of the currently selected time
+   period in current view."
+  [db map-id]
+  (let [all-available-times           (utils/get-independent-map-state db map-id [:display :available-times])
+        {:keys [start-year end-year]} (current-view-selected-time-period db map-id)] ; Alternative is registering :current-view/selected-time-period as an input signal to this sub, but then we lose access to db for getting [:display :available-times], so another sub would be necessary.
+    (filter #(time-in-range? % start-year end-year) all-available-times)))

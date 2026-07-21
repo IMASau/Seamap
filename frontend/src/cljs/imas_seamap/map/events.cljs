@@ -1179,7 +1179,7 @@
   [db [_ map-id]]
   (let [time-dimension-control-ref (utils/get-independent-map-state db map-id [:map :time-dimension-control-ref])]
     (when time-dimension-control-ref
-      (.. time-dimension-control-ref -_player pause))
+      (.. time-dimension-control-ref -_player stop))
     (utils/assoc-independent-map-state db map-id [:display :time-is-playing?] false)))
 
 (defn time-is-loading?
