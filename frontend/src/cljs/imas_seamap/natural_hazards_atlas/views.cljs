@@ -163,27 +163,31 @@
 (defn- timeline-media-controls
   "Media-style controls to play through the timeline of hazard data."
   [{:keys [map-id]}]
-  (let [{:keys [is-playing? is-loading? can-step-forward? can-step-backward?]} @(re-frame/subscribe [:current-view/timeline-media-controls])]
-    [b/button-group
-     [b/button
-      {:icon "step-backward"
-       :disabled (not can-step-backward?)
-       :on-click #(re-frame/dispatch [:current-view.time/step-backward map-id])}]
-     [b/button
-      {:icon (if is-playing? "pause" "play")
-       :on-click
-       (if is-playing?
-         #(re-frame/dispatch [:map.time/pause map-id])
-         #(re-frame/dispatch [:map.time/play map-id]))
-       :active is-playing?}]
-     [b/button
-      {:icon "step-forward"
-       :disabled (not can-step-forward?)
-       :on-click #(re-frame/dispatch [:current-view.time/step-forward map-id])}]
-     [b/button
-      {:icon "tick-circle"
-       :loading is-loading?
-       :disabled true}]]))
+  (let [{:keys [is-playing? is-loading? is-disabled? can-step-forward? can-step-backward?]} @(re-frame/subscribe [:current-view/timeline-media-controls map-id])]
+    [b/tooltip
+     {:content "Media controls are disabled while comparing maps"
+      :disabled (not is-disabled?)}
+     [b/button-group
+      [b/button
+       {:icon "step-backward"
+        :disabled (or (not can-step-backward?) is-disabled?)
+        :on-click #(re-frame/dispatch [:current-view.time/step-backward map-id])}]
+      [b/button
+       {:icon (if is-playing? "pause" "play")
+        :disabled is-disabled?
+        :on-click
+        (if is-playing?
+          #(re-frame/dispatch [:map.time/pause map-id])
+          #(re-frame/dispatch [:map.time/play map-id]))
+        :active is-playing?}]
+      [b/button
+       {:icon "step-forward"
+        :disabled (or (not can-step-forward?) is-disabled?)
+        :on-click #(re-frame/dispatch [:current-view.time/step-forward map-id])}]
+      [b/button
+       {:icon "tick-circle"
+        :loading is-loading?
+        :disabled true}]]]))
 
 (defn- timeline-slider
   "Slider to select the date (year) of data to view."
@@ -213,50 +217,55 @@
 
 (defn- current-view-analysis
   [{:keys [map-id]}]
-  [:div#current-view-analysis
-   {:style {:margin-bottom "8px"}}
-   [:div
-    {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
-    [:div {:style {:flex 1}}
-     [components/form-group {:label "CMIP"}
-      [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-cmip-phase map-id])
-        :options      @(re-frame/subscribe [:current-view/cmip-phases])
-        :onChange     #(re-frame/dispatch [:current-view/selected-cmip-phase % map-id])
-        :keyfns
-        {:id   :id
-         :text :display_name}}]]]
-    [:div {:style {:flex 1}}
-     [components/form-group {:label "Model"}
-      [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-model map-id])
-        :options      @(re-frame/subscribe [:current-view/models])
-        :onChange     #(re-frame/dispatch [:current-view/selected-model % map-id])
-        :keyfns
-        {:id   :id
-         :text :display_name}}]]]]
-   [:div {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
-    [:div {:style {:flex 1}}
-     [components/form-group
-      {:label "Scenario"}
-      [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-scenario map-id])
-        :options      @(re-frame/subscribe [:current-view/scenarios])
-        :onChange     #(re-frame/dispatch [:current-view/selected-scenario % map-id])
-        :isDisabled   @(re-frame/subscribe [:current-view/is-historic? map-id])
-        :keyfns
-        {:id   :id
-         :text :display_name}}]]]
-    [:div {:style {:flex 1}}
-     [components/form-group
-      {:label "Seasonal Data"}
-      [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data map-id])
-        :options      @(re-frame/subscribe [:current-view/seasonal-datas])
-        :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data % map-id])
-        :keyfns
-        {:id   :id
-         :text :display_name}}]]]]])
+  (let [is-historic? @(re-frame/subscribe [:current-view/is-historic? map-id])]
+    [:div#current-view-analysis
+     {:style {:margin-bottom "8px"}}
+     [:div
+      {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
+      [:div {:style {:flex 1}}
+       [components/form-group {:label "CMIP"}
+        [components/select
+         {:value        @(re-frame/subscribe [:current-view/selected-cmip-phase map-id])
+          :options      @(re-frame/subscribe [:current-view/cmip-phases])
+          :onChange     #(re-frame/dispatch [:current-view/selected-cmip-phase % map-id])
+          :keyfns
+          {:id   :id
+           :text :display_name}}]]]
+      [:div {:style {:flex 1}}
+       [components/form-group {:label "Model"}
+        [components/select
+         {:value        @(re-frame/subscribe [:current-view/selected-model map-id])
+          :options      @(re-frame/subscribe [:current-view/models])
+          :onChange     #(re-frame/dispatch [:current-view/selected-model % map-id])
+          :keyfns
+          {:id   :id
+           :text :display_name}}]]]]
+     [:div {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
+      [:div {:style {:flex 1}}
+       [components/form-group
+        {:label "Scenario"}
+        [b/tooltip
+         {:content "Scenarios are only available for projected data"
+          :disabled (not is-historic?)
+          :class "bp3-fill"}
+         [components/select
+          {:value        @(re-frame/subscribe [:current-view/selected-scenario map-id])
+           :options      @(re-frame/subscribe [:current-view/scenarios])
+           :onChange     #(re-frame/dispatch [:current-view/selected-scenario % map-id])
+           :isDisabled   is-historic?
+           :keyfns
+           {:id   :id
+            :text :display_name}}]]]]
+      [:div {:style {:flex 1}}
+       [components/form-group
+        {:label "Seasonal Data"}
+        [components/select
+         {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data map-id])
+          :options      @(re-frame/subscribe [:current-view/seasonal-datas])
+          :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data % map-id])
+          :keyfns
+          {:id   :id
+           :text :display_name}}]]]]]))
 
 (defn- side-by-side-toggle []
   [:div#side-by-side-toggle

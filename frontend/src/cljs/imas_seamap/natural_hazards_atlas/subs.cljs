@@ -79,13 +79,15 @@
   [(re-frame/subscribe [:map.time/current-time map-id])
    (re-frame/subscribe [:map.time/available-times map-id])
    (re-frame/subscribe [:map.time/is-playing? map-id])
-   (re-frame/subscribe [:map.time/is-loading? map-id])])
+   (re-frame/subscribe [:map.time/is-loading? map-id])
+   (re-frame/subscribe [:ui.side-by-side/active?])])
 
 (defn current-view-timeline-media-controls
   "State for the media-style controls to play through the timeline of hazard data."
-  [[current-time available-times is-playing? is-loading?] _]
+  [[current-time available-times is-playing? is-loading? side-by-side-active?] _]
   {:is-playing?        is-playing?
    :is-loading?        (and is-loading? is-playing?)
+   :is-disabled?       side-by-side-active?
    :can-step-forward?  (not= current-time (last available-times))
    :can-step-backward? (not= current-time (first available-times))})
 

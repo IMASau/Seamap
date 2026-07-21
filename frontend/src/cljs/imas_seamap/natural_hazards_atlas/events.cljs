@@ -426,6 +426,7 @@
       (utils/assoc-independent-map-state :map-2 [:display :load-time] current-time)) ; time that is set after time dimension loads (if this is the first time the time dimension has loaded)
      :dispatch-n
      [[:maybe-autosave]
+      [:map.time/pause]
       [:map.time/current-time current-time :map-2]]}))
 
 (defn current-view-update-cmip-phases
