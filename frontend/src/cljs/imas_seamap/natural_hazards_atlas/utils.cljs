@@ -324,6 +324,5 @@
 (defn time-in-range?
   "Is the given time (in ms) in the given range of years"
   [time start-year end-year]
-  (let [start-ms (if start-year (js/Date.UTC start-year) ##-Inf)
-        end-ms   (if end-year (js/Date.UTC end-year) ##Inf)]
-    (and (>= time start-ms) (<= time end-ms))))
+  (let [year (-> time js/Date. .getFullYear)]
+    (and (>= year start-year) (<= year end-year))))
