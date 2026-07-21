@@ -325,4 +325,4 @@
   "Is the given time (in ms) in the given range of years"
   [time start-year end-year]
   (let [year (-> time js/Date. .getFullYear)]
-    (and (>= year start-year) (<= year end-year))))
+    (and (>= year (or start-year ##-Inf)) (<= year (or end-year ##Inf)))))
