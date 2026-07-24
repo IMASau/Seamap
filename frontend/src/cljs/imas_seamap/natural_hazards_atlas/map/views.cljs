@@ -134,7 +134,8 @@
             (fn [leaflet-map]
               (when (and leaflet-map (not= leaflet-map @map-b))
                 (reset! map-b leaflet-map)
-                (.on leaflet-map "click" #(re-frame/dispatch [:map/clicked (map-utils/leaflet-props %) (map-utils/mouseevent->coords %)]))))}
+                (.on leaflet-map "click" #(re-frame/dispatch [:map/clicked (map-utils/leaflet-props %) (map-utils/mouseevent->coords %)]))
+                (.on leaflet-map "popupclose" #(re-frame/dispatch [:map/popup-closed]))))}
            [map-views/basemap-layers]
            [map-views/catalogue-layers {:map-id :map-2}]
 
