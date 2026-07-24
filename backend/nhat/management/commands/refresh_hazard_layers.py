@@ -154,7 +154,7 @@ class Command(BaseCommand):
             netcdf_variable_attributes = [
                 NetCdfVariableAttributes(
                     name=data_var_name,
-                    display_name=ds[data_var_name].attrs["name"],
+                    display_name=ds[data_var_name].attrs["long_name"],
                     data_category=DataCategory(ds[data_var_name].attrs["data_category"]),
                     colour_scale_range_min=ds[data_var_name].attrs["colour_scale_range_min"],
                     colour_scale_range_max=ds[data_var_name].attrs["colour_scale_range_max"],
