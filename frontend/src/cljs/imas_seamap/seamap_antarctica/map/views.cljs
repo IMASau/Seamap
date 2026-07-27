@@ -58,8 +58,6 @@
        :export-only true
        :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
     
-     [leaflet/scale-control]
-    
      [leaflet/coordinates-control
       {:decimals 2
        :labelTemplateLat "{y}"
