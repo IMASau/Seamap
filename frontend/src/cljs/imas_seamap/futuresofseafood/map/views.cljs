@@ -7,8 +7,6 @@
             [imas-seamap.map.utils :refer [bounds->geojson map->bounds]]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
-            ["react-leaflet" :as ReactLeaflet]
-            ["/leaflet-scalefactor/leaflet.scalefactor"]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -27,7 +25,6 @@
        :center               center
        :zoom                 zoom
        :zoomControl          true
-       :scaleFactor          true
        :minZoom              2
        :keyboard             false ; handled externally
        :close-popup-on-click false ; We'll handle that ourselves
@@ -61,14 +58,14 @@
        :export-only true
        :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
     
-     [leaflet/scale-control]
-    
      [leaflet/coordinates-control
       {:decimals 2
        :labelTemplateLat "{y}"
        :labelTemplateLng "{x}"
        :useLatLngOrder   true
        :enableUserInput  false}]
+     [leaflet/scale-factor-control {:position "bottomright"}]
+     [leaflet/scale-control {:position "bottomright"}]
     
      (when show-time-slider?
        [:f> leaflet/time-dimension-control

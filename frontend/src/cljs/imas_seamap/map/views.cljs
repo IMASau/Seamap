@@ -10,8 +10,6 @@
             [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds bounds->map]]
             [imas-seamap.interop.leaflet :as leaflet]
             [goog.string :as gstring]
-            ["react-leaflet" :as ReactLeaflet]
-            ["/leaflet-scalefactor/leaflet.scalefactor"]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -448,7 +446,6 @@
        :center               center
        :zoom                 zoom
        :zoomControl          true
-       :scaleFactor          true
        :minZoom              2
        :keyboard             false ; handled externally
        :close-popup-on-click false ; We'll handle that ourselves
@@ -490,6 +487,8 @@
        :labelTemplateLng "{x}"
        :useLatLngOrder   true
        :enableUserInput  false}]
+     [leaflet/scale-factor-control {:position "bottomright"}]
+     [leaflet/scale-control {:position "bottomright"}]
     
      [distance-tooltip]
     

@@ -7,8 +7,6 @@
             [imas-seamap.map.utils :refer [bounds->geojson map->bounds]]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
-            ["react-leaflet" :as ReactLeaflet]
-            ["/leaflet-scalefactor/leaflet.scalefactor"]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -26,7 +24,6 @@
        :center               center
        :zoom                 zoom
        :zoomControl          true
-       :scaleFactor          true
        :minZoom              1
        :maxZoom              15       ; ISA-657 (could support more; see imas-seamap.interop.leaflet/crs-epsg3031)
        :keyboard             false ; handled externally
@@ -69,6 +66,8 @@
        :labelTemplateLng "{x}"
        :useLatLngOrder   true
        :enableUserInput  false}]
+     [leaflet/scale-factor-control {:position "bottomright"}]
+     [leaflet/scale-control {:position "bottomright"}]
     
      [map-views/distance-tooltip]
     
