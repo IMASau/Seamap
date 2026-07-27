@@ -1,23 +1,27 @@
 """
 Management command to generate a fake hazard layer and NetCDF files to test with NHAT
 """
+import re
+from typing import Any
+
 import catalogue.models
 import nhat.models as models
-
-from django.core.management.base import BaseCommand
-from django.db.models import F
 import numpy as np
-import re
 import xarray as xr
+from django.core.management.base import BaseCommand, CommandParser
+from django.db.models import F
+from numpy.typing import NDArray
+from xarray.coding.cftimeindex import CFTimeIndex
 
 
+# mypy: disable-error-code="misc"
 # pylint: disable=line-too-long
 # pylint: disable=missing-function-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=redefined-outer-name
 
 
-def _netcdf_dataset(time, lat, lon, value):
+def _netcdf_dataset(time: CFTimeIndex, lat: NDArray[np.floating[Any]], lon: NDArray[np.floating[Any]], value: NDArray[np.floating[Any]]) -> xr.Dataset:
     """Generates an xarray dataset for a CF Conventions compliant NetCDF file."""
     return xr.Dataset(
         data_vars=dict(
@@ -71,12 +75,12 @@ def _netcdf_dataset(time, lat, lon, value):
     )
 
 class Command(BaseCommand):
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
             '--layer_name'
         )
 
-    def handle(self, *args, **options):
+    def handle(self, *_args: Any, **options: str) -> None:
         layer_name = options['layer_name']
         time = xr.date_range(
             start="1970-01-01",
@@ -89,7 +93,7 @@ class Command(BaseCommand):
         lon = np.arange(143,150.01,0.05)
 
         netcdf_file_basename = re.sub(r'[^a-z0-9]+', '_', layer_name.lower()).strip('_')
-        
+
         # Generate NetCDF files for each CMIP phase, scientific model, scenario, and season
         cmip_phases = models.CmipPhase.objects.order_by(F('sort_key').asc(nulls_last=True)) # [models.CmipPhase(name="CMIP6"), models.CmipPhase(name="Other CMIP (For Testing)")]
         scientific_models = models.ScientificModel.objects.order_by(F('sort_key').asc(nulls_last=True)) # [models.ScientificModel(name="Multi-model median"), models.ScientificModel(name="Other Model (For Testing)")]

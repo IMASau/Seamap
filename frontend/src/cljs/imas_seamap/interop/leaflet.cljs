@@ -33,6 +33,7 @@
             ["@alcalin/leaflet-tilelayer-wmts" :refer [wmts]]
             ["proj4leaflet" :as proj4leaflet]
             ["/SideBySide/SideBySide" :as SideBySide]
+            ["leaflet.sync"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (def crs-epsg4326        L/CRS.EPSG4326)

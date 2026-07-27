@@ -7,142 +7,192 @@
             [imas-seamap.map.utils :refer [bounds->geojson map->bounds]]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
-            ["react-leaflet" :as ReactLeaflet]
+            ["react-leaflet"]
             ["/leaflet-scalefactor/leaflet.scalefactor"]
-            ["esri-leaflet-renderers"]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
+            ["esri-leaflet-renderers"]))
 
-(defn map-component [& children]
-  (let [{:keys [center zoom bounds]}                  @(re-frame/subscribe [:map/props])
-        {:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
-        displayed-layers-lookup                       @(re-frame/subscribe [:map.layer/displayed-layers-lookup])
-        {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
-        feature-info                                  @(re-frame/subscribe [:map.feature/info])
-        {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
-        {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
-        show-time-slider?                             @(re-frame/subscribe [:map.time/show-time-slider?])
-        download-info                                 @(re-frame/subscribe [:download/info])
-        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
-    (into
-     [:div.map-wrapper
-      [map-views/download-component download-info]
-      [leaflet/map-container
-       (merge
-        {:id                   "map"
-         :crs                  leaflet/crs-epsg3857
-         :preferCanvas         true
-         :use-fly-to           false
-         :center               center
-         :zoom                 zoom
-         :zoomControl          true
-         :scaleFactor          true
-         :minZoom              2
-         :keyboard             false ; handled externally
-         :close-popup-on-click false} ; We'll handle that ourselves
-        (when (seq bounds) {:bounds (map->bounds bounds)}))
+(defn- divider
+  "Vertical divider that can be dragged left and right to adjust the split ratio of
+   the maps.
 
-       ;; Unfortunately, only map container children in react-leaflet v4 are able to
-       ;; obtain a reference to the leaflet map through useMap. We make a dummy child here
-       ;; to get around the issue and obtain the map.
-       (r/create-element
-        #(when-let [leaflet-map (ReactLeaflet/useMap)]
-           (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
-           nil))
+   Styling is based on the divider from the Leaflet Side-by-Side library (though
+   otherwise has nothing to do with that library).
 
-       ;; When the current active layer is a vector tile layer, display the default
-       ;; basemap layer underneath, since vector tile layers don't support printing.
-       (when (= (:layer_type active-base-layer) :vector)
-         [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index -1}}
-          [map-views/basemap-layer-component (first grouped-base-layers)]])
+   Visible only when side-by-side mode is active. This is consistent with the
+   behaviour of \"map B\" of the side-by-side view, which is done so we aren't
+   removing and re-adding maps from the DOM."
+  []
+  (let [split-ratio @(re-frame/subscribe [:ui.side-by-side/split-ratio])
+        side-by-side-active? @(re-frame/subscribe [:ui.side-by-side/active?])]
+    [:div.leaflet-sbs
+     {:style {:display (if side-by-side-active? "block" "none")}}
+     [:div.leaflet-sbs-divider
+      {:style {:left (str split-ratio "%")}}]
+     [:input.leaflet-sbs-range
+      {:type "range"
+       :min 0
+       :max 100
+       :value split-ratio
+       :step "any"
+       :on-input #(re-frame/dispatch [:ui.side-by-side/split-ratio (js/parseFloat (.. % -target -value))])
+       :style {:position "absolute" :left "-20px" :width "calc(100% + 40px)"}}]]))
 
-       ;; Basemap layer
-       (when active-base-layer ; Don't render unless we have a basemap
-         ^{:key (str active-base-layer)} ; Key changes with each basemap, so the layer re-renders
-         [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
-          [map-views/basemap-layer-component active-base-layer]])
+;; Proof-of-concept for having separate information in map B
+(defn map-b-layers
+  "Displays the same layers as map A, but hazard layers are always tuned to the SSP2 scenario."
+  []
+  (let [{:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
+        displayed-layers-lookup     @(re-frame/subscribe [:map.layer/displayed-layers-lookup-map-b])
+        {:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
+        boundary-filter             @(re-frame/subscribe [:sok/boundary-layer-filter])]
+    [:<>
+     (map-indexed
+      (fn [i layer]
+        (let [rich-layer (rich-layer-fn layer)
+              {:keys [id server_url] :as displayed-layer} (get displayed-layers-lookup layer)
+              z-index (+ i 1 (count (:layers active-base-layer)))]
+          ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
+          ;; display two panes (left and right) for the two layers, and the side-by-side
+          ;; control for sliding between the two layers.
+          ;; If there's only one layer, then we render a single pane and layer.
+          ^{:key (str id server_url z-index)}
+          [:<>
+           (if (:side-by-side-views-selected rich-layer)
+             [map-views/side-by-side-layer
+              {:layer           layer
+               :boundary-filter boundary-filter
+               :layer-opacities layer-opacities
+               :cql-filter-fn   cql-filter-fn
+               :z-index         z-index
+               :rich-layer-fn   rich-layer-fn}]
+             [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
+              [map-views/layer-component
+               {:layer           layer
+                :displayed-layer displayed-layer
+                :boundary-filter boundary-filter
+                :layer-opacities layer-opacities
+                :cql-filter      (cql-filter-fn layer)}]])]))
+      visible-layers)]))
 
-       ;; Additional basemap layers
-       (map-indexed
-        (fn [i {:keys [id] :as base-layer}]
-          ^{:key (str id (+ i 1))}
-          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1)}}
-           [map-views/basemap-layer-component base-layer]])
-        (:layers active-base-layer))
+(defn map-component []
+  (let [map-a                (r/atom nil)
+        map-b                (r/atom nil)
+        side-by-side-active? (re-frame/subscribe [:ui.side-by-side/active?])
+        split-ratio          (re-frame/subscribe [:ui.side-by-side/split-ratio])]
+    (r/track!
+     #(when (and @map-a @map-b)
+        (if @side-by-side-active?
+          (do (.sync @map-a @map-b) (.sync @map-b @map-a))
+          (do (.unsync @map-a @map-b) (.unsync @map-b @map-a)))))
+    (r/track!
+     (fn []
+       @split-ratio          ; re-render when split ratio changes
+       @side-by-side-active? ; re-render when side-by-side mode is toggled
+       (when @map-a (.invalidateSize @map-a))
+       (when @map-b (.invalidateSize @map-b))))
+    (fn []
+      (let [{:keys [center zoom bounds]}                @(re-frame/subscribe [:map/props])
+            feature-info                                @(re-frame/subscribe [:map.feature/info])
+            {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
+            {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])
+            show-time-slider?                           @(re-frame/subscribe [:map.time/show-time-slider?])
+            side-by-side-active?                        @side-by-side-active?
+            split-ratio                                 @split-ratio]
+        [:div
+         {:style {:display "flex" :height "100vh"}}
+         [divider]
+         [:div {:style {:height "100%" :width (if side-by-side-active? (str split-ratio "%") "100%")}}
+          [leaflet/map-container
+           (merge
+            {:style                {:height "100%"}
+             :crs                  leaflet/crs-epsg3857
+             :preferCanvas         true
+             :use-fly-to           false
+             :center               center
+             :zoom                 zoom
+             :zoomControl          true
+             :scaleFactor          true
+             :minZoom              2
+             :keyboard             false ; handled externally
+             :close-popup-on-click false ; We'll handle that ourselves
+             :ref                  #(do (reset! map-a %) (when % (re-frame/dispatch [:map/update-leaflet-map %])))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
+            (when (seq bounds) {:bounds (map->bounds bounds)}))
 
-       ;; Catalogue layers
-       (map-indexed
-        (fn [i layer]
-          (let [rich-layer (rich-layer-fn layer)
-                {:keys [id server_url] :as displayed-layer} (get displayed-layers-lookup layer)
-                z-index (+ i 1 (count (:layers active-base-layer)))]
-            ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
-            ;; display two panes (left and right) for the two layers, and the side-by-side
-            ;; control for sliding between the two layers.
-            ;; If there's only one layer, then we render a single pane and layer.
-            ^{:key (str id server_url z-index)}
-            [:<>
-             (if (:side-by-side-views-selected rich-layer)
-               [map-views/side-by-side-layer
-                {:layer           layer
-                 :layer-opacities layer-opacities
-                 :cql-filter-fn   cql-filter-fn
-                 :z-index         z-index
-                 :rich-layer-fn   rich-layer-fn}]
-               [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
-                [map-views/layer-component
-                 {:layer           layer
-                  :displayed-layer displayed-layer
-                  :layer-opacities layer-opacities
-                  :cql-filter      (cql-filter-fn layer)}]])]))
-        visible-layers)
+           [map-views/basemap-layers]
+           [map-views/catalogue-layers]
 
-       (when query
-         [leaflet/geojson-layer {:data (clj->js query)}])
-       (when region
-         [leaflet/geojson-layer {:data (clj->js (bounds->geojson region))}])
-       (when (and query mouse-loc)
-         [leaflet/circle-marker {:center      mouse-loc
-                                 :radius      3
-                                 :fillColor   "#3f8ffa"
-                                 :color       "#3f8ffa"
-                                 :opacity     1
-                                 :fillOpacity 1}])
+           (when query
+             [leaflet/geojson-layer {:data (clj->js query)}])
+           (when region
+             [leaflet/geojson-layer {:data (clj->js (bounds->geojson region))}])
+           (when (and query mouse-loc)
+             [leaflet/circle-marker {:center      mouse-loc
+                                     :radius      3
+                                     :fillColor   "#3f8ffa"
+                                     :color       "#3f8ffa"
+                                     :opacity     1
+                                     :fillOpacity 1}])
 
-       (when (:drawing? transect-info)
-         [map-views/draw-transect-control])
-       (when (:selecting? region-info)
-         [map-views/draw-region-control])
+           (when (:drawing? transect-info)
+             [map-views/draw-transect-control])
+           (when (:selecting? region-info)
+             [map-views/draw-region-control])
 
-       ;; This control needs to exist so we can trigger its functions programmatically in
-       ;; the control-block element.
-       [leaflet/print-control
-        {:position   "topleft" :title "Export as PNG"
-         :export-only true
-         :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
+           ;; This control needs to exist so we can trigger its functions programmatically in
+           ;; the control-block element.
+           [leaflet/print-control
+            {:position   "topleft" :title "Export as PNG"
+             :export-only true
+             :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
 
-       [leaflet/scale-control]
+           [leaflet/scale-control]
 
-       [leaflet/coordinates-control
-        {:decimals 2
-         :labelTemplateLat "{y}"
-         :labelTemplateLng "{x}"
-         :useLatLngOrder   true
-         :enableUserInput  false}]
-       
-       (when show-time-slider?
-         [:f> leaflet/time-dimension-control
-          {:time-dimension
-           {:ref #(re-frame/dispatch [:map.time/time-dimension-ref %])
-            :defaultTime @(re-frame/subscribe [:map.time/current-time])}
-           :ref #(re-frame/dispatch [:map.time/time-dimension-control-ref %])
-           :auto-play false
-           :playerOptions
-           {:buffer 10
-            :transitionTime 500
-            :startOver true}}])
+           [leaflet/coordinates-control
+            {:decimals 2
+             :labelTemplateLat "{y}"
+             :labelTemplateLng "{x}"
+             :useLatLngOrder   true
+             :enableUserInput  false}]
 
-       (when (and mouse-pos distance) [map-views/distance-tooltip {:mouse-pos mouse-pos :distance distance}])
+           (when show-time-slider?
+             [:f> leaflet/time-dimension-control
+              {:time-dimension
+               {:ref #(re-frame/dispatch [:map.time/time-dimension-ref %])
+                :defaultTime @(re-frame/subscribe [:map.time/current-time])}
+               :ref #(re-frame/dispatch [:map.time/time-dimension-control-ref %])
+               :auto-play false
+               :playerOptions
+               {:buffer 10
+                :transitionTime 500
+                :startOver true}}])
 
-       [map-views/popup feature-info]]]
+           [map-views/distance-tooltip]
 
-     children)))
+           [map-views/popup feature-info]]]
+
+         [:div
+          {:style {:height "100%" :width (str (- 100 split-ratio) "%") :display (if side-by-side-active? "block" "none")}}
+          [leaflet/map-container
+           {:style {:height "100%"}
+            :ref   #(reset! map-b %)}
+           [map-views/basemap-layers]
+           [map-b-layers]
+
+           (when query
+             [leaflet/geojson-layer {:data (clj->js query)}])
+           (when region
+             [leaflet/geojson-layer {:data (clj->js (bounds->geojson region))}])
+           (when (and query mouse-loc)
+             [leaflet/circle-marker {:center      mouse-loc
+                                     :radius      3
+                                     :fillColor   "#3f8ffa"
+                                     :color       "#3f8ffa"
+                                     :opacity     1
+                                     :fillOpacity 1}])
+           
+           (when (:drawing? transect-info)
+             [map-views/draw-transect-control])
+           (when (:selecting? region-info)
+             [map-views/draw-region-control])
+
+           [map-views/popup feature-info]]]]))))

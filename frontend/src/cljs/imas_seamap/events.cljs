@@ -877,6 +877,23 @@
                  (assoc-in [:display :split-layer-container-x] split-layer-container-x))
    :dispatch [:maybe-autosave]})
 
+(defn side-by-side-active?
+  "Whether the side-by-side maps are currently active.
+   True will show the split maps and divider, false will hide them and show a
+   single map."
+  [{:keys [db]} [_ active?]]
+  {:db       (assoc-in db [:display :side-by-side :active?] active?)
+   :dispatch [:maybe-autosave]})
+
+(defn side-by-side-split-ratio
+  "The current value (percentage, represented between 0-100) of the divider for the
+   side-by-side maps.
+   The value 0 means the divider is on the very left side of the viewport, 100
+   means the divider is on the very right, and 50 in the center."
+  [{:keys [db]} [_ split-ratio]]
+  {:db       (assoc-in db [:display :side-by-side :split-ratio] split-ratio)
+   :dispatch [:maybe-autosave]})
+
 (defn- ->dynamic-pill [dynamic-pill]
   (->
    dynamic-pill
