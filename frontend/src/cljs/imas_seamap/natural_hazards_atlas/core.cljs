@@ -43,7 +43,11 @@
     :map.layers/lookup                    msubs/map-layer-lookup
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
-    :map.layer/legend                     msubs/layer-legend
+    :map.layer/legend                     msubs/layer-legends
+    :map.layer/visible-layers-legends     [:<- [:map/layers]
+                                           :<- [:map.layer/displayed-layers-lookup]
+                                           :<- [:map.layer/legend]
+                                           msubs/layer-visible-layers-legends]
     :map.layer/displayed-layers-lookup    [:<- [:map/layers]
                                            :<- [:map.layers/hazard-layers]
                                            :<- [:current-view/current-view-hazard-layer-slug]

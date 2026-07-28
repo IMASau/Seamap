@@ -13,7 +13,7 @@
                                                 rich-layer-children->parents
                                                 sort-layers viewport-layers
                                                 match-layer]]
-   [imas-seamap.utils :refer [ids->layers map-on-key]]))
+   [imas-seamap.utils :refer [ids->layers map-on-key first-where]]))
 
 (defn map-props [db _] (:map db))
 
@@ -244,11 +244,37 @@
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))
 
-(defn layer-legend [db [_ {:keys [id] :as _layer}]]
-  (let [legend-info (get-in db [:map :legends id])
-        status      (cond
-                      (keyword? legend-info) legend-info
-                      legend-info            :map.legend/loaded
-                      :else                  :map.legend/none)]
-    {:status    status
-     :info      (when (= status :map.legend/loaded) legend-info)}))
+(defn layer-legends
+  "A lookup of each layer to its legend at the current moment.
+
+   If a layer argument is supplied, returns only the legend for that layer as a
+   response."
+  [db [_ {:keys [id] :as layer}]]
+  (let [legends-lookup
+        (->>
+         (get-in db [:map :legends])
+         (reduce-kv
+          (fn [legends-lookup layer-id legend-info]
+            (let [status
+                  (cond
+                    (keyword? legend-info) legend-info
+                    legend-info            :map.legend/loaded
+                    :else                  :map.legend/none)
+                  layer (first-where #(= (:id %) layer-id) (get-in db [:map :layers]))
+                  layer-legend
+                  {:layer-id   layer-id
+                   :layer-name (:name layer)
+                   :status    status
+                   :info      (when (= status :map.legend/loaded) legend-info)}]
+              (assoc legends-lookup layer-id layer-legend)))
+          {}))]
+    (if layer
+      (get legends-lookup id)
+      legends-lookup)))
+
+(defn layer-visible-layers-legends
+  "All the legends for all the visible layers on the map at the current time."
+  [[{:keys [visible-layers]} displayed-layers-lookup layer-legends] _]
+  (let [displayed-layers (map #(get displayed-layers-lookup %) visible-layers)
+        visible-layers-legends (map #(get layer-legends (:id %) {:status :map.legend/none}) displayed-layers)]
+    visible-layers-legends))
