@@ -719,7 +719,6 @@
   ;; :active-base-layer
   [{:keys [db]} _]
   (let [{:keys [active active-base initial-bounds? layers]} (:map db)
-        legend-ids    (:legend-ids db)
         startup-layers (get-in db [:map :keyed-layers :startup] [])
         active-layers (if active
                         (vec (filter identity (ids->layers active (get-in db [:map :layers]))))
@@ -730,7 +729,7 @@
         story-maps    (get-in db [:story-maps :featured-maps])
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
-        legends-shown (init-layer-legend-status layers legend-ids)
+        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers
         legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
@@ -743,7 +742,7 @@
         rich-layers (get-in db [:map :rich-layers :rich-layers])
         cql-get
         (->>
-         legend-ids
+         active ; get CQL filters for all applicable active layers
          (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
          (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
 
@@ -987,7 +986,8 @@
                         :else                       ; else, add the layer to the end of the list
                         (update-in db [:map :active-layers] conj layer))]
     {:db         db
-     :dispatch-n [[:map/popup-closed]
+     :dispatch-n [[:map.layer/get-legend layer]
+                  [:map/popup-closed]
                   [:maybe-autosave]]}))
 
 (defn remove-layer
@@ -1101,13 +1101,15 @@
     (when feature {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))) ; only pan if still popup exists, otherwise the calculations are incorrect! ISA-491
 
 (defn get-layer-legend
-  [{:keys [db]} [_ {:keys [id] :as layer}]]
-  {:db         (assoc-in db [:map :legends id] :map.legend/loading)
-   :http-xhrio {:method          :get
-                :uri             (str (get-in db [:config :urls :layer-legend-url]) id)
-                :response-format (ajax/json-response-format {:keywords? true})
-                :on-success      [:map.layer/get-legend-success layer]
-                :on-failure      [:map.layer/get-legend-error layer]}})
+  [{:keys [db]} [_ {:keys [id legend_url] :as layer}]]
+  (if legend_url
+    {:db         (assoc-in db [:map :legends id] legend_url)}
+    {:db         (assoc-in db [:map :legends id] :map.legend/loading)
+     :http-xhrio {:method          :get
+                  :uri             (str (get-in db [:config :urls :layer-legend-url]) id)
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success      [:map.layer/get-legend-success layer]
+                  :on-failure      [:map.layer/get-legend-error layer]}}))
 
 (defn get-layer-legend-success
   [db [_ {:keys [id] :as _layer} response]]
