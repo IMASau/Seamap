@@ -887,12 +887,13 @@
             (= value old-timeline-value)
             (= label old-timeline-label)
             (= old-slider-label new-slider-label)))
-         timeline)]
-    {:db (assoc-in db [:map :rich-layers :states id :timeline-selected] (get-in new-timeline-selected [:layer :id]))
+         timeline)
+        db (assoc-in db [:map :rich-layers :states id :timeline-selected] (get-in new-timeline-selected [:layer :id]))
+        {:keys [layer displayed-layer]} (enhance-rich-layer rich-layer db)]
+    {:db db
      :dispatch-n
-     [(when
-       (and alternate-views-selected (not (get-in db [:map :legends (get-in alternate-views-selected [:layer :id])])))
-        [:map.layer/get-legend (:layer alternate-views-selected)])
+     [(when-not (get-in db [:map :legends (:id (or displayed-layer layer))])
+        [:map.layer/get-legend (or displayed-layer layer)])
       [:maybe-autosave]]}))
 
 (defn rich-layer-timeline-selected [{:keys [db]} [_ {:keys [id layer] :as _rich-layer} timeline-selected]]

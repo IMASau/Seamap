@@ -269,7 +269,7 @@
               (assoc legends-lookup layer-id layer-legend)))
           {}))]
     (if layer
-      (get legends-lookup id)
+      (get legends-lookup id {:status :map.legend/none})
       legends-lookup)))
 
 (defn layer-visible-layers-legends
