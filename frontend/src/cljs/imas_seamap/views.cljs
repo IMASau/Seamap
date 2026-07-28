@@ -8,7 +8,7 @@
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node]]
+            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node legend-display]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
@@ -1022,6 +1022,17 @@
             {:src preview-layer-url
              :onError #(reset! error? true)}])])))) ; if there's an error in displaying the image, then we keep track of it so we can instead display an error message
 
+(defn map-legends []
+  (let [legends @(re-frame/subscribe [:map.layer/visible-layers-legends])]
+    (when (seq legends);legend-display
+      [:div.map-legends
+       (for [{:keys [layer-id layer-name] :as legend} legends
+             :when legend]
+         ^{:key (str layer-id)}
+         [:<>
+          [:h2 layer-name]
+          [legend-display legend]])])))
+
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [m keydown-v]
@@ -1166,6 +1177,7 @@
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [layers-control]]
+     [map-legends]
      [floating-pills]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 

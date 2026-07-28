@@ -277,4 +277,4 @@
   [[{:keys [visible-layers]} displayed-layers-lookup layer-legends] _]
   (let [displayed-layers (map #(get displayed-layers-lookup %) visible-layers)
         visible-layers-legends (map #(get layer-legends (:id %) {:status :map.legend/none}) displayed-layers)]
-    visible-layers-legends))
+    (reverse visible-layers-legends)))
