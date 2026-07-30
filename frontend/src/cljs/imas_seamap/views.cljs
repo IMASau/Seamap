@@ -1027,16 +1027,29 @@
              :onError #(reset! error? true)}])])))) ; if there's an error in displaying the image, then we keep track of it so we can instead display an error message
 
 (defn map-legends []
-  (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
-        legends @(re-frame/subscribe [:map.layer/visible-layers-legends])]
-    (when (and pinned-legends? (seq legends))
-      [:div.map-legends
-       (for [{:keys [layer-id layer-name] :as legend} legends
-             :when legend]
-         ^{:key (str layer-id)}
-         [:<>
-          [:h2 layer-name]
-          [legend-display legend]])])))
+  (let [scale (reagent/atom 1)]
+    (fn []
+      (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
+            legends @(re-frame/subscribe [:map.layer/visible-layers-legends])]
+        (when (and pinned-legends? (seq legends))
+          [:div.map-legends-panel
+            {:style {"--legend-scale" @scale}}
+           [:div.map-legends
+            (for [{:keys [layer-id layer-name] :as legend} legends
+                  :when legend]
+              ^{:key (str layer-id)}
+              [:div.pinned-legend
+               [:h2 layer-name]
+               [legend-display legend]])]
+           [:div.scale-controls
+            [b/button
+             {:icon     "plus"
+              :minimal  true
+              :on-click #(swap! scale + 0.1)}]
+            [b/button
+             {:icon     "minus"
+              :minimal  true
+              :on-click #(swap! scale - 0.1)}]]])))))
 
 (def hotkeys-combos
   (let [keydown-wrapper
