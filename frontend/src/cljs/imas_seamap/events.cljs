@@ -871,6 +871,10 @@
 (defn settings-overlay [db [_ open?]]
   (assoc-in db [:display :settings-overlay] open?))
 
+(defn pinned-legends? [{:keys [db]} [_ open?]]
+  {:db (assoc-in db [:display :pinned-legends?] open?)
+   :dispatch [:maybe-autosave]})
+
 (defn split-layer-range-value [{:keys [db]} [_ split-layer-range-value split-layer-container-x]]
   {:db       (-> db
                  (assoc-in [:display :split-layer-range-value] split-layer-range-value)

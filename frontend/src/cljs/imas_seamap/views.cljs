@@ -207,6 +207,20 @@
       :on-click #(re-frame/dispatch [:toggle-autosave])
       :text     text}]))
 
+(defn- pinned-legends-toggle []
+  (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
+        
+        [icon text] (if pinned-legends?
+                      ["unpin" "Unpin Legends From Map View"]
+                      ["pin" "Pin Legends To Map View"])
+        toggle-pinned-legends-fn #(re-frame/dispatch [:ui/pinned-legends? (not pinned-legends?)])]
+    [b/button
+     {:icon     icon
+      :class    "bp3-fill"
+      :intent   b/INTENT-PRIMARY
+      :on-click toggle-pinned-legends-fn
+      :text     text}]))
+
 (defn layer-search-filter []
   (let [timeout-id (reagent/atom nil)] ; To store the timeout ID for the filter event dispatch
     (fn []
@@ -391,7 +405,8 @@
     :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
    [:div.bp3-dialog-body
     [autosave-application-state-toggle]
-    [viewport-only-toggle]]])
+    [viewport-only-toggle]
+    [pinned-legends-toggle]]])
 
 (defn- metadata-record [_props]
   (let [expanded (reagent/atom false)
@@ -1023,8 +1038,9 @@
              :onError #(reset! error? true)}])])))) ; if there's an error in displaying the image, then we keep track of it so we can instead display an error message
 
 (defn map-legends []
-  (let [legends @(re-frame/subscribe [:map.layer/visible-layers-legends])]
-    (when (seq legends);legend-display
+  (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
+        legends @(re-frame/subscribe [:map.layer/visible-layers-legends])]
+    (when (and pinned-legends? (seq legends))
       [:div.map-legends
        (for [{:keys [layer-id layer-name] :as legend} legends
              :when legend]

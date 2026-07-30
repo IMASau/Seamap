@@ -75,6 +75,7 @@
                      :help-overlay          false
                      :welcome-overlay       false
                      :settings-overlay      false
+                     :pinned-legends?       false
                      :left-drawer           true
                      :left-drawer-tab       "catalogue"
                      :layers-search-omnibar false
