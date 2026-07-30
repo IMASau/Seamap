@@ -1140,7 +1140,8 @@
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when plot-open? " plot-open") (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
-      [plot-component]]
+      [plot-component]
+      [map-legends]]
      
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [helper-overlay
@@ -1183,7 +1184,6 @@
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [layers-control]]
-     [map-legends]
      [floating-pills]
      [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
 

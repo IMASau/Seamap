@@ -168,6 +168,9 @@ body.page-template-default.admin-bar #app {
     &.plot-open {
         --current-plot-height: 221px;
     }
+    &.map-printing {
+        --current-drawer-width: 0;
+    }
 }
 #sidebar {
     flex: auto;

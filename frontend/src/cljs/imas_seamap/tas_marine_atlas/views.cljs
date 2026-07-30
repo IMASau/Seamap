@@ -305,7 +305,8 @@
     [:div#main-wrapper.tas-marine-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when is-printing? " map-printing"))}
      [:div#content-wrapper
-      [map-component]]
+      [map-component]
+      [views/map-legends]]
 
      ;; TODO: Separate helper overlay for TasMarineAtlas?
      [helper-overlay
@@ -344,7 +345,6 @@
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [views/layers-control]]
-     [views/map-legends]
      [floating-pills]
      [welcome-dialogue]
      [outage-message-dialogue]]))
