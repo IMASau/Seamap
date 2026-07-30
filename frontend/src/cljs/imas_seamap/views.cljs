@@ -1027,14 +1027,25 @@
              :onError #(reset! error? true)}])])))) ; if there's an error in displaying the image, then we keep track of it so we can instead display an error message
 
 (defn map-legends []
-  (let [scale (reagent/atom 1)]
+  (let [scale       (reagent/atom 1)
+        legends-ref (reagent/atom nil)
+        scroll-by   (fn [amount]
+                      (when-let [el @legends-ref]
+                        (.scrollBy el #js {:top amount :behavior "smooth"})))]
     (fn []
       (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
             legends @(re-frame/subscribe [:map.layer/visible-layers-legends])]
         (when (and pinned-legends? (seq legends))
           [:div.map-legends-panel
-            {:style {"--legend-scale" @scale}}
+           {:style {"--legend-scale" @scale}}
+           [b/button
+            {:class    "legend-scroll-button"
+             :icon     "chevron-up"
+             :minimal  true
+             :fill     true
+             :on-click #(scroll-by -200)}]
            [:div.map-legends
+            {:ref #(reset! legends-ref %)}
             (for [{:keys [layer-id layer-name] :as legend} legends
                   :when legend]
               ^{:key (str layer-id)}
@@ -1049,7 +1060,13 @@
             [b/button
              {:icon     "minus"
               :minimal  true
-              :on-click #(swap! scale - 0.1)}]]])))))
+              :on-click #(swap! scale - 0.1)}]]
+           [b/button
+            {:class    "legend-scroll-button"
+             :icon     "chevron-down"
+             :minimal  true
+             :fill     true
+             :on-click #(scroll-by 200)}]])))))
 
 (def hotkeys-combos
   (let [keydown-wrapper
