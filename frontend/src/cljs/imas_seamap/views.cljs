@@ -1029,44 +1029,65 @@
 (defn map-legends []
   (let [scale       (reagent/atom 1)
         legends-ref (reagent/atom nil)
+        scrollable? (reagent/atom false)
+        measure!    (fn [& _]
+                      (when-let [el @legends-ref]
+                        (reset! scrollable? (> (.-scrollHeight el) (.-clientHeight el)))))
+        ;; Watch the scroll container (its height changes with the window/plot)
+        ;; and each legend (their heights change with the scale, and as legend
+        ;; images load) so we know when there's anything to scroll to.
+        observer    (js/ResizeObserver. measure!)
+        observe!    (fn [& _]
+                      (.disconnect observer)
+                      (when-let [el @legends-ref]
+                        (.observe observer el)
+                        (doseq [child (array-seq (.-children el))]
+                          (.observe observer child))))
         scroll-by   (fn [amount]
                       (when-let [el @legends-ref]
                         (.scrollBy el #js {:top amount :behavior "smooth"})))]
-    (fn []
-      (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
-            legends @(re-frame/subscribe [:map.layer/visible-layers-legends])]
-        (when (and pinned-legends? (seq legends))
-          [:div.map-legends-panel
-           {:style {"--legend-scale" @scale}}
-           [b/button
-            {:class    "legend-scroll-button"
-             :icon     "chevron-up"
-             :minimal  true
-             :fill     true
-             :on-click #(scroll-by -200)}]
-           [:div.map-legends
-            {:ref #(reset! legends-ref %)}
-            (for [{:keys [layer-id layer-name] :as legend} legends
-                  :when legend]
-              ^{:key (str layer-id)}
-              [:div.pinned-legend
-               [:h2 layer-name]
-               [legend-display legend]])]
-           [:div.scale-controls
-            [b/button
-             {:icon     "plus"
-              :minimal  true
-              :on-click #(swap! scale + 0.1)}]
-            [b/button
-             {:icon     "minus"
-              :minimal  true
-              :on-click #(swap! scale - 0.1)}]]
-           [b/button
-            {:class    "legend-scroll-button"
-             :icon     "chevron-down"
-             :minimal  true
-             :fill     true
-             :on-click #(scroll-by 200)}]])))))
+    (reagent/create-class
+     {:component-did-mount    observe!
+      :component-did-update   observe!
+      :component-will-unmount (fn [_] (.disconnect observer))
+      :reagent-render
+      (fn []
+        (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
+              legends @(re-frame/subscribe [:map.layer/visible-layers-legends])]
+          (when (and pinned-legends? (seq legends))
+            [:div.map-legends-panel
+             {:style {"--legend-scale" @scale}}
+             (when @scrollable?
+               [b/button
+                {:class    "legend-scroll-button"
+                 :icon     "chevron-up"
+                 :minimal  true
+                 :fill     true
+                 :on-click #(scroll-by -200)}])
+             [:div.map-legends
+              {:ref #(reset! legends-ref %)}
+              (for [{:keys [layer-id layer-name] :as legend} legends
+                    :when legend]
+                ^{:key (str layer-id)}
+                [:div.pinned-legend
+                 [:h2 layer-name]
+                 [legend-display legend]])]
+             [:div.scale-controls
+              [b/button
+               {:icon     "plus"
+                :minimal  true
+                :on-click #(swap! scale + 0.1)}]
+              [b/button
+               {:icon     "minus"
+                :minimal  true
+                :on-click #(swap! scale - 0.1)}]]
+             (when @scrollable?
+               [b/button
+                {:class    "legend-scroll-button"
+                 :icon     "chevron-down"
+                 :minimal  true
+                 :fill     true
+                 :on-click #(scroll-by 200)}])])))})))
 
 (def hotkeys-combos
   (let [keydown-wrapper
