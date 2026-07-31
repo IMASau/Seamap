@@ -207,7 +207,9 @@
       :on-click #(re-frame/dispatch [:toggle-autosave])
       :text     text}]))
 
-(defn- pinned-legends-toggle []
+(defn- pinned-legends-toggle
+  "Toggle button in settings menu to enable/disable pinned legends on map."
+  []
   (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
         
         [icon text] (if pinned-legends?
@@ -1026,7 +1028,15 @@
             {:src preview-layer-url
              :onError #(reset! error? true)}])])))) ; if there's an error in displaying the image, then we keep track of it so we can instead display an error message
 
-(defn map-legends []
+(defn map-legends
+  "Pinned map legends panel.
+
+   Only displays if pinned legends setting is enabled.
+   Can be scaled up and down via scale control buttons in the panel.
+
+   Has resize observer and extra code to have scroll up/down buttons (client req)
+   that only appear when the legends panel reaches its maximum size."
+  []
   (let [scale       (reagent/atom 1)
         legends-ref (reagent/atom nil)
         scrollable? (reagent/atom false)
@@ -1056,6 +1066,9 @@
               legends @(re-frame/subscribe [:map.layer/visible-layers-legends])]
           (when (and pinned-legends? (seq legends))
             [:div.map-legends-panel
+             ; Scale is CSS var, consumed by legend elements lower to affect their scale in
+             ; styling. Works beautifully. Much better than "transform: scale", because it
+             ; affects element size in DOM.
              {:style {"--legend-scale" @scale}}
              (when @scrollable?
                [b/button

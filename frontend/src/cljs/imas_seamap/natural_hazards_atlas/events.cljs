@@ -226,7 +226,7 @@
 
         {:keys [opacity-ids]} db
         layers        (get-in db [:map :layers])
-        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers
+        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the hazard legends panel when the app loads
         legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)

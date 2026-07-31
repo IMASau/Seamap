@@ -155,7 +155,9 @@
 (defn settings-overlay [db _]
   (get-in db [:display :settings-overlay]))
 
-(defn pinned-legends? [db _]
+(defn pinned-legends?
+  "Is the pinned legends panel open?"
+  [db _]
   (get-in db [:display :pinned-legends?]))
 
 (defn right-sidebar [db _]

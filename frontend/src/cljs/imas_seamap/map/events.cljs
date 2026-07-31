@@ -707,13 +707,29 @@
     {:dispatch [:map/update-map-view {:center (shift-centre (get-in db [:map :center]))}]}))
 
 
-(defn map-print-start [{:keys [db]} _]
-  (js/setTimeout (fn [] (element-to-png "#content-wrapper" "map.png" #(re-frame/dispatch [:map.print/end]))) 200) ; print after subs for "is-printing" have gone through and updated the page to be print ready
-  {:db       (assoc db :is-printing? true)
-   :dispatch [:ui/show-loading "Preparing Image..."]
-   })
+(defn map-print-start
+  "Start map printing process.
 
-(defn map-print-end [{:keys [db]} _]
+   Updates the value for :is-printing triggering the app to display in a printing
+   mode, then saves the app display as a PNG on the user's device."
+  [{:keys [db]} _]
+  ; Should this element-to-png be a registered as an effect handler?
+  ; Timeout so print happens after subs for "is-printing" have gone through and
+  ; updated the page to be print ready
+  (js/setTimeout
+   (fn []
+     (element-to-png
+      "#content-wrapper" "map.png"
+      #(re-frame/dispatch [:map.print/end]))) ; after map print done, disables the custom styling used
+   200)
+  {:db       (assoc db :is-printing? true)
+   :dispatch [:ui/show-loading "Preparing Image..."]})
+
+(defn map-print-end
+  "Ends map printing process.
+
+   Updates the value for :is-printing so the app resumes its normal styling."
+  [{:keys [db]} _]
   {:db       (assoc db :is-printing? false)
    :dispatch [:ui/hide-loading]})
 
@@ -741,7 +757,7 @@
         story-maps    (get-in db [:story-maps :featured-maps])
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
-        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers
+        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the pinned legends panel when the app loads
         legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
@@ -899,6 +915,9 @@
          timeline)]
     {:db (assoc-in db [:map :rich-layers :states id :timeline-selected] (get-in new-timeline-selected [:layer :id]))
      :dispatch-n
+     ; If there's no legend for the ID of the currently displayed legend (which will
+     ; either be the selected alternate view or the default layer if the alternate view
+     ; is null), then it must be retrieved for display.
      [(when-not (get-in db [:map :legends (:id (or (:layer alternate-views-selected) layer))])
         [:map.layer/get-legend (or (:layer alternate-views-selected) layer)])
       [:maybe-autosave]]}))
@@ -994,7 +1013,10 @@
                         :else                       ; else, add the layer to the end of the list
                         (update-in db [:map :active-layers] conj layer))]
     {:db         db
-     :dispatch-n [[:map.layer/get-legend layer]
+     :dispatch-n [; Need to retrieve the legend whenever the layer is added, so it can be shown in
+                  ; the pinned legends panel (previously only retrieved the legend when the user
+                  ; interacted with the legends section of the active layers tab).
+                  [:map.layer/get-legend layer]
                   [:map/popup-closed]
                   [:maybe-autosave]]}))
 
@@ -1110,7 +1132,7 @@
 
 (defn get-layer-legend
   [{:keys [db]} [_ {:keys [id legend_url] :as layer}]]
-  (if legend_url
+  (if legend_url ; No legend request necessary if legend_url is supplied with layer. That is the layer's legend.
     {:db         (assoc-in db [:map :legends id] legend_url)}
     {:db         (assoc-in db [:map :legends id] :map.legend/loading)
      :http-xhrio {:method          :get

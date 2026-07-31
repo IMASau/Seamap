@@ -243,7 +243,7 @@
 
         {:keys [opacity-ids]} db
         layers        (get-in db [:map :layers])
-        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers
+        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the pinned legends panel when the app loads
         legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
@@ -871,7 +871,9 @@
 (defn settings-overlay [db [_ open?]]
   (assoc-in db [:display :settings-overlay] open?))
 
-(defn pinned-legends? [{:keys [db]} [_ open?]]
+(defn pinned-legends?
+  "Is the pinned legends panel open?"
+  [{:keys [db]} [_ open?]]
   {:db (assoc-in db [:display :pinned-legends?] open?)
    :dispatch [:maybe-autosave]})
 

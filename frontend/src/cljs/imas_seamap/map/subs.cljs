@@ -97,7 +97,11 @@
 ; This sub is something that would have formerly been in the monolithic
 ; 'map-layers' sub above. This sub is part of a new strategy to break up the
 ; monolothic sub into smaller subs that are easier to manage and take advantage of
-; the the re-frame subscription DAG. 
+; the the re-frame subscription DAG.
+;
+; Note: profiling says this is slow, probably from consuming the :map/layers sub.
+; That sub returns closures that need to be recomputed every time the DB changes.
+; It should be fixed.
 (defn layer-displayed-layers-lookup
   "A lookup map of the raw (catalogue) layer to what layers should actually be
    displayed on the map."
@@ -250,7 +254,8 @@
    If a layer argument is supplied, returns only the legend for that layer as a
    response."
   [db [_ {:keys [id] :as layer}]]
-  (let [legends-lookup
+  (let [; Create our lookup table
+        legends-lookup
         (->>
          (get-in db [:map :legends])
          (reduce-kv
@@ -261,15 +266,15 @@
                     legend-info            :map.legend/loaded
                     :else                  :map.legend/none)
                   layer (first-where #(= (:id %) layer-id) (get-in db [:map :layers]))
-                  layer-legend
+                  layer-legend ; Create a single "legend" for our lookup key-value map. This has legend status and its value (info)
                   {:layer-id   layer-id
                    :layer-name (:name layer)
                    :status    status
                    :info      (when (= status :map.legend/loaded) legend-info)}]
-              (assoc legends-lookup layer-id layer-legend)))
+              (assoc legends-lookup layer-id layer-legend))) ; Add legend to lookup key-value map
           {}))]
     (if layer
-      (get legends-lookup id {:status :map.legend/none})
+      (get legends-lookup id {:status :map.legend/none}) ; If legend not in lookup key-value map, return none
       legends-lookup)))
 
 (defn layer-visible-layers-legends
@@ -279,5 +284,10 @@
         visible-layers-legends (map #(get layer-legends (:id %) {:status :map.legend/none}) displayed-layers)]
     (reverse visible-layers-legends)))
 
-(defn print-is-printing? [db _]
+(defn print-is-printing?
+  "Is the app currently printing?
+
+   So the app can apply custom styles during the print process for custom map print
+   images."
+  [db _]
   (get db :is-printing?))
