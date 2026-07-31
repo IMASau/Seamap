@@ -26,7 +26,8 @@
                                                    imas-seamap.futuresofseafood.core
                                                    imas-seamap.seamap-antarctica.core
                                                    imas-seamap.tas-marine-atlas.core
-                                                   imas-seamap.natural-hazards-atlas.core]}}
+                                                   imas-seamap.natural-hazards-atlas.core
+                                                   imas-seamap.tmag-kiosk.core]}}
                 :compiler-options {:pretty-print true}
                 :devtools
                 {:preloads         [devtools.preload
@@ -43,7 +44,8 @@
                                                     imas-seamap.futuresofseafood.core
                                                     imas-seamap.seamap-antarctica.core
                                                     imas-seamap.tas-marine-atlas.core
-                                                    imas-seamap.natural-hazards-atlas.core]}}}
+                                                    imas-seamap.natural-hazards-atlas.core
+                                                    imas-seamap.tmag-kiosk.core]}}}
 
           :mindev {:target            :browser
                    :output-dir        "resources/public/js/"
@@ -55,6 +57,7 @@
                                                        imas-seamap.futuresofseafood.core
                                                        imas-seamap.seamap-antarctica.core
                                                        imas-seamap.tas-marine-atlas.core
-                                                       imas-seamap.natural-hazards-atlas.core]}}
+                                                       imas-seamap.natural-hazards-atlas.core
+                                                       imas-seamap.tmag-kiosk.core]}}
                    :compiler-options  {:pseudo-names true
                                        :source-map   true}}}}
