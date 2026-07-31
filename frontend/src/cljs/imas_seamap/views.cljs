@@ -1037,8 +1037,7 @@
    Has resize observer and extra code to have scroll up/down buttons (client req)
    that only appear when the legends panel reaches its maximum size."
   []
-  (let [scale       (reagent/atom 1)
-        legends-ref (reagent/atom nil)
+  (let [legends-ref (reagent/atom nil)
         scrollable? (reagent/atom false)
         measure!    (fn [& _]
                       (when-let [el @legends-ref]
@@ -1055,7 +1054,8 @@
                           (.observe observer child))))
         scroll-by   (fn [amount]
                       (when-let [el @legends-ref]
-                        (.scrollBy el #js {:top amount :behavior "smooth"})))]
+                        (.scrollBy el #js {:top amount :behavior "smooth"})))
+        set-scale-fn #(re-frame/dispatch [:ui/pinned-legends-scale %])]
     (reagent/create-class
      {:component-did-mount    observe!
       :component-did-update   observe!
@@ -1063,13 +1063,16 @@
       :reagent-render
       (fn []
         (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
-              legends @(re-frame/subscribe [:map.layer/visible-layers-legends])]
+              scale           @(re-frame/subscribe [:ui/pinned-legends-scale]) ; Should this sub be paired with :ui/pinned-legends?, so fewer sub calls?
+              legends         @(re-frame/subscribe [:map.layer/visible-layers-legends])
+              inc-scale-fn    #(set-scale-fn (+ scale 0.1))
+              dec-scale-fn    #(set-scale-fn (- scale 0.1))]
           (when (and pinned-legends? (seq legends))
             [:div.map-legends-panel
              ; Scale is CSS var, consumed by legend elements lower to affect their scale in
              ; styling. Works beautifully. Much better than "transform: scale", because it
              ; affects element size in DOM.
-             {:style {"--legend-scale" @scale}}
+             {:style {"--legend-scale" scale}}
              (when @scrollable?
                [b/button
                 {:class    "legend-scroll-button"
@@ -1089,11 +1092,11 @@
               [b/button
                {:icon     "plus"
                 :minimal  true
-                :on-click #(swap! scale + 0.1)}]
+                :on-click inc-scale-fn}]
               [b/button
                {:icon     "minus"
                 :minimal  true
-                :on-click #(swap! scale - 0.1)}]]
+                :on-click dec-scale-fn}]]
              (when @scrollable?
                [b/button
                 {:class    "legend-scroll-button"
