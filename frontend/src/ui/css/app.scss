@@ -846,7 +846,7 @@ input.leaflet-control-layers-selector[type="radio"] {
         gap: calc(var(--legend-scale, 1) * 1em);
         .pinned-legend h2 {
             font-weight: bold;
-            font-size: calc(var(--legend-scale, 1) * 1.5rem);
+            font-size: calc(var(--legend-scale, 1) * 14px);
         }
     }
     .scale-controls {
