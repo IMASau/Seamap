@@ -879,9 +879,15 @@
   (assoc-in db [:display :settings-overlay] open?))
 
 (defn pinned-legends?
-  "Is the pinned legends panel open?"
+  "Is the pinned legends panel open?
+   
+   Reset scale of legends to 100%"
   [{:keys [db]} [_ open?]]
-  {:db (assoc-in db [:display :pinned-legends?] open?)
+  {:db
+   (->
+    db
+    (assoc-in [:display :pinned-legends?] open?)
+    (assoc-in [:display :pinned-legends-scale] 1))
    :dispatch [:maybe-autosave]})
 
 (defn pinned-legends-scale
