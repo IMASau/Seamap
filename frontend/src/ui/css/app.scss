@@ -826,7 +826,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 .map-legends-panel {
     display: flex;
     flex-direction: column;
-    border: 2px solid #777;
+    border: 2px solid rgba(0, 0, 0, 0.2);
     background-color: rgba(255, 255, 255, 0.5);
     width: calc(var(--legend-scale, 1) * $drawer-width);
     user-select: none;
