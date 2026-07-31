@@ -138,7 +138,10 @@
 
 .legend-wrapper {
     margin: 8px 0;
-    img { max-width: calc(var(--legend-scale, 1) * 100%); }
+    img {
+        max-width: 100%;
+        width: calc(var(--natural-width) * var(--legend-scale, 1));
+    }
     .bp3-non-ideal-state { height: 150px; }
 }
 

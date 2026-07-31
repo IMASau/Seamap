@@ -196,8 +196,15 @@
 
 (defn- legend [legend-info]
   (if (string? legend-info)
-    [:img {:src legend-info}] ; if legend-info is a string, we treat it as a url to a legend graphic
-    [:<>                      ; else we render the legend as a vector legend
+    [:img ; if legend-info is a string, we treat it as a url to a legend graphic
+     {:src legend-info
+      :on-load
+      (fn [e]
+        (let [img (.-target e)]
+          (.setProperty (.-style img)
+                        "--natural-width"
+                        (str (.-naturalWidth img) "px"))))}] ; Natural width so we can scale the legend appropriately
+    [:<> ; else we render the legend as a vector legend
      (map-indexed
       (fn [i entry]
         ^{:key (str i)}
