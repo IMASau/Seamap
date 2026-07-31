@@ -848,8 +848,15 @@
 (defn layers-search-omnibar-close [db _]
   (assoc-in db [:display :layers-search-omnibar] false))
 
+;; Dispatched on every leaflet mousemove, so this runs at pointer-poll rate. The
+;; only consumer is `distance-tooltip`, which is hidden unless a transect
+;; distance exists; skip the write otherwise. Returning `db` unchanged means
+;; re-frame's :db effect leaves app-db untouched (it checks `identical?`), so no
+;; subscription is invalidated.
 (defn mouse-pos [db [_ mouse-pos]]
-  (assoc-in db [:display :mouse-pos] mouse-pos))
+  (if (get-in db [:transect :distance])
+    (assoc-in db [:display :mouse-pos] mouse-pos)
+    db))
 
 (defn toggle-autosave [{:keys [db]} _]
   (let [db        (update db :autosave? not)
@@ -878,9 +885,11 @@
    :dispatch [:maybe-autosave]})
 
 (defn pinned-legends-scale
-  "What is the scale of the pinned legends?"
+  "What is the scale of the pinned legends?
+
+   Clamps function to arbitrary min/max range."
   [{:keys [db]} [_ scale]]
-  {:db (assoc-in db [:display :pinned-legends-scale] scale)
+  {:db (assoc-in db [:display :pinned-legends-scale] (min (max scale 0.2) 1.5))
    :dispatch [:maybe-autosave]})
 
 (defn split-layer-range-value [{:keys [db]} [_ split-layer-range-value split-layer-container-x]]
