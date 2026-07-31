@@ -16,6 +16,7 @@
             [imas-seamap.components :as components]
             [imas-seamap.map.utils :refer [download-type->str layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
+            [goog.string :as gstring]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -1096,7 +1097,10 @@
               [b/button
                {:icon     "minus"
                 :minimal  true
-                :on-click dec-scale-fn}]]
+                :on-click dec-scale-fn}]
+              ; Scale is a float, and repeated increments accumulate floating
+              ; point error, so round before displaying.
+              [:span.scale-percentage (gstring/format "%d%%" (js/Math.round (* scale 100)))]]
              (when @scrollable?
                [b/button
                 {:class    "legend-scroll-button"

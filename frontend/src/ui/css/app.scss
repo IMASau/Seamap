@@ -854,6 +854,10 @@ input.leaflet-control-layers-selector[type="radio"] {
         padding: 8px;
         display: flex;
         gap: 8px;
+        align-items: center;
+        .scale-percentage {
+            font-size: 14px;
+        }
     }
 }
 

@@ -889,7 +889,7 @@
 
    Clamps function to arbitrary min/max range."
   [{:keys [db]} [_ scale]]
-  {:db (assoc-in db [:display :pinned-legends-scale] (min (max scale 0.2) 1.5))
+  {:db (assoc-in db [:display :pinned-legends-scale] (min (max scale 0.3) 1.5))
    :dispatch [:maybe-autosave]})
 
 (defn split-layer-range-value [{:keys [db]} [_ split-layer-range-value split-layer-container-x]]
