@@ -160,6 +160,11 @@
   [db _]
   (get-in db [:display :pinned-legends?]))
 
+(defn pinned-legends-scale
+  "What is the scale of the pinned legends?"
+  [db _]
+  (get-in db [:display :pinned-legends-scale]))
+
 (defn right-sidebar [db _]
   (last (get-in db [:display :right-sidebars])))
 

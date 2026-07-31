@@ -92,6 +92,7 @@
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
     :ui/pinned-legends?                   subs/pinned-legends?
+    :ui/pinned-legends-scale              subs/pinned-legends-scale
     :ui/split-layer-range-value           subs/split-layer-range-value
     :dynamic-pills                        subs/dynamic-pills
     :site-configuration/outage-message    subs/site-configuration-outage-message
@@ -280,6 +281,7 @@
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :ui/pinned-legends?                   [events/pinned-legends?]
+    :ui/pinned-legends-scale              [events/pinned-legends-scale]
     :ui/split-layer-range-value           [events/split-layer-range-value]
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder] ; TODO: Remove event, unused
     :left-drawer/toggle                   [events/left-drawer-toggle]

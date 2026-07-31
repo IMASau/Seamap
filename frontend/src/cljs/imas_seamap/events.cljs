@@ -877,6 +877,12 @@
   {:db (assoc-in db [:display :pinned-legends?] open?)
    :dispatch [:maybe-autosave]})
 
+(defn pinned-legends-scale
+  "What is the scale of the pinned legends?"
+  [{:keys [db]} [_ scale]]
+  {:db (assoc-in db [:display :pinned-legends-scale] scale)
+   :dispatch [:maybe-autosave]})
+
 (defn split-layer-range-value [{:keys [db]} [_ split-layer-range-value split-layer-container-x]]
   {:db       (-> db
                  (assoc-in [:display :split-layer-range-value] split-layer-range-value)
