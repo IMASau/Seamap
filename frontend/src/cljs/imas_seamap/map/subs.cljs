@@ -169,12 +169,21 @@
         (seq (get-in rich-layer [:side-by-side-views]))))
      rich-layers)))
 
-(defn map-base-layers [{{:keys [grouped-base-layers active-base-layer zoom]} :map} _]
-  (let [enabled-base-layer-fn (fn [{:keys [max_zoom]}] (or (nil? max_zoom) (<= zoom max_zoom))) ; Utility for checking if a basemap is "enabled" - i.e. is it a valid basemap the user can select, or are we beyond the max zoom for the layer
-        enabled-base-layers (filter enabled-base-layer-fn grouped-base-layers)]
-    {:grouped-base-layers   grouped-base-layers ; List of selectable basemaps (composite basemaps grouped as a single element)
-     :active-base-layer     (if (enabled-base-layer-fn active-base-layer) active-base-layer (first enabled-base-layers)) ; Active basemap is the one selected by the user, unless it's disabled. If the basemap is disabled, then switch to first enabled basemap
-     :enabled-base-layer-fn enabled-base-layer-fn}))
+(rf/reg-sub :dbsubs.map/zoom (fn [db _] (get-in db [:map :zoom])))
+(rf/reg-sub :dbsubs.map/grouped-base-layers (fn [db _] (get-in db [:map :grouped-base-layers])))
+(rf/reg-sub :dbsubs.map/active-base-layer (fn [db _] (get-in db [:map :active-base-layer])))
+(rf/reg-sub
+ :map/base-layers
+ (fn [_query-v]
+   {:zoom                (rf/subscribe [:dbsubs.map/zoom])
+    :grouped-base-layers (rf/subscribe [:dbsubs.map/grouped-base-layers])
+    :active-base-layer   (rf/subscribe [:dbsubs.map/active-base-layer])})
+ (fn [{:keys [grouped-base-layers active-base-layer zoom]} _query-v]
+   (let [enabled-base-layer-fn (fn [{:keys [max_zoom]}] (or (nil? max_zoom) (<= zoom max_zoom))) ; Utility for checking if a basemap is "enabled" - i.e. is it a valid basemap the user can select, or are we beyond the max zoom for the layer
+         enabled-base-layers   (filter enabled-base-layer-fn grouped-base-layers)]
+     {:grouped-base-layers   grouped-base-layers ; List of selectable basemaps (composite basemaps grouped as a single element)
+      :active-base-layer     (if (enabled-base-layer-fn active-base-layer) active-base-layer (first enabled-base-layers)) ; Active basemap is the one selected by the user, unless it's disabled. If the basemap is disabled, then switch to first enabled basemap
+      :enabled-base-layer-fn enabled-base-layer-fn})))
 
 (defn display-categories
   "Filter categories to only those that have a display name and at least one layer."
