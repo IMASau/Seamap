@@ -188,7 +188,9 @@
         {:keys [opacity-ids]} db
         layers        (get-in db [:map :layers])
         legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the pinned legends panel when the app loads
-        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
+        legends-get   (concat
+                       (map #(rich-layer->displayed-layer % db) legends-shown) ; displayed layers to get legends for
+                       (filter identity (map #(mutils/rich-layer->side-by-side-views-selected-layer % db) legends-shown))) ; get legends for any side-by-side views
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
@@ -351,7 +353,9 @@
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
         legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the pinned legends panel when the app loads
-        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
+        legends-get   (concat
+                       (map #(rich-layer->displayed-layer % db) legends-shown) ; displayed layers to get legends for
+                       (filter identity (map #(mutils/rich-layer->side-by-side-views-selected-layer % db) legends-shown))) ; get legends for any side-by-side views
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)

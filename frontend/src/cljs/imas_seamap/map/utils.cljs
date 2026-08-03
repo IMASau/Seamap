@@ -664,6 +664,15 @@
   (let [rich-layer (enhance-rich-layer (layer->rich-layer layer db) db)]
     (or (:displayed-layer rich-layer) layer)))
 
+; FIXME: Ditto
+(defn rich-layer->side-by-side-views-selected-layer
+  "If a layer is a rich-layer, then return the currently displayed side-by-side
+   view selected layer.
+   Nil if no side-by-side view is selected, or if the layer is not a rich-layer."
+  [layer db]
+  (let [rich-layer (enhance-rich-layer (layer->rich-layer layer db) db)]
+    (get-in rich-layer [:side-by-side-views-selected :layer])))
+
 (defn rich-layer->side-by-side-views-selected
   "If a layer is a rich-layer with a currently visible split layer, then return
    that split layer."
