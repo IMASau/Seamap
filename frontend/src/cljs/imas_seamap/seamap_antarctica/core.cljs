@@ -377,7 +377,7 @@
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
-  (js/document.body.classList.add "seamap")
+  (js/document.body.classList.add "seamap" "seamap-antarctica")
   (.render
    root
    (r/as-element [hotkeys-provider

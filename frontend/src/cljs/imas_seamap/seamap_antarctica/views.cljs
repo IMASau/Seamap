@@ -172,7 +172,7 @@
         loading?           @(re-frame/subscribe [:app/loading?])
         legends            (re-frame/subscribe [:map.layer/visible-layers-legends])
         side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])]
-    [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
+    [:div#main-wrapper.seamap.seamap-antarctica ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
