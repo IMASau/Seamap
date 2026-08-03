@@ -1,7 +1,7 @@
 ;;; Seamap: view and interact with Australian coastal habitat data
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
-(ns imas-seamap.core
+(ns imas-seamap.tmag-kiosk.core
   (:require ["react-dom/client" :refer [createRoot]]
             [goog.dom :as gdom]
             [reagent.core :as r]
@@ -13,17 +13,16 @@
             [imas-seamap.analytics :refer [analytics-for]]
             [imas-seamap.blueprint :refer [hotkeys-provider]]
             [imas-seamap.events :as events]
+            [imas-seamap.tmag-kiosk.events :as tkevents]
             [imas-seamap.fx]
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
-            [imas-seamap.state-of-knowledge.events :as sokevents]
-            [imas-seamap.state-of-knowledge.subs :as soksubs]
             [imas-seamap.story-maps.events :as smevents]
             [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
-            [imas-seamap.views :as views]
+            [imas-seamap.tmag-kiosk.views :as views]
             [imas-seamap.config :as config]
             [imas-seamap.components :as components]))
 
@@ -40,35 +39,13 @@
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/lookup                    msubs/map-layer-lookup
-    ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
-    :map.layer/legend                     msubs/layer-legends
-    :map.layer/visible-layers-legends     [:<- [:map/layers]
-                                           :<- [:map.layer/displayed-layers-lookup]
-                                           :<- [:map.layer/legend]
-                                           msubs/layer-visible-layers-legends]
+    :map.layer/legend                     msubs/layer-legend
     :map.layer/displayed-layers-lookup    [:<- [:map/layers] msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
-    ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
-    :map.print/is-printing?               msubs/print-is-printing?
-    :sok/habitat-statistics               soksubs/habitat-statistics
-    :sok/habitat-statistics-download-url  soksubs/habitat-statistics-download-url
-    :sok/bathymetry-statistics            soksubs/bathymetry-statistics
-    :sok/bathymetry-statistics-download-url soksubs/bathymetry-statistics-download-url
-    :sok/habitat-observations             soksubs/habitat-observations
-    :sok/amp-boundaries                   soksubs/amp-boundaries
-    :sok/imcra-boundaries                 soksubs/imcra-boundaries
-    :sok/meow-boundaries                  soksubs/meow-boundaries
-    :sok/valid-boundaries                 soksubs/valid-boundaries
-    :sok/boundaries                       soksubs/boundaries
-    :sok/active-boundary                  soksubs/active-boundary
-    :sok/active-boundaries?               soksubs/active-boundaries?
-    :sok/active-zones?                    soksubs/active-zones?
-    :sok/open?                            soksubs/open?
-    :sok/boundary-layer-filter            soksubs/boundary-layer-filter-fn
-    :sok/region-report-url                soksubs/region-report-url
+    :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in the TMAG kiosk, but the sub is required by catalogue-layers component in map views
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
     :sorting/info                         subs/sorting-info
@@ -90,8 +67,6 @@
     :ui/open-pill                         subs/open-pill
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
-    :ui/pinned-legends?                   subs/pinned-legends?
-    :ui/pinned-legends-scale              subs/pinned-legends-scale
     :ui/split-layer-range-value           subs/split-layer-range-value
     :dynamic-pills                        subs/dynamic-pills
     :site-configuration/outage-message    subs/site-configuration-outage-message
@@ -104,10 +79,10 @@
     :url-base                             subs/url-base}
 
    :events
-   {:boot                                 [events/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
+   {:boot                                 [tkevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
     :construct-urls                       events/construct-urls
     :merge-state                          [events/merge-state]
-    :re-boot                              [events/re-boot]
+    :re-boot                              [tkevents/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     ;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
@@ -117,7 +92,7 @@
     :get-save-state                       [events/get-save-state]
     :get-save-state-success               [events/get-save-state-success]
     :initialise-db                        [events/initialise-db]
-    :initialise-layers                    [events/initialise-layers]
+    :initialise-layers                    [tkevents/initialise-layers]
     :loading-failed                       events/loading-failed
     :update-dynamic-pills                 events/update-dynamic-pills
     :update-site-configuration            events/update-site-configuration
@@ -216,8 +191,6 @@
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          [mevents/map-zoom-in]
     :map/zoom-out                         [mevents/map-zoom-out]
-    :map.print/start                      [mevents/map-print-start]
-    :map.print/end                        [mevents/map-print-end]
     :map.print/error                      [mevents/map-print-error]
     :map/pan-direction                    [mevents/map-pan-direction]
     :map/update-leaflet-map               mevents/update-leaflet-map
@@ -228,35 +201,6 @@
     :map/toggle-viewport-only             [mevents/toggle-viewport-only]
     :map/set-popup-dimensions             [mevents/set-popup-dimensions]
     :map/pan-to-popup                     [mevents/pan-to-popup]
-    :sok/update-amp-boundaries            sokevents/update-amp-boundaries
-    :sok/update-imcra-boundaries          sokevents/update-imcra-boundaries
-    :sok/update-meow-boundaries           sokevents/update-meow-boundaries
-    :sok/update-active-boundary-layer     [sokevents/update-active-boundary-layer]
-    :sok/update-active-boundary           [sokevents/update-active-boundary]
-    :sok/update-active-network            [sokevents/update-active-network]
-    :sok/update-active-park               [sokevents/update-active-park]
-    :sok/update-active-zone               [sokevents/update-active-zone]
-    :sok/update-active-zone-iucn          [sokevents/update-active-zone-iucn]
-    :sok/update-active-zone-id            [sokevents/update-active-zone-id]
-    :sok/update-active-provincial-bioregion [sokevents/update-active-provincial-bioregion]
-    :sok/update-active-mesoscale-bioregion [sokevents/update-active-mesoscale-bioregion]
-    :sok/update-active-realm              [sokevents/update-active-realm]
-    :sok/update-active-province           [sokevents/update-active-province]
-    :sok/update-active-ecoregion          [sokevents/update-active-ecoregion]
-    :sok/reset-active-boundaries          [sokevents/reset-active-boundaries]
-    :sok/reset-active-zones               [sokevents/reset-active-zones]
-    :sok/get-habitat-statistics           [sokevents/get-habitat-statistics]
-    :sok/got-habitat-statistics           sokevents/got-habitat-statistics
-    :sok/get-bathymetry-statistics        [sokevents/get-bathymetry-statistics]
-    :sok/got-bathymetry-statistics        sokevents/got-bathymetry-statistics
-    :sok/get-habitat-observations         [sokevents/get-habitat-observations]
-    :sok/got-habitat-observations         sokevents/got-habitat-observations
-    :sok/close                            [sokevents/close]
-    :sok/get-filtered-bounds              [sokevents/get-filtered-bounds]
-    :sok/got-filtered-bounds              [sokevents/got-filtered-bounds]
-    :sok/habitat-toggle-show-layers       [sokevents/habitat-toggle-show-layers]
-    :sok/bathymetry-toggle-show-layers    [sokevents/bathymetry-toggle-show-layers]
-    :sok/habitat-observations-toggle-show-layers [sokevents/habitat-observations-toggle-show-layers]
     :sm/update-featured-maps              smevents/update-featured-maps
     :sm/featured-map                      [smevents/featured-map]
     :sm.featured-map/open                 [smevents/featured-map-open]
@@ -279,10 +223,7 @@
     :ui/open-pill                         events/open-pill
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
-    :ui/pinned-legends?                   [events/pinned-legends?]
-    :ui/pinned-legends-scale              [events/pinned-legends-scale]
     :ui/split-layer-range-value           [events/split-layer-range-value]
-    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder] ; TODO: Remove event, unused
     :left-drawer/toggle                   [events/left-drawer-toggle]
     :left-drawer/open                     [events/left-drawer-open]
     :left-drawer/close                    [events/left-drawer-close]
@@ -330,15 +271,9 @@
                               :map/update-organisations
                               :map/update-categories
                               :map/update-keyed-layers
-                              :sok/update-amp-boundaries
-                              :sok/update-imcra-boundaries
-                              :sok/update-meow-boundaries
                               :load-hash-state
                               :map/update-map-view
                               :map/initialise-display
-                              :sok/get-habitat-statistics
-                              :sok/get-bathymetry-statistics
-                              :sok/get-habitat-observations
                               :transect/maybe-query
                               :welcome-layer/open
                               :map/update-leaflet-map
@@ -373,7 +308,7 @@
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
-  (js/document.body.classList.add "seamap")
+  (js/document.body.classList.add "seamap" "tmag-kiosk")
   (.render
    root
    (r/as-element [hotkeys-provider
@@ -400,4 +335,3 @@
   ;; after shadow-cljs hot-reloads code.
   ;; This function is called implicitly by its annotation.
   (mount-root))
-

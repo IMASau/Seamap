@@ -7,7 +7,6 @@
             [reagent.core :as r]
             [re-frame.core :as re-frame]
             [re-frame.db]
-            [com.smxemail.re-frame-cookie-fx]
             [day8.re-frame.async-flow-fx :as async-flow-fx]
             [day8.re-frame.http-fx]
             ["@blueprintjs/core" :as Blueprint]
