@@ -40,7 +40,7 @@
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/lookup                    msubs/map-layer-lookup
     :map.layer/info                       subs/map-layer-info
-    :map.layer/legend                     msubs/layer-legend
+    :map.layer/legend                     msubs/layer-legends
     :map.layer/displayed-layers-lookup    [:<- [:map/layers] msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
