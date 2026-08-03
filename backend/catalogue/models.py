@@ -170,7 +170,7 @@ class Layer(models.Model):
         """
     )
     tooltip = models.TextField(null=True, blank=True)
-    metadata_summary = models.TextField(null=True, blank=True)
+    metadata_summary = HTMLField(null=True, blank=True)
     crs = models.CharField(max_length=10, choices=CRS_CHOICES, default='EPSG:3112')
     regenerate_preview = models.BooleanField(
         default=True,
@@ -178,7 +178,6 @@ class Layer(models.Model):
     )
     filter = models.CharField(max_length=255, null=True, blank=True, help_text="CQL filter to apply to the layer")
     download_format = models.CharField(max_length=200, null=True, blank=True, choices=DOWNLOAD_FORMAT_CHOICES)
-    metadata_content = HTMLField(null=True, blank=True)
 
     def __str__(self):
         return self.name
