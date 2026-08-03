@@ -938,7 +938,7 @@
 (defn rich-layer-side-by-side-views-selected
   "Change which layer is selected to be visible on the right side of a side-by-side view.
    Automatically deselects side-by-side views for all other rich layers."
-  [{:keys [db]} [_ {:keys [id] :as _rich-layer} side-by-side-views-selected]]
+  [{:keys [db]} [_ {:keys [id layer] :as _rich-layer} side-by-side-views-selected]]
   (let [rich-layer-ids (map :id (get-in db [:map :rich-layers :rich-layers]))
         db
         (reduce
@@ -953,7 +953,9 @@
               (assoc-in [:display :split-layer-container-x] nil)))]
     {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
      :dispatch-n
-     [[:maybe-autosave]
+     [(when-not (get-in db [:map :legends (:id (or (:layer side-by-side-views-selected) layer))])
+        [:map.layer/get-legend (or (:layer side-by-side-views-selected) layer)])
+      [:maybe-autosave]
       [:map/popup-closed]]})) ; invalidate the popup
 
 (defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
