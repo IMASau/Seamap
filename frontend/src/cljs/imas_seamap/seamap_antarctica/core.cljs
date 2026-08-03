@@ -48,6 +48,9 @@
                                            :<- [:map.layer/displayed-layers-lookup]
                                            :<- [:map.layer/legend]
                                            msubs/layer-visible-layers-legends]
+    :map.layer/visible-side-by-side-layers-legends [:<- [:map/layers]
+                                                    :<- [:map.layer/legend]
+                                                    msubs/layer-visible-side-by-side-layers-legends]
     :map.layer/displayed-layers-lookup    [:<- [:map/layers] msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info

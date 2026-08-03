@@ -302,12 +302,14 @@
         is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
-        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])]
+        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])
+        side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])]
     [:div#main-wrapper.tas-marine-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
-      [views/map-legends {:legends legends}]]
+      [views/map-legends {:legends legends}]
+      [views/map-legends {:legends side-by-side-legends :position :right}]]
 
      ;; TODO: Separate helper overlay for TasMarineAtlas?
      [helper-overlay

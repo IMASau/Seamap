@@ -284,6 +284,18 @@
         visible-layers-legends (map #(get layer-legends (:id %) {:status :map.legend/none}) displayed-layers)]
     (reverse visible-layers-legends)))
 
+(defn layer-visible-side-by-side-layers-legends
+  "Right-hand side legends for all the visible side-by-side layers on the map at
+   the current time."
+  [[{:keys [visible-layers rich-layer-fn]} layer-legends] _]
+  (let [visible-right-layer-ids
+        (->> visible-layers
+             (map rich-layer-fn)
+             (map :side-by-side-views-selected-id)
+             (filter identity))
+        visible-layers-legends (map #(get layer-legends % {:status :map.legend/none}) visible-right-layer-ids)]
+    visible-layers-legends))
+
 (defn print-is-printing?
   "Is the app currently printing?
 

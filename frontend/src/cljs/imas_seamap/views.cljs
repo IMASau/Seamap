@@ -1081,7 +1081,8 @@
              ; Scale is CSS var, consumed by legend elements lower to affect their scale in
              ; styling. Works beautifully. Much better than "transform: scale", because it
              ; affects element size in DOM.
-             {:style {"--legend-scale" scale}}
+             {:style {"--legend-scale" scale}
+              :class (str "map-legends-panel map-legends-panel-" (name position))}
              (when @scrollable?
                [b/button
                 {:class    "legend-scroll-button"
@@ -1215,13 +1216,15 @@
         plot-open?         @(re-frame/subscribe [:transect.plot/show?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])
-        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])]
+        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])
+        side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])]
     [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when plot-open? " plot-open") (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
       [plot-component]
-      [map-legends {:legends legends}]]
+      [map-legends {:legends legends}]
+      [map-legends {:legends side-by-side-legends :position :right}]]
      
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [helper-overlay

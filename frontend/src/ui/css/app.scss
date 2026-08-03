@@ -834,7 +834,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     left: calc(var(--current-drawer-width) + 2 * $floating-menu-padding + 42px);
     bottom: calc(var(--current-plot-height) + $floating-menu-padding);
     max-height: calc(100vh - var(--current-plot-height) - var(--floating-pills-height) - 3 * $floating-menu-padding);
-    z-index: 800;
+    z-index: 1001;
     .map-legends {
         padding: 8px;
         flex: 1;
@@ -858,6 +858,10 @@ input.leaflet-control-layers-selector[type="radio"] {
         .scale-percentage {
             font-size: 14px;
         }
+    }
+    &.map-legends-panel-right {
+        left: unset;
+        right: $floating-menu-padding;
     }
 }
 
