@@ -169,12 +169,13 @@
         is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
-        loading?           @(re-frame/subscribe [:app/loading?])]
+        loading?           @(re-frame/subscribe [:app/loading?])
+        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])]
     [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
-      [views/map-legends]]
+      [views/map-legends {:legends legends}]]
 
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [views/helper-overlay

@@ -1036,8 +1036,15 @@
    Can be scaled up and down via scale control buttons in the panel.
 
    Has resize observer and extra code to have scroll up/down buttons (client req)
-   that only appear when the legends panel reaches its maximum size."
-  []
+   that only appear when the legends panel reaches its maximum size.
+
+   Args:
+   * `legends: *vec[:map/legend]`: Ref to legends to display in the panel. Passing a 
+     ref and deferencing it in this component allows us to configure what legends are
+     displayed in the panel while also avoiding unnecessary re-renders of the parent
+     component.
+   * `position: #{:left :right}`: Where to position the panel. Defaults to `:left`."
+  [{:keys [_legends _position] :as _props}]
   (let [legends-ref (reagent/atom nil)
         scrollable? (reagent/atom false)
         measure!    (fn [& _]
@@ -1062,10 +1069,11 @@
       :component-did-update   observe!
       :component-will-unmount (fn [_] (.disconnect observer))
       :reagent-render
-      (fn []
+      (fn [{:keys [legends position]
+            :or {position :left}}]
         (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
               scale           @(re-frame/subscribe [:ui/pinned-legends-scale]) ; Should this sub be paired with :ui/pinned-legends?, so fewer sub calls?
-              legends         @(re-frame/subscribe [:map.layer/visible-layers-legends])
+              legends         @legends
               inc-scale-fn    #(set-scale-fn (+ scale 0.1))
               dec-scale-fn    #(set-scale-fn (- scale 0.1))]
           (when (and pinned-legends? (seq legends))
@@ -1206,13 +1214,14 @@
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         plot-open?         @(re-frame/subscribe [:transect.plot/show?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
-        loading?           @(re-frame/subscribe [:app/loading?])]
+        loading?           @(re-frame/subscribe [:app/loading?])
+        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])]
     [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when plot-open? " plot-open") (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
       [plot-component]
-      [map-legends]]
+      [map-legends {:legends legends}]]
      
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [helper-overlay
