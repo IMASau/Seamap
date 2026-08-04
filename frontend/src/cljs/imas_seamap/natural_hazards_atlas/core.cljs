@@ -181,7 +181,7 @@
     :map.time/current-time                [nhatevents/time-set-current-time]
     :map.time/available-times             [mevents/time-available-times]
     :map.time/play                        mevents/time-play
-    :map.time/pause                       mevents/time-pause
+    :map.time/pause                       [mevents/time-pause]
     :map.time/is-loading?                 mevents/time-is-loading?
     :map.time/time-dimension-ref          mevents/time-dimension-ref
     :map.time/time-dimension-control-ref  mevents/time-dimension-control-ref

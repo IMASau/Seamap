@@ -1176,11 +1176,12 @@
 (defn time-pause
   "Pauses playback in the timeDimension component (from the leaflet-timedimension
    library), and updates the app state to reflect that."
-  [db [_ map-id]]
+  [{:keys [db]} [_ map-id]]
   (let [time-dimension-control-ref (utils/get-independent-map-state db map-id [:map :time-dimension-control-ref])]
     (when time-dimension-control-ref
       (.. time-dimension-control-ref -_player stop))
-    (utils/assoc-independent-map-state db map-id [:display :time-is-playing?] false)))
+    {:db (utils/assoc-independent-map-state db map-id [:display :time-is-playing?] false)
+     :dispatch [:map.time/is-loading? false map-id]}))
 
 (defn time-is-loading?
   "The timeDimension component is currently loading a new time, driven by the
