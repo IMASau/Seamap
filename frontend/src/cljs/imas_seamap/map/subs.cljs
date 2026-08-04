@@ -17,7 +17,7 @@
    [re-frame.core :as rf]
    [imas-seamap.utils :refer [ids->layers map-on-key]]))
 
-(defn map-props [db _] (:map db))
+(defn map-props [db _] (-> db :map (select-keys [:zoom :center :bounds])))
 
 (defn- make-error-fn
   "Given maps of layer->error-count and layer->total-tile-count, returns
