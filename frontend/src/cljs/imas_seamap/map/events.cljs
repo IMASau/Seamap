@@ -13,6 +13,7 @@
    [imas-seamap.map.utils :as map-utils :refer [->dynamic-pill
                                                 bounds->projected
                                                 bounds->str:wms
+                                                db->ctx
                                                 enhance-rich-layer
                                                 feature-info-response->display
                                                 ms-to-iso
@@ -116,6 +117,10 @@
                       (bounds->projected
                        #(project-coords % request-crs)
                        (bounds-for-zoom geo-point size bounds feature-info-image-size)))
+        bbox (bounds->str:wms request-crs bbox-bounds)
+        layer-names (->> layers (map layer-name) reverse (string/join ","))
+        has-time? (has-time-dimension? (first layers))
+        current-time (get-in db [:display :current-time])
         ctx (db->ctx db)
         cql-filters (->> layers (map #(layer->cql-filter % ctx)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
