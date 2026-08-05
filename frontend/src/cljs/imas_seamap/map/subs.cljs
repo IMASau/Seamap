@@ -128,24 +128,26 @@
          rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % ctx) ctx)
          visible-layers  (map-utils/visible-layers {:hidden-layers hidden-layers
                                                     :active-layers active-layers})]
-     {:groups          (group-by :category filtered-layers)
-     :loading-layers  (->>
-                       layer-state :loading-state
-                       (filter (fn [[l st]] (= st :map.layer/loading)))
-                       keys
-                       (map #(or (get displayed-layers->layers %) %))
-                       set)
-     :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state) ctx)
-     :expanded-layers (->> layer-state :legend-shown set)
-     :active-layers   active-layers
-     :visible-layers  visible-layers
-     :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
-     :filtered-layers filtered-layers
-     :sorted-layers   sorted-layers
-     :viewport-layers viewport-layers
-     :catalogue-layers catalogue-layers
-     :rich-layer-fn   rich-layer-fn
-     :cql-filter-fn   #(layer->cql-filter % ctx)})))
+
+     {:layers           layers
+      :groups           (group-by :category filtered-layers)
+      :loading-layers   (->>
+                        layer-state :loading-state
+                        (filter (fn [[l st]] (= st :map.layer/loading)))
+                        keys
+                        (map #(or (get displayed-layers->layers %) %))
+                        set)
+      :error-layers     (make-error-fn (:error-count layer-state) (:tile-count layer-state) ctx)
+      :expanded-layers  (->> layer-state :legend-shown set)
+      :active-layers    active-layers
+      :visible-layers   visible-layers
+      :layer-opacities  (fn [layer] (get-in layer-state [:opacity layer] 100))
+      :filtered-layers  filtered-layers
+      :sorted-layers    sorted-layers
+      :viewport-layers  viewport-layers
+      :catalogue-layers catalogue-layers
+      :rich-layer-fn    rich-layer-fn
+      :cql-filter-fn    #(layer->cql-filter % ctx)})))
 
 ; This sub is something that would have formerly been in the monolithic
 ; 'map-layers' sub above. This sub is part of a new strategy to break up the
