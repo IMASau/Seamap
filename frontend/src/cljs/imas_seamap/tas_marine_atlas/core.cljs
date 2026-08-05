@@ -299,7 +299,7 @@
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
   (js/document.body.classList.add "tas-marine-atlas")
   (.render
-   root
+   @root
    (r/as-element [hotkeys-provider
                   {:renderDialog
                    (fn [state context-actions]

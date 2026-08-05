@@ -364,14 +364,14 @@
        standard-interceptors
        handler))))
 
-(defonce root (createRoot (gdom/getElement "app")))
+(defonce root (delay (createRoot (gdom/getElement "app"))))
 
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
   (js/document.body.classList.add "natural-hazards-atlas")
   (.render
-   root
+   @root
    (r/as-element [hotkeys-provider
                   {:renderDialog
                    (fn [state context-actions]
