@@ -53,32 +53,44 @@
 (rf/reg-sub :dbsubs/display-open-pill (fn [db _] (get-in db [:display :open-pill])))
 (rf/reg-sub :dbsubs/split-layer-container-x (fn [db _] (get-in db [:display :split-layer-container-x])))
 
-  (js/console.log "[sub] map-layers")
 (rf/reg-sub
  :map/layers
  (fn [_query-v]
    (js/console.log "**** [sub-signal] map/layers")
-   {:layer-state        (rf/subscribe [:dbsubs/layer-state])
-    :filters            (rf/subscribe [:dbsubs/filters])
-    :sorting            (rf/subscribe [:dbsubs/sorting])
-    :layers             (rf/subscribe [:dbsubs.map/layers])
-    :active-layers      (rf/subscribe [:dbsubs.map/active-layers])
-    :hidden-layers      (rf/subscribe [:dbsubs.map/hidden-layers])
-    :bounds             (rf/subscribe [:dbsubs.map/bounds])
-    :categories         (rf/subscribe [:dbsubs.map/categories])
-    :rich-layers        (rf/subscribe [:dbsubs.map/rich-layers])
+   {:layer-state         (rf/subscribe [:dbsubs/layer-state])
+    :filters             (rf/subscribe [:dbsubs/filters])
+    :sorting             (rf/subscribe [:dbsubs/sorting])
+    :layers              (rf/subscribe [:dbsubs.map/layers])
+    :active-layers       (rf/subscribe [:dbsubs.map/active-layers])
+    :hidden-layers       (rf/subscribe [:dbsubs.map/hidden-layers])
+    :bounds              (rf/subscribe [:dbsubs.map/bounds])
+    :categories          (rf/subscribe [:dbsubs.map/categories])
+    :rich-layers         (rf/subscribe [:dbsubs.map/rich-layers])
     :rich-layer-children (rf/subscribe [:dbsubs.map/rich-layer-children])
-    :rl-states          (rf/subscribe [:dbsubs.map/rich-layer-states])
-    :rl-async-datas     (rf/subscribe [:dbsubs.map/rich-layer-async-datas])
-    :rl-lookup          (rf/subscribe [:dbsubs.map/rich-layer-lookup])
-    :dynamic-pills      (rf/subscribe [:dbsubs/dynamic-pills])
-    :dp-states          (rf/subscribe [:dbsubs/dynamic-pill-states])
-    :dp-async-datas     (rf/subscribe [:dbsubs/dynamic-pill-async-datas])
-    :open-pill          (rf/subscribe [:dbsubs/display-open-pill])})
- (fn [{:keys [layer-state filters sorting layers active-layers hidden-layers
-              bounds categories rich-layers rich-layer-children
-              rl-states rl-async-datas rl-lookup
-              dynamic-pills dp-states dp-async-datas open-pill]} _query-v]
+    :rl-states           (rf/subscribe [:dbsubs.map/rich-layer-states])
+    :rl-async-datas      (rf/subscribe [:dbsubs.map/rich-layer-async-datas])
+    :rl-lookup           (rf/subscribe [:dbsubs.map/rich-layer-lookup])
+    :dynamic-pills       (rf/subscribe [:dbsubs/dynamic-pills])
+    :dp-states           (rf/subscribe [:dbsubs/dynamic-pill-states])
+    :dp-async-datas      (rf/subscribe [:dbsubs/dynamic-pill-async-datas])
+    :open-pill           (rf/subscribe [:dbsubs/display-open-pill])})
+ (fn [{:keys [layer-state
+              filters
+              sorting
+              layers
+              active-layers
+              hidden-layers
+              bounds
+              categories
+              rich-layers
+              rich-layer-children
+              rl-states
+              rl-async-datas
+              rl-lookup
+              dynamic-pills
+              dp-states
+              dp-async-datas
+              open-pill]} _query-v]
    (js/console.log "[sub] map-layers")
    (let [layers-by-id    (into {} (map (juxt :id identity)) layers)
          rich-layers-by-id (into {} (map (juxt :id identity)) rich-layers)
