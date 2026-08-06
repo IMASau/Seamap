@@ -894,7 +894,8 @@
        :keywords    #(layer-search-keywords categories %)}}]))
 
 (defn left-drawer-catalogue [tma?]
-  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [filtered-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+        viewport-layers @(re-frame/subscribe [:map/layers.viewport])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
     [:<>

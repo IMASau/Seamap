@@ -63,7 +63,6 @@
     :layers              (rf/subscribe [:dbsubs.map/layers])
     :active-layers       (rf/subscribe [:dbsubs.map/active-layers])
     :hidden-layers       (rf/subscribe [:dbsubs.map/hidden-layers])
-    :bounds              (rf/subscribe [:dbsubs.map/bounds])
     :categories          (rf/subscribe [:dbsubs.map/categories])
     :rich-layers         (rf/subscribe [:dbsubs.map/rich-layers])
     :rich-layer-children (rf/subscribe [:dbsubs.map/rich-layer-children])
@@ -80,7 +79,6 @@
               layers
               active-layers
               hidden-layers
-              bounds
               categories
               rich-layers
               rich-layer-children
@@ -126,7 +124,6 @@
            (fn [{:keys [id]}]
              (some #{id} rlc-ids)))) ; removes rich-layer children (except those that are a child of themselves)
 
-         viewport-layers (viewport-layers bounds catalogue-layers)
          filtered-layers (set (filter (partial match-layer filter-text categories) layers)) ; get the set of all layers that match the filter
          filtered-layers (rich-layer-children->parents filtered-layers rich-layer-children) ; get the rich-layer parents for this layer, and add them to the searched layers
          filtered-layers (filterv filtered-layers catalogue-layers) ; filtered-layers set converted into vector by filtering on catalogue-layers (sorted)
@@ -156,10 +153,24 @@
       :layer-opacities  (fn [layer] (get-in layer-state [:opacity layer] 100))
       :filtered-layers  filtered-layers
       :sorted-layers    sorted-layers
-      :viewport-layers  viewport-layers
       :catalogue-layers catalogue-layers
       :rich-layer-fn    rich-layer-fn
       :cql-filter-fn    #(layer->cql-filter % ctx)})))
+
+;;; This is extracted out from the :map/layers subscription as a
+;;; stand-alone. It is a performance-related trade-off; it makes
+;;; semantic sense to be included in the main map-layers sub, but the
+;;; downside is the viewport-layers are by definition recalculated
+;;; when the viewport bounds change, which is basically any map
+;;; interaction. Extracting it out as a stand-alone means only the
+;;; sidebar needs to subscribe to it, and the map itself receives far
+;;; fewer subscription updates.
+(rf/reg-sub
+ :map/layers.viewport
+ :<- [:dbsubs.map/layers]
+ :<- [:dbsubs.map/bounds]
+ (fn [[layers bounds] _query-v]
+   (viewport-layers bounds layers)))
 
 ; This sub is something that would have formerly been in the monolithic
 ; 'map-layers' sub above. This sub is part of a new strategy to break up the
