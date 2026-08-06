@@ -56,7 +56,6 @@
 (rf/reg-sub
  :map/layers
  (fn [_query-v]
-   (js/console.log "**** [sub-signal] map/layers")
    {:layer-state         (rf/subscribe [:dbsubs/layer-state])
     :filters             (rf/subscribe [:dbsubs/filters])
     :sorting             (rf/subscribe [:dbsubs/sorting])
@@ -89,7 +88,6 @@
               dp-states
               dp-async-datas
               open-pill]} _query-v]
-   (js/console.log "[sub] map-layers")
    (let [layers-by-id    (into {} (map (juxt :id identity)) layers)
          rich-layers-by-id (into {} (map (juxt :id identity)) rich-layers)
          ctx             {:layers-by-id      layers-by-id
