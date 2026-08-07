@@ -657,17 +657,12 @@
                   [:map.layer.selection/maybe-clear]
                   [:maybe-autosave]]}))
 
-(defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
+(defn toggle-legend-display [{:keys [db]} [_ layer]]
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))
-        has-legend? (get-in db [:map :legends id])
         rich-layer  (enhance-rich-layer (layer->rich-layer layer db) db)
         has-cql-filter-values? (get-in rich-layer [:controls :values])]
     {:db         db
      :dispatch-n [[:maybe-autosave]
-                  ;; Retrieve layer legend data for display if we don't already have it or aren't
-                  ;; already retrieving it
-                  (when-not has-legend?
-                    [:map.layer/get-legend layer])
                   ;; Retrieve rich layer cql filter data if we don't already have it
                   (when (and rich-layer (not has-cql-filter-values?))
                     [:map.rich-layer/get-cql-filter-values rich-layer])]}))
@@ -921,17 +916,14 @@
      ; If there's no legend for the ID of the currently displayed legend (which will
      ; either be the selected alternate view or the default layer if the alternate view
      ; is null), then it must be retrieved for display.
-     [(when-not (get-in db [:map :legends (:id (or (:layer alternate-views-selected) layer))])
-        [:map.layer/get-legend (or (:layer alternate-views-selected) layer)])
+     [[:map.layer/get-legend layer]
       [:maybe-autosave]]}))
 
 (defn rich-layer-timeline-selected [{:keys [db]} [_ {:keys [id layer] :as _rich-layer} timeline-selected]]
   (let [timeline-selected (when (not= (:layer timeline-selected) layer) timeline-selected)]
     {:db (assoc-in db [:map :rich-layers :states id :timeline-selected] (get-in timeline-selected [:layer :id]))
      :dispatch-n
-     [(when
-       (and timeline-selected (not (get-in db [:map :legends (get-in timeline-selected [:layer :id])])))
-        [:map.layer/get-legend (:layer timeline-selected)])
+     [[:map.layer/get-legend layer]
       [:maybe-autosave]]}))
 
 (defn rich-layer-control-selected [{:keys [db]} [_ {:keys [id] :as _rich-layer} {:keys [cql-property] :as _control} value]]
@@ -956,8 +948,7 @@
               (assoc-in [:display :split-layer-container-x] nil)))]
     {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
      :dispatch-n
-     [(when-not (get-in db [:map :legends (:id (or (:layer side-by-side-views-selected) layer))])
-        [:map.layer/get-legend (or (:layer side-by-side-views-selected) layer)])
+     [[:map.layer/get-legend layer]
       [:maybe-autosave]
       [:map/popup-closed]]})) ; invalidate the popup
 
@@ -976,8 +967,7 @@
               (update controls-state cql-property dissoc :value))
             controls-state controls))))
     :dispatch-n
-    [(when-not (get-in db [:map :legends (:id layer)])
-       [:map.layer/get-legend layer])
+    [[:map.layer/get-legend layer]
      [:maybe-autosave]]}))
 
 (defn rich-layer-configure
@@ -1136,15 +1126,23 @@
     (when feature {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))) ; only pan if still popup exists, otherwise the calculations are incorrect! ISA-491
 
 (defn get-layer-legend
-  [{:keys [db]} [_ {:keys [id legend_url] :as layer}]]
-  (if legend_url ; No legend request necessary if legend_url is supplied with layer. That is the layer's legend.
-    {:db         (assoc-in db [:map :legends id] legend_url)}
-    {:db         (assoc-in db [:map :legends id] :map.legend/loading)
-     :http-xhrio {:method          :get
-                  :uri             (str (get-in db [:config :urls :layer-legend-url]) id)
-                  :response-format (ajax/json-response-format {:keywords? true})
-                  :on-success      [:map.layer/get-legend-success layer]
-                  :on-failure      [:map.layer/get-legend-error layer]}}))
+  "Retrieves the legend for a layer, if it hasn't already been retrieved.
+   If the layer has a legend_url, then that is used as the legend (no request is
+   made to the server).
+   For rich layers, the legend is retrieved for the currently selected layer (which
+   may be an alternate view, etc)."
+  [{:keys [db]} [_ layer]]
+  (let [{:keys [id legend_url] :as displayed-layer} (rich-layer->displayed-layer layer db)
+        has-legend? (get-in db [:map :legends id])]
+    (when-not has-legend?
+      (if legend_url ; No legend request necessary if legend_url is supplied with layer. That is the layer's legend.
+        {:db         (assoc-in db [:map :legends id] legend_url)}
+        {:db         (assoc-in db [:map :legends id] :map.legend/loading)
+         :http-xhrio {:method          :get
+                      :uri             (str (get-in db [:config :urls :layer-legend-url]) id)
+                      :response-format (ajax/json-response-format {:keywords? true})
+                      :on-success      [:map.layer/get-legend-success displayed-layer]
+                      :on-failure      [:map.layer/get-legend-error displayed-layer]}}))))
 
 (defn get-layer-legend-success
   [db [_ {:keys [id] :as _layer} response]]
