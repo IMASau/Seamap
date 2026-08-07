@@ -86,6 +86,7 @@ class Command(BaseCommand):
         layer_fields = {
             "name": netcdf_attributes.display_name,
             "server_url": f"{self.server_url}wms/data/",
+            "layer_name": "-", # hack, because layer_name is required due to our Django restraints, but unneeded here
             "category": category,
             "data_classification": data_classification,
             "organisation": organisation,
