@@ -720,7 +720,8 @@
    (fn []
      (element-to-png
       "#content-wrapper" "map.png"
-      #(re-frame/dispatch [:map.print/end]))) ; after map print done, disables the custom styling used
+      #(re-frame/dispatch [:map.print/end])   ; After map print done, disables the custom styling used
+      #(re-frame/dispatch [:map.print/end]))) ; Error handler not implemented
    200)
   {:db       (assoc db :is-printing? true)
    :dispatch [:ui/show-loading "Preparing Image..."]})

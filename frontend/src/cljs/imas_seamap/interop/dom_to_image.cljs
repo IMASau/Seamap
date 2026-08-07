@@ -14,15 +14,17 @@
    Args:
    * `selectors: string`: JavaScript query selector for the DOM node.
    * `file-name: string`: Name to save PNG image file as.
-   * `on-end: fn`: Callback function for after print has ended."
-  [selectors file-name on-end]
+   * `on-success: fn`: Callback function for when the image is successfully generated.
+   * `on-error: fn`: Callback function for when an error occurs."
+  [selectors file-name on-success on-error]
   (let [element (js/document.querySelector selectors)]
-    (.then
-     (dom-to-image/toPng element)
-     (fn [data-url]
-       (let [[_ mime-type _ data] (str/split data-url #"[:;,]")
-             binary-data (js/atob data)
-             bytes       (js/Uint8Array.from binary-data #(.charCodeAt % 0))
-             blob (js/Blob. #js[bytes] #js{:type mime-type})]
-         (file-saver/saveAs blob file-name)
-         (on-end))))))
+    (-> (dom-to-image/toPng element)
+        (.then
+         (fn [data-url]
+           (let [[_ mime-type _ data] (str/split data-url #"[:;,]")
+                 binary-data (js/atob data)
+                 bytes       (js/Uint8Array.from binary-data #(.charCodeAt % 0))
+                 blob (js/Blob. #js[bytes] #js{:type mime-type})]
+             (file-saver/saveAs blob file-name)
+             (on-success))))
+        (.catch on-error))))
