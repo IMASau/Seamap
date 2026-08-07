@@ -81,12 +81,14 @@ class Command(BaseCommand):
         """
         category, _ = catalogue.models.Category.objects.get_or_create(name=netcdf_attributes.category)
         data_classification, _ = catalogue.models.DataClassification.objects.get_or_create(name=netcdf_attributes.data_classification)
+        organisation, _ = catalogue.models.Organisation.objects.get_or_create(name="Climate Futures")
         hazard_layer: models.HazardLayer
         layer_fields = {
             "name": netcdf_attributes.display_name,
             "server_url": f"{self.server_url}wms/data/",
             "category": category,
             "data_classification": data_classification,
+            "organisation": organisation,
             "minx": netcdf_attributes.minx,
             "miny": netcdf_attributes.miny,
             "maxx": netcdf_attributes.maxx,
