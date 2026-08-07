@@ -77,7 +77,7 @@
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
     :ui/pinned-legends?                   subs/pinned-legends?
-:ui/pinned-legends-scale                  subs/pinned-legends-scale
+    :ui/pinned-legends-scale              subs/pinned-legends-scale
     :ui/split-layer-range-value           subs/split-layer-range-value
     :dynamic-pills                        subs/dynamic-pills
     :site-configuration/outage-message    subs/site-configuration-outage-message
