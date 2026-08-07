@@ -28,4 +28,4 @@
       (js/console.error e)))
   true)
 
-(set-validator! app-db validate-state)
+;; (set-validator! app-db validate-state)
