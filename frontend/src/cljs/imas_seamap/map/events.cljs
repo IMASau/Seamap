@@ -142,6 +142,107 @@
         :X             50
         :Y             50
         :TRANSPARENT   true
+        :CRS           request-crs
+        :SRS           request-crs
+        :FORMAT        "image/png"
+        :INFO_FORMAT   "text/html"
+        :SERVICE       "WMS"
+        :VERSION       "1.1.1"}
+       (when cql-filter {:CQL_FILTER cql-filter})
+       (when has-time? {:TIME (ms-to-iso current-time)}))
+      :response-format (ajax/text-response-format)
+      :on-success      [:map/got-featureinfo request-id point "text/html" layers]
+      :on-failure      [:map/got-featureinfo-err request-id point]}}))
+
+(defmethod get-feature-info INFO-FORMAT-JSON
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size crs scale bounds zoom] :as _leaflet-props} point]]
+  (let [layer-crs (-> layers first :crs) ; This is the code string, eg "EPSG:3112"
+        request-crs (or layer-crs crs)
+        geo-point ((juxt :lng :lat) point)
+        projected-point (project-coords geo-point request-crs)
+        bbox-bounds (if (crs-map-default? :map-crs crs
+                                          :layer-crs layer-crs)
+                      (bounds-for-resolution projected-point feature-info-image-size scale)
+                      (bounds->projected
+                       #(project-coords % request-crs)
+                       (bounds-for-zoom projected-point size bounds feature-info-image-size)))
+        bbox (bounds->str:wms request-crs bbox-bounds)
+        layer-names (->> layers (map layer-name) reverse (string/join ","))
+        has-time? (has-time-dimension? (first layers))
+        current-time (get-in db [:display :current-time])
+        ctx (db->ctx db)
+        cql-filters (->> layers (map #(layer->cql-filter % ctx)) (filter identity))
+        cql-filter (apply str (interpose ";" cql-filters))
+        cql-filter (when (seq cql-filter) cql-filter)]
+    {:http-xhrio
+     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
+     {:method          :get
+      :uri             (-> layers first :server_url)
+      :params
+      (merge
+       {:REQUEST       "GetFeatureInfo"
+        :LAYERS        layer-names
+        :QUERY_LAYERS  layer-names
+        :WIDTH         (:width feature-info-image-size)
+        :HEIGHT        (:height feature-info-image-size)
+        :BBOX          bbox
+        :FEATURE_COUNT 1000
+        :STYLES        ""
+        :X             50
+        :Y             50
+        :TRANSPARENT   true
+        :CRS           request-crs
+        :SRS           request-crs
+        :FORMAT        "image/png"
+        :INFO_FORMAT   "application/json"
+        :SERVICE       "WMS"
+        :VERSION       "1.1.1"}
+       (when cql-filter {:CQL_FILTER cql-filter})
+       (when has-time? {:TIME (ms-to-iso current-time)}))
+      :response-format (ajax/json-response-format)
+      :on-success      [:map/got-featureinfo request-id point "application/json" layers]
+      :on-failure      [:map/got-featureinfo-err request-id point]}}))
+
+(defmethod get-feature-info INFO-FORMAT-FEATURE
+  [_ [_ _info-format-type layers request-id _leaflet-props {:keys [lat lng] :as point}]]
+  (let [query         (leaflet/esri-query {:url (-> layers first :server_url)})
+        leaflet-point (leaflet/latlng. lat lng)]
+    (.intersects query leaflet-point)
+    (.run query (fn [error feature-collection _response]
+                  (if error
+                    (re-frame/dispatch [:map/got-featureinfo-err request-id point nil])
+                    (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers (js->clj feature-collection)]))))
+    nil))
+
+(defmethod get-feature-info INFO-FORMAT-XML
+  [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} {:keys [lat lng] :as point}]]
+  (let [bbox (->> (bounds-for-zoom [lng lat] size bounds feature-info-image-size)
+                  (bounds->projected #(project-coords % (-> layers first :crs)))
+                  (bounds->str:wms (-> layers first :crs)))
+        layer-names (->> layers (map layer-name) reverse (string/join ","))
+        has-time? (has-time-dimension? (first layers))
+        current-time (get-in db [:display :current-time])
+        ctx (db->ctx db)
+        cql-filters (->> layers (map #(layer->cql-filter % ctx)) (filter identity))
+        cql-filter (apply str (interpose ";" cql-filters))
+        cql-filter (when (seq cql-filter) cql-filter)]
+    {:http-xhrio
+     ;; http://docs.geoserver.org/stable/en/user/services/wms/reference.html#getfeatureinfo
+     {:method          :get
+      :uri             (-> layers first :server_url)
+      :params
+      (merge
+       {:REQUEST       "GetFeatureInfo"
+        :LAYERS        layer-names
+        :QUERY_LAYERS  layer-names
+        :WIDTH         (:width feature-info-image-size)
+        :HEIGHT        (:height feature-info-image-size)
+        :BBOX          bbox
+        :FEATURE_COUNT 1000
+        :STYLES        ""
+        :X             50
+        :Y             50
+        :TRANSPARENT   true
         :CRS           (-> layers first :crs)
         :SRS           (-> layers first :crs)
         :FORMAT        "image/png"
