@@ -738,7 +738,8 @@
 (defn rich-layer-fn
   "Function that gets an \"enchanced\" rich layer from a layer passed to it"
   [db]
-  #(enhance-rich-layer (layer->rich-layer % db) db))
+  (let [ctx (db->ctx db)]
+    #(enhance-rich-layer (layer->rich-layer % ctx) ctx)))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn layer-displayed-layers-lookup
@@ -757,12 +758,13 @@
 
    The current point can matter for things like split view layers."
   [visible-layers point db]
-  (map
-   (fn [layer]
-     (if (layer->rich-layer? layer db)
-       (rich-layer->layer-under-point (layer->rich-layer layer db) point db)
-       layer))
-   visible-layers))
+  (let [ctx (db->ctx db)]
+    (map
+     (fn [layer]
+       (if (layer->rich-layer? layer ctx)
+         (rich-layer->layer-under-point (layer->rich-layer layer ctx) point ctx)
+         layer))
+     visible-layers)))
 
 (defn layer->dynamic-pills
   "Returns the dynamic pills for a layer."

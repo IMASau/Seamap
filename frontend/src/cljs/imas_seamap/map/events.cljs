@@ -737,7 +737,7 @@
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
         legends-shown (init-layer-legend-status layers legend-ids)
-        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % (db->ctx db)) legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
