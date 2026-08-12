@@ -18,6 +18,7 @@
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
+            [imas-seamap.reload :as reload]
             [imas-seamap.story-maps.events :as smevents]
             [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
@@ -30,8 +31,6 @@
 (def config-handlers
   {:subs
    {:map/props                            msubs/map-props
-    :map/layers                           msubs/map-layers
-    :map/base-layers                      msubs/map-base-layers
     :map/rich-layers-side-by-side-views   msubs/rich-layers-side-by-side-views
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
@@ -298,19 +297,14 @@
        standard-interceptors
        handler))))
 
-(defn dev-setup []
-  (when config/debug?
-    (enable-console-print!)
-    (println "dev mode")))
-
-(defonce root (createRoot (gdom/getElement "app")))
+(defonce root (delay (createRoot (gdom/getElement "app"))))
 
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
   (js/document.body.classList.add "seamap" "tmag-kiosk")
   (.render
-   root
+   @root
    (r/as-element [hotkeys-provider
                   {:renderDialog
                    (fn [state context-actions]
@@ -320,6 +314,12 @@
                         :context-actions (js->clj context-actions :keywordize-keys true)}]))}
                   [:f> views/layout-app]])))
 
+(defn dev-setup []
+  (when config/debug?
+    (reset! reload/remount-fn mount-root)
+    (enable-console-print!)
+    (println "dev mode")))
+
 (defn ^:export show-db []
   @re-frame.db/app-db)
 
@@ -327,11 +327,4 @@
   (register-handlers! config-handlers)
   (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base])
   (dev-setup)
-  (mount-root))
-
-(defn ^:dev/after-load re-render
-  []
-  ;; The `:dev/after-load` metadata causes this function to be called
-  ;; after shadow-cljs hot-reloads code.
-  ;; This function is called implicitly by its annotation.
   (mount-root))
