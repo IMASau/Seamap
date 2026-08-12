@@ -142,14 +142,20 @@
 (defn popup [{:keys [has-info? responses location status show?] :as _feature-info}]
   (when (and show? has-info?)
     ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
-    ^{:key (str location status)}
-    [leaflet/popup
-     {:position location
-      :max-width "100%"
-      :auto-pan false
-      :class (when (= status :feature-info/waiting) "waiting")}
+    (let [popup-id (str location status)]
+      ^{:key popup-id}
+      [leaflet/popup
+       {:position location
+        :max-width "100%"
+        :auto-pan false
+        :class (when (= status :feature-info/waiting) "waiting")
+        ;; Leaflet's built-in close button ("x") closes the popup without telling us,
+        ;; leaving app-state thinking it's still open. Pass this popup's identity so
+        ;; destroy-popup can ignore remove events from popups that are merely being
+        ;; replaced (eg the "waiting" spinner unmounting when results arrive):
+        :eventHandlers {:remove #(re-frame/dispatch [:map/popup-closed popup-id])}}
 
-     ^{:key (str status responses)} [popup-contents {:status status :responses responses}]]))
+       ^{:key (str status responses)} [popup-contents {:status status :responses responses}]])))
 
 (defn distance-tooltip []
   (let [{:keys [x y] :as mouse-pos} @(re-frame/subscribe [:ui/mouse-pos])

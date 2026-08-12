@@ -405,9 +405,17 @@
         (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
         db))))  
 
-(defn destroy-popup [{:keys [db]} _]
-  {:db       (assoc db :feature nil)
-   :put-hash ""})
+(defn destroy-popup [{:keys [db]} [_ popup-id]]
+  ;; popup-id is only provided when Leaflet itself closed the popup (the "x"
+  ;; button, via the popup's remove event). In that case only destroy the
+  ;; feature if the id still identifies it; a stale popup unmounting (eg the
+  ;; "waiting" spinner being replaced by results) must not clobber the current
+  ;; feature. Must be computed the same way as popup-id in the popup view.
+  (let [{:keys [location status]} (:feature db)]
+    (when (or (nil? popup-id)
+              (= popup-id (str ((juxt :lat :lng) location) status)))
+      {:db       (assoc db :feature nil)
+       :put-hash ""})))
 
 (defn map-set-layer-filter [{:keys [db]} [_ filter-text]]
   (let [db (assoc-in db [:filters :layers] filter-text)]
