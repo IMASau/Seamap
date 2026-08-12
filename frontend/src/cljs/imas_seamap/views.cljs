@@ -14,7 +14,7 @@
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch first-where append-query-params] :include-macros true]
             [imas-seamap.components :as components]
-            [imas-seamap.map.utils :refer [layer-search-keywords]]
+            [imas-seamap.map.utils :refer [download-type->str layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -143,7 +143,7 @@
                     [{:id (str id-str "-" (inc (count layer-subset)))
                       :className "tree-cap"}]))}))
 
-(defn- layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all? _tma?]
+(defn layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all? _tma?]
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes catid])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
@@ -207,7 +207,7 @@
       :on-click #(re-frame/dispatch [:toggle-autosave])
       :text     text}]))
 
-(defn- layer-search-filter []
+(defn layer-search-filter []
   (let [timeout-id (reagent/atom nil)] ; To store the timeout ID for the filter event dispatch
     (fn []
       [b/text-input
@@ -316,7 +316,7 @@
        [:<> "Welcome to" [:br] "Seamap Australia."])
       :class    "welcome-splash"
       :is-open  open?
-      :on-close #(re-frame/dispatch [:welcome-layer/close])}
+      :on-close #(re-frame/dispatch [:welcome-layer/close true])}
      [:div.bp3-dialog-body
       [:div.overview
        "Seamap Australia is a nationally synthesised product of
@@ -329,7 +329,7 @@
        {:text       "Get Started!"
         :intent     b/INTENT-PRIMARY
         :auto-focus true
-        :on-click   #(re-frame/dispatch [:welcome-layer/close])}]]
+        :on-click   #(re-frame/dispatch [:welcome-layer/close true])}]]
      [:div.bp3-dialog-footer
       [:h3 "Citations"]
       [:div.citation-section
@@ -397,7 +397,7 @@
   (let [expanded (reagent/atom false)
         {:keys [img-url-base]} @(re-frame/subscribe [:url-base])]
     (fn [{:keys [license-name license-link license-img constraints other]
-          {:keys [category organisation metadata_url server_url layer_name metadata_summary layer_type] :as layer} :layer}]
+          {:keys [category organisation metadata_url server_url layer_name metadata_summary layer_type metadata_content] :as layer} :layer}]
       [:div.metadata-record
 
        (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
@@ -405,6 +405,10 @@
           [:img.metadata-img.org-logo
            {:class (string/replace logo #"\..+$" "")
             :src   (str img-url-base logo)}]])
+       
+       (when metadata_content
+         [:div.metadata-content
+          {:ref #(when % (set! (.-innerHTML %) metadata_content))}])
        
        (when (seq metadata_summary)
          [:div
@@ -503,7 +507,21 @@
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/geotiff-wcs])}])])}
+                                                             :map.layer.download/geotiff-wcs])}])
+                (when (= download_format :map.layer.download-format/thredds-wcs)
+                  [b/menu-item {:text     "NetCDF"
+                                :label    (reagent/as-element [b/icon {:icon "doughnut-chart"}])
+                                :on-click (handler-dispatch [:map.layer/download
+                                                             layer
+                                                             bbox
+                                                             :map.layer.download/netcdf-thredds-wcs])}])
+                (when (= download_format :map.layer.download-format/thredds-wcs)
+                      [b/menu-item {:text     "GeoTIFF"
+                                    :label    (reagent/as-element [b/icon {:icon "globe"}])
+                                    :on-click (handler-dispatch [:map.layer/download
+                                                                 layer
+                                                                 bbox
+                                                                 :map.layer.download/geotiff-thredds-wcs])}])])}
    [b/button {:text       title
               :disabled   disabled?
               :right-icon "caret-down"}]])
@@ -547,6 +565,27 @@
          :auto-focus true
          :intent     b/INTENT-PRIMARY
          :on-click   #(re-frame/dispatch [:map.layer/close-info])}]]]]))
+
+(defn download-component []
+  (let [{:keys [display-link link bbox download-type download-layer]} @(re-frame/subscribe [:download/info])
+        type-str (download-type->str download-type)]
+    [b/dialogue
+     {:is-open   display-link
+      :title     (str "Download " type-str)
+      :icon      "import"
+      :on-close  #(re-frame/dispatch [:ui.download/close-dialogue])}
+     [:div.bp3-dialog-body
+      [:a
+       {:href     link
+        :target   "_blank"
+        :on-click #(re-frame/dispatch [:download-click {:link link :layer download-layer :type type-str}])}
+       "Click here to download " (when bbox "region ") "as " type-str]]
+     [:div.bp3-dialog-footer
+      [:div.bp3-dialog-footer-actions
+       [b/button
+        {:text     "Done"
+         :intent   b/INTENT-PRIMARY
+         :on-click #(re-frame/dispatch [:ui.download/close-dialogue])}]]]]))
 
 (defn control-block [& children]
   (into [:div.leaflet-bar.leaflet-control.leaflet-control-block] children))
@@ -622,7 +661,7 @@
       :disabled? (not habitat-layers?)
       :id        "select-control"}]))
 
-(defn- leaflet-control-button [{:keys [on-click tooltip icon id]}]
+(defn leaflet-control-button [{:keys [on-click tooltip icon id]}]
   [:div.leaflet-bar.leaflet-control
    (when id {:id id})
    (if tooltip
@@ -855,7 +894,8 @@
        :keywords    #(layer-search-keywords categories %)}}]))
 
 (defn left-drawer-catalogue [tma?]
-  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [filtered-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+        viewport-layers @(re-frame/subscribe [:map/layers.viewport])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
     [:<>
@@ -1117,6 +1157,7 @@
      [outage-message-dialogue]
      [settings-overlay]
      [info-card]
+     [download-component]
      [loading-display]
      [left-drawer]
      [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]

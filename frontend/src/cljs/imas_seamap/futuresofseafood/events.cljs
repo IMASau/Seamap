@@ -118,9 +118,9 @@
                (assoc-in [:map :active-layers] startup-layers)
                (assoc-in [:map :active-base-layer] (first (get-in db [:map :grouped-base-layers])))
                (assoc :initialised true))
-        {:keys [zoom center]} (:map db)]
+        {:keys [zoom center bounds]} (:map db)]
     {:db         db
-     :dispatch   [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center})]
+     :dispatch   [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center :bounds bounds})]
      :local-storage/remove
      {:name :seamap-app-state}}))
 

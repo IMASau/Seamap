@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.subs
     (:require [clojure.set :refer [rename-keys] :as set]
-              [imas-seamap.map.utils :refer [->dynamic-pill] :as map-utils]
+              [imas-seamap.map.utils :refer [db->ctx ->dynamic-pill] :as map-utils]
               [imas-seamap.utils :refer [first-where]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
               #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -162,7 +162,8 @@
   (get-in db [:display :open-pill]))
 
 (defn dynamic-pills [{{:keys [dynamic-pills]} :dynamic-pills :as db} _]
-  (let [dynamic-pills (mapv #(->dynamic-pill % db) dynamic-pills)]
+  (let [ctx (db->ctx db)
+        dynamic-pills (mapv #(->dynamic-pill % ctx) dynamic-pills)]
     {:filtered
      (filterv
       #(seq (:active-layers %))
@@ -209,3 +210,18 @@
    1 on the very right, and 0.5 in the center."
   [db _]
   (get-in db [:display :split-layer-range-value] 0.5))
+
+(defn side-by-side-active?
+  "Whether the side-by-side maps are currently active.
+   True will show the split maps and divider, false will hide them and show a
+   single map."
+  [db _]
+  (get-in db [:display :side-by-side :active?] false))
+
+(defn side-by-side-split-ratio
+  "The current value (percentage, represented between 0-100) of the divider for the
+   side-by-side maps.
+   The value 0 means the divider is on the very left side of the viewport, 100
+   means the divider is on the very right, and 50 in the center."
+  [db _]
+  (get-in db [:display :side-by-side :split-ratio] 50))

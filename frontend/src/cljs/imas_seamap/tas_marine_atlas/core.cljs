@@ -6,7 +6,6 @@
             [reagent.core :as r]
             [re-frame.core :as re-frame]
             [re-frame.db]
-            [com.smxemail.re-frame-cookie-fx]
             [day8.re-frame.async-flow-fx]
             [day8.re-frame.http-fx]
             ["@blueprintjs/core" :as Blueprint]
@@ -18,6 +17,7 @@
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
+            [imas-seamap.reload :as reload]
             [imas-seamap.story-maps.events :as smevents]
             [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
@@ -31,8 +31,6 @@
 (def config-handlers
   {:subs
    {:map/props                            msubs/map-props
-    :map/layers                           msubs/map-layers
-    :map/base-layers                      msubs/map-base-layers
     :map/rich-layers-side-by-side-views   msubs/rich-layers-side-by-side-views
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
@@ -43,11 +41,12 @@
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legend
+    :map.layer/displayed-layers-lookup    [:<- [:map/layers] msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
-    :sok/boundary-layer-filter            (fn [] #(identity nil))
+    :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in Tas Marine Atlas, but the sub is required by catalogue-layers component in map views
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
     :sorting/info                         subs/sorting-info
@@ -221,7 +220,7 @@
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :ui/split-layer-range-value           [events/split-layer-range-value]
-    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
+    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder] ; TODO: Remove event, unused
     :left-drawer/toggle                   [events/left-drawer-toggle]
     :left-drawer/open                     [events/left-drawer-open]
     :left-drawer/close                    [events/left-drawer-close]
@@ -281,7 +280,9 @@
 
 (defn register-handlers! [{:keys [subs events]}]
   (doseq [[sym handler] subs]
-    (re-frame/reg-sub sym handler))
+    (if (sequential? handler)
+      (apply re-frame/reg-sub sym handler)
+      (re-frame/reg-sub sym handler)))
   (doseq [[sym handler] events]
     (if (sequential? handler)
       (re-frame/reg-event-fx
@@ -293,17 +294,12 @@
        standard-interceptors
        handler))))
 
-(defn dev-setup []
-  (when config/debug?
-    (enable-console-print!)
-    (println "dev mode")))
-
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
   (js/document.body.classList.add "tas-marine-atlas")
   (.render
-   root
+   @root
    (r/as-element [hotkeys-provider
                   {:renderDialog
                    (fn [state context-actions]
@@ -313,6 +309,12 @@
                         :context-actions (js->clj context-actions :keywordize-keys true)}]))}
                   [:f> layout-app]])))
 
+(defn dev-setup []
+  (when config/debug?
+    (reset! reload/remount-fn mount-root)
+    (enable-console-print!)
+    (println "dev mode")))
+
 (defn ^:export show-db []
   @re-frame.db/app-db)
 
@@ -321,11 +323,3 @@
   (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base])
   (dev-setup)
   (mount-root))
-
-;; (defn ^:dev/after-load re-render
-;;   []
-;;   ;; The `:dev/after-load` metadata causes this function to be called
-;;   ;; after shadow-cljs hot-reloads code.
-;;   ;; This function is called implicitly by its annotation.
-;;   (mount-root))
-

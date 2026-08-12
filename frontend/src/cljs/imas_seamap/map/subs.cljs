@@ -2,34 +2,22 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.subs
-  (:require [clojure.string :as string]
-            [clojure.set :as set]
-            [imas-seamap.utils :refer [map-on-key ids->layers]]
-            [imas-seamap.map.utils :as map-utils :refer [region-stats-habitat-layer layer-search-keywords sort-layers viewport-layers enhance-rich-layer rich-layer-children->parents rich-layer->displayed-layer layer->rich-layer layer->cql-filter]]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
+  (:require
+   [clojure.set :as set]
+   [imas-seamap.map.utils :as map-utils :refer [enhance-rich-layer
+                                                has-time-dimension?
+                                                layer->cql-filter
+                                                layer->rich-layer
+                                                db->ctx
+                                                region-stats-habitat-layer
+                                                rich-layer->displayed-layer
+                                                rich-layer-children->parents
+                                                sort-layers viewport-layers
+                                                match-layer]]
+   [re-frame.core :as rf]
+   [imas-seamap.utils :refer [ids->layers map-on-key]]))
 
-(defn map-props [db _] (:map db))
-
-(defn- make-re
-  "Given a list of words to match, construct a regexp that matches all
-  of them, in any order.  That is, [\"one\" \"two\"] should match both
-  \"onetwo\" and \"twoone\"."
-  [words]
-  (re-pattern
-   (str "(?i)^"
-        (string/join (map #(str "(?=.*" % ")") words))
-        ".*$")))
-
-(defn match-layer
-  "Given a string of search words, attempt to match them *all* against
-  a layer (designed so it can be used to filter a list of layers, in
-  conjunction with partial)."
-  [filter-text categories layer]
-  (if-let [search-re (try
-                       (-> filter-text string/trim (string/split #"\s+") make-re)
-                       (catch :default e nil))]
-    (re-find search-re (layer-search-keywords categories layer))
-    false))
+(defn map-props [db _] (-> db :map (select-keys [:zoom :center :bounds])))
 
 (defn- make-error-fn
   "Given maps of layer->error-count and layer->total-tile-count, returns
@@ -37,76 +25,166 @@
   the layer is problematic or not (ie, rather than just saying we
   should notify the user about any error, we want to notify above a
   certain threshold)"
-  [error-counts load-counts db]
+  [error-counts load-counts ctx]
   (fn [layer]
-    (let [layer (rich-layer->displayed-layer layer db)
+    (let [layer (rich-layer->displayed-layer layer ctx)
           error-count (get error-counts layer 0)
           total-count (get load-counts layer 0)]
       (and (pos? total-count)
            (> (/ error-count total-count)
               0.4)))))       ; Might be nice to make this configurable eventually
 
-(defn map-layers [{:keys [layer-state filters sorting]
-                   {:keys [layers active-layers bounds categories rich-layer-children] :as db-map} :map
-                   :as db} _]
-  (let [categories      (map-on-key categories :name)
-        filter-text     (:layers filters)
-        rich-layers (get-in db [:map :rich-layers :rich-layers])
+(rf/reg-sub :dbsubs/layer-state (fn [db _] (get db :layer-state)))
+(rf/reg-sub :dbsubs/filters (fn [db _] (get db :filters)))
+(rf/reg-sub :dbsubs/sorting (fn [db _] (get db :sorting)))
+(rf/reg-sub :dbsubs.map/layers (fn [db _] (get-in db [:map :layers])))
+(rf/reg-sub :dbsubs.map/active-layers (fn [db _] (get-in db [:map :active-layers])))
+(rf/reg-sub :dbsubs.map/hidden-layers (fn [db _] (get-in db [:map :hidden-layers])))
+(rf/reg-sub :dbsubs.map/bounds (fn [db _] (get-in db [:map :bounds])))
+(rf/reg-sub :dbsubs.map/categories (fn [db _] (get-in db [:map :categories])))
+(rf/reg-sub :dbsubs.map/rich-layers (fn [db _] (get-in db [:map :rich-layers :rich-layers])))
+(rf/reg-sub :dbsubs.map/rich-layer-states (fn [db _] (get-in db [:map :rich-layers :states])))
+(rf/reg-sub :dbsubs.map/rich-layer-async-datas (fn [db _] (get-in db [:map :rich-layers :async-datas])))
+(rf/reg-sub :dbsubs.map/rich-layer-lookup (fn [db _] (get-in db [:map :rich-layers :layer-lookup])))
+(rf/reg-sub :dbsubs.map/rich-layer-children (fn [db _] (get-in db [:map :rich-layer-children])))
+(rf/reg-sub :dbsubs/dynamic-pills (fn [db _] (get-in db [:dynamic-pills :dynamic-pills])))
+(rf/reg-sub :dbsubs/dynamic-pill-states (fn [db _] (get-in db [:dynamic-pills :states])))
+(rf/reg-sub :dbsubs/dynamic-pill-async-datas (fn [db _] (get-in db [:dynamic-pills :async-datas])))
+(rf/reg-sub :dbsubs/display-open-pill (fn [db _] (get-in db [:display :open-pill])))
+(rf/reg-sub :dbsubs/split-layer-container-x (fn [db _] (get-in db [:display :split-layer-container-x])))
 
-        rlc-ids ; rich-layer-children to hide from the catalogue
-        (reduce
-         (fn [acc {:keys [layer-id alternate-views timeline]}]
-           (->>
-            (set/union (set (map :layer alternate-views)) (set (map :layer timeline))) ; Get all the alternate views and timeline layers for the rich layer
-            (remove #(= % layer-id))                                                   ; Ignore the ones that match the "main" layer for the rich layer (its catalogue entry)
-            set                                                                        ; Convert back to a set after the "remove" op
-            (set/union acc)))                                                          ; Add to the accumulative list of all layers to hide from the catalogue
-         #{} rich-layers)
+(rf/reg-sub
+ :map/layers
+ (fn [_query-v]
+   {:layer-state         (rf/subscribe [:dbsubs/layer-state])
+    :filters             (rf/subscribe [:dbsubs/filters])
+    :sorting             (rf/subscribe [:dbsubs/sorting])
+    :layers              (rf/subscribe [:dbsubs.map/layers])
+    :active-layers       (rf/subscribe [:dbsubs.map/active-layers])
+    :hidden-layers       (rf/subscribe [:dbsubs.map/hidden-layers])
+    :categories          (rf/subscribe [:dbsubs.map/categories])
+    :rich-layers         (rf/subscribe [:dbsubs.map/rich-layers])
+    :rich-layer-children (rf/subscribe [:dbsubs.map/rich-layer-children])
+    :rl-states           (rf/subscribe [:dbsubs.map/rich-layer-states])
+    :rl-async-datas      (rf/subscribe [:dbsubs.map/rich-layer-async-datas])
+    :rl-lookup           (rf/subscribe [:dbsubs.map/rich-layer-lookup])
+    :dynamic-pills       (rf/subscribe [:dbsubs/dynamic-pills])
+    :dp-states           (rf/subscribe [:dbsubs/dynamic-pill-states])
+    :dp-async-datas      (rf/subscribe [:dbsubs/dynamic-pill-async-datas])
+    :open-pill           (rf/subscribe [:dbsubs/display-open-pill])})
+ (fn [{:keys [layer-state
+              filters
+              sorting
+              layers
+              active-layers
+              hidden-layers
+              categories
+              rich-layers
+              rich-layer-children
+              rl-states
+              rl-async-datas
+              rl-lookup
+              dynamic-pills
+              dp-states
+              dp-async-datas
+              open-pill]} _query-v]
+   (let [layers-by-id    (into {} (map (juxt :id identity)) layers)
+         rich-layers-by-id (into {} (map (juxt :id identity)) rich-layers)
+         ctx             {:layers-by-id      layers-by-id
+                          :rich-layers       rich-layers
+                          :rich-layers-by-id rich-layers-by-id
+                          :rl-states         rl-states
+                          :rl-async-datas    rl-async-datas
+                          :rl-lookup         rl-lookup
+                          :dynamic-pills     dynamic-pills
+                          :dp-states         dp-states
+                          :dp-async-datas    dp-async-datas
+                          :active-layers     active-layers
+                          :open-pill         open-pill}
+         categories      (map-on-key categories :name)
+         filter-text     (:layers filters)
 
-        catalogue-layers
-        (->>
-         layers
-         (filter #(get-in categories [(:category %) :display_name])) ; only layers with a category that has a display name are allowed
-         (remove
-          (fn [{:keys [id]}]
-            (some #{id} rlc-ids)))) ; removes rich-layer children (except those that are a child of themselves)
+         rlc-ids ; rich-layer-children to hide from the catalogue
+         (reduce
+          (fn [acc {:keys [layer-id alternate-views timeline]}]
+            (->>
+             (set/union (set (map :layer alternate-views)) (set (map :layer timeline))) ; Get all the alternate views and timeline layers for the rich layer
+             (remove #(= % layer-id))                                                   ; Ignore the ones that match the "main" layer for the rich layer (its catalogue entry)
+             set                                                                        ; Convert back to a set after the "remove" op
+             (set/union acc)))                                                          ; Add to the accumulative list of all layers to hide from the catalogue
+          #{} rich-layers)
 
-        viewport-layers (viewport-layers bounds catalogue-layers)
-        filtered-layers (set (filter (partial match-layer filter-text categories) layers)) ; get the set of all layers that match the filter
-        filtered-layers (rich-layer-children->parents filtered-layers rich-layer-children) ; get the rich-layer parents for this layer, and add them to the searched layers
-        filtered-layers (filterv filtered-layers catalogue-layers) ; filtered-layers set converted into vector by filtering on catalogue-layers (sorted)
-        sorted-layers   (sort-layers catalogue-layers sorting)
-        displayed-rich-layers (reduce
-                               (fn [displayed-rich-layers layer]
-                                 (assoc displayed-rich-layers layer (rich-layer->displayed-layer layer db)))
-                               {} (ids->layers (map :layer-id rich-layers) layers))
-        displayed-layers->layers (set/map-invert displayed-rich-layers)
+         catalogue-layers
+         (->>
+          layers
+          (filter #(get-in categories [(:category %) :display_name])) ; only layers with a category that has a display name are allowed
+          (remove
+           (fn [{:keys [id]}]
+             (some #{id} rlc-ids)))) ; removes rich-layer children (except those that are a child of themselves)
 
-        rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % db) db)
-        visible-layers  (map-utils/visible-layers db-map)]
-    {:groups          (group-by :category filtered-layers)
-     :loading-layers  (->>
-                       layer-state :loading-state
-                       (filter (fn [[l st]] (= st :map.layer/loading)))
-                       keys
-                       (map #(or (get displayed-layers->layers %) %))
-                       set)
-     :error-layers    (make-error-fn (:error-count layer-state) (:tile-count layer-state) db)
-     :expanded-layers (->> layer-state :legend-shown set)
-     :active-layers   active-layers
-     :visible-layers  visible-layers
-     :layer-opacities (fn [layer] (get-in layer-state [:opacity layer] 100))
-     :filtered-layers filtered-layers
-     :sorted-layers   sorted-layers
-     :viewport-layers viewport-layers
-     :catalogue-layers catalogue-layers
-     :rich-layer-fn   rich-layer-fn
-     :cql-filter-fn   #(layer->cql-filter % db)}))
+         filtered-layers (set (filter (partial match-layer filter-text categories) layers)) ; get the set of all layers that match the filter
+         filtered-layers (rich-layer-children->parents filtered-layers rich-layer-children) ; get the rich-layer parents for this layer, and add them to the searched layers
+         filtered-layers (filterv filtered-layers catalogue-layers) ; filtered-layers set converted into vector by filtering on catalogue-layers (sorted)
+         sorted-layers   (sort-layers catalogue-layers sorting)
+         displayed-rich-layers (reduce
+                                (fn [displayed-rich-layers layer]
+                                  (assoc displayed-rich-layers layer (rich-layer->displayed-layer layer ctx)))
+                                {} (keep layers-by-id (map :layer-id rich-layers)))
+         displayed-layers->layers (set/map-invert displayed-rich-layers)
+
+         rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % ctx) ctx)
+         visible-layers  (map-utils/visible-layers {:hidden-layers hidden-layers
+                                                    :active-layers active-layers})]
+
+     {:layers           layers
+      :groups           (group-by :category filtered-layers)
+      :loading-layers   (->>
+                        layer-state :loading-state
+                        (filter (fn [[l st]] (= st :map.layer/loading)))
+                        keys
+                        (map #(or (get displayed-layers->layers %) %))
+                        set)
+      :error-layers     (make-error-fn (:error-count layer-state) (:tile-count layer-state) ctx)
+      :expanded-layers  (->> layer-state :legend-shown set)
+      :active-layers    active-layers
+      :visible-layers   visible-layers
+      :layer-opacities  (fn [layer] (get-in layer-state [:opacity layer] 100))
+      :filtered-layers  filtered-layers
+      :sorted-layers    sorted-layers
+      :catalogue-layers catalogue-layers
+      :rich-layer-fn    rich-layer-fn
+      :cql-filter-fn    #(layer->cql-filter % ctx)})))
+
+;;; This is extracted out from the :map/layers subscription as a
+;;; stand-alone. It is a performance-related trade-off; it makes
+;;; semantic sense to be included in the main map-layers sub, but the
+;;; downside is the viewport-layers are by definition recalculated
+;;; when the viewport bounds change, which is basically any map
+;;; interaction. Extracting it out as a stand-alone means only the
+;;; sidebar needs to subscribe to it, and the map itself receives far
+;;; fewer subscription updates.
+(rf/reg-sub
+ :map/layers.viewport
+ :<- [:dbsubs.map/layers]
+ :<- [:dbsubs.map/bounds]
+ (fn [[layers bounds] _query-v]
+   (viewport-layers bounds layers)))
+
+; This sub is something that would have formerly been in the monolithic
+; 'map-layers' sub above. This sub is part of a new strategy to break up the
+; monolothic sub into smaller subs that are easier to manage and take advantage of
+; the the re-frame subscription DAG. 
+(defn layer-displayed-layers-lookup
+  "A lookup map of the raw (catalogue) layer to what layers should actually be
+   displayed on the map."
+  [{:keys [layers rich-layer-fn] :as _map-layers} _]
+  (map-utils/layer-displayed-layers-lookup layers rich-layer-fn))
 
 (defn rich-layers-side-by-side-views [db _]
-  (let [rich-layers (map #(enhance-rich-layer % db) (get-in db [:map :rich-layers :rich-layers]))
-        active-layers (get-in db [:map :active-layers])]
-    
+  (let [ctx (db->ctx db)
+        rich-layers (map #(enhance-rich-layer % ctx) (:rich-layers ctx))
+        active-layers (:active-layers ctx)]
+
     (filter
      (fn [rich-layer]
        (and
@@ -114,12 +192,21 @@
         (seq (get-in rich-layer [:side-by-side-views]))))
      rich-layers)))
 
-(defn map-base-layers [{{:keys [grouped-base-layers active-base-layer zoom]} :map} _]
-  (let [enabled-base-layer-fn (fn [{:keys [max_zoom]}] (or (nil? max_zoom) (<= zoom max_zoom))) ; Utility for checking if a basemap is "enabled" - i.e. is it a valid basemap the user can select, or are we beyond the max zoom for the layer
-        enabled-base-layers (filter enabled-base-layer-fn grouped-base-layers)]
-    {:grouped-base-layers   grouped-base-layers ; List of selectable basemaps (composite basemaps grouped as a single element)
-     :active-base-layer     (if (enabled-base-layer-fn active-base-layer) active-base-layer (first enabled-base-layers)) ; Active basemap is the one selected by the user, unless it's disabled. If the basemap is disabled, then switch to first enabled basemap
-     :enabled-base-layer-fn enabled-base-layer-fn}))
+(rf/reg-sub :dbsubs.map/zoom (fn [db _] (get-in db [:map :zoom])))
+(rf/reg-sub :dbsubs.map/grouped-base-layers (fn [db _] (get-in db [:map :grouped-base-layers])))
+(rf/reg-sub :dbsubs.map/active-base-layer (fn [db _] (get-in db [:map :active-base-layer])))
+(rf/reg-sub
+ :map/base-layers
+ (fn [_query-v]
+   {:zoom                (rf/subscribe [:dbsubs.map/zoom])
+    :grouped-base-layers (rf/subscribe [:dbsubs.map/grouped-base-layers])
+    :active-base-layer   (rf/subscribe [:dbsubs.map/active-base-layer])})
+ (fn [{:keys [grouped-base-layers active-base-layer zoom]} _query-v]
+   (let [enabled-base-layer-fn (fn [{:keys [max_zoom]}] (or (nil? max_zoom) (<= zoom max_zoom))) ; Utility for checking if a basemap is "enabled" - i.e. is it a valid basemap the user can select, or are we beyond the max zoom for the layer
+         enabled-base-layers   (filter enabled-base-layer-fn grouped-base-layers)]
+     {:grouped-base-layers   grouped-base-layers ; List of selectable basemaps (composite basemaps grouped as a single element)
+      :active-base-layer     (if (enabled-base-layer-fn active-base-layer) active-base-layer (first enabled-base-layers)) ; Active basemap is the one selected by the user, unless it's disabled. If the basemap is disabled, then switch to first enabled basemap
+      :enabled-base-layer-fn enabled-base-layer-fn})))
 
 (defn display-categories
   "Filter categories to only those that have a display name and at least one layer."
@@ -206,6 +293,39 @@
   (if org-name
     (some #(and (= org-name (:name %)) %) organisations)
     organisations))
+
+(defn timeseries-layers
+  "List of layers that are currently active and have a time dimension."
+  [map-layers _]
+  (filter has-time-dimension? (:active-layers map-layers)))
+
+(defn show-time-slider?
+  "Should the time slider be shown on the map? True if there are currently active
+   layers with a time dimension."
+  [timeseries-layers _]
+  (seq timeseries-layers))
+
+(defn current-time
+  "The current time selected for the time dimension. It is designed to be in sync
+   with the Leaflet timeDimension component."
+  [db _]
+  (get-in db [:display :current-time]))
+
+(defn time-available-times
+  "The available times for the layers, driven by the timeDimension component."
+  [db _]
+  (get-in db [:display :available-times]))
+
+(defn time-is-playing?
+  "Whether the time dimension is currently playing or paused."
+  [db _]
+  (get-in db [:display :time-is-playing?]))
+
+(defn time-is-loading?
+  "Whether the time dimension is currently loading a new time, driven by
+   the timeDimension component."
+  [db _]
+  (get-in db [:display :time-is-loading?]))
 
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))

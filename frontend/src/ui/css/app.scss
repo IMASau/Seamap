@@ -80,6 +80,10 @@ body.page-template-default.admin-bar #app {
     }
 
     .bp3-dialog-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        .bp3-button { margin-left: auto; }
         p {
             font-size: 10px;
             margin-left: 5px;
@@ -150,8 +154,6 @@ body.page-template-default.admin-bar #app {
 }
 #map {
     flex: 1 1 100%;
-}
-.map-wrapper, #map {
     height: 100%;
     position: relative;
     display: flex;
@@ -159,7 +161,7 @@ body.page-template-default.admin-bar #app {
 
 .loading {
     // Disable relative positioning on map elements when printing, otherwise grey space is left around export image
-    #content-wrapper, .map-wrapper, #map {
+    #content-wrapper, #map {
         position: unset !important;
     }
 }
@@ -788,6 +790,7 @@ input.leaflet-control-layers-selector[type="radio"] {
 	.css-1s2u09g-control,
     .css-1pahdxg-control,
     .css-26l3qy-menu { border-radius: 0; }
+    .css-26l3qy-menu { z-index: 5;}
     .css-1pahdxg-control,
     .css-1pahdxg-control:hover {
         border-color: hsl(0, 0%, 80%);
@@ -796,3 +799,11 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 .data-in-region-drawer .bp3-non-ideal-state { height: 150px; }
+
+.current-view {
+    padding: 12px 24px;
+}
+
+.natural-hazards-atlas .leaflet-bar-timecontrol {
+    display: none;
+}

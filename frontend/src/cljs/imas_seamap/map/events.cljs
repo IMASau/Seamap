@@ -2,24 +2,38 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.events
-  (:require [clojure.string :as string]
-            [clojure.set :as set]
-            [clojure.walk :refer [keywordize-keys]]
-            [re-frame.core :as re-frame]
-            [cljs.spec.alpha :as s]
-            [imas-seamap.utils :refer [ids->layers first-where index-of append-query-params round-to-nearest map-server-url? feature-server-url?]]
-            [imas-seamap.map.utils :as map-utils :refer [layer-name bounds->str feature-info-response->display bounds->projected region-stats-habitat-layer sort-by-sort-key map->bounds leaflet-props mouseevent->coords init-layer-legend-status init-layer-opacities visible-layers has-visible-habitat-layers? enhance-rich-layer rich-layer->displayed-layer layer->rich-layer layer->cql-filter project-coords layer->dynamic-pills ->dynamic-pill]]
-            [ajax.core :as ajax]
-            [imas-seamap.blueprint :as b]
-            [reagent.core :as r]
-            [imas-seamap.interop.leaflet :as leaflet]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
-
-
-;;; Seamap is hosted under https, meaning the browser will block ajax
-;;; (ie, getfeatureinfo) requests to plain http URLs.  Servers still
-;;; using http need specil handling:
-(defn- is-insecure? [url] (-> url string/lower-case (string/starts-with? "http:")))
+  (:require
+   [ajax.core :as ajax]
+   [cljs.spec.alpha :as s]
+   [clojure.set :as set]
+   [clojure.string :as string]
+   [clojure.walk :refer [keywordize-keys]]
+   [imas-seamap.blueprint :as b]
+   [imas-seamap.interop.leaflet :as leaflet]
+   [imas-seamap.map.utils :as map-utils :refer [->dynamic-pill
+                                                bounds->projected
+                                                bounds->str:wms
+                                                db->ctx
+                                                enhance-rich-layer
+                                                feature-info-response->display
+                                                ms-to-iso
+                                                has-time-dimension?
+                                                has-visible-habitat-layers?
+                                                init-layer-legend-status
+                                                init-layer-opacities
+                                                layer->cql-filter
+                                                layer->dynamic-pills
+                                                layer->rich-layer layer-name
+                                                leaflet-props map->bounds
+                                                mouseevent->coords
+                                                project-coords
+                                                region-stats-habitat-layer
+                                                rich-layer->displayed-layer
+                                                sort-by-sort-key
+                                                visible-layers]]
+   [imas-seamap.utils :refer [first-where ids->layers index-of]]
+   [re-frame.core :as re-frame]
+   [reagent.core :as r]))
 
 (defn base-layer-changed [{:keys [db]} [_ layer-name]]
   (let [grouped-base-layers (-> db :map :grouped-base-layers)
@@ -103,9 +117,12 @@
                       (bounds->projected
                        #(project-coords % request-crs)
                        (bounds-for-zoom geo-point size bounds feature-info-image-size)))
-        bbox (bounds->str request-crs bbox-bounds)
+        bbox (bounds->str:wms request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
-        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
+        has-time? (has-time-dimension? (first layers))
+        current-time (get-in db [:display :current-time])
+        ctx (db->ctx db)
+        cql-filters (->> layers (map #(layer->cql-filter % ctx)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
     {:http-xhrio
@@ -131,7 +148,8 @@
         :INFO_FORMAT   "text/html"
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
-       (when cql-filter {:CQL_FILTER cql-filter}))
+       (when cql-filter {:CQL_FILTER cql-filter})
+       (when has-time? {:TIME (ms-to-iso current-time)}))
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/html" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -148,9 +166,12 @@
                       (bounds->projected
                        #(project-coords % request-crs)
                        (bounds-for-zoom projected-point size bounds feature-info-image-size)))
-        bbox (bounds->str request-crs bbox-bounds)
+        bbox (bounds->str:wms request-crs bbox-bounds)
         layer-names (->> layers (map layer-name) reverse (string/join ","))
-        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
+        has-time? (has-time-dimension? (first layers))
+        current-time (get-in db [:display :current-time])
+        ctx (db->ctx db)
+        cql-filters (->> layers (map #(layer->cql-filter % ctx)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
     {:http-xhrio
@@ -176,7 +197,8 @@
         :INFO_FORMAT   "application/json"
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
-       (when cql-filter {:CQL_FILTER cql-filter}))
+       (when cql-filter {:CQL_FILTER cql-filter})
+       (when has-time? {:TIME (ms-to-iso current-time)}))
       :response-format (ajax/json-response-format)
       :on-success      [:map/got-featureinfo request-id point "application/json" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -196,9 +218,12 @@
   [{:keys [db]} [_ _info-format-type layers request-id {:keys [size bounds] :as _leaflet-props} {:keys [lat lng] :as point}]]
   (let [bbox (->> (bounds-for-zoom [lng lat] size bounds feature-info-image-size)
                   (bounds->projected #(project-coords % (-> layers first :crs)))
-                  (bounds->str (-> layers first :crs)))
+                  (bounds->str:wms (-> layers first :crs)))
         layer-names (->> layers (map layer-name) reverse (string/join ","))
-        cql-filters (->> layers (map #(layer->cql-filter % db)) (filter identity))
+        has-time? (has-time-dimension? (first layers))
+        current-time (get-in db [:display :current-time])
+        ctx (db->ctx db)
+        cql-filters (->> layers (map #(layer->cql-filter % ctx)) (filter identity))
         cql-filter (apply str (interpose ";" cql-filters))
         cql-filter (when (seq cql-filter) cql-filter)]
     {:http-xhrio
@@ -224,7 +249,8 @@
         :INFO_FORMAT   "text/xml"
         :SERVICE       "WMS"
         :VERSION       "1.1.1"}
-       (when cql-filter {:CQL_FILTER cql-filter}))
+       (when cql-filter {:CQL_FILTER cql-filter})
+       (when has-time? {:TIME (ms-to-iso current-time)}))
       :response-format (ajax/text-response-format)
       :on-success      [:map/got-featureinfo request-id point "text/xml" layers]
       :on-failure      [:map/got-featureinfo-err request-id point]}}))
@@ -279,14 +305,8 @@
        - point:         The lat lng and x y pixel coords of the clicked point"
   [{:keys [db]} [_ leaflet-props point]]
   (let [visible-layers
-        (->>
-         (visible-layers (:map db))
-         (map
-          (fn [layer]
-            (if (map-utils/layer->rich-layer? layer db)
-              (map-utils/rich-layer->layer-under-point (map-utils/layer->rich-layer layer db) point db)
-              layer))))
-        secure-layers  (remove #(is-insecure? (:server_url %)) visible-layers)
+        (map-utils/displayed-layers-under-point (visible-layers (:map db)) point db)
+        secure-layers  (remove #(map-utils/is-insecure? (:server_url %)) visible-layers)
         request-id     (gensym)
 
         ;; Requests used to be grouped by server URL, but has since been changed to be
@@ -299,7 +319,7 @@
                         (fn [{:keys [info_format_type] :as layer}]
                           [:map/get-feature-info info_format_type [layer] request-id leaflet-props point])
                         secure-layers)
-        had-insecure?  (some #(is-insecure? (:server_url %)) visible-layers)
+        had-insecure?  (some #(map-utils/is-insecure? (:server_url %)) visible-layers)
         db             (if had-insecure?
                          (assoc db :feature {:status :feature-info/none-queryable :location point :show? true}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
                          (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
@@ -320,29 +340,6 @@
      (if (and (seq requests) (not had-insecure?))
        {:dispatch-n requests}
        {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))
-
-(defn get-habitat-region-statistics [{:keys [db]} [_ _ point]]
-  (let [visible-layers (visible-layers (:map db))
-        boundary       (first-where #(= (:category %) :boundaries) visible-layers)
-        habitat        (region-stats-habitat-layer db)
-        [x y]          (project-coords ((juxt :lng :lat) point) "EPSG:3112")
-        request-id     (gensym)]
-    (when (and boundary habitat)
-      {:http-xhrio {:method          :get
-                    :uri             (get-in db [:config :urls :region-stats-url])
-                    :params          {:boundary (:id boundary)
-                                      :habitat  (:id habitat)
-                                      :x        x
-                                      :y        y}
-                    :response-format (ajax/text-response-format)
-                    :on-success      [:map/got-featureinfo request-id point "text/html" []]
-                    :on-failure      [:map/got-featureinfo-err request-id point]}
-       :db         (assoc db :feature-query {:request-id        request-id
-                                             :response-remain   1
-                                             :responses         []}
-                          :feature       {:status   :feature-info/waiting
-                                          :location point
-                                          :show?    false})})))
 
 (defn show-popup [db [_ request-id]]
   (cond-> db
@@ -408,9 +405,17 @@
         (assoc db :feature (responses-feature-info db point)) ;; If this is the last response expected, update the displayed feature
         db))))  
 
-(defn destroy-popup [{:keys [db]} _]
-  {:db       (assoc db :feature nil)
-   :put-hash ""})
+(defn destroy-popup [{:keys [db]} [_ popup-id]]
+  ;; popup-id is only provided when Leaflet itself closed the popup (the "x"
+  ;; button, via the popup's remove event). In that case only destroy the
+  ;; feature if the id still identifies it; a stale popup unmounting (eg the
+  ;; "waiting" spinner being replaced by results) must not clobber the current
+  ;; feature. Must be computed the same way as popup-id in the popup view.
+  (let [{:keys [location status]} (:feature db)]
+    (when (or (nil? popup-id)
+              (= popup-id (str ((juxt :lat :lng) location) status)))
+      {:db       (assoc db :feature nil)
+       :put-hash ""})))
 
 (defn map-set-layer-filter [{:keys [db]} [_ filter-text]]
   (let [db (assoc-in db [:filters :layers] filter-text)]
@@ -421,15 +426,16 @@
   (assoc-in db [:filters :other-layers] filter-text))
 
 (defn layer-set-opacity [{:keys [db]} [_ layer opacity]]
-  (s/assert (s/int-in 0 100) opacity)
-  (let [db (assoc-in db [:layer-state :opacity layer] opacity)]
+  (s/assert (s/int-in 0 101) opacity) ; opacity is an integer percentage from 0 to 100 inclusive
+  (let [db (assoc-in db [:layer-state :opacity layer] opacity)] ; FIXME: Instead of storing by layer we should store by layer ID
     {:db       db
      :dispatch [:maybe-autosave]}))
 
 (def ^:private ^{:doc "Maps download format strings from the API to internal namespaced keywords."}
   download-format-str->keyword
-  {"wfs" :map.layer.download-format/wfs
-   "wcs" :map.layer.download-format/wcs})
+  {"wfs"         :map.layer.download-format/wfs
+   "wcs"         :map.layer.download-format/wcs
+   "thredds-wcs" :map.layer.download-format/thredds-wcs})
 
 (defn process-layer [layer]
   (-> layer
@@ -656,7 +662,7 @@
   [{:keys [db]} [_ layer]]
   (let [hidden-layers (get-in db [:map :hidden-layers])
         hidden? (contains? hidden-layers layer)
-        db (update-in db [:map :hidden-layers] #((if hidden? disj conj) % layer))]
+        db (update-in db [:map :hidden-layers] #((if hidden? disj conj) % layer))] ; FIXME: Instead of storing a list of layers, we should store a list of layer IDs and hydrate them in the sub. It's bad practice to have multiple sources for the layer in the DB!
     {:db         db
      :dispatch-n [[:map/popup-closed]
                   [:map.layer.selection/maybe-clear]
@@ -664,8 +670,9 @@
 
 (defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))
+        ctx (db->ctx db)
         has-legend? (get-in db [:map :legends id])
-        rich-layer  (enhance-rich-layer (layer->rich-layer layer db) db)
+        rich-layer  (enhance-rich-layer (layer->rich-layer layer ctx) ctx)
         has-cql-filter-values? (get-in rich-layer [:controls :values])]
     {:db         db
      :dispatch-n [[:maybe-autosave]
@@ -680,8 +687,9 @@
 (defn zoom-to-layer
   "Zoom to the layer's extent, adding it if it wasn't already."
   [{:keys [db]} [_ layer]]
-  (let [layer-active?  ((set (get-in db [:map :active-layers])) layer)
-        displayed-layer (rich-layer->displayed-layer layer db)
+  (let [ctx (db->ctx db)
+        layer-active?  ((set (get-in db [:map :active-layers])) layer)
+        displayed-layer (rich-layer->displayed-layer layer ctx)
         bounding_box    (:bounding_box displayed-layer)]
     {:db         db
      :dispatch-n [(when-not layer-active? [:map/add-layer layer])
@@ -737,7 +745,7 @@
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
         legends-shown (init-layer-legend-status layers legend-ids)
-        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % (db->ctx db)) legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
@@ -791,10 +799,10 @@
   (when leaflet-map
     (if instant?
       (cond
-        (or zoom (seq center)) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom))
+        (and zoom (seq center)) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom))
         (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js)))
       (cond
-        (or zoom (seq center)) (.flyTo leaflet-map (clj->js (if (seq center) center old-center)) (or zoom old-zoom))
+        (and zoom (seq center)) (.flyTo leaflet-map (clj->js (if (seq center) center old-center)) (or zoom old-zoom))
         (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js)))))
   nil)
 
@@ -874,16 +882,18 @@
       (assoc-in db [:map :rich-layers :async-datas id :filter-combinations] filter_combinations))))
 
 (defn rich-layer-alternate-views-selected [{:keys [db]} [_ {:keys [id] :as rich-layer} alternate-views-selected]]
-  (let [{{old-timeline-value :value
+  (let [ctx (db->ctx db)
+        {{old-timeline-value :value
           old-timeline-label :label}
          :timeline-selected
          old-slider-label :slider-label}
-        (enhance-rich-layer rich-layer db)
+        (enhance-rich-layer rich-layer ctx)
 
         db (assoc-in db [:map :rich-layers :states id :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
+        ctx (db->ctx db)
         {:keys [timeline]
          new-slider-label :slider-label}
-        (enhance-rich-layer rich-layer db)
+        (enhance-rich-layer rich-layer ctx)
 
         ; Find a value on the new alternate view's timeline that matches the old
         ; selected value.
@@ -988,7 +998,7 @@
                               below         (subvec active-layers 0 index)
                               above         (subvec active-layers index)
                               active-layers (vec (concat below [layer] above))]
-                          (assoc-in db [:map :active-layers] active-layers))
+                          (assoc-in db [:map :active-layers] active-layers)) ; FIXME: Instead of storing a list of layers, we should store a list of layer IDs and hydrate them in the sub. It's bad practice to have multiple sources for the layer in the DB!
 
                         :else                       ; else, add the layer to the end of the list
                         (update-in db [:map :active-layers] conj layer))]
@@ -998,37 +1008,33 @@
 
 (defn remove-layer
   [{:keys [db]} [_ layer]]
-  (letfn [(dynamic-pill-active?
-           [db dynamic-pill]
-           "Checks if a dynamic pill has any current active layers.
-            
-            Args:
-            * `db: :seamap/app-state`: Seamap app state
-            * `dynamic-pill: :dynamic-pills/dynamic-pill`: Dynamic pill to check for active
-              layers
-            
-            Returns: `true` if the dynamic pill has any active layers, `false` otherwise."
-           (s/assert :dynamic-pills/dynamic-pill dynamic-pill)
-           (-> (->dynamic-pill dynamic-pill db) :active-layers seq boolean))]
-    (let [layers (get-in db [:map :active-layers])
-          layers (vec (remove #(= % layer) layers))
-          {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
-          rich-layer (layer->rich-layer layer db)
-          db     (->
-                  db
-                  (assoc-in [:map :active-layers] layers)
-                  (update-in [:map :hidden-layers] #(disj % layer))
-                  (cond->
-                   ((set habitat) layer)
-                    (assoc-in [:state-of-knowledge :statistics :habitat :show-layers?] false)
+  (let [ctx (db->ctx db)]
+    (letfn [(dynamic-pill-active?
+             [ctx dynamic-pill]
+             "Checks if a dynamic pill has any current active layers."
+             (s/assert :dynamic-pills/dynamic-pill dynamic-pill)
+             (-> (->dynamic-pill dynamic-pill ctx) :active-layers seq boolean))]
+      (let [layers (get-in db [:map :active-layers])
+            layers (vec (remove #(= % layer) layers))
+            {:keys [habitat bathymetry habitat-obs]} (get-in db [:map :keyed-layers])
+            rich-layer (layer->rich-layer layer ctx)
+            db     (->
+                    db
+                    (assoc-in [:map :active-layers] layers)
+                    (update-in [:map :hidden-layers] #(disj % layer))
+                    (cond->
+                     ((set habitat) layer)
+                      (assoc-in [:state-of-knowledge :statistics :habitat :show-layers?] false)
 
-                    ((set bathymetry) layer)
-                    (assoc-in [:state-of-knowledge :statistics :bathymetry :show-layers?] false)
+                      ((set bathymetry) layer)
+                      (assoc-in [:state-of-knowledge :statistics :bathymetry :show-layers?] false)
 
-                    ((set habitat-obs) layer)
-                    (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))
-          dynamic-pills (layer->dynamic-pills layer db)
-          deactivated-dynamic-pills (filter #(not (dynamic-pill-active? db %)) dynamic-pills)]
+                      ((set habitat-obs) layer)
+                      (assoc-in [:state-of-knowledge :statistics :habitat-observations :show-layers?] false)))
+            ;; Rebuild ctx with updated db (active-layers changed)
+            ctx (db->ctx db)
+            dynamic-pills (layer->dynamic-pills layer ctx)
+            deactivated-dynamic-pills (filter #(not (dynamic-pill-active? ctx %)) dynamic-pills)]
       {:db db
        :dispatch-n
        (concat
@@ -1037,7 +1043,7 @@
          [:map.layer.selection/maybe-clear]
          [:maybe-autosave]]
         (when (seq deactivated-dynamic-pills)
-          (map #(vector :dynamic-pill/active % false) deactivated-dynamic-pills)))})))
+          (map #(vector :dynamic-pill/active % false) deactivated-dynamic-pills)))}))))
 
 (defn add-layer-from-omnibar
   [{:keys [db]} [_ layer]]
@@ -1122,3 +1128,82 @@
 (defn get-layer-legend-error
   [db [_ {:keys [id] :as _layer}]]
   (assoc-in db [:map :legends id] :map.legend/error))
+
+(defn time-set-current-time
+  "Updates the current time in the app state and in the timeDimension component
+   (timeDimension is a component from the plugin that controls the timeseries
+   layers on the map).
+   We update store the time in the app state in case time dimension hasn't been set
+   up yet (i.e. app is still initialising but somehow the time has changed), and
+   for ensuring that it's saved when the website is reloaded/shared."
+  [{:keys [db]} [_ current-time]]
+  (let [time-dimension-ref (get-in db [:map :time-dimension-ref])
+        available-times    (get-in db [:display :available-times])
+        is-last-available? (= current-time (last available-times))]
+    ;; If:
+    ;; * the leaflet map is configured,
+    ;; * it has a timeDimension component, and
+    ;; * the time has changed from what's currently set in timeDimension,
+    ;; then do the side-effect of setting the time for the component.
+    (when time-dimension-ref
+      (let [time-dimension-current-time (.getCurrentTime time-dimension-ref)
+            time-changed?               (not= current-time time-dimension-current-time)]
+        (when time-changed?
+          (.setCurrentTime time-dimension-ref current-time))))
+    {:db
+     (-> db
+         (assoc-in [:display :current-time] current-time)
+         (cond-> is-last-available? (assoc-in [:display :time-is-playing?] false))) ; if we've reached the end of the available times, set time-is-playing? to false
+     :dispatch [:maybe-autosave]}))
+
+(defn time-available-times
+  "The available times for the layers, driven by the timeDimension component."
+  [db [_ available-times]]
+  (assoc-in db [:display :available-times] available-times))
+
+(defn time-play
+  "Starts playback in the timeDimension component (from the leaflet-timedimension
+   library), and updates the app state to reflect that.
+   If we've reached the end of the available times, reset to the beginning before playing."
+  [db _]
+  (let [time-dimension-control-ref (get-in db [:map :time-dimension-control-ref])
+        player                    (.-_player time-dimension-control-ref)]
+    (when time-dimension-control-ref
+      (if (.isPlaying player) ; different definition to time-is-playing? in the app state, as time-dimension considers a paused but not stopped state as playing
+        (.release player)
+        (.start player)))
+    (assoc-in db [:display :time-is-playing?] true)))
+
+(defn time-pause
+  "Pauses playback in the timeDimension component (from the leaflet-timedimension
+   library), and updates the app state to reflect that."
+  [db _]
+  (let [time-dimension-control-ref (get-in db [:map :time-dimension-control-ref])]
+    (when time-dimension-control-ref
+      (.. time-dimension-control-ref -_player pause))
+    (assoc-in db [:display :time-is-playing?] false)))
+
+(defn time-is-loading?
+  "The timeDimension component is currently loading a new time, driven by the
+   timeDimension control player component."
+  [db [_ loading?]]
+  (assoc-in db [:display :time-is-loading?] loading?))
+
+(defn time-dimension-ref
+  "For when the timeDimension component (from the leaflet-timedimension library) is
+   first created/added to the Leaflet map.
+   Stores a reference to the timeDimension, and sets up listeners to keep the
+   re-frame DB synced to the component's state."
+  [db [_ time-dimension-ref]]
+  (.on time-dimension-ref "timeload" #(re-frame/dispatch [:map.time/current-time (.-time %)]))
+  (.on time-dimension-ref "availabletimeschanged" #(re-frame/dispatch [:map.time/available-times (vec (js->clj (.-availableTimes %)))]))
+  (assoc-in db [:map :time-dimension-ref] time-dimension-ref))
+
+(defn time-dimension-control-ref
+  "For when the control.timeDimension component (from the leaflet-timedimension
+   library) is created/added to the Leaflet map.
+   Stores a reference to the control.timeDimension so we can drive it's state from re-frame events."
+  [db [_ time-dimension-control-ref]]
+  (.on (.-_player time-dimension-control-ref) "waiting" #(re-frame/dispatch [:map.time/is-loading? true]))
+  (.on (.-_player time-dimension-control-ref) "running" #(re-frame/dispatch [:map.time/is-loading? false]))
+  (assoc-in db [:map :time-dimension-control-ref] time-dimension-control-ref))

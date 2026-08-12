@@ -1,7 +1,5 @@
 .left-drawer {
-    &.seamap-drawer .bp3-drawer-header,
-    &.fos-drawer .bp3-drawer-header,
-    &.tas-marine-atlas-drawer .bp3-drawer-header {
+    .bp3-drawer-header {
         border-bottom: 7px solid var(--color-1);
         height: 96px;
         padding: 15px;
@@ -52,6 +50,9 @@
             height: 86px;
         }
     }
+    &.natural-hazards-atlas-drawer {
+        .bp3-drawer-header h4 { height: 100%; }
+    }
     .left-drawer-tabs {
         overflow-y: hidden;
         display: flex;
@@ -59,14 +60,19 @@
         height: 100%;
 
         > .bp3-tab-list {
-            background-color: var(--deep-blue-lighter);
+            background-color: var(--tab-color);
+            height: unset;
+            flex-wrap: wrap; // We're expecting them to wrap in nhat, because we have 4 tabs
             color: var(--color-7);
-            height: 49px;
             >* { padding: 0 12px; }
-            .bp3-tab { color: inherit; }
+            .bp3-tab {
+                color: inherit;
+                height: 49px;
+                flex: 1 0 auto;
+            }
 
             .bp3-tab-indicator-wrapper {
-                background-color: var(--deep-blue);
+                background-color: var(--tab-color-selected);
 
                 .bp3-tab-indicator {
                     background-color: var(--color-7);
@@ -186,7 +192,6 @@
     }
 }
 
-
 .data-in-region-drawer {
     overflow-y: hidden;
     display: flex;
@@ -264,4 +269,34 @@
         }
     }
 
+}
+
+.snap-slider {
+    height: 40px;
+    input[type="range"] {
+        cursor: pointer;
+        accent-color: var(--deep-blue);
+        margin: 0;
+        width: 100%;
+        &:disabled { accent-color: rgb(203, 203, 203); }
+    }
+
+    .snap-slider-labels {
+        position: relative;
+        margin: 0 8px;
+
+        .snap-slider-label,
+        .snap-slider-handle-label {
+            -webkit-transform: translate(-50%, -2px);
+            transform: translate(-50%, -2px);
+            font-size: 11px;
+            position: absolute;
+            padding: 2px 5px;
+        }
+        .snap-slider-handle-label {
+            background: #394b59;
+            border-radius: 3px;
+            color: white;
+        }
+    }
 }

@@ -132,6 +132,9 @@ $headings-font-family: "Poppins", "system-ui", sans-serif;
 
     --color-2-darker: #{$seamap-color-2-darker};
     --color-3-darker: #{$seamap-color-3-darker};
+
+    --tab-color: var(--deep-blue-lighter);
+    --tab-color-selected: var(--deep-blue);
 }
 .futures-of-seafood {
     --color-2: #{$fos-color-2};
@@ -150,6 +153,12 @@ $headings-font-family: "Poppins", "system-ui", sans-serif;
     --deep-blue-lighter: #{$tma-deep-blue-lighter};
 
     --color-2-darker: #{$tma-color-2-darker};
+}
+.natural-hazards-atlas {
+    --color-1: rgb(38, 12, 39);
+    --color-2: rgb(82, 43, 85);
+    --tab-color: rgb(111, 37, 115);
+    --tab-color-selected: rgb(91, 30, 94);
 }
 
 

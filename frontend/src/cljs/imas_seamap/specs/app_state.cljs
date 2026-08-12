@@ -142,7 +142,9 @@
 (s/def :map.controls.download/type #{:map.layer.download/geotiff-wms
                                      :map.layer.download/shp
                                      :map.layer.download/csv
-                                     :map.layer.download/geotiff-wcs})
+                                     :map.layer.download/geotiff-wcs
+                                     :map.layer.download/netcdf-thredds-wcs
+                                     :map.layer.download/geotiff-thredds-wcs})
 (s/def :map.controls.download/selecting boolean?)
 (s/def :map.controls.download/layer :map/layer)
 (s/def :map.controls.download/link string?)
@@ -376,6 +378,11 @@
 
 (s/def :display/open-pill (s/nilable string?))
 (s/def :display/outage-message-open? boolean?)
+(s/def :display.side-by-side/active? boolean?)
+(s/def :display.side-by-side/split-ratio (s/and number? #(>= % 0) #(<= % 100)))
+(s/def :display/side-by-side
+  (s/keys :req-un [:display.side-by-side/active?
+                   :display.side-by-side/split-ratio]))
 
 
 ;; state of knowledge
@@ -575,7 +582,8 @@
                    :display/left-drawer
                    :display/right-sidebars
                    :display/open-pill
-                   :display/outage-message-open?]))
+                   :display/outage-message-open?
+                   :display/side-by-side]))
 
 
 ;; filters
@@ -671,3 +679,99 @@
                    ::map
                    ::dynamic-pills
                    ::transect]))
+
+;;; current view
+(s/def :current-view.model/id integer?)
+(s/def :current-view.scenario/id integer?)
+
+(s/def :current-view.cmip-phase/id integer?)
+(s/def :current-view.cmip-phase/name string?)
+(s/def :current-view.cmip-phase/display_name string?)
+(s/def :current-view.cmip-phase/scientific_models
+  (s/coll-of :current-view.model/id :kind vector?))
+(s/def :current-view.cmip-phase/sort_key (s/nilable string?))
+(s/def :current-view/cmip-phase
+  (s/keys
+   :req-un
+   [:current-view.cmip-phase/id
+    :current-view.cmip-phase/name
+    :current-view.cmip-phase/display_name
+    :current-view.cmip-phase/sort_key
+    :current-view.cmip-phase/scientific_models]))
+(s/def :current-view/cmip-phases
+  (s/coll-of :current-view/cmip-phase :kind vector?))
+
+(s/def :current-view.model/name string?)
+(s/def :current-view.model/display_name string?)
+(s/def :current-view.model/sort_key (s/nilable string?))
+(s/def :current-view.model/scenarios
+  (s/coll-of :current-view.scenario/id :kind vector?))
+(s/def :current-view/model
+  (s/keys
+   :req-un
+   [:current-view.model/id
+    :current-view.model/name
+    :current-view.model/display_name
+    :current-view.model/sort_key
+    :current-view.model/scenarios]))
+(s/def :current-view/models
+  (s/coll-of :current-view/model :kind vector?))
+
+(s/def :current-view.scenario/name string?)
+(s/def :current-view.scenario/display_name string?)
+(s/def :current-view.scenario/sort_key (s/nilable string?))
+(s/def :current-view/scenario
+  (s/keys
+   :req-un
+   [:current-view.scenario/id
+    :current-view.scenario/name
+    :current-view.scenario/display_name
+    :current-view.scenario/sort_key]))
+(s/def :current-view/scenarios
+  (s/coll-of :current-view/scenario :kind vector?))
+
+(s/def :current-view.seasonal-data/id integer?)
+(s/def :current-view.seasonal-data/name string?)
+(s/def :current-view.seasonal-data/display_name string?)
+(s/def :current-view.seasonal-data/sort_key (s/nilable string?))
+(s/def :current-view/seasonal-data
+  (s/keys
+   :req-un
+   [:current-view.seasonal-data/id
+    :current-view.seasonal-data/name
+    :current-view.seasonal-data/display_name
+    :current-view.seasonal-data/sort_key]))
+(s/def :current-view/seasonal-datas
+  (s/coll-of :current-view/seasonal-data :kind vector?))
+
+(s/def :current-view/selected-cmip-phase-id (s/nilable :current-view.cmip-phase/id))
+(s/def :current-view/selected-model-id (s/nilable :current-view.model/id))
+(s/def :current-view/selected-scenario-id (s/nilable :current-view.scenario/id))
+(s/def :current-view/selected-seasonal-data-id (s/nilable :current-view.seasonal-data/id))
+
+(s/def ::current-view
+  (s/keys
+   :req-un
+   [:current-view/cmip-phases
+    :current-view/models
+    :current-view/scenarios
+    :current-view/seasonal-datas
+    :current-view/selected-cmip-phase-id
+    :current-view/selected-model-id
+    :current-view/selected-scenario-id
+    :current-view/selected-seasonal-data-id]))
+
+(s/def :nhat/app-state ; unused
+  (s/keys :req-un [::config
+                   ::site-configuration
+                   ::display
+                   ::story-maps
+                   ::filters
+                   ::region-stats
+                   ::habitat-colours
+                   ::habitat-titles
+                   ::layer-state
+                   ::map
+                   ::dynamic-pills
+                   ::transect
+                   ::current-view]))

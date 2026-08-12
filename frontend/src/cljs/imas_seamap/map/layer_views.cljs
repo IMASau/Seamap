@@ -163,7 +163,7 @@
    {:type "range"
     :min 0 :max 100 :value opacity
     :on-click #(.stopPropagation %)
-    :on-input #(re-frame/dispatch [:map.layer/opacity-changed layer (.. % -target -value)])}])
+    :on-input #(re-frame/dispatch [:map.layer/opacity-changed layer (js/parseInt (.. % -target -value))])}])
 
 (defn- layer-card-header
   "Top part of layer card. Always visible. Contains the layer status, name, and
@@ -236,6 +236,7 @@
            :description "We are unable to display any legend data at this time."
            :icon        "info-sign"}]))]))
 
+;; TODO: Migrate this to use the new snap-slider component in components.cljs
 (defn- alternate-view-select
   [{{{:keys [alternate-views alternate-views-selected alternate-view-label] :as rich-layer} :rich-layer} :layer-state}]
   [components/form-group
@@ -340,6 +341,7 @@
        :text #(-> % :value str)
        :is-disabled? #(-> % :valid? not)}}]]])
 
+;; TODO: Migrate this to use the new snap-slider component in components.cljs
 (defmethod cql-control "slider"
   [{{:keys [label icon tooltip value values] :as control} :control {{:keys [rich-layer]} :layer-state} :props}]
   (let [gaps (:gaps

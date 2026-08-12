@@ -188,7 +188,7 @@
         {:keys [legend-ids opacity-ids]} db
         layers        (get-in db [:map :layers])
         legends-shown (init-layer-legend-status layers legend-ids)
-        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % (mutils/db->ctx db)) legends-shown)
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
@@ -222,9 +222,9 @@
                (assoc-in [:map :active-layers] startup-layers)
                (assoc-in [:map :active-base-layer] (first (get-in db [:map :grouped-base-layers])))
                (assoc :initialised true))
-        {:keys [zoom center]} (:map db)]
+        {:keys [zoom center bounds]} (:map db)]
     {:db         db
-     :dispatch   [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center})]
+     :dispatch   [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center :bounds bounds})]
      :local-storage/remove
      {:name :seamap-app-state}}))
 
@@ -351,7 +351,7 @@
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
         legends-shown (init-layer-legend-status layers legend-ids)
-        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
+        legends-get   (map #(rich-layer->displayed-layer % (mutils/db->ctx db)) legends-shown)
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)

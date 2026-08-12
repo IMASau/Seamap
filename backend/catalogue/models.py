@@ -2,15 +2,16 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 
-import re
-from typing import Union
-from django.core.validators import MinValueValidator, RegexValidator
 import django.utils.timezone
+import re
+import requests
+import xml.etree.ElementTree as ET
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from six import python_2_unicode_compatible
+from tinymce.models import HTMLField
+from typing import Union
 from uuid import uuid4
-import requests
-import xml.etree.ElementTree as ET 
 
 # pylint: disable=line-too-long
 
@@ -89,6 +90,7 @@ LAYER_TYPE_CHOICES = [
     ('esri-vector-tile', 'esri-vector-tile'),
     ('wmts', 'wmts'),
     ('esri-image-map', 'esri-image-map'),
+    ('wms-timeseries', 'wms-timeseries')
 ]
 
 
@@ -104,6 +106,7 @@ DOWNLOAD_FORMAT_CHOICES = [
     (None, None),
     ('wfs', 'wfs'),
     ('wcs', 'wcs'),
+    ('thredds-wcs', 'thredds-wcs')
 ]
 
 
@@ -114,7 +117,7 @@ class Layer(models.Model):
     legend_url = models.URLField(max_length = 250, null=True, blank=True)
     layer_name = models.CharField(max_length = 200)
     detail_layer = models.CharField(max_length = 200, blank=True, null=True)
-    table_name = models.CharField(max_length = 200, blank=True)
+    table_name = models.CharField(max_length = 200, blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
     data_classification = models.ForeignKey(DataClassification, blank=True, null=True, on_delete=models.PROTECT)
     organisation = models.ForeignKey(Organisation, blank=True, null=True, on_delete=models.PROTECT)
@@ -155,6 +158,7 @@ class Layer(models.Model):
                 <li><code>wms-non-tiled</code>: special case where we want a WMS request to be made of a single image of the layer, rather than a series of tiles. This is less efficient but is used sometimes for layers that use a global render (e.g. heatmaps)</li>
                 <li><code>esri-vector-tile</code>: For ESRI VectorTileServer layers. Rendered with <a href="https://developers.arcgis.com/esri-leaflet/api-reference/esri-leaflet-vector/vector-layer/">L.esri.Vector.vectorTileLayer</a></li>
                 <li><code>esri-image-map</code>: For ESRI ImageServer layers. Rendered with <a href="https://developers.arcgis.com/esri-leaflet/api-reference/esri-leaflet/image-map-layer/">L.esri.imageMapLayer</a></li>
+                <li><code>wms-timeseries</code>: </li>
             </ol>
             <p>Extra info:</p>
             <ul>
@@ -166,7 +170,7 @@ class Layer(models.Model):
         """
     )
     tooltip = models.TextField(null=True, blank=True)
-    metadata_summary = models.TextField(null=True, blank=True)
+    metadata_summary = HTMLField(null=True, blank=True)
     crs = models.CharField(max_length=10, choices=CRS_CHOICES, default='EPSG:3112')
     regenerate_preview = models.BooleanField(
         default=True,
@@ -757,7 +761,7 @@ class Layer(models.Model):
             return self._get_esri_image_map_legend()
 
         # ...otherwise, if the layer is a WMS layer
-        elif self.layer_type in ['wms', 'wms-non-tiled']:
+        elif self.layer_type in ['wms', 'wms-non-tiled', 'wms-timeseries']:
             return self._get_geoserver_legend()
 
         # ...otherwise, layer type is not supported

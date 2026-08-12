@@ -13,6 +13,7 @@ import habitat.viewsets as habitat_viewsets
 import carbonabatementsidebar.views
 import carbonabatementsidebar.viewsets
 import webapp.viewsets
+import nhat.viewsets
 
 router = DefaultRouter()
 router.register(r'classifications', viewsets.ClassificationViewset)
@@ -26,6 +27,11 @@ router.register(r'keyedlayers', viewsets.KeyedLayerViewset)
 router.register(r'richlayers', viewsets.RichLayerViewset)
 router.register(r'regionreports', viewsets.RegionReportViewset)
 router.register(r'dynamicpills', viewsets.DynamicPillViewset)
+router.register(r'nhatlayers', nhat.viewsets.LayerViewset, basename='nhatlayer')
+router.register(r'nhatcmipphases', nhat.viewsets.CmipPhaseViewset)
+router.register(r'nhatscientificmodels', nhat.viewsets.ScientificModelViewset)
+router.register(r'nhatscenarios', nhat.viewsets.ScenarioViewset)
+router.register(r'nhatseasons', nhat.viewsets.SeasonViewset)
 
 urlpatterns = [
     path('tinymce/', include('tinymce.urls')),
@@ -54,6 +60,7 @@ urlpatterns = [
     re_path(r'^api/carbonabatementsidebar/carbonpricecarbonabatement$', carbonabatementsidebar.viewsets.carbon_price_carbon_abatement, name='carbon_price_carbon_abatement'),
     re_path(r'^api/carbonabatementsidebar/carbonpriceabatementarea$', carbonabatementsidebar.viewsets.carbon_price_abatement_area, name='carbon_price_abatement_area'),
     re_path(r'^carbonabatementsidebar$', carbonabatementsidebar.views.carbon_abatement_sidebar, name='carbon_abatement_sidebar'),
+    re_path(r'^api/nhatlayerlegend/(?P<layer_id>[^/.]+)', nhat.viewsets.layer_legend, name='layer_legend'),
 ] \
 + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) \
 + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

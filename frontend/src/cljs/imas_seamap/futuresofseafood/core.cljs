@@ -7,7 +7,6 @@
             [reagent.core :as r]
             [re-frame.core :as re-frame]
             [re-frame.db]
-            [com.smxemail.re-frame-cookie-fx]
             [day8.re-frame.async-flow-fx :as async-flow-fx]
             [day8.re-frame.http-fx]
             ["@blueprintjs/core" :as Blueprint]
@@ -20,6 +19,7 @@
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
             [imas-seamap.protocols]
+            [imas-seamap.reload :as reload]
             [imas-seamap.subs :as subs]
             [imas-seamap.futuresofseafood.views :as views]
             [imas-seamap.config :as config]
@@ -29,8 +29,6 @@
 (def config-handlers
   {:subs
    {:map/props                            msubs/map-props
-    :map/layers                           msubs/map-layers
-    :map/base-layers                      msubs/map-base-layers
     :map/rich-layers-side-by-side-views   msubs/rich-layers-side-by-side-views
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
@@ -41,10 +39,15 @@
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legend
+    :map.layer/displayed-layers-lookup    [:<- [:map/layers] msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
+    :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]
+    :map.time/show-time-slider?           [:<- [:map.time/timeseries-layers] msubs/show-time-slider?]
+    :map.time/current-time                msubs/current-time
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
+    :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in Futures of Seafood, but the sub is required by catalogue-layers component in map views
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
@@ -130,6 +133,8 @@
     :map/get-feature-info-map-server-step-2 [mevents/get-feature-info-map-server-step-2] ; MapServer layers need to make an additional request to determine if they are a group layer
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
+    :map.time/current-time                [mevents/time-set-current-time]
+    :map.time/time-dimension-ref          mevents/time-dimension-ref
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
     :map/add-layer                        [mevents/add-layer]
@@ -217,7 +222,7 @@
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
     :ui/split-layer-range-value           [events/split-layer-range-value]
-    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder]
+    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder] ; TODO: Remove event, unused
     :left-drawer/toggle                   [events/left-drawer-toggle]
     :left-drawer/open                     [events/left-drawer-open]
     :left-drawer/close                    [events/left-drawer-close]
@@ -278,7 +283,9 @@
 
 (defn register-handlers! [{:keys [subs events]}]
   (doseq [[sym handler] subs]
-    (re-frame/reg-sub sym handler))
+    (if (sequential? handler)
+      (apply re-frame/reg-sub sym handler)
+      (re-frame/reg-sub sym handler)))
   (doseq [[sym handler] events]
     (if (sequential? handler)
       (re-frame/reg-event-fx
@@ -290,19 +297,14 @@
        standard-interceptors
        handler))))
 
-(defn dev-setup []
-  (when config/debug?
-    (enable-console-print!)
-    (println "dev mode")))
-
-(defonce root (createRoot (gdom/getElement "app")))
+(defonce root (delay (createRoot (gdom/getElement "app"))))
 
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
   (js/document.body.classList.add "futures-of-seafood")
   (.render
-   root
+   @root
    (r/as-element [hotkeys-provider
                   {:renderDialog
                    (fn [state context-actions]
@@ -312,6 +314,12 @@
                         :context-actions (js->clj context-actions :keywordize-keys true)}]))}
                   [:f> views/layout-app]])))
 
+(defn dev-setup []
+  (when config/debug?
+    (reset! reload/remount-fn mount-root)
+    (enable-console-print!)
+    (println "dev mode")))
+
 (defn ^:export show-db []
   @re-frame.db/app-db)
 
@@ -319,11 +327,4 @@
   (register-handlers! config-handlers)
   (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base])
   (dev-setup)
-  (mount-root))
-
-(defn ^:dev/after-load re-render
-  []
-  ;; The `:dev/after-load` metadata causes this function to be called
-  ;; after shadow-cljs hot-reloads code.
-  ;; This function is called implicitly by its annotation.
   (mount-root))
