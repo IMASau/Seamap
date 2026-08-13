@@ -7,6 +7,7 @@
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [copy-text handler-dispatch create-shadow-dom-element format-number] :include-macros true]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds bounds->map]]
             [imas-seamap.interop.leaflet :as leaflet]
             [goog.string :as gstring]
@@ -405,7 +406,11 @@
       (:layers active-base-layer))]))
 
 (defn catalogue-layers []
-  (let [{:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [visible-layers rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+        opacities                   @(re-frame/subscribe [::msubs/layer-opacities])
+        cql-filters                 @(re-frame/subscribe [::msubs/cql-filters])
+        layer-opacities             #(get opacities (:id %) 100)
+        cql-filter-fn               #(get cql-filters (:id %))
         displayed-layers-lookup     @(re-frame/subscribe [:map.layer/displayed-layers-lookup])
         {:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         boundary-filter             @(re-frame/subscribe [:sok/boundary-layer-filter])]

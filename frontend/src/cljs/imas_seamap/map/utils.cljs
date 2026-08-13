@@ -841,6 +841,25 @@
         cql-filter (apply str (interpose " AND " cql-filters))] ; combine with AND
     (when (seq cql-filter) cql-filter))) ; return nil if no filter
 
+(defn enhanced->cql-filter
+  "Like layer->cql-filter, but reads pre-enhanced rich-layer data (see the
+   ::enhanced-rich-layers sub) instead of enhancing on the fly, and computes the
+   dynamic-pill filters directly from pill config and state rather than via the
+   full ->dynamic-pill enhancement."
+  [{layer-cql-filter :filter :as layer} enhanced-rich-layer dynamic-pills dp-states]
+  (let [rich-layer-cql-filter     (:cql-filter enhanced-rich-layer) ; string or nil
+        layer-cql-filter          (:filter (or (:displayed-layer enhanced-rich-layer) layer))
+        dynamic-pills-cql-filters (->> (layer->dynamic-pills layer {:dynamic-pills dynamic-pills})
+                                       (map (fn [{:keys [id region-control]}]
+                                              (control->cql-filter region-control (get-in dp-states [id :region-control :value]))))
+                                       (filter identity)) ; list of strings
+        cql-filters
+        (cond-> dynamic-pills-cql-filters
+          (seq rich-layer-cql-filter) (conj rich-layer-cql-filter) ; if rich-layer cql filter exists, add it
+          (seq layer-cql-filter)      (conj layer-cql-filter))     ; if layer cql filter exists, add it
+        cql-filter (apply str (interpose " AND " cql-filters))] ; combine with AND
+    (when (seq cql-filter) cql-filter))) ; return nil if no filter
+
 (defn- get-divider-x
   "Gets the current x-coordinate (Leaflet container point) of the side-by-side view divider. nil if no divider is active"
   [db]
