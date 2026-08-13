@@ -616,10 +616,22 @@
   (s/assert :map.rich-layers/rich-layer rich-layer)
   (apply merge (map #(control->value-map % rich-layer ctx) (:controls rich-layer))))
 
+(defn- assert-ctx!
+  "Guard against passing the app db where a rich-layer ctx is expected (see
+   db->ctx). Passing the db otherwise fails silently: destructuring the ctx keys
+   yields nils, and every layer quietly resolves as \"not a rich layer\". This
+   mistake has caused several real bugs when pre-refactor branches were merged.
+   Dev builds only; compiled out of production."
+  [ctx]
+  (when ^boolean goog.DEBUG
+    (assert (not (contains? ctx :map))
+            "Expected a rich-layer ctx but got what looks like the app db; convert with db->ctx first")))
+
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
   [{:keys [id layer-id slider-label alternate-views timeline side-by-side-views controls]
     :as rich-layer} {:keys [rl-states rl-async-datas rl-lookup rich-layers-by-id] :as ctx}]
+  (assert-ctx! ctx)
   (let [{:keys [tab side-by-side-views-selected-id]
          alternate-views-selected-id :alternate-views-selected
          timeline-selected-id        :timeline-selected
@@ -681,12 +693,14 @@
         :cql-filter                 cql-filter)))))
 
 (defn layer->rich-layer [{:keys [id] :as _layer} {:keys [rich-layers-by-id rl-lookup] :as ctx}]
+  (assert-ctx! ctx)
   (let [rich-layer-id (get rl-lookup id)]
     (get rich-layers-by-id rich-layer-id)))
 
 (defn layer->rich-layer?
   "True if a layer is a rich layer, otherwise false."
   [{:keys [id] :as _layer} {:keys [rl-lookup] :as ctx}]
+  (assert-ctx! ctx)
   (boolean (get rl-lookup id)))
 
 ; FIXME: This function should be removed at some point. It's very data-munging.
