@@ -41,7 +41,8 @@
 (defn map-b-layers
   "Displays the same layers as map A, but hazard layers are always tuned to the SSP2 scenario."
   []
-  (let [{:keys [visible-layers rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn               #(get rich-layers-by-layer-id (:id %))
         opacities                   @(re-frame/subscribe [::msubs/layer-opacities])
         cql-filters                 @(re-frame/subscribe [::msubs/cql-filters])
         layer-opacities             #(get opacities (:id %) 100)

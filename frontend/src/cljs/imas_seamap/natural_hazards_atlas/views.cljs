@@ -281,7 +281,8 @@
                [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}]]))
 
 (defn- left-drawer-catalogue [tma?]
-  (let [{:keys [active-layers visible-layers rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
         loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
         error-ids       @(re-frame/subscribe [::msubs/error-layers])
         expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])

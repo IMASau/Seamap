@@ -44,11 +44,12 @@
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legends
-    :map.layer/visible-layers-legends     [:<- [:map/layers]
+    :map.layer/visible-layers-legends     [:<- [::msubs/visible-layers]
                                            :<- [:map.layer/displayed-layers-lookup]
                                            :<- [:map.layer/legend]
                                            msubs/layer-visible-layers-legends]
-    :map.layer/visible-side-by-side-layers-legends [:<- [:map/layers]
+    :map.layer/visible-side-by-side-layers-legends [:<- [::msubs/visible-layers]
+                                                    :<- [::msubs/enhanced-rich-layers]
                                                     :<- [:map.layer/legend]
                                                     msubs/layer-visible-side-by-side-layers-legends]
     :map.layer/displayed-layers-lookup    [:<- [::msubs/enhanced-rich-layers]

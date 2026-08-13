@@ -12,7 +12,7 @@
                                                 rich-layer-children->parents
                                                 sort-layers viewport-layers
                                                 match-layer]]
-   [imas-seamap.utils :refer [ids->layers map-on-key first-where]]))
+   [imas-seamap.utils :refer [map-on-key first-where]]))
 
 (defn map-props [db _] (-> db :map (select-keys [:zoom :center :bounds])))
 
@@ -139,6 +139,63 @@
  (fn [opacities _query-v]
    (into {} (map (fn [[layer opacity]] [(:id layer) opacity])) opacities)))
 
+;;; Phase C of the rich-layers refactor (docs/rich-layers-refactor-plan.md):
+;;; the catalogue/filter/sort pipeline as narrow subs. :map/layers below is a
+;;; facade assembling these; migrate consumers to the individual subs over time.
+
+(rf/reg-sub
+ ::visible-layers
+ :<- [:dbsubs.map/hidden-layers]
+ :<- [:dbsubs.map/active-layers]
+ (fn [[hidden-layers active-layers] _query-v]
+   (map-utils/visible-layers {:hidden-layers hidden-layers
+                              :active-layers active-layers})))
+
+(rf/reg-sub
+ ::catalogue-layers
+ :<- [:dbsubs.map/layers]
+ :<- [:dbsubs.map/categories]
+ :<- [:dbsubs.map/rich-layers]
+ (fn [[layers categories rich-layers] _query-v]
+   (let [categories (map-on-key categories :name)
+
+         rlc-ids ; rich-layer-children to hide from the catalogue
+         (reduce
+          (fn [acc {:keys [layer-id alternate-views timeline]}]
+            (->>
+             (set/union (set (map :layer alternate-views)) (set (map :layer timeline))) ; Get all the alternate views and timeline layers for the rich layer
+             (remove #(= % layer-id))                                                   ; Ignore the ones that match the "main" layer for the rich layer (its catalogue entry)
+             set                                                                        ; Convert back to a set after the "remove" op
+             (set/union acc)))                                                          ; Add to the accumulative list of all layers to hide from the catalogue
+          #{} rich-layers)]
+     (->>
+      layers
+      (filter #(get-in categories [(:category %) :display_name])) ; only layers with a category that has a display name are allowed
+      (remove
+       (fn [{:keys [id]}]
+         (some #{id} rlc-ids))))))) ; removes rich-layer children (except those that are a child of themselves)
+
+(rf/reg-sub
+ ::filtered-layers
+ :<- [::catalogue-layers]
+ :<- [:dbsubs.map/layers]
+ :<- [:dbsubs.map/categories]
+ :<- [:dbsubs/filters]
+ :<- [:dbsubs.map/rich-layer-children]
+ (fn [[catalogue-layers layers categories filters rich-layer-children] _query-v]
+   (let [categories      (map-on-key categories :name)
+         filter-text     (:layers filters)
+         filtered-layers (set (filter (partial match-layer filter-text categories) layers)) ; get the set of all layers that match the filter
+         filtered-layers (rich-layer-children->parents filtered-layers rich-layer-children)] ; get the rich-layer parents for this layer, and add them to the searched layers
+     (filterv filtered-layers catalogue-layers)))) ; filtered-layers set converted into vector by filtering on catalogue-layers (sorted)
+
+(rf/reg-sub
+ ::sorted-layers
+ :<- [::catalogue-layers]
+ :<- [:dbsubs/sorting]
+ (fn [[catalogue-layers sorting] _query-v]
+   (sort-layers catalogue-layers sorting)))
+
 ;;; Phase B: CQL filters as a lookup map, replacing the :cql-filter-fn closure.
 ;;; Computed only over active layers — they're the only ones rendered on the map.
 (rf/reg-sub
@@ -156,74 +213,30 @@
                      [id cql-filter])))
            active-layers))))
 
+;;; Facade over the narrow subs above, retained while consumers migrate to them;
+;;; remove once nothing subscribes to it. The output is pure data (no closures),
+;;; so subscribers only re-render when the values they use actually change.
+;;; Loading/error/expanded/opacity state and CQL filters live in their own
+;;; id-keyed subs (::loading-layers, ::error-layers, ::expanded-layers,
+;;; ::layer-opacities, ::cql-filters).
 (rf/reg-sub
  :map/layers
  (fn [_query-v]
-   {:filters             (rf/subscribe [:dbsubs/filters])
-    :sorting             (rf/subscribe [:dbsubs/sorting])
-    :layers              (rf/subscribe [:dbsubs.map/layers])
-    :active-layers       (rf/subscribe [:dbsubs.map/active-layers])
-    :hidden-layers       (rf/subscribe [:dbsubs.map/hidden-layers])
-    :categories          (rf/subscribe [:dbsubs.map/categories])
-    :rich-layers         (rf/subscribe [:dbsubs.map/rich-layers])
-    :rich-layer-children (rf/subscribe [:dbsubs.map/rich-layer-children])
-    :enhanced            (rf/subscribe [::enhanced-rich-layers])})
- (fn [{:keys [filters
-              sorting
-              layers
-              active-layers
-              hidden-layers
-              categories
-              rich-layers
-              rich-layer-children
-              enhanced]} _query-v]
-   (let [{:keys [by-layer-id]} enhanced
-         categories      (map-on-key categories :name)
-         filter-text     (:layers filters)
-
-         rlc-ids ; rich-layer-children to hide from the catalogue
-         (reduce
-          (fn [acc {:keys [layer-id alternate-views timeline]}]
-            (->>
-             (set/union (set (map :layer alternate-views)) (set (map :layer timeline))) ; Get all the alternate views and timeline layers for the rich layer
-             (remove #(= % layer-id))                                                   ; Ignore the ones that match the "main" layer for the rich layer (its catalogue entry)
-             set                                                                        ; Convert back to a set after the "remove" op
-             (set/union acc)))                                                          ; Add to the accumulative list of all layers to hide from the catalogue
-          #{} rich-layers)
-
-         catalogue-layers
-         (->>
-          layers
-          (filter #(get-in categories [(:category %) :display_name])) ; only layers with a category that has a display name are allowed
-          (remove
-           (fn [{:keys [id]}]
-             (some #{id} rlc-ids)))) ; removes rich-layer children (except those that are a child of themselves)
-
-         filtered-layers (set (filter (partial match-layer filter-text categories) layers)) ; get the set of all layers that match the filter
-         filtered-layers (rich-layer-children->parents filtered-layers rich-layer-children) ; get the rich-layer parents for this layer, and add them to the searched layers
-         filtered-layers (filterv filtered-layers catalogue-layers) ; filtered-layers set converted into vector by filtering on catalogue-layers (sorted)
-         sorted-layers   (sort-layers catalogue-layers sorting)
-
-         ;; Bridge closure over the pre-enhanced data; consumers should migrate
-         ;; to the :rich-layers-by-layer-id data key so this can be removed
-         ;; (closures in the sub output defeat render skipping).
-         rich-layer-fn   #(get by-layer-id (:id %))
-         visible-layers  (map-utils/visible-layers {:hidden-layers hidden-layers
-                                                    :active-layers active-layers})]
-
-     ;; Loading/error/expanded/opacity state and CQL filters live in their own
-     ;; id-keyed subs (::loading-layers, ::error-layers, ::expanded-layers,
-     ;; ::layer-opacities, ::cql-filters) so that tile-load and control state
-     ;; changes don't recompute this sub.
-     {:layers           layers
-      :groups           (group-by :category filtered-layers)
-      :active-layers    active-layers
-      :visible-layers   visible-layers
-      :filtered-layers  filtered-layers
-      :sorted-layers    sorted-layers
-      :catalogue-layers catalogue-layers
-      :rich-layers-by-layer-id by-layer-id
-      :rich-layer-fn    rich-layer-fn})))
+   {:layers           (rf/subscribe [:dbsubs.map/layers])
+    :active-layers    (rf/subscribe [:dbsubs.map/active-layers])
+    :visible-layers   (rf/subscribe [::visible-layers])
+    :catalogue-layers (rf/subscribe [::catalogue-layers])
+    :filtered-layers  (rf/subscribe [::filtered-layers])
+    :sorted-layers    (rf/subscribe [::sorted-layers])
+    :enhanced         (rf/subscribe [::enhanced-rich-layers])})
+ (fn [{:keys [layers active-layers visible-layers catalogue-layers filtered-layers sorted-layers enhanced]} _query-v]
+   {:layers           layers
+    :active-layers    active-layers
+    :visible-layers   visible-layers
+    :filtered-layers  filtered-layers
+    :sorted-layers    sorted-layers
+    :catalogue-layers catalogue-layers
+    :rich-layers-by-layer-id (:by-layer-id enhanced)}))
 
 ;;; This is extracted out from the :map/layers subscription as a
 ;;; stand-alone. It is a performance-related trade-off; it makes
@@ -375,9 +388,10 @@
     organisations))
 
 (defn timeseries-layers
-  "List of layers that are currently active and have a time dimension."
-  [map-layers _]
-  (filter has-time-dimension? (:active-layers map-layers)))
+  "List of layers that are currently active and have a time dimension.
+   Signal: [:dbsubs.map/active-layers]."
+  [active-layers _]
+  (filter has-time-dimension? active-layers))
 
 (defn show-time-slider?
   "Should the time slider be shown on the map? True if there are currently active
@@ -440,19 +454,22 @@
       legends-lookup)))
 
 (defn layer-visible-layers-legends
-  "All the legends for all the visible layers on the map at the current time."
-  [[{:keys [visible-layers]} displayed-layers-lookup layer-legends] _]
+  "All the legends for all the visible layers on the map at the current time.
+   Signals: [::visible-layers, :map.layer/displayed-layers-lookup,
+   :map.layer/legend]."
+  [[visible-layers displayed-layers-lookup layer-legends] _]
   (let [displayed-layers (map #(get displayed-layers-lookup %) visible-layers)
         visible-layers-legends (map #(get layer-legends (:id %) {:status :map.legend/none}) displayed-layers)]
     (reverse visible-layers-legends)))
 
 (defn layer-visible-side-by-side-layers-legends
   "Right-hand side legends for all the visible side-by-side layers on the map at
-   the current time."
-  [[{:keys [visible-layers rich-layer-fn]} layer-legends] _]
+   the current time.
+   Signals: [::visible-layers, ::enhanced-rich-layers, :map.layer/legend]."
+  [[visible-layers {:keys [by-layer-id]} layer-legends] _]
   (let [visible-right-layer-ids
         (->> visible-layers
-             (map rich-layer-fn)
+             (map #(get by-layer-id (:id %)))
              (map :side-by-side-views-selected-id)
              (filter identity))
         visible-layers-legends (map #(get layer-legends % {:status :map.legend/none}) visible-right-layer-ids)]

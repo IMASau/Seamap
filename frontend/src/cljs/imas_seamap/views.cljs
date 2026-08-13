@@ -902,7 +902,8 @@
        :keywords    #(layer-search-keywords categories %)}}]))
 
 (defn left-drawer-catalogue [tma?]
-  (let [{:keys [filtered-layers active-layers visible-layers rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [filtered-layers active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
         loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
         error-ids       @(re-frame/subscribe [::msubs/error-layers])
         expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
@@ -923,7 +924,8 @@
       tma?]]))
 
 (defn left-drawer-active-layers [tma?]
-  (let [{:keys [active-layers visible-layers rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
         loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
         error-ids       @(re-frame/subscribe [::msubs/error-layers])
         expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])

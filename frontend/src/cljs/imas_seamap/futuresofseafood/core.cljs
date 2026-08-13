@@ -42,11 +42,12 @@
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legends
-    :map.layer/visible-layers-legends     [:<- [:map/layers]
+    :map.layer/visible-layers-legends     [:<- [::msubs/visible-layers]
                                            :<- [:map.layer/displayed-layers-lookup]
                                            :<- [:map.layer/legend]
                                            msubs/layer-visible-layers-legends]
-    :map.layer/visible-side-by-side-layers-legends [:<- [:map/layers]
+    :map.layer/visible-side-by-side-layers-legends [:<- [::msubs/visible-layers]
+                                                    :<- [::msubs/enhanced-rich-layers]
                                                     :<- [:map.layer/legend]
                                                     msubs/layer-visible-side-by-side-layers-legends]
     :map.layer/displayed-layers-lookup    [:<- [::msubs/enhanced-rich-layers]
@@ -54,7 +55,7 @@
                                            msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
-    :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]
+    :map.time/timeseries-layers           [:<- [:dbsubs.map/active-layers] msubs/timeseries-layers]
     :map.time/show-time-slider?           [:<- [:map.time/timeseries-layers] msubs/show-time-slider?]
     :map.time/current-time                msubs/current-time
     ;:map/region-stats                     msubs/region-stats

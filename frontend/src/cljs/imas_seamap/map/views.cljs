@@ -406,7 +406,8 @@
       (:layers active-base-layer))]))
 
 (defn catalogue-layers []
-  (let [{:keys [visible-layers rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn               #(get rich-layers-by-layer-id (:id %))
         opacities                   @(re-frame/subscribe [::msubs/layer-opacities])
         cql-filters                 @(re-frame/subscribe [::msubs/cql-filters])
         layer-opacities             #(get opacities (:id %) 100)
