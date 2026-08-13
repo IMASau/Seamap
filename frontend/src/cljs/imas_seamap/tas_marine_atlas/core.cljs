@@ -31,7 +31,10 @@
 (def config-handlers
   {:subs
    {:map/props                            msubs/map-props
-    :map/rich-layers-side-by-side-views   msubs/rich-layers-side-by-side-views
+    :map/rich-layers-side-by-side-views   [:<- [::msubs/enhanced-rich-layers]
+                                           :<- [:dbsubs.map/rich-layers]
+                                           :<- [:dbsubs.map/active-layers]
+                                           msubs/rich-layers-side-by-side-views]
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
@@ -48,7 +51,9 @@
     :map.layer/visible-side-by-side-layers-legends [:<- [:map/layers]
                                                     :<- [:map.layer/legend]
                                                     msubs/layer-visible-side-by-side-layers-legends]
-    :map.layer/displayed-layers-lookup    [:<- [:map/layers] msubs/layer-displayed-layers-lookup]
+    :map.layer/displayed-layers-lookup    [:<- [::msubs/enhanced-rich-layers]
+                                           :<- [:dbsubs.map/layers]
+                                           msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
