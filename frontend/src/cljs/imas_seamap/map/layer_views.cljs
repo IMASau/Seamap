@@ -281,7 +281,13 @@
        :min      (apply min values)
        :max      (apply max values)
        :step     0.01
-       :value    (:value (or timeline-selected (first-where #(= (get-in % [:layer :id]) (:id (or displayed-layer layer))) timeline)))
+       ;; Fall back to a defined value: the displayed layer may not be on the
+       ;; timeline at all (eg an alternate view without its own timeline, where
+       ;; the slider renders disabled), and a controlled input must never
+       ;; receive nil:
+       :value    (or
+                  (:value (or timeline-selected (first-where #(= (get-in % [:layer :id]) (:id (or displayed-layer layer))) timeline)))
+                  (apply min values))
        :on-click #(.stopPropagation %)
        :on-input (fn [e]
                    (let [value (-> e .-target .-value)
