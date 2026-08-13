@@ -41,7 +41,11 @@
     :map.layers/lookup                    msubs/map-layer-lookup
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
-    :map.layer/legend                     msubs/layer-legend
+    :map.layer/legend                     msubs/layer-legends
+    :map.layer/visible-layers-legends     [:<- [:map/layers]
+                                           :<- [:map.layer/displayed-layers-lookup]
+                                           :<- [:map.layer/legend]
+                                           msubs/layer-visible-layers-legends]
     :map.layer/displayed-layers-lookup    [:<- [:map/layers]
                                            :<- [:map.layers/hazard-layers]
                                            :<- [:current-view/current-view-hazard-layer-slug]
@@ -62,6 +66,7 @@
     :map.time/is-loading?                 msubs/time-is-loading?
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
+    :map.print/is-printing?               msubs/print-is-printing?
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
     :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in Natural Hazards Atlas, but the sub is required by catalogue-layers component in map views
@@ -243,6 +248,8 @@
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          [mevents/map-zoom-in]
     :map/zoom-out                         [mevents/map-zoom-out]
+    :map.print/start                      [mevents/map-print-start]
+    :map.print/end                        [mevents/map-print-end]
     :map.print/error                      [mevents/map-print-error]
     :map/pan-direction                    [mevents/map-pan-direction]
     :map/update-leaflet-map               mevents/update-leaflet-map

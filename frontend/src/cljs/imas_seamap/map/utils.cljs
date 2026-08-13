@@ -680,13 +680,13 @@
         :side-by-side-views-right-label-text side-by-side-views-right-label-text
         :cql-filter                 cql-filter)))))
 
-(defn layer->rich-layer [{:keys [id] :as _layer} {:keys [rich-layers-by-id rl-lookup]}]
+(defn layer->rich-layer [{:keys [id] :as _layer} {:keys [rich-layers-by-id rl-lookup] :as ctx}]
   (let [rich-layer-id (get rl-lookup id)]
     (get rich-layers-by-id rich-layer-id)))
 
 (defn layer->rich-layer?
   "True if a layer is a rich layer, otherwise false."
-  [{:keys [id] :as _layer} {:keys [rl-lookup]}]
+  [{:keys [id] :as _layer} {:keys [rl-lookup] :as ctx}]
   (boolean (get rl-lookup id)))
 
 ; FIXME: This function should be removed at some point. It's very data-munging.
@@ -697,6 +697,15 @@
   [layer ctx]
   (let [rich-layer (enhance-rich-layer (layer->rich-layer layer ctx) ctx)]
     (or (:displayed-layer rich-layer) layer)))
+
+; FIXME: Ditto
+(defn rich-layer->side-by-side-views-selected-layer
+  "If a layer is a rich-layer, then return the currently displayed side-by-side
+   view selected layer.
+   Nil if no side-by-side view is selected, or if the layer is not a rich-layer."
+  [layer ctx]
+  (let [rich-layer (enhance-rich-layer (layer->rich-layer layer ctx) ctx)]
+    (get-in rich-layer [:side-by-side-views-selected :layer])))
 
 (defn rich-layer->side-by-side-views-selected
   "If a layer is a rich-layer with a currently visible split layer, then return

@@ -9,6 +9,7 @@
    [clojure.string :as string]
    [clojure.walk :refer [keywordize-keys]]
    [imas-seamap.blueprint :as b]
+   [imas-seamap.interop.dom-to-image :refer [element-to-png]]
    [imas-seamap.interop.leaflet :as leaflet]
    [imas-seamap.map.utils :as map-utils :refer [->dynamic-pill
                                                 bounds->projected
@@ -668,18 +669,13 @@
                   [:map.layer.selection/maybe-clear]
                   [:maybe-autosave]]}))
 
-(defn toggle-legend-display [{:keys [db]} [_ {:keys [id] :as layer}]]
+(defn toggle-legend-display [{:keys [db]} [_ layer]]
   (let [db (update-in db [:layer-state :legend-shown] #(if ((set %) layer) (disj % layer) (conj (set %) layer)))
         ctx (db->ctx db)
-        has-legend? (get-in db [:map :legends id])
         rich-layer  (enhance-rich-layer (layer->rich-layer layer ctx) ctx)
         has-cql-filter-values? (get-in rich-layer [:controls :values])]
     {:db         db
      :dispatch-n [[:maybe-autosave]
-                  ;; Retrieve layer legend data for display if we don't already have it or aren't
-                  ;; already retrieving it
-                  (when-not has-legend?
-                    [:map.layer/get-legend layer])
                   ;; Retrieve rich layer cql filter data if we don't already have it
                   (when (and rich-layer (not has-cql-filter-values?))
                     [:map.rich-layer/get-cql-filter-values rich-layer])]}))
@@ -719,6 +715,34 @@
                                            (+ x (* horiz (- east  west)))])]
     {:dispatch [:map/update-map-view {:center (shift-centre (get-in db [:map :center]))}]}))
 
+
+(defn map-print-start
+  "Start map printing process.
+
+   Updates the value for :is-printing triggering the app to display in a printing
+   mode, then saves the app display as a PNG on the user's device."
+  [{:keys [db]} _]
+  ; Should this element-to-png be a registered as an effect handler?
+  ; Timeout so print happens after subs for "is-printing" have gone through and
+  ; updated the page to be print ready
+  (js/setTimeout
+   (fn []
+     (element-to-png
+      "#content-wrapper" "map.png"
+      #(re-frame/dispatch [:map.print/end])   ; After map print done, disables the custom styling used
+      #(re-frame/dispatch [:map.print/end]))) ; Error handler not implemented
+   200)
+  {:db       (assoc db :is-printing? true)
+   :dispatch [:ui/show-loading "Preparing Image..."]})
+
+(defn map-print-end
+  "Ends map printing process.
+
+   Updates the value for :is-printing so the app resumes its normal styling."
+  [{:keys [db]} _]
+  {:db       (assoc db :is-printing? false)
+   :dispatch [:ui/hide-loading]})
+
 (defn map-print-error [{:keys [db]} _]
   {:message  ["Failed to generate map export image!" b/INTENT-DANGER]
    :dispatch [:ui/hide-loading]})
@@ -733,7 +757,6 @@
   ;; :active-base-layer
   [{:keys [db]} _]
   (let [{:keys [active active-base initial-bounds? layers]} (:map db)
-        legend-ids    (:legend-ids db)
         startup-layers (get-in db [:map :keyed-layers :startup] [])
         active-layers (if active
                         (vec (filter identity (ids->layers active (get-in db [:map :layers]))))
@@ -744,8 +767,11 @@
         story-maps    (get-in db [:story-maps :featured-maps])
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
-        legends-shown (init-layer-legend-status layers legend-ids)
-        legends-get   (map #(rich-layer->displayed-layer % (db->ctx db)) legends-shown)
+        ctx           (db->ctx db)
+        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the pinned legends panel when the app loads
+        legends-get   (concat
+                       (map #(rich-layer->displayed-layer % ctx) legends-shown) ; displayed layers to get legends for
+                       (filter identity (map #(map-utils/rich-layer->side-by-side-views-selected-layer % ctx) legends-shown))) ; get legends for any side-by-side views
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
@@ -757,7 +783,7 @@
         rich-layers (get-in db [:map :rich-layers :rich-layers])
         cql-get
         (->>
-         legend-ids
+         active ; get CQL filters for all applicable active layers
          (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
          (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
 
@@ -782,9 +808,6 @@
     (.on leaflet-map "click"              #(re-frame/dispatch [:map/clicked (leaflet-props %) (mouseevent->coords %)]))
     (.on leaflet-map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
     (.on leaflet-map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
-    (.on leaflet-map "easyPrint-start"    #(re-frame/dispatch [:ui/show-loading "Preparing Image..."]))
-    (.on leaflet-map "easyPrint-finished" #(re-frame/dispatch [:ui/hide-loading]))
-    (.on leaflet-map "easyPrint-failed"   #(re-frame/dispatch [:map.print/error]))
 
     (assoc-in db [:map :leaflet-map] leaflet-map)))
 
@@ -891,7 +914,7 @@
 
         db (assoc-in db [:map :rich-layers :states id :alternate-views-selected] (get-in alternate-views-selected [:layer :id]))
         ctx (db->ctx db)
-        {:keys [timeline]
+        {:keys [timeline layer]
          new-slider-label :slider-label}
         (enhance-rich-layer rich-layer ctx)
 
@@ -907,18 +930,17 @@
          timeline)]
     {:db (assoc-in db [:map :rich-layers :states id :timeline-selected] (get-in new-timeline-selected [:layer :id]))
      :dispatch-n
-     [(when
-       (and alternate-views-selected (not (get-in db [:map :legends (get-in alternate-views-selected [:layer :id])])))
-        [:map.layer/get-legend (:layer alternate-views-selected)])
+     ; If there's no legend for the ID of the currently displayed legend (which will
+     ; either be the selected alternate view or the default layer if the alternate view
+     ; is null), then it must be retrieved for display.
+     [[:map.layer/get-legend layer]
       [:maybe-autosave]]}))
 
 (defn rich-layer-timeline-selected [{:keys [db]} [_ {:keys [id layer] :as _rich-layer} timeline-selected]]
   (let [timeline-selected (when (not= (:layer timeline-selected) layer) timeline-selected)]
     {:db (assoc-in db [:map :rich-layers :states id :timeline-selected] (get-in timeline-selected [:layer :id]))
      :dispatch-n
-     [(when
-       (and timeline-selected (not (get-in db [:map :legends (get-in timeline-selected [:layer :id])])))
-        [:map.layer/get-legend (:layer timeline-selected)])
+     [[:map.layer/get-legend layer]
       [:maybe-autosave]]}))
 
 (defn rich-layer-control-selected [{:keys [db]} [_ {:keys [id] :as _rich-layer} {:keys [cql-property] :as _control} value]]
@@ -928,7 +950,7 @@
 (defn rich-layer-side-by-side-views-selected
   "Change which layer is selected to be visible on the right side of a side-by-side view.
    Automatically deselects side-by-side views for all other rich layers."
-  [{:keys [db]} [_ {:keys [id] :as _rich-layer} side-by-side-views-selected]]
+  [{:keys [db]} [_ {:keys [id layer] :as _rich-layer} side-by-side-views-selected]]
   (let [rich-layer-ids (map :id (get-in db [:map :rich-layers :rich-layers]))
         db
         (reduce
@@ -943,7 +965,8 @@
               (assoc-in [:display :split-layer-container-x] nil)))]
     {:db       (assoc-in db [:map :rich-layers :states id :side-by-side-views-selected-id] (get-in side-by-side-views-selected [:layer :id]))
      :dispatch-n
-     [[:maybe-autosave]
+     [[:map.layer/get-legend layer]
+      [:maybe-autosave]
       [:map/popup-closed]]})) ; invalidate the popup
 
 (defn rich-layer-reset-filters [{:keys [db]} [_ {:keys [id controls layer] :as _rich-layer}]]
@@ -961,8 +984,7 @@
               (update controls-state cql-property dissoc :value))
             controls-state controls))))
     :dispatch-n
-    [(when-not (get-in db [:map :legends (:id layer)])
-       [:map.layer/get-legend layer])
+    [[:map.layer/get-legend layer]
      [:maybe-autosave]]}))
 
 (defn rich-layer-configure
@@ -1003,7 +1025,11 @@
                         :else                       ; else, add the layer to the end of the list
                         (update-in db [:map :active-layers] conj layer))]
     {:db         db
-     :dispatch-n [[:map/popup-closed]
+     :dispatch-n [; Need to retrieve the legend whenever the layer is added, so it can be shown in
+                  ; the pinned legends panel (previously only retrieved the legend when the user
+                  ; interacted with the legends section of the active layers tab).
+                  [:map.layer/get-legend layer]
+                  [:map/popup-closed]
                   [:maybe-autosave]]}))
 
 (defn remove-layer
@@ -1113,13 +1139,23 @@
     (when feature {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))) ; only pan if still popup exists, otherwise the calculations are incorrect! ISA-491
 
 (defn get-layer-legend
-  [{:keys [db]} [_ {:keys [id] :as layer}]]
-  {:db         (assoc-in db [:map :legends id] :map.legend/loading)
-   :http-xhrio {:method          :get
-                :uri             (str (get-in db [:config :urls :layer-legend-url]) id)
-                :response-format (ajax/json-response-format {:keywords? true})
-                :on-success      [:map.layer/get-legend-success layer]
-                :on-failure      [:map.layer/get-legend-error layer]}})
+  "Retrieves the legend for a layer, if it hasn't already been retrieved.
+   If the layer has a legend_url, then that is used as the legend (no request is
+   made to the server).
+   For rich layers, the legend is retrieved for the currently selected layer (which
+   may be an alternate view, etc)."
+  [{:keys [db]} [_ layer]]
+  (let [{:keys [id legend_url] :as displayed-layer} (rich-layer->displayed-layer layer (db->ctx db))
+        has-legend? (get-in db [:map :legends id])]
+    (when-not has-legend?
+      (if legend_url ; No legend request necessary if legend_url is supplied with layer. That is the layer's legend.
+        {:db         (assoc-in db [:map :legends id] legend_url)}
+        {:db         (assoc-in db [:map :legends id] :map.legend/loading)
+         :http-xhrio {:method          :get
+                      :uri             (str (get-in db [:config :urls :layer-legend-url]) id)
+                      :response-format (ajax/json-response-format {:keywords? true})
+                      :on-success      [:map.layer/get-legend-success displayed-layer]
+                      :on-failure      [:map.layer/get-legend-error displayed-layer]}}))))
 
 (defn get-layer-legend-success
   [db [_ {:keys [id] :as _layer} response]]

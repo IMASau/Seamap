@@ -4,6 +4,7 @@
 (ns imas-seamap.map.subs
   (:require
    [clojure.set :as set]
+   [re-frame.core :as rf]
    [imas-seamap.map.utils :as map-utils :refer [enhance-rich-layer
                                                 has-time-dimension?
                                                 layer->cql-filter
@@ -14,8 +15,7 @@
                                                 rich-layer-children->parents
                                                 sort-layers viewport-layers
                                                 match-layer]]
-   [re-frame.core :as rf]
-   [imas-seamap.utils :refer [ids->layers map-on-key]]))
+   [imas-seamap.utils :refer [ids->layers map-on-key first-where]]))
 
 (defn map-props [db _] (-> db :map (select-keys [:zoom :center :bounds])))
 
@@ -173,7 +173,11 @@
 ; This sub is something that would have formerly been in the monolithic
 ; 'map-layers' sub above. This sub is part of a new strategy to break up the
 ; monolothic sub into smaller subs that are easier to manage and take advantage of
-; the the re-frame subscription DAG. 
+; the the re-frame subscription DAG.
+;
+; Note: profiling says this is slow, probably from consuming the :map/layers sub.
+; That sub returns closures that need to be recomputed every time the DB changes.
+; It should be fixed.
 (defn layer-displayed-layers-lookup
   "A lookup map of the raw (catalogue) layer to what layers should actually be
    displayed on the map."
@@ -330,11 +334,58 @@
 (defn viewport-only? [db _]
   (get-in db [:map :viewport-only?]))
 
-(defn layer-legend [db [_ {:keys [id] :as _layer}]]
-  (let [legend-info (get-in db [:map :legends id])
-        status      (cond
-                      (keyword? legend-info) legend-info
-                      legend-info            :map.legend/loaded
-                      :else                  :map.legend/none)]
-    {:status    status
-     :info      (when (= status :map.legend/loaded) legend-info)}))
+(defn layer-legends
+  "A lookup of each layer to its legend at the current moment.
+
+   If a layer argument is supplied, returns only the legend for that layer as a
+   response."
+  [db [_ {:keys [id] :as layer}]]
+  (let [; Create our lookup table
+        legends-lookup
+        (->>
+         (get-in db [:map :legends])
+         (reduce-kv
+          (fn [legends-lookup layer-id legend-info]
+            (let [status
+                  (cond
+                    (keyword? legend-info) legend-info
+                    legend-info            :map.legend/loaded
+                    :else                  :map.legend/none)
+                  layer (first-where #(= (:id %) layer-id) (get-in db [:map :layers]))
+                  layer-legend ; Create a single "legend" for our lookup key-value map. This has legend status and its value (info)
+                  {:layer-id   layer-id
+                   :layer-name (:name layer)
+                   :status    status
+                   :info      (when (= status :map.legend/loaded) legend-info)}]
+              (assoc legends-lookup layer-id layer-legend))) ; Add legend to lookup key-value map
+          {}))]
+    (if layer
+      (get legends-lookup id {:status :map.legend/none}) ; If legend not in lookup key-value map, return none
+      legends-lookup)))
+
+(defn layer-visible-layers-legends
+  "All the legends for all the visible layers on the map at the current time."
+  [[{:keys [visible-layers]} displayed-layers-lookup layer-legends] _]
+  (let [displayed-layers (map #(get displayed-layers-lookup %) visible-layers)
+        visible-layers-legends (map #(get layer-legends (:id %) {:status :map.legend/none}) displayed-layers)]
+    (reverse visible-layers-legends)))
+
+(defn layer-visible-side-by-side-layers-legends
+  "Right-hand side legends for all the visible side-by-side layers on the map at
+   the current time."
+  [[{:keys [visible-layers rich-layer-fn]} layer-legends] _]
+  (let [visible-right-layer-ids
+        (->> visible-layers
+             (map rich-layer-fn)
+             (map :side-by-side-views-selected-id)
+             (filter identity))
+        visible-layers-legends (map #(get layer-legends % {:status :map.legend/none}) visible-right-layer-ids)]
+    visible-layers-legends))
+
+(defn print-is-printing?
+  "Is the app currently printing?
+
+   So the app can apply custom styles during the print process for custom map print
+   images."
+  [db _]
+  (get db :is-printing?))
