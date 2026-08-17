@@ -119,13 +119,13 @@
 
    Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
    hazard layer slug from the current view into the hazard layer server URLs."
-  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers hazard-layer-slug] _]
-  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers hazard-layer-slug))
+  [[layers {:keys [by-layer-id]} hazard-layers hazard-layer-slug] _]
+  (nhatutils/layer-displayed-layers-lookup layers #(get by-layer-id (:id %)) hazard-layers hazard-layer-slug))
 
 ;; Proof-of-concept for having separate information in map B
 (defn layer-displayed-layers-lookup-map-b
-  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-model selected-scenario selected-seasonal-data] _]
-  (nhatutils/layer-displayed-layers-lookup-map-b layers rich-layer-fn hazard-layers selected-model selected-scenario selected-seasonal-data))
+  [[layers {:keys [by-layer-id]} hazard-layers selected-model selected-scenario selected-seasonal-data] _]
+  (nhatutils/layer-displayed-layers-lookup-map-b layers #(get by-layer-id (:id %)) hazard-layers selected-model selected-scenario selected-seasonal-data))
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component.

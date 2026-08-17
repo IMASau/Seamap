@@ -43,6 +43,26 @@ Not yet done (the substance of this plan):
 - `:map/rich-layers-side-by-side-views` and `:map.layer/displayed-layers-lookup`
   bypass the signal graph entirely (see Phase A).
 
+> **Update:** Phases A–C are implemented, with one deliberate exception (below).
+> `::enhanced-rich-layers`, the id-keyed layer-state family (`::loading-layers`,
+> `::error-layers`, `::expanded-layers`, `::layer-opacities`), `::cql-filters`,
+> and the catalogue pipeline (`::visible-layers`, `::catalogue-layers`,
+> `::filtered-layers`, `::sorted-layers`) are all in place. `:map/layers` is now
+> a pure-data facade over the narrow subs — **no closures anywhere in sub
+> outputs**; views build any lookup closures locally from
+> `:rich-layers-by-layer-id`. Derived subs (`visible-layers-legends`,
+> `visible-side-by-side-layers-legends`, `timeseries-layers`, NHAT's
+> displayed-layers lookups) are re-registered over narrow signals. The unused
+> `:groups` key was dropped.
+>
+> **Deliberately deferred:** the "augmented layers" step (assoc `:rich-layer`
+> onto layer maps). Its precondition — id-keying as the norm for layer
+> membership/keys in the db (`:active-layers` sets, `:layer-state` maps, drag
+> lists) — hasn't been done, and augmenting layer maps before that would break
+> whole-map equality tests throughout. Remaining tidy-up: migrate view sites off
+> the `:map/layers` facade to the narrow subs they use, then delete the facade;
+> id-key the db layer-state; then revisit augmented layers.
+
 ## Key observations driving the ordering
 
 1. **`:layer-state` is the highest-frequency input wired into the monolith.**

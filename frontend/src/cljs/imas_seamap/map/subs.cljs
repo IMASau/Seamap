@@ -6,35 +6,21 @@
    [clojure.set :as set]
    [re-frame.core :as rf]
    [imas-seamap.map.utils :as map-utils :refer [enhance-rich-layer
+                                                enhanced->cql-filter
                                                 has-time-dimension?
-                                                layer->cql-filter
-                                                layer->rich-layer
-                                                db->ctx
                                                 region-stats-habitat-layer
-                                                rich-layer->displayed-layer
                                                 rich-layer-children->parents
                                                 sort-layers viewport-layers
                                                 match-layer]]
-   [imas-seamap.utils :refer [ids->layers map-on-key first-where]]))
+   [imas-seamap.utils :refer [map-on-key first-where]]))
 
 (defn map-props [db _] (-> db :map (select-keys [:zoom :center :bounds])))
 
-(defn- make-error-fn
-  "Given maps of layer->error-count and layer->total-tile-count, returns
-  a function that takes a layer and returns a boolean indicating if
-  the layer is problematic or not (ie, rather than just saying we
-  should notify the user about any error, we want to notify above a
-  certain threshold)"
-  [error-counts load-counts ctx]
-  (fn [layer]
-    (let [layer (rich-layer->displayed-layer layer ctx)
-          error-count (get error-counts layer 0)
-          total-count (get load-counts layer 0)]
-      (and (pos? total-count)
-           (> (/ error-count total-count)
-              0.4)))))       ; Might be nice to make this configurable eventually
-
-(rf/reg-sub :dbsubs/layer-state (fn [db _] (get db :layer-state)))
+(rf/reg-sub :dbsubs/layer-state-loading (fn [db _] (get-in db [:layer-state :loading-state])))
+(rf/reg-sub :dbsubs/layer-state-error-count (fn [db _] (get-in db [:layer-state :error-count])))
+(rf/reg-sub :dbsubs/layer-state-tile-count (fn [db _] (get-in db [:layer-state :tile-count])))
+(rf/reg-sub :dbsubs/layer-state-legend-shown (fn [db _] (get-in db [:layer-state :legend-shown])))
+(rf/reg-sub :dbsubs/layer-state-opacity (fn [db _] (get-in db [:layer-state :opacity])))
 (rf/reg-sub :dbsubs/filters (fn [db _] (get db :filters)))
 (rf/reg-sub :dbsubs/sorting (fn [db _] (get db :sorting)))
 (rf/reg-sub :dbsubs.map/layers (fn [db _] (get-in db [:map :layers])))
@@ -53,56 +39,125 @@
 (rf/reg-sub :dbsubs/display-open-pill (fn [db _] (get-in db [:display :open-pill])))
 (rf/reg-sub :dbsubs/split-layer-container-x (fn [db _] (get-in db [:display :split-layer-container-x])))
 
+;;; Phase A of the rich-layers refactor (docs/rich-layers-refactor-plan.md):
+;;; enhance every rich layer once, in one place, producing plain data keyed by
+;;; id. Downstream subs and views look up results here instead of re-running
+;;; enhance-rich-layer per layer per render.
+
 (rf/reg-sub
- :map/layers
+ ::layers-by-id
+ :<- [:dbsubs.map/layers]
+ (fn [layers _query-v]
+   (into {} (map (juxt :id identity)) layers)))
+
+(rf/reg-sub
+ ::rich-layers-by-id
+ :<- [:dbsubs.map/rich-layers]
+ (fn [rich-layers _query-v]
+   (into {} (map (juxt :id identity)) rich-layers)))
+
+(rf/reg-sub
+ ::enhanced-rich-layers
  (fn [_query-v]
-   {:layer-state         (rf/subscribe [:dbsubs/layer-state])
-    :filters             (rf/subscribe [:dbsubs/filters])
-    :sorting             (rf/subscribe [:dbsubs/sorting])
-    :layers              (rf/subscribe [:dbsubs.map/layers])
-    :active-layers       (rf/subscribe [:dbsubs.map/active-layers])
-    :hidden-layers       (rf/subscribe [:dbsubs.map/hidden-layers])
-    :categories          (rf/subscribe [:dbsubs.map/categories])
-    :rich-layers         (rf/subscribe [:dbsubs.map/rich-layers])
-    :rich-layer-children (rf/subscribe [:dbsubs.map/rich-layer-children])
-    :rl-states           (rf/subscribe [:dbsubs.map/rich-layer-states])
-    :rl-async-datas      (rf/subscribe [:dbsubs.map/rich-layer-async-datas])
-    :rl-lookup           (rf/subscribe [:dbsubs.map/rich-layer-lookup])
-    :dynamic-pills       (rf/subscribe [:dbsubs/dynamic-pills])
-    :dp-states           (rf/subscribe [:dbsubs/dynamic-pill-states])
-    :dp-async-datas      (rf/subscribe [:dbsubs/dynamic-pill-async-datas])
-    :open-pill           (rf/subscribe [:dbsubs/display-open-pill])})
- (fn [{:keys [layer-state
-              filters
-              sorting
-              layers
-              active-layers
-              hidden-layers
-              categories
-              rich-layers
-              rich-layer-children
-              rl-states
-              rl-async-datas
-              rl-lookup
-              dynamic-pills
-              dp-states
-              dp-async-datas
-              open-pill]} _query-v]
-   (let [layers-by-id    (into {} (map (juxt :id identity)) layers)
-         rich-layers-by-id (into {} (map (juxt :id identity)) rich-layers)
-         ctx             {:layers-by-id      layers-by-id
-                          :rich-layers       rich-layers
-                          :rich-layers-by-id rich-layers-by-id
-                          :rl-states         rl-states
-                          :rl-async-datas    rl-async-datas
-                          :rl-lookup         rl-lookup
-                          :dynamic-pills     dynamic-pills
-                          :dp-states         dp-states
-                          :dp-async-datas    dp-async-datas
-                          :active-layers     active-layers
-                          :open-pill         open-pill}
-         categories      (map-on-key categories :name)
-         filter-text     (:layers filters)
+   {:layers-by-id      (rf/subscribe [::layers-by-id])
+    :rich-layers       (rf/subscribe [:dbsubs.map/rich-layers])
+    :rich-layers-by-id (rf/subscribe [::rich-layers-by-id])
+    :rl-states         (rf/subscribe [:dbsubs.map/rich-layer-states])
+    :rl-async-datas    (rf/subscribe [:dbsubs.map/rich-layer-async-datas])
+    :rl-lookup         (rf/subscribe [:dbsubs.map/rich-layer-lookup])})
+ (fn [{:keys [layers-by-id rich-layers rich-layers-by-id rl-states rl-async-datas rl-lookup]} _query-v]
+   (let [ctx              {:layers-by-id      layers-by-id
+                           :rich-layers       rich-layers
+                           :rich-layers-by-id rich-layers-by-id
+                           :rl-states         rl-states
+                           :rl-async-datas    rl-async-datas
+                           :rl-lookup         rl-lookup}
+         by-rich-layer-id (into {} (map (fn [{:keys [id] :as rich-layer}]
+                                          [id (enhance-rich-layer rich-layer ctx)]))
+                                rich-layers)
+         by-layer-id      (into {} (keep (fn [[layer-id rich-layer-id]]
+                                           (when-let [rich-layer (get by-rich-layer-id rich-layer-id)]
+                                             [layer-id rich-layer])))
+                                rl-lookup)
+         displayed->main  (into {} (keep (fn [{:keys [layer-id] :as rich-layer}]
+                                           (when layer-id
+                                             [(or (get-in rich-layer [:displayed-layer :id]) layer-id) layer-id])))
+                                (vals by-rich-layer-id))]
+     ;; :by-rich-layer-id  rich-layer id  → enhanced rich layer
+     ;; :by-layer-id       layer id       → enhanced rich layer (via layer-lookup,
+     ;;                                     so includes alternate/timeline children)
+     ;; :displayed->main   displayed layer id → main (catalogue) layer id
+     {:by-rich-layer-id by-rich-layer-id
+      :by-layer-id      by-layer-id
+      :displayed->main  displayed->main})))
+
+;;; Phase B of the rich-layers refactor (docs/rich-layers-refactor-plan.md): the
+;;; volatile layer-state family as small, id-keyed data subs. Tile-load events
+;;; update these without touching :map/layers, and their outputs are plain data
+;;; so unchanged values don't re-render subscribers.
+;;; Note the underlying db state is still keyed by layer objects (of the
+;;; *displayed* layer for tile state); these subs convert to catalogue-layer ids.
+
+(rf/reg-sub
+ ::loading-layers
+ :<- [:dbsubs/layer-state-loading]
+ :<- [::enhanced-rich-layers]
+ (fn [[loading-state {:keys [displayed->main]}] _query-v]
+   (->> loading-state
+        (keep (fn [[layer state]]
+                (when (= state :map.layer/loading)
+                  (let [id (:id layer)]
+                    (get displayed->main id id)))))
+        set)))
+
+(rf/reg-sub
+ ::error-layers
+ :<- [:dbsubs/layer-state-error-count]
+ :<- [:dbsubs/layer-state-tile-count]
+ :<- [::enhanced-rich-layers]
+ (fn [[error-counts tile-counts {:keys [displayed->main]}] _query-v]
+   ;; A layer is in error above a failed-tile ratio threshold, rather than on
+   ;; any single error. (Might be nice to make this configurable eventually.)
+   (->> tile-counts
+        (keep (fn [[layer total-count]]
+                (when (and (pos? total-count)
+                           (> (/ (get error-counts layer 0) total-count)
+                              0.4))
+                  (let [id (:id layer)]
+                    (get displayed->main id id)))))
+        set)))
+
+(rf/reg-sub
+ ::expanded-layers
+ :<- [:dbsubs/layer-state-legend-shown]
+ (fn [legend-shown _query-v]
+   (into #{} (map :id) legend-shown)))
+
+(rf/reg-sub
+ ::layer-opacities
+ :<- [:dbsubs/layer-state-opacity]
+ (fn [opacities _query-v]
+   (into {} (map (fn [[layer opacity]] [(:id layer) opacity])) opacities)))
+
+;;; Phase C of the rich-layers refactor (docs/rich-layers-refactor-plan.md):
+;;; the catalogue/filter/sort pipeline as narrow subs. :map/layers below is a
+;;; facade assembling these; migrate consumers to the individual subs over time.
+
+(rf/reg-sub
+ ::visible-layers
+ :<- [:dbsubs.map/hidden-layers]
+ :<- [:dbsubs.map/active-layers]
+ (fn [[hidden-layers active-layers] _query-v]
+   (map-utils/visible-layers {:hidden-layers hidden-layers
+                              :active-layers active-layers})))
+
+(rf/reg-sub
+ ::catalogue-layers
+ :<- [:dbsubs.map/layers]
+ :<- [:dbsubs.map/categories]
+ :<- [:dbsubs.map/rich-layers]
+ (fn [[layers categories rich-layers] _query-v]
+   (let [categories (map-on-key categories :name)
 
          rlc-ids ; rich-layer-children to hide from the catalogue
          (reduce
@@ -112,48 +167,76 @@
              (remove #(= % layer-id))                                                   ; Ignore the ones that match the "main" layer for the rich layer (its catalogue entry)
              set                                                                        ; Convert back to a set after the "remove" op
              (set/union acc)))                                                          ; Add to the accumulative list of all layers to hide from the catalogue
-          #{} rich-layers)
+          #{} rich-layers)]
+     (->>
+      layers
+      (filter #(get-in categories [(:category %) :display_name])) ; only layers with a category that has a display name are allowed
+      (remove
+       (fn [{:keys [id]}]
+         (some #{id} rlc-ids))))))) ; removes rich-layer children (except those that are a child of themselves)
 
-         catalogue-layers
-         (->>
-          layers
-          (filter #(get-in categories [(:category %) :display_name])) ; only layers with a category that has a display name are allowed
-          (remove
-           (fn [{:keys [id]}]
-             (some #{id} rlc-ids)))) ; removes rich-layer children (except those that are a child of themselves)
-
+(rf/reg-sub
+ ::filtered-layers
+ :<- [::catalogue-layers]
+ :<- [:dbsubs.map/layers]
+ :<- [:dbsubs.map/categories]
+ :<- [:dbsubs/filters]
+ :<- [:dbsubs.map/rich-layer-children]
+ (fn [[catalogue-layers layers categories filters rich-layer-children] _query-v]
+   (let [categories      (map-on-key categories :name)
+         filter-text     (:layers filters)
          filtered-layers (set (filter (partial match-layer filter-text categories) layers)) ; get the set of all layers that match the filter
-         filtered-layers (rich-layer-children->parents filtered-layers rich-layer-children) ; get the rich-layer parents for this layer, and add them to the searched layers
-         filtered-layers (filterv filtered-layers catalogue-layers) ; filtered-layers set converted into vector by filtering on catalogue-layers (sorted)
-         sorted-layers   (sort-layers catalogue-layers sorting)
-         displayed-rich-layers (reduce
-                                (fn [displayed-rich-layers layer]
-                                  (assoc displayed-rich-layers layer (rich-layer->displayed-layer layer ctx)))
-                                {} (keep layers-by-id (map :layer-id rich-layers)))
-         displayed-layers->layers (set/map-invert displayed-rich-layers)
+         filtered-layers (rich-layer-children->parents filtered-layers rich-layer-children)] ; get the rich-layer parents for this layer, and add them to the searched layers
+     (filterv filtered-layers catalogue-layers)))) ; filtered-layers set converted into vector by filtering on catalogue-layers (sorted)
 
-         rich-layer-fn   #(enhance-rich-layer (layer->rich-layer % ctx) ctx)
-         visible-layers  (map-utils/visible-layers {:hidden-layers hidden-layers
-                                                    :active-layers active-layers})]
+(rf/reg-sub
+ ::sorted-layers
+ :<- [::catalogue-layers]
+ :<- [:dbsubs/sorting]
+ (fn [[catalogue-layers sorting] _query-v]
+   (sort-layers catalogue-layers sorting)))
 
-     {:layers           layers
-      :groups           (group-by :category filtered-layers)
-      :loading-layers   (->>
-                        layer-state :loading-state
-                        (filter (fn [[l st]] (= st :map.layer/loading)))
-                        keys
-                        (map #(or (get displayed-layers->layers %) %))
-                        set)
-      :error-layers     (make-error-fn (:error-count layer-state) (:tile-count layer-state) ctx)
-      :expanded-layers  (->> layer-state :legend-shown set)
-      :active-layers    active-layers
-      :visible-layers   visible-layers
-      :layer-opacities  (fn [layer] (get-in layer-state [:opacity layer] 100))
-      :filtered-layers  filtered-layers
-      :sorted-layers    sorted-layers
-      :catalogue-layers catalogue-layers
-      :rich-layer-fn    rich-layer-fn
-      :cql-filter-fn    #(layer->cql-filter % ctx)})))
+;;; Phase B: CQL filters as a lookup map, replacing the :cql-filter-fn closure.
+;;; Computed only over active layers — they're the only ones rendered on the map.
+(rf/reg-sub
+ ::cql-filters
+ (fn [_query-v]
+   {:enhanced      (rf/subscribe [::enhanced-rich-layers])
+    :active-layers (rf/subscribe [:dbsubs.map/active-layers])
+    :dynamic-pills (rf/subscribe [:dbsubs/dynamic-pills])
+    :dp-states     (rf/subscribe [:dbsubs/dynamic-pill-states])})
+ (fn [{:keys [enhanced active-layers dynamic-pills dp-states]} _query-v]
+   (let [{:keys [by-layer-id]} enhanced]
+     (into {}
+           (keep (fn [{:keys [id] :as layer}]
+                   (when-let [cql-filter (enhanced->cql-filter layer (get by-layer-id id) dynamic-pills dp-states)]
+                     [id cql-filter])))
+           active-layers))))
+
+;;; Facade over the narrow subs above, retained while consumers migrate to them;
+;;; remove once nothing subscribes to it. The output is pure data (no closures),
+;;; so subscribers only re-render when the values they use actually change.
+;;; Loading/error/expanded/opacity state and CQL filters live in their own
+;;; id-keyed subs (::loading-layers, ::error-layers, ::expanded-layers,
+;;; ::layer-opacities, ::cql-filters).
+(rf/reg-sub
+ :map/layers
+ (fn [_query-v]
+   {:layers           (rf/subscribe [:dbsubs.map/layers])
+    :active-layers    (rf/subscribe [:dbsubs.map/active-layers])
+    :visible-layers   (rf/subscribe [::visible-layers])
+    :catalogue-layers (rf/subscribe [::catalogue-layers])
+    :filtered-layers  (rf/subscribe [::filtered-layers])
+    :sorted-layers    (rf/subscribe [::sorted-layers])
+    :enhanced         (rf/subscribe [::enhanced-rich-layers])})
+ (fn [{:keys [layers active-layers visible-layers catalogue-layers filtered-layers sorted-layers enhanced]} _query-v]
+   {:layers           layers
+    :active-layers    active-layers
+    :visible-layers   visible-layers
+    :filtered-layers  filtered-layers
+    :sorted-layers    sorted-layers
+    :catalogue-layers catalogue-layers
+    :rich-layers-by-layer-id (:by-layer-id enhanced)}))
 
 ;;; This is extracted out from the :map/layers subscription as a
 ;;; stand-alone. It is a performance-related trade-off; it makes
@@ -174,27 +257,33 @@
 ; 'map-layers' sub above. This sub is part of a new strategy to break up the
 ; monolothic sub into smaller subs that are easier to manage and take advantage of
 ; the the re-frame subscription DAG.
-;
-; Note: profiling says this is slow, probably from consuming the :map/layers sub.
-; That sub returns closures that need to be recomputed every time the DB changes.
-; It should be fixed.
 (defn layer-displayed-layers-lookup
   "A lookup map of the raw (catalogue) layer to what layers should actually be
-   displayed on the map."
-  [{:keys [layers rich-layer-fn] :as _map-layers} _]
-  (map-utils/layer-displayed-layers-lookup layers rich-layer-fn))
+   displayed on the map.
+   Signals: [::enhanced-rich-layers, :dbsubs.map/layers].
+   Note: still keyed by whole layer maps for compatibility with existing
+   consumers; id-keying comes with Phase B of the rich-layers refactor."
+  [[{:keys [by-layer-id]} layers] _]
+  (reduce
+   (fn [acc {:keys [id] :as layer}]
+     (assoc acc layer (or (get-in by-layer-id [id :displayed-layer]) layer)))
+   {} layers))
 
-(defn rich-layers-side-by-side-views [db _]
-  (let [ctx (db->ctx db)
-        rich-layers (map #(enhance-rich-layer % ctx) (:rich-layers ctx))
-        active-layers (:active-layers ctx)]
-
-    (filter
-     (fn [rich-layer]
-       (and
-        (some #{(:layer-id rich-layer)} (map :id active-layers))
-        (seq (get-in rich-layer [:side-by-side-views]))))
-     rich-layers)))
+(defn rich-layers-side-by-side-views
+  "Enhanced rich layers that are currently active and have side-by-side views
+   configured.
+   Signals: [::enhanced-rich-layers, :dbsubs.map/rich-layers,
+   :dbsubs.map/active-layers]. (rich-layers is only used to keep a stable,
+   configuration-order output.)"
+  [[{:keys [by-rich-layer-id]} rich-layers active-layers] _]
+  (let [active-ids (set (map :id active-layers))]
+    (->> rich-layers
+         (map #(get by-rich-layer-id (:id %)))
+         (filter
+          (fn [{:keys [layer-id side-by-side-views]}]
+            (and
+             (contains? active-ids layer-id)
+             (seq side-by-side-views)))))))
 
 (rf/reg-sub :dbsubs.map/zoom (fn [db _] (get-in db [:map :zoom])))
 (rf/reg-sub :dbsubs.map/grouped-base-layers (fn [db _] (get-in db [:map :grouped-base-layers])))
@@ -299,9 +388,10 @@
     organisations))
 
 (defn timeseries-layers
-  "List of layers that are currently active and have a time dimension."
-  [map-layers _]
-  (filter has-time-dimension? (:active-layers map-layers)))
+  "List of layers that are currently active and have a time dimension.
+   Signal: [:dbsubs.map/active-layers]."
+  [active-layers _]
+  (filter has-time-dimension? active-layers))
 
 (defn show-time-slider?
   "Should the time slider be shown on the map? True if there are currently active
@@ -364,19 +454,22 @@
       legends-lookup)))
 
 (defn layer-visible-layers-legends
-  "All the legends for all the visible layers on the map at the current time."
-  [[{:keys [visible-layers]} displayed-layers-lookup layer-legends] _]
+  "All the legends for all the visible layers on the map at the current time.
+   Signals: [::visible-layers, :map.layer/displayed-layers-lookup,
+   :map.layer/legend]."
+  [[visible-layers displayed-layers-lookup layer-legends] _]
   (let [displayed-layers (map #(get displayed-layers-lookup %) visible-layers)
         visible-layers-legends (map #(get layer-legends (:id %) {:status :map.legend/none}) displayed-layers)]
     (reverse visible-layers-legends)))
 
 (defn layer-visible-side-by-side-layers-legends
   "Right-hand side legends for all the visible side-by-side layers on the map at
-   the current time."
-  [[{:keys [visible-layers rich-layer-fn]} layer-legends] _]
+   the current time.
+   Signals: [::visible-layers, ::enhanced-rich-layers, :map.layer/legend]."
+  [[visible-layers {:keys [by-layer-id]} layer-legends] _]
   (let [visible-right-layer-ids
         (->> visible-layers
-             (map rich-layer-fn)
+             (map #(get by-layer-id (:id %)))
              (map :side-by-side-views-selected-id)
              (filter identity))
         visible-layers-legends (map #(get layer-legends % {:status :map.legend/none}) visible-right-layer-ids)]

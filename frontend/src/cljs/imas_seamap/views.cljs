@@ -14,6 +14,7 @@
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch first-where append-query-params] :include-macros true]
             [imas-seamap.components :as components]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.map.utils :refer [download-type->str layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
             [goog.string :as gstring]
@@ -901,7 +902,12 @@
        :keywords    #(layer-search-keywords categories %)}}]))
 
 (defn left-drawer-catalogue [tma?]
-  (let [{:keys [filtered-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [filtered-layers active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
+        loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
+        error-ids       @(re-frame/subscribe [::msubs/error-layers])
+        expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
+        layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])
         viewport-layers @(re-frame/subscribe [:map/layers.viewport])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
@@ -910,22 +916,27 @@
      [layer-catalogue :main catalogue-layers
       {:active-layers  active-layers
        :visible-layers visible-layers
-       :loading-fn     loading-layers
-       :error-fn       error-layers
-       :expanded-fn    expanded-layers
-       :opacity-fn     layer-opacities
+       :loading-fn     #(contains? loading-ids (:id %))
+       :error-fn       #(contains? error-ids (:id %))
+       :expanded-fn    #(contains? expanded-ids (:id %))
+       :opacity-fn     #(get layer-opacities (:id %) 100)
        :rich-layer-fn  rich-layer-fn}
       tma?]]))
 
 (defn left-drawer-active-layers [tma?]
-  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])]
+  (let [{:keys [active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
+        loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
+        error-ids       @(re-frame/subscribe [::msubs/error-layers])
+        expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
+        layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])]
     [active-layer-selection-list
      {:layers         active-layers
       :visible-layers visible-layers
-      :loading-fn     loading-layers
-      :error-fn       error-layers
-      :expanded-fn    expanded-layers
-      :opacity-fn     layer-opacities
+      :loading-fn     #(contains? loading-ids (:id %))
+      :error-fn       #(contains? error-ids (:id %))
+      :expanded-fn    #(contains? expanded-ids (:id %))
+      :opacity-fn     #(get layer-opacities (:id %) 100)
       :rich-layer-fn  rich-layer-fn
       :tma?           tma?}]))
 

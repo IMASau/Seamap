@@ -7,6 +7,7 @@
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.views :as views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child autosave-application-state-toggle outage-message-dialogue right-drawer]]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.map.views :refer [map-component]]
             [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
             [imas-seamap.story-maps.views :refer [featured-maps]]
@@ -206,17 +207,22 @@
      [layer-catalogue-header {:layer layer :layer-state layer-state}]]))
 
 (defmethod right-drawer :data-in-region []
-  (let [{:keys [catalogue-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [catalogue-layers active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
+        loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
+        error-ids       @(re-frame/subscribe [::msubs/error-layers])
+        expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
+        layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])
         {:keys [status layers]} @(re-frame/subscribe [:data-in-region/data])
         ;; Filter out layers in region that have no category (ie, currently just placeholders)
         layers (filter (set layers) catalogue-layers)
         layer-props
         {:active-layers  active-layers
          :visible-layers visible-layers
-         :loading-fn     loading-layers
-         :error-fn       error-layers
-         :expanded-fn    expanded-layers
-         :opacity-fn     layer-opacities
+         :loading-fn     #(contains? loading-ids (:id %))
+         :error-fn       #(contains? error-ids (:id %))
+         :expanded-fn    #(contains? expanded-ids (:id %))
+         :opacity-fn     #(get layer-opacities (:id %) 100)
          :rich-layer-fn  rich-layer-fn}]
     [components/drawer
      {:title       "Data in Region"

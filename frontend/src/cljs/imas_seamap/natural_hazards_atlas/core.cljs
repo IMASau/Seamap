@@ -32,7 +32,10 @@
 (def config-handlers
   {:subs
    {:map/props                            msubs/map-props
-    :map/rich-layers-side-by-side-views   msubs/rich-layers-side-by-side-views
+    :map/rich-layers-side-by-side-views   [:<- [::msubs/enhanced-rich-layers]
+                                           :<- [:dbsubs.map/rich-layers]
+                                           :<- [:dbsubs.map/active-layers]
+                                           msubs/rich-layers-side-by-side-views]
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
@@ -42,15 +45,17 @@
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legends
-    :map.layer/visible-layers-legends     [:<- [:map/layers]
+    :map.layer/visible-layers-legends     [:<- [::msubs/visible-layers]
                                            :<- [:map.layer/displayed-layers-lookup]
                                            :<- [:map.layer/legend]
                                            msubs/layer-visible-layers-legends]
-    :map.layer/displayed-layers-lookup    [:<- [:map/layers]
+    :map.layer/displayed-layers-lookup    [:<- [:dbsubs.map/layers]
+                                           :<- [::msubs/enhanced-rich-layers]
                                            :<- [:map.layers/hazard-layers]
                                            :<- [:current-view/current-view-hazard-layer-slug]
                                            nhasubs/layer-displayed-layers-lookup]
-    :map.layer/displayed-layers-lookup-map-b [:<- [:map/layers]
+    :map.layer/displayed-layers-lookup-map-b [:<- [:dbsubs.map/layers]
+                                           :<- [::msubs/enhanced-rich-layers]
                                            :<- [:map.layers/hazard-layers]
                                            :<- [:current-view/selected-model]
                                            :<- [:current-view/selected-scenario]
@@ -58,7 +63,7 @@
                                            nhasubs/layer-displayed-layers-lookup-map-b]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
-    :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]
+    :map.time/timeseries-layers           [:<- [:dbsubs.map/active-layers] msubs/timeseries-layers]
     :map.time/show-time-slider?           [:<- [:map.time/timeseries-layers] msubs/show-time-slider?]
     :map.time/current-time                msubs/current-time
     :map.time/available-times             nhasubs/time-available-times
