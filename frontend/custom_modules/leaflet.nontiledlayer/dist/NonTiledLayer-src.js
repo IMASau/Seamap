@@ -190,7 +190,7 @@ L.NonTiledLayer = (L.Layer || L.Class).extend({
 	onRemove: function (map) {
 		if (L.version < '1.0') this._map.off(this.getEvents(), this);
 
-		this.getPane().removeChild(this._div);
+		L.DomUtil.remove(this._div);  // pane may already be gone (React 18 unmounts parent panes first)
 
 		if (this._useCanvas) {
 			this._div.removeChild(this._bufferCanvas);
