@@ -106,6 +106,9 @@ jobs:
           app_tag=$(echo $app_tag | sed 's/^"//;s/"$//')
           sed -i "s/app.js/$app_tag/" 'resources/public/index.html'
 
+      - name: Record git SHA in index.html
+        run: sed -i "s/GIT_SHA_PLACEHOLDER/${{ env.GITHUB_REF_SLUG }} - ${{ env.GITHUB_SHA_SHORT }}/" 'resources/public/index.html'
+
       - name: Ensure archive is group-writeable for safe extraction
         run: chmod -R g+w resources/public
       - run: tar -c -z -v -C resources/public -f frontend.tgz .

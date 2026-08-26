@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 from rest_framework.views import exception_handler
 
+
 def custom_exception_handler(exc, context):
     # Call REST framework's default exception handler first,
     # to get the standard error response.
@@ -22,8 +23,8 @@ def custom_exception_handler(exc, context):
     # Now add the HTTP status code to the response.
     if isinstance(exc, ValidationError):
         response.data['status_code'] = response.status_code
-    elif isinstance(exc, DatabaseError):
+    elif isinstance(exc, DatabaseError) and getattr(exc, 'args', None):
         return Response({'message': "Database error",
-                         'detail': exc.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                         'detail': exc.args}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return response

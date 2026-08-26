@@ -185,10 +185,13 @@
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base))
 
-        {:keys [legend-ids opacity-ids]} db
+        {:keys [opacity-ids]} db
         layers        (get-in db [:map :layers])
-        legends-shown (init-layer-legend-status layers legend-ids)
-        legends-get   (map #(rich-layer->displayed-layer % (mutils/db->ctx db)) legends-shown)
+        ctx           (mutils/db->ctx db)
+        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the pinned legends panel when the app loads
+        legends-get   (concat
+                       (map #(rich-layer->displayed-layer % ctx) legends-shown) ; displayed layers to get legends for
+                       (filter identity (map #(mutils/rich-layer->side-by-side-views-selected-layer % ctx) legends-shown))) ; get legends for any side-by-side views
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
@@ -198,7 +201,7 @@
         rich-layers (get-in db [:map :rich-layers :rich-layers])
         cql-get
         (->>
-         legend-ids
+         active ; get CQL filters for all applicable active layers
          (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
          (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
 
@@ -350,8 +353,11 @@
         story-maps    (get-in db [:story-maps :featured-maps])
         featured-map  (get-in db [:story-maps :featured-map])
         featured-map  (first-where #(= (% :id) featured-map) story-maps)
-        legends-shown (init-layer-legend-status layers legend-ids)
-        legends-get   (map #(rich-layer->displayed-layer % (mutils/db->ctx db)) legends-shown)
+        ctx           (mutils/db->ctx db)
+        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the pinned legends panel when the app loads
+        legends-get   (concat
+                       (map #(rich-layer->displayed-layer % ctx) legends-shown) ; displayed layers to get legends for
+                       (filter identity (map #(mutils/rich-layer->side-by-side-views-selected-layer % ctx) legends-shown))) ; get legends for any side-by-side views
         db            (-> db
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base)
@@ -363,7 +369,7 @@
         rich-layers (get-in db [:map :rich-layers :rich-layers])
         cql-get
         (->>
-         legend-ids
+         active ; get CQL filters for all applicable active layers
          (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
          (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
 

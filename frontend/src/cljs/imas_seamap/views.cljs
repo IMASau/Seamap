@@ -8,14 +8,16 @@
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node]]
+            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node legend-display]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch first-where append-query-params] :include-macros true]
             [imas-seamap.components :as components]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.map.utils :refer [download-type->str layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
+            [goog.string :as gstring]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -207,6 +209,22 @@
       :on-click #(re-frame/dispatch [:toggle-autosave])
       :text     text}]))
 
+(defn- pinned-legends-toggle
+  "Toggle button in settings menu to enable/disable pinned legends on map."
+  []
+  (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
+        
+        [icon text] (if pinned-legends?
+                      ["unpin" "Unpin Legends From Map View"]
+                      ["pin" "Pin Legends To Map View"])
+        toggle-pinned-legends-fn #(re-frame/dispatch [:ui/pinned-legends? (not pinned-legends?)])]
+    [b/button
+     {:icon     icon
+      :class    "bp3-fill"
+      :intent   b/INTENT-PRIMARY
+      :on-click toggle-pinned-legends-fn
+      :text     text}]))
+
 (defn layer-search-filter []
   (let [timeout-id (reagent/atom nil)] ; To store the timeout ID for the filter event dispatch
     (fn []
@@ -391,7 +409,8 @@
     :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
    [:div.bp3-dialog-body
     [autosave-application-state-toggle]
-    [viewport-only-toggle]]])
+    [viewport-only-toggle]
+    [pinned-legends-toggle]]])
 
 (defn- metadata-record [_props]
   (let [expanded (reagent/atom false)
@@ -612,21 +631,10 @@
        [b/icon {:icon icon :size 18}]])))
 
 (defn print-control []
-  [:div.print-control
-   [:a
-    {:id       "print-control"
-     :on-click #(-> "CurrentSize" js/document.getElementsByClassName first .click)
-     :title    "Export at Current Size"}
-    [b/icon {:icon "media" :size 18}]]
-   [:div.options
-    [:a
-     {:on-click #(-> "A4Landscape page" js/document.getElementsByClassName first .click)
-      :title    "A4 Landscape"}
-     [b/icon {:icon "document" :size 18 :style {:transform "rotate(-90deg)"}}]]
-    [:a
-     {:on-click #(-> "A4Portrait page" js/document.getElementsByClassName first .click)
-      :title    "A4 Portrait"}
-     [b/icon {:icon "document" :size 18}]]]])
+  [control-block-child
+   {:on-click #(re-frame/dispatch [:map.print/start])
+    :id       "print-control"
+    :icon     "media"}])
 
 (defn transect-control []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -894,7 +902,12 @@
        :keywords    #(layer-search-keywords categories %)}}]))
 
 (defn left-drawer-catalogue [tma?]
-  (let [{:keys [filtered-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [filtered-layers active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
+        loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
+        error-ids       @(re-frame/subscribe [::msubs/error-layers])
+        expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
+        layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])
         viewport-layers @(re-frame/subscribe [:map/layers.viewport])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
@@ -903,22 +916,27 @@
      [layer-catalogue :main catalogue-layers
       {:active-layers  active-layers
        :visible-layers visible-layers
-       :loading-fn     loading-layers
-       :error-fn       error-layers
-       :expanded-fn    expanded-layers
-       :opacity-fn     layer-opacities
+       :loading-fn     #(contains? loading-ids (:id %))
+       :error-fn       #(contains? error-ids (:id %))
+       :expanded-fn    #(contains? expanded-ids (:id %))
+       :opacity-fn     #(get layer-opacities (:id %) 100)
        :rich-layer-fn  rich-layer-fn}
       tma?]]))
 
 (defn left-drawer-active-layers [tma?]
-  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])]
+  (let [{:keys [active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
+        loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
+        error-ids       @(re-frame/subscribe [::msubs/error-layers])
+        expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
+        layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])]
     [active-layer-selection-list
      {:layers         active-layers
       :visible-layers visible-layers
-      :loading-fn     loading-layers
-      :error-fn       error-layers
-      :expanded-fn    expanded-layers
-      :opacity-fn     layer-opacities
+      :loading-fn     #(contains? loading-ids (:id %))
+      :error-fn       #(contains? error-ids (:id %))
+      :expanded-fn    #(contains? expanded-ids (:id %))
+      :opacity-fn     #(get layer-opacities (:id %) 100)
       :rich-layer-fn  rich-layer-fn
       :tma?           tma?}]))
 
@@ -1023,6 +1041,95 @@
             {:src preview-layer-url
              :onError #(reset! error? true)}])])))) ; if there's an error in displaying the image, then we keep track of it so we can instead display an error message
 
+(defn map-legends
+  "Pinned map legends panel.
+
+   Only displays if pinned legends setting is enabled.
+   Can be scaled up and down via scale control buttons in the panel.
+
+   Has resize observer and extra code to have scroll up/down buttons (client req)
+   that only appear when the legends panel reaches its maximum size.
+
+   Args:
+   * `legends: *vec[:map/legend]`: Ref to legends to display in the panel. Passing a 
+     ref and deferencing it in this component allows us to configure what legends are
+     displayed in the panel while also avoiding unnecessary re-renders of the parent
+     component.
+   * `position: #{:left :right}`: Where to position the panel. Defaults to `:left`."
+  [{:keys [_legends _position] :as _props}]
+  (let [legends-ref (reagent/atom nil)
+        scrollable? (reagent/atom false)
+        measure!    (fn [& _]
+                      (when-let [el @legends-ref]
+                        (reset! scrollable? (> (.-scrollHeight el) (.-clientHeight el)))))
+        ;; Watch the scroll container (its height changes with the window/plot)
+        ;; and each legend (their heights change with the scale, and as legend
+        ;; images load) so we know when there's anything to scroll to.
+        observer    (js/ResizeObserver. measure!)
+        observe!    (fn [& _]
+                      (.disconnect observer)
+                      (when-let [el @legends-ref]
+                        (.observe observer el)
+                        (doseq [child (array-seq (.-children el))]
+                          (.observe observer child))))
+        scroll-by   (fn [amount]
+                      (when-let [el @legends-ref]
+                        (.scrollBy el #js {:top amount :behavior "smooth"})))
+        set-scale-fn #(re-frame/dispatch [:ui/pinned-legends-scale %])]
+    (reagent/create-class
+     {:component-did-mount    observe!
+      :component-did-update   observe!
+      :component-will-unmount (fn [_] (.disconnect observer))
+      :reagent-render
+      (fn [{:keys [legends position]
+            :or {position :left}}]
+        (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
+              scale           @(re-frame/subscribe [:ui/pinned-legends-scale]) ; Should this sub be paired with :ui/pinned-legends?, so fewer sub calls?
+              legends         @legends
+              inc-scale-fn    #(set-scale-fn (+ scale 0.1))
+              dec-scale-fn    #(set-scale-fn (- scale 0.1))]
+          (when (and pinned-legends? (seq legends))
+            [:div.map-legends-panel
+             ; Scale is CSS var, consumed by legend elements lower to affect their scale in
+             ; styling. Works beautifully. Much better than "transform: scale", because it
+             ; affects element size in DOM.
+             {:style {"--legend-scale" scale}
+              :class (str "map-legends-panel map-legends-panel-" (name position))}
+             (when @scrollable?
+               [b/button
+                {:class    "legend-scroll-button"
+                 :icon     "chevron-up"
+                 :minimal  true
+                 :fill     true
+                 :on-click #(scroll-by -200)}])
+             [:div.map-legends
+              {:ref #(reset! legends-ref %)}
+              (for [{:keys [layer-id layer-name] :as legend} legends
+                    :when legend]
+                ^{:key (str layer-id)}
+                [:div.pinned-legend
+                 [:h2 layer-name]
+                 [legend-display legend]])]
+             [:div.scale-controls
+              [b/button
+               {:icon     "plus"
+                :minimal  true
+                :on-click inc-scale-fn}]
+              [b/button
+               {:icon     "minus"
+                :minimal  true
+                :on-click dec-scale-fn}]
+              ; Scale is a float, and repeated increments accumulate floating
+              ; point error, so round before displaying.
+              [:span.scale-percentage (gstring/format "%d%%" (js/Math.round (* scale 100)))]]
+             (when @scrollable?
+               [b/button
+                {:class    "legend-scroll-button"
+                 :icon     "chevron-down"
+                 :minimal  true
+                 :fill     true
+                 :on-click #(scroll-by 200)}])])))})))
+
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [m keydown-v]
@@ -1116,14 +1223,20 @@
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
+        plot-open?         @(re-frame/subscribe [:transect.plot/show?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
-        loading?           @(re-frame/subscribe [:app/loading?])]
+        loading?           @(re-frame/subscribe [:app/loading?])
+        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])
+        side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])]
     [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
-     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
+     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when plot-open? " plot-open") (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
-      [plot-component]]
+      [plot-component]
+      [map-legends {:legends legends}]
+      [map-legends {:legends side-by-side-legends :position :right}]]
      
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [helper-overlay

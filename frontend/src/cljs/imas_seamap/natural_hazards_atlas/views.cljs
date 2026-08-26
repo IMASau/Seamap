@@ -6,6 +6,7 @@
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.components :as components]
             [imas-seamap.natural-hazards-atlas.map.views :refer [map-component]]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.story-maps.views :refer [featured-maps]]
             [imas-seamap.views :as views]
@@ -280,16 +281,21 @@
                [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}]]))
 
 (defn- left-drawer-catalogue [tma?]
-  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])]
+  (let [{:keys [active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
+        loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
+        error-ids       @(re-frame/subscribe [::msubs/error-layers])
+        expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
+        layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])]
     [:<>
      [views/layer-search-filter]
      [layer-catalogue :main
       {:active-layers  active-layers
        :visible-layers visible-layers
-       :loading-fn     loading-layers
-       :error-fn       error-layers
-       :expanded-fn    expanded-layers
-       :opacity-fn     layer-opacities
+       :loading-fn     #(contains? loading-ids (:id %))
+       :error-fn       #(contains? error-ids (:id %))
+       :expanded-fn    #(contains? expanded-ids (:id %))
+       :opacity-fn     #(get layer-opacities (:id %) 100)
        :rich-layer-fn  rich-layer-fn}
       tma?]]))
 
@@ -386,11 +392,12 @@
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])]
     [:div#main-wrapper.natural-hazards-atlas
-     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
+     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]]
 

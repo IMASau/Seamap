@@ -196,45 +196,48 @@
 
 (defn- legend [legend-info]
   (if (string? legend-info)
-    [:img {:src legend-info}] ; if legend-info is a string, we treat it as a url to a legend graphic
-    [:<>                      ; else we render the legend as a vector legend
+    [:img ; if legend-info is a string, we treat it as a url to a legend graphic
+     {:src legend-info
+      :on-load
+      (fn [e]
+        (let [img (.-target e)]
+          (.setProperty (.-style img)
+                        "--natural-width"
+                        (str (.-naturalWidth img) "px"))))}] ; Natural width so we can scale the legend appropriately
+    [:<> ; else we render the legend as a vector legend
      (map-indexed
       (fn [i entry]
         ^{:key (str i)}
         [vector-legend-entry entry])
       legend-info)]))
 
-(defn- legend-display [{:keys [legend_url] :as layer}]
-  (let [{:keys [status info]} @(re-frame/subscribe [:map.layer/legend layer])]
-    [:div.legend-wrapper
-     (if legend_url 
-       [legend legend_url] ; if we have a custom legend url, use that
-       (case status        ; else use legend status to decide action
+(defn legend-display [{:keys [status info] :as _legend}]
+  [:div.legend-wrapper
+   (case status
+     :map.legend/loaded
+     [legend info]
 
-         :map.legend/loaded
-         [legend info]
+     :map.legend/loading
+     [b/non-ideal-state
+      {:icon  (reagent/as-element [b/spinner {:intent "success"}])}]
 
-         :map.legend/loading
-         [b/non-ideal-state
-          {:icon  (reagent/as-element [b/spinner {:intent "success"}])}]
+     :map.legend/unsupported-layer
+     [b/non-ideal-state
+      {:title       "Unsupported Layer"
+       :description "This layer does not currently support legends."
+       :icon        "warning-sign"}]
 
-         :map.legend/unsupported-layer
-         [b/non-ideal-state
-          {:title       "Unsupported Layer"
-           :description "This layer does not currently support legends."
-           :icon        "warning-sign"}]
+     :map.legend/error
+     [b/non-ideal-state
+      {:title       "Unexpected Error"
+       :description "There was an issue in retrieving the legend."
+       :icon        "error"}]
 
-         :map.legend/error
-         [b/non-ideal-state
-          {:title       "Unexpected Error"
-           :description "There was an issue in retrieving the legend."
-           :icon        "error"}]
-
-         :map.legend/none
-         [b/non-ideal-state
-          {:title       "No Data"
-           :description "We are unable to display any legend data at this time."
-           :icon        "info-sign"}]))]))
+     :map.legend/none
+     [b/non-ideal-state
+      {:title       "No Data"
+       :description "We are unable to display any legend data at this time."
+       :icon        "info-sign"}])])
 
 ;; TODO: Migrate this to use the new snap-slider component in components.cljs
 (defn- alternate-view-select
@@ -278,7 +281,13 @@
        :min      (apply min values)
        :max      (apply max values)
        :step     0.01
-       :value    (:value (or timeline-selected (first-where #(= (get-in % [:layer :id]) (:id (or displayed-layer layer))) timeline)))
+       ;; Fall back to a defined value: the displayed layer may not be on the
+       ;; timeline at all (eg an alternate view without its own timeline, where
+       ;; the slider renders disabled), and a controlled input must never
+       ;; receive nil:
+       :value    (or
+                  (:value (or timeline-selected (first-where #(= (get-in % [:layer :id]) (:id (or displayed-layer layer))) timeline)))
+                  (apply min values))
        :on-click #(.stopPropagation %)
        :on-input (fn [e]
                    (let [value (-> e .-target .-value)
@@ -399,39 +408,40 @@
   [{:keys [layer]
     {{:keys [tab displayed-layer alternate-views timeline controls tab-label icon cql-filter] :as rich-layer} :rich-layer} :layer-state
     :as props}]
-  [:div.layer-details
-   {:on-click #(.stopPropagation %)}
-   (if rich-layer
-     [b/tabs
-      {:selected-tab-id tab
-       :on-change       #(re-frame/dispatch [:map.rich-layer/tab rich-layer %])}
+  (let [legend @(re-frame/subscribe [:map.layer/legend (or displayed-layer layer)])]
+    [:div.layer-details
+     {:on-click #(.stopPropagation %)}
+     (if rich-layer
+       [b/tabs
+        {:selected-tab-id tab
+         :on-change       #(re-frame/dispatch [:map.rich-layer/tab rich-layer %])}
 
-      [b/tab
-       {:id    "legend"
-        :title (reagent/as-element [:<> [b/icon {:icon "key"}] "Legend"])
-        :panel
-        (reagent/as-element
-         [:div
-          {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
-          (when displayed-layer [:h2 (:name displayed-layer)])
-          [legend-display (or displayed-layer layer)]])}]
+        [b/tab
+         {:id    "legend"
+          :title (reagent/as-element [:<> [b/icon {:icon "key"}] "Legend"])
+          :panel
+          (reagent/as-element
+           [:div
+            {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
+            (when displayed-layer [:h2 (:name displayed-layer)])
+            [legend-display legend]])}]
 
-      [b/tab
-       {:id    "filters"
-        :title (reagent/as-element [:<> [b/icon {:icon icon}] tab-label])
-        :panel
-        (reagent/as-element
-         [:div
-          {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
-          (when (seq alternate-views) [alternate-view-select props])
-          (when (seq timeline) [timeline-select props])
-          (for [control controls]
-            ^{:key (:label control)}
-            [cql-control
-             {:control control
-              :props   props}])])}]]
-     
-     [legend-display layer])])
+        [b/tab
+         {:id    "filters"
+          :title (reagent/as-element [:<> [b/icon {:icon icon}] tab-label])
+          :panel
+          (reagent/as-element
+           [:div
+            {:on-click #(re-frame/dispatch [:map.layer.legend/toggle layer])}
+            (when (seq alternate-views) [alternate-view-select props])
+            (when (seq timeline) [timeline-select props])
+            (for [control controls]
+              ^{:key (:label control)}
+              [cql-control
+               {:control control
+                :props   props}])])}]]
+
+       [legend-display legend])]))
 
 (defn- layer-card-content
   "Content of a layer card; includes both the header and the details that can be

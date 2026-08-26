@@ -129,10 +129,53 @@ body.page-template-default.admin-bar #app {
     }
 }
 
+@property --current-drawer-width {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --current-plot-height {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --floating-pills-height {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0;
+}
+
 #main-wrapper {
     height: 100%;
     display: flex;
     flex-direction: row;
+    transition: --current-drawer-width 150ms;
+    transition: --current-plot-height 150ms;
+    &.catalogue-open {
+        --current-drawer-width: #{$drawer-width};
+    }
+    &.futures-of-seafood,
+    &.seamap {
+        --current-plot-height: 21px;
+    }
+    &.seamap-antarctica {
+        --current-plot-height: 0;
+    }
+    &.seamap,
+    &.tas-marine-atlas,
+    &.seamap-antarctica {
+        --floating-pills-height: 32px;
+    }
+    &.plot-open {
+        --current-plot-height: 221px;
+    }
+    &.map-printing {
+        --current-drawer-width: 0;
+        --current-plot-height: 0;
+        --floating-pills-height: 0;
+    }
 }
 #sidebar {
     flex: auto;
@@ -655,31 +698,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     border-bottom: 1px solid #ccc;
 }
 
-.leaflet-control-easyPrint {
-    display: none;
-}
-
-.print-control {
-    .options {
-        display: none;
-        position: absolute;
-        top: -2px;
-        left: $leaflet-control-width;
-        flex-direction: row;
-        border: 2px solid rgba(0,0,0,0.2);
-        border-left: 0;
-
-        >*, >*:hover {
-            border: 0;
-            border-left: 1px solid #ccc;
-        }
-    }
-
-    &:hover .options {
-        display: inline-flex;
-    }
-}
-
 // top-left is where our custom controls are, so we don't display any of leaflets'
 .leaflet-control-container .leaflet-top.leaflet-left {
     display: none;
@@ -806,4 +824,66 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .natural-hazards-atlas .leaflet-bar-timecontrol {
     display: none;
+}
+
+.map-legends-panel {
+    display: flex;
+    flex-direction: column;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.5);
+    width: calc(var(--legend-scale, 1) * 290px);
+    user-select: none;
+    position: absolute;
+    left: calc(var(--current-drawer-width) + 2 * $floating-menu-padding + 42px);
+    bottom: calc(var(--current-plot-height) + 25px);
+    max-height: calc(100vh - var(--current-plot-height) - var(--floating-pills-height) - 2 * $floating-menu-padding - 25px);
+    z-index: 1001;
+    .map-legends {
+        padding: 8px;
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        scrollbar-width: none;
+        display: flex;
+        flex-direction: column;
+        gap: calc(var(--legend-scale, 1) * 1em);
+        .pinned-legend h2 {
+            font-weight: bold;
+            font-size: calc(var(--legend-scale, 1) * 14px);
+        }
+    }
+    .scale-controls {
+        flex: 0 0 auto;
+        padding: 8px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        .scale-percentage {
+            font-size: 14px;
+        }
+    }
+    &.map-legends-panel-right {
+        left: unset;
+        right: $floating-menu-padding;
+    }
+}
+
+// Hide elements we don't want to see while the map is printing
+.map-printing {
+    .leaflet-control-attribution,
+    .leaflet-control-coordinates,
+    .leaflet-sbs-range,
+    .map-legends-panel .legend-scroll-button,
+    .map-legends-panel .scale-controls {
+        display: none !important;
+    }
+    .leaflet-left {
+        left: 0 !important;
+        transition: left 0;
+    }
+    .map-legends-panel {
+        left: $floating-menu-padding;
+        bottom: 25px;
+        max-height: calc(100vh - 2 * $floating-menu-padding);
+    }
 }

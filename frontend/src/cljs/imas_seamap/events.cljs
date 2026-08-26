@@ -241,11 +241,13 @@
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base))
 
-        {:keys [legend-ids opacity-ids]} db
+        {:keys [opacity-ids]} db
         layers        (get-in db [:map :layers])
-        legends-shown (init-layer-legend-status layers legend-ids)
+        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the pinned legends panel when the app loads
         ctx           (mutils/db->ctx db)
-        legends-get   (map #(rich-layer->displayed-layer % ctx) legends-shown)
+        legends-get   (concat
+                       (map #(rich-layer->displayed-layer % ctx) legends-shown) ; displayed layers to get legends for
+                       (filter identity (map #(mutils/rich-layer->side-by-side-views-selected-layer % ctx) legends-shown))) ; get legends for any side-by-side views
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
@@ -255,7 +257,7 @@
         rich-layers           (get-in db [:map :rich-layers :rich-layers])
         cql-get
         (->>
-         legend-ids
+         active ; get CQL filters for all applicable active layers
          (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
          (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
 
@@ -851,8 +853,15 @@
 (defn layers-search-omnibar-close [db _]
   (assoc-in db [:display :layers-search-omnibar] false))
 
+;; Dispatched on every leaflet mousemove, so this runs at pointer-poll rate. The
+;; only consumer is `distance-tooltip`, which is hidden unless a transect
+;; distance exists; skip the write otherwise. Returning `db` unchanged means
+;; re-frame's :db effect leaves app-db untouched (it checks `identical?`), so no
+;; subscription is invalidated.
 (defn mouse-pos [db [_ mouse-pos]]
-  (assoc-in db [:display :mouse-pos] mouse-pos))
+  (if (get-in db [:transect :distance])
+    (assoc-in db [:display :mouse-pos] mouse-pos)
+    db))
 
 (defn toggle-autosave [{:keys [db]} _]
   (let [db        (update db :autosave? not)
@@ -873,6 +882,26 @@
 
 (defn settings-overlay [db [_ open?]]
   (assoc-in db [:display :settings-overlay] open?))
+
+(defn pinned-legends?
+  "Is the pinned legends panel open?
+   
+   Reset scale of legends to 100%"
+  [{:keys [db]} [_ open?]]
+  {:db
+   (->
+    db
+    (assoc-in [:display :pinned-legends?] open?)
+    (assoc-in [:display :pinned-legends-scale] 1))
+   :dispatch [:maybe-autosave]})
+
+(defn pinned-legends-scale
+  "What is the scale of the pinned legends?
+
+   Clamps function to arbitrary min/max range."
+  [{:keys [db]} [_ scale]]
+  {:db (assoc-in db [:display :pinned-legends-scale] (min (max scale 0.3) 1.5))
+   :dispatch [:maybe-autosave]})
 
 (defn split-layer-range-value [{:keys [db]} [_ split-layer-range-value split-layer-container-x]]
   {:db       (-> db

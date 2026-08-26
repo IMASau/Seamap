@@ -4,6 +4,7 @@
 (ns imas-seamap.natural-hazards-atlas.map.views
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.map.utils :refer [bounds->geojson map->bounds]]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
@@ -40,7 +41,12 @@
 (defn map-b-layers
   "Displays the same layers as map A, but hazard layers are always tuned to the SSP2 scenario."
   []
-  (let [{:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn               #(get rich-layers-by-layer-id (:id %))
+        opacities                   @(re-frame/subscribe [::msubs/layer-opacities])
+        cql-filters                 @(re-frame/subscribe [::msubs/cql-filters])
+        layer-opacities             #(get opacities (:id %) 100)
+        cql-filter-fn               #(get cql-filters (:id %))
         displayed-layers-lookup     @(re-frame/subscribe [:map.layer/displayed-layers-lookup-map-b])
         {:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         boundary-filter             @(re-frame/subscribe [:sok/boundary-layer-filter])]
@@ -135,13 +141,6 @@
              [map-views/draw-transect-control])
            (when (:selecting? region-info)
              [map-views/draw-region-control])
-
-           ;; This control needs to exist so we can trigger its functions programmatically in
-           ;; the control-block element.
-           [leaflet/print-control
-            {:position   "topleft" :title "Export as PNG"
-             :export-only true
-             :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
 
            [leaflet/coordinates-control
             {:decimals 2

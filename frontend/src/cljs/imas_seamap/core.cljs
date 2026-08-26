@@ -32,7 +32,10 @@
 (def config-handlers
   {:subs
    {:map/props                            msubs/map-props
-    :map/rich-layers-side-by-side-views   msubs/rich-layers-side-by-side-views
+    :map/rich-layers-side-by-side-views   [:<- [::msubs/enhanced-rich-layers]
+                                           :<- [:dbsubs.map/rich-layers]
+                                           :<- [:dbsubs.map/active-layers]
+                                           msubs/rich-layers-side-by-side-views]
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
@@ -41,12 +44,23 @@
     :map.layers/lookup                    msubs/map-layer-lookup
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
-    :map.layer/legend                     msubs/layer-legend
-    :map.layer/displayed-layers-lookup    [:<- [:map/layers] msubs/layer-displayed-layers-lookup]
+    :map.layer/legend                     msubs/layer-legends
+    :map.layer/visible-layers-legends     [:<- [::msubs/visible-layers]
+                                           :<- [:map.layer/displayed-layers-lookup]
+                                           :<- [:map.layer/legend]
+                                           msubs/layer-visible-layers-legends]
+    :map.layer/visible-side-by-side-layers-legends [:<- [::msubs/visible-layers]
+                                                    :<- [::msubs/enhanced-rich-layers]
+                                                    :<- [:map.layer/legend]
+                                                    msubs/layer-visible-side-by-side-layers-legends]
+    :map.layer/displayed-layers-lookup    [:<- [::msubs/enhanced-rich-layers]
+                                           :<- [:dbsubs.map/layers]
+                                           msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
+    :map.print/is-printing?               msubs/print-is-printing?
     :sok/habitat-statistics               soksubs/habitat-statistics
     :sok/habitat-statistics-download-url  soksubs/habitat-statistics-download-url
     :sok/bathymetry-statistics            soksubs/bathymetry-statistics
@@ -84,6 +98,8 @@
     :ui/open-pill                         subs/open-pill
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
+    :ui/pinned-legends?                   subs/pinned-legends?
+    :ui/pinned-legends-scale              subs/pinned-legends-scale
     :ui/split-layer-range-value           subs/split-layer-range-value
     :dynamic-pills                        subs/dynamic-pills
     :site-configuration/outage-message    subs/site-configuration-outage-message
@@ -208,6 +224,8 @@
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          [mevents/map-zoom-in]
     :map/zoom-out                         [mevents/map-zoom-out]
+    :map.print/start                      [mevents/map-print-start]
+    :map.print/end                        [mevents/map-print-end]
     :map.print/error                      [mevents/map-print-error]
     :map/pan-direction                    [mevents/map-pan-direction]
     :map/update-leaflet-map               mevents/update-leaflet-map
@@ -269,6 +287,8 @@
     :ui/open-pill                         events/open-pill
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
+    :ui/pinned-legends?                   [events/pinned-legends?]
+    :ui/pinned-legends-scale              [events/pinned-legends-scale]
     :ui/split-layer-range-value           [events/split-layer-range-value]
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder] ; TODO: Remove event, unused
     :left-drawer/toggle                   [events/left-drawer-toggle]

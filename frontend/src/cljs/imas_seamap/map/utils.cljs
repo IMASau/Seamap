@@ -616,10 +616,22 @@
   (s/assert :map.rich-layers/rich-layer rich-layer)
   (apply merge (map #(control->value-map % rich-layer ctx) (:controls rich-layer))))
 
+(defn- assert-ctx!
+  "Guard against passing the app db where a rich-layer ctx is expected (see
+   db->ctx). Passing the db otherwise fails silently: destructuring the ctx keys
+   yields nils, and every layer quietly resolves as \"not a rich layer\". This
+   mistake has caused several real bugs when pre-refactor branches were merged.
+   Dev builds only; compiled out of production."
+  [ctx]
+  (when ^boolean goog.DEBUG
+    (assert (not (contains? ctx :map))
+            "Expected a rich-layer ctx but got what looks like the app db; convert with db->ctx first")))
+
 (defn enhance-rich-layer
   "Takes a rich-layer and enhances the info with other layer data."
   [{:keys [id layer-id slider-label alternate-views timeline side-by-side-views controls]
     :as rich-layer} {:keys [rl-states rl-async-datas rl-lookup rich-layers-by-id] :as ctx}]
+  (assert-ctx! ctx)
   (let [{:keys [tab side-by-side-views-selected-id]
          alternate-views-selected-id :alternate-views-selected
          timeline-selected-id        :timeline-selected
@@ -680,13 +692,15 @@
         :side-by-side-views-right-label-text side-by-side-views-right-label-text
         :cql-filter                 cql-filter)))))
 
-(defn layer->rich-layer [{:keys [id] :as _layer} {:keys [rich-layers-by-id rl-lookup]}]
+(defn layer->rich-layer [{:keys [id] :as _layer} {:keys [rich-layers-by-id rl-lookup] :as ctx}]
+  (assert-ctx! ctx)
   (let [rich-layer-id (get rl-lookup id)]
     (get rich-layers-by-id rich-layer-id)))
 
 (defn layer->rich-layer?
   "True if a layer is a rich layer, otherwise false."
-  [{:keys [id] :as _layer} {:keys [rl-lookup]}]
+  [{:keys [id] :as _layer} {:keys [rl-lookup] :as ctx}]
+  (assert-ctx! ctx)
   (boolean (get rl-lookup id)))
 
 ; FIXME: This function should be removed at some point. It's very data-munging.
@@ -697,6 +711,15 @@
   [layer ctx]
   (let [rich-layer (enhance-rich-layer (layer->rich-layer layer ctx) ctx)]
     (or (:displayed-layer rich-layer) layer)))
+
+; FIXME: Ditto
+(defn rich-layer->side-by-side-views-selected-layer
+  "If a layer is a rich-layer, then return the currently displayed side-by-side
+   view selected layer.
+   Nil if no side-by-side view is selected, or if the layer is not a rich-layer."
+  [layer ctx]
+  (let [rich-layer (enhance-rich-layer (layer->rich-layer layer ctx) ctx)]
+    (get-in rich-layer [:side-by-side-views-selected :layer])))
 
 (defn rich-layer->side-by-side-views-selected
   "If a layer is a rich-layer with a currently visible split layer, then return
@@ -811,6 +834,25 @@
   (let [rich-layer-cql-filter     (:cql-filter (enhance-rich-layer (layer->rich-layer layer ctx) ctx)) ; string or nil
         layer-cql-filter          (:filter (rich-layer->displayed-layer layer ctx))
         dynamic-pills-cql-filters (filter identity (map #(:cql-filter (->dynamic-pill % ctx)) (layer->dynamic-pills layer ctx))) ; list of strings
+        cql-filters
+        (cond-> dynamic-pills-cql-filters
+          (seq rich-layer-cql-filter) (conj rich-layer-cql-filter) ; if rich-layer cql filter exists, add it
+          (seq layer-cql-filter)      (conj layer-cql-filter))     ; if layer cql filter exists, add it
+        cql-filter (apply str (interpose " AND " cql-filters))] ; combine with AND
+    (when (seq cql-filter) cql-filter))) ; return nil if no filter
+
+(defn enhanced->cql-filter
+  "Like layer->cql-filter, but reads pre-enhanced rich-layer data (see the
+   ::enhanced-rich-layers sub) instead of enhancing on the fly, and computes the
+   dynamic-pill filters directly from pill config and state rather than via the
+   full ->dynamic-pill enhancement."
+  [{layer-cql-filter :filter :as layer} enhanced-rich-layer dynamic-pills dp-states]
+  (let [rich-layer-cql-filter     (:cql-filter enhanced-rich-layer) ; string or nil
+        layer-cql-filter          (:filter (or (:displayed-layer enhanced-rich-layer) layer))
+        dynamic-pills-cql-filters (->> (layer->dynamic-pills layer {:dynamic-pills dynamic-pills})
+                                       (map (fn [{:keys [id region-control]}]
+                                              (control->cql-filter region-control (get-in dp-states [id :region-control :value]))))
+                                       (filter identity)) ; list of strings
         cql-filters
         (cond-> dynamic-pills-cql-filters
           (seq rich-layer-cql-filter) (conj rich-layer-cql-filter) ; if rich-layer cql filter exists, add it

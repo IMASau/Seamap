@@ -138,20 +138,23 @@
 
 .legend-wrapper {
     margin: 8px 0;
-    img { max-width: 100%; }
+    img {
+        max-width: 100%;
+        width: calc(var(--natural-width) * var(--legend-scale, 1));
+    }
     .bp3-non-ideal-state { height: 150px; }
 }
 
 .vector-legend-entry {
     display: flex;
     align-items: center;
-    gap: 7px;
-    min-height: 24px;
+    gap: calc(var(--legend-scale, 1) * 7px);
+    min-height: calc(var(--legend-scale, 1) * 24px);
 }
 
 .vector-legend-entry > .key {
-    width: 16px;
-    height: 16px;
+    width: calc(var(--legend-scale, 1) * 16px);
+    height: calc(var(--legend-scale, 1) * 16px);
     position: relative;
     flex-shrink: 0;
 }
@@ -166,7 +169,7 @@
 
 .vector-legend-entry > .label {
     white-space: pre;
-    font-size: 13px;
+    font-size:  calc(var(--legend-scale, 1) * 13px);
     min-width: 0;
 }
 
