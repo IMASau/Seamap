@@ -34,7 +34,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Application definition
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,8 +50,15 @@ INSTALLED_APPS = (
     'habitat',
     'sql',
     'carbonabatementsidebar',
-    'nhat',
-)
+]
+
+# Dynamically support additional apps; this environment variable
+# should be a comma-separated list of apps to load at the end of
+# INSTALLED_APPS:
+if EXTRA_APPS := os.getenv("EXTRA_APPS", None):
+    EXTRA_APPS = EXTRA_APPS.split(",")
+    INSTALLED_APPS += EXTRA_APPS
+
 
 MIDDLEWARE = (
     'corsheaders.middleware.CorsMiddleware',
