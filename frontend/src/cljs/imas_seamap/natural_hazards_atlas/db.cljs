@@ -85,7 +85,7 @@
                    :selected-time-period-id   "all"}
    :autosave?       false
    :config          {:url-paths {:site-configuration    "siteconfiguration/"
-                                 :layer                 "nhatlayers/" ; Has the same information as the "layers/" API endpoint, but with extra Thredds styling information that we're not using in Seamap
+                                 :layer                 "nhat/layers/" ; Has the same information as the "layers/" API endpoint, but with extra Thredds styling information that we're not using in Seamap
                                  :base-layer            "baselayers/"
                                  :base-layer-group      "baselayergroups/"
                                  :organisation          "organisations/"
@@ -97,16 +97,16 @@
                                  :keyed-layers          "keyedlayers/"
                                  :rich-layers           "richlayers/"
                                  :dynamic-pills         "dynamicpills/"
-                                 :layer-legend          "nhatlayerlegend/" ; Uses the extra Thredds styling information we have in NHAT to build a more accurate legend than the "layerlegend/" API endpoint
+                                 :layer-legend          "nhat/layerlegend/" ; Uses the extra Thredds styling information we have in NHAT to build a more accurate legend than the "layerlegend/" API endpoint
                                  :layer-previews        "layer_previews/"
                                  :story-maps            "wp-json/wp/v2/story_map?acf_format=standard"
                                  :data-in-region        "habitat/datainregion"
                                  :cql-filter-values     "habitat/cqlfiltervalues"
                                  :dynamic-pill-region-control-values "habitat/dynamicpillregioncontrolvalues"
-                                 :cmip-phases           "nhatcmipphases/"
-                                 :scientific-models     "nhatscientificmodels/"
-                                 :scenarios             "nhatscenarios/"
-                                 :seasons               "nhatseasons/"}
+                                 :cmip-phases           "nhat/cmipphases/"
+                                 :scientific-models     "nhat/scientificmodels/"
+                                 :scenarios             "nhat/scenarios/"
+                                 :seasons               "nhat/seasons/"}
                      :urls      nil
                      :url-base {:api-url-base       "http://localhost:8000/api/"
                                 :media-url-base     "http://localhost:8000/media/"
