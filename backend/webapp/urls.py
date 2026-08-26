@@ -1,6 +1,7 @@
 # Seamap: view and interact with Australian coastal habitat data
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+from importlib import import_module
 from importlib.util import find_spec
 
 from django.apps import apps
@@ -13,7 +14,6 @@ from rest_framework.routers import DefaultRouter
 import carbonabatementsidebar.views
 import carbonabatementsidebar.viewsets
 import habitat.viewsets as habitat_viewsets
-import nhat.viewsets
 import webapp.viewsets
 from catalogue import views, viewsets
 
@@ -29,11 +29,6 @@ router.register(r'keyedlayers', viewsets.KeyedLayerViewset)
 router.register(r'richlayers', viewsets.RichLayerViewset)
 router.register(r'regionreports', viewsets.RegionReportViewset)
 router.register(r'dynamicpills', viewsets.DynamicPillViewset)
-router.register(r'nhat/layers', nhat.viewsets.LayerViewset, basename='nhatlayer')
-router.register(r'nhat/cmipphases', nhat.viewsets.CmipPhaseViewset)
-router.register(r'nhat/scientificmodels', nhat.viewsets.ScientificModelViewset)
-router.register(r'nhat/scenarios', nhat.viewsets.ScenarioViewset)
-router.register(r'nhat/seasons', nhat.viewsets.SeasonViewset)
 
 urlpatterns = [
     path('tinymce/', include('tinymce.urls')),
@@ -54,7 +49,6 @@ urlpatterns = [
     re_path(r'^api/siteconfiguration', webapp.viewsets.site_configuration, name='site_configuration'),
     re_path(r'^api/savestates', views.SaveStateView.as_view()),
     re_path(r'^api/squidleannotationsdata', views.SquidleAnnotationsDataView.as_view()),
-    re_path(r'^api/', include(router.urls)),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
     re_path(r'^api/carbonabatementsidebar/carbonabatement$', carbonabatementsidebar.viewsets.carbon_abatement, name='carbon_abatement'),
@@ -62,13 +56,33 @@ urlpatterns = [
     re_path(r'^api/carbonabatementsidebar/carbonpricecarbonabatement$', carbonabatementsidebar.viewsets.carbon_price_carbon_abatement, name='carbon_price_carbon_abatement'),
     re_path(r'^api/carbonabatementsidebar/carbonpriceabatementarea$', carbonabatementsidebar.viewsets.carbon_price_abatement_area, name='carbon_price_abatement_area'),
     re_path(r'^carbonabatementsidebar$', carbonabatementsidebar.views.carbon_abatement_sidebar, name='carbon_abatement_sidebar'),
-    re_path(r'^api/nhat/layerlegend/(?P<layer_id>[^/.]+)', nhat.viewsets.layer_legend, name='layer_legend'),
 ]
+
+# Support for dynamic app inclusion.
+# This allows additional apps to define their own urls, namespaced under "api/<appname>".
+# To enable this:
+# 1. The app must define a custom AppConfig.
+# 2. This AppConfig must define a string property called "url_prefix"
+#    Its urls module will then be included under api/<url_prefix> (note this
+#    might be different from the app name)
+# 3. Optionally, the urls module can include a "rf_routes" list property.
+#    This is a list of tuples of the form passed to router.register();
+#    ie (path, viewset, basename) where basename is optional.
 
 for cfg in apps.get_app_configs():
     prefix = getattr(cfg, 'url_prefix', None)
-    if prefix is not None and find_spec(f'{cfg.name}.urls'):
-        urlpatterns.append(path(prefix, include(f"{cfg.name}.urls")))
+    module = find_spec(f'{cfg.name}.urls')
+    if prefix is not None and module is not None:
+        urlpatterns.append(path(f"api/{prefix}/", include(f"{cfg.name}.urls")))
+
+        rf_routes = getattr(import_module(f'{cfg.name}.urls'), 'rf_routes', [])
+        for route in rf_routes:
+            path,*rest = route
+            router.register(f"{prefix}/{path}", *rest)
+
+# Finally load rest-framework routes after any possibly
+# dynamically-included routes have been included:
+urlpatterns.append( re_path(r'^api/', include(router.urls)) )
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
