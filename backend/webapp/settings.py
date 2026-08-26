@@ -54,7 +54,7 @@ INSTALLED_APPS = [
 
 # Dynamically support additional apps; this environment variable
 # should be a comma-separated list of apps to load at the end of
-# INSTALLED_APPS:
+# INSTALLED_APPS (see webapp.urls for details of the app's AppConfig):
 if EXTRA_APPS := os.getenv("EXTRA_APPS", None):
     EXTRA_APPS = EXTRA_APPS.split(",")
     INSTALLED_APPS += EXTRA_APPS
