@@ -29,11 +29,11 @@ router.register(r'keyedlayers', viewsets.KeyedLayerViewset)
 router.register(r'richlayers', viewsets.RichLayerViewset)
 router.register(r'regionreports', viewsets.RegionReportViewset)
 router.register(r'dynamicpills', viewsets.DynamicPillViewset)
-router.register(r'nhatlayers', nhat.viewsets.LayerViewset, basename='nhatlayer')
-router.register(r'nhatcmipphases', nhat.viewsets.CmipPhaseViewset)
-router.register(r'nhatscientificmodels', nhat.viewsets.ScientificModelViewset)
-router.register(r'nhatscenarios', nhat.viewsets.ScenarioViewset)
-router.register(r'nhatseasons', nhat.viewsets.SeasonViewset)
+router.register(r'nhat/layers', nhat.viewsets.LayerViewset, basename='nhatlayer')
+router.register(r'nhat/cmipphases', nhat.viewsets.CmipPhaseViewset)
+router.register(r'nhat/scientificmodels', nhat.viewsets.ScientificModelViewset)
+router.register(r'nhat/scenarios', nhat.viewsets.ScenarioViewset)
+router.register(r'nhat/seasons', nhat.viewsets.SeasonViewset)
 
 urlpatterns = [
     path('tinymce/', include('tinymce.urls')),
@@ -62,7 +62,7 @@ urlpatterns = [
     re_path(r'^api/carbonabatementsidebar/carbonpricecarbonabatement$', carbonabatementsidebar.viewsets.carbon_price_carbon_abatement, name='carbon_price_carbon_abatement'),
     re_path(r'^api/carbonabatementsidebar/carbonpriceabatementarea$', carbonabatementsidebar.viewsets.carbon_price_abatement_area, name='carbon_price_abatement_area'),
     re_path(r'^carbonabatementsidebar$', carbonabatementsidebar.views.carbon_abatement_sidebar, name='carbon_abatement_sidebar'),
-    re_path(r'^api/nhatlayerlegend/(?P<layer_id>[^/.]+)', nhat.viewsets.layer_legend, name='layer_legend'),
+    re_path(r'^api/nhat/layerlegend/(?P<layer_id>[^/.]+)', nhat.viewsets.layer_legend, name='layer_legend'),
 ]
 
 for cfg in apps.get_app_configs():
