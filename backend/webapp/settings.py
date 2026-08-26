@@ -46,7 +46,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'tinymce',
     'webapp',
-    'catalogue.apps.CatalogueConfig',
+    'catalogue',
     'habitat',
     'sql',
     'carbonabatementsidebar',
