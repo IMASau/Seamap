@@ -209,7 +209,7 @@
       :on-click #(re-frame/dispatch [:toggle-autosave])
       :text     text}]))
 
-(defn- pinned-legends-toggle
+(defn pinned-legends-toggle
   "Toggle button in settings menu to enable/disable pinned legends on map."
   []
   (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
