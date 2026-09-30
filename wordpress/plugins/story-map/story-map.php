@@ -14,7 +14,7 @@
  * @wordpress-plugin
  * Plugin Name:       Story Maps
  * Description:       Adds the Seamap story map post type.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Author:            Condense Pty Ltd.
  * Author URI:        https://condense.com.au/
  * License:           Affero General Public Licence (AGPL) v3
@@ -45,6 +45,78 @@ function story_map_setup_post_type() {
 }
 add_action('init', 'story_map_setup_post_type');
 
+/**
+ * Add repeating fields from ACF (runs at init, at which point ACF should have been loaded):
+ */
+function story_map_add_acf_fields() {
+    if (class_exists('acf')) {
+        add_action('acf/init', function() {
+            acf_add_local_field_group([
+                'key'          => 'group_story_map',
+                'title'        => 'Story Map',
+                'position'     => 'side',
+                'show_in_rest' => true,
+                'fields'       => [
+                    [
+                        'key'           => 'field_story_map_image',
+                        'label'         => 'Image',
+                        'name'          => 'image',
+                        'type'          => 'image',
+                        'return_format' => 'url',
+                    ],
+                    [
+                        'key'      => 'field_story_map_description',
+                        'label'    => 'Description',
+                        'name'     => 'description',
+                        'type'     => 'wysiwyg',
+                        'required' => true,
+                    ],
+                    [
+                        'key'        => 'field_story_map_map_link',
+                        'label'      => 'Map Links',
+                        'name'       => 'map_links',
+                        'type'       => 'repeater',
+                        'layout'     => 'block',
+                        'sub_fields' => [
+                            [
+                                'key'      => 'field_story_map_map_link_subtitle',
+                                'label'    => 'Subtitle',
+                                'name'     => 'subtitle',
+                                'type'     => 'text',
+                                'required' => true,
+                            ],
+                            [
+                                'key'      => 'field_story_map_map_link_description',
+                                'label'    => 'Description',
+                                'name'     => 'description',
+                                'type'     => 'wysiwyg',
+                                'required' => true,
+                            ],
+                            [
+                                'key'      => 'field_story_map_map_link_shortcode',
+                                'label'    => 'Shortcode',
+                                'name'     => 'shortcode',
+                                'type'     => 'text',
+                                'required' => true,
+                            ],
+                        ],
+
+                    ],
+                ],
+                'location'     => [
+                    [
+                        [
+                            'param'    => 'post_type',
+                            'operator' => '==',
+                            'value'    => 'story_map',
+                        ],
+                    ],
+                ],
+            ]);
+        });
+    }
+}
+add_action('plugins_loaded', 'story_map_add_acf_fields', 10);
 
 /**
  * Activate the plugin.
@@ -64,73 +136,3 @@ function story_map_deactivate() {
     flush_rewrite_rules();
 }
 register_deactivation_hook(__FILE__, 'story_map_deactivate');
-
-/**
- * Adds custom fields from ACF to the story-map post type.
- */
-if (class_exists('acf')) {
-    add_action('acf/init', function() {
-        acf_add_local_field_group([
-            'key'          => 'group_story_map',
-            'title'        => 'Story Map',
-            'position'     => 'side',
-            'show_in_rest' => true,
-            'fields'       => [
-                [
-                    'key'           => 'field_story_map_image',
-                    'label'         => 'Image',
-                    'name'          => 'image',
-                    'type'          => 'image',
-                    'return_format' => 'url',
-                ],
-                [
-                    'key'      => 'field_story_map_description',
-                    'label'    => 'Description',
-                    'name'     => 'description',
-                    'type'     => 'wysiwyg',
-                    'required' => true,
-                ],
-                [
-                    'key'        => 'field_story_map_map_link',
-                    'label'      => 'Map Links',
-                    'name'       => 'map_links',
-                    'type'       => 'repeater',
-                    'layout'     => 'block',
-                    'sub_fields' => [
-                        [
-                            'key'      => 'field_story_map_map_link_subtitle',
-                            'label'    => 'Subtitle',
-                            'name'     => 'subtitle',
-                            'type'     => 'text',
-                            'required' => true,
-                        ],
-                        [
-                            'key'      => 'field_story_map_map_link_description',
-                            'label'    => 'Description',
-                            'name'     => 'description',
-                            'type'     => 'wysiwyg',
-                            'required' => true,
-                        ],
-                        [
-                            'key'      => 'field_story_map_map_link_shortcode',
-                            'label'    => 'Shortcode',
-                            'name'     => 'shortcode',
-                            'type'     => 'text',
-                            'required' => true,
-                        ],
-                    ],
-                    
-                ],
-            ],
-            'location'     => [
-                [
-                    [
-                        'param'    => 'post_type',
-                        'operator' => '==',
-                        'value'    => 'story_map',
-                    ],
-                ],
-            ],
-        ]);
-    });
-}
