@@ -65,7 +65,7 @@
         (cond
           selecting? ["Cancel Selecting"    "undo"   :map.layer.selection/disable]
           region     ["Clear Selection"     "eraser" :map.layer.selection/clear]
-          :else      ["Select Habitat Data" "widget" :map.layer.selection/enable])]
+          :else      ["Select Area of Interest" "widget" :map.layer.selection/enable])]
     [views/control-block-child
      {:on-click  #(re-frame/dispatch [dispatch])
       :tooltip   tooltip
