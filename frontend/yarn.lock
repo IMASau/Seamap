@@ -5974,7 +5974,7 @@ dom-serializer@^1.0.1:
     domhandler "^4.2.0"
     entities "^2.0.0"
 
-dom-to-image@^2.5.2, dom-to-image@^2.6.0:
+dom-to-image@^2.6.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/dom-to-image/-/dom-to-image-2.6.0.tgz#8a503608088c87b1c22f9034ae032e1898955867"
   integrity sha1-ilA2CAiMh7HCL5A0rgMuGJiVWGc=
@@ -6606,11 +6606,6 @@ file-loader@^6.2.0:
   dependencies:
     loader-utils "^2.0.0"
     schema-utils "^3.0.0"
-
-file-saver@^1.3.3:
-  version "1.3.8"
-  resolved "https://registry.yarnpkg.com/file-saver/-/file-saver-1.3.8.tgz#e68a30c7cb044e2fb362b428469feb291c2e09d8"
-  integrity sha512-spKHSBQIxxS81N/O21WmuXA2F6wppUCsutpzenOeZzOCCJ5gEfcbqJP983IrpLXzYmXnMUa6J03SubcNPdKrlg==
 
 file-saver@^2.0.5:
   version "2.0.5"
@@ -11503,10 +11498,10 @@ shadow-cljs-jar@1.3.4:
   resolved "https://registry.yarnpkg.com/shadow-cljs-jar/-/shadow-cljs-jar-1.3.4.tgz#0939d91c468b4bc5eab5a958f79e7ef5696fdf62"
   integrity sha512-cZB2pzVXBnhpJ6PQdsjO+j/MksR28mv4QD/hP/2y1fsIa9Z9RutYgh3N34FZ8Ktl4puAXaIGlct+gMCJ5BmwmA==
 
-shadow-cljs@3.4.11:
-  version "3.4.11"
-  resolved "https://registry.yarnpkg.com/shadow-cljs/-/shadow-cljs-3.4.11.tgz#5ddb117417e7e3d23df9a22c146d938062497a60"
-  integrity sha512-996uqtadZItXdD80Vtoh9IoE8oUOKoXOXd48gOxkZWUAHcxgcBlcRqMmPYiy4A1QqvSUQkdNGpv9AIWOgLx9Vg==
+shadow-cljs@3.5.4:
+  version "3.5.4"
+  resolved "https://registry.yarnpkg.com/shadow-cljs/-/shadow-cljs-3.5.4.tgz#9244dcd561c9beff7d7ad69fbce8c8fb3969f7cf"
+  integrity sha512-3zm2cfbKYai1elftajlFPJN6abDUUxGPDQCp0Huf46ZAGWM8EzlWW+WHpxiIzoia9/aSm9EOOM7aOykOncT0eg==
   dependencies:
     buffer "^6.0.3"
     process "^0.11.10"
