@@ -162,6 +162,7 @@
   [:input
    {:type "range"
     :min 0 :max 100 :value opacity
+    :title "Adjust Transparency"
     :on-click #(.stopPropagation %)
     :on-input #(re-frame/dispatch [:map.layer/opacity-changed layer (js/parseInt (.. % -target -value))])}])
 
