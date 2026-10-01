@@ -614,6 +614,7 @@
 (defn print-control []
   [control-block-child
    {:on-click #(re-frame/dispatch [:map.print/start])
+    :tooltip  "Export Map As Image"
     :id       "print-control"
     :icon     "media"}])
 
