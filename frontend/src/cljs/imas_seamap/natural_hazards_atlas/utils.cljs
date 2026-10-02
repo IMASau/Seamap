@@ -170,21 +170,22 @@
   "The \"When\" control's options: the historical baseline, then the three
    projected periods. Each projected preset is a `time-periods` entry. The
    baseline's span comes from the data (the historical runs end in 2014), so
-   `:axis-start-year` only positions it on the timeline."
-  [{:id "baseline" :name "Baseline" :historic? true :axis-start-year 1985 :end-year 2014}
+   `:axis-start-year` only draws it on the timeline, as a 20-year window like
+   the others."
+  [{:id "baseline" :name "Baseline" :historic? true :axis-start-year 1995 :end-year 2014}
    {:id "short"    :name "Short"    :historic? false :start-year 2020 :end-year 2039}
    {:id "medium"   :name "Medium"   :historic? false :start-year 2050 :end-year 2069}
    {:id "long"     :name "Long"     :historic? false :start-year 2080 :end-year 2099}])
 
 (def timeline-axis
   "Years spanned by the \"When\" timeline."
-  {:start-year 1985 :end-year 2100})
+  {:start-year 1995 :end-year 2100})
 
 (def scenario-labels
   "Plain-English names for the emissions scenarios, keyed by scenario name. The
    SSP code is shown underneath for anyone who needs it."
-  {"ssp126" {:label "Lower"  :code "SSP1-2.6"}
-   "ssp370" {:label "Higher" :code "SSP3-7.0"}})
+  {"ssp126" {:label "Lower"  :code "SSP1-2.6" :description "Emissions fall steeply from today."}
+   "ssp370" {:label "Higher" :code "SSP3-7.0" :description "Emissions keep rising through the century."}})
 
 (def default-scenario-name
   "Scenario shown until the user picks one (agreed 24 Sep: higher emissions)."

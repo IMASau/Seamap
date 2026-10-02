@@ -786,86 +786,258 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 #side-by-side-toggle { padding: 12px 24px; }
 
-// "When" control and friends in the Current View panel
+// Current View panel: When, Emissions, Season, Model settings, caption.
+// Uses the atlas's own plum as the only accent.
 .current-view {
-    .form-group { margin-bottom: 12px; }
-    .form-group > div:first-child { font-weight: 600; margin-bottom: 4px; }
+    --cv-ink: #260c27;
+    --cv-plum: #6f2573;
+    --cv-plum-hover: #8a3a8f;
+    --cv-mist: #f1ebf2;
+    --cv-rule: #e0d6e1;
+    --cv-muted: #76667a;
 
-    // Buttons with a plain-word label over a smaller detail line
-    .stacked-buttons .bp3-button {
-        flex-direction: column;
-        gap: 0;
-        padding: 4px 2px;
-        min-width: 0;
-        .bp3-button-text { display: flex; flex-direction: column; align-items: center; }
+    color: var(--cv-ink);
+    padding: 20px 24px 8px;
+
+    &.dark { --cv-mist: #e2d8e3; }
+
+    .cv-section { margin-bottom: 22px; }
+
+    .cv-label {
+        margin: 0 0 10px;
+        font-family: Poppins, sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.3;
+        color: var(--cv-ink);
     }
-    .stacked-button-label { font-weight: 600; }
-    .stacked-button-detail { font-size: 11px; opacity: 0.7; white-space: nowrap; }
+    .cv-sublabel {
+        margin: 12px 0 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--cv-muted);
+    }
+    .cv-note {
+        margin: 8px 0 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--cv-muted);
+    }
 
+    button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        &:disabled { cursor: default; }
+        &:focus-visible {
+            outline: 2px solid var(--cv-plum);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+    }
+
+    // The four periods, each drawn to scale on a year axis
     .when-timeline {
-        margin: 10px 2px 0;
-        .when-timeline-track {
-            position: relative;
-            height: 14px;
-            border-radius: 7px;
-            background: linear-gradient(to right, #d8e1e8 0, #d8e1e8 26%, #e8e1d8 26%, #e8e1d8 100%);
+        position: relative;
+        height: 62px;
+    }
+    .when-timeline-axis {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 24px;
+        height: 2px;
+        background: var(--cv-rule);
+        border-radius: 1px;
+    }
+    .when-period {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        white-space: nowrap;
+
+        .when-period-name {
+            font-family: Poppins, sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 18px;
+            color: var(--cv-muted);
         }
-        .when-timeline-window {
-            position: absolute;
-            top: 2px;
-            bottom: 2px;
+        .when-period-window {
+            position: relative;
+            align-self: stretch;
+            height: 10px;
+            margin: 2px 0 6px;
             border-radius: 5px;
-            background: rgba(19, 124, 189, 0.25);
-            cursor: pointer;
-            &:hover { background: rgba(19, 124, 189, 0.45); }
-            &.selected { top: -2px; bottom: -2px; background: #137cbd; }
+            background: var(--cv-mist);
+            box-shadow: inset 0 0 0 1px var(--cv-rule);
+            overflow: hidden;
+            transition: background-color 0.15s, height 0.15s, margin 0.15s;
         }
-        .when-timeline-marker {
-            position: absolute;
-            top: -4px;
-            bottom: -4px;
-            width: 3px;
-            margin-left: -1px;
-            background: #182026;
-            border-radius: 1px;
-            pointer-events: none;
-            transition: left 0.2s;
+        .when-period-years {
+            font-size: 11px;
+            line-height: 14px;
+            color: var(--cv-muted);
+            font-variant-numeric: tabular-nums;
         }
-        .when-timeline-ticks {
-            position: relative;
-            height: 16px;
-            font-size: 10px;
-            color: #5c7080;
-            span { position: absolute; top: 2px; transform: translateX(-50%); }
-            span:last-child { transform: translateX(-100%); }
+
+        &:hover:not(.selected) {
+            .when-period-name { color: var(--cv-ink); }
+            .when-period-window { background: #e4d3e6; }
         }
+
+        &.selected {
+            .when-period-name { color: var(--cv-plum); font-weight: 600; }
+            .when-period-years { color: var(--cv-ink); }
+            .when-period-window {
+                height: 14px;
+                margin: 0 0 4px;
+                border-radius: 7px;
+                background: var(--cv-plum);
+                box-shadow: none;
+            }
+        }
+    }
+    // Watch change: the years played so far fill the window
+    .when-period-progress {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.28);
+        transition: width 0.3s ease-out;
+    }
+    .when-period-marker {
+        position: absolute;
+        top: 3px;
+        bottom: 3px;
+        width: 2px;
+        margin-left: -1px;
+        border-radius: 1px;
+        background: #fff;
+        transition: left 0.3s ease-out;
     }
 
     .watch-change {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-top: 4px;
-        .watch-change-year {
-            display: flex;
+        margin-top: 10px;
+    }
+    .watch-change-play {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 30px;
+        padding: 0 12px 0 10px;
+        border-radius: 15px;
+        box-shadow: inset 0 0 0 1px var(--cv-plum);
+        color: var(--cv-plum);
+        font-size: 13px;
+        font-weight: 600;
+        .bp3-icon { color: inherit; }
+        &:hover:not(:disabled) { background: var(--cv-mist); }
+        &.playing { background: var(--cv-plum); color: #fff; }
+        &:disabled { box-shadow: inset 0 0 0 1px var(--cv-rule); color: var(--cv-muted); }
+    }
+    .watch-change-year {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        button {
+            display: inline-flex;
             align-items: center;
-            gap: 2px;
-            span { min-width: 3.5em; text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 13px;
+            color: var(--cv-plum);
+            .bp3-icon { color: inherit; }
+            &:hover:not(:disabled) { background: var(--cv-mist); }
+            &:disabled { color: var(--cv-rule); }
         }
     }
-
-    .advanced-settings {
-        margin-bottom: 8px;
-        > .bp3-button { margin-left: -7px; }
-        .advanced-settings-body { padding: 8px 0 0 16px; }
+    .watch-change-year-value {
+        display: inline-flex;
+        justify-content: center;
+        min-width: 3em;
+        font-family: Poppins, sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
     }
 
-    .current-view-caption {
-        margin: 4px 0 0;
-        padding-top: 8px;
-        border-top: 1px solid rgba(16, 22, 26, 0.15);
+    // Two-option choice with the plain word over its code
+    .segmented {
+        display: flex;
+        padding: 3px;
+        border-radius: 8px;
+        background: var(--cv-mist);
+        button {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 4px;
+            border-radius: 6px;
+            transition: background-color 0.15s;
+            &:hover:not(:disabled):not(.selected) { background: rgba(255, 255, 255, 0.6); }
+            &.selected {
+                background: #fff;
+                box-shadow: 0 1px 2px rgba(38, 12, 39, 0.18);
+                .segmented-name { color: var(--cv-plum); }
+            }
+            &:disabled { opacity: 0.45; }
+        }
+    }
+    .segmented-name {
+        font-family: Poppins, sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 18px;
+    }
+    .segmented-detail {
+        font-size: 11px;
+        line-height: 14px;
+        color: var(--cv-muted);
+    }
+
+    .model-settings-toggle {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        width: 100%;
+        text-align: left;
+        .bp3-icon { align-self: center; color: var(--cv-muted); }
+        .cv-label { margin: 0; }
+    }
+    .model-settings-summary {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         font-size: 12px;
-        line-height: 1.4;
+        color: var(--cv-muted);
+    }
+    .model-settings-body { padding: 2px 0 0 20px; }
+
+    .current-view-caption {
+        margin: 0 0 16px;
+        padding: 12px 0 0;
+        border-top: 1px solid var(--cv-rule);
+        p { margin: 0; font-size: 13px; line-height: 1.5; }
+        strong { font-weight: 600; }
+        .cv-note { margin-top: 4px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; }
     }
 }
 
