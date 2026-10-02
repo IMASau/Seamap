@@ -900,45 +900,82 @@ input.leaflet-control-layers-selector[type="radio"] {
     .segmented .selected .segmented-detail { color: var(--cv-plum); }
 
     // The track: 1990 to 2100, with the 20-year window as the handle
+    // "View by": a small switch above the time control
+    .mode-toggle {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 8px;
+        .cv-note { margin-right: 4px; }
+        button {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: var(--cv-muted);
+            &:hover:not(.selected) { color: var(--cv-ink); }
+            &.selected { background: var(--cv-plum-tint); color: var(--cv-plum); font-weight: 600; }
+        }
+    }
+
     .when-track {
         position: relative;
-        height: 30px;
+        height: 22px;
         margin-top: 10px;
-        cursor: pointer;
-        touch-action: none;
-        user-select: none;
     }
     .when-track-line, .when-track-past {
         position: absolute;
-        top: 13px;
+        top: 9px;
         height: 4px;
         border-radius: 2px;
-        pointer-events: none;
     }
     .when-track-line { left: 0; right: 0; background: var(--cv-rule); }
     .when-track-past { left: 0; background: var(--cv-past); border-radius: 2px 0 0 2px; }
     .when-window {
         position: absolute;
-        top: 4px;
-        height: 22px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        top: 2px;
+        height: 18px;
         border: 1.5px solid var(--cv-plum);
-        border-radius: 6px;
+        border-radius: 5px;
         background: var(--cv-plum-tint);
-        color: var(--cv-plum);
-        cursor: grab;
-        transition: left 0.25s ease-out;
-        &.dragging { cursor: grabbing; transition: none; box-shadow: 0 2px 6px rgba(38, 12, 39, 0.25); }
+        transition: left 0.3s ease-out;
     }
-    .when-window-years {
-        font-size: 10px;
+
+    // Single years: slider plus exact stepping
+    .year-select {
+        padding: 2px 14px 0;
+        .bp3-slider-progress.bp3-intent-primary { background-color: var(--cv-plum); }
+        .bp3-slider-handle { border-radius: 50%; }
+        .bp3-slider-handle .bp3-slider-label { display: none; } // the stepper shows the year
+        .bp3-slider-axis .bp3-slider-label { font-size: 11px; color: var(--cv-muted); }
+    }
+    .year-stepper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            color: var(--cv-plum);
+            .bp3-icon { color: inherit; }
+            &:hover:not(:disabled) { background: var(--cv-plum-tint); }
+            &:disabled { color: var(--cv-rule); }
+        }
+    }
+    .year-stepper-value {
+        min-width: 3em;
+        text-align: center;
+        font-family: Poppins, sans-serif;
+        font-size: 16px;
         font-weight: 600;
-        white-space: nowrap;
         font-variant-numeric: tabular-nums;
-        pointer-events: none;
     }
+
     .when-ticks {
         position: relative;
         height: 14px;

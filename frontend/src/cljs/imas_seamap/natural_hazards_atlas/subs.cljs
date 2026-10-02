@@ -77,6 +77,16 @@
   [db [_ map-id]]
   (nhatutils/current-view-window-start db map-id))
 
+(defn current-view-year
+  "The year chosen in single-year mode."
+  [db [_ map-id]]
+  (nhatutils/current-view-year db map-id))
+
+(defn current-view-time-mode
+  "\"periods\" or \"years\"."
+  [db [_ map-id]]
+  (nhatutils/current-view-time-mode db map-id))
+
 (defn current-view-window-playing?
   "Is Watch change sweeping the window across the century?"
   [db [_ map-id]]
@@ -88,24 +98,32 @@
    Signals function is a necessity, in order to pass through subscription args"
   [[_ map-id]]
   [(re-frame/subscribe [:map.layers/active-hazard-layer])
+   (re-frame/subscribe [:current-view/time-mode map-id])
    (re-frame/subscribe [:current-view/selected-time-period map-id])
+   (re-frame/subscribe [:map.time/current-time map-id])
    (re-frame/subscribe [:current-view/is-historic? map-id])
    (re-frame/subscribe [:current-view/selected-scenario map-id])
    (re-frame/subscribe [:current-view/selected-seasonal-data map-id])
    (re-frame/subscribe [:current-view/selected-model map-id])])
 
 (defn current-view-caption
-  "The parts of a plain-English description of what the map is showing."
-  [[hazard-layer {:keys [name start-year end-year]} historic? scenario season model] _]
-  {:layer     (:name hazard-layer)
-   :period    name
-   :years     (str start-year "–" end-year)
-   :emissions (when-not historic?
-                (let [{:keys [label]} (get nhatutils/scenario-labels (:name scenario))]
-                  (if label (str (string/lower-case label) " emissions") (:display_name scenario))))
-   :season    (:display_name season)
-   :model     (let [model-name (:display_name model)] ; "Ensemble median" reads as words; model codes don't
-                (if (some-> model-name (string/starts-with? "Ensemble")) (string/lower-case model-name) model-name))})
+  "The parts of a plain-English description of what the map is showing.
+
+   Until we know whether each time step is one year or a 20-year average, say
+   which year is on the map rather than claiming an average."
+  [[hazard-layer mode {:keys [name]} current-time historic? scenario season model] _]
+  (let [year (when current-time (.getFullYear (js/Date. current-time)))]
+    {:layer     (:name hazard-layer)
+     :when      (cond
+                  (= mode "years") (when year (str "Year " year))
+                  year             (str name " (showing " year ")")
+                  :else            name)
+     :emissions (when-not historic?
+                  (let [{:keys [label]} (get nhatutils/scenario-labels (:name scenario))]
+                    (if label (str (string/lower-case label) " emissions") (:display_name scenario))))
+     :season    (:display_name season)
+     :model     (let [model-name (:display_name model)] ; "Ensemble median" reads as words; model codes don't
+                  (if (some-> model-name (string/starts-with? "Ensemble")) (string/lower-case model-name) model-name))}))
 
 (defn current-view-timeline-media-controls-signals
   "Signals function for current-view-timeline-media-controls.

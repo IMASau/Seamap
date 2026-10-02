@@ -156,100 +156,118 @@
       (str start-year "–" (.padStart (str (mod end-year 100)) 2 "0"))
       (str start-year "–" end-year))))
 
-(defn- when-select
-  "One control for one question: when? Pick a named period, or drag the 20-year
-   window along the track to any 20 years. Watch change sweeps the window across
-   the century."
+(defn- time-mode-toggle
+  [{:keys [map-id mode]}]
+  [:div.mode-toggle {:role "group" :aria-label "View by"}
+   [:span.cv-note "View by"]
+   (for [[id label] [["periods" "20-year periods"] ["years" "Single years"]]]
+     ^{:key id}
+     [:button
+      {:type         "button"
+       :aria-pressed (= id mode)
+       :class        (when (= id mode) "selected")
+       :on-click     #(re-frame/dispatch [:current-view/time-mode id map-id])}
+      label])])
+
+(defn- period-track
+  "Where the selected period sits in the century. A picture, not a control: the
+   buttons above choose."
+  [{:keys [start]}]
+  (let [{axis-start :start-year axis-end :end-year} nhatutils/timeline-axis
+        first-projected (inc nhatutils/last-historic-year)
+        pct             #(* 100 (/ (- % axis-start) (- axis-end axis-start)))]
+    [:div.when-track-picture {:aria-hidden true}
+     [:div.when-track
+      [:span.when-track-line]
+      [:span.when-track-past {:style {:width (str (pct first-projected) "%")}}]
+      [:span.when-window
+       {:style {:left  (str (pct start) "%")
+                :width (str (- (pct (+ start nhatutils/window-years)) (pct start)) "%")}}]]
+     [:div.when-ticks
+      (for [year [axis-start first-projected 2050 axis-end]]
+        ^{:key year}
+        [:span {:style {:left (str (pct year) "%")}} year])]]))
+
+(defn- period-select
+  [{:keys [map-id]}]
+  (let [start @(re-frame/subscribe [:current-view/window-start map-id])]
+    [:<>
+     [:div.segmented {:role "group" :aria-label "Periods"}
+      (for [{:keys [id name start-year]} nhatutils/when-presets]
+        ^{:key id}
+        [:button
+         {:type         "button"
+          :aria-pressed (= start-year start)
+          :class        (when (= start-year start) "selected")
+          :on-click     #(re-frame/dispatch [:current-view/window-start start-year map-id])}
+         [:span.segmented-name name]
+         [:span.segmented-detail (year-span start-year)]])]
+     [period-track {:start start}]]))
+
+(defn- year-select
+  "A slider over every year, with step buttons for exact choice on touch."
   []
-  (let [drag  (reagent/atom nil) ; {:start year :offset years} while dragging
-        track (atom nil)]
+  (let [dragging (reagent/atom nil)] ; year under the thumb until release
     (fn [{:keys [map-id]}]
-      (let [stored    @(re-frame/subscribe [:current-view/window-start map-id])
-            watching? @(re-frame/subscribe [:current-view.window/playing? map-id])
-            start     (or (:start @drag) stored)
-            end       (nhatutils/window-end-year start)
-            {axis-start :start-year axis-end :end-year} nhatutils/timeline-axis
-            [first-projected last-projected] nhatutils/projected-window-starts
-            pct       #(* 100 (/ (- % axis-start) (- axis-end axis-start)))
-            year-at   (fn [client-x]
-                        (let [rect (.getBoundingClientRect @track)]
-                          (+ axis-start (* (- axis-end axis-start) (/ (- client-x (.-left rect)) (.-width rect))))))
-            choose    #(re-frame/dispatch [:current-view/window-start % map-id])
-            end-drag  (fn [_]
-                        (when-let [{:keys [start]} @drag]
-                          (reset! drag nil)
-                          (choose start)))]
-        [:section#time-control.cv-section
-         [label-row "1 · When"
-          [b/tooltip {:content "Each map averages 20 years, which smooths out year-to-year swings."}
-           [:span [b/icon {:icon "info-sign" :size 12}] " 20-year averages"]]]
-         [:div.segmented {:role "group" :aria-label "Periods"}
-          (for [{:keys [id name start-year]} nhatutils/when-presets]
-            ^{:key id}
-            [:button
-             {:type         "button"
-              :aria-pressed (= start-year start)
-              :class        (when (= start-year start) "selected")
-              :on-click     #(choose start-year)}
-             [:span.segmented-name name]
-             [:span.segmented-detail (year-span start-year)]])]
-         [:div.when-track
-          {:ref             #(reset! track %)
-           :on-pointer-down (fn [e] ; click the track to centre the window there
-                              (when (= (.-target e) (.-currentTarget e))
-                                (choose (nhatutils/snap-window-start (js/Math.round (- (year-at (.-clientX e)) 10))))))}
-          [:span.when-track-line]
-          [:span.when-track-past {:style {:width (str (pct first-projected) "%")}}]
-          [:div.when-window
-           {:role            "slider"
-            :tab-index       0
-            :aria-label      "20-year window"
-            :aria-valuemin   nhatutils/recent-window-start
-            :aria-valuemax   last-projected
-            :aria-valuenow   start
-            :aria-valuetext  (str start " to " end)
-            :class           (when @drag "dragging")
-            :style           {:left  (str (pct start) "%")
-                              :width (str (- (pct (+ start nhatutils/window-years)) (pct start)) "%")}
-            :on-pointer-down (fn [e]
-                               (.preventDefault e)
-                               (.setPointerCapture (.-currentTarget e) (.-pointerId e))
-                               (reset! drag {:start start :offset (- (year-at (.-clientX e)) start)}))
-            :on-pointer-move (fn [e]
-                               (when-let [{:keys [offset]} @drag]
-                                 (swap! drag assoc :start
-                                        (nhatutils/snap-window-start (js/Math.round (- (year-at (.-clientX e)) offset))))))
-            :on-pointer-up     end-drag
-            :on-pointer-cancel end-drag
-            :on-key-down
-            (fn [e]
-              (let [historic? (nhatutils/historic-window? start)
-                    next      (case (.-key e)
-                                ("ArrowLeft" "ArrowDown") (if (= start first-projected) nhatutils/recent-window-start (dec start))
-                                ("ArrowRight" "ArrowUp")  (if historic? first-projected (inc start))
-                                "PageDown"                (- start 10)
-                                "PageUp"                  (if historic? first-projected (+ start 10))
-                                "Home"                    nhatutils/recent-window-start
-                                "End"                     last-projected
-                                nil)]
-                (when next
-                  (.preventDefault e)
-                  (choose (nhatutils/snap-window-start next)))))}
-           [:span.when-window-years (year-span start)]]]
-         [:div.when-ticks {:aria-hidden true}
-          (for [year [axis-start first-projected 2050 axis-end]]
-            ^{:key year}
-            [:span {:style {:left (str (pct year) "%")}} year])]
-         [:div.when-footer
-          [:span.cv-note "Drag the window to pick any 20 years"]
-          [:button.watch-change
-           {:type     "button"
-            :class    (when watching? "playing")
-            :on-click #(re-frame/dispatch (if watching?
-                                            [:current-view.window/stop map-id]
-                                            [:current-view.window/play map-id]))}
-           [b/icon {:icon (if watching? "stop" "play") :size 12}]
-           (if watching? "Stop" "Watch change")]]]))))
+      (let [year                   @(re-frame/subscribe [:current-view/year map-id])
+            [first-year last-year] nhatutils/year-range
+            choose                 #(re-frame/dispatch [:current-view/year % map-id])]
+        [:div.year-select
+         [b/slider
+          {:min           first-year
+           :max           last-year
+           :step-size     1
+           :label-values  [first-year (inc nhatutils/last-historic-year) 2050 last-year]
+           :value         (or @dragging year)
+           :on-change     #(reset! dragging %)
+           :on-release    #(do (reset! dragging nil) (choose %))}]
+         [:div.year-stepper
+          [:button
+           {:type       "button"
+            :aria-label "Previous year"
+            :disabled   (<= year first-year)
+            :on-click   #(choose (dec year))}
+           [b/icon {:icon "chevron-left" :size 16}]]
+          [:span.year-stepper-value (or @dragging year)]
+          [:button
+           {:type       "button"
+            :aria-label "Next year"
+            :disabled   (>= year last-year)
+            :on-click   #(choose (inc year))}
+           [b/icon {:icon "chevron-right" :size 16}]]]]))))
+
+(defn- when-select
+  "One question: when? Choose one of the agreed 20-year periods (the default),
+   or switch to single years. Watch change steps through whichever is shown."
+  [{:keys [map-id]}]
+  (let [mode         @(re-frame/subscribe [:current-view/time-mode map-id])
+        watching?    @(re-frame/subscribe [:current-view.window/playing? map-id])
+        loading?     @(re-frame/subscribe [:map.time/is-loading? map-id])
+        current-time @(re-frame/subscribe [:map.time/current-time map-id])
+        shown-year   (when current-time (.getFullYear (js/Date. current-time)))
+        years?       (= mode "years")]
+    [:section#time-control.cv-section
+     [label-row "1 · When"]
+     [time-mode-toggle {:map-id map-id :mode mode}]
+     (if years?
+       [year-select {:map-id map-id}]
+       [period-select {:map-id map-id}])
+     [:div.when-footer
+      [:span.cv-note {:aria-live "polite"}
+       (cond
+         (not shown-year) "Loading years…"
+         years?           (str "Map shows " shown-year ".")
+         :else            (str "Map shows " shown-year " from this period."))]
+      [:button.watch-change
+       {:type     "button"
+        :class    (when watching? "playing")
+        :on-click #(re-frame/dispatch (if watching?
+                                        [:current-view.window/stop map-id]
+                                        [:current-view.window/play map-id]))}
+       (if (and watching? loading?)
+         [b/spinner {:size 12}]
+         [b/icon {:icon (if watching? "stop" "play") :size 12}])
+       (cond watching? "Stop" years? "Play years" :else "Watch change")]]]))
 
 (defn- emissions-select
   "Lower or higher emissions, in plain words first with the SSP code underneath.
@@ -259,7 +277,7 @@
         selected     @(re-frame/subscribe [:current-view/selected-scenario map-id])
         scenarios    @(re-frame/subscribe [:current-view/scenarios])]
     [:section.cv-section
-     [label-row "2 · Emissions future" (when is-historic? "Not used for the recent past")]
+     [label-row "2 · Emissions future" (when is-historic? "Not used before 2015")]
      [:div.segmented {:role "group" :aria-label "Emissions future"}
       (for [{:keys [id name display_name] :as scenario} scenarios
             :let [{:keys [label code]} (get nhatutils/scenario-labels name)
@@ -324,12 +342,12 @@
   "What the map shows, in a line under the map. Makes the view defensible when
    shared."
   []
-  (let [{:keys [layer period years emissions season model]}
+  (let [{:keys [layer emissions season model] when-text :when}
         @(re-frame/subscribe [:current-view/caption])]
     (when layer
       [:div.map-caption.leaflet-control
-       [:strong layer] " · " period ", average of " years
-       (string/join (map #(str " · " %) (remove nil? [emissions season model])))])))
+       [:strong layer]
+       (string/join (map #(str " · " %) (remove nil? [when-text emissions season model])))])))
 
 (defn- side-by-side-toggle []
   [:div#side-by-side-toggle
@@ -557,7 +575,7 @@
        :helperText     "Choose the emissions scenario and season. Model choices are under Model settings"
        :helperPosition "bottom"}
       {:id             "time-control"
-       :helperText     "Choose when: a named period, or drag the 20-year window"
+       :helperText     "Choose when: one of the 20-year periods, or a single year"
        :helperPosition "bottom"}]
      [welcome-dialogue]
      [views/outage-message-dialogue]
