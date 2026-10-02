@@ -72,23 +72,18 @@
   [db [_ map-id]]
   (nhatutils/current-view-selected-time-period db map-id))
 
-(defn current-view-window-start
-  "Start year of the selected 20-year window."
+(defn current-view-preset
+  "The period the user chose, or nil once they've moved to a year of their own."
   [db [_ map-id]]
-  (nhatutils/current-view-window-start db map-id))
+  (nhatutils/current-view-preset db map-id))
 
 (defn current-view-year
-  "The year chosen in single-year mode."
+  "The year the user chose: directly, or as the start of a period."
   [db [_ map-id]]
   (nhatutils/current-view-year db map-id))
 
-(defn current-view-time-mode
-  "\"periods\" or \"years\"."
-  [db [_ map-id]]
-  (nhatutils/current-view-time-mode db map-id))
-
-(defn current-view-window-playing?
-  "Is Watch change sweeping the window across the century?"
+(defn current-view-playing?
+  "Is Play moving the year along the track?"
   [db [_ map-id]]
   (boolean (utils/get-independent-map-state db map-id [:display :window-playing?])))
 
@@ -98,8 +93,7 @@
    Signals function is a necessity, in order to pass through subscription args"
   [[_ map-id]]
   [(re-frame/subscribe [:map.layers/active-hazard-layer])
-   (re-frame/subscribe [:current-view/time-mode map-id])
-   (re-frame/subscribe [:current-view/selected-time-period map-id])
+   (re-frame/subscribe [:current-view/preset map-id])
    (re-frame/subscribe [:map.time/current-time map-id])
    (re-frame/subscribe [:current-view/is-historic? map-id])
    (re-frame/subscribe [:current-view/selected-scenario map-id])
@@ -111,13 +105,13 @@
 
    Until we know whether each time step is one year or a 20-year average, say
    which year is on the map rather than claiming an average."
-  [[hazard-layer mode {:keys [name]} current-time historic? scenario season model] _]
+  [[hazard-layer preset current-time historic? scenario season model] _]
   (let [year (when current-time (.getFullYear (js/Date. current-time)))]
     {:layer     (:name hazard-layer)
      :when      (cond
-                  (= mode "years") (when year (str "Year " year))
-                  year             (str name " (showing " year ")")
-                  :else            name)
+                  (and preset year) (str (:caption preset) " (showing " year ")")
+                  preset            (:caption preset)
+                  year              (str "Year " year))
      :emissions (when-not historic?
                   (let [{:keys [label]} (get nhatutils/scenario-labels (:name scenario))]
                     (if label (str (string/lower-case label) " emissions") (:display_name scenario))))

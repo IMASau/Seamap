@@ -156,118 +156,115 @@
       (str start-year "–" (.padStart (str (mod end-year 100)) 2 "0"))
       (str start-year "–" end-year))))
 
-(defn- time-mode-toggle
-  [{:keys [map-id mode]}]
-  [:div.mode-toggle {:role "group" :aria-label "View by"}
-   [:span.cv-note "View by"]
-   (for [[id label] [["periods" "20-year periods"] ["years" "Single years"]]]
+(defn- period-buttons
+  "The agreed periods, as presets: one tap moves the year to the period."
+  [{:keys [map-id preset]}]
+  [:div.segmented {:role "group" :aria-label "Periods"}
+   (for [{:keys [id name start-year]} nhatutils/when-presets]
      ^{:key id}
      [:button
       {:type         "button"
-       :aria-pressed (= id mode)
-       :class        (when (= id mode) "selected")
-       :on-click     #(re-frame/dispatch [:current-view/time-mode id map-id])}
-      label])])
+       :aria-pressed (= id (:id preset))
+       :class        (when (= id (:id preset)) "selected")
+       :on-click     #(re-frame/dispatch [:current-view/preset id map-id])}
+      [:span.segmented-name name]
+      [:span.segmented-detail (year-span start-year)]])])
 
-(defn- period-track
-  "Where the selected period sits in the century. A picture, not a control: the
-   buttons above choose."
-  [{:keys [start]}]
-  (let [{axis-start :start-year axis-end :end-year} nhatutils/timeline-axis
-        first-projected (inc nhatutils/last-historic-year)
-        pct             #(* 100 (/ (- % axis-start) (- axis-end axis-start)))]
-    [:div.when-track-picture {:aria-hidden true}
-     [:div.when-track
-      [:span.when-track-line]
-      [:span.when-track-past {:style {:width (str (pct first-projected) "%")}}]
-      [:span.when-window
-       {:style {:left  (str (pct start) "%")
-                :width (str (- (pct (+ start nhatutils/window-years)) (pct start)) "%")}}]]
-     [:div.when-ticks
-      (for [year [axis-start first-projected 2050 axis-end]]
-        ^{:key year}
-        [:span {:style {:left (str (pct year) "%")}} year])]]))
-
-(defn- period-select
-  [{:keys [map-id]}]
-  (let [start @(re-frame/subscribe [:current-view/window-start map-id])]
-    [:<>
-     [:div.segmented {:role "group" :aria-label "Periods"}
-      (for [{:keys [id name start-year]} nhatutils/when-presets]
-        ^{:key id}
-        [:button
-         {:type         "button"
-          :aria-pressed (= start-year start)
-          :class        (when (= start-year start) "selected")
-          :on-click     #(re-frame/dispatch [:current-view/window-start start-year map-id])}
-         [:span.segmented-name name]
-         [:span.segmented-detail (year-span start-year)]])]
-     [period-track {:start start}]]))
-
-(defn- year-select
-  "A slider over every year, with step buttons for exact choice on touch."
+(defn- year-track
+  "The century as a slider. The handle is the year on the map: drag or click to
+   any year, or use the keyboard. A chosen period's 20 years are shaded."
   []
-  (let [dragging (reagent/atom nil)] ; year under the thumb until release
-    (fn [{:keys [map-id]}]
-      (let [year                   @(re-frame/subscribe [:current-view/year map-id])
+  (let [drag  (reagent/atom nil) ; year under the pointer while dragging
+        track (atom nil)]
+    (fn [{:keys [map-id year preset]}]
+      (let [{axis-start :start-year axis-end :end-year} nhatutils/timeline-axis
             [first-year last-year] nhatutils/year-range
-            choose                 #(re-frame/dispatch [:current-view/year % map-id])]
-        [:div.year-select
-         [b/slider
-          {:min           first-year
-           :max           last-year
-           :step-size     1
-           :label-values  [first-year (inc nhatutils/last-historic-year) 2050 last-year]
-           :value         (or @dragging year)
-           :on-change     #(reset! dragging %)
-           :on-release    #(do (reset! dragging nil) (choose %))}]
-         [:div.year-stepper
-          [:button
-           {:type       "button"
-            :aria-label "Previous year"
-            :disabled   (<= year first-year)
-            :on-click   #(choose (dec year))}
-           [b/icon {:icon "chevron-left" :size 16}]]
-          [:span.year-stepper-value (or @dragging year)]
-          [:button
-           {:type       "button"
-            :aria-label "Next year"
-            :disabled   (>= year last-year)
-            :on-click   #(choose (inc year))}
-           [b/icon {:icon "chevron-right" :size 16}]]]]))))
+            first-projected        (inc nhatutils/last-historic-year)
+            pct                    #(str (* 100 (/ (- % axis-start) (- axis-end axis-start))) "%")
+            year-at                (fn [e]
+                                     (let [rect (.getBoundingClientRect @track)]
+                                       (-> (+ axis-start (* (- axis-end axis-start) (/ (- (.-clientX e) (.-left rect)) (.-width rect))))
+                                           js/Math.round (max first-year) (min last-year))))
+            choose                 #(re-frame/dispatch [:current-view/year % map-id])
+            shown                  (or @drag year)
+            end-drag               (fn [_]
+                                     (when-let [y @drag]
+                                       (reset! drag nil)
+                                       (choose y)))]
+        [:div.year-track
+         [:div.year-track-rail
+          {:ref               #(reset! track %)
+           :on-pointer-down   (fn [e]
+                                (.preventDefault e)
+                                (.setPointerCapture (.-currentTarget e) (.-pointerId e))
+                                (reset! drag (year-at e))
+                                (.focus (.querySelector (.-currentTarget e) "[role=slider]")))
+           :on-pointer-move   #(when @drag (reset! drag (year-at %)))
+           :on-pointer-up     end-drag
+           :on-pointer-cancel end-drag}
+          [:span.year-track-line]
+          [:span.year-track-past {:style {:width (pct first-projected)}}]
+          (when-let [{:keys [start-year]} (when-not @drag preset)]
+            [:span.year-track-period
+             {:style {:left  (pct start-year)
+                      :width (str "calc(" (pct (+ start-year nhatutils/window-years)) " - " (pct start-year) ")")}}])
+          [:span.year-track-handle
+           {:role           "slider"
+            :tab-index      0
+            :aria-label     "Year"
+            :aria-valuemin  first-year
+            :aria-valuemax  last-year
+            :aria-valuenow  shown
+            :style          {:left (pct shown)}
+            :on-key-down    (fn [e]
+                              (when-let [y (case (.-key e)
+                                             ("ArrowLeft" "ArrowDown") (dec year)
+                                             ("ArrowRight" "ArrowUp")  (inc year)
+                                             "PageDown"                (- year 10)
+                                             "PageUp"                  (+ year 10)
+                                             "Home"                    first-year
+                                             "End"                     last-year
+                                             nil)]
+                                (.preventDefault e)
+                                (choose (-> y (max first-year) (min last-year)))))}
+           (when @drag [:span.year-track-bubble shown])]]
+         [:div.year-track-ticks {:aria-hidden true}
+          (for [tick [axis-start first-projected 2050 axis-end]]
+            ^{:key tick}
+            [:span {:style {:left (pct tick)}} tick])]]))))
 
 (defn- when-select
-  "One question: when? Choose one of the agreed 20-year periods (the default),
-   or switch to single years. Watch change steps through whichever is shown."
+  "One question: when? Periods are presets on a single year track: tap a period
+   and the year jumps to it, or move along the track to any year. Play sits on
+   the track it moves. One line says what the map shows."
   [{:keys [map-id]}]
-  (let [mode         @(re-frame/subscribe [:current-view/time-mode map-id])
-        watching?    @(re-frame/subscribe [:current-view.window/playing? map-id])
+  (let [preset       @(re-frame/subscribe [:current-view/preset map-id])
+        year         @(re-frame/subscribe [:current-view/year map-id])
+        playing?     @(re-frame/subscribe [:current-view.play/playing? map-id])
         loading?     @(re-frame/subscribe [:map.time/is-loading? map-id])
         current-time @(re-frame/subscribe [:map.time/current-time map-id])
-        shown-year   (when current-time (.getFullYear (js/Date. current-time)))
-        years?       (= mode "years")]
+        shown-year   (when current-time (.getFullYear (js/Date. current-time)))]
     [:section#time-control.cv-section
      [label-row "1 · When"]
-     [time-mode-toggle {:map-id map-id :mode mode}]
-     (if years?
-       [year-select {:map-id map-id}]
-       [period-select {:map-id map-id}])
-     [:div.when-footer
-      [:span.cv-note {:aria-live "polite"}
-       (cond
-         (not shown-year) "Loading years…"
-         years?           (str "Map shows " shown-year ".")
-         :else            (str "Map shows " shown-year " from this period."))]
-      [:button.watch-change
-       {:type     "button"
-        :class    (when watching? "playing")
-        :on-click #(re-frame/dispatch (if watching?
-                                        [:current-view.window/stop map-id]
-                                        [:current-view.window/play map-id]))}
-       (if (and watching? loading?)
-         [b/spinner {:size 12}]
-         [b/icon {:icon (if watching? "stop" "play") :size 12}])
-       (cond watching? "Stop" years? "Play years" :else "Watch change")]]]))
+     [period-buttons {:map-id map-id :preset preset}]
+     [:div.year-row
+      [:button.play-button
+       {:type       "button"
+        :aria-label (if playing? "Stop" "Play through the years")
+        :title      (if playing? "Stop" "Play through the years")
+        :class      (when playing? "playing")
+        :on-click   #(re-frame/dispatch (if playing?
+                                          [:current-view.play/stop map-id]
+                                          [:current-view.play/start map-id]))}
+       (if (and playing? loading?)
+         [b/spinner {:size 14}]
+         [b/icon {:icon (if playing? "stop" "play") :size 14}])]
+      [year-track {:map-id map-id :year year :preset preset}]]
+     [:p.when-shown {:aria-live "polite"}
+      (if shown-year
+        [:<> "Map shows " [:strong shown-year]
+         (when preset (str ", from " (:caption preset) " " (year-span (:start-year preset))))]
+        "Loading years…")]]))
 
 (defn- emissions-select
   "Lower or higher emissions, in plain words first with the SSP code underneath.
@@ -575,7 +572,7 @@
        :helperText     "Choose the emissions scenario and season. Model choices are under Model settings"
        :helperPosition "bottom"}
       {:id             "time-control"
-       :helperText     "Choose when: one of the 20-year periods, or a single year"
+       :helperText     "Choose when: tap a period, or move along the track to any year"
        :helperPosition "bottom"}]
      [welcome-dialogue]
      [views/outage-message-dialogue]

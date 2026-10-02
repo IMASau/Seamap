@@ -522,93 +522,71 @@
      [(when-not current-time-in-range? [:map.time/current-time first-time-in-range map-id])
       [:maybe-autosave]]}))
 
-(def ^:private watch-dwell-ms
-  "How long Watch change holds each step once its layer has loaded."
-  {"periods" 2000 "years" 700})
+(def ^:private play-dwell-ms
+  "How long Play holds each year once its layer has loaded."
+  700)
 
 (defn- show-selection
   "Effects after the time selection changes in db (was-historic? is from before
-   the change). Staying on the same dataset, the map moves straight to the first
-   year of the new selection. Switching between historical and projected changes
-   dataset, and `time-available-times` picks the year once its years load."
-  [db map-id was-historic? {:keys [watching?]}]
+   the change). Staying on the same dataset, the map moves straight to the new
+   selection. Switching between historical and projected changes dataset, and
+   `time-available-times` picks the year once its years load."
+  [db map-id was-historic? {:keys [playing?]}]
   (let [historic?  (nhatutils/current-view-is-historic? db map-id)
         first-time (first (nhatutils/time-available-times db map-id))]
     {:db (-> db
              (utils/assoc-independent-map-state map-id [:current-view :is-historic?] historic?)
-             (cond-> (not watching?) (utils/assoc-independent-map-state map-id [:display :window-playing?] false)))
+             (cond-> (not playing?) (utils/assoc-independent-map-state map-id [:display :window-playing?] false)))
      :dispatch-n
      [(when (and (= was-historic? historic?) first-time) [:map.time/current-time first-time map-id])
       [:maybe-autosave]]}))
 
-(defn current-view-window-start
-  "Select the 20-year period starting at year. Choosing stops Watch change,
-   unless Watch change is the one choosing."
-  [{:keys [db]} [_ year map-id opts]]
-  (show-selection
-   (utils/assoc-independent-map-state db map-id [:current-view :window-start-year] (nhatutils/snap-window-start year))
-   map-id (nhatutils/current-view-is-historic? db map-id) opts))
+(defn current-view-preset
+  "Choose one of the agreed periods. The year moves to its start."
+  [{:keys [db]} [_ preset-id map-id]]
+  (let [{:keys [start-year] :as preset} (first-where #(= (:id %) preset-id) nhatutils/when-presets)]
+    (assert preset (str "Unknown period " preset-id))
+    (show-selection
+     (-> db
+         (utils/assoc-independent-map-state map-id [:current-view :selected-preset-id] preset-id)
+         (utils/assoc-independent-map-state map-id [:current-view :selected-year] start-year))
+     map-id (nhatutils/current-view-is-historic? db map-id) nil)))
 
 (defn current-view-year
-  "Select a single year, in single-year mode."
+  "Choose a single year. This leaves any period the user had chosen. Choosing
+   stops Play, unless Play is the one choosing."
   [{:keys [db]} [_ year map-id opts]]
   (let [[first-year last-year] nhatutils/year-range]
     (show-selection
-     (utils/assoc-independent-map-state db map-id [:current-view :selected-year] (-> year (max first-year) (min last-year)))
+     (-> db
+         (utils/assoc-independent-map-state map-id [:current-view :selected-preset-id] nil)
+         (utils/assoc-independent-map-state map-id [:current-view :selected-year] (-> year (max first-year) (min last-year))))
      map-id (nhatutils/current-view-is-historic? db map-id) opts)))
 
-(defn current-view-time-mode
-  "Switch between choosing a 20-year period and choosing a single year.
-   Single-year mode starts at the first year of the selected period."
-  [{:keys [db]} [_ mode map-id]]
-  (let [was-historic? (nhatutils/current-view-is-historic? db map-id)
-        db            (cond-> (utils/assoc-independent-map-state db map-id [:current-view :time-mode] mode)
-                        (= mode "years")
-                        (utils/assoc-independent-map-state map-id [:current-view :selected-year]
-                                                           (nhatutils/current-view-window-start db map-id)))]
-    (show-selection db map-id was-historic? nil)))
-
-(defn- watch-next
-  "The selection after the current one for Watch change, or nil at the end."
-  [db map-id]
-  (if (= (nhatutils/current-view-time-mode db map-id) "years")
-    (let [year (inc (nhatutils/current-view-year db map-id))]
-      (when (<= year (second nhatutils/year-range))
-        [:current-view/year year map-id {:watching? true}]))
-    (let [starts (map :start-year nhatutils/when-presets)
-          next   (second (drop-while #(not= % (nhatutils/current-view-window-start db map-id)) starts))]
-      (when next
-        [:current-view/window-start next map-id {:watching? true}]))))
-
-(defn current-view-window-play
-  "Watch change: step through the periods from Recent to Long, or through the
-   years from the one shown (from the first, if at the end), holding each step
-   until its layer has loaded."
+(defn current-view-play
+  "Play: move the year along the track one year at a time, from the year shown
+   (from the first, if at the end), holding each until its layer has loaded."
   [{:keys [db]} [_ map-id]]
-  (let [mode                   (nhatutils/current-view-time-mode db map-id)
-        year                   (nhatutils/current-view-year db map-id)
+  (let [year                   (nhatutils/current-view-year db map-id)
         [first-year last-year] nhatutils/year-range]
     {:db             (utils/assoc-independent-map-state db map-id [:display :window-playing?] true)
-     :dispatch       (if (= mode "years")
-                       [:current-view/year (if (< year last-year) year first-year) map-id {:watching? true}]
-                       [:current-view/window-start nhatutils/recent-window-start map-id {:watching? true}])
-     :dispatch-later {:ms (watch-dwell-ms mode) :dispatch [:current-view.window/tick map-id]}}))
+     :dispatch       [:current-view/year (if (< year last-year) year first-year) map-id {:playing? true}]
+     :dispatch-later {:ms play-dwell-ms :dispatch [:current-view.play/tick map-id]}}))
 
-(defn current-view-window-tick
-  "Move Watch change on a step once the map has finished loading the current
-   one; stop at the end."
+(defn current-view-play-tick
+  "Move Play on a year once the map has finished loading the current one; stop
+   at the end."
   [{:keys [db]} [_ map-id]]
   (when (utils/get-independent-map-state db map-id [:display :window-playing?])
     (let [loading? (utils/get-independent-map-state db map-id [:display :time-is-loading?])
-          next     (watch-next db map-id)
-          mode     (nhatutils/current-view-time-mode db map-id)]
+          next     (inc (nhatutils/current-view-year db map-id))]
       (cond
-        loading? {:dispatch-later {:ms 250 :dispatch [:current-view.window/tick map-id]}}
-        next     {:dispatch       next
-                  :dispatch-later {:ms (watch-dwell-ms mode) :dispatch [:current-view.window/tick map-id]}}
-        :else    {:db (utils/assoc-independent-map-state db map-id [:display :window-playing?] false)}))))
+        loading?                              {:dispatch-later {:ms 250 :dispatch [:current-view.play/tick map-id]}}
+        (<= next (second nhatutils/year-range)) {:dispatch       [:current-view/year next map-id {:playing? true}]
+                                                 :dispatch-later {:ms play-dwell-ms :dispatch [:current-view.play/tick map-id]}}
+        :else                                 {:db (utils/assoc-independent-map-state db map-id [:display :window-playing?] false)}))))
 
-(defn current-view-window-stop
+(defn current-view-stop
   [{:keys [db]} [_ map-id]]
   {:db (utils/assoc-independent-map-state db map-id [:display :window-playing?] false)})
 

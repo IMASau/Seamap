@@ -83,7 +83,8 @@
                    :selected-scenario-id      nil
                    :selected-seasonal-data-id nil
                    :selected-time-period-id   "medium"
-                   :window-start-year         2050
+                   :selected-year             2050
+                   :selected-preset-id        "medium"
                    :is-historic?              false}
    :autosave?       false
    :config          {:url-paths {:site-configuration    "siteconfiguration/"

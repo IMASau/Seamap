@@ -50,8 +50,7 @@
                                       [:current-view :selected-seasonal-data-id]
                                       [:current-view :is-historic?]
                                       [:current-view :selected-time-period-id]
-                                      [:current-view :window-start-year]
-                                      [:current-view :time-mode]
+                                      [:current-view :selected-preset-id]
                                       [:current-view :selected-year]
                                       (utils/independent-map-state-path :map-2 [:display :current-time])
                                       (utils/independent-map-state-path :map-2 [:current-view :selected-cmip-phase-id])
@@ -60,8 +59,7 @@
                                       (utils/independent-map-state-path :map-2 [:current-view :selected-seasonal-data-id])
                                       (utils/independent-map-state-path :map-2 [:current-view :is-historic?])
                                       (utils/independent-map-state-path :map-2 [:current-view :selected-time-period-id])
-                                      (utils/independent-map-state-path :map-2 [:current-view :window-start-year])
-                                      (utils/independent-map-state-path :map-2 [:current-view :time-mode])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-preset-id])
                                       (utils/independent-map-state-path :map-2 [:current-view :selected-year])
                                       :autosave?])
                        (assoc :map pruned-map)
@@ -114,7 +112,7 @@
                  [:current-view :selected-seasonal-data-id]
                  [:current-view :selected-time-period-id]
                  [:current-view :window-start-year]
-                 [:current-view :time-mode]
+                 [:current-view :selected-preset-id]
                  [:current-view :selected-year]
                  [:current-view :is-historic?]
                  (utils/independent-map-state-path :map-2 [:display :current-time])
@@ -126,7 +124,7 @@
                  (utils/independent-map-state-path :map-2 [:current-view :is-historic?])
                  (utils/independent-map-state-path :map-2 [:current-view :selected-time-period-id])
                  (utils/independent-map-state-path :map-2 [:current-view :window-start-year])
-                 (utils/independent-map-state-path :map-2 [:current-view :time-mode])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-preset-id])
                  (utils/independent-map-state-path :map-2 [:current-view :selected-year])
                  :legend-ids
                  :opacity-ids
@@ -183,16 +181,12 @@
   20)
 
 (def recent-window-start
-  "The one historical window. The historical runs end in 2014."
+  "Start of the Recent period, the one historical period. The historical runs
+   end in 2014."
   1995)
 
-(def projected-window-starts
-  "Range of start years for projected windows: from the first projected year
-   until the window reaches the end of the century."
-  [2015 2080])
-
 (def when-presets
-  "Named windows. Most users pick one of these rather than dragging."
+  "The agreed 20-year reporting periods. Most users pick one of these."
   [{:id "recent" :name "Recent" :caption "Recent climate" :start-year 1995}
    {:id "short"  :name "Short"  :caption "Short term"     :start-year 2020}
    {:id "medium" :name "Medium" :caption "Medium term"    :start-year 2050}
@@ -200,11 +194,9 @@
 
 (def timeline-axis
   "Years spanned by the \"When\" track."
-  {:start-year 1990 :end-year 2100})
+  {:start-year 1950 :end-year 2100})
 
 (defn window-end-year [start-year] (+ start-year window-years -1))
-
-(defn historic-window? [start-year] (= start-year recent-window-start))
 
 (def year-range
   "Years offered in single-year mode. Assumed from the NPCP CMIP6 runs
@@ -292,60 +284,52 @@
          selected-seasonal-data)
        (first seasonal-datas)))))
 
-(declare current-view-time-mode current-view-window-start current-view-year)
+(declare current-view-year)
 
 (defn current-view-is-historic?
   "Indicates whether the current view is for historic data: true for the one
    historical window."
   ([db] (current-view-is-historic? db nil))
   ([db map-id]
-   (if (= (current-view-time-mode db map-id) "years")
-     (<= (current-view-year db map-id) last-historic-year)
-     (historic-window? (current-view-window-start db map-id)))))
+   (<= (current-view-year db map-id) last-historic-year)))
 
-(defn current-view-time-mode
-  "\"periods\" (choose one of the 20-year windows) or \"years\" (choose a
-   single year)."
-  ([db] (current-view-time-mode db nil))
-  ([db map-id]
-   (or (utils/get-independent-map-state db map-id [:current-view :time-mode]) "periods")))
+(defn- legacy-preset
+  "The preset an older saved state was on (it stored a window or a time period
+   and historic flag, not a year). Defaults to Medium."
+  [db map-id]
+  (let [get-state #(utils/get-independent-map-state db map-id [:current-view %])
+        period-id (get-state :selected-time-period-id)]
+    (or (some-> (get-state :window-start-year) snap-window-start window-preset)
+        (when (get-state :is-historic?) (window-preset recent-window-start))
+        (first-where #(= (:id %) period-id) when-presets)
+        (first-where #(= (:id %) "medium") when-presets))))
 
-(defn current-view-window-start
-  "Start year of the selected 20-year window. Older saved states only have a
-   time period and historic flag, so derive it from those."
-  ([db] (current-view-window-start db nil))
+(defn current-view-preset
+  "The period (Recent, Short, Medium, Long) the user chose, or nil once they've
+   moved to a year of their own."
+  ([db] (current-view-preset db nil))
   ([db map-id]
-   (snap-window-start
-    (or (utils/get-independent-map-state db map-id [:current-view :window-start-year])
-        (if (utils/get-independent-map-state db map-id [:current-view :is-historic?])
-          recent-window-start
-          (let [period-id (utils/get-independent-map-state db map-id [:current-view :selected-time-period-id])]
-            (or (:start-year (first-where #(= (:id %) period-id) when-presets))
-                (:start-year (first-where #(= (:id %) "medium") when-presets)))))))))
+   (if (utils/get-independent-map-state db map-id [:current-view :selected-year])
+     (first-where #(= (:id %) (utils/get-independent-map-state db map-id [:current-view :selected-preset-id])) when-presets)
+     (legacy-preset db map-id))))
 
 (defn current-view-year
-  "The year chosen in single-year mode; until one is chosen, the start of the
-   selected window."
+  "The year the user chose: directly, or as the start of a period."
   ([db] (current-view-year db nil))
   ([db map-id]
    (or (utils/get-independent-map-state db map-id [:current-view :selected-year])
-       (current-view-window-start db map-id))))
+       (:start-year (legacy-preset db map-id)))))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-time-period
-  "Time period to analyze the hazard data: the selected 20-year window, or the
-   single year in single-year mode."
+  "Time period to analyze the hazard data: the chosen period's 20 years, or the
+   single chosen year."
   ([db] (current-view-selected-time-period db nil))
   ([db map-id]
-   (if (= (current-view-time-mode db map-id) "years")
+   (if-let [{:keys [id caption start-year]} (current-view-preset db map-id)]
+     {:id id :name caption :start-year start-year :end-year (window-end-year start-year)}
      (let [year (current-view-year db map-id)]
-       {:id "year" :name (str "Year " year) :start-year year :end-year year})
-     (let [start-year (current-view-window-start db map-id)
-           preset     (window-preset start-year)]
-       {:id         (:id preset)
-        :name       (:caption preset)
-        :start-year start-year
-        :end-year   (window-end-year start-year)}))))
+       {:id "year" :name (str "Year " year) :start-year year :end-year year}))))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn hazard-layers
