@@ -9,7 +9,6 @@
             [imas-seamap.map.layer-views :refer [legend-display]]
             [imas-seamap.natural-hazards-atlas.map.views :refer [map-component]]
             [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
-            [imas-seamap.utils :refer [first-where]]
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.story-maps.views :refer [featured-maps]]
             [imas-seamap.views :as views]
@@ -131,164 +130,154 @@
        ^{:key (str id)}
        [views/side-by-side-views-pill rich-layer])]))
 
-(defn- year-of
-  "Year of a time in ms."
-  [time]
-  (when time (.getFullYear (js/Date. time))))
+(defn- label-row
+  "A control's numbered label, with an optional note on the right."
+  [label note]
+  [:div.cv-label-row
+   [:h3.cv-label label]
+   (when note [:span.cv-label-note note])])
 
-(defn- timeline-pct
-  "Position of a year along the \"When\" timeline, as a percentage."
-  [year]
-  (let [{:keys [start-year end-year]} nhatutils/timeline-axis]
-    (* 100 (/ (- year start-year) (- end-year start-year)))))
-
-(defn- arrow-key-step
-  "On-key-down handler for a radio group: left/up and right/down arrows choose the
-   previous or next option, and focus follows the selection."
-  [ids selected on-select]
-  (fn [e]
-    (let [step  (case (.-key e) ("ArrowLeft" "ArrowUp") -1 ("ArrowRight" "ArrowDown") 1 nil)
-          index (.indexOf (to-array ids) selected)
-          next  (when step (get (vec ids) (+ index step)))
-          group (.-currentTarget e)]
-      (when next
-        (.preventDefault e)
-        (on-select next)
-        (js/setTimeout #(some-> group (.querySelector "[aria-checked=true]") .focus) 50)))))
-
-(defn- when-period
-  "One period on the timeline: its name, its window drawn to scale, and its years.
-   The whole column is the button."
-  [{:keys [map-id selected? current-year playing?]}
-   {:keys [id name historic? start-year axis-start-year end-year]}]
-  (let [draw-start (or start-year axis-start-year)
-        left       (timeline-pct draw-start)
-        width      (- (timeline-pct (inc end-year)) left)
-        position   (when (and selected? current-year)
-                     (-> (/ (- current-year draw-start -0.5) (- (inc end-year) draw-start))
-                         (max 0) (min 1) (* 100)))]
-    [:button.when-period
-     {:type         "button"
-      :role         "radio"
-      :aria-checked selected?
-      :tab-index    (if selected? 0 -1)
-      :class        (when selected? "selected")
-      :style        {:left (str left "%") :width (str width "%")}
-      :on-click     #(re-frame/dispatch [:current-view/when id map-id])}
-     [:span.when-period-name name]
-     [:span.when-period-window
-      (when position
-        [:<>
-         (when playing? [:span.when-period-progress {:style {:width (str position "%")}}])
-         [:span.when-period-marker {:style {:left (str position "%")}}]])]
-     [:span.when-period-years
-      (if historic?
-        (str "to " end-year)
-        (str start-year "–" (mod end-year 100)))]]))
-
-(defn- watch-change
-  "Play through the years of the selected period. Kept, as the project plan
-   promises a time slider, but secondary to choosing a period."
-  [{:keys [map-id]}]
-  (let [{:keys [is-playing? is-loading? is-disabled? can-step-forward? can-step-backward?]}
-        @(re-frame/subscribe [:current-view/timeline-media-controls map-id])
-        current-year (year-of @(re-frame/subscribe [:map.time/current-time map-id]))
-        has-years?   (boolean (seq @(re-frame/subscribe [:map.time/available-times map-id])))]
-    [:div.watch-change
-     [b/tooltip
-      {:content  "Watch change is off while comparing maps"
-       :disabled (not is-disabled?)}
-      [:button.watch-change-play
+(defn- active-layer-heading []
+  (let [{:keys [name]} @(re-frame/subscribe [:map.layers/active-hazard-layer])]
+    [:header.cv-heading
+     [:h2 name]
+     [:p.cv-note
+      "Active hazard layer · "
+      [:button.cv-link
        {:type     "button"
-        :class    (when is-playing? "playing")
-        :disabled (or is-disabled? (not has-years?))
-        :on-click (if is-playing?
-                    #(re-frame/dispatch [:map.time/pause map-id])
-                    #(re-frame/dispatch [:map.time/play map-id]))}
-       [b/icon {:icon (if is-playing? "pause" "play") :size 12}]
-       (if is-playing? "Pause" "Watch change")]]
-     [:div.watch-change-year
-      [:button
-       {:type       "button"
-        :aria-label "Previous year"
-        :disabled   (or (not has-years?) (not can-step-backward?) is-disabled?)
-        :on-click   #(re-frame/dispatch [:current-view.time/step-backward map-id])}
-       [b/icon {:icon "chevron-left" :size 14}]]
-      (if (and has-years? current-year)
-        [:span.watch-change-year-value {:aria-live "polite"} current-year]
-        [:span.watch-change-year-value {:title "Loading years"} [b/spinner {:size 14}]])
-      [:button
-       {:type       "button"
-        :aria-label "Next year"
-        :disabled   (or (not has-years?) (not can-step-forward?) is-disabled?)
-        :on-click   #(re-frame/dispatch [:current-view.time/step-forward map-id])}
-       [b/icon {:icon "chevron-right" :size 14}]]
-      (when (and is-loading? current-year) [b/spinner {:size 12}])]]))
+        :on-click #(re-frame/dispatch [:left-drawer/tab "catalogue"])}
+       "change in catalogue"]]]))
+
+(defn- year-span
+  "\"2050–69\" style years for a window."
+  [start-year]
+  (let [end-year (nhatutils/window-end-year start-year)]
+    (if (= (quot start-year 100) (quot end-year 100))
+      (str start-year "–" (.padStart (str (mod end-year 100)) 2 "0"))
+      (str start-year "–" end-year))))
 
 (defn- when-select
-  "One control for one question: when? The four periods sit on a timeline drawn
-   to scale, so each 20-year window is visible, with Watch change underneath."
-  [{:keys [map-id]}]
-  (let [selected     @(re-frame/subscribe [:current-view/when map-id])
-        current-year (year-of @(re-frame/subscribe [:map.time/current-time map-id]))
-        playing?     @(re-frame/subscribe [:map.time/is-playing? map-id])
-        ids          (map :id nhatutils/when-presets)]
-    [:section#time-control.cv-section
-     [:h3.cv-label {:id (str "when-label-" (name (or map-id :map-1)))} "When"]
-     [:div.when-timeline
-      {:role            "radiogroup"
-       :aria-labelledby (str "when-label-" (name (or map-id :map-1)))
-       :on-key-down     (arrow-key-step ids selected #(re-frame/dispatch [:current-view/when % map-id]))}
-      [:span.when-timeline-axis]
-      (for [preset nhatutils/when-presets]
-        ^{:key (:id preset)}
-        [when-period
-         {:map-id       map-id
-          :selected?    (= (:id preset) selected)
-          :current-year current-year
-          :playing?     playing?}
-         preset])]
-     [watch-change {:map-id map-id}]]))
+  "One control for one question: when? Pick a named period, or drag the 20-year
+   window along the track to any 20 years. Watch change sweeps the window across
+   the century."
+  []
+  (let [drag  (reagent/atom nil) ; {:start year :offset years} while dragging
+        track (atom nil)]
+    (fn [{:keys [map-id]}]
+      (let [stored    @(re-frame/subscribe [:current-view/window-start map-id])
+            watching? @(re-frame/subscribe [:current-view.window/playing? map-id])
+            start     (or (:start @drag) stored)
+            end       (nhatutils/window-end-year start)
+            {axis-start :start-year axis-end :end-year} nhatutils/timeline-axis
+            [first-projected last-projected] nhatutils/projected-window-starts
+            pct       #(* 100 (/ (- % axis-start) (- axis-end axis-start)))
+            year-at   (fn [client-x]
+                        (let [rect (.getBoundingClientRect @track)]
+                          (+ axis-start (* (- axis-end axis-start) (/ (- client-x (.-left rect)) (.-width rect))))))
+            choose    #(re-frame/dispatch [:current-view/window-start % map-id])
+            end-drag  (fn [_]
+                        (when-let [{:keys [start]} @drag]
+                          (reset! drag nil)
+                          (choose start)))]
+        [:section#time-control.cv-section
+         [label-row "1 · When"
+          [b/tooltip {:content "Each map averages 20 years, which smooths out year-to-year swings."}
+           [:span [b/icon {:icon "info-sign" :size 12}] " 20-year averages"]]]
+         [:div.segmented {:role "group" :aria-label "Periods"}
+          (for [{:keys [id name start-year]} nhatutils/when-presets]
+            ^{:key id}
+            [:button
+             {:type         "button"
+              :aria-pressed (= start-year start)
+              :class        (when (= start-year start) "selected")
+              :on-click     #(choose start-year)}
+             [:span.segmented-name name]
+             [:span.segmented-detail (year-span start-year)]])]
+         [:div.when-track
+          {:ref             #(reset! track %)
+           :on-pointer-down (fn [e] ; click the track to centre the window there
+                              (when (= (.-target e) (.-currentTarget e))
+                                (choose (nhatutils/snap-window-start (js/Math.round (- (year-at (.-clientX e)) 10))))))}
+          [:span.when-track-line]
+          [:span.when-track-past {:style {:width (str (pct first-projected) "%")}}]
+          [:div.when-window
+           {:role            "slider"
+            :tab-index       0
+            :aria-label      "20-year window"
+            :aria-valuemin   nhatutils/recent-window-start
+            :aria-valuemax   last-projected
+            :aria-valuenow   start
+            :aria-valuetext  (str start " to " end)
+            :class           (when @drag "dragging")
+            :style           {:left  (str (pct start) "%")
+                              :width (str (- (pct (+ start nhatutils/window-years)) (pct start)) "%")}
+            :on-pointer-down (fn [e]
+                               (.preventDefault e)
+                               (.setPointerCapture (.-currentTarget e) (.-pointerId e))
+                               (reset! drag {:start start :offset (- (year-at (.-clientX e)) start)}))
+            :on-pointer-move (fn [e]
+                               (when-let [{:keys [offset]} @drag]
+                                 (swap! drag assoc :start
+                                        (nhatutils/snap-window-start (js/Math.round (- (year-at (.-clientX e)) offset))))))
+            :on-pointer-up     end-drag
+            :on-pointer-cancel end-drag
+            :on-key-down
+            (fn [e]
+              (let [historic? (nhatutils/historic-window? start)
+                    next      (case (.-key e)
+                                ("ArrowLeft" "ArrowDown") (if (= start first-projected) nhatutils/recent-window-start (dec start))
+                                ("ArrowRight" "ArrowUp")  (if historic? first-projected (inc start))
+                                "PageDown"                (- start 10)
+                                "PageUp"                  (if historic? first-projected (+ start 10))
+                                "Home"                    nhatutils/recent-window-start
+                                "End"                     last-projected
+                                nil)]
+                (when next
+                  (.preventDefault e)
+                  (choose (nhatutils/snap-window-start next)))))}
+           [:span.when-window-years (year-span start)]]]
+         [:div.when-ticks {:aria-hidden true}
+          (for [year [axis-start first-projected 2050 axis-end]]
+            ^{:key year}
+            [:span {:style {:left (str (pct year) "%")}} year])]
+         [:div.when-footer
+          [:span.cv-note "Drag the window to pick any 20 years"]
+          [:button.watch-change
+           {:type     "button"
+            :class    (when watching? "playing")
+            :on-click #(re-frame/dispatch (if watching?
+                                            [:current-view.window/stop map-id]
+                                            [:current-view.window/play map-id]))}
+           [b/icon {:icon (if watching? "stop" "play") :size 12}]
+           (if watching? "Stop" "Watch change")]]]))))
 
 (defn- emissions-select
   "Lower or higher emissions, in plain words first with the SSP code underneath.
-   Doesn't apply to the baseline."
+   Doesn't apply to the recent past."
   [{:keys [map-id]}]
   (let [is-historic? @(re-frame/subscribe [:current-view/is-historic? map-id])
         selected     @(re-frame/subscribe [:current-view/selected-scenario map-id])
-        scenarios    @(re-frame/subscribe [:current-view/scenarios])
-        label-id     (str "emissions-label-" (name (or map-id :map-1)))]
+        scenarios    @(re-frame/subscribe [:current-view/scenarios])]
     [:section.cv-section
-     [:h3.cv-label {:id label-id} "Emissions"]
-     [:div.segmented
-      {:role            "radiogroup"
-       :aria-labelledby label-id
-       :aria-disabled   is-historic?
-       :on-key-down     (arrow-key-step (map :id scenarios) (:id selected)
-                                        (fn [id] (re-frame/dispatch [:current-view/selected-scenario (first-where #(= (:id %) id) scenarios) map-id])))}
+     [label-row "2 · Emissions future" (when is-historic? "Not used for the recent past")]
+     [:div.segmented {:role "group" :aria-label "Emissions future"}
       (for [{:keys [id name display_name] :as scenario} scenarios
             :let [{:keys [label code]} (get nhatutils/scenario-labels name)
                   selected? (and (not is-historic?) (= id (:id selected)))]]
         ^{:key id}
         [:button
          {:type         "button"
-          :role         "radio"
-          :aria-checked selected?
-          :tab-index    (if selected? 0 -1)
+          :aria-pressed selected?
           :class        (when selected? "selected")
           :disabled     is-historic?
           :on-click     #(re-frame/dispatch [:current-view/selected-scenario scenario map-id])}
          [:span.segmented-name (or label display_name)]
-         [:span.segmented-detail (or code name)]])]
-     [:p.cv-note
-      (if is-historic?
-        "The baseline is the past, so there's no emissions choice."
-        (:description (get nhatutils/scenario-labels (:name selected))))]]))
+         [:span.segmented-detail (or code name)]])]]))
 
 (defn- season-select
   [{:keys [map-id]}]
   [:section.cv-section
-   [:h3.cv-label "Season"]
+   [label-row "3 · Season"]
    [components/select
     {:value    @(re-frame/subscribe [:current-view/selected-seasonal-data map-id])
      :options  @(re-frame/subscribe [:current-view/seasonal-datas])
@@ -297,59 +286,50 @@
      {:id   :id
       :text :display_name}}]])
 
-(defn- model-settings
+(defn- advanced-settings
   "Expert settings with sensible defaults, folded away but showing what's in use."
   []
   (let [open? (reagent/atom false)]
     (fn [{:keys [map-id]}]
       (let [cmip-phase @(re-frame/subscribe [:current-view/selected-cmip-phase map-id])
             model      @(re-frame/subscribe [:current-view/selected-model map-id])]
-        [:section.cv-section.model-settings
-         [:button.model-settings-toggle
+        [:section.cv-section.advanced-settings
+         [:button.advanced-settings-toggle
           {:type          "button"
            :aria-expanded @open?
            :on-click      #(swap! open? not)}
-          [b/icon {:icon (if @open? "chevron-down" "chevron-right") :size 14}]
-          [:span.cv-label "Model settings"]
-          (when-not @open?
-            [:span.model-settings-summary (:display_name model) ", " (:display_name cmip-phase)])]
-         [b/collapse
-          {:is-open @open?}
-          [:div.model-settings-body
-           [:h4.cv-sublabel "Model"]
-           [components/select
-            {:value    model
-             :options  @(re-frame/subscribe [:current-view/models])
-             :onChange #(re-frame/dispatch [:current-view/selected-model % map-id])
-             :keyfns
-             {:id   :id
-              :text :display_name}}]
-           [:h4.cv-sublabel "Model generation"]
-           [components/select
-            {:value    cmip-phase
-             :options  @(re-frame/subscribe [:current-view/cmip-phases])
-             :onChange #(re-frame/dispatch [:current-view/selected-cmip-phase % map-id])
-             :keyfns
-             {:id   :id
-              :text :display_name}}]]]]))))
+          "Advanced: model and dataset"
+          [b/icon {:icon (if @open? "chevron-up" "chevron-down") :size 14}]]
+         (if @open?
+           [:div.advanced-settings-body
+            [:h4.cv-sublabel "Model"]
+            [components/select
+             {:value    model
+              :options  @(re-frame/subscribe [:current-view/models])
+              :onChange #(re-frame/dispatch [:current-view/selected-model % map-id])
+              :keyfns
+              {:id   :id
+               :text :display_name}}]
+            [:h4.cv-sublabel "Dataset"]
+            [components/select
+             {:value    cmip-phase
+              :options  @(re-frame/subscribe [:current-view/cmip-phases])
+              :onChange #(re-frame/dispatch [:current-view/selected-cmip-phase % map-id])
+              :keyfns
+              {:id   :id
+               :text :display_name}}]]
+           [:p.cv-note (:display_name model) " · " (:display_name cmip-phase)])]))))
 
-(defn- current-view-caption
-  "What the map shows, in a sentence. Makes the view defensible when shared."
-  [{:keys [map-id]}]
-  (let [{:keys [layer year period years emissions season model cmip-phase]}
-        @(re-frame/subscribe [:current-view/caption map-id])]
-    (when (and layer period)
-      [:figure.current-view-caption
-       [:p
-        [:strong layer] " for " period
-        (when years (str ", " years))
-        (when emissions (str ", under " emissions))
-        "."]
-       [:p.cv-note
-        (when year (str "Showing " year ". "))
-        (let [details (string/join ", " (remove nil? [season model cmip-phase]))]
-          (when (seq details)
-            (str (string/upper-case (subs details 0 1)) (subs details 1) ".")))]])))
+(defn- map-caption
+  "What the map shows, in a line under the map. Makes the view defensible when
+   shared."
+  []
+  (let [{:keys [layer period years emissions season model]}
+        @(re-frame/subscribe [:current-view/caption])]
+    (when layer
+      [:div.map-caption.leaflet-control
+       [:strong layer] " · " period ", average of " years
+       (string/join (map #(str " · " %) (remove nil? [emissions season model])))])))
 
 (defn- side-by-side-toggle []
   [:div#side-by-side-toggle
@@ -366,12 +346,12 @@
   [{:keys [map-id]}]
   [:div
    {:class (str "current-view " (when map-id "dark"))}
+   [active-layer-heading]
    [when-select {:map-id map-id}]
    [:div#current-view-analysis
     [emissions-select {:map-id map-id}]
     [season-select {:map-id map-id}]
-    [model-settings {:map-id map-id}]]
-   [current-view-caption {:map-id map-id}]])
+    [advanced-settings {:map-id map-id}]]])
 
 (defn- current-view
   "Control tab to select the current view of the hazard data.
@@ -481,8 +461,9 @@
 (defn- hazard-layer-legend []
   (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]
     (when active-hazard-layer
-      [:div.leaflet-bottom.leaflet-left.leaflet-touch
-       [:div.hazard-layer-legend.leaflet-control [legend-display active-hazard-layer]]])))
+      [:div.leaflet-bottom.leaflet-left.leaflet-touch.hazard-layer-legend-row
+       [:div.hazard-layer-legend.leaflet-control [legend-display active-hazard-layer]]
+       [map-caption]])))
 
 (def hotkeys-combos
   (let [keydown-wrapper
@@ -576,7 +557,7 @@
        :helperText     "Choose the emissions scenario and season. Model choices are under Model settings"
        :helperPosition "bottom"}
       {:id             "time-control"
-       :helperText     "Choose when: the historical baseline or a projected period"
+       :helperText     "Choose when: a named period, or drag the 20-year window"
        :helperPosition "bottom"}]
      [welcome-dialogue]
      [views/outage-message-dialogue]

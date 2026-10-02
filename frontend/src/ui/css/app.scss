@@ -786,40 +786,64 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 #side-by-side-toggle { padding: 12px 24px; }
 
-// Current View panel: When, Emissions, Season, Model settings, caption.
+// Current View panel: layer, When, Emissions future, Season, Advanced.
 // Uses the atlas's own plum as the only accent.
 .current-view {
     --cv-ink: #260c27;
     --cv-plum: #6f2573;
-    --cv-plum-hover: #8a3a8f;
-    --cv-mist: #f1ebf2;
-    --cv-rule: #e0d6e1;
+    --cv-plum-tint: #f3e9f4;
+    --cv-border: #cfc3d1;
+    --cv-rule: #e6dee7;
+    --cv-past: #b9abbb;
     --cv-muted: #76667a;
 
     color: var(--cv-ink);
-    padding: 20px 24px 8px;
+    padding: 16px 24px 4px;
 
-    &.dark { --cv-mist: #e2d8e3; }
+    &.dark { --cv-plum-tint: #fff; }
 
-    .cv-section { margin-bottom: 22px; }
+    .cv-heading {
+        margin-bottom: 4px;
+        h2 {
+            margin: 0;
+            font-family: Poppins, sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+        .cv-note { margin-top: 2px; }
+    }
 
+    .cv-section { margin-top: 18px; }
+
+    .cv-label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
     .cv-label {
-        margin: 0 0 10px;
-        font-family: Poppins, sans-serif;
-        font-size: 14px;
+        margin: 0;
+        font-size: 12px;
         font-weight: 600;
-        line-height: 1.3;
-        color: var(--cv-ink);
+        color: var(--cv-muted);
+    }
+    .cv-label-note {
+        font-size: 11px;
+        color: var(--cv-muted);
+        .bp3-icon { vertical-align: -1px; color: inherit; }
     }
     .cv-sublabel {
-        margin: 12px 0 6px;
+        margin: 10px 0 4px;
         font-size: 12px;
         font-weight: 600;
         color: var(--cv-muted);
     }
     .cv-note {
-        margin: 8px 0 0;
-        font-size: 12px;
+        margin: 0;
+        font-size: 11px;
         line-height: 1.45;
         color: var(--cv-muted);
     }
@@ -832,213 +856,164 @@ input.leaflet-control-layers-selector[type="radio"] {
         padding: 0;
         cursor: pointer;
         &:disabled { cursor: default; }
-        &:focus-visible {
-            outline: 2px solid var(--cv-plum);
-            outline-offset: 2px;
-            border-radius: 4px;
-        }
+    }
+    button:focus-visible, [role=slider]:focus-visible {
+        outline: 2px solid var(--cv-plum);
+        outline-offset: 2px;
+    }
+    .cv-link {
+        color: var(--cv-plum);
+        text-decoration: underline;
+        text-underline-offset: 2px;
     }
 
-    // The four periods, each drawn to scale on a year axis
-    .when-timeline {
-        position: relative;
-        height: 62px;
-    }
-    .when-timeline-axis {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 24px;
-        height: 2px;
-        background: var(--cv-rule);
-        border-radius: 1px;
-    }
-    .when-period {
-        position: absolute;
-        top: 0;
-        bottom: 0;
+    // Segmented choice: the plain word, with its years or code underneath
+    .segmented {
         display: flex;
-        flex-direction: column;
-        align-items: center;
+        border: 1px solid var(--cv-border);
+        border-radius: 6px;
+        overflow: hidden;
+        background: #fff;
+        button {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 2px;
+            font-size: 12px;
+            line-height: 16px;
+            transition: background-color 0.12s;
+            + button { border-left: 1px solid var(--cv-border); }
+            &:hover:not(:disabled):not(.selected) { background: #faf6fa; }
+            &.selected { background: var(--cv-plum-tint); color: var(--cv-plum); font-weight: 600; }
+            &:disabled { opacity: 0.45; }
+            &:focus-visible { outline-offset: -2px; }
+        }
+    }
+    .segmented-detail {
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--cv-muted);
         white-space: nowrap;
+    }
+    .segmented .selected .segmented-detail { color: var(--cv-plum); }
 
-        .when-period-name {
-            font-family: Poppins, sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            line-height: 18px;
-            color: var(--cv-muted);
-        }
-        .when-period-window {
-            position: relative;
-            align-self: stretch;
-            height: 10px;
-            margin: 2px 0 6px;
-            border-radius: 5px;
-            background: var(--cv-mist);
-            box-shadow: inset 0 0 0 1px var(--cv-rule);
-            overflow: hidden;
-            transition: background-color 0.15s, height 0.15s, margin 0.15s;
-        }
-        .when-period-years {
+    // The track: 1990 to 2100, with the 20-year window as the handle
+    .when-track {
+        position: relative;
+        height: 30px;
+        margin-top: 10px;
+        cursor: pointer;
+        touch-action: none;
+        user-select: none;
+    }
+    .when-track-line, .when-track-past {
+        position: absolute;
+        top: 13px;
+        height: 4px;
+        border-radius: 2px;
+        pointer-events: none;
+    }
+    .when-track-line { left: 0; right: 0; background: var(--cv-rule); }
+    .when-track-past { left: 0; background: var(--cv-past); border-radius: 2px 0 0 2px; }
+    .when-window {
+        position: absolute;
+        top: 4px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1.5px solid var(--cv-plum);
+        border-radius: 6px;
+        background: var(--cv-plum-tint);
+        color: var(--cv-plum);
+        cursor: grab;
+        transition: left 0.25s ease-out;
+        &.dragging { cursor: grabbing; transition: none; box-shadow: 0 2px 6px rgba(38, 12, 39, 0.25); }
+    }
+    .when-window-years {
+        font-size: 10px;
+        font-weight: 600;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+        pointer-events: none;
+    }
+    .when-ticks {
+        position: relative;
+        height: 14px;
+        span {
+            position: absolute;
+            transform: translateX(-50%);
             font-size: 11px;
             line-height: 14px;
             color: var(--cv-muted);
             font-variant-numeric: tabular-nums;
-        }
-
-        &:hover:not(.selected) {
-            .when-period-name { color: var(--cv-ink); }
-            .when-period-window { background: #e4d3e6; }
-        }
-
-        &.selected {
-            .when-period-name { color: var(--cv-plum); font-weight: 600; }
-            .when-period-years { color: var(--cv-ink); }
-            .when-period-window {
-                height: 14px;
-                margin: 0 0 4px;
-                border-radius: 7px;
-                background: var(--cv-plum);
-                box-shadow: none;
-            }
+            &:first-child { transform: none; }
+            &:last-child { transform: translateX(-100%); }
         }
     }
-    // Watch change: the years played so far fill the window
-    .when-period-progress {
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        background: rgba(255, 255, 255, 0.28);
-        transition: width 0.3s ease-out;
-    }
-    .when-period-marker {
-        position: absolute;
-        top: 3px;
-        bottom: 3px;
-        width: 2px;
-        margin-left: -1px;
-        border-radius: 1px;
-        background: #fff;
-        transition: left 0.3s ease-out;
-    }
-
-    .watch-change {
+    .when-footer {
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        margin-top: 10px;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
     }
-    .watch-change-play {
+    .watch-change {
+        flex: none;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        height: 30px;
-        padding: 0 12px 0 10px;
-        border-radius: 15px;
-        box-shadow: inset 0 0 0 1px var(--cv-plum);
-        color: var(--cv-plum);
-        font-size: 13px;
-        font-weight: 600;
-        .bp3-icon { color: inherit; }
-        &:hover:not(:disabled) { background: var(--cv-mist); }
-        &.playing { background: var(--cv-plum); color: #fff; }
-        &:disabled { box-shadow: inset 0 0 0 1px var(--cv-rule); color: var(--cv-muted); }
+        gap: 5px;
+        padding: 4px 9px;
+        border: 1px solid var(--cv-border);
+        border-radius: 6px;
+        background: #fff;
+        font-size: 12px;
+        .bp3-icon { color: var(--cv-plum); }
+        &:hover { background: #faf6fa; }
+        &.playing { background: var(--cv-plum); border-color: var(--cv-plum); color: #fff; .bp3-icon { color: #fff; } }
     }
-    .watch-change-year {
+
+    .advanced-settings {
+        padding-top: 10px;
+        border-top: 1px solid var(--cv-rule);
+    }
+    .advanced-settings-toggle {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 2px;
-        button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 26px;
-            height: 26px;
-            border-radius: 13px;
-            color: var(--cv-plum);
-            .bp3-icon { color: inherit; }
-            &:hover:not(:disabled) { background: var(--cv-mist); }
-            &:disabled { color: var(--cv-rule); }
-        }
-    }
-    .watch-change-year-value {
-        display: inline-flex;
-        justify-content: center;
-        min-width: 3em;
-        font-family: Poppins, sans-serif;
-        font-size: 15px;
-        font-weight: 600;
-        font-variant-numeric: tabular-nums;
-    }
-
-    // Two-option choice with the plain word over its code
-    .segmented {
-        display: flex;
-        padding: 3px;
-        border-radius: 8px;
-        background: var(--cv-mist);
-        button {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 6px 4px;
-            border-radius: 6px;
-            transition: background-color 0.15s;
-            &:hover:not(:disabled):not(.selected) { background: rgba(255, 255, 255, 0.6); }
-            &.selected {
-                background: #fff;
-                box-shadow: 0 1px 2px rgba(38, 12, 39, 0.18);
-                .segmented-name { color: var(--cv-plum); }
-            }
-            &:disabled { opacity: 0.45; }
-        }
-    }
-    .segmented-name {
-        font-family: Poppins, sans-serif;
-        font-size: 13px;
-        font-weight: 600;
-        line-height: 18px;
-    }
-    .segmented-detail {
-        font-size: 11px;
-        line-height: 14px;
-        color: var(--cv-muted);
-    }
-
-    .model-settings-toggle {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
         width: 100%;
-        text-align: left;
-        .bp3-icon { align-self: center; color: var(--cv-muted); }
-        .cv-label { margin: 0; }
-    }
-    .model-settings-summary {
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        padding: 4px 0;
         font-size: 12px;
         color: var(--cv-muted);
+        .bp3-icon { color: inherit; }
+        &:hover { color: var(--cv-ink); }
     }
-    .model-settings-body { padding: 2px 0 0 20px; }
-
-    .current-view-caption {
-        margin: 0 0 16px;
-        padding: 12px 0 0;
-        border-top: 1px solid var(--cv-rule);
-        p { margin: 0; font-size: 13px; line-height: 1.5; }
-        strong { font-weight: 600; }
-        .cv-note { margin-top: 4px; }
-    }
+    .advanced-settings .cv-note { padding-top: 4px; }
+    .advanced-settings-body { padding-top: 2px; }
 
     @media (prefers-reduced-motion: reduce) {
         * { transition: none !important; }
     }
+}
+
+// The legend and the caption share the map's bottom-left corner
+.hazard-layer-legend-row {
+    display: flex;
+    align-items: flex-end;
+    .leaflet-control { float: none; clear: none; }
+}
+.map-caption {
+    max-width: 440px;
+    padding: 7px 10px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    background-clip: padding-box;
+    background: rgba(255, 255, 255, 0.92);
+    color: #260c27;
+    font-size: 12px;
+    line-height: 1.45;
+    strong { font-weight: 600; }
 }
 
 .natural-hazards-atlas .leaflet-bar-timecontrol {

@@ -522,26 +522,57 @@
      [(when-not current-time-in-range? [:map.time/current-time first-time-in-range map-id])
       [:maybe-autosave]]}))
 
-(defn current-view-when
-  "Select a \"When\" preset: the historical baseline or a projected period.
+(def ^:private watch-step-ms
+  "How long Watch change shows each window before moving on a year."
+  900)
 
-   Sets both whether the view is historic and the time period. Moving between
-   projected periods keeps the same dataset, so the year moves straight to the
-   start of the new period. Moving to or from the baseline switches dataset, and
-   `time-available-times` picks the year once that dataset's years load."
-  [{:keys [db]} [_ preset-id map-id]]
-  (let [{:keys [historic?] :as preset} (first-where #(= (:id %) preset-id) nhatutils/when-presets)
-        _             (assert preset (str "Unknown \"When\" preset " preset-id))
+(defn current-view-window-start
+  "Select the 20-year window starting at year (snapped so it's wholly historical
+   or wholly projected).
+
+   Moving within the projected years keeps the same dataset, so the map moves
+   straight to the new window. Moving to or from the historical window switches
+   dataset, and `time-available-times` picks the year once its years load.
+
+   Choosing a window stops Watch change, unless Watch change is the one choosing."
+  [{:keys [db]} [_ year map-id {:keys [watching?]}]]
+  (let [start-year    (nhatutils/snap-window-start year)
         was-historic? (nhatutils/current-view-is-historic? db map-id)
-        playing?      (utils/get-independent-map-state db map-id [:display :time-is-playing?])
-        db            (cond-> (utils/assoc-independent-map-state db map-id [:current-view :is-historic?] historic?)
-                        (not historic?) (utils/assoc-independent-map-state map-id [:current-view :selected-time-period-id] preset-id))
+        historic?     (nhatutils/historic-window? start-year)
+        db            (-> db
+                          (utils/assoc-independent-map-state map-id [:current-view :window-start-year] start-year)
+                          (utils/assoc-independent-map-state map-id [:current-view :is-historic?] historic?)
+                          (cond-> (not watching?) (utils/assoc-independent-map-state map-id [:display :window-playing?] false)))
         first-time    (first (nhatutils/time-available-times db map-id))]
     {:db db
      :dispatch-n
-     [(when playing? [:map.time/pause map-id])
-      (when (and (= was-historic? historic?) first-time) [:map.time/current-time first-time map-id])
+     [(when (and (= was-historic? historic?) first-time) [:map.time/current-time first-time map-id])
       [:maybe-autosave]]}))
+
+(defn current-view-window-play
+  "Watch change: sweep the window across the century, a year at a time, starting
+   from the recent climate."
+  [{:keys [db]} [_ map-id]]
+  {:db             (utils/assoc-independent-map-state db map-id [:display :window-playing?] true)
+   :dispatch       [:current-view/window-start nhatutils/recent-window-start map-id {:watching? true}]
+   :dispatch-later {:ms watch-step-ms :dispatch [:current-view.window/tick map-id]}})
+
+(defn current-view-window-tick
+  "Move Watch change on a year, stopping when the window reaches the end of the
+   century."
+  [{:keys [db]} [_ map-id]]
+  (when (utils/get-independent-map-state db map-id [:display :window-playing?])
+    (let [start-year                     (nhatutils/current-view-window-start db map-id)
+          [first-projected last-projected] nhatutils/projected-window-starts
+          next-year                      (if (nhatutils/historic-window? start-year) first-projected (inc start-year))]
+      (if (> next-year last-projected)
+        {:db (utils/assoc-independent-map-state db map-id [:display :window-playing?] false)}
+        {:dispatch       [:current-view/window-start next-year map-id {:watching? true}]
+         :dispatch-later {:ms watch-step-ms :dispatch [:current-view.window/tick map-id]}}))))
+
+(defn current-view-window-stop
+  [{:keys [db]} [_ map-id]]
+  {:db (utils/assoc-independent-map-state db map-id [:display :window-playing?] false)})
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component.

@@ -101,7 +101,8 @@
     :current-view/is-historic?            nhasubs/current-view-is-historic?
     :current-view/time-periods            nhasubs/current-view-time-periods
     :current-view/selected-time-period    nhasubs/current-view-selected-time-period
-    :current-view/when                    nhasubs/current-view-when
+    :current-view/window-start            nhasubs/current-view-window-start
+    :current-view.window/playing?         nhasubs/current-view-window-playing?
     :current-view/caption                 [nhasubs/current-view-caption-signals nhasubs/current-view-caption]
     :current-view/timeline-media-controls [nhasubs/current-view-timeline-media-controls-signals nhasubs/current-view-timeline-media-controls]
     :map.layers/hazard-layers             [:<- [:map/layers] nhasubs/hazard-layers]
@@ -303,7 +304,10 @@
     :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]
     :current-view/is-historic?            [nhatevents/current-view-is-historic?]
     :current-view/selected-time-period    [nhatevents/current-view-selected-time-period]
-    :current-view/when                    [nhatevents/current-view-when]
+    :current-view/window-start            [nhatevents/current-view-window-start]
+    :current-view.window/play             [nhatevents/current-view-window-play]
+    :current-view.window/tick             [nhatevents/current-view-window-tick]
+    :current-view.window/stop             [nhatevents/current-view-window-stop]
     :current-view.time/step-forward       [nhatevents/current-view-time-step-forward]
     :current-view.time/step-backward      [nhatevents/current-view-time-step-backward]}})
 
