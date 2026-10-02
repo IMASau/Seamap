@@ -279,7 +279,7 @@
 
 (defmethod layer-component :wms-timeseries
   [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style hazardlayer]} :displayed-layer}]
-  (let [{:keys [color-scale-range-min color-scale-range-max]} @(re-frame/subscribe [:map.layers.hazard-layers/color-scale-range layer])]
+  (let [{:keys [color-scale-range-min color-scale-range-max]} (when hazardlayer @(re-frame/subscribe [:map.layers.hazard-layers/color-scale-range layer]))] ; sub is only registered in Natural Hazards Atlas
     [leaflet/wms-timeseries-layer
      (merge
       {:url              server_url

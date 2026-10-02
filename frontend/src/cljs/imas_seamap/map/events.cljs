@@ -212,7 +212,7 @@
     (.run query (fn [error feature-collection _response]
                   (if error
                     (re-frame/dispatch [:map/got-featureinfo-err request-id point map-id nil])
-                    (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers (js->clj feature-collection) map-id]))))
+                    (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers map-id (js->clj feature-collection)]))))
     nil))
 
 (defmethod get-feature-info INFO-FORMAT-XML
@@ -290,12 +290,12 @@
                      (some #{(get % "layerId")} layer-server-ids)       ; check it's a layer we're querying for (not a different layer on the server)
                      (not= (get-in % ["properties" "Pixel Value"]) "NoData")) ; check the layer has associated data
                    (get feature-collection "features"))))]
-           (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers feature-collection map-id])))))
+           (re-frame/dispatch [:map/got-featureinfo request-id point "application/json" layers map-id feature-collection])))))
     nil))
 
 (defmethod get-feature-info :default
   [_ [_ _info-format-type layers request-id _leaflet-props point map-id]]
-  {:dispatch [:map/got-featureinfo request-id point nil nil layers map-id]})
+  {:dispatch [:map/got-featureinfo request-id point nil nil map-id layers]})
 
 (defn feature-info-dispatcher
   "Takes a map click event, and dispatches :map/get-feature-info events for each
@@ -340,7 +340,7 @@
       :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
      (if (and (seq requests) (not had-insecure?))
        {:dispatch-n requests}
-       {:dispatch   [:map/got-featureinfo request-id point nil nil [] nil]}))))
+       {:dispatch   [:map/got-featureinfo request-id point nil nil nil []]}))))
 
 (defn show-popup [db [_ request-id]]
   (cond-> db

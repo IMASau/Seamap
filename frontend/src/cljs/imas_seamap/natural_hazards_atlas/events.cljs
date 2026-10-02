@@ -636,7 +636,7 @@
            :show?    false})))
       :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
       (when will-request? {:dispatch-n (concat requests-1 requests-2)})
-      (when-not will-request? {:dispatch [:map/got-featureinfo request-id point nil nil [] nil]})))) ; shows "no data" popup
+      (when-not will-request? {:dispatch [:map/got-featureinfo request-id point nil nil nil []]})))) ; shows "no data" popup
 
 (defn download-show-link [db [_ layer bounds download-type]]
   (let [api-url-base (get-in db [:config :url-base :api-url-base])
