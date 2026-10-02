@@ -3,10 +3,11 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.subs
   (:require
+   [clojure.string :as string]
    [re-frame.core :as re-frame]
    [imas-seamap.map.subs :as msubs]
    [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
-   [imas-seamap.utils :as utils]))
+   [imas-seamap.utils :as utils :refer [first-where]]))
 
 (defn current-view-cmip-phases
   "List of CMIP (Coupled Model Intercomparison Project) phases available to
@@ -70,6 +71,48 @@
   "Time period to analyze the hazard data"
   [db [_ map-id]]
   (nhatutils/current-view-selected-time-period db map-id))
+
+(defn current-view-when
+  "Id of the selected \"When\" preset, or nil if the selection isn't a preset
+   (e.g. an old saved state on the \"All\" period)."
+  [db [_ map-id]]
+  (if (nhatutils/current-view-is-historic? db map-id)
+    "baseline"
+    (let [{:keys [id]} (nhatutils/current-view-selected-time-period db map-id)]
+      (when (some #(= (:id %) id) nhatutils/when-presets) id))))
+
+(defn current-view-caption-signals
+  "Signals function for current-view-caption.
+
+   Signals function is a necessity, in order to pass through subscription args"
+  [[_ map-id]]
+  [(re-frame/subscribe [:map.layers/active-hazard-layer])
+   (re-frame/subscribe [:current-view/when map-id])
+   (re-frame/subscribe [:map.time/current-time map-id])
+   (re-frame/subscribe [:map.time/available-times map-id])
+   (re-frame/subscribe [:current-view/selected-scenario map-id])
+   (re-frame/subscribe [:current-view/selected-seasonal-data map-id])
+   (re-frame/subscribe [:current-view/selected-model map-id])
+   (re-frame/subscribe [:current-view/selected-cmip-phase map-id])])
+
+(defn current-view-caption
+  "The parts of a plain-English description of what the map is showing."
+  [[hazard-layer when-id current-time available-times scenario season model cmip-phase] _]
+  (let [year                 #(when % (.getFullYear (js/Date. %)))
+        {:keys [historic?] :as preset} (first-where #(= (:id %) when-id) nhatutils/when-presets)
+        [start-year end-year] (if historic?
+                                [(year (first available-times)) (year (last available-times))]
+                                [(:start-year preset) (:end-year preset)])]
+    {:layer      (:name hazard-layer)
+     :year       (year current-time)
+     :period     (cond historic? "the historical baseline" preset (str "the " (:name preset) " period"))
+     :years      (when (and start-year end-year) (str start-year "–" end-year))
+     :emissions  (when-not historic?
+                   (let [{:keys [label code]} (get nhatutils/scenario-labels (:name scenario))]
+                     (if label (str (string/lower-case label) " emissions (" code ")") (:display_name scenario))))
+     :season     (:display_name season)
+     :model      (:display_name model)
+     :cmip-phase (:display_name cmip-phase)}))
 
 (defn current-view-timeline-media-controls-signals
   "Signals function for current-view-timeline-media-controls.

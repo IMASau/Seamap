@@ -786,6 +786,89 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 #side-by-side-toggle { padding: 12px 24px; }
 
+// "When" control and friends in the Current View panel
+.current-view {
+    .form-group { margin-bottom: 12px; }
+    .form-group > div:first-child { font-weight: 600; margin-bottom: 4px; }
+
+    // Buttons with a plain-word label over a smaller detail line
+    .stacked-buttons .bp3-button {
+        flex-direction: column;
+        gap: 0;
+        padding: 4px 2px;
+        min-width: 0;
+        .bp3-button-text { display: flex; flex-direction: column; align-items: center; }
+    }
+    .stacked-button-label { font-weight: 600; }
+    .stacked-button-detail { font-size: 11px; opacity: 0.7; white-space: nowrap; }
+
+    .when-timeline {
+        margin: 10px 2px 0;
+        .when-timeline-track {
+            position: relative;
+            height: 14px;
+            border-radius: 7px;
+            background: linear-gradient(to right, #d8e1e8 0, #d8e1e8 26%, #e8e1d8 26%, #e8e1d8 100%);
+        }
+        .when-timeline-window {
+            position: absolute;
+            top: 2px;
+            bottom: 2px;
+            border-radius: 5px;
+            background: rgba(19, 124, 189, 0.25);
+            cursor: pointer;
+            &:hover { background: rgba(19, 124, 189, 0.45); }
+            &.selected { top: -2px; bottom: -2px; background: #137cbd; }
+        }
+        .when-timeline-marker {
+            position: absolute;
+            top: -4px;
+            bottom: -4px;
+            width: 3px;
+            margin-left: -1px;
+            background: #182026;
+            border-radius: 1px;
+            pointer-events: none;
+            transition: left 0.2s;
+        }
+        .when-timeline-ticks {
+            position: relative;
+            height: 16px;
+            font-size: 10px;
+            color: #5c7080;
+            span { position: absolute; top: 2px; transform: translateX(-50%); }
+            span:last-child { transform: translateX(-100%); }
+        }
+    }
+
+    .watch-change {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 4px;
+        .watch-change-year {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            span { min-width: 3.5em; text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
+        }
+    }
+
+    .advanced-settings {
+        margin-bottom: 8px;
+        > .bp3-button { margin-left: -7px; }
+        .advanced-settings-body { padding: 8px 0 0 16px; }
+    }
+
+    .current-view-caption {
+        margin: 4px 0 0;
+        padding-top: 8px;
+        border-top: 1px solid rgba(16, 22, 26, 0.15);
+        font-size: 12px;
+        line-height: 1.4;
+    }
+}
+
 .natural-hazards-atlas .leaflet-bar-timecontrol {
     display: none;
 }

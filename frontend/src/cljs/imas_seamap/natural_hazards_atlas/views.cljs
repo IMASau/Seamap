@@ -2,11 +2,13 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.views
-  (:require [goog.string.format]
+  (:require [clojure.string :as string]
+            [goog.string.format]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.components :as components]
             [imas-seamap.map.layer-views :refer [legend-display]]
             [imas-seamap.natural-hazards-atlas.map.views :refer [map-component]]
+            [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.story-maps.views :refer [featured-maps]]
             [imas-seamap.views :as views]
@@ -128,144 +130,197 @@
        ^{:key (str id)}
        [views/side-by-side-views-pill rich-layer])]))
 
-(defn- time-period-select
-  "Select the time period of the hazard data to view on the map.
-   This is a half-baked implementation, because we haven't nailed-down what time
-   periods span what years, and all the currently available data is historic."
-  [{:keys [map-id]}]
-  (let [time-periods @(re-frame/subscribe [:current-view/time-periods])
-        is-historic? @(re-frame/subscribe [:current-view/is-historic? map-id])]
-    [components/form-group
-     {:label "Time Period"}
-     [:<>
-      [b/button-group
-       {:style {:margin-bottom "8px"}
-        :fill true}
-       [b/button
-        {:text     "Historic Data"
-         :on-click #(re-frame/dispatch [:current-view/is-historic? true map-id])
-         :active   is-historic?
-         :small true}]
-       [b/button
-        {:text     "Projected Data"
-         :on-click #(re-frame/dispatch [:current-view/is-historic? false map-id])
-         :active (not is-historic?)
-         :small true}]]
-      (when (not is-historic?)
-        [components/select
-         {:value        @(re-frame/subscribe [:current-view/selected-time-period map-id])
-          :options      time-periods
-          :onChange     #(re-frame/dispatch [:current-view/selected-time-period % map-id])
-          :keyfns
-          {:id   :id
-           :text (fn [{:keys [name start-year end-year]}] (str name (when (and start-year end-year) (str " (" start-year "-" end-year ")"))))}}])]]))
+(defn- year-of
+  "Year of a time in ms."
+  [time]
+  (when time (.getFullYear (js/Date. time))))
 
-(defn- timeline-media-controls
-  "Media-style controls to play through the timeline of hazard data."
+(defn- timeline-pct
+  "Position of a year along the \"When\" timeline, as a CSS percentage."
+  [year]
+  (let [{:keys [start-year end-year]} nhatutils/timeline-axis]
+    (str (* 100 (/ (- year start-year) (- end-year start-year))) "%")))
+
+(defn- when-preset-buttons
+  "The four \"When\" presets. Most users pick a period, not a year."
+  [{:keys [map-id selected]}]
+  [b/button-group
+   {:fill  true
+    :class "stacked-buttons"}
+   (for [{:keys [id name historic? start-year end-year]} nhatutils/when-presets]
+     ^{:key id}
+     [b/button
+      {:active   (= id selected)
+       :on-click #(re-frame/dispatch [:current-view/when id map-id])}
+      [:span.stacked-button-label name]
+      [:span.stacked-button-detail
+       (if historic?
+         (str "to " end-year)
+         (str start-year "–" (mod end-year 100)))]])])
+
+(defn- when-timeline
+  "Each preset's 20-year window drawn to scale on a timeline, so the averaging
+   period is visible. The selected window is highlighted, and a marker shows the
+   year the map is showing. Clicking a window selects that preset."
+  [{:keys [map-id selected]}]
+  (let [current-year (year-of @(re-frame/subscribe [:map.time/current-time map-id]))]
+    [:div.when-timeline
+     [:div.when-timeline-track
+      (for [{:keys [id name start-year axis-start-year end-year]} nhatutils/when-presets
+            :let [start-year (or start-year axis-start-year)]]
+        ^{:key id}
+        [:div.when-timeline-window
+         {:class    (when (= id selected) "selected")
+          :style    {:left  (timeline-pct start-year)
+                     :right (str "calc(100% - " (timeline-pct (inc end-year)) ")")}
+          :title    (str name " (" start-year "–" end-year ")")
+          :on-click #(re-frame/dispatch [:current-view/when id map-id])}])
+      (when current-year
+        [:div.when-timeline-marker
+         {:style {:left (timeline-pct (+ current-year 0.5))}}])]
+     [:div.when-timeline-ticks
+      (for [year [2000 2025 2050 2075 2100]]
+        ^{:key year}
+        [:span {:style {:left (timeline-pct year)}} year])]]))
+
+(defn- watch-change
+  "Play through the years of the selected period, one year at a time. Kept, as
+   the project plan promises a time slider, but secondary to the presets."
   [{:keys [map-id]}]
-  (let [{:keys [is-playing? is-loading? is-disabled? can-step-forward? can-step-backward?]} @(re-frame/subscribe [:current-view/timeline-media-controls map-id])]
-    [b/tooltip
-     {:content "Media controls are disabled while comparing maps"
-      :disabled (not is-disabled?)}
-     [b/button-group
+  (let [{:keys [is-playing? is-loading? is-disabled? can-step-forward? can-step-backward?]}
+        @(re-frame/subscribe [:current-view/timeline-media-controls map-id])
+        current-year (year-of @(re-frame/subscribe [:map.time/current-time map-id]))
+        has-years?   (seq @(re-frame/subscribe [:map.time/available-times map-id]))]
+    [:div.watch-change
+     [b/tooltip
+      {:content  "Watch change is disabled while comparing maps"
+       :disabled (not is-disabled?)}
       [b/button
-       {:icon "step-backward"
-        :disabled (or (not can-step-backward?) is-disabled?)
+       {:icon     (if is-playing? "pause" "play")
+        :text     (if is-playing? "Pause" "Watch change")
+        :small    true
+        :active   is-playing?
+        :disabled (or is-disabled? (not has-years?))
+        :on-click (if is-playing?
+                    #(re-frame/dispatch [:map.time/pause map-id])
+                    #(re-frame/dispatch [:map.time/play map-id]))}]]
+     [:div.watch-change-year
+      [b/button
+       {:icon     "chevron-left"
+        :minimal  true
+        :small    true
+        :title    "Previous year"
+        :disabled (or (not has-years?) (not can-step-backward?) is-disabled?)
         :on-click #(re-frame/dispatch [:current-view.time/step-backward map-id])}]
+      [:span (cond current-year current-year has-years? "–" :else "Loading…")]
       [b/button
-       {:icon (if is-playing? "pause" "play")
-        :disabled is-disabled?
-        :on-click
-        (if is-playing?
-          #(re-frame/dispatch [:map.time/pause map-id])
-          #(re-frame/dispatch [:map.time/play map-id]))
-        :active is-playing?}]
-      [b/button
-       {:icon "step-forward"
-        :disabled (or (not can-step-forward?) is-disabled?)
+       {:icon     "chevron-right"
+        :minimal  true
+        :small    true
+        :title    "Next year"
+        :disabled (or (not has-years?) (not can-step-forward?) is-disabled?)
         :on-click #(re-frame/dispatch [:current-view.time/step-forward map-id])}]
-      [b/button
-       {:icon "tick-circle"
-        :loading is-loading?
-        :disabled true}]]]))
+      (when is-loading? [b/spinner {:size 14}])]]))
 
-(defn- timeline-slider
-  "Slider to select the date (year) of data to view."
+(defn- when-select
+  "One control for one question: when? The presets, the timeline that shows their
+   windows, and Watch change underneath."
   [{:keys [map-id]}]
-  (let [available-times @(re-frame/subscribe [:map.time/available-times map-id])
-        label-renderer #(.getFullYear (js/Date. %))
-        label-values [(first available-times) (last available-times)]
-        value @(re-frame/subscribe [:map.time/current-time map-id])]
-    [components/snap-slider
-     {:value     value
-      :values    available-times
-      :on-change #(re-frame/dispatch [:map.time/current-time % map-id])
-      :label-values label-values
-      :label-renderer label-renderer}]))
+  (let [selected @(re-frame/subscribe [:current-view/when map-id])]
+    [b/card {:id "time-control"}
+     [components/form-group
+      {:label "When"}
+      [:<>
+       [when-preset-buttons {:map-id map-id :selected selected}]
+       [when-timeline {:map-id map-id :selected selected}]
+       [watch-change {:map-id map-id}]]]]))
 
-(defn- timeline-select
-  "Controls for selecting the time (year) of hazard data to view.
-   Should only be shown if there are available times to select from."
+(defn- emissions-select
+  "Lower or higher emissions, in plain words first with the SSP code underneath.
+   Doesn't apply to the baseline."
+  [{:keys [map-id]}]
+  (let [is-historic? @(re-frame/subscribe [:current-view/is-historic? map-id])
+        selected     @(re-frame/subscribe [:current-view/selected-scenario map-id])
+        scenarios    @(re-frame/subscribe [:current-view/scenarios])]
+    [components/form-group
+     {:label "Emissions"}
+     [b/tooltip
+      {:content  "Emissions scenarios apply to projections, not the baseline"
+       :disabled (not is-historic?)
+       :class    "bp3-fill"}
+      [b/button-group
+       {:fill  true
+        :class "stacked-buttons"}
+       (for [{:keys [id name display_name] :as scenario} scenarios
+             :let [{:keys [label code]} (get nhatutils/scenario-labels name)]]
+         ^{:key id}
+         [b/button
+          {:active   (and (not is-historic?) (= id (:id selected)))
+           :disabled is-historic?
+           :on-click #(re-frame/dispatch [:current-view/selected-scenario scenario map-id])}
+          [:span.stacked-button-label (or label display_name)]
+          [:span.stacked-button-detail (or code name)]])]]]))
+
+(defn- season-select
   [{:keys [map-id]}]
   [components/form-group
-   {:label "Year"}
-   (if (and @(re-frame/subscribe [:map.time/current-time map-id]) (seq @(re-frame/subscribe [:map.time/available-times map-id])))
-     [:<>
-      [timeline-slider {:map-id map-id}]
-      [timeline-media-controls {:map-id map-id}]]
-     [b/spinner])])
+   {:label "Season"}
+   [components/select
+    {:value    @(re-frame/subscribe [:current-view/selected-seasonal-data map-id])
+     :options  @(re-frame/subscribe [:current-view/seasonal-datas])
+     :onChange #(re-frame/dispatch [:current-view/selected-seasonal-data % map-id])
+     :keyfns
+     {:id   :id
+      :text :display_name}}]])
 
-(defn- current-view-analysis
+(defn- advanced-settings
+  "Expert settings with sensible defaults, collapsed and showing what's in use."
+  []
+  (let [open? (reagent/atom false)]
+    (fn [{:keys [map-id]}]
+      (let [cmip-phase @(re-frame/subscribe [:current-view/selected-cmip-phase map-id])
+            model      @(re-frame/subscribe [:current-view/selected-model map-id])]
+        [:div.advanced-settings
+         [b/button
+          {:minimal  true
+           :small    true
+           :icon     (if @open? "chevron-down" "chevron-right")
+           :on-click #(swap! open? not)}
+          "Advanced: "
+          [:span.bp3-text-muted (:display_name model) ", " (:display_name cmip-phase)]]
+         [b/collapse
+          {:is-open @open?}
+          [:div.advanced-settings-body
+           [components/form-group {:label "Model"}
+            [components/select
+             {:value    model
+              :options  @(re-frame/subscribe [:current-view/models])
+              :onChange #(re-frame/dispatch [:current-view/selected-model % map-id])
+              :keyfns
+              {:id   :id
+               :text :display_name}}]]
+           [components/form-group {:label "CMIP"}
+            [components/select
+             {:value    cmip-phase
+              :options  @(re-frame/subscribe [:current-view/cmip-phases])
+              :onChange #(re-frame/dispatch [:current-view/selected-cmip-phase % map-id])
+              :keyfns
+              {:id   :id
+               :text :display_name}}]]]]]))))
+
+(defn- current-view-caption
+  "What the map shows, in a sentence. Makes the view defensible when shared."
   [{:keys [map-id]}]
-  (let [is-historic? @(re-frame/subscribe [:current-view/is-historic? map-id])]
-    [:div#current-view-analysis
-     {:style {:margin-bottom "8px"}}
-     [:div
-      {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
-      [:div {:style {:flex 1}}
-       [components/form-group {:label "CMIP"}
-        [components/select
-         {:value        @(re-frame/subscribe [:current-view/selected-cmip-phase map-id])
-          :options      @(re-frame/subscribe [:current-view/cmip-phases])
-          :onChange     #(re-frame/dispatch [:current-view/selected-cmip-phase % map-id])
-          :keyfns
-          {:id   :id
-           :text :display_name}}]]]
-      [:div {:style {:flex 1}}
-       [components/form-group {:label "Model"}
-        [components/select
-         {:value        @(re-frame/subscribe [:current-view/selected-model map-id])
-          :options      @(re-frame/subscribe [:current-view/models])
-          :onChange     #(re-frame/dispatch [:current-view/selected-model % map-id])
-          :keyfns
-          {:id   :id
-           :text :display_name}}]]]]
-     [:div {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
-      [:div {:style {:flex 1}}
-       [components/form-group
-        {:label "Scenario"}
-        [b/tooltip
-         {:content "Scenarios are only available for projected data"
-          :disabled (not is-historic?)
-          :class "bp3-fill"}
-         [components/select
-          {:value        @(re-frame/subscribe [:current-view/selected-scenario map-id])
-           :options      @(re-frame/subscribe [:current-view/scenarios])
-           :onChange     #(re-frame/dispatch [:current-view/selected-scenario % map-id])
-           :isDisabled   is-historic?
-           :keyfns
-           {:id   :id
-            :text :display_name}}]]]]
-      [:div {:style {:flex 1}}
-       [components/form-group
-        {:label "Seasonal Data"}
-        [components/select
-         {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data map-id])
-          :options      @(re-frame/subscribe [:current-view/seasonal-datas])
-          :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data % map-id])
-          :keyfns
-          {:id   :id
-           :text :display_name}}]]]]]))
+  (let [{:keys [layer year period years emissions season model cmip-phase]}
+        @(re-frame/subscribe [:current-view/caption map-id])]
+    (when (and layer year)
+      [:p.current-view-caption
+       "Map shows " [:b layer] " in " [:b year] ", from " period
+       (when years (str " (" years ")"))
+       (when emissions (str ", under " emissions))
+       ". "
+       [:span.bp3-text-muted
+        (string/join ", " (remove nil? [season model cmip-phase])) "."]])))
 
 (defn- side-by-side-toggle []
   [:div#side-by-side-toggle
@@ -275,16 +330,19 @@
      :label     "Compare Maps"}]])
 
 (defn- current-view-map-controls
-  "Set of controls to select model, scenario, and time parameters.
+  "Set of controls to select time, emissions scenario, season, and model.
+   Ordered by the question a non-expert asks: what will it be like, and how bad?
 
    Each parameter affects the map appearance and projection data."
   [{:keys [map-id]}]
   [:div
    {:class (str "current-view " (when map-id "dark"))}
-   [current-view-analysis {:map-id map-id}]
-   [b/card {:id "time-control"}
-    [time-period-select {:map-id map-id}]
-    [timeline-select {:map-id map-id}]]])
+   [when-select {:map-id map-id}]
+   [:div#current-view-analysis
+    [emissions-select {:map-id map-id}]
+    [season-select {:map-id map-id}]
+    [advanced-settings {:map-id map-id}]]
+   [current-view-caption {:map-id map-id}]])
 
 (defn- current-view
   "Control tab to select the current view of the hazard data.
@@ -486,10 +544,10 @@
        :helperPosition "bottom"
        :padding        0}
       {:id             "current-view-analysis"
-       :helperText     "Select a scientific model, scenario, and season to analyze the hazard data under"
+       :helperText     "Choose the emissions scenario and season. Model settings are under Advanced"
        :helperPosition "bottom"}
       {:id             "time-control"
-       :helperText     "Control the time period for hazard data analysis"
+       :helperText     "Choose when: the historical baseline or a projected period"
        :helperPosition "bottom"}]
      [welcome-dialogue]
      [views/outage-message-dialogue]

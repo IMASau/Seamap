@@ -82,8 +82,8 @@
                    :selected-model-id         nil
                    :selected-scenario-id      nil
                    :selected-seasonal-data-id nil
-                   :selected-time-period-id   "all"
-                   :is-historic?              true}
+                   :selected-time-period-id   "medium"
+                   :is-historic?              false}
    :autosave?       false
    :config          {:url-paths {:site-configuration    "siteconfiguration/"
                                  :layer                 "nhatlayers/" ; Has the same information as the "layers/" API endpoint, but with extra Thredds styling information that we're not using in Seamap

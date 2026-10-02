@@ -101,6 +101,8 @@
     :current-view/is-historic?            nhasubs/current-view-is-historic?
     :current-view/time-periods            nhasubs/current-view-time-periods
     :current-view/selected-time-period    nhasubs/current-view-selected-time-period
+    :current-view/when                    nhasubs/current-view-when
+    :current-view/caption                 [nhasubs/current-view-caption-signals nhasubs/current-view-caption]
     :current-view/timeline-media-controls [nhasubs/current-view-timeline-media-controls-signals nhasubs/current-view-timeline-media-controls]
     :map.layers/hazard-layers             [:<- [:map/layers] nhasubs/hazard-layers]
     :map.layers.hazard-layers/color-scale-range [:<- [:map.layers/hazard-layers]
@@ -178,7 +180,7 @@
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
     :map.time/current-time                [nhatevents/time-set-current-time]
-    :map.time/available-times             [mevents/time-available-times]
+    :map.time/available-times             [nhatevents/time-available-times]
     :map.time/play                        mevents/time-play
     :map.time/pause                       [mevents/time-pause]
     :map.time/is-loading?                 mevents/time-is-loading?
@@ -301,6 +303,7 @@
     :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]
     :current-view/is-historic?            [nhatevents/current-view-is-historic?]
     :current-view/selected-time-period    [nhatevents/current-view-selected-time-period]
+    :current-view/when                    [nhatevents/current-view-when]
     :current-view.time/step-forward       [nhatevents/current-view-time-step-forward]
     :current-view.time/step-backward      [nhatevents/current-view-time-step-backward]}})
 
