@@ -148,19 +148,28 @@
         :on-click #(re-frame/dispatch [:left-drawer/tab "catalogue"])}
        "change in catalogue"]]]))
 
-(defn- year-span
-  "\"2050–69\" style years for a window."
-  [start-year]
-  (let [end-year (nhatutils/window-end-year start-year)]
-    (if (= (quot start-year 100) (quot end-year 100))
-      (str start-year "–" (.padStart (str (mod end-year 100)) 2 "0"))
-      (str start-year "–" end-year))))
+(defn- shown-as
+  "What the layer for year is, in words: a single historical year, or the
+   20-year average around a projected year."
+  [year]
+  (if (nhatutils/historic-year? year)
+    (str "the single year " year)
+    (let [[first-year last-year] (nhatutils/year-window year)]
+      (str "the 20-year average for " first-year "–" last-year))))
+
+(defn- track-label
+  "Short label for the handle while dragging."
+  [year]
+  (if (nhatutils/historic-year? year)
+    (str year)
+    (let [[first-year last-year] (nhatutils/year-window year)]
+      (str first-year "–" last-year))))
 
 (defn- period-buttons
   "The agreed periods, as presets: one tap moves the year to the period."
   [{:keys [map-id preset]}]
   [:div.segmented {:role "group" :aria-label "Periods"}
-   (for [{:keys [id name start-year]} nhatutils/when-presets]
+   (for [{:keys [id name span]} nhatutils/when-presets]
      ^{:key id}
      [:button
       {:type         "button"
@@ -168,25 +177,29 @@
        :class        (when (= id (:id preset)) "selected")
        :on-click     #(re-frame/dispatch [:current-view/preset id map-id])}
       [:span.segmented-name name]
-      [:span.segmented-detail (year-span start-year)]])])
+      [:span.segmented-detail span]])])
 
 (defn- year-track
-  "The century as a slider. The handle is the year on the map: drag or click to
-   any year, or use the keyboard. A chosen period's 20 years are shaded."
+  "The century as a slider: drag or click to move the handle, or use the
+   keyboard. For a projected year the handle carries the 20 years its layer
+   averages; a historical year is a single point. A period's year lights its
+   button."
   []
-  (let [drag  (reagent/atom nil) ; year under the pointer while dragging
+  (let [drag  (reagent/atom nil) ; centre year under the pointer while dragging
         track (atom nil)]
     (fn [{:keys [map-id year preset]}]
       (let [{axis-start :start-year axis-end :end-year} nhatutils/timeline-axis
             [first-year last-year] nhatutils/year-range
+            [gap-start gap-end]    nhatutils/historic-gap
             first-projected        (inc nhatutils/last-historic-year)
             pct                    #(str (* 100 (/ (- % axis-start) (- axis-end axis-start))) "%")
             year-at                (fn [e]
                                      (let [rect (.getBoundingClientRect @track)]
-                                       (-> (+ axis-start (* (- axis-end axis-start) (/ (- (.-clientX e) (.-left rect)) (.-width rect))))
-                                           js/Math.round (max first-year) (min last-year))))
+                                       (nhatutils/snap-year
+                                        (js/Math.floor (+ axis-start (* (- axis-end axis-start) (/ (- (.-clientX e) (.-left rect)) (.-width rect))))))))
             choose                 #(re-frame/dispatch [:current-view/year % map-id])
             shown                  (or @drag year)
+            [window-start window-end] (nhatutils/year-window shown)
             end-drag               (fn [_]
                                      (when-let [y @drag]
                                        (reset! drag nil)
@@ -204,10 +217,11 @@
            :on-pointer-cancel end-drag}
           [:span.year-track-line]
           [:span.year-track-past {:style {:width (pct first-projected)}}]
-          (when-let [{:keys [start-year]} (when-not @drag preset)]
-            [:span.year-track-period
-             {:style {:left  (pct start-year)
-                      :width (str "calc(" (pct (+ start-year nhatutils/window-years)) " - " (pct start-year) ")")}}])
+          (when-not (nhatutils/historic-year? shown) ; historical layers are single years: just the point
+            [:span.year-track-window
+             {:class (when (and preset (not @drag)) "preset")
+              :style {:left  (pct window-start)
+                      :width (str "calc(" (pct (inc window-end)) " - " (pct window-start) ")")}}])
           [:span.year-track-handle
            {:role           "slider"
             :tab-index      0
@@ -215,28 +229,30 @@
             :aria-valuemin  first-year
             :aria-valuemax  last-year
             :aria-valuenow  shown
-            :style          {:left (pct shown)}
+            :aria-valuetext (shown-as shown)
+            :style          {:left (pct (+ shown 0.5))}
             :on-key-down    (fn [e]
                               (when-let [y (case (.-key e)
-                                             ("ArrowLeft" "ArrowDown") (dec year)
-                                             ("ArrowRight" "ArrowUp")  (inc year)
+                                             ("ArrowLeft" "ArrowDown") (if (= year (inc gap-end)) (dec gap-start) (dec year))
+                                             ("ArrowRight" "ArrowUp")  (if (= year (dec gap-start)) (inc gap-end) (inc year))
                                              "PageDown"                (- year 10)
                                              "PageUp"                  (+ year 10)
                                              "Home"                    first-year
                                              "End"                     last-year
                                              nil)]
                                 (.preventDefault e)
-                                (choose (-> y (max first-year) (min last-year)))))}
-           (when @drag [:span.year-track-bubble shown])]]
+                                (choose y)))}
+           (when @drag [:span.year-track-bubble (track-label shown)])]]
          [:div.year-track-ticks {:aria-hidden true}
           (for [tick [axis-start first-projected 2050 axis-end]]
             ^{:key tick}
             [:span {:style {:left (pct tick)}} tick])]]))))
 
 (defn- when-select
-  "One question: when? Periods are presets on a single year track: tap a period
-   and the year jumps to it, or move along the track to any year. Play sits on
-   the track it moves. One line says what the map shows."
+  "One question: when? Periods are presets on one year track: tap one and the
+   handle jumps to it, or move it to any year. Projected layers are 20-year
+   averages, so there the handle shows the window. Play sits on the track it
+   moves. One line says what the map shows."
   [{:keys [map-id]}]
   (let [preset       @(re-frame/subscribe [:current-view/preset map-id])
         year         @(re-frame/subscribe [:current-view/year map-id])
@@ -261,10 +277,13 @@
          [b/icon {:icon (if playing? "stop" "play") :size 14}])]
       [year-track {:map-id map-id :year year :preset preset}]]
      [:p.when-shown {:aria-live "polite"}
-      (if shown-year
-        [:<> "Map shows " [:strong shown-year]
-         (when preset (str ", from " (:caption preset) " " (year-span (:start-year preset))))]
-        "Loading years…")]]))
+      (cond
+        (or (not shown-year) ; nothing yet, or the other dataset's layer until the chosen one loads
+            (not= (nhatutils/historic-year? shown-year) (nhatutils/historic-year? year)))
+        (str "Loading " (or (:caption preset) (track-label year)) "…")
+
+        preset [:<> "Map shows the " [:strong (:caption preset)] ": " (shown-as shown-year) "."]
+        :else  [:<> "Map shows " [:strong (shown-as shown-year)] "."])]]))
 
 (defn- emissions-select
   "Lower or higher emissions, in plain words first with the SSP code underneath.

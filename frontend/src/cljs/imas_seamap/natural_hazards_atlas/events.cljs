@@ -542,25 +542,28 @@
       [:maybe-autosave]]}))
 
 (defn current-view-preset
-  "Choose one of the agreed periods. The year moves to its start."
+  "Choose one of the agreed periods. The year moves to its centre, whose layer
+   is the period's 20-year average."
   [{:keys [db]} [_ preset-id map-id]]
-  (let [{:keys [start-year] :as preset} (first-where #(= (:id %) preset-id) nhatutils/when-presets)]
+  (let [{:keys [year] :as preset} (first-where #(= (:id %) preset-id) nhatutils/when-presets)]
     (assert preset (str "Unknown period " preset-id))
     (show-selection
      (-> db
          (utils/assoc-independent-map-state map-id [:current-view :selected-preset-id] preset-id)
-         (utils/assoc-independent-map-state map-id [:current-view :selected-year] start-year))
+         (utils/assoc-independent-map-state map-id [:current-view :selected-year] year))
      map-id (nhatutils/current-view-is-historic? db map-id) nil)))
 
 (defn current-view-year
-  "Choose a single year. This leaves any period the user had chosen. Choosing
-   stops Play, unless Play is the one choosing."
+  "Choose a centre year (snapped to one on offer). A period's centre selects
+   that period; any other year leaves it. Choosing stops Play, unless Play is
+   the one choosing."
   [{:keys [db]} [_ year map-id opts]]
-  (let [[first-year last-year] nhatutils/year-range]
+  (let [year (nhatutils/snap-year year)]
     (show-selection
      (-> db
-         (utils/assoc-independent-map-state map-id [:current-view :selected-preset-id] nil)
-         (utils/assoc-independent-map-state map-id [:current-view :selected-year] (-> year (max first-year) (min last-year))))
+         (utils/assoc-independent-map-state map-id [:current-view :selected-preset-id]
+                                            (:id (nhatutils/window-preset year)))
+         (utils/assoc-independent-map-state map-id [:current-view :selected-year] year))
      map-id (nhatutils/current-view-is-historic? db map-id) opts)))
 
 (defn current-view-play
@@ -578,8 +581,10 @@
    at the end."
   [{:keys [db]} [_ map-id]]
   (when (utils/get-independent-map-state db map-id [:display :window-playing?])
-    (let [loading? (utils/get-independent-map-state db map-id [:display :time-is-loading?])
-          next     (inc (nhatutils/current-view-year db map-id))]
+    (let [loading?            (utils/get-independent-map-state db map-id [:display :time-is-loading?])
+          [gap-start gap-end] nhatutils/historic-gap
+          next                (inc (nhatutils/current-view-year db map-id))
+          next                (if (<= gap-start next gap-end) (inc gap-end) next)]
       (cond
         loading?                              {:dispatch-later {:ms 250 :dispatch [:current-view.play/tick map-id]}}
         (<= next (second nhatutils/year-range)) {:dispatch       [:current-view/year next map-id {:playing? true}]

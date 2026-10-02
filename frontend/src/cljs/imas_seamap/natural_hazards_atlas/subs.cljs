@@ -94,6 +94,7 @@
   [[_ map-id]]
   [(re-frame/subscribe [:map.layers/active-hazard-layer])
    (re-frame/subscribe [:current-view/preset map-id])
+   (re-frame/subscribe [:current-view/year map-id])
    (re-frame/subscribe [:map.time/current-time map-id])
    (re-frame/subscribe [:current-view/is-historic? map-id])
    (re-frame/subscribe [:current-view/selected-scenario map-id])
@@ -101,17 +102,22 @@
    (re-frame/subscribe [:current-view/selected-model map-id])])
 
 (defn current-view-caption
-  "The parts of a plain-English description of what the map is showing.
-
-   Until we know whether each time step is one year or a 20-year average, say
-   which year is on the map rather than claiming an average."
-  [[hazard-layer preset current-time historic? scenario season model] _]
-  (let [year (when current-time (.getFullYear (js/Date. current-time)))]
+  "The parts of a plain-English description of what the map is showing. A
+   projected layer is a 20-year average centred on its year; a historical
+   layer is a single year."
+  [[hazard-layer preset chosen-year current-time historic? scenario season model] _]
+  (let [year (when current-time (.getFullYear (js/Date. current-time)))
+        year (when (and year (= (nhatutils/historic-year? year) (nhatutils/historic-year? chosen-year)))
+               year)] ; the other dataset's layer is still showing; don't describe it as the choice
     {:layer     (:name hazard-layer)
-     :when      (cond
-                  (and preset year) (str (:caption preset) " (showing " year ")")
-                  preset            (:caption preset)
-                  year              (str "Year " year))
+     :when      (let [shown (when year
+                                  (if (nhatutils/historic-year? year)
+                                    (str "year " year)
+                                    (let [[first-year last-year] (nhatutils/year-window year)]
+                                      (str "20-year average " first-year "–" last-year))))]
+                  (some-> (string/join ", " (remove nil? [(:caption preset) shown]))
+                          not-empty
+                          (#(str (string/upper-case (subs % 0 1)) (subs % 1)))))
      :emissions (when-not historic?
                   (let [{:keys [label]} (get nhatutils/scenario-labels (:name scenario))]
                     (if label (str (string/lower-case label) " emissions") (:display_name scenario))))

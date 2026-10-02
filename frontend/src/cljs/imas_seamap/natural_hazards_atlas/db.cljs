@@ -83,7 +83,7 @@
                    :selected-scenario-id      nil
                    :selected-seasonal-data-id nil
                    :selected-time-period-id   "medium"
-                   :selected-year             2050
+                   :selected-year             2060
                    :selected-preset-id        "medium"
                    :is-historic?              false}
    :autosave?       false

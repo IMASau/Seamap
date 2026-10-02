@@ -177,44 +177,67 @@
    {:id "long"     :name "Long"     :start-year 2080 :end-year 2099}])
 
 (def window-years
-  "Every view averages a 20-year window."
+  "Each projected year's layer is a 20-year average centred on that year (Ben,
+   2026-09-24 walkthrough): the layer for 2060 averages 2050-2069. Historical
+   layers are single years."
   20)
 
-(def recent-window-start
-  "Start of the Recent period, the one historical period. The historical runs
-   end in 2014."
-  1995)
+(defn year-window
+  "First and last year averaged in the projected layer for year."
+  [year]
+  [(- year (/ window-years 2)) (+ year (/ window-years 2) -1)])
 
 (def when-presets
-  "The agreed 20-year reporting periods. Most users pick one of these."
-  [{:id "recent" :name "Recent" :caption "Recent climate" :start-year 1995}
-   {:id "short"  :name "Short"  :caption "Short term"     :start-year 2020}
-   {:id "medium" :name "Medium" :caption "Medium term"    :start-year 2050}
-   {:id "long"   :name "Long"   :caption "Long term"      :start-year 2080}])
+  "The agreed reporting periods. Most users pick one of these. Each is shown by
+   one layer: a projected period by its centre year's 20-year average; Recent
+   by a single historical year (which year is for the data lead to confirm)."
+  [{:id "recent" :name "Recent" :caption "Recent climate" :year 2005 :span "1995–2014"}
+   {:id "short"  :name "Short"  :caption "Short term"     :year 2030 :span "2020–39"}
+   {:id "medium" :name "Medium" :caption "Medium term"    :year 2060 :span "2050–69"}
+   {:id "long"   :name "Long"   :caption "Long term"      :year 2090 :span "2080–99"}])
 
 (def timeline-axis
   "Years spanned by the \"When\" track."
   {:start-year 1950 :end-year 2100})
 
-(defn window-end-year [start-year] (+ start-year window-years -1))
+(def last-historic-year
+  "The historical runs end here; projections start the year after."
+  2014)
 
 (def year-range
-  "Years offered in single-year mode. Assumed from the NPCP CMIP6 runs
-   (historical from 1951, projected to 2100); check against THREDDS."
-  [1951 2100])
+  "Years offered on the track. Assumes historical runs 1951-2014 and
+   projections to 2100 (so 20-year averages centred up to 2090). Check against
+   THREDDS."
+  [1951 2090])
 
-(def last-historic-year 2014)
+(def historic-gap
+  "Years with no layer: after the historical runs end, and before the first
+   projected 20-year average (centred 2025, so averaging 2015-2034). Not
+   offered unless the data lead rules windows may mix the two."
+  [(inc last-historic-year) (+ last-historic-year (/ window-years 2))])
 
-(defn snap-window-start
-  "Nearest preset window start to year. Periods are the agreed reporting
-   windows only, so old saved states with other windows land on a preset."
+(defn snap-year
+  "Nearest centre year on offer: inside year-range and outside historic-gap."
   [year]
-  (:start-year (apply min-key #(js/Math.abs (- (:start-year %) year)) when-presets)))
+  (let [[first-year last-year] year-range
+        [gap-start gap-end]    historic-gap
+        year                   (-> year (max first-year) (min last-year))]
+    (cond
+      (< year gap-start)                      year
+      (> year gap-end)                        year
+      (< (- year gap-start) (- gap-end year)) (dec gap-start)
+      :else                                   (inc gap-end))))
+
+(defn historic-year?
+  "Is the layer for year a single historical year (rather than a projected
+   20-year average)?"
+  [year]
+  (<= year last-historic-year))
 
 (defn window-preset
-  "The preset whose window starts at start-year, if any."
-  [start-year]
-  (first-where #(= (:start-year %) start-year) when-presets))
+  "The preset centred on year, if any."
+  [year]
+  (first-where #(= (:year %) year) when-presets))
 
 (def scenario-labels
   "Plain-English names for the emissions scenarios, keyed by scenario name. The
@@ -291,7 +314,7 @@
    historical window."
   ([db] (current-view-is-historic? db nil))
   ([db map-id]
-   (<= (current-view-year db map-id) last-historic-year)))
+   (historic-year? (current-view-year db map-id))))
 
 (defn- legacy-preset
   "The preset an older saved state was on (it stored a window or a time period
@@ -299,8 +322,8 @@
   [db map-id]
   (let [get-state #(utils/get-independent-map-state db map-id [:current-view %])
         period-id (get-state :selected-time-period-id)]
-    (or (some-> (get-state :window-start-year) snap-window-start window-preset)
-        (when (get-state :is-historic?) (window-preset recent-window-start))
+    (or (some-> (get-state :window-start-year) (+ (/ window-years 2)) window-preset)
+        (when (get-state :is-historic?) (first-where #(= (:id %) "recent") when-presets))
         (first-where #(= (:id %) period-id) when-presets)
         (first-where #(= (:id %) "medium") when-presets))))
 
@@ -318,18 +341,20 @@
   ([db] (current-view-year db nil))
   ([db map-id]
    (or (utils/get-independent-map-state db map-id [:current-view :selected-year])
-       (:start-year (legacy-preset db map-id)))))
+       (:year (legacy-preset db map-id)))))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-time-period
-  "Time period to analyze the hazard data: the chosen period's 20 years, or the
-   single chosen year."
+  "Time period to analyze the hazard data: the one layer for the chosen centre
+   year, which averages the 20 years around it."
   ([db] (current-view-selected-time-period db nil))
   ([db map-id]
-   (if-let [{:keys [id caption start-year]} (current-view-preset db map-id)]
-     {:id id :name caption :start-year start-year :end-year (window-end-year start-year)}
-     (let [year (current-view-year db map-id)]
-       {:id "year" :name (str "Year " year) :start-year year :end-year year}))))
+   (let [year   (current-view-year db map-id)
+         preset (current-view-preset db map-id)]
+     {:id         (or (:id preset) "year")
+      :name       (or (:caption preset) (str "20 years centred on " year))
+      :start-year year
+      :end-year   year})))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn hazard-layers

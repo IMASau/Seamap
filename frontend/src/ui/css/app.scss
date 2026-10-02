@@ -931,7 +931,7 @@ input.leaflet-control-layers-selector[type="radio"] {
         touch-action: none;
         user-select: none;
     }
-    .year-track-line, .year-track-past, .year-track-period {
+    .year-track-line, .year-track-past, .year-track-window {
         position: absolute;
         top: 13px;
         height: 4px;
@@ -940,19 +940,23 @@ input.leaflet-control-layers-selector[type="radio"] {
     }
     .year-track-line { left: 0; right: 0; background: var(--cv-rule); }
     .year-track-past { left: 0; background: var(--cv-past); border-radius: 2px 0 0 2px; }
-    .year-track-period {
-        top: 9px;
-        height: 12px;
-        border-radius: 4px;
+    // The 20 years averaged in the layer on the map
+    .year-track-window {
+        top: 7px;
+        height: 16px;
+        border-radius: 5px;
+        border: 1.5px solid var(--cv-plum);
         background: var(--cv-plum-tint);
-        box-shadow: inset 0 0 0 1px var(--cv-border);
+        transition: left 0.25s ease-out;
+        &.preset { background: #e9d3eb; }
     }
+    .year-track-rail:active .year-track-window { transition: none; }
     .year-track-handle {
         position: absolute;
-        top: 6px;
-        width: 18px;
-        height: 18px;
-        margin-left: -9px;
+        top: 8px;
+        width: 14px;
+        height: 14px;
+        margin-left: -7px;
         border: 2px solid #fff;
         border-radius: 50%;
         background: var(--cv-plum);
