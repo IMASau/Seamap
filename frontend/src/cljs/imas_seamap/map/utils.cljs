@@ -123,14 +123,14 @@
                                  :map.layer.download/shp                 "shape-zip"
                                  :map.layer.download/geotiff-wms         "image/geotiff"
                                  :map.layer.download/geotiff-wcs         "image/geotiff"
-                                 :map.layer.download/netcdf-thredds-wcs  "NetCDF3"
+                                 :map.layer.download/netcdf-thredds-http "NetCDF3"
                                  :map.layer.download/geotiff-thredds-wcs "GeoTIFF"})
 
 (def ^:private type->servertype {:map.layer.download/csv         :wfs
                                  :map.layer.download/shp         :api
                                  :map.layer.download/geotiff-wms :wms
                                  :map.layer.download/geotiff-wcs :wcs
-                                 :map.layer.download/netcdf-thredds-wcs  :thredds-wcs
+                                 :map.layer.download/netcdf-thredds-http  :thredds-http
                                  :map.layer.download/geotiff-thredds-wcs :thredds-wcs})
 
 (defn download-type->str [type-key]
@@ -138,7 +138,7 @@
         :map.layer.download/shp                 "Shapefile"
         :map.layer.download/geotiff-wms         "GeoTIFF"
         :map.layer.download/geotiff-wcs         "GeoTIFF"
-        :map.layer.download/netcdf-thredds-wcs  "NetCDF"
+        :map.layer.download/netcdf-thredds-http "NetCDF"
         :map.layer.download/geotiff-thredds-wcs "GeoTIFF"}
        type-key))
 
@@ -211,6 +211,13 @@
                        :format      (type->format-str download-type)
                        :coverageId (or detail_layer layer_name)})
         (str (when bounds (str "&subset=Lat(" south "," north ")&subset=Long(" west "," east ")")))))) ; Add bounds params if provided. Can't be part of query dict because 'subset' param is used twice.
+
+(defmethod download-link :thredds-http
+  [{:keys [server_url] :as _layer} _bounds _download-type _api-url-base _time]
+  (->
+   (string/replace server_url "/wms/" "/fileServer/")
+   url/url
+   str))
 
 (defmethod download-link :thredds-wcs
   [{:keys [server_url detail_layer layer_name] :as _layer}
@@ -306,9 +313,23 @@
               (get feature "properties"))])
           (get response "features"))])})))
 
+(defn hazard-layer-feature-info-response->display
+  [response layer]
+  (let [title (:name layer)
+        units (get-in layer [:hazardlayer :human_readable_units])
+        doc   (gxml/loadXml response)
+        val   (.-innerHTML (first (gxml/selectNodes doc "/FeatureInfoResponse/Feature/FeatureInfo/value")))]
+    {:body
+     (render-to-string
+      [:div
+       [:h4 title]
+       [:p (str val " " units)]])}))
+
 (defmethod feature-info-response->display "text/xml"
   [{:keys [response _info-format layers]}]
-  (let [title (->> layers
+  (if (:hazardlayer (first layers))
+   (hazard-layer-feature-info-response->display response (first layers))
+   (let [title (->> layers
                    (map :name)
                    (interpose ", ")
                    (apply str))
@@ -368,7 +389,7 @@
                       [:a {:href value :target "_blank"} value]
                       value)]]))
               node.attributes)])
-          fields)])})))
+          fields)])}))))
 
 (defmethod feature-info-response->display :default
   [{:keys [_info-format _response _layers]}]

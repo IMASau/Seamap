@@ -193,8 +193,30 @@
     {:ellipsize true :class "label"}
     ((fnil string/replace "") label #"\\n" "\n")]])
 
+(defmulti legend identity)
 
-(defn- legend [legend-info]
+(defmethod legend :color-scale-bar
+  [_ legend-info layer]
+  (let [{:keys [color-scale-range-min color-scale-range-max]} @(re-frame/subscribe [:map.layers.hazard-layers/color-scale-range layer])
+        units                                                 @(re-frame/subscribe [:map.layers.hazard-layers/units layer])
+        units (str (.toUpperCase (.charAt units 0)) (.slice units 1)) ; uppercase first letter
+        percentiles [0 0.25 0.5 0.75 1]]
+    [:div.color-scale-bar-legend
+     [:div.color-scale-bar-units units]
+     [:div
+      {:style {:display "flex"}}
+      [:img {:src legend-info}]
+      [:div.color-scale-percentiles
+       (map
+        (fn [percentile]
+          [:div.color-scale-percentile
+           {:key   percentile
+            :style {:bottom (str (* percentile 100) "%")}}
+           (.toFixed (+ color-scale-range-min (* percentile (- color-scale-range-max color-scale-range-min))) 2)])
+        percentiles)]]]))
+
+(defmethod legend :default
+  [_ legend-info _layer]
   (if (string? legend-info)
     [:img ; if legend-info is a string, we treat it as a url to a legend graphic
      {:src legend-info
@@ -211,11 +233,11 @@
         [vector-legend-entry entry])
       legend-info)]))
 
-(defn legend-display [{:keys [status info] :as _legend}]
+(defn legend-display [{:keys [status info type layer] :as _legend}]
   [:div.legend-wrapper
    (case status
      :map.legend/loaded
-     [legend info]
+     [legend type info layer]
 
      :map.legend/loading
      [b/non-ideal-state

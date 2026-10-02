@@ -6,7 +6,7 @@
             [clojure.string :as string]
             [goog.crypt.base64 :as b64]
             [cognitect.transit :as t]
-            [imas-seamap.utils :refer [select-keys* first-where]]
+            [imas-seamap.utils :as utils :refer [select-keys* first-where]]
             [imas-seamap.map.utils :as map-utils]))
 
 (defn encode-state
@@ -35,6 +35,8 @@
                                       [:display :split-layer-range-value]
                                       [:display :split-layer-container-x]
                                       [:display :current-time]
+                                      [:display :side-by-side :active?]
+                                      [:display :side-by-side :split-ratio]
                                       [:filters :layers]
                                       :layer-state
                                       [:transect :show?]
@@ -46,13 +48,24 @@
                                       [:current-view :selected-model-id]
                                       [:current-view :selected-scenario-id]
                                       [:current-view :selected-seasonal-data-id]
+                                      [:current-view :is-historic?]
                                       [:current-view :selected-time-period-id]
+                                      (utils/independent-map-state-path :map-2 [:display :current-time])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-cmip-phase-id])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-model-id])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-scenario-id])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-seasonal-data-id])
+                                      (utils/independent-map-state-path :map-2 [:current-view :is-historic?])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-time-period-id])
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc :story-maps pruned-story-maps)
                        #_(update-in [:display :catalogue :expanded] #(into {} (filter second %))))
         legends    (->> db :layer-state :legend-shown (map :id))
         opacities  (->> db :layer-state :opacity (reduce (fn [acc [k v]] (if (= v 100) acc (conj acc [(:id k) v]))) {}))
+        
+        db (assoc-in db [:display :load-time] (get-in db [:display :current-time]))
+        db (utils/assoc-independent-map-state db :map-2 [:display :load-time] (utils/get-independent-map-state db :map-2 [:display :current-time]))
         db*        (-> db
                        (dissoc :layer-state)
                        (assoc :legend-ids legends)
@@ -72,6 +85,9 @@
                  [:display :split-layer-range-value]
                  [:display :split-layer-container-x]
                  [:display :current-time]
+                 [:display :load-time]
+                 [:display :side-by-side :active?]
+                 [:display :side-by-side :split-ratio]
                  [:filters :layers]
                  [:story-maps :featured-map]
                  [:transect :show?]
@@ -91,6 +107,15 @@
                  [:current-view :selected-scenario-id]
                  [:current-view :selected-seasonal-data-id]
                  [:current-view :selected-time-period-id]
+                 [:current-view :is-historic?]
+                 (utils/independent-map-state-path :map-2 [:display :current-time])
+                 (utils/independent-map-state-path :map-2 [:display :load-time])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-cmip-phase-id])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-model-id])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-scenario-id])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-seasonal-data-id])
+                 (utils/independent-map-state-path :map-2 [:current-view :is-historic?])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-time-period-id])
                  :legend-ids
                  :opacity-ids
                  :autosave?
@@ -123,6 +148,10 @@
     [:map :rich-layers :rich-layers]
     [:map :rich-layers :async-datas]
     [:map :rich-layers :layer-lookup]
+    [:current-view :cmip-phases]
+    [:current-view :models]
+    [:current-view :scenarios]
+    [:current-view :seasonal-datas]
     [:story-maps :featured-maps]
     [:dynamic-pills :dynamic-pills]
     [:dynamic-pills :async-datas]
@@ -133,105 +162,84 @@
 
 (def time-periods
   [{:id "all"      :name "All"      :start-year nil  :end-year nil}
-   {:id "historic" :name "Historic" :start-year 1995 :end-year 2014}
    {:id "short"    :name "Short"    :start-year 2020 :end-year 2039}
    {:id "medium"   :name "Medium"   :start-year 2050 :end-year 2069}
    {:id "long"     :name "Long"     :start-year 2080 :end-year 2099}])
-
-; Extracted function from a sub so that it can be used (sparingly) in events
-(defn current-view-filtered-models
-  "Filtered list of scientific models available to analyze the hazard data.
-
-   Only models found in the current CMIP phase are accessible."
-  [models selected-cmip-phase]
-  (filter #((set (:scientific_models selected-cmip-phase)) (:id %)) models))
-
-; Extracted function from a sub so that it can be used (sparingly) in events
-(defn current-view-filtered-scenarios
-  "Filtered list of scenarios models available to analyze the hazard data.
-
-   Only scenarios found in the current model are accessible."
-  [scenarios selected-model]
-  (filter #((set (:scenarios selected-model)) (:id %)) scenarios))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
    scenarios for analyzing hazard data."
-  [db]
-  (let [cmip-phases            (get-in db [:current-view :cmip-phases])
-        selected-cmip-phase-id (get-in db [:current-view :selected-cmip-phase-id])
-        selected-cmip-phase    (first-where #(= (:id %) selected-cmip-phase-id) cmip-phases)]
-    (when (and (seq cmip-phases) selected-cmip-phase-id)
-      (assert selected-cmip-phase (str "Selected CMIP phase id " selected-cmip-phase-id " not found in CMIP phases list")))
-    selected-cmip-phase))
+  ([db] (current-view-selected-cmip-phase db nil))
+  ([db map-id]
+   (let [cmip-phases            (get-in db [:current-view :cmip-phases])
+         selected-cmip-phase-id (utils/get-independent-map-state db map-id [:current-view :selected-cmip-phase-id])
+         selected-cmip-phase    (first-where #(= (:id %) selected-cmip-phase-id) cmip-phases)]
+     (if (and (seq cmip-phases) selected-cmip-phase-id)
+       (do
+         (assert selected-cmip-phase (str "Selected CMIP phase id " selected-cmip-phase-id " not found in CMIP phases list"))
+         selected-cmip-phase)
+       (first cmip-phases)))))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-model
-  "Scientific model to analyze the hazard data.
-
-   If the value selected by the user isn't one of the models found in the current
-   CMIP phase, then default to the first available model."
-  [db]
-  (let [models              (get-in db [:current-view :models])
-        selected-cmip-phase (current-view-selected-cmip-phase db)
-        filtered-models     (current-view-filtered-models models selected-cmip-phase)
-        selected-model-id   (get-in db [:current-view :selected-model-id])
-        selected-model      (if ((set (:scientific_models selected-cmip-phase)) selected-model-id)
-                              (first-where #(= (:id %) selected-model-id) models)
-                              (first filtered-models))]
-    (when (and (seq filtered-models) selected-model-id)
-      (assert selected-model (str "Selected model id " selected-model-id " not found in models list")))
-    selected-model))
+  "Scientific model to analyze the hazard data."
+  ([db] (current-view-selected-model db nil))
+  ([db map-id]
+   (let [models              (get-in db [:current-view :models])
+         selected-model-id   (utils/get-independent-map-state db map-id [:current-view :selected-model-id])
+         selected-model      (first-where #(= (:id %) selected-model-id) models)]
+     (if (and (seq models) selected-model-id)
+       (do
+         (assert selected-model (str "Selected model id " selected-model-id " not found in models list"))
+         selected-model)
+       (first models)))))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-scenario
-  "Scenario to analyze the hazard data.
-
-   If the value selected by the user isn't one of the scenarios found in the
-   current scientific model, then default to the first available scenario."
-  [db]
-  (let [scenarios               (get-in db [:current-view :scenarios])
-        selected-model          (current-view-selected-model db)
-        filtered-scenarios      (current-view-filtered-scenarios scenarios selected-model)
-        selected-scenario-id    (get-in db [:current-view :selected-scenario-id])
-        selected-scenario       (if ((set (:scenarios selected-model)) selected-scenario-id)
-                                  (first-where #(= (:id %) selected-scenario-id) scenarios)
-                                  (first filtered-scenarios))]
-    (when (and (seq filtered-scenarios) selected-scenario-id)
-      (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list")))
-    selected-scenario))
+  "Scenario to analyze the hazard data."
+  ([db] (current-view-selected-scenario db nil))
+  ([db map-id]
+   (let [scenarios               (get-in db [:current-view :scenarios])
+         selected-scenario-id    (utils/get-independent-map-state db map-id [:current-view :selected-scenario-id])
+         selected-scenario       (first-where #(= (:id %) selected-scenario-id) scenarios)]
+     (if (and (seq scenarios) selected-scenario-id)
+       (do
+         (assert selected-scenario (str "Selected scenario id " selected-scenario-id " not found in scenarios list"))
+         selected-scenario)
+       (first scenarios)))))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-seasonal-data
   "Seasonal data to analyze the hazard data"
-  [db]
-  (let [seasonal-datas               (get-in db [:current-view :seasonal-datas])
-        selected-seasonal-data-id    (get-in db [:current-view :selected-seasonal-data-id])
-        selected-seasonal-data       (first-where #(= (:id %) selected-seasonal-data-id) seasonal-datas)]
-    (when (and (seq seasonal-datas) selected-seasonal-data-id)
-      (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list")))
-    selected-seasonal-data))
+  ([db] (current-view-selected-seasonal-data db nil))
+  ([db map-id]
+   (let [seasonal-datas               (get-in db [:current-view :seasonal-datas])
+         selected-seasonal-data-id    (utils/get-independent-map-state db map-id [:current-view :selected-seasonal-data-id])
+         selected-seasonal-data       (first-where #(= (:id %) selected-seasonal-data-id) seasonal-datas)]
+     (if (and (seq seasonal-datas) selected-seasonal-data-id)
+       (do
+         (assert selected-seasonal-data (str "Selected seasonal data id " selected-seasonal-data-id " not found in seasonal datas list"))
+         selected-seasonal-data)
+       (first seasonal-datas)))))
 
-(defn current-view-hazard-layer-slug
-  "Slug inserted into hazard layer's server URL to show the correct NetCDF file
-   from the server."
-  [selected-cmip-phase selected-model selected-scenario selected-seasonal-data]
-  (str
-   (:name selected-cmip-phase) "_"
-   (:name selected-model) "_"
-   (:name selected-scenario)
-   (when (not= (:name selected-seasonal-data) "All")
-     (str "_" (:name selected-seasonal-data)))))
+(defn current-view-is-historic?
+  "Indicates whether the current view is for historic data."
+  ([db] (current-view-is-historic? db nil))
+  ([db map-id]
+   (utils/get-independent-map-state db map-id [:current-view :is-historic?])))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data"
-  [db]
-  (let [selected-time-period-id (get-in db [:current-view :selected-time-period-id])
-        selected-time-period    (first-where #(= (:id %) selected-time-period-id) time-periods)]
-    (assert selected-time-period (str "Selected time period id " selected-time-period-id " not found in time periods list"))
-    selected-time-period))
+  ([db] (current-view-is-historic? db nil))
+  ([db map-id]
+   (let [selected-time-period-id (get-in db [:current-view :selected-time-period-id])
+         is-historic?            (utils/get-independent-map-state db map-id [:current-view :is-historic?])
+         selected-time-period-id (if is-historic? "all" selected-time-period-id)
+         selected-time-period    (first-where #(= (:id %) selected-time-period-id) time-periods)]
+     (assert selected-time-period (str "Selected time period id " selected-time-period-id " not found in time periods list"))
+     selected-time-period)))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn hazard-layers
@@ -239,36 +247,66 @@
   [catalogue-layers]
   (filterv :hazardlayer catalogue-layers))
 
+
+(defn hazard-layer-dataset
+  "Get the hazard layer dataset for the given hazard layer, CMIP phase, model, scenario, and seasonal data."
+  [hazard-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?]
+  (let [datasets (get-in hazard-layer [:hazardlayer :datasets])]
+    (first-where
+     (fn [dataset]
+       (and (= (:cmip_phase dataset) (:name selected-cmip-phase))
+            (= (:scientific_model dataset) (:name selected-model))
+            (= (:scenario dataset) (when-not is-historic? (:name selected-scenario))) ; historical data exclusive with scenario
+            (= (:season dataset) (:name selected-seasonal-data))
+            (= (:is_historical dataset) is-historic?)))
+     datasets)))
+
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn layer-displayed-layers-lookup
   "A lookup map of the raw (catalogue) layer to what layers should actually be
-     displayed on the map.
-  
-     Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
-     hazard layer slug from the current view into the hazard layer server URLs."
-  [layers rich-layer-fn hazard-layers hazard-layer-slug]
-  (let [hazard-layers (set hazard-layers)
-        hazard-layer-server-url-fn #(string/replace % #"(?=\.nc$)" (str "_" hazard-layer-slug))]
+   displayed on the map.
+
+   Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to grab the
+   server URL and layer_name from whatever hazard layer dataset is selected by the
+   current view."
+  [layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?]
+  (let [hazard-layers (set hazard-layers)]
     (->>
      (map-utils/layer-displayed-layers-lookup layers rich-layer-fn)
      (reduce-kv
       (fn [m layer displayed-layer]
         (if (hazard-layers displayed-layer)
-          (assoc m layer (assoc displayed-layer :server_url (hazard-layer-server-url-fn (:server_url displayed-layer)))) ; if we have a hazard layer, use the function to replace the server URL
+          ; If the layer is a hazard layer, then override the server URL and layer_name with the values from the selected hazard layer dataset.
+          (let [hazard-layer-dataset (hazard-layer-dataset displayed-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?)
+                displayed-layer
+                (-> displayed-layer
+                    (assoc :server_url (:server_url hazard-layer-dataset))
+                    (assoc :layer_name (:layer_name hazard-layer-dataset))
+                    (assoc :style (str "default-scalar/" (get-in displayed-layer [:hazardlayer :color_palette])))
+                    (assoc-in [:hazardlayer :color_scale_range_min] (:color_scale_range_min hazard-layer-dataset))
+                    (assoc-in [:hazardlayer :color_scale_range_max] (:color_scale_range_max hazard-layer-dataset)))]
+            (assoc m layer displayed-layer))
           (assoc m layer displayed-layer)))
       {}))))
 
 ;; Proof-of-concept for having separate information in map B
 (defn layer-displayed-layers-lookup-map-b
-  [layers rich-layer-fn hazard-layers selected-model _selected-scenario selected-seasonal-data]
-  (let [hazard-layers (set hazard-layers)
-        hazard-layer-server-url-fn #(string/replace % #"\.nc$" (str "_" (:name selected-model) "_SSP2" (when (not= (:name selected-seasonal-data) "All") (str "_" (:name selected-seasonal-data))) ".nc"))]
+  [layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?]
+  (let [hazard-layers (set hazard-layers)]
     (->>
      (map-utils/layer-displayed-layers-lookup layers rich-layer-fn)
      (reduce-kv
       (fn [m layer displayed-layer]
         (if (hazard-layers displayed-layer)
-          (assoc m layer (assoc displayed-layer :server_url (hazard-layer-server-url-fn (:server_url displayed-layer)))) ; if we have a hazard layer, use the function to replace the server URL
+            ; If the layer is a hazard layer, then override the server URL and layer_name with the values from the selected hazard layer dataset.
+          (let [hazard-layer-dataset (hazard-layer-dataset displayed-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?)
+                displayed-layer
+                (-> displayed-layer
+                    (assoc-in [:server_url] (:server_url hazard-layer-dataset))
+                    (assoc-in [:layer_name] (:layer_name hazard-layer-dataset))
+                    (assoc-in [:hazardlayer :color_scale_range_min] (:color_scale_range_min hazard-layer-dataset))
+                    (assoc-in [:hazardlayer :color_scale_range_max] (:color_scale_range_max hazard-layer-dataset)))]
+            (assoc m layer displayed-layer))
           (assoc m layer displayed-layer)))
       {}))))
 
@@ -286,6 +324,15 @@
 (defn time-in-range?
   "Is the given time (in ms) in the given range of years"
   [time start-year end-year]
-  (let [start-ms (if start-year (js/Date.UTC start-year) ##-Inf)
-        end-ms   (if end-year (js/Date.UTC end-year) ##Inf)]
-    (and (>= time start-ms) (<= time end-ms))))
+  (let [year (-> time js/Date. .getFullYear)]
+    (and (>= year (or start-year ##-Inf)) (<= year (or end-year ##Inf)))))
+
+(defn time-available-times
+  "The available times for the layers, driven by the timeDimension component.
+
+   Availability of times is filtered by the range of the currently selected time
+   period in current view."
+  [db map-id]
+  (let [all-available-times           (utils/get-independent-map-state db map-id [:display :available-times])
+        {:keys [start-year end-year]} (current-view-selected-time-period db map-id)] ; Alternative is registering :current-view/selected-time-period as an input signal to this sub, but then we lose access to db for getting [:display :available-times], so another sub would be necessary.
+    (filter #(time-in-range? % start-year end-year) all-available-times)))

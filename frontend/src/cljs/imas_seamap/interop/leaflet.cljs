@@ -239,6 +239,7 @@
                         ;; Note; automatic conversion from :snake-case to :camelCase doesn't happen for #js:
                         #js{:requestTimeFromCapabilities true
                             :updateTimeDimension true
+                            :updateTimeDimensionMode "replace"
                             :wmsVersion "1.3.0"})]
           #js{:instance instance :context context})))
     ;; Update layer fn
@@ -246,7 +247,9 @@
       (when (not= (.-opacity props) (.-opacity prev-props))
         (.setOpacity instance (.-opacity props)))
       (when (not= (.-cql_filter props) (.-cql_filter prev-props))
-        (.setParams instance (js-obj "cql_filter" (or (.-cql_filter props) ""))))))))
+        (.setParams instance (js-obj "cql_filter" (or (.-cql_filter props) ""))))
+      (when (not= (.-colorscalerange props) (.-colorscalerange prev-props))
+        (.setParams instance #js{:colorscalerange (.-colorscalerange props)}))))))
 
 (def map-container       (r/adapt-react-class ReactLeaflet/MapContainer))
 (def pane                (r/adapt-react-class ReactLeaflet/Pane))

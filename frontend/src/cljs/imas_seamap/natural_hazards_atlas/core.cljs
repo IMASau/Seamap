@@ -44,23 +44,13 @@
     :map.layers/lookup                    msubs/map-layer-lookup
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
-    :map.layer/legend                     msubs/layer-legends
+    :map.layer/legend                     nhasubs/layer-legends
     :map.layer/visible-layers-legends     [:<- [::msubs/visible-layers]
                                            :<- [:map.layer/displayed-layers-lookup]
                                            :<- [:map.layer/legend]
                                            msubs/layer-visible-layers-legends]
-    :map.layer/displayed-layers-lookup    [:<- [:dbsubs.map/layers]
-                                           :<- [::msubs/enhanced-rich-layers]
-                                           :<- [:map.layers/hazard-layers]
-                                           :<- [:current-view/current-view-hazard-layer-slug]
+    :map.layer/displayed-layers-lookup    [nhasubs/layer-displayed-layers-lookup-signals
                                            nhasubs/layer-displayed-layers-lookup]
-    :map.layer/displayed-layers-lookup-map-b [:<- [:dbsubs.map/layers]
-                                           :<- [::msubs/enhanced-rich-layers]
-                                           :<- [:map.layers/hazard-layers]
-                                           :<- [:current-view/selected-model]
-                                           :<- [:current-view/selected-scenario]
-                                           :<- [:current-view/selected-seasonal-data]
-                                           nhasubs/layer-displayed-layers-lookup-map-b]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
     :map.time/timeseries-layers           [:<- [:dbsubs.map/active-layers] msubs/timeseries-layers]
@@ -110,25 +100,29 @@
     :current-view/models                  nhasubs/current-view-models
     :current-view/scenarios               nhasubs/current-view-scenarios
     :current-view/seasonal-datas          nhasubs/current-view-seasonal-datas
-    :current-view/filtered-models         [:<- [:current-view/models]
-                                           :<- [:current-view/selected-cmip-phase]
-                                           nhasubs/current-view-filtered-models]
-    :current-view/filtered-scenarios      [:<- [:current-view/scenarios]
-                                           :<- [:current-view/selected-model]
-                                           nhasubs/current-view-filtered-scenarios]
     :current-view/selected-cmip-phase     nhasubs/current-view-selected-cmip-phase
     :current-view/selected-model          nhasubs/current-view-selected-model
     :current-view/selected-scenario       nhasubs/current-view-selected-scenario
     :current-view/selected-seasonal-data  nhasubs/current-view-selected-seasonal-data
-    :current-view/current-view-hazard-layer-slug [:<- [:current-view/selected-cmip-phase]
-                                                  :<- [:current-view/selected-model]
-                                                  :<- [:current-view/selected-scenario]
-                                                  :<- [:current-view/selected-seasonal-data]
-                                                  nhasubs/current-view-hazard-layer-slug]
+    :current-view/is-historic?            nhasubs/current-view-is-historic?
     :current-view/time-periods            nhasubs/current-view-time-periods
     :current-view/selected-time-period    nhasubs/current-view-selected-time-period
-    :current-view/timeline-media-controls [:<- [:map.time/current-time] :<- [:map.time/available-times] :<- [:map.time/is-playing?] :<- [:map.time/is-loading?] nhasubs/current-view-timeline-media-controls]
+    :current-view/timeline-media-controls [nhasubs/current-view-timeline-media-controls-signals nhasubs/current-view-timeline-media-controls]
     :map.layers/hazard-layers             [:<- [:map/layers] nhasubs/hazard-layers]
+    :map.layers.hazard-layers/color-scale-range [:<- [:map.layers/hazard-layers]
+                                                 :<- [:current-view/selected-cmip-phase]
+                                                 :<- [:current-view/selected-model]
+                                                 :<- [:current-view/selected-scenario]
+                                                 :<- [:current-view/selected-seasonal-data]
+                                                 :<- [:current-view/is-historic?]
+                                                 :<- [:current-view/selected-cmip-phase :map-2]
+                                                 :<- [:current-view/selected-model :map-2]
+                                                 :<- [:current-view/selected-scenario :map-2]
+                                                 :<- [:current-view/selected-seasonal-data :map-2]
+                                                 :<- [:current-view/is-historic? :map-2]
+                                                 nhasubs/hazard-layers-color-scale-range]
+    :map.layers/active-hazard-layer       [:<- [:map/layers] :<- [:map.layers/hazard-layers] nhasubs/hazard-layers-active-hazard-layer]
+    :map.layers.hazard-layers/units       [:<- [:map.layers/hazard-layers] nhasubs/hazard-layers-units]
     :map.layers/supporting-layers         [:<- [:map/layers] nhasubs/supporting-layers]
     :map.layers/filtered-hazard-layers    [:<- [:map/layers] :<- [:map.layers/hazard-layers] nhasubs/filtered-hazard-layers]
     :map.layers/filtered-supporting-layers [:<- [:map/layers] :<- [:map.layers/supporting-layers] nhasubs/filtered-supporting-layers]}
@@ -143,7 +137,7 @@
     ;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
     :cookie-set-no-on-success             identity
     :cookie-set-no-on-failure             identity
-    :load-hash-state                      [events/load-hash-state]
+    :load-hash-state                      [nhatevents/load-hash-state]
     :get-save-state                       [events/get-save-state]
     :get-save-state-success               [events/get-save-state-success]
     :initialise-db                        [events/initialise-db]
@@ -189,16 +183,16 @@
     :map/get-feature-info-map-server-step-2 [mevents/get-feature-info-map-server-step-2] ; MapServer layers need to make an additional request to determine if they are a group layer
     :map/got-featureinfo                  mevents/got-feature-info
     :map/got-featureinfo-err              mevents/got-feature-info-error
-    :map.time/current-time                [mevents/time-set-current-time]
-    :map.time/available-times             mevents/time-available-times
+    :map.time/current-time                [nhatevents/time-set-current-time]
+    :map.time/available-times             [mevents/time-available-times]
     :map.time/play                        mevents/time-play
-    :map.time/pause                       mevents/time-pause
+    :map.time/pause                       [mevents/time-pause]
     :map.time/is-loading?                 mevents/time-is-loading?
     :map.time/time-dimension-ref          mevents/time-dimension-ref
     :map.time/time-dimension-control-ref  mevents/time-dimension-control-ref
     :map/toggle-layer                     [mevents/toggle-layer]
     :map/toggle-layer-visibility          [mevents/toggle-layer-visibility]
-    :map/add-layer                        [mevents/add-layer]
+    :map/add-layer                        [nhatevents/add-layer]
     :map/remove-layer                     [mevents/remove-layer]
     :map/add-layer-from-omnibar           [mevents/add-layer-from-omnibar]
     :map/base-layer-changed               [mevents/base-layer-changed]
@@ -210,7 +204,7 @@
     :map.layer/close-info                 events/layer-close-info
     :map.layer/update-metadata            events/layer-receive-metadata
     :map.layer/metadata-error             events/layer-receive-metadata-err
-    :map.layer/download                   events/download-show-link
+    :map.layer/download                   nhatevents/download-show-link
     :map.layer/opacity-changed            [mevents/layer-set-opacity]
     :map.layer/metadata-click             (fn [db [_ {:keys [_link _layer]}]] db)
     :map.layers/filter                    [mevents/map-set-layer-filter]
@@ -260,7 +254,7 @@
     :map/update-leaflet-map               mevents/update-leaflet-map
     :map/update-map-view                  mevents/update-map-view
     :map/view-updated                     [mevents/map-view-updated]
-    :map/popup-closed                     [mevents/destroy-popup]
+    :map/popup-closed                     [nhatevents/destroy-popup]
     :map/toggle-ignore-click              mevents/toggle-ignore-click
     :map/toggle-viewport-only             [mevents/toggle-viewport-only]
     :map/set-popup-dimensions             [mevents/set-popup-dimensions]
@@ -284,7 +278,7 @@
     :ui.right-sidebar/pop                 events/right-sidebar-pop
     :ui.right-sidebar/bring-to-front      events/right-sidebar-bring-to-front
     :ui.right-sidebar/remove              events/right-sidebar-remove
-    :ui.side-by-side/active?              [events/side-by-side-active?]
+    :ui.side-by-side/active?              [nhatevents/side-by-side-active?]
     :ui.side-by-side/split-ratio          [events/side-by-side-split-ratio]
     :ui/open-pill                         events/open-pill
     :ui/mouse-pos                         events/mouse-pos
@@ -303,14 +297,15 @@
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close
     :download-click                       (fn [db [_ {:keys [_link]}]] db)
-    :current-view/update-cmip-phases      [nhatevents/current-view-update-cmip-phases]
-    :current-view/update-models           [nhatevents/current-view-update-models]
-    :current-view/update-scenarios        [nhatevents/current-view-update-scenarios]
-    :current-view/update-seasonal-datas   [nhatevents/current-view-update-seasonal-datas]
+    :current-view/update-cmip-phases      nhatevents/current-view-update-cmip-phases
+    :current-view/update-models           nhatevents/current-view-update-models
+    :current-view/update-scenarios        nhatevents/current-view-update-scenarios
+    :current-view/update-seasonal-datas   nhatevents/current-view-update-seasonal-datas
     :current-view/selected-cmip-phase     [nhatevents/current-view-selected-cmip-phase]
     :current-view/selected-model          [nhatevents/current-view-selected-model]
     :current-view/selected-scenario       [nhatevents/current-view-selected-scenario]
     :current-view/selected-seasonal-data  [nhatevents/current-view-selected-seasonal-data]
+    :current-view/is-historic?            [nhatevents/current-view-is-historic?]
     :current-view/selected-time-period    [nhatevents/current-view-selected-time-period]
     :current-view.time/step-forward       [nhatevents/current-view-time-step-forward]
     :current-view.time/step-backward      [nhatevents/current-view-time-step-backward]}})

@@ -2,7 +2,11 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.natural-hazards-atlas.subs
-  (:require [imas-seamap.natural-hazards-atlas.utils :as nhatutils]))
+  (:require
+   [re-frame.core :as re-frame]
+   [imas-seamap.map.subs :as msubs]
+   [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
+   [imas-seamap.utils :as utils]))
 
 (defn current-view-cmip-phases
   "List of CMIP (Coupled Model Intercomparison Project) phases available to
@@ -25,52 +29,37 @@
   [db _]
   (get-in db [:current-view :seasonal-datas]))
 
-(defn current-view-filtered-models
-  "Filtered list of scientific models available to analyze the hazard data.
-
-   Only models found in the current CMIP phase are accessible."
-  [[models selected-cmip-phase] _]
-  (nhatutils/current-view-filtered-models models selected-cmip-phase))
-
-(defn current-view-filtered-scenarios
-  "Filtered list of scenarios models available to analyze the hazard data.
-
-   Only scenarios found in the current model are accessible."
-  [[scenarios selected-model] _]
-  (nhatutils/current-view-filtered-scenarios scenarios selected-model))
-
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
    scenarios for analyzing hazard data."
-  [db _]
-  (nhatutils/current-view-selected-cmip-phase db))
+  [db [_ map-id]]
+  (nhatutils/current-view-selected-cmip-phase db map-id))
 
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data.
 
    If the value selected by the user isn't one of the models found in the current
    CMIP phase, then default to the first available model."
-  [db _]
-  (nhatutils/current-view-selected-model db))
+  [db [_ map-id]]
+  (nhatutils/current-view-selected-model db map-id))
 
 (defn current-view-selected-scenario
   "Scenario to analyze the hazard data.
 
    If the value selected by the user isn't one of the scenarios found in the
    current scientific model, then default to the first available scenario."
-  [db _]
-  (nhatutils/current-view-selected-scenario db))
+  [db [_ map-id]]
+  (nhatutils/current-view-selected-scenario db map-id))
 
 (defn current-view-selected-seasonal-data
   "Seasonal data to analyze the hazard data"
-  [db _]
-  (nhatutils/current-view-selected-seasonal-data db))
+  [db [_ map-id]]
+  (nhatutils/current-view-selected-seasonal-data db map-id))
 
-(defn current-view-hazard-layer-slug
-  "Slug inserted into hazard layer's server URL to show the correct NetCDF file
-   from the server."
-  [[selected-cmip-phase selected-model selected-scenario selected-seasonal-data] _]
-  (nhatutils/current-view-hazard-layer-slug selected-cmip-phase selected-model selected-scenario selected-seasonal-data))
+(defn current-view-is-historic?
+  "Indicates whether the current view is for historic data."
+  [db [_ map-id]]
+  (nhatutils/current-view-is-historic? db map-id))
 
 (defn current-view-time-periods
   "List of time periods available to analyze the hazard data."
@@ -79,14 +68,26 @@
 
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data"
-  [db _]
-  (nhatutils/current-view-selected-time-period db))
+  [db [_ map-id]]
+  (nhatutils/current-view-selected-time-period db map-id))
+
+(defn current-view-timeline-media-controls-signals
+  "Signals function for current-view-timeline-media-controls.
+
+   Signals function is a necessity, in order to pass through subscription args"
+  [[_ map-id]]
+  [(re-frame/subscribe [:map.time/current-time map-id])
+   (re-frame/subscribe [:map.time/available-times map-id])
+   (re-frame/subscribe [:map.time/is-playing? map-id])
+   (re-frame/subscribe [:map.time/is-loading? map-id])
+   (re-frame/subscribe [:ui.side-by-side/active?])])
 
 (defn current-view-timeline-media-controls
   "State for the media-style controls to play through the timeline of hazard data."
-  [[current-time available-times is-playing? is-loading?] _]
+  [[current-time available-times is-playing? is-loading? side-by-side-active?] _]
   {:is-playing?        is-playing?
-   :is-loading?        (and is-loading? is-playing?)
+   :is-loading?        is-loading?
+   :is-disabled?       side-by-side-active?
    :can-step-forward?  (not= current-time (last available-times))
    :can-step-backward? (not= current-time (first available-times))})
 
@@ -94,6 +95,44 @@
   "List of currently available hazard layers, with metadata for display in the UI."
   [{:keys [catalogue-layers]} _]
   (filterv :hazardlayer catalogue-layers))
+
+(defn hazard-layers-color-scale-range
+  "Merged scale range for hazard layers across map 1 and 2."
+  [[hazard-layers
+    cmip-phase-1 model-1 scenario-1 seasonal-data-1 is-historic?-1
+    cmip-phase-2 model-2 scenario-2 seasonal-data-2 is-historic?-2]
+   [_ layer]]
+  (letfn [(get-hazard-layer-min-max
+           [layer]
+           (let [{min-1 :color_scale_range_min max-1 :color_scale_range_max}
+                 (nhatutils/hazard-layer-dataset layer cmip-phase-1 model-1 scenario-1 seasonal-data-1 is-historic?-1)
+                 {min-2 :color_scale_range_min max-2 :color_scale_range_max}
+                 (nhatutils/hazard-layer-dataset layer cmip-phase-2 model-2 scenario-2 seasonal-data-2 is-historic?-2)]
+             {:color-scale-range-min (min min-1 min-2)
+              :color-scale-range-max (max max-1 max-2)}))]
+    (if layer
+      (get-hazard-layer-min-max layer)
+      (reduce
+       (fn [m layer]
+         (assoc m layer (get-hazard-layer-min-max layer)))
+       {} hazard-layers))))
+
+(defn hazard-layers-active-hazard-layer
+  "There should only be one hazard layer active at a time, per spec. This is handy
+   for retrieving that single layer for showing its legend on the map."
+  [[{:keys [active-layers]} hazard-layers] _]
+  (->> hazard-layers (filter (set active-layers)) first))
+
+(defn hazard-layers-units
+  "Units for hazard layers"
+  [[hazard-layers] [_ layer]]
+  (letfn [(get-hazard-layer-units [layer] (get-in layer [:hazardlayer :human_readable_units]))]
+    (if layer
+      (get-hazard-layer-units layer)
+      (reduce
+       (fn [m layer]
+         (assoc m layer (get-hazard-layer-units layer)))
+       {} hazard-layers))))
 
 (defn supporting-layers
   "List of currently available supporting layers, with metadata for display in the
@@ -113,26 +152,46 @@
   [[{:keys [filtered-layers]} supporting-layers] _]
   (filterv (set filtered-layers) supporting-layers))
 
+(defn layer-displayed-layers-lookup-signals
+  "Signals function for layer-displayed-layers-lookup.
+
+   Signals function is a necessity, in order to pass through subscription args"
+  [[_ map-id]]
+  [(re-frame/subscribe [:dbsubs.map/layers])
+   (re-frame/subscribe [::msubs/enhanced-rich-layers])
+   (re-frame/subscribe [:map.layers/hazard-layers])
+   (re-frame/subscribe [:current-view/selected-cmip-phase map-id])
+   (re-frame/subscribe [:current-view/selected-model map-id])
+   (re-frame/subscribe [:current-view/selected-scenario map-id])
+   (re-frame/subscribe [:current-view/selected-seasonal-data map-id])
+   (re-frame/subscribe [:current-view/is-historic? map-id])])
+
 (defn layer-displayed-layers-lookup
   "A lookup map of the raw (catalogue) layer to what layers should actually be
    displayed on the map.
 
    Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
    hazard layer slug from the current view into the hazard layer server URLs."
-  [[layers {:keys [by-layer-id]} hazard-layers hazard-layer-slug] _]
-  (nhatutils/layer-displayed-layers-lookup layers #(get by-layer-id (:id %)) hazard-layers hazard-layer-slug))
-
-;; Proof-of-concept for having separate information in map B
-(defn layer-displayed-layers-lookup-map-b
-  [[layers {:keys [by-layer-id]} hazard-layers selected-model selected-scenario selected-seasonal-data] _]
-  (nhatutils/layer-displayed-layers-lookup-map-b layers #(get by-layer-id (:id %)) hazard-layers selected-model selected-scenario selected-seasonal-data))
+  [[layers {:keys [by-layer-id]} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?] _]
+  (nhatutils/layer-displayed-layers-lookup layers #(get by-layer-id (:id %)) hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?))
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component.
 
    Availability of times is filtered by the range of the currently selected time
    period in current view."
-  [db _]
-  (let [all-available-times           (get-in db [:display :available-times])
-        {:keys [start-year end-year]} (nhatutils/current-view-selected-time-period db)] ; Alternative is registering :current-view/selected-time-period as an input signal to this sub, but then we lose access to db for getting [:display :available-times], so another sub would be necessary.
-    (filter #(nhatutils/time-in-range? % start-year end-year) all-available-times)))
+  [db [_ map-id]]
+  (nhatutils/time-available-times db map-id))
+
+(defn layer-legends
+  "Overrides imas-seamap.map.subs/layer-legends so that, when the legend for a
+   single hazard layer is requested, it is displayed as a colour scale bar. The
+   layer is included because the colour scale bar needs it to look up the hazard
+   layer's range and units.
+
+   A hazard layer with its own legend_url is displayed as a regular legend."
+  [db [_ {:keys [hazardlayer legend_url] :as layer} :as query-v]]
+  (let [legends (msubs/layer-legends db query-v)]
+    (if (and hazardlayer (not legend_url))
+      (assoc legends :type :color-scale-bar :layer layer)
+      legends)))
