@@ -361,7 +361,7 @@
         tab   @(re-frame/subscribe [:left-drawer/tab])
         {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
-     {:title [:div [:img {:src "img/Climate Futures + NHAT logo – COLOUR.png"}]]
+     {:title [:div [:img {:src "img/Climate_Futures_NHAT_logo_COLOUR.png"}]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
