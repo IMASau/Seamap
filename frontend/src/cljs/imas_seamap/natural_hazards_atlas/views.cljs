@@ -188,7 +188,7 @@
   []
   (let [drag  (reagent/atom nil) ; centre year under the pointer while dragging
         track (atom nil)]
-    (fn [{:keys [map-id year preset]}]
+    (fn [{:keys [map-id year preset playing?]}]
       (let [{axis-start :start-year axis-end :end-year} nhatutils/timeline-axis
             [first-year last-year] nhatutils/year-range
             pct                    #(str (* 100 (/ (- % axis-start) (- axis-end axis-start))) "%")
@@ -215,6 +215,8 @@
            :on-pointer-up     end-drag
            :on-pointer-cancel end-drag}
           [:span.year-track-line]
+          (when playing? ; how far Play has come
+            [:span.year-track-played {:style {:width (pct (+ shown 0.5))}}])
           (when-not (nhatutils/historic-year? shown) ; historical layers are single years: just the point
             [:span.year-track-window
              {:class (when (and preset (not @drag)) "preset")
@@ -259,6 +261,7 @@
         current-time @(re-frame/subscribe [:map.time/current-time map-id])
         shown-year   (when current-time (.getFullYear (js/Date. current-time)))]
     [:section#time-control.cv-section
+     {:class (when playing? "playing")}
      [label-row "1 · When"]
      [period-buttons {:map-id map-id :preset preset}]
      [:div.year-row
@@ -273,9 +276,12 @@
        (if (and playing? loading?)
          [b/spinner {:size 14}]
          [b/icon {:icon (if playing? "stop" "play") :size 14}])]
-      [year-track {:map-id map-id :year year :preset preset}]]
+      [year-track {:map-id map-id :year year :preset preset :playing? playing?}]]
      [:p.when-shown {:aria-live "polite"}
       (cond
+        playing? ; the year Play is on, without a "Loading" between every step
+        [:<> [:span.playing-label "Playing"] " " (shown-as year) "."]
+
         (or (not shown-year) ; nothing yet, or the other dataset's layer until the chosen one loads
             (not= (nhatutils/historic-year? shown-year) (nhatutils/historic-year? year)))
         (str "Loading " (or (:caption preset) (track-label year)) "…")

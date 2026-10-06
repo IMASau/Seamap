@@ -919,7 +919,16 @@ input.leaflet-control-layers-selector[type="radio"] {
         color: var(--cv-plum);
         .bp3-icon { color: inherit; }
         &:hover { background: var(--cv-plum-tint); }
-        &.playing { background: var(--cv-plum); border-color: var(--cv-plum); color: #fff; }
+        &.playing {
+            background: var(--cv-plum);
+            border-color: var(--cv-plum);
+            color: #fff;
+            animation: cv-play-pulse 1.6s ease-out infinite;
+        }
+    }
+    @keyframes cv-play-pulse {
+        0%   { box-shadow: 0 0 0 0 rgba(111, 37, 115, 0.45); }
+        100% { box-shadow: 0 0 0 8px rgba(111, 37, 115, 0); }
     }
 
     .year-track { flex: 1; min-width: 0; }
@@ -930,7 +939,7 @@ input.leaflet-control-layers-selector[type="radio"] {
         touch-action: none;
         user-select: none;
     }
-    .year-track-line, .year-track-window {
+    .year-track-line, .year-track-played, .year-track-window {
         position: absolute;
         top: 13px;
         height: 4px;
@@ -938,6 +947,7 @@ input.leaflet-control-layers-selector[type="radio"] {
         pointer-events: none;
     }
     .year-track-line { left: 0; right: 0; background: var(--cv-rule); }
+    .year-track-played { left: 0; background: var(--cv-plum); opacity: 0.45; transition: width 0.25s ease-out; }
     // The 20 years averaged in the layer on the map
     .year-track-window {
         top: 7px;
@@ -975,6 +985,7 @@ input.leaflet-control-layers-selector[type="radio"] {
         font-size: 11px;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
+        white-space: nowrap;
         pointer-events: none;
     }
     .year-track-ticks {
@@ -995,6 +1006,22 @@ input.leaflet-control-layers-selector[type="radio"] {
         margin: 8px 0 0;
         font-size: 12px;
         strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+    }
+
+    // Playing: the track is the thing to watch; the presets step back
+    #time-control.playing {
+        .segmented { opacity: 0.5; }
+        .year-track-window { background: var(--cv-plum); }
+        .year-track-handle { background: #fff; border-color: var(--cv-plum); }
+        .playing-label {
+            display: inline-block;
+            margin-right: 2px;
+            padding: 0 6px;
+            border-radius: 4px;
+            background: var(--cv-plum);
+            color: #fff;
+            font-weight: 600;
+        }
     }
 
     .advanced-settings {
