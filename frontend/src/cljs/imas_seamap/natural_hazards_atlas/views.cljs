@@ -154,14 +154,12 @@
   [year]
   (if (nhatutils/historic-year? year)
     (str "the single year " year)
-    (let [[first-year last-year] (nhatutils/year-window year)]
-      (str "the 20-year average for " first-year "–" last-year))))
+    (str "the 20-year average for " (nhatutils/centre-and-window year))))
 
 (defn- average-for
   "The status line's readout of the projected layer for year."
   [year]
-  (let [[first-year last-year] (nhatutils/year-window year)]
-    (str "20-year average for " first-year "–" last-year ".")))
+  (str "20-year average for " (nhatutils/centre-and-window year) "."))
 
 (defn- track-label
   "Short label for the handle while dragging."
@@ -176,7 +174,7 @@
    lights the button until the year is moved another way."
   [{:keys [map-id preset]}]
   [:div.segmented {:role "group" :aria-label "Periods"}
-   (for [{:keys [id name span]} nhatutils/when-presets]
+   (for [{:keys [id name year]} nhatutils/when-presets]
      ^{:key id}
      [:button
       {:type         "button"
@@ -184,7 +182,7 @@
        :class        (when (= id (:id preset)) "selected")
        :on-click     #(re-frame/dispatch [:current-view/preset id map-id])}
       [:span.segmented-name name]
-      [:span.segmented-detail span]])])
+      [:span.segmented-detail year]])])
 
 (defn- year-track
   "The century as a slider: drag or click to move the handle, or use the
@@ -293,7 +291,7 @@
 
         (or (not shown-year) ; nothing yet, or the other dataset's layer until the chosen one loads
             (not= (nhatutils/historic-year? shown-year) (nhatutils/historic-year? year)))
-        (str "Loading " (or (:caption preset) (track-label year)) "…")
+        (str "Loading " (or (:caption preset) (nhatutils/centre-and-window year)) "…")
 
         ; A named state (a period, Playing) gets a label; a year set on the track doesn't
         preset [:<> [:span.when-chip (:name preset)] " " (average-for shown-year)]
@@ -301,13 +299,13 @@
 
 (defn- emissions-select
   "Lower or higher emissions, in plain words first with the SSP code underneath,
-   and one line on what the chosen future means."
+   and one line on what the chosen pathway means."
   [{:keys [map-id]}]
   (let [selected  @(re-frame/subscribe [:current-view/selected-scenario map-id])
         scenarios @(re-frame/subscribe [:current-view/scenarios])]
     [:section.cv-section
-     [label-row "2 · Emissions future"]
-     [:div.segmented {:role "group" :aria-label "Emissions future"}
+     [label-row "2 · Emissions pathway"]
+     [:div.segmented {:role "group" :aria-label "Emissions pathway"}
       (for [{:keys [id name display_name] :as scenario} scenarios
             :let [{:keys [label code]} (get nhatutils/scenario-labels name)
                   selected? (= id (:id selected))]]

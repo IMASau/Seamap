@@ -187,12 +187,19 @@
   [year]
   [(- year (/ window-years 2)) (+ year (/ window-years 2) -1)])
 
+(defn centre-and-window
+  "A projected year as its centre year and the years its layer averages:
+   \"2060 (2050–2069)\"."
+  [year]
+  (let [[first-year last-year] (year-window year)]
+    (str year " (" first-year "–" last-year ")")))
+
 (def when-presets
   "The agreed reporting periods. Most users pick one of these. Each is shown by
    one layer: its centre year's 20-year average. Historical data isn't offered."
-  [{:id "short"  :name "Short"  :caption "Short term"     :year 2030 :span "2020–39"}
-   {:id "medium" :name "Medium" :caption "Medium term"    :year 2060 :span "2050–69"}
-   {:id "long"   :name "Long"   :caption "Long term"      :year 2089 :span "2079–98"}]) ; no 2090 layer: projections stop at 2089 (to ask Ben)
+  [{:id "short"  :name "Short"  :caption "Short term"     :year 2030}
+   {:id "medium" :name "Medium" :caption "Medium term"    :year 2060}
+   {:id "long"   :name "Long"   :caption "Long term"      :year 2089}]) ; no 2090 layer: projections stop at 2089 (to ask Ben)
 
 (def timeline-axis
   "Years spanned by the \"When\" track."

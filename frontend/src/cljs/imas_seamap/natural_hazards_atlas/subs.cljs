@@ -113,8 +113,7 @@
      :when      (let [shown (when year
                                   (if (nhatutils/historic-year? year)
                                     (str "year " year)
-                                    (let [[first-year last-year] (nhatutils/year-window year)]
-                                      (str "20-year average " first-year "–" last-year))))]
+                                    (str "20-year average for " (nhatutils/centre-and-window year))))]
                   (some-> (string/join ", " (remove nil? [(:caption preset) shown]))
                           not-empty
                           (#(str (string/upper-case (subs % 0 1)) (subs % 1)))))
