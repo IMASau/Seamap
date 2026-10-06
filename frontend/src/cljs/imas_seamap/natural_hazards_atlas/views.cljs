@@ -345,7 +345,7 @@
           {:type          "button"
            :aria-expanded @open?
            :on-click      #(swap! open? not)}
-          "Advanced: model"
+          "Advanced"
           [b/icon {:icon (if @open? "chevron-up" "chevron-down") :size 14}]]
          (if @open?
            [:div.advanced-settings-body
@@ -357,7 +357,7 @@
               :keyfns
               {:id   :id
                :text :display_name}}]]
-           [:p.cv-note (:display_name model)])]))))
+           [:p.cv-note "Model: " (:display_name model)])]))))
 
 (defn- map-caption
   "What the map shows, in a line under the map. Makes the view defensible when
