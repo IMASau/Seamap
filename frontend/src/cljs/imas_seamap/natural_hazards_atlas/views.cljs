@@ -319,8 +319,8 @@
           :on-click     #(re-frame/dispatch [:current-view/selected-scenario scenario map-id])}
          [:span.segmented-name (or label display_name)]
          [:span.segmented-detail (or code name)]])]
-     (when-let [description (:description (get nhatutils/scenario-labels (:name selected)))]
-       [:p.cv-statement {:aria-live "polite"} description])]))
+     (when-let [{:keys [code description]} (get nhatutils/scenario-labels (:name selected))]
+       [:p.cv-statement {:aria-live "polite"} [:span.when-chip code] " " description])]))
 
 (defn- season-select
   [{:keys [map-id]}]

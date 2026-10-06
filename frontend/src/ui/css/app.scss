@@ -1023,7 +1023,7 @@ input.leaflet-control-layers-selector[type="radio"] {
         strong { font-weight: 600; font-variant-numeric: tabular-nums; }
     }
 
-    // A period picked gets its name as a label on the line under the track
+    // A label at the start of a status line: the period picked, or the SSP code
     .when-chip {
         display: inline-block;
         margin-right: 2px;
