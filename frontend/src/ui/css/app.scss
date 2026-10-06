@@ -794,7 +794,6 @@ input.leaflet-control-layers-selector[type="radio"] {
     --cv-plum-tint: #f3e9f4;
     --cv-border: #cfc3d1;
     --cv-rule: #e6dee7;
-    --cv-past: #b9abbb;
     --cv-muted: #76667a;
 
     color: var(--cv-ink);
@@ -931,7 +930,7 @@ input.leaflet-control-layers-selector[type="radio"] {
         touch-action: none;
         user-select: none;
     }
-    .year-track-line, .year-track-past, .year-track-window {
+    .year-track-line, .year-track-window {
         position: absolute;
         top: 13px;
         height: 4px;
@@ -939,7 +938,6 @@ input.leaflet-control-layers-selector[type="radio"] {
         pointer-events: none;
     }
     .year-track-line { left: 0; right: 0; background: var(--cv-rule); }
-    .year-track-past { left: 0; background: var(--cv-past); border-radius: 2px 0 0 2px; }
     // The 20 years averaged in the layer on the map
     .year-track-window {
         top: 7px;

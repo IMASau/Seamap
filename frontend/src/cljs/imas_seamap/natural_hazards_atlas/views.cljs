@@ -190,8 +190,6 @@
     (fn [{:keys [map-id year preset]}]
       (let [{axis-start :start-year axis-end :end-year} nhatutils/timeline-axis
             [first-year last-year] nhatutils/year-range
-            [gap-start gap-end]    nhatutils/historic-gap
-            first-projected        (inc nhatutils/last-historic-year)
             pct                    #(str (* 100 (/ (- % axis-start) (- axis-end axis-start))) "%")
             year-at                (fn [e]
                                      (let [rect (.getBoundingClientRect @track)]
@@ -216,7 +214,6 @@
            :on-pointer-up     end-drag
            :on-pointer-cancel end-drag}
           [:span.year-track-line]
-          [:span.year-track-past {:style {:width (pct first-projected)}}]
           (when-not (nhatutils/historic-year? shown) ; historical layers are single years: just the point
             [:span.year-track-window
              {:class (when (and preset (not @drag)) "preset")
@@ -233,8 +230,8 @@
             :style          {:left (pct (+ shown 0.5))}
             :on-key-down    (fn [e]
                               (when-let [y (case (.-key e)
-                                             ("ArrowLeft" "ArrowDown") (if (= year (inc gap-end)) (dec gap-start) (dec year))
-                                             ("ArrowRight" "ArrowUp")  (if (= year (dec gap-start)) (inc gap-end) (inc year))
+                                             ("ArrowLeft" "ArrowDown") (dec year)
+                                             ("ArrowRight" "ArrowUp")  (inc year)
                                              "PageDown"                (- year 10)
                                              "PageUp"                  (+ year 10)
                                              "Home"                    first-year
@@ -244,7 +241,7 @@
                                 (choose y)))}
            (when @drag [:span.year-track-bubble (track-label shown)])]]
          [:div.year-track-ticks {:aria-hidden true}
-          (for [tick [axis-start first-projected 2050 axis-end]]
+          (for [tick [axis-start 2050 axis-end]]
             ^{:key tick}
             [:span {:style {:left (pct tick)}} tick])]]))))
 
@@ -325,14 +322,13 @@
   []
   (let [open? (reagent/atom false)]
     (fn [{:keys [map-id]}]
-      (let [cmip-phase @(re-frame/subscribe [:current-view/selected-cmip-phase map-id])
-            model      @(re-frame/subscribe [:current-view/selected-model map-id])]
+      (let [model @(re-frame/subscribe [:current-view/selected-model map-id])]
         [:section.cv-section.advanced-settings
          [:button.advanced-settings-toggle
           {:type          "button"
            :aria-expanded @open?
            :on-click      #(swap! open? not)}
-          "Advanced: model and dataset"
+          "Advanced: model"
           [b/icon {:icon (if @open? "chevron-up" "chevron-down") :size 14}]]
          (if @open?
            [:div.advanced-settings-body
@@ -343,16 +339,8 @@
               :onChange #(re-frame/dispatch [:current-view/selected-model % map-id])
               :keyfns
               {:id   :id
-               :text :display_name}}]
-            [:h4.cv-sublabel "Dataset"]
-            [components/select
-             {:value    cmip-phase
-              :options  @(re-frame/subscribe [:current-view/cmip-phases])
-              :onChange #(re-frame/dispatch [:current-view/selected-cmip-phase % map-id])
-              :keyfns
-              {:id   :id
                :text :display_name}}]]
-           [:p.cv-note (:display_name model) " · " (:display_name cmip-phase)])]))))
+           [:p.cv-note (:display_name model)])]))))
 
 (defn- map-caption
   "What the map shows, in a line under the map. Makes the view defensible when

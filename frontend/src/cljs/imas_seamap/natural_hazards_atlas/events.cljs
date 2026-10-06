@@ -582,9 +582,7 @@
   [{:keys [db]} [_ map-id]]
   (when (utils/get-independent-map-state db map-id [:display :window-playing?])
     (let [loading?            (utils/get-independent-map-state db map-id [:display :time-is-loading?])
-          [gap-start gap-end] nhatutils/historic-gap
-          next                (inc (nhatutils/current-view-year db map-id))
-          next                (if (<= gap-start next gap-end) (inc gap-end) next)]
+          next                (inc (nhatutils/current-view-year db map-id))]
       (cond
         loading?                              {:dispatch-later {:ms 250 :dispatch [:current-view.play/tick map-id]}}
         (<= next (second nhatutils/year-range)) {:dispatch       [:current-view/year next map-id {:playing? true}]

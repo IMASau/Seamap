@@ -189,44 +189,30 @@
 
 (def when-presets
   "The agreed reporting periods. Most users pick one of these. Each is shown by
-   one layer: a projected period by its centre year's 20-year average; Recent
-   by a single historical year (which year is for the data lead to confirm)."
-  [{:id "recent" :name "Recent" :caption "Recent climate" :year 2005 :span "1995–2014"}
-   {:id "short"  :name "Short"  :caption "Short term"     :year 2030 :span "2020–39"}
+   one layer: its centre year's 20-year average. Historical data isn't offered."
+  [{:id "short"  :name "Short"  :caption "Short term"     :year 2030 :span "2020–39"}
    {:id "medium" :name "Medium" :caption "Medium term"    :year 2060 :span "2050–69"}
-   {:id "long"   :name "Long"   :caption "Long term"      :year 2090 :span "2080–99"}])
+   {:id "long"   :name "Long"   :caption "Long term"      :year 2089 :span "2079–98"}]) ; no 2090 layer: projections stop at 2089 (to ask Ben)
 
 (def timeline-axis
   "Years spanned by the \"When\" track."
-  {:start-year 1950 :end-year 2100})
+  {:start-year 2015 :end-year 2100})
 
 (def last-historic-year
-  "The historical runs end here; projections start the year after."
-  2014)
+  "The historical runs end here (THREDDS: 1970-2005)."
+  2005)
 
 (def year-range
-  "Years offered on the track. Assumes historical runs 1951-2014 and
-   projections to 2100 (so 20-year averages centred up to 2090). Check against
-   THREDDS."
-  [1951 2090])
-
-(def historic-gap
-  "Years with no layer: after the historical runs end, and before the first
-   projected 20-year average (centred 2025, so averaging 2015-2034). Not
-   offered unless the data lead rules windows may mix the two."
-  [(inc last-historic-year) (+ last-historic-year (/ window-years 2))])
+  "Years offered on the track: projected 20-year averages only, centred 2025
+   (averaging 2015-2034) to 2089 (THREDDS, October 2026). Historical years
+   aren't offered."
+  [2025 2089])
 
 (defn snap-year
-  "Nearest centre year on offer: inside year-range and outside historic-gap."
+  "Nearest centre year on offer."
   [year]
-  (let [[first-year last-year] year-range
-        [gap-start gap-end]    historic-gap
-        year                   (-> year (max first-year) (min last-year))]
-    (cond
-      (< year gap-start)                      year
-      (> year gap-end)                        year
-      (< (- year gap-start) (- gap-end year)) (dec gap-start)
-      :else                                   (inc gap-end))))
+  (let [[first-year last-year] year-range]
+    (-> year (max first-year) (min last-year))))
 
 (defn historic-year?
   "Is the layer for year a single historical year (rather than a projected
@@ -323,12 +309,11 @@
   (let [get-state #(utils/get-independent-map-state db map-id [:current-view %])
         period-id (get-state :selected-time-period-id)]
     (or (some-> (get-state :window-start-year) (+ (/ window-years 2)) window-preset)
-        (when (get-state :is-historic?) (first-where #(= (:id %) "recent") when-presets))
         (first-where #(= (:id %) period-id) when-presets)
         (first-where #(= (:id %) "medium") when-presets))))
 
 (defn current-view-preset
-  "The period (Recent, Short, Medium, Long) the user chose, or nil once they've
+  "The period (Short, Medium, Long) the user chose, or nil once they've
    moved to a year of their own."
   ([db] (current-view-preset db nil))
   ([db map-id]
@@ -340,8 +325,9 @@
   "The year the user chose: directly, or as the start of a period."
   ([db] (current-view-year db nil))
   ([db map-id]
-   (or (utils/get-independent-map-state db map-id [:current-view :selected-year])
-       (:year (legacy-preset db map-id)))))
+   (some-> (or (utils/get-independent-map-state db map-id [:current-view :selected-year])
+               (:year (legacy-preset db map-id)))
+           snap-year))) ; a saved historical year moves to the first one on offer
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-time-period
