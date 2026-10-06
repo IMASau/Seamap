@@ -289,13 +289,13 @@
      [:p.when-shown {:aria-live "polite"}
       (cond
         playing? ; the year Play is on, without a "Loading" between every step
-        (average-for year)
+        [:<> [:span.when-chip "Playing"] " " (average-for year)]
 
         (or (not shown-year) ; nothing yet, or the other dataset's layer until the chosen one loads
             (not= (nhatutils/historic-year? shown-year) (nhatutils/historic-year? year)))
         (str "Loading " (or (:caption preset) (track-label year)) "…")
 
-        ; Only a period gets a label; otherwise the track says how the year was chosen
+        ; A named state (a period, Playing) gets a label; a year set on the track doesn't
         preset [:<> [:span.when-chip (:name preset)] " " (average-for shown-year)]
         :else  (average-for shown-year))]]))
 

@@ -1041,6 +1041,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     #time-control.playing {
         .segmented { opacity: 0.5; }
         .year-track-window { background: var(--cv-plum); }
+        .when-chip { background: var(--cv-plum); color: #fff; }
     }
 
     .advanced-settings {
