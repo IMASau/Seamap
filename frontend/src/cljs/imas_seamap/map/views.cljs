@@ -7,11 +7,10 @@
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [copy-text handler-dispatch create-shadow-dom-element format-number] :include-macros true]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds bounds->map]]
             [imas-seamap.interop.leaflet :as leaflet]
             [goog.string :as gstring]
-            ["react-leaflet" :as ReactLeaflet]
-            ["/leaflet-scalefactor/leaflet.scalefactor"]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -139,17 +138,24 @@
             (.appendChild element (create-shadow-dom-element response)))
           (re-frame/dispatch [:map/set-popup-dimensions (popup-dimensions element)])))}]))
 
-(defn popup [{:keys [has-info? responses location status show?] :as _feature-info}]
+(defn popup [{:keys [has-info? responses location status show? map-id] :as _feature-info}]
   (when (and show? has-info?)
     ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
-    ^{:key (str location status)}
-    [leaflet/popup
-     {:position location
-      :max-width "100%"
-      :auto-pan false
-      :class (when (= status :feature-info/waiting) "waiting")}
+    (let [popup-id (str location status)]
+      ^{:key popup-id}
+      [leaflet/popup
+       {:position location
+        :max-width "100%"
+        :auto-pan false
+        :class (when (= status :feature-info/waiting) "waiting")
+        ;; Leaflet's built-in close button ("x") closes the popup without telling us,
+        ;; leaving app-state thinking it's still open. Pass this popup's identity so
+        ;; destroy-popup can ignore remove events from popups that are merely being
+        ;; replaced (eg the "waiting" spinner unmounting when results arrive).
+        ;; map-id says which map the popup is on, for apps with independent maps:
+        :eventHandlers {:remove #(re-frame/dispatch [:map/popup-closed popup-id map-id])}}
 
-     ^{:key (str status responses)} [popup-contents {:status status :responses responses}]]))
+       ^{:key (str status responses)} [popup-contents {:status status :responses responses}]])))
 
 (defn distance-tooltip []
   (let [{:keys [x y] :as mouse-pos} @(re-frame/subscribe [:ui/mouse-pos])
@@ -273,7 +279,7 @@
 
 (defmethod layer-component :wms-timeseries
   [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style hazardlayer]} :displayed-layer}]
-  (let [{:keys [color-scale-range-min color-scale-range-max]} @(re-frame/subscribe [:map.layers.hazard-layers/color-scale-range layer])]
+  (let [{:keys [color-scale-range-min color-scale-range-max]} (when hazardlayer @(re-frame/subscribe [:map.layers.hazard-layers/color-scale-range layer]))] ; sub is only registered in Natural Hazards Atlas
     [leaflet/wms-timeseries-layer
      (merge
       {:url              server_url
@@ -402,8 +408,18 @@
       (:layers active-base-layer))]))
 
 (defn catalogue-layers [{:keys [map-id]}]
-  (let [{:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
-        displayed-layers-lookup     @(re-frame/subscribe [:map.layer/displayed-layers-lookup map-id])
+  (let [{:keys [visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn               #(get rich-layers-by-layer-id (:id %))
+        opacities                   @(re-frame/subscribe [::msubs/layer-opacities])
+        cql-filters                 @(re-frame/subscribe [::msubs/cql-filters])
+        layer-opacities             #(get opacities (:id %) 100)
+        cql-filter-fn               #(get cql-filters (:id %))
+        ;; Only include map-id in the query when there is one, so the single-map
+        ;; case shares its cached subscription with the other consumers of
+        ;; [:map.layer/displayed-layers-lookup]:
+        displayed-layers-lookup     @(re-frame/subscribe (if map-id
+                                                           [:map.layer/displayed-layers-lookup map-id]
+                                                           [:map.layer/displayed-layers-lookup]))
         {:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         boundary-filter             @(re-frame/subscribe [:sok/boundary-layer-filter])]
     [:<>
@@ -449,7 +465,6 @@
        :center               center
        :zoom                 zoom
        :zoomControl          true
-       :scaleFactor          true
        :minZoom              2
        :keyboard             false ; handled externally
        :close-popup-on-click false ; We'll handle that ourselves
@@ -476,14 +491,14 @@
      (when (:selecting? region-info)
        [draw-region-control])
     
-     [leaflet/scale-control]
-    
      [leaflet/coordinates-control
       {:decimals 2
        :labelTemplateLat "{y}"
        :labelTemplateLng "{x}"
        :useLatLngOrder   true
        :enableUserInput  false}]
+     [leaflet/scale-factor-control {:position "bottomright"}]
+     [leaflet/scale-control {:position "bottomright"}]
     
      [distance-tooltip]
     

@@ -19,7 +19,7 @@
 .leaflet-sbs-left-label,
 .leaflet-sbs-right-label {
     position: absolute;
-    bottom: 24px;
+    bottom: 25px;
     left: 50%;
     user-select: none;
     z-index: 999;

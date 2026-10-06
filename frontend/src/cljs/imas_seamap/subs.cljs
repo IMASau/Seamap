@@ -3,7 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.subs
     (:require [clojure.set :refer [rename-keys] :as set]
-              [imas-seamap.map.utils :refer [->dynamic-pill] :as map-utils]
+              [imas-seamap.map.utils :refer [db->ctx ->dynamic-pill] :as map-utils]
               [imas-seamap.utils :refer [first-where]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
               #_[debux.cs.core :refer [dbg] :include-macros true]
@@ -50,7 +50,8 @@
        :status        status
        :responses     responses
        :location      ((juxt :lat :lng) location)
-       :show?         (map-utils/popup-visible? db)}
+       :show?         (map-utils/popup-visible? db)
+       :map-id        map-id}
       {:has-info? false})))
 
 (defn download-info [db _]
@@ -156,6 +157,16 @@
 (defn settings-overlay [db _]
   (get-in db [:display :settings-overlay]))
 
+(defn pinned-legends?
+  "Is the pinned legends panel open?"
+  [db _]
+  (get-in db [:display :pinned-legends?]))
+
+(defn pinned-legends-scale
+  "What is the scale of the pinned legends?"
+  [db _]
+  (get-in db [:display :pinned-legends-scale] 1))
+
 (defn right-sidebar [db _]
   (last (get-in db [:display :right-sidebars])))
 
@@ -163,7 +174,8 @@
   (get-in db [:display :open-pill]))
 
 (defn dynamic-pills [{{:keys [dynamic-pills]} :dynamic-pills :as db} _]
-  (let [dynamic-pills (mapv #(->dynamic-pill % db) dynamic-pills)]
+  (let [ctx (db->ctx db)
+        dynamic-pills (mapv #(->dynamic-pill % ctx) dynamic-pills)]
     {:filtered
      (filterv
       #(seq (:active-layers %))

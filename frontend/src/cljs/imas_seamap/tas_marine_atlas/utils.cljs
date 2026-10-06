@@ -28,6 +28,8 @@
         db         (-> db
                        (select-keys* [[:display :sidebar :selected]
                                       [:display :catalogue :main]
+                                      [:display :pinned-legends?]
+                                      [:display :pinned-legends-scale]
                                       [:display :left-drawer]
                                       [:display :left-drawer-tab]
                                       [:display :right-sidebars]
@@ -58,6 +60,8 @@
   (select-keys* state
                 [[:display :sidebar :selected]
                  [:display :catalogue :main]
+                 [:display :pinned-legends?]
+                 [:display :pinned-legends-scale]
                  [:display :left-drawer]
                  [:display :left-drawer-tab]
                  [:display :right-sidebars]

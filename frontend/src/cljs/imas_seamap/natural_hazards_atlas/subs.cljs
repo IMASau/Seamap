@@ -157,7 +157,8 @@
 
    Signals function is a necessity, in order to pass through subscription args"
   [[_ map-id]]
-  [(re-frame/subscribe [:map/layers])
+  [(re-frame/subscribe [:dbsubs.map/layers])
+   (re-frame/subscribe [::msubs/enhanced-rich-layers])
    (re-frame/subscribe [:map.layers/hazard-layers])
    (re-frame/subscribe [:current-view/selected-cmip-phase map-id])
    (re-frame/subscribe [:current-view/selected-model map-id])
@@ -171,8 +172,8 @@
 
    Overrides the `imas-seamap.map.subs/layer-displayed-layers-lookup` to insert the
    hazard layer slug from the current view into the hazard layer server URLs."
-  [[{:keys [layers rich-layer-fn] :as _map-layers} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?] _]
-  (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?))
+  [[layers {:keys [by-layer-id]} hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?] _]
+  (nhatutils/layer-displayed-layers-lookup layers #(get by-layer-id (:id %)) hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?))
 
 (defn time-available-times
   "The available times for the layers, driven by the timeDimension component.
@@ -182,8 +183,15 @@
   [db [_ map-id]]
   (nhatutils/time-available-times db map-id))
 
-(defn layer-legend [db [_ {:keys [id] :as layer}]]
-  (let [layer-legend (msubs/layer-legend db [_ layer])]
-    (if (:hazardlayer layer)
-      (assoc layer-legend :type :color-scale-bar)
-      layer-legend)))
+(defn layer-legends
+  "Overrides imas-seamap.map.subs/layer-legends so that, when the legend for a
+   single hazard layer is requested, it is displayed as a colour scale bar. The
+   layer is included because the colour scale bar needs it to look up the hazard
+   layer's range and units.
+
+   A hazard layer with its own legend_url is displayed as a regular legend."
+  [db [_ {:keys [hazardlayer legend_url] :as layer} :as query-v]]
+  (let [legends (msubs/layer-legends db query-v)]
+    (if (and hazardlayer (not legend_url))
+      (assoc legends :type :color-scale-bar :layer layer)
+      legends)))

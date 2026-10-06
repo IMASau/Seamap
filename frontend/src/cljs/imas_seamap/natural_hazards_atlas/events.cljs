@@ -225,10 +225,13 @@
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base))
 
-        {:keys [legend-ids opacity-ids]} db
+        {:keys [opacity-ids]} db
         layers        (get-in db [:map :layers])
-        legends-shown (init-layer-legend-status layers legend-ids)
-        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
+        ctx           (mutils/db->ctx db)
+        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the hazard legends panel when the app loads
+        legends-get   (concat
+                       (map #(rich-layer->displayed-layer % ctx) legends-shown) ; displayed layers to get legends for
+                       (filter identity (map #(mutils/rich-layer->side-by-side-views-selected-layer % ctx) legends-shown))) ; get legends for any side-by-side views
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
@@ -238,7 +241,7 @@
         rich-layers (get-in db [:map :rich-layers :rich-layers])
         cql-get
         (->>
-         legend-ids
+         active ; get CQL filters for all applicable active layers
          (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
          (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
 
@@ -633,7 +636,7 @@
            :show?    false})))
       :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
       (when will-request? {:dispatch-n (concat requests-1 requests-2)})
-      (when-not will-request? {:dispatch [:map/got-featureinfo request-id point nil nil [] nil]})))) ; shows "no data" popup
+      (when-not will-request? {:dispatch [:map/got-featureinfo request-id point nil nil nil []]})))) ; shows "no data" popup
 
 (defn download-show-link [db [_ layer bounds download-type]]
   (let [api-url-base (get-in db [:config :url-base :api-url-base])
@@ -659,14 +662,23 @@
 
 (defn destroy-popup
   "Overrides imas-seamap.map.events/destroy-popup to destroy the popups for both
-   side-by-side maps."
-  [{:keys [db]} _]
-  {:db
-   (->
-    db
-    (utils/assoc-independent-map-state nil [:feature] nil)
-    (utils/assoc-independent-map-state :map-2 [:feature] nil))
-   :put-hash ""})
+   side-by-side maps.
+
+   As with the base event, popup-id is only provided when Leaflet itself closed
+   the popup, and then the popups are only destroyed if the id still identifies
+   the feature of the map the popup is on (map-id); a stale popup unmounting must
+   not clobber the current features. Must be computed the same way as popup-id
+   in the popup view."
+  [{:keys [db]} [_ popup-id map-id]]
+  (let [{:keys [location status]} (utils/get-independent-map-state db map-id [:feature])]
+    (when (or (nil? popup-id)
+              (= popup-id (str ((juxt :lat :lng) location) status)))
+      {:db
+       (->
+        db
+        (utils/assoc-independent-map-state nil [:feature] nil)
+        (utils/assoc-independent-map-state :map-2 [:feature] nil))
+       :put-hash ""})))
 
 (defn add-layer
   "Adds a layer to the list of active layers.

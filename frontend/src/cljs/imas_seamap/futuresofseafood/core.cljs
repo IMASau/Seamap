@@ -7,7 +7,6 @@
             [reagent.core :as r]
             [re-frame.core :as re-frame]
             [re-frame.db]
-            [com.smxemail.re-frame-cookie-fx]
             [day8.re-frame.async-flow-fx :as async-flow-fx]
             [day8.re-frame.http-fx]
             ["@blueprintjs/core" :as Blueprint]
@@ -20,6 +19,7 @@
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.subs :as msubs]
             [imas-seamap.protocols]
+            [imas-seamap.reload :as reload]
             [imas-seamap.subs :as subs]
             [imas-seamap.futuresofseafood.views :as views]
             [imas-seamap.config :as config]
@@ -29,9 +29,10 @@
 (def config-handlers
   {:subs
    {:map/props                            msubs/map-props
-    :map/layers                           msubs/map-layers
-    :map/base-layers                      msubs/map-base-layers
-    :map/rich-layers-side-by-side-views   msubs/rich-layers-side-by-side-views
+    :map/rich-layers-side-by-side-views   [:<- [::msubs/enhanced-rich-layers]
+                                           :<- [:dbsubs.map/rich-layers]
+                                           :<- [:dbsubs.map/active-layers]
+                                           msubs/rich-layers-side-by-side-views]
     :map/organisations                    msubs/organisations
     :map/display-categories               msubs/display-categories
     :map/categories-map                   msubs/categories-map
@@ -40,11 +41,21 @@
     :map.layers/lookup                    msubs/map-layer-lookup
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
-    :map.layer/legend                     msubs/layer-legend
-    :map.layer/displayed-layers-lookup    [:<- [:map/layers] msubs/layer-displayed-layers-lookup]
+    :map.layer/legend                     msubs/layer-legends
+    :map.layer/visible-layers-legends     [:<- [::msubs/visible-layers]
+                                           :<- [:map.layer/displayed-layers-lookup]
+                                           :<- [:map.layer/legend]
+                                           msubs/layer-visible-layers-legends]
+    :map.layer/visible-side-by-side-layers-legends [:<- [::msubs/visible-layers]
+                                                    :<- [::msubs/enhanced-rich-layers]
+                                                    :<- [:map.layer/legend]
+                                                    msubs/layer-visible-side-by-side-layers-legends]
+    :map.layer/displayed-layers-lookup    [:<- [::msubs/enhanced-rich-layers]
+                                           :<- [:dbsubs.map/layers]
+                                           msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
-    :map.time/timeseries-layers           [:<- [:map/layers] msubs/timeseries-layers]
+    :map.time/timeseries-layers           [:<- [:dbsubs.map/active-layers] msubs/timeseries-layers]
     :map.time/show-time-slider?           [:<- [:map.time/timeseries-layers] msubs/show-time-slider?]
     :map.time/current-time                msubs/current-time
     ;:map/region-stats                     msubs/region-stats
@@ -70,6 +81,8 @@
     :ui/open-pill                         subs/open-pill
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
+    :ui/pinned-legends?                   subs/pinned-legends?
+    :ui/pinned-legends-scale              subs/pinned-legends-scale
     :ui/split-layer-range-value           subs/split-layer-range-value
     :dynamic-pills                        subs/dynamic-pills
     :site-configuration/outage-message    subs/site-configuration-outage-message
@@ -226,6 +239,8 @@
     :ui/open-pill                         events/open-pill
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
+    :ui/pinned-legends?                   [events/pinned-legends?]
+    :ui/pinned-legends-scale              [events/pinned-legends-scale]
     :ui/split-layer-range-value           [events/split-layer-range-value]
     :imas-seamap.components/selection-list-reorder [events/selection-list-reorder] ; TODO: Remove event, unused
     :left-drawer/toggle                   [events/left-drawer-toggle]
@@ -302,19 +317,14 @@
        standard-interceptors
        handler))))
 
-(defn dev-setup []
-  (when config/debug?
-    (enable-console-print!)
-    (println "dev mode")))
-
-(defonce root (createRoot (gdom/getElement "app")))
+(defonce root (delay (createRoot (gdom/getElement "app"))))
 
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
   (js/document.body.classList.add "futures-of-seafood")
   (.render
-   root
+   @root
    (r/as-element [hotkeys-provider
                   {:renderDialog
                    (fn [state context-actions]
@@ -324,6 +334,12 @@
                         :context-actions (js->clj context-actions :keywordize-keys true)}]))}
                   [:f> views/layout-app]])))
 
+(defn dev-setup []
+  (when config/debug?
+    (reset! reload/remount-fn mount-root)
+    (enable-console-print!)
+    (println "dev mode")))
+
 (defn ^:export show-db []
   @re-frame.db/app-db)
 
@@ -331,11 +347,4 @@
   (register-handlers! config-handlers)
   (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base])
   (dev-setup)
-  (mount-root))
-
-(defn ^:dev/after-load re-render
-  []
-  ;; The `:dev/after-load` metadata causes this function to be called
-  ;; after shadow-cljs hot-reloads code.
-  ;; This function is called implicitly by its annotation.
   (mount-root))

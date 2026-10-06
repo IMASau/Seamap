@@ -2,7 +2,7 @@ $floating-pill-height: 32px;
 
 .floating-pills {
 	position: absolute;
-	z-index: 700;
+	z-index: 1002;
 	top: $floating-menu-padding;
 	left: calc($floating-menu-padding * 2 + $leaflet-control-width + 2 * 2px);
 	right: calc($floating-menu-padding * 2 + 44px);

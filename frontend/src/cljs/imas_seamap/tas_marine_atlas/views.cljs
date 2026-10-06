@@ -2,17 +2,29 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.tas-marine-atlas.views
-  (:require [re-frame.core :as re-frame]
-            [reagent.core :as reagent]
+  (:require [goog.string.format]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
-            [imas-seamap.interop.react :refer [use-memo]]
-            [imas-seamap.views :as views :refer [helper-overlay info-card loading-display left-drawer-catalogue left-drawer-active-layers menu-button layer-catalogue layers-search-omnibar control-block print-control control-block-child autosave-application-state-toggle outage-message-dialogue right-drawer]]
-            [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
-            [imas-seamap.story-maps.views :refer [featured-maps]]
             [imas-seamap.components :as components]
-            [goog.string.format]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
+            [imas-seamap.interop.react :refer [use-memo]]
+            [imas-seamap.map.layer-views :refer [layer-catalogue-header]]
+            [imas-seamap.map.subs :as msubs]
+            [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.story-maps.views :refer [featured-maps]]
+            [imas-seamap.views :as views :refer [autosave-application-state-toggle
+                                                 control-block
+                                                 control-block-child
+                                                 helper-overlay info-card
+                                                 layer-catalogue
+                                                 layers-search-omnibar
+                                                 left-drawer-active-layers
+                                                 left-drawer-catalogue
+                                                 loading-display menu-button
+                                                 outage-message-dialogue
+                                                 pinned-legends-toggle
+                                                 print-control right-drawer
+                                                 settings-button]]
+            [re-frame.core :as re-frame]
+            [reagent.core :as reagent]))
 
 (defn welcome-dialogue []
   (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
@@ -92,6 +104,7 @@
 (defn custom-leaflet-controls []
   [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
    [menu-button]
+   [settings-button]
    [zoom-control]
    [control-block
     [print-control]
@@ -129,6 +142,16 @@
       :tooltip  "Show Help Overlay"
       :id       "overlay-control"
       :icon     "help"}]]])
+
+(defn settings-overlay []
+  [b/dialogue
+   {:title      (reagent/as-element [:div.bp3-icon-cog "Settings"])
+    :class      "settings-overlay-dialogue"
+    :is-open    @(re-frame/subscribe [:ui/settings-overlay])
+    :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
+   [:div.bp3-dialog-body
+    [autosave-application-state-toggle]
+    [pinned-legends-toggle]]])
 
 (defn- floating-pills []
   (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))
@@ -206,17 +229,22 @@
      [layer-catalogue-header {:layer layer :layer-state layer-state}]]))
 
 (defmethod right-drawer :data-in-region []
-  (let [{:keys [catalogue-layers active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [catalogue-layers active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
+        loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
+        error-ids       @(re-frame/subscribe [::msubs/error-layers])
+        expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
+        layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])
         {:keys [status layers]} @(re-frame/subscribe [:data-in-region/data])
         ;; Filter out layers in region that have no category (ie, currently just placeholders)
         layers (filter (set layers) catalogue-layers)
         layer-props
         {:active-layers  active-layers
          :visible-layers visible-layers
-         :loading-fn     loading-layers
-         :error-fn       error-layers
-         :expanded-fn    expanded-layers
-         :opacity-fn     layer-opacities
+         :loading-fn     #(contains? loading-ids (:id %))
+         :error-fn       #(contains? error-ids (:id %))
+         :expanded-fn    #(contains? expanded-ids (:id %))
+         :opacity-fn     #(get layer-opacities (:id %) 100)
          :rich-layer-fn  rich-layer-fn}]
     [components/drawer
      {:title       "Data in Region"
@@ -301,11 +329,15 @@
         _                  (use-hotkeys hot-keys) ; We don't need the results of this, just need to ensure it's called!
         is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
-        right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))]
+        right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
+        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])
+        side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])]
     [:div#main-wrapper.tas-marine-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when is-printing? " map-printing"))}
      [:div#content-wrapper
-      [map-component]]
+      [map-component]
+      [views/map-legends {:legends legends}]
+      [views/map-legends {:legends side-by-side-legends :position :right}]]
 
      ;; TODO: Separate helper overlay for TasMarineAtlas?
      [helper-overlay
@@ -346,5 +378,6 @@
       [views/layers-control]]
      [floating-pills]
      [welcome-dialogue]
+     [settings-overlay]
      [outage-message-dialogue]]))
 

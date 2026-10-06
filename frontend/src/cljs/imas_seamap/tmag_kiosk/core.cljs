@@ -1,18 +1,19 @@
 ;;; Seamap: view and interact with Australian coastal habitat data
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
-(ns imas-seamap.tas-marine-atlas.core
-  (:require [imas-seamap.core :refer [root]]
+(ns imas-seamap.tmag-kiosk.core
+  (:require ["react-dom/client" :refer [createRoot]]
+            [goog.dom :as gdom]
             [reagent.core :as r]
             [re-frame.core :as re-frame]
             [re-frame.db]
-            [day8.re-frame.async-flow-fx]
+            [day8.re-frame.async-flow-fx :as async-flow-fx]
             [day8.re-frame.http-fx]
             ["@blueprintjs/core" :as Blueprint]
             [imas-seamap.analytics :refer [analytics-for]]
             [imas-seamap.blueprint :refer [hotkeys-provider]]
             [imas-seamap.events :as events]
-            [imas-seamap.tas-marine-atlas.events :as tmaevents]
+            [imas-seamap.tmag-kiosk.events :as tkevents]
             [imas-seamap.fx]
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
@@ -22,8 +23,7 @@
             [imas-seamap.story-maps.subs :as smsubs]
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
-            [imas-seamap.tas-marine-atlas.subs :as tmasubs]
-            [imas-seamap.tas-marine-atlas.views :refer [layout-app]]
+            [imas-seamap.tmag-kiosk.views :as views]
             [imas-seamap.config :as config]
             [imas-seamap.components :as components]))
 
@@ -41,26 +41,15 @@
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
     :map.layers/lookup                    msubs/map-layer-lookup
-    ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legends
-    :map.layer/visible-layers-legends     [:<- [::msubs/visible-layers]
-                                           :<- [:map.layer/displayed-layers-lookup]
-                                           :<- [:map.layer/legend]
-                                           msubs/layer-visible-layers-legends]
-    :map.layer/visible-side-by-side-layers-legends [:<- [::msubs/visible-layers]
-                                                    :<- [::msubs/enhanced-rich-layers]
-                                                    :<- [:map.layer/legend]
-                                                    msubs/layer-visible-side-by-side-layers-legends]
     :map.layer/displayed-layers-lookup    [:<- [::msubs/enhanced-rich-layers]
                                            :<- [:dbsubs.map/layers]
                                            msubs/layer-displayed-layers-lookup]
     :map.layer.selection/info             msubs/layer-selection-info
     :map.feature/info                     subs/feature-info
-    ;:map/region-stats                     msubs/region-stats
     :map/viewport-only?                   msubs/viewport-only?
-    :map.print/is-printing?               msubs/print-is-printing?
-    :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in Tas Marine Atlas, but the sub is required by catalogue-layers component in map views
+    :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in the TMAG kiosk, but the sub is required by catalogue-layers component in map views
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
     :sorting/info                         subs/sorting-info
@@ -70,7 +59,7 @@
     :transect.plot/show?                  subs/transect-show?
     :display.outage-message/open?         subs/display-outage-message-open?
     :help-layer/open?                     subs/help-layer-open?
-    :welcome-layer/open?                  tmasubs/welcome-layer-open?
+    :welcome-layer/open?                  subs/welcome-layer-open?
     :left-drawer/open?                    subs/left-drawer-open?
     :left-drawer/tab                      subs/left-drawer-tab
     :layers-search-omnibar/open?          subs/layers-search-omnibar-open?
@@ -79,26 +68,25 @@
     :ui/preview-layer-url                 subs/preview-layer-url
     :ui/sidebar                           subs/sidebar-state
     :ui/right-sidebar                     subs/right-sidebar
+    :ui/open-pill                         subs/open-pill
     :ui/mouse-pos                         subs/mouse-pos
     :ui/settings-overlay                  subs/settings-overlay
-    :ui/pinned-legends?                   subs/pinned-legends?
-    :ui/pinned-legends-scale              subs/pinned-legends-scale
     :ui/split-layer-range-value           subs/split-layer-range-value
     :dynamic-pills                        subs/dynamic-pills
     :site-configuration/outage-message    subs/site-configuration-outage-message
+    :site-configuration/data-providers    subs/site-configuration-data-providers
     :app/loading?                         subs/app-loading?
     :app/load-normal-msg                  subs/load-normal-msg
     :app/load-error-msg                   subs/load-error-msg
     :info/message                         subs/user-message
     :autosave?                            subs/autosave?
-    :url-base                             subs/url-base
-    :data-in-region/data                  tmasubs/data-in-region}
+    :url-base                             subs/url-base}
 
    :events
-   {:boot                                 [tmaevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
-    :construct-urls                       tmaevents/construct-urls
-    :merge-state                          [tmaevents/merge-state]
-    :re-boot                              [tmaevents/re-boot]
+   {:boot                                 [tkevents/boot (re-frame/inject-cofx :save-code) (re-frame/inject-cofx :hash-code) (re-frame/inject-cofx :local-storage/get [:seamap-app-state])]
+    :construct-urls                       events/construct-urls
+    :merge-state                          [events/merge-state]
+    :re-boot                              [tkevents/re-boot]
     :ajax/default-success-handler         (fn [db [_ arg]] (js/console.log arg) db)
     :ajax/default-err-handler             (fn [db [_ arg]] (js/console.error arg) db)
     ;;; we ignore success/failure of cookie setting; these are fired by default, so just ignore:
@@ -108,7 +96,7 @@
     :get-save-state                       [events/get-save-state]
     :get-save-state-success               [events/get-save-state-success]
     :initialise-db                        [events/initialise-db]
-    :initialise-layers                    [tmaevents/initialise-layers]
+    :initialise-layers                    [tkevents/initialise-layers]
     :loading-failed                       events/loading-failed
     :update-dynamic-pills                 events/update-dynamic-pills
     :update-site-configuration            events/update-site-configuration
@@ -117,12 +105,13 @@
     :help-layer/toggle                    events/help-layer-toggle
     :help-layer/open                      events/help-layer-open
     :help-layer/close                     events/help-layer-close
-    :welcome-layer/close                  tmaevents/welcome-layer-close
-    :create-save-state                    [tmaevents/create-save-state]
+    :welcome-layer/open                   [events/welcome-layer-open (re-frame/inject-cofx :cookie/get [:seen-welcome])]
+    :welcome-layer/close                  [events/welcome-layer-close]
+    :create-save-state                    [events/create-save-state]
     :create-save-state-success            [events/create-save-state-success]
     :create-save-state-failure            [events/create-save-state-failure]
     :toggle-autosave                      [events/toggle-autosave]
-    :maybe-autosave                       [tmaevents/maybe-autosave]
+    :maybe-autosave                       [events/maybe-autosave]
     :info/show-message                    [events/show-message]
     :info/clear-message                   events/clear-message
     :transect/query                       [events/transect-query]
@@ -172,18 +161,19 @@
     :map.layer/get-legend-success         mevents/get-layer-legend-success
     :map.layer/get-legend-error           mevents/get-layer-legend-error
     :map.layer.legend/toggle              [mevents/toggle-legend-display]
-    :map.layer.selection/enable           tmaevents/map-start-selecting
+    :map.layer.selection/enable           [mevents/map-start-selecting]
     :map.layer.selection/disable          mevents/map-cancel-selecting
-    :map.layer.selection/clear            [tmaevents/map-clear-selection]
-    :map.layer.selection/finalise         [tmaevents/map-finalise-selection]
+    :map.layer.selection/clear            mevents/map-clear-selection
+    :map.layer.selection/maybe-clear      [mevents/map-maybe-clear-selection]
+    :map.layer.selection/finalise         [mevents/map-finalise-selection]
     :map.layer.selection/toggle           [mevents/map-toggle-selecting]
     :map.rich-layer/tab                   [mevents/rich-layer-tab]
-    :map.rich-layer/alternate-views-selected [mevents/rich-layer-alternate-views-selected]
-    :map.rich-layer/timeline-selected        [mevents/rich-layer-timeline-selected]
-    :map.rich-layer/control-selected         [mevents/rich-layer-control-selected]
+    :map.rich-layer/alternate-views-selected      [mevents/rich-layer-alternate-views-selected]
+    :map.rich-layer/timeline-selected             [mevents/rich-layer-timeline-selected]
+    :map.rich-layer/control-selected              [mevents/rich-layer-control-selected]
     :map.rich-layer/side-by-side-views-selected   [mevents/rich-layer-side-by-side-views-selected]
-    :map.rich-layer/reset-filters            [mevents/rich-layer-reset-filters]
-    :map.rich-layer/configure                [mevents/rich-layer-configure]
+    :map.rich-layer/reset-filters                 [mevents/rich-layer-reset-filters]
+    :map.rich-layer/configure                     [mevents/rich-layer-configure]
     :map.rich-layer/get-cql-filter-values         [mevents/rich-layer-get-cql-filter-values]
     :map.rich-layer/get-cql-filter-values-success mevents/rich-layer-get-cql-filter-values-success
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
@@ -197,15 +187,14 @@
     :map/update-categories                mevents/update-categories
     :map/update-keyed-layers              mevents/update-keyed-layers
     :map/update-rich-layers               mevents/update-rich-layers
+    :map/update-region-reports            mevents/update-region-reports
     :map/update-preview-layer             mevents/update-preview-layer
-    :map/initialise-display               [tmaevents/show-initial-layers]
+    :map/initialise-display               [mevents/show-initial-layers]
     :map/join-keyed-layers                mevents/join-keyed-layers
     :map/join-rich-layers                 mevents/join-rich-layers
     :map/pan-to-layer                     [mevents/zoom-to-layer]
     :map/zoom-in                          [mevents/map-zoom-in]
     :map/zoom-out                         [mevents/map-zoom-out]
-    :map.print/start                      [mevents/map-print-start]
-    :map.print/end                        [mevents/map-print-end]
     :map.print/error                      [mevents/map-print-error]
     :map/pan-direction                    [mevents/map-pan-direction]
     :map/update-leaflet-map               mevents/update-leaflet-map
@@ -219,7 +208,7 @@
     :sm/update-featured-maps              smevents/update-featured-maps
     :sm/featured-map                      [smevents/featured-map]
     :sm.featured-map/open                 [smevents/featured-map-open]
-    :ui/show-loading                      tmaevents/loading-screen
+    :ui/show-loading                      events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]
     :ui.catalogue/toggle-node             [events/catalogue-toggle-node]
@@ -235,23 +224,22 @@
     :ui.right-sidebar/pop                 events/right-sidebar-pop
     :ui.right-sidebar/bring-to-front      events/right-sidebar-bring-to-front
     :ui.right-sidebar/remove              events/right-sidebar-remove
+    :ui/open-pill                         events/open-pill
     :ui/mouse-pos                         events/mouse-pos
     :ui/settings-overlay                  events/settings-overlay
-    :ui/pinned-legends?                   [events/pinned-legends?]
-    :ui/pinned-legends-scale              [events/pinned-legends-scale]
     :ui/split-layer-range-value           [events/split-layer-range-value]
-    :imas-seamap.components/selection-list-reorder [events/selection-list-reorder] ; TODO: Remove event, unused
     :left-drawer/toggle                   [events/left-drawer-toggle]
     :left-drawer/open                     [events/left-drawer-open]
     :left-drawer/close                    [events/left-drawer-close]
     :left-drawer/tab                      [events/left-drawer-tab]
     :dynamic-pill/active                  [events/dynamic-pill-active]
+    :dynamic-pill.region-control/get-values [events/dynamic-pill-region-control-get-values]
+    :dynamic-pill.region-control/get-values-success events/dynamic-pill-region-control-get-values-success
+    :dynamic-pill.region-control/value    [events/dynamic-pill-region-control-value]
     :layers-search-omnibar/toggle         events/layers-search-omnibar-toggle
     :layers-search-omnibar/open           events/layers-search-omnibar-open
     :layers-search-omnibar/close          events/layers-search-omnibar-close
-    :data-in-region/open                  [tmaevents/data-in-region-open]
-    :data-in-region/get                   [tmaevents/get-data-in-region]
-    :data-in-region/got                   tmaevents/got-data-in-region}})
+    :download-click                       (fn [db [_ {:keys [_link]}]] db)}})
 
 (def events-for-analytics
   [:help-layer/open
@@ -261,13 +249,10 @@
    :map.layer/metadata-click
    :map/add-layer
    :map/remove-layer
-   :map/toggle-layer
    :map/toggle-layer-visibility
    :transect.plot/toggle-visibility
    :transect/query
-   :download-click
-   :data-in-region/get
-   :sm/featured-map])
+   :download-click])
 
 (def standard-interceptors
   [(when ^boolean goog.DEBUG (debug-excluding
@@ -294,8 +279,11 @@
                               :map/update-map-view
                               :map/initialise-display
                               :transect/maybe-query
+                              :welcome-layer/open
                               :map/update-leaflet-map
-                              :maybe-autosave))
+                              :maybe-autosave
+                              :cookie-set-no-on-success
+                              :map/view-updated))
    (when-not ^boolean goog.DEBUG (analytics-for events-for-analytics))])
 
 (defn register-handlers! [{:keys [subs events]}]
@@ -314,10 +302,12 @@
        standard-interceptors
        handler))))
 
+(defonce root (delay (createRoot (gdom/getElement "app"))))
+
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
-  (js/document.body.classList.add "tas-marine-atlas")
+  (js/document.body.classList.add "seamap" "tmag-kiosk")
   (.render
    @root
    (r/as-element [hotkeys-provider
@@ -327,7 +317,7 @@
                       [components/hotkeys-render-dialog
                        {:state           (js->clj state :keywordize-keys true)
                         :context-actions (js->clj context-actions :keywordize-keys true)}]))}
-                  [:f> layout-app]])))
+                  [:f> views/layout-app]])))
 
 (defn dev-setup []
   (when config/debug?

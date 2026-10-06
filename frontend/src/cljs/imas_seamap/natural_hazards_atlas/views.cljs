@@ -7,6 +7,7 @@
             [imas-seamap.components :as components]
             [imas-seamap.map.layer-views :refer [legend-display]]
             [imas-seamap.natural-hazards-atlas.map.views :refer [map-component]]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.interop.react :refer [use-memo]]
             [imas-seamap.story-maps.views :refer [featured-maps]]
             [imas-seamap.views :as views]
@@ -337,16 +338,21 @@
                [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}]]))
 
 (defn- left-drawer-catalogue [tma?]
-  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])]
+  (let [{:keys [active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
+        loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
+        error-ids       @(re-frame/subscribe [::msubs/error-layers])
+        expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
+        layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])]
     [:<>
      [views/layer-search-filter]
      [layer-catalogue :main
       {:active-layers  active-layers
        :visible-layers visible-layers
-       :loading-fn     loading-layers
-       :error-fn       error-layers
-       :expanded-fn    expanded-layers
-       :opacity-fn     layer-opacities
+       :loading-fn     #(contains? loading-ids (:id %))
+       :error-fn       #(contains? error-ids (:id %))
+       :expanded-fn    #(contains? expanded-ids (:id %))
+       :opacity-fn     #(get layer-opacities (:id %) 100)
        :rich-layer-fn  rich-layer-fn}
       tma?]]))
 
@@ -355,7 +361,7 @@
         tab   @(re-frame/subscribe [:left-drawer/tab])
         {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
     [components/drawer
-     {:title [:div [:img {:src "img/Climate Futures + NHAT logo – COLOUR.png"}]]
+     {:title [:div [:img {:src "img/Climate_Futures_NHAT_logo_COLOUR.png"}]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
@@ -394,8 +400,9 @@
 (defn- hazard-layer-legend []
   (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]
     (when active-hazard-layer
-      [:div.leaflet-bottom.leaflet-left.leaflet-touch
-       [:div.hazard-layer-legend.leaflet-control [legend-display active-hazard-layer]]])))
+      (let [legend @(re-frame/subscribe [:map.layer/legend active-hazard-layer])]
+        [:div.leaflet-bottom.leaflet-left.leaflet-touch
+         [:div.hazard-layer-legend.leaflet-control [legend-display legend]]]))))
 
 (def hotkeys-combos
   (let [keydown-wrapper
