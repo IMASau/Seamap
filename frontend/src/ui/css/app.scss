@@ -792,7 +792,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     --cv-ink: #260c27;
     --cv-plum: #6f2573;
     --cv-plum-tint: #f3e9f4;
-    --cv-border: #cfc3d1;
+    --cv-border: hsl(0, 0%, 80%); // the dropdowns' border
     --cv-rule: #e6dee7;
     --cv-muted: #76667a;
 
@@ -870,7 +870,7 @@ input.leaflet-control-layers-selector[type="radio"] {
     .segmented {
         display: flex;
         border: 1px solid var(--cv-border);
-        border-radius: 6px;
+        border-radius: 0; // square, like the dropdowns and the rest of the map
         overflow: hidden;
         background: #fff;
         button {
@@ -1008,20 +1008,26 @@ input.leaflet-control-layers-selector[type="radio"] {
         strong { font-weight: 600; font-variant-numeric: tabular-nums; }
     }
 
+    // A period picked gets its name as a label on the line under the track
+    .when-chip {
+        display: inline-block;
+        margin-right: 2px;
+        padding: 0 6px;
+        border-radius: 0;
+        background: #e9d3eb;
+        color: var(--cv-plum);
+        font-weight: 600;
+    }
+    // A year of the user's own: the presets step back, the window is an outline
+    #time-control.custom {
+        .segmented { opacity: 0.6; }
+        .year-track-window { background: #fff; }
+    }
     // Playing: the track is the thing to watch; the presets step back
     #time-control.playing {
         .segmented { opacity: 0.5; }
         .year-track-window { background: var(--cv-plum); }
         .year-track-handle { background: #fff; border-color: var(--cv-plum); }
-        .playing-label {
-            display: inline-block;
-            margin-right: 2px;
-            padding: 0 6px;
-            border-radius: 4px;
-            background: var(--cv-plum);
-            color: #fff;
-            font-weight: 600;
-        }
     }
 
     .advanced-settings {

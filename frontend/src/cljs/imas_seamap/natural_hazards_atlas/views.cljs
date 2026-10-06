@@ -157,6 +157,12 @@
     (let [[first-year last-year] (nhatutils/year-window year)]
       (str "the 20-year average for " first-year "–" last-year))))
 
+(defn- average-for
+  "The status line's readout of the projected layer for year."
+  [year]
+  (let [[first-year last-year] (nhatutils/year-window year)]
+    (str "20-year average for " first-year "–" last-year ".")))
+
 (defn- track-label
   "Short label for the handle while dragging."
   [year]
@@ -261,7 +267,7 @@
         current-time @(re-frame/subscribe [:map.time/current-time map-id])
         shown-year   (when current-time (.getFullYear (js/Date. current-time)))]
     [:section#time-control.cv-section
-     {:class (when playing? "playing")}
+     {:class (cond playing? "playing" preset "on-preset" :else "custom")}
      [label-row "1 · When"]
      [period-buttons {:map-id map-id :preset preset}]
      [:div.year-row
@@ -280,14 +286,15 @@
      [:p.when-shown {:aria-live "polite"}
       (cond
         playing? ; the year Play is on, without a "Loading" between every step
-        [:<> [:span.playing-label "Playing"] " " (shown-as year) "."]
+        (average-for year)
 
         (or (not shown-year) ; nothing yet, or the other dataset's layer until the chosen one loads
             (not= (nhatutils/historic-year? shown-year) (nhatutils/historic-year? year)))
         (str "Loading " (or (:caption preset) (track-label year)) "…")
 
-        preset [:<> "Map shows the " [:strong (:caption preset)] ": " (shown-as shown-year) "."]
-        :else  [:<> "Map shows " [:strong (shown-as shown-year)] "."])]]))
+        ; Only a period gets a label; otherwise the track says how the year was chosen
+        preset [:<> [:span.when-chip (:name preset)] " " (average-for shown-year)]
+        :else  (average-for shown-year))]]))
 
 (defn- emissions-select
   "Lower or higher emissions, in plain words first with the SSP code underneath.
