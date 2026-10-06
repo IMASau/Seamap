@@ -554,15 +554,15 @@
      map-id (nhatutils/current-view-is-historic? db map-id) nil)))
 
 (defn current-view-year
-  "Choose a centre year (snapped to one on offer). A period's centre selects
-   that period; any other year leaves it. Choosing stops Play, unless Play is
-   the one choosing."
+  "Choose a centre year (snapped to one on offer). Leaves the period: the
+   buttons are presets, lit only by a tap, so dragging or Play landing on a
+   period's centre doesn't light it (Buxton review, 6 Oct). Choosing stops
+   Play, unless Play is the one choosing."
   [{:keys [db]} [_ year map-id opts]]
   (let [year (nhatutils/snap-year year)]
     (show-selection
      (-> db
-         (utils/assoc-independent-map-state map-id [:current-view :selected-preset-id]
-                                            (:id (nhatutils/window-preset year)))
+         (utils/assoc-independent-map-state map-id [:current-view :selected-preset-id] nil)
          (utils/assoc-independent-map-state map-id [:current-view :selected-year] year))
      map-id (nhatutils/current-view-is-historic? db map-id) opts)))
 

@@ -166,7 +166,8 @@
       (str first-year "–" last-year))))
 
 (defn- period-buttons
-  "The agreed periods, as presets: one tap moves the year to the period."
+  "The agreed periods, as presets: one tap moves the year to the period and
+   lights the button until the year is moved another way."
   [{:keys [map-id preset]}]
   [:div.segmented {:role "group" :aria-label "Periods"}
    (for [{:keys [id name span]} nhatutils/when-presets]
