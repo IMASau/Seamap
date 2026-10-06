@@ -121,7 +121,8 @@
      :emissions (when-not historic?
                   (let [{:keys [label]} (get nhatutils/scenario-labels (:name scenario))]
                     (if label (str (string/lower-case label) " emissions") (:display_name scenario))))
-     :season    (:display_name season)
+     :season    (when-let [label (some-> season nhatutils/season-label)] ; "Summer (Dec–Feb)" -> "summer (Dec–Feb)"
+                  (str (string/lower-case (subs label 0 1)) (subs label 1)))
      :model     (let [model-name (:display_name model)] ; "Ensemble median" reads as words; model codes don't
                   (if (some-> model-name (string/starts-with? "Ensemble")) (string/lower-case model-name) model-name))}))
 

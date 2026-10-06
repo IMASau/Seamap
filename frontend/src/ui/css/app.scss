@@ -948,29 +948,44 @@ input.leaflet-control-layers-selector[type="radio"] {
     }
     .year-track-line { left: 0; right: 0; background: var(--cv-rule); }
     .year-track-played { left: 0; background: var(--cv-plum); opacity: 0.45; transition: width 0.25s ease-out; }
-    // The 20 years averaged in the layer on the map
-    .year-track-window {
-        top: 7px;
-        height: 16px;
-        border-radius: 5px;
-        border: 1.5px solid var(--cv-plum);
-        background: var(--cv-plum-tint);
-        transition: left 0.25s ease-out;
-        &.preset { background: #e9d3eb; }
+    // Decade ticks, so the window reads as the two decades it covers
+    .year-track-decade {
+        position: absolute;
+        top: 10px;
+        width: 1px;
+        height: 10px;
+        background: hsl(0, 0%, 80%);
+        pointer-events: none;
     }
+    // The knob is the 20 years averaged in the layer on the map, and nothing
+    // else: the centre year isn't what the map shows (Tukey review, 6 Oct)
+    .year-track-window {
+        top: 8px;
+        height: 14px;
+        border-radius: 3px;
+        background: #a86aab;
+        transition: left 0.25s ease-out;
+    }
+    // An outline marks the control the year was set with: the period button
+    // tapped, or the window when the track (drag, keys, Play) set it
+    #time-control.custom .year-track-window,
+    #time-control.playing .year-track-window,
+    .year-track-rail:has(.year-track-handle:focus-visible) .year-track-window {
+        outline: 2px solid var(--cv-plum);
+        outline-offset: 2px;
+    }
+    #time-control .segmented button.selected { box-shadow: inset 0 0 0 2px var(--cv-plum); }
     .year-track-rail:active .year-track-window { transition: none; }
+    // The slider's focus target, drawn by the window
     .year-track-handle {
         position: absolute;
         top: 8px;
         width: 14px;
         height: 14px;
         margin-left: -7px;
-        border: 2px solid #fff;
-        border-radius: 50%;
-        background: var(--cv-plum);
-        box-shadow: 0 1px 3px rgba(38, 12, 39, 0.35);
         cursor: grab;
         transition: left 0.25s ease-out;
+        &, &:focus, &:focus-visible { outline: none; }
     }
     .year-track-rail:active .year-track-handle { cursor: grabbing; transition: none; }
     .year-track-bubble {
@@ -1002,7 +1017,7 @@ input.leaflet-control-layers-selector[type="radio"] {
             &:last-child { transform: translateX(-100%); }
         }
     }
-    .when-shown {
+    .when-shown, .cv-statement {
         margin: 8px 0 0;
         font-size: 12px;
         strong { font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -1021,13 +1036,11 @@ input.leaflet-control-layers-selector[type="radio"] {
     // A year of the user's own: the presets step back, the window is an outline
     #time-control.custom {
         .segmented { opacity: 0.6; }
-        .year-track-window { background: #fff; }
     }
     // Playing: the track is the thing to watch; the presets step back
     #time-control.playing {
         .segmented { opacity: 0.5; }
         .year-track-window { background: var(--cv-plum); }
-        .year-track-handle { background: #fff; border-color: var(--cv-plum); }
     }
 
     .advanced-settings {

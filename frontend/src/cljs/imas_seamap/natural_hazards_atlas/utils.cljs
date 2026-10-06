@@ -227,9 +227,32 @@
 
 (def scenario-labels
   "Plain-English names for the emissions scenarios, keyed by scenario name. The
-   SSP code is shown underneath for anyone who needs it."
-  {"ssp126" {:label "Lower"  :code "SSP1-2.6" :description "Emissions fall steeply from today."}
-   "ssp370" {:label "Higher" :code "SSP3-7.0" :description "Emissions keep rising through the century."}})
+   SSP code is shown underneath for anyone who needs it. Descriptions follow
+   IPCC AR6 (SPM Table SPM.1: best-estimate warming for 2081-2100 against
+   1850-1900); to confirm with Ben."
+  {"ssp126" {:label "Lower"  :code "SSP1-2.6" :description "Emissions cut fast, to net zero after 2050: about 1.8 °C of global warming by late this century."}
+   "ssp370" {:label "Higher" :code "SSP3-7.0" :description "Emissions keep rising, roughly doubling by 2100: about 3.6 °C of global warming by late this century."}})
+
+(def season-labels
+  "Plain names for the seasons, keyed by season name, in the order offered.
+   Months are the Southern Hemisphere meteorological seasons (to confirm with
+   Ben)."
+  (array-map
+   "annual" "Whole year"
+   "summer" "Summer (Dec–Feb)"
+   "autumn" "Autumn (Mar–May)"
+   "winter" "Winter (Jun–Aug)"
+   "spring" "Spring (Sep–Nov)"))
+
+(defn season-label
+  [{:keys [name display_name]}]
+  (get season-labels name display_name))
+
+(defn sort-seasons
+  "Seasons in season-labels order; any others after, as they came."
+  [seasons]
+  (let [order (zipmap (keys season-labels) (range))]
+    (sort-by #(get order (:name %) (count order)) seasons)))
 
 (def default-scenario-name
   "Scenario shown until the user picks one (agreed 24 Sep: higher emissions)."

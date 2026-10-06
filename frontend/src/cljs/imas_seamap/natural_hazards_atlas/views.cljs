@@ -221,6 +221,9 @@
            :on-pointer-up     end-drag
            :on-pointer-cancel end-drag}
           [:span.year-track-line]
+          (for [decade (range 2020 axis-end 10)] ; so the window reads as two decades
+            ^{:key decade}
+            [:span.year-track-decade {:style {:left (pct decade)}}])
           (when playing? ; how far Play has come
             [:span.year-track-played {:style {:width (pct (+ shown 0.5))}}])
           (when-not (nhatutils/historic-year? shown) ; historical layers are single years: just the point
@@ -268,7 +271,7 @@
         shown-year   (when current-time (.getFullYear (js/Date. current-time)))]
     [:section#time-control.cv-section
      {:class (cond playing? "playing" preset "on-preset" :else "custom")}
-     [label-row "1 · When"]
+     [label-row "1 · Timeframe"]
      [period-buttons {:map-id map-id :preset preset}]
      [:div.year-row
       [:button.play-button
@@ -297,39 +300,39 @@
         :else  (average-for shown-year))]]))
 
 (defn- emissions-select
-  "Lower or higher emissions, in plain words first with the SSP code underneath.
-   Doesn't apply to the recent past."
+  "Lower or higher emissions, in plain words first with the SSP code underneath,
+   and one line on what the chosen future means."
   [{:keys [map-id]}]
-  (let [is-historic? @(re-frame/subscribe [:current-view/is-historic? map-id])
-        selected     @(re-frame/subscribe [:current-view/selected-scenario map-id])
-        scenarios    @(re-frame/subscribe [:current-view/scenarios])]
+  (let [selected  @(re-frame/subscribe [:current-view/selected-scenario map-id])
+        scenarios @(re-frame/subscribe [:current-view/scenarios])]
     [:section.cv-section
-     [label-row "2 · Emissions future" (when is-historic? "Not used before 2015")]
+     [label-row "2 · Emissions future"]
      [:div.segmented {:role "group" :aria-label "Emissions future"}
       (for [{:keys [id name display_name] :as scenario} scenarios
             :let [{:keys [label code]} (get nhatutils/scenario-labels name)
-                  selected? (and (not is-historic?) (= id (:id selected)))]]
+                  selected? (= id (:id selected))]]
         ^{:key id}
         [:button
          {:type         "button"
           :aria-pressed selected?
           :class        (when selected? "selected")
-          :disabled     is-historic?
           :on-click     #(re-frame/dispatch [:current-view/selected-scenario scenario map-id])}
          [:span.segmented-name (or label display_name)]
-         [:span.segmented-detail (or code name)]])]]))
+         [:span.segmented-detail (or code name)]])]
+     (when-let [description (:description (get nhatutils/scenario-labels (:name selected)))]
+       [:p.cv-statement {:aria-live "polite"} description])]))
 
 (defn- season-select
   [{:keys [map-id]}]
   [:section.cv-section
-   [label-row "3 · Season"]
+   [label-row "3 · Time of year"]
    [components/select
     {:value    @(re-frame/subscribe [:current-view/selected-seasonal-data map-id])
-     :options  @(re-frame/subscribe [:current-view/seasonal-datas])
+     :options  (nhatutils/sort-seasons @(re-frame/subscribe [:current-view/seasonal-datas]))
      :onChange #(re-frame/dispatch [:current-view/selected-seasonal-data % map-id])
      :keyfns
      {:id   :id
-      :text :display_name}}]])
+      :text nhatutils/season-label}}]])
 
 (defn- advanced-settings
   "Expert settings with sensible defaults, folded away but showing what's in use."
