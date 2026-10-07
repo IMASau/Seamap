@@ -359,9 +359,13 @@
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
+        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])
+        {:keys [wordpress-url-base]} @(re-frame/subscribe [:url-base])]
     [components/drawer
-     {:title [:div [:img {:src "img/Climate_Futures_NHAT_logo_COLOUR.png"}]]
+     {:title
+      [:div
+       [:a {:href wordpress-url-base}
+        [:img {:src "img/Climate_Futures_NHAT_logo_COLOUR.png"}]]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
