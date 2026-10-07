@@ -880,7 +880,9 @@
        ^{:key (str id)}
        [side-by-side-views-pill rich-layer])]))
 
-(defn layers-search-omnibar []
+(defn layers-search-omnibar
+  "Optionally takes the layers to search; defaults to all catalogue layers."
+  [& [layers]]
   (let [categories @(re-frame/subscribe [:map/categories-map])
         open?      @(re-frame/subscribe [:layers-search-omnibar/open?])
         {:keys [sorted-layers]} @(re-frame/subscribe [:map/layers])]
@@ -888,7 +890,7 @@
      {:placeholder  "Search Layers..."
       :isOpen       open?
       :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
-      :items        sorted-layers
+      :items        (or layers sorted-layers)
       :onItemSelect #(re-frame/dispatch [:map/add-layer-from-omnibar %])
       :keyfns
       {:id          :id

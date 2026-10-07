@@ -320,8 +320,14 @@
              :description "Select a hazard layer to configure hazard parameters."
              :icon        "info-sign"}]])))))
 
+;; Supporting layers are hidden until the client finalises the list. Set to true to
+;; restore the "Supporting Layers" catalogue tab and include supporting layers in
+;; the layer search omnibar.
+(def ^:private show-supporting-layers? false)
+
 (defn- layer-catalogue [catid layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
+        selected-tab (if show-supporting-layers? selected-tab "hazards") ; saved/shared state may still reference the hidden tab
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab catid %1])
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
     [b/tabs {:selected-tab-id selected-tab
@@ -332,11 +338,20 @@
        :title "Hazards"
        :panel (reagent/as-element
                [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-hazard-layers]) [:category :data_classification] "hazards" layer-props open-all? tma?])}]
-     [b/tab
-      {:id    "supporting-layers"
-       :title "Supporting Layers"
-       :panel (reagent/as-element
-               [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}]]))
+     (when show-supporting-layers?
+       [b/tab
+        {:id    "supporting-layers"
+         :title "Supporting Layers"
+         :panel (reagent/as-element
+                 [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}])]))
+
+(defn- layers-search-omnibar
+  "Wraps imas-seamap.views/layers-search-omnibar, excluding supporting layers from
+   the search while they're hidden."
+  []
+  (if show-supporting-layers?
+    [views/layers-search-omnibar]
+    [views/layers-search-omnibar (filterv :hazardlayer (:sorted-layers @(re-frame/subscribe [:map/layers])))]))
 
 (defn- left-drawer-catalogue [tma?]
   (let [{:keys [active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
@@ -521,7 +536,7 @@
       {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
       {:id "overlay-control" :helperText "You are here!"}
       {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
-       :helperText     "Filter by Hazard Layers or Supporting Layers"
+       :helperText     (if show-supporting-layers? "Filter by Hazard Layers or Supporting Layers" "Hazard Layers")
        :helperPosition "bottom"
        :padding        0}
       {:id             "current-view-analysis"
@@ -538,7 +553,7 @@
      [views/loading-display]
      [left-drawer]
      [views/right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
-     [views/layers-search-omnibar]
+     [layers-search-omnibar]
      [custom-leaflet-controls]
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
