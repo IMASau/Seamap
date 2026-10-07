@@ -17,7 +17,8 @@
 (defn- welcome-dialogue []
   (let [dont-show-again? (reagent/atom false)]
    (fn []
-     (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
+     (let [open? @(re-frame/subscribe [:welcome-layer/open?])
+           {:keys [wordpress-url-base]} @(re-frame/subscribe [:url-base])]
        [b/dialogue
         {:title
          (reagent/as-element
@@ -28,7 +29,7 @@
         [:div.bp3-dialog-body
          [:div.overview
           [:p "The Natural Hazards Atlas for Tasmania is an interactive platform developed by the University of Tasmania that brings together climate-driven natural hazards data, mapping and science communication to support disaster preparedness, resilience and informed decision-making across Tasmania."]
-          [:p "Explore the interactive map and visit " [:a {:href "https://nathaz-dev.its.utas.edu.au/" :target "_blank"} "here"] " to learn more about the atlas tools and features."]]]
+          [:p "Explore the interactive map and visit " [:a {:href wordpress-url-base :target "_blank"} "here"] " to learn more about the atlas tools and features."]]]
         [:div.bp3-dialog-footer
          [:div
           [:input
