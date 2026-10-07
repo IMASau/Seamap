@@ -702,6 +702,21 @@
     {:db         db
      :dispatch-n dispatch-n}))
 
+(defn add-layer-from-omnibar
+  "Overrides imas-seamap.map.events/add-layer-from-omnibar to select the catalogue
+   tab the layer belongs to (hazards or supporting layers) and expand the
+   catalogue tree down to that layer."
+  [{:keys [db]} [_ layer]]
+  (let [[tab categories] (if (:hazardlayer layer)
+                           ["hazards" [:category :data_classification]]
+                           ["supporting-layers" [:data_classification]])]
+    {:db         (assoc-in db [:display :layers-search-omnibar] false)
+     :dispatch-n [[:map/add-layer layer]
+                  [:left-drawer/open]
+                  [:left-drawer/tab "catalogue"]
+                  [:ui.catalogue/select-tab :main tab]
+                  [:ui.catalogue/catalogue-add-nodes-to-layer :main layer tab categories]]}))
+
 (defn time-set-current-time
   "Updates the current time in the app state and in the timeDimension component
    (timeDimension is a component from the plugin that controls the timeseries
