@@ -54,7 +54,7 @@ function story_map_add_acf_fields() {
             acf_add_local_field_group([
                 'key'          => 'group_story_map',
                 'title'        => 'Story Map',
-                'position'     => 'side',
+                'position'     => 'normal',
                 'show_in_rest' => true,
                 'fields'       => [
                     [
