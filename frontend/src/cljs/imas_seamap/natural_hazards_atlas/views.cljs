@@ -39,7 +39,7 @@
             :checked  @dont-show-again?}]
           [:label {:for "dont-show-this-again"} "Don't show this again"]]
          [b/button
-          {:text       "Get Started!"
+          {:text       "Get Started"
            :intent     b/INTENT-PRIMARY
            :auto-focus true
            :on-click   #(re-frame/dispatch [:welcome-layer/close @dont-show-again?])}]]]))))
