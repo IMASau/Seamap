@@ -809,7 +809,12 @@
     (.on leaflet-map "mousemove"          #(re-frame/dispatch [:ui/mouse-pos {:x (-> % .-containerPoint .-x) :y (-> % .-containerPoint .-y)}]))
     (.on leaflet-map "mouseout"           #(re-frame/dispatch [:ui/mouse-pos nil]))
 
-    (assoc-in db [:map :leaflet-map] leaflet-map)))
+    (cond-> (assoc-in db [:map :leaflet-map] leaflet-map)
+      ;; The initial view (eg fitting the default bounds) is set before we
+      ;; start listening for moveend, so seed the db with it. Not via
+      ;; :map/view-updated, as that clears :initial-bounds?.
+      (.-_loaded leaflet-map)
+      (update :map merge (select-keys (leaflet-props #js {:target leaflet-map}) [:zoom :size :center :bounds])))))
 
 (defn update-map-view
   "Update the map view (zoom/center/bounds)
@@ -820,13 +825,18 @@
    stereographic polar projections."
   [{{:keys [leaflet-map] old-zoom :zoom old-center :center} :map} [_ {:keys [zoom center bounds instant?]}]]
   (when leaflet-map
-    (if instant?
-      (cond
-        (and zoom (seq center)) (.setView leaflet-map (clj->js (or center old-center)) (or zoom old-zoom))
-        (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js)))
-      (cond
-        (and zoom (seq center)) (.flyTo leaflet-map (clj->js (if (seq center) center old-center)) (or zoom old-zoom))
-        (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js)))))
+    (let [new-center (if (seq center) center old-center)
+          new-zoom   (or zoom old-zoom)
+          ;; Either of zoom/center may be omitted and filled from the current
+          ;; view, but only if we actually know the current view.
+          view?      (and (or zoom (seq center)) (seq new-center) new-zoom)]
+      (if instant?
+        (cond
+          view?        (.setView leaflet-map (clj->js new-center) new-zoom)
+          (seq bounds) (.fitBounds leaflet-map (-> bounds map->bounds clj->js)))
+        (cond
+          view?        (.flyTo leaflet-map (clj->js new-center) new-zoom)
+          (seq bounds) (.flyToBounds leaflet-map (-> bounds map->bounds clj->js))))))
   nil)
 
 (defn map-view-updated [{:keys [db]} [_ {:keys [zoom size center bounds]}]]

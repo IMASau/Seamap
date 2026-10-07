@@ -8,7 +8,7 @@
             [imas-seamap.map.layer-views :refer [legend-display]]
             [imas-seamap.natural-hazards-atlas.map.views :refer [map-component]]
             [imas-seamap.map.subs :as msubs]
-            [imas-seamap.interop.react :refer [use-memo]]
+            [imas-seamap.interop.react :refer [use-memo use-effect]]
             [imas-seamap.story-maps.views :refer [featured-maps]]
             [imas-seamap.views :as views]
             [re-frame.core :as re-frame]
@@ -415,6 +415,11 @@
      [(keydown-wrapper
        {:label "Zoom In"                :combo "plus"}
        [:map/zoom-in])
+      ;; Blueprint parses "plus" as shift+=, so also accept a bare "=".
+      ;; Hidden so the shortcuts dialog doesn't list Zoom In twice.
+      (keydown-wrapper
+       {:label "Zoom In"                :combo "=" :hidden true}
+       [:map/zoom-in])
       (keydown-wrapper
        {:label "Zoom Out"               :combo "-"}
        [:map/zoom-out])
@@ -452,10 +457,32 @@
        {:label "Show Help Overlay"      :combo "h"}
        [:help-layer/toggle])])))
 
+(defn- text-input-target?
+  "Mirrors Blueprint's useHotkeys check, so hotkeys don't fire while typing."
+  [e]
+  (let [editable (some-> e .-target (.closest "input, textarea, [contenteditable=true]"))]
+    (and editable
+         (not (#{"checkbox" "radio"} (.-type editable)))
+         (not (.-readOnly editable)))))
+
+(defn- numpad-plus-keydown
+  "Numpad + has no Blueprint combo string (\"+\" always parses as shift+=), so
+   it's handled with a plain listener."
+  [e]
+  (when (and (= (.-code e) "NumpadAdd")
+             (not (or (.-ctrlKey e) (.-altKey e) (.-metaKey e)))
+             (not (text-input-target? e)))
+    (re-frame/dispatch [:map/zoom-in])))
+
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        _ (use-effect
+           (fn []
+             (js/document.addEventListener "keydown" numpad-plus-keydown)
+             #(js/document.removeEventListener "keydown" numpad-plus-keydown))
+           #js [])
         is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
