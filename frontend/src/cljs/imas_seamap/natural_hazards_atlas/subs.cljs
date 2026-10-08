@@ -108,8 +108,9 @@
                  (nhatutils/hazard-layer-dataset layer cmip-phase-1 model-1 scenario-1 seasonal-data-1 is-historic?-1)
                  {min-2 :color_scale_range_min max-2 :color_scale_range_max}
                  (nhatutils/hazard-layer-dataset layer cmip-phase-2 model-2 scenario-2 seasonal-data-2 is-historic?-2)]
-             {:color-scale-range-min (min min-1 min-2)
-              :color-scale-range-max (max max-1 max-2)}))]
+             ;; Ignore a map with no matching dataset: in CLJS (min 1 nil) is nil.
+             {:color-scale-range-min (some->> [min-1 min-2] (remove nil?) seq (apply min))
+              :color-scale-range-max (some->> [max-1 max-2] (remove nil?) seq (apply max))}))]
     (if layer
       (get-hazard-layer-min-max layer)
       (reduce
