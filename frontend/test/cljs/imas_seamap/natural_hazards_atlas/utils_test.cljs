@@ -10,3 +10,11 @@
     (testing "one-arity defaults map-id and returns the same time period"
       (is (= (nhatutils/current-view-selected-time-period db nil)
              (nhatutils/current-view-selected-time-period db))))))
+
+(deftest selected-time-period-respects-map-id
+  ;; In compare mode each map has its own period (the event writes it per map).
+  (let [db {:current-view {:selected-time-period-id "all" :is-historic? false}
+            :independent-map-state
+            {:map-2 {:current-view {:selected-time-period-id "short" :is-historic? false}}}}]
+    (is (= "all" (:id (nhatutils/current-view-selected-time-period db))))
+    (is (= "short" (:id (nhatutils/current-view-selected-time-period db :map-2))))))

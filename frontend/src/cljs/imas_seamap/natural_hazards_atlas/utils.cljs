@@ -248,7 +248,7 @@
   "Time period to analyze the hazard data"
   ([db] (current-view-selected-time-period db nil))
   ([db map-id]
-   (let [selected-time-period-id (get-in db [:current-view :selected-time-period-id])
+   (let [selected-time-period-id (utils/get-independent-map-state db map-id [:current-view :selected-time-period-id])
          is-historic?            (utils/get-independent-map-state db map-id [:current-view :is-historic?])
          selected-time-period-id (if is-historic? "all" selected-time-period-id)
          selected-time-period    (first-where #(= (:id %) selected-time-period-id) time-periods)]
