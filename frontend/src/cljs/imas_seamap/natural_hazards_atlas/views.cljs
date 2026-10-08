@@ -201,7 +201,7 @@
   "Slider to select the date (year) of data to view."
   [{:keys [map-id]}]
   (let [available-times @(re-frame/subscribe [:map.time/available-times map-id])
-        label-renderer #(.getFullYear (js/Date. %))
+        label-renderer #(.getUTCFullYear (js/Date. %)) ; THREDDS times are UTC
         label-values [(first available-times) (last available-times)]
         value @(re-frame/subscribe [:map.time/current-time map-id])]
     [components/snap-slider

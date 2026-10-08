@@ -338,7 +338,7 @@
 (defn time-in-range?
   "Is the given time (in ms) in the given range of years"
   [time start-year end-year]
-  (let [year (-> time js/Date. .getFullYear)]
+  (let [year (-> time js/Date. .getUTCFullYear)] ; THREDDS times are UTC
     (and (>= year (or start-year ##-Inf)) (<= year (or end-year ##Inf)))))
 
 (defn time-available-times
