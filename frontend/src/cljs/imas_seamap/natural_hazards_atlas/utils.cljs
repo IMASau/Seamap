@@ -232,7 +232,7 @@
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data"
-  ([db] (current-view-is-historic? db nil))
+  ([db] (current-view-selected-time-period db nil))
   ([db map-id]
    (let [selected-time-period-id (get-in db [:current-view :selected-time-period-id])
          is-historic?            (utils/get-independent-map-state db map-id [:current-view :is-historic?])
