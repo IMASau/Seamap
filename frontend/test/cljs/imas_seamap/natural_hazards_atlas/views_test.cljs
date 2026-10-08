@@ -8,6 +8,13 @@
     (set! (.-innerHTML el) (render-to-static-markup hiccup))
     el))
 
+(deftest helper-overlay-steps-test
+  (let [steps (views/helper-overlay-steps true)]
+    (testing "help text has no leftover Seamap (habitat) wording"
+      (is (empty? (filter #(re-find #"(?i)habitat" (str (:helperText %))) steps))))
+    (testing "no step for the transect control, which NHAT removed"
+      (is (not-any? #(= "transect-control" (:id %)) steps)))))
+
 (deftest dont-show-again-checkbox-test
   (let [el    (render->dom [views/dont-show-again-checkbox false identity])
         input (.querySelector el "input[type=checkbox]")

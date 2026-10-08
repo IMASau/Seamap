@@ -500,6 +500,39 @@
              (not (text-input-target? e)))
     (re-frame/dispatch [:map/zoom-in])))
 
+(defn helper-overlay-steps
+  "Steps for the help overlay (the \"?\" control)."
+  [catalogue-open?]
+  [{:selector       ".SelectionListItem:first-child .layer-card .layer-header"
+    :helperPosition "bottom"
+    :helperText     "Toggle layer visibility, view info and metadata, show legend, adjust transparency, choose from download options"
+    :padding        0}
+   {:selector       ".leaflet-control-layers-toggle"
+    :helperText     "Select from available basemaps"
+    :helperPosition "left"}
+   {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords" :helperPosition "top"}
+   {:id "menu-button" :helperText (if catalogue-open? "Collapse menu sidebar" "Expand menu sidebar")}
+   {:id "autosave-button" :helperText "Toggle autosave for the application"}
+   {:id "zoom-in-control" :helperText "Zoom in"}
+   {:id "zoom-out-control" :helperText "Zoom out"}
+   {:id "print-control" :helperText "Export current map view as an image"}
+   {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
+   {:id "select-control" :helperText "Select an area of interest for download"}
+   {:id "share-control" :helperText "Create a shareable URL for current map view"}
+   {:id "reset-control" :helperText "Reset the application back to its initial state"}
+   {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
+   {:id "overlay-control" :helperText "You are here!"}
+   {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
+    :helperText     (if show-supporting-layers? "Filter by Hazard Layers or Supporting Layers" "Hazard Layers")
+    :helperPosition "bottom"
+    :padding        0}
+   {:id             "current-view-analysis"
+    :helperText     "Select a scientific model, scenario, and season to analyze the hazard data under"
+    :helperPosition "bottom"}
+   {:id             "time-control"
+    :helperText     "Control the time period for hazard data analysis"
+    :helperPosition "bottom"}])
+
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
@@ -520,37 +553,7 @@
       [hazard-layer-legend]]
 
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
-     [views/helper-overlay
-      {:selector       ".SelectionListItem:first-child .layer-card .layer-header"
-       :helperPosition "bottom"
-       :helperText     "Toggle layer visibility, view info and metadata, show legend, adjust transparency, choose from download options (habitat data)"
-       :padding        0}
-      {:selector       ".leaflet-control-layers-toggle"
-       :helperText     "Select from available basemaps"
-       :helperPosition "left"}
-      {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords" :helperPosition "top"}
-      {:id "menu-button" :helperText (if catalogue-open? "Collapse menu sidebar" "Expand menu sidebar")}
-      {:id "autosave-button" :helperText "Toggle autosave for the application"}
-      {:id "zoom-in-control" :helperText "Zoom in"}
-      {:id "zoom-out-control" :helperText "Zoom out"}
-      {:id "print-control" :helperText "Export current map view as an image"}
-      {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
-      {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
-      {:id "select-control" :helperText "Select a region for download (habitat data)"}
-      {:id "share-control" :helperText "Create a shareable URL for current map view"}
-      {:id "reset-control" :helperText "Reset the application back to its initial state"}
-      {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
-      {:id "overlay-control" :helperText "You are here!"}
-      {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
-       :helperText     (if show-supporting-layers? "Filter by Hazard Layers or Supporting Layers" "Hazard Layers")
-       :helperPosition "bottom"
-       :padding        0}
-      {:id             "current-view-analysis"
-       :helperText     "Select a scientific model, scenario, and season to analyze the hazard data under"
-       :helperPosition "bottom"}
-      {:id             "time-control"
-       :helperText     "Control the time period for hazard data analysis"
-       :helperPosition "bottom"}]
+     (into [views/helper-overlay] (helper-overlay-steps catalogue-open?))
      [welcome-dialogue]
      [views/outage-message-dialogue]
      [views/settings-overlay]
