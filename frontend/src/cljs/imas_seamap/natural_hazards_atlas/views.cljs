@@ -308,14 +308,19 @@
         (if active-hazard-layer ; only show controls when we have an active hazard layer, else show message to select a hazard layer
           [:<> (when @(re-frame/subscribe [:ui.side-by-side/active?])
                  [b/button-group {:fill true}
+                  ;; Blueprint's plain "active" look (pressed grey) read as
+                  ;; unselected, so also mark the selected map with the
+                  ;; primary intent.
                   [b/button
                    {:text     "Map 1"
                     :on-click #(reset! selected-tab "map-1")
-                    :active   (= @selected-tab "map-1")}]
+                    :active   (= @selected-tab "map-1")
+                    :intent   (when (= @selected-tab "map-1") b/INTENT-PRIMARY)}]
                   [b/button
                    {:text     "Map 2"
                     :on-click #(reset! selected-tab "map-2")
-                    :active   (= @selected-tab "map-2")}]])
+                    :active   (= @selected-tab "map-2")
+                    :intent   (when (= @selected-tab "map-2") b/INTENT-PRIMARY)}]])
            (if (and @(re-frame/subscribe [:ui.side-by-side/active?]) (= @selected-tab "map-2"))
              [current-view-map-controls {:map-id :map-2}] ; hardcoded second map ID
              [current-view-map-controls])
