@@ -891,6 +891,11 @@ input.leaflet-control-layers-selector[type="radio"] {
 .leaflet-left .leaflet-control.hazard-layer-legend {
     margin-left: calc($floating-menu-padding * 2 + $leaflet-control-width + 2 * 2px);
 }
+// The image export (#content-wrapper) doesn't include the toolbar, so keep
+// Leaflet's default margin there rather than leaving an empty gap.
+.map-printing .leaflet-left .leaflet-control.hazard-layer-legend {
+    margin-left: 10px;
+}
 
 // Hide elements we don't want to see while the map is printing
 .map-printing {
