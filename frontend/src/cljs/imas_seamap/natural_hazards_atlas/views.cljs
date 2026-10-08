@@ -392,7 +392,8 @@
      {:title
       [:div
        [:a {:href wordpress-url-base}
-        [:img {:src "img/Climate_Futures_NHAT_logo_COLOUR.png"}]]]
+        [:img {:src "img/Climate_Futures_NHAT_logo_COLOUR.png"
+               :alt "Climate Futures — Natural Hazards Atlas Tasmania (home)"}]]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
