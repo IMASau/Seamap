@@ -1,4 +1,4 @@
-{:source-paths ["src/cljs" "src/gen" "src/thirdparty"]
+{:source-paths ["src/cljs" "src/gen" "src/thirdparty" "test/cljs"]
 
  :dependencies [[binaryage/devtools              "1.0.7"]
                 [cljs-ajax/cljs-ajax             "0.5.5"]
@@ -15,9 +15,14 @@
                 [reagent/reagent                 "1.1.1"]]
 
  :nrepl    {:port 8777}
- :dev-http {3451 "resources/public"}
+ :dev-http {3451 "resources/public"
+            8021 "out/test"}
 
- :builds {:dev {:target           :browser
+ :builds {:test {:target    :browser-test
+                 :test-dir  "out/test"
+                 :ns-regexp "-test$"}
+
+          :dev {:target           :browser
                 :output-dir       "resources/public/js/"
                 :asset-path       "js"
                 :closure-defines  {goog.DEBUG                            true
