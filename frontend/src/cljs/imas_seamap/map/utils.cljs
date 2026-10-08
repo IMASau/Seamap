@@ -315,15 +315,17 @@
 
 (defn hazard-layer-feature-info-response->display
   [response layer]
-  (let [title (:name layer)
-        units (get-in layer [:hazardlayer :human_readable_units])
-        doc   (gxml/loadXml response)
-        val   (.-innerHTML (first (gxml/selectNodes doc "/FeatureInfoResponse/Feature/FeatureInfo/value")))]
-    {:body
-     (render-to-string
-      [:div
-       [:h4 title]
-       [:p (str val " " units)]])}))
+  (let [title      (:name layer)
+        units      (get-in layer [:hazardlayer :human_readable_units])
+        doc        (gxml/loadXml response)
+        value-node (first (gxml/selectNodes doc "/FeatureInfoResponse/Feature/FeatureInfo/value"))]
+    ;; Points outside the data (e.g. at sea) have no <Feature>: nothing to show.
+    (when value-node
+      {:body
+       (render-to-string
+        [:div
+         [:h4 title]
+         [:p (str (.-innerHTML value-node) " " units)]])})))
 
 (defmethod feature-info-response->display "text/xml"
   [{:keys [response _info-format layers]}]
