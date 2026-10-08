@@ -72,11 +72,23 @@
                        (assoc :opacity-ids opacities))]
     (b64/encodeString (t/write (t/writer :json) db*))))
 
+(defn- prune-nils
+  "Recursively drop nil values (and maps left empty)."
+  [m]
+  (reduce-kv (fn [acc k v]
+               (let [v (if (map? v) (not-empty (prune-nils v)) v)]
+                 (if (nil? v) acc (assoc acc k v))))
+             {} m))
+
 (defn- filter-state
   "Given a state map, presumably from the hashed state, filter down to
-  only expected/allowed paths to prevent injection attacks."
+  only expected/allowed paths to prevent injection attacks.
+
+  `select-keys*` yields nil for listed paths that are absent. For map-2's
+  independent state that nil would shadow the map-1 fallback in
+  `get-independent-map-state`, so prune nils there."
   [state]
-  (select-keys* state
+  (-> (select-keys* state
                 [[:display :sidebar :selected]
                  [:display :catalogue :main]
                  [:display :left-drawer]
@@ -119,7 +131,9 @@
                  :legend-ids
                  :opacity-ids
                  :autosave?
-                 :config]))
+                 :config])
+      (as-> s (cond-> s
+                (:independent-map-state s) (update :independent-map-state prune-nils)))))
 
 (defn parse-state [hash-str]
   (try
