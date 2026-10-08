@@ -14,6 +14,18 @@
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]))
 
+(defn dont-show-again-checkbox
+  "\"Don't show this again\" checkbox for the welcome dialogue."
+  [checked? on-checked]
+  [:div
+   [:input
+    {:type      "checkbox"
+     :id        "dont-show-this-again"
+     :name      "dont-show-this-again"
+     :on-change #(on-checked (.. % -target -checked))
+     :checked   checked?}]
+   [:label {:for "dont-show-this-again"} "Don't show this again"]])
+
 (defn- welcome-dialogue []
   (let [dont-show-again? (reagent/atom false)]
    (fn []
@@ -31,13 +43,7 @@
           [:p "The Natural Hazards Atlas for Tasmania is an interactive platform developed by the University of Tasmania that brings together climate-driven natural hazards data, mapping and science communication to support disaster preparedness, resilience and informed decision-making across Tasmania."]
           [:p "Explore the interactive map and visit " [:a {:href wordpress-url-base :target "_blank"} "here"] " to learn more about the atlas tools and features."]]]
         [:div.bp3-dialog-footer
-         [:div
-          [:input
-           {:type     "checkbox"
-            :name     "dont-show-this-again"
-            :on-click #(reset! dont-show-again? (.. % -target -checked))
-            :checked  @dont-show-again?}]
-          [:label {:for "dont-show-this-again"} "Don't show this again"]]
+         [dont-show-again-checkbox @dont-show-again? #(reset! dont-show-again? %)]
          [b/button
           {:text       "Get Started"
            :intent     b/INTENT-PRIMARY
