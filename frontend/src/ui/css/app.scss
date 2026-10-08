@@ -885,6 +885,13 @@ input.leaflet-control-layers-selector[type="radio"] {
     user-select: none;
 }
 
+// Sit the hazard legend to the right of the left toolbar so it never hides
+// under it (same offset as the floating pills). Needs to beat Leaflet's
+// `.leaflet-left .leaflet-control { margin-left: 10px }`.
+.leaflet-left .leaflet-control.hazard-layer-legend {
+    margin-left: calc($floating-menu-padding * 2 + $leaflet-control-width + 2 * 2px);
+}
+
 // Hide elements we don't want to see while the map is printing
 .map-printing {
     .leaflet-control-attribution,
