@@ -167,7 +167,7 @@ class Command(BaseCommand):
             netcdf_attributes = NetCdfAttributes(
                 category=ds.attrs["category"],
                 data_classification=ds.attrs["data_classification"],
-                display_name=ds.attrs["data_classification"],
+                display_name=ds.attrs.get("display_name", ds.attrs["data_classification"]), # display_name not required, falls back to data_classification
                 minx=ds.attrs["minx"],
                 miny=ds.attrs["miny"],
                 maxx=ds.attrs["maxx"],
