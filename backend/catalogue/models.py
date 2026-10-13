@@ -788,7 +788,8 @@ class BaseLayerGroup(models.Model):
 @python_2_unicode_compatible
 class BaseLayer(models.Model):
     name = models.CharField(max_length = 200, unique=True)
-    server_url = models.URLField(max_length = 200)
+    # CharField rather than URLField: tile URL templates (e.g. https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png) fail URL validation
+    server_url = models.CharField(max_length = 200)
     attribution = models.CharField(max_length = 200)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
     layer_group = models.ForeignKey(BaseLayerGroup, blank=True, null=True, on_delete=models.PROTECT, db_column='layer_group')
