@@ -79,7 +79,13 @@ class Command(BaseCommand):
         exists, and not supplying it would error when the DB tries to create the
         `HazardLayer`, due to the required field constraint. 
         """
-        category, _ = catalogue.models.Category.objects.get_or_create(name=netcdf_attributes.category)
+        category, _ = catalogue.models.Category.objects.get_or_create(
+            name=netcdf_attributes.category,
+            defaults={"display_name": netcdf_attributes.category},
+        )
+        if not category.display_name: # categories created before display_name was set here
+            category.display_name = category.name
+            category.save()
         data_classification, _ = catalogue.models.DataClassification.objects.get_or_create(name=netcdf_attributes.data_classification)
         organisation, _ = catalogue.models.Organisation.objects.get_or_create(name="Climate Futures")
         hazard_layer: models.HazardLayer
