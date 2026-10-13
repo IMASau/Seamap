@@ -137,6 +137,25 @@ class Command(BaseCommand):
             raise ValueError(f"Could not parse NetCDF name: {netcdf_name}")
         return match.groupdict()
 
+    def validate_netcdf_names(self, catalog_ref_name: str, netcdf_names: list[str]) -> None:
+        """
+        Check that every NetCDF file in a catalog ref is named
+        `{cmip}_{catalog_ref_name}_{scenario}_{season}.nc`.
+
+        `HazardLayerDataset.server_url` rebuilds the file name from the catalog ref
+        name, so a file named any other way would load here but never display.
+        """
+        invalid_names = []
+        for netcdf_name in netcdf_names:
+            parsed = self.parse_netcdf_name(netcdf_name)
+            expected_name = f"{parsed['cmip']}_{catalog_ref_name}_{parsed['scenario']}_{parsed['season']}.nc"
+            if netcdf_name != expected_name:
+                invalid_names.append(netcdf_name)
+        if invalid_names:
+            raise ValueError(
+                f"NetCDF names do not match the folder name; expected <cmip>_{catalog_ref_name}_<scenario>_<season>.nc, got: {', '.join(invalid_names)}"
+            )
+
     def retrieve_netcdf_catalog_ref_names(self) -> list[str]:
         """
         Retrieves the "catalog refs" from the THREDDs server.
@@ -188,6 +207,7 @@ class Command(BaseCommand):
     def load_hazard_layer(self, catalog_ref_name: str) -> None:
         """Load a hazard layer from the data within the NetCDFs of the catalog ref."""
         netcdf_names = self.retrieve_netcdf_names(catalog_ref_name)
+        self.validate_netcdf_names(catalog_ref_name, netcdf_names)
         for netcdf_name in netcdf_names:
             netcdf_url = f"{self.server_url}fileServer/data/{catalog_ref_name}/{netcdf_name}"
             netcdf_attributes = self.retrieve_netcdf_attributes(netcdf_url)
@@ -233,8 +253,10 @@ class Command(BaseCommand):
         for catalog_ref_name in catalog_ref_names:
             try:
                 self.load_hazard_layer(catalog_ref_name)
-            except Exception: # pylint: disable=broad-except
+            except Exception as e: # pylint: disable=broad-except
                 self.is_failure = True
+                self.stderr.write(f"Failed to load hazard layer \"{catalog_ref_name}\": {e}")
+                self.warnings.add(f"Failed to load hazard layer \"{catalog_ref_name}\": {e}")
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
@@ -246,6 +268,7 @@ class Command(BaseCommand):
 
     def handle(self, *_args: Any, **options: Any) -> None:
         self.server_url = options['server_url']
+        self.warnings = set() # class-level default is shared, so would carry warnings over from previous runs
         self.thredds_server_type, _ = catalogue.models.ServerType.objects.get_or_create(name="thredds")
         self.stdout.write(f"Loading hazard layers from {self.server_url}...")
         self.load_hazard_layers()
