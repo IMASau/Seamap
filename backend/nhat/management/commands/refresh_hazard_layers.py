@@ -8,6 +8,7 @@ import re
 import requests
 import xarray as xr
 import xml.etree.ElementTree as ET
+from django.core.cache import cache
 from django.core.management.base import BaseCommand, CommandParser
 from django.db import transaction
 from typing import Any, NamedTuple, Optional
@@ -52,6 +53,14 @@ class Command(BaseCommand):
     thredds_server_type: catalogue.models.ServerType
     is_failure = False
     warnings: set[str] = set()
+    created: dict[str, set[str]] # names of newly created objects, keyed by plural label of what was created
+    pending_created: list[tuple[str, str]] # created within the current transaction; only reported once it commits
+    notices: list[str] # informational messages about what the refresh changed
+    empty_catalog_ref_names: set[str] # catalog refs on the server that contain no NetCDF files
+
+    def record_created(self, label: str, name: str, created: bool) -> None:
+        if created:
+            self.pending_created.append((label, name))
 
     def retrieve_netcdf_names(self, catalog_ref_name: str) -> list[str]:
         """
@@ -79,10 +88,11 @@ class Command(BaseCommand):
         exists, and not supplying it would error when the DB tries to create the
         `HazardLayer`, due to the required field constraint. 
         """
-        category, _ = catalogue.models.Category.objects.get_or_create(
+        category, category_created = catalogue.models.Category.objects.get_or_create(
             name=netcdf_attributes.category,
             defaults={"display_name": netcdf_attributes.category},
         )
+        self.record_created("categories", category.name, category_created)
         if not category.display_name: # categories created before display_name was set here
             category.display_name = category.name
             category.save()
@@ -156,6 +166,39 @@ class Command(BaseCommand):
                 f"NetCDF names do not match the folder name; expected <cmip>_{catalog_ref_name}_<scenario>_<season>.nc, got: {', '.join(invalid_names)}"
             )
 
+    def delete_stale_datasets(self, hazard_layer: models.HazardLayer, dataset_ids: set[int]) -> None:
+        """
+        Delete the datasets of a hazard layer that were not found on the server in
+        this refresh; i.e. everything except `dataset_ids`.
+
+        Without this, datasets for NetCDF files or variables since removed from the
+        server would remain selectable, but fail to display.
+        """
+        stale_ids = [
+            dataset_id
+            for dataset_id in hazard_layer.datasets.values_list("id", flat=True)
+            if dataset_id not in dataset_ids
+        ]
+        # Delete in batches; SQL Server limits a query to 2100 parameters
+        for i in range(0, len(stale_ids), 1000):
+            models.HazardLayerDataset.objects.filter(id__in=stale_ids[i:i + 1000]).delete()
+        if stale_ids:
+            self.notices.append(
+                f"Removed {len(stale_ids)} datasets from hazard layer \"{hazard_layer.name}\" that no longer exist on the server"
+            )
+
+    def warn_missing_hazard_layers(self, catalog_ref_names: list[str]) -> None:
+        """
+        Warn about hazard layers whose folder is missing from the server, or contains
+        no NetCDF files. These are not deleted automatically, since that would also
+        break anything referencing the layer (e.g. saved map states).
+        """
+        for hazard_layer in models.HazardLayer.objects.all():
+            if hazard_layer.name not in catalog_ref_names:
+                self.warnings.add(f"Hazard layer \"{hazard_layer.name}\" has no folder on the server; delete the layer if it is no longer needed")
+            elif hazard_layer.name in self.empty_catalog_ref_names:
+                self.warnings.add(f"Hazard layer \"{hazard_layer.name}\" has no NetCDF files in its folder on the server; delete the layer if it is no longer needed")
+
     def retrieve_netcdf_catalog_ref_names(self) -> list[str]:
         """
         Retrieves the "catalog refs" from the THREDDs server.
@@ -178,36 +221,45 @@ class Command(BaseCommand):
         self.stdout.write(f"Loading NetCDF from {netcdf_url}...")
         response = requests.get(netcdf_url, timeout=30)
         response.raise_for_status()
-        with xr.open_dataset(io.BytesIO(response.content)) as ds:
-            netcdf_variable_attributes = [
-                NetCdfVariableAttributes(
-                    name=data_var_name,
-                    display_name=ds[data_var_name].attrs["long_name"],
-                    data_category=DataCategory(ds[data_var_name].attrs["data_category"]),
-                    colour_scale_range_min=ds[data_var_name].attrs["colour_scale_range_min"],
-                    colour_scale_range_max=ds[data_var_name].attrs["colour_scale_range_max"],
+        try:
+            with xr.open_dataset(io.BytesIO(response.content)) as ds:
+                netcdf_variable_attributes = [
+                    NetCdfVariableAttributes(
+                        name=data_var_name,
+                        display_name=ds[data_var_name].attrs["long_name"],
+                        data_category=DataCategory(ds[data_var_name].attrs["data_category"]),
+                        colour_scale_range_min=ds[data_var_name].attrs["colour_scale_range_min"],
+                        colour_scale_range_max=ds[data_var_name].attrs["colour_scale_range_max"],
+                    )
+                    for data_var_name in ds.data_vars
+                ]
+                netcdf_attributes = NetCdfAttributes(
+                    category=ds.attrs["category"],
+                    data_classification=ds.attrs["data_classification"],
+                    display_name=ds.attrs.get("display_name", ds.attrs["data_classification"]), # display_name not required, falls back to data_classification
+                    minx=ds.attrs["minx"],
+                    miny=ds.attrs["miny"],
+                    maxx=ds.attrs["maxx"],
+                    maxy=ds.attrs["maxy"],
+                    tooltip=ds.attrs.get("tooltip"), # tooltip not required
+                    human_readable_units=ds.attrs["human_readable_units"],
+                    colour_palette=ds.attrs["colour_palette"],
+                    variable_attributes=netcdf_variable_attributes
                 )
-                for data_var_name in ds.data_vars
-            ]
-            netcdf_attributes = NetCdfAttributes(
-                category=ds.attrs["category"],
-                data_classification=ds.attrs["data_classification"],
-                display_name=ds.attrs.get("display_name", ds.attrs["data_classification"]), # display_name not required, falls back to data_classification
-                minx=ds.attrs["minx"],
-                miny=ds.attrs["miny"],
-                maxx=ds.attrs["maxx"],
-                maxy=ds.attrs["maxy"],
-                tooltip=ds.attrs.get("tooltip"), # tooltip not required
-                human_readable_units=ds.attrs["human_readable_units"],
-                colour_palette=ds.attrs["colour_palette"],
-                variable_attributes=netcdf_variable_attributes
-            )
-            return netcdf_attributes
+                return netcdf_attributes
+        except KeyError as e:
+            netcdf_name = netcdf_url.rsplit("/", 1)[-1]
+            raise ValueError(f"expected field {e} was not found in {netcdf_name}") from e
 
     def load_hazard_layer(self, catalog_ref_name: str) -> None:
         """Load a hazard layer from the data within the NetCDFs of the catalog ref."""
         netcdf_names = self.retrieve_netcdf_names(catalog_ref_name)
+        if not netcdf_names:
+            self.stdout.write(f"No NetCDF files found in {catalog_ref_name}, skipping...")
+            self.empty_catalog_ref_names.add(catalog_ref_name)
+            return
         self.validate_netcdf_names(catalog_ref_name, netcdf_names)
+        dataset_ids: set[int] = set()
         for netcdf_name in netcdf_names:
             netcdf_url = f"{self.server_url}fileServer/data/{catalog_ref_name}/{netcdf_name}"
             netcdf_attributes = self.retrieve_netcdf_attributes(netcdf_url)
@@ -216,12 +268,16 @@ class Command(BaseCommand):
             is_historical = scenario_name == "historical"
 
             # Create/update hazard layer with rollback
+            self.pending_created = []
             with transaction.atomic():
-                cmip, _ = models.CmipPhase.objects.update_or_create(name=cmip_name, defaults={"display_name": cmip_name})
+                cmip, cmip_created = models.CmipPhase.objects.update_or_create(name=cmip_name, defaults={"display_name": cmip_name})
+                self.record_created("CMIP phases", cmip_name, cmip_created)
                 scenario = None
                 if not is_historical:
-                    scenario, _ = models.Scenario.objects.update_or_create(name=scenario_name, defaults={"display_name": scenario_name})
-                season, _ = models.Season.objects.update_or_create(name=season_name, defaults={"display_name": season_name})
+                    scenario, scenario_created = models.Scenario.objects.update_or_create(name=scenario_name, defaults={"display_name": scenario_name})
+                    self.record_created("scenarios", scenario_name, scenario_created)
+                season, season_created = models.Season.objects.update_or_create(name=season_name, defaults={"display_name": season_name})
+                self.record_created("seasons", season_name, season_created)
                 hazard_layer = self.update_or_create_hazard_layer(catalog_ref_name, netcdf_attributes)
                 # Probably some efficiency to be gained by bulk updating, but this is fine for now
                 for netcdf_variable_attributes in netcdf_attributes.variable_attributes:
@@ -234,7 +290,7 @@ class Command(BaseCommand):
                     )
                     if netcdf_variable_attributes.colour_scale_range_min > netcdf_variable_attributes.colour_scale_range_max:
                         self.warnings.add("Some hazard layer colour scale ranges have min values greater than their max values")
-                    models.HazardLayerDataset.objects.update_or_create(
+                    dataset, _ = models.HazardLayerDataset.objects.update_or_create(
                         hazard_layer=hazard_layer,
                         scientific_model=model,
                         cmip_phase=cmip,
@@ -246,6 +302,11 @@ class Command(BaseCommand):
                             "color_scale_range_max": netcdf_variable_attributes.colour_scale_range_max, # "color" vs "colour" discrepancy noted
                         }
                     )
+                    dataset_ids.add(dataset.id)
+            for label, name in self.pending_created:
+                self.created[label].add(name)
+        # Only reached if every NetCDF file loaded, so a partial load never deletes datasets
+        self.delete_stale_datasets(hazard_layer, dataset_ids)
 
     def load_hazard_layers(self) -> None:
         """Load hazard layers from a THREDDS server."""
@@ -255,8 +316,8 @@ class Command(BaseCommand):
                 self.load_hazard_layer(catalog_ref_name)
             except Exception as e: # pylint: disable=broad-except
                 self.is_failure = True
-                self.stderr.write(f"Failed to load hazard layer \"{catalog_ref_name}\": {e}")
                 self.warnings.add(f"Failed to load hazard layer \"{catalog_ref_name}\": {e}")
+        self.warn_missing_hazard_layers(catalog_ref_names)
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
@@ -269,7 +330,18 @@ class Command(BaseCommand):
     def handle(self, *_args: Any, **options: Any) -> None:
         self.server_url = options['server_url']
         self.warnings = set() # class-level default is shared, so would carry warnings over from previous runs
+        self.created = {"categories": set(), "CMIP phases": set(), "scenarios": set(), "seasons": set()}
+        self.notices = []
+        self.empty_catalog_ref_names = set()
         self.thredds_server_type, _ = catalogue.models.ServerType.objects.get_or_create(name="thredds")
         self.stdout.write(f"Loading hazard layers from {self.server_url}...")
         self.load_hazard_layers()
+        cache.delete("nhatlayer_list") # dataset changes don't trigger the cache-clearing signals in nhat.signals
+        for label, names in self.created.items():
+            if names:
+                self.stdout.write(f"The following new {label} were created: {', '.join(sorted(names))}")
+        for notice in self.notices:
+            self.stdout.write(notice)
+        for warning in sorted(self.warnings):
+            self.stderr.write(warning)
         self.stdout.write(self.style.SUCCESS("Successfully loaded hazard layers."))

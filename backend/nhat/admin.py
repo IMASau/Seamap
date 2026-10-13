@@ -62,6 +62,21 @@ class HazardLayerAdmin(admin.ModelAdmin):
                 messages.WARNING
             )
 
+        for label, names in command.created.items():
+            if names:
+                self.message_user(
+                    request,
+                    f"The following new {label} were created: {', '.join(sorted(names))}",
+                    messages.INFO,
+                )
+
+        for notice in command.notices:
+            self.message_user(
+                request,
+                notice,
+                messages.INFO,
+            )
+
         return redirect("../")
 
 
