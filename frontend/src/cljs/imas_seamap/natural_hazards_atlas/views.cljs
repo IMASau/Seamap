@@ -160,7 +160,7 @@
           :onChange     #(re-frame/dispatch [:current-view/selected-time-period % map-id])
           :keyfns
           {:id   :id
-           :text (fn [{:keys [name start-year end-year]}] (str name (when (and start-year end-year) (str " (" start-year "-" end-year ")"))))}}])]]))
+           :text (fn [{:keys [name display-year]}] (str name (when display-year (str " (" display-year ")"))))}}])]]))
 
 (defn- timeline-media-controls
   "Media-style controls to play through the timeline of hazard data."
@@ -281,13 +281,19 @@
 
    Each parameter affects the map appearance and projection data."
   [{:keys [map-id]}]
-  [:div
-   {:class (str "current-view " (when map-id "dark"))}
-   [current-view-analysis {:map-id map-id}]
-   [b/card {:id "time-control"}
-    [time-period-select {:map-id map-id}]
-    (when-not @(re-frame/subscribe [:current-view/no-data? map-id]) ; no years to select from without data
-      [timeline-select {:map-id map-id}])]])
+  (let [{:keys [start-year end-year display-year]} @(re-frame/subscribe [:current-view/selected-time-period map-id])]
+    [:div
+     {:class (str "current-view " (when map-id "dark"))}
+     [current-view-analysis {:map-id map-id}]
+     [b/card {:id "time-control"}
+      [time-period-select {:map-id map-id}]
+      (cond
+        display-year ; time is fixed to the display year, so there's no year to select
+        [:div.bp3-text-small.bp3-text-muted
+         (str "This shows the average of the projected values for " start-year "-" end-year)]
+
+        (not @(re-frame/subscribe [:current-view/no-data? map-id])) ; no years to select from without data
+        [timeline-select {:map-id map-id}])]]))
 
 (defn- no-data-warning
   "Warning banner for when the active hazard layer has no data for the options

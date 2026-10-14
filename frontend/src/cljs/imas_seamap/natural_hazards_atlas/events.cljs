@@ -516,32 +516,41 @@
     {:db db
      :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
 
+(defn- sync-time-to-time-period
+  "Moves the map's time to suit its (newly) selected time period: periods with a
+   display year are fixed to that year with playback stopped; otherwise, if the
+   current time isn't available in the period, reset to the first available time
+   in its range."
+  [db map-id]
+  (let [{:keys [display-year] :as time-period} (nhatutils/current-view-selected-time-period db map-id)
+        current-time                           (utils/get-independent-map-state db map-id [:display :current-time])
+        available-times                        (utils/get-independent-map-state db map-id [:display :available-times])
+        time                                   (nhatutils/time-period-time time-period current-time available-times)]
+    {:db         (cond-> db
+                   time (utils/assoc-independent-map-state map-id [:display :load-time] time)) ; so the time is kept if timeDimension reloads its available times
+     :dispatch-n [(when display-year [:map.time/pause map-id])
+                  (when (and time (not= time current-time)) [:map.time/current-time time map-id])]}))
+
 (defn current-view-is-historic?
   "Indicates whether the current view is for historic data."
   [{:keys [db]} [_ is-historic? map-id]]
-  (let [db (utils/assoc-independent-map-state db map-id [:current-view :is-historic?] is-historic?)]
+  (let [db                      (utils/assoc-independent-map-state db map-id [:current-view :is-historic?] is-historic?)
+        {:keys [db dispatch-n]} (sync-time-to-time-period db map-id)] ; historic data is always "all", but projected data may be fixed to a display year
     {:db db
-     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
+     :dispatch-n (into dispatch-n [[:maybe-autosave] (refresh-feature-info db)])}))
 
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data.
 
-   If the currently selected time isn't avaliable in the new period, reset to the
-   first available time in the range."
+   If the period has a display year, fix the time to that year. Otherwise, if the
+   currently selected time isn't avaliable in the new period, reset to the first
+   available time in the range."
   [{:keys [db]} [_ {time-period-id :id :as time-period} map-id]]
   (assert (some #{time-period-id} (map :id nhatutils/time-periods)) (str "Selected time period " time-period " is not a valid option"))
-  (let [{:keys [start-year end-year]} (first-where  #(= (:id %) time-period-id) nhatutils/time-periods)
-        current-time                  (utils/get-independent-map-state db map-id [:display :current-time])
-        available-times               (utils/get-independent-map-state db map-id [:display :available-times])
-        current-time-in-range?        (nhatutils/time-in-range? current-time start-year end-year)
-        first-time-in-range           (first (filter #(nhatutils/time-in-range? % start-year end-year) available-times))]
-    {:db
-     (cond-> db
-       true                   (utils/assoc-independent-map-state map-id [:current-view :selected-time-period-id] time-period-id)
-       current-time-in-range? (utils/assoc-independent-map-state map-id [:display :load-time] first-time-in-range))
-     :dispatch-n
-     [(when-not current-time-in-range? [:map.time/current-time first-time-in-range map-id])
-      [:maybe-autosave]]}))
+  (let [db                      (utils/assoc-independent-map-state db map-id [:current-view :selected-time-period-id] time-period-id)
+        {:keys [db dispatch-n]} (sync-time-to-time-period db map-id)]
+    {:db db
+     :dispatch-n (conj dispatch-n [:maybe-autosave])}))
 
 (defn current-view-time-step-forward
   "Move forward one time step in the hazard data"

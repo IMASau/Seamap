@@ -160,11 +160,13 @@
     :sorting
     :config]))
 
+;; Time periods with a `:display-year` show only that year's data (the average of
+;; the projected values across the period), instead of a selectable timeline.
 (def time-periods
-  [{:id "all"      :name "All"      :start-year nil  :end-year nil}
-   {:id "short"    :name "Short"    :start-year 2020 :end-year 2039}
-   {:id "medium"   :name "Medium"   :start-year 2050 :end-year 2069}
-   {:id "long"     :name "Long"     :start-year 2080 :end-year 2099}])
+  [{:id "all"      :name "All"         :start-year nil  :end-year nil  :display-year nil}
+   {:id "short"    :name "Near-future" :start-year 2020 :end-year 2039 :display-year 2030}
+   {:id "medium"   :name "Mid-future"  :start-year 2050 :end-year 2069 :display-year 2060}
+   {:id "long"     :name "Far-future"  :start-year 2080 :end-year 2099 :display-year 2090}])
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-cmip-phase
@@ -232,9 +234,9 @@
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data"
-  ([db] (current-view-is-historic? db nil))
+  ([db] (current-view-selected-time-period db nil))
   ([db map-id]
-   (let [selected-time-period-id (get-in db [:current-view :selected-time-period-id])
+   (let [selected-time-period-id (utils/get-independent-map-state db map-id [:current-view :selected-time-period-id])
          is-historic?            (utils/get-independent-map-state db map-id [:current-view :is-historic?])
          selected-time-period-id (if is-historic? "all" selected-time-period-id)
          selected-time-period    (first-where #(= (:id %) selected-time-period-id) time-periods)]
@@ -331,8 +333,21 @@
   "The available times for the layers, driven by the timeDimension component.
 
    Availability of times is filtered by the range of the currently selected time
-   period in current view."
+   period in current view (or just its display year, if it has one)."
   [db map-id]
-  (let [all-available-times           (utils/get-independent-map-state db map-id [:display :available-times])
-        {:keys [start-year end-year]} (current-view-selected-time-period db map-id)] ; Alternative is registering :current-view/selected-time-period as an input signal to this sub, but then we lose access to db for getting [:display :available-times], so another sub would be necessary.
+  (let [all-available-times                        (utils/get-independent-map-state db map-id [:display :available-times])
+        {:keys [start-year end-year display-year]} (current-view-selected-time-period db map-id) ; Alternative is registering :current-view/selected-time-period as an input signal to this sub, but then we lose access to db for getting [:display :available-times], so another sub would be necessary.
+        [start-year end-year]                      (if display-year [display-year display-year] [start-year end-year])]
     (filter #(time-in-range? % start-year end-year) all-available-times)))
+
+(defn time-period-time
+  "The time to display for the given time period: the current time if it's in the
+   period's range, otherwise the first available time in range. Periods with a
+   display year always use the first available time in that year (falling back to
+   the first available time in range if there isn't one)."
+  [{:keys [start-year end-year display-year]} current-time available-times]
+  (let [first-time-in #(first (filter (fn [time] (time-in-range? time %1 %2)) available-times))]
+    (cond
+      display-year                                    (or (first-time-in display-year display-year) (first-time-in start-year end-year))
+      (time-in-range? current-time start-year end-year) current-time
+      :else                                           (first-time-in start-year end-year))))
