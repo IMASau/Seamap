@@ -552,6 +552,19 @@
     {:db db
      :dispatch-n (conj dispatch-n [:maybe-autosave])}))
 
+(defn time-available-times
+  "The available times for the layers, driven by the timeDimension component.
+
+   Overrides imas-seamap.map.events/time-available-times so that the time set
+   after loading suits the selected time period (e.g. fixed to its display year),
+   since the period may have been selected before any times were available."
+  [{:keys [db]} [_ available-times map-id]]
+  (let [db          (utils/assoc-independent-map-state db map-id [:display :available-times] available-times)
+        load-time   (utils/get-independent-map-state db map-id [:display :load-time])
+        time-period (nhatutils/current-view-selected-time-period db map-id)]
+    {:db       db
+     :dispatch [:map.time/current-time (nhatutils/time-period-time time-period load-time available-times) map-id]}))
+
 (defn current-view-time-step-forward
   "Move forward one time step in the hazard data"
   [{:keys [db]} [_ map-id]]
