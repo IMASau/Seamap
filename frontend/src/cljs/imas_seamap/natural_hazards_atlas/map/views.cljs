@@ -101,13 +101,14 @@
              [map-views/draw-region-control])
 
            [leaflet/coordinates-control
-            {:decimals 2
+            {:position "bottomleft"
+             :decimals 2
              :labelTemplateLat "{y}"
              :labelTemplateLng "{x}"
              :useLatLngOrder   true
              :enableUserInput  false}]
-           [leaflet/scale-factor-control {:position "bottomright"}]
-           [leaflet/scale-control {:position "bottomright"}]
+           [leaflet/scale-factor-control {:position "bottomleft"}]
+           [leaflet/scale-control {:position "bottomleft"}]
 
 
            (when show-time-slider?
@@ -126,7 +127,7 @@
 
            [map-views/popup feature-info-1]]]
 
-         [:div
+         [:div.side-by-side-map-2
           {:style {:height "100%" :width (str (- 100 split-ratio) "%") :display (if side-by-side-active? "block" "none")}}
           [leaflet/map-container
            {:style {:height "100%"}
@@ -156,13 +157,14 @@
              [map-views/draw-region-control])
            
            [leaflet/coordinates-control
-            {:decimals 2
+            {:position "bottomleft"
+             :decimals 2
              :labelTemplateLat "{y}"
              :labelTemplateLng "{x}"
              :useLatLngOrder   true
              :enableUserInput  false}]
-           [leaflet/scale-factor-control {:position "bottomright"}]
-           [leaflet/scale-control {:position "bottomright"}]
+           [leaflet/scale-factor-control {:position "bottomleft"}]
+           [leaflet/scale-control {:position "bottomleft"}]
            
            (when show-time-slider?
              [:f> leaflet/time-dimension-control

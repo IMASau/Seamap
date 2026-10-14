@@ -380,6 +380,7 @@
         expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
         layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])]
     [:<>
+     [no-data-warning] ; a newly selected layer may have no data for the current view, with nothing else here to say why
      [views/layer-search-filter]
      [layer-catalogue :main
       {:active-layers  active-layers
@@ -433,14 +434,14 @@
       [b/tab
        {:id    "current-view"
         :title (reagent/as-element
-                [b/tooltip {:content "Configure the map layers"} "Current View"])
+                [b/tooltip {:content "Configure the map layers"} "View Settings"])
         :panel (reagent/as-element [current-view])}]]]))
 
 (defn- hazard-layer-legend []
   (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]
     (when active-hazard-layer
       (let [legend @(re-frame/subscribe [:map.layer/legend active-hazard-layer])]
-        [:div.leaflet-bottom.leaflet-left.leaflet-touch
+        [:div.leaflet-bottom.leaflet-right.leaflet-touch
          [:div.hazard-layer-legend.leaflet-control [legend-display legend]]]))))
 
 (def hotkeys-combos

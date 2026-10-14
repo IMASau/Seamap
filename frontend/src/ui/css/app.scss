@@ -882,8 +882,17 @@ input.leaflet-control-layers-selector[type="radio"] {
     background-color: rgba(255, 255, 255, 0.5);
     padding: 8px;
     height: 457px;
-    width: 160px;
+    width: 120px;
     user-select: none;
+}
+// Bottom-right, so sit above the map attribution rather than covering it
+.leaflet-bottom.leaflet-right .hazard-layer-legend.leaflet-control { margin-bottom: 26px; }
+
+// Natural Hazards Atlas has its scale and coordinates controls bottom-left
+.natural-hazards-atlas {
+    .leaflet-bottom.leaflet-left .leaflet-control-scalefactor.leaflet-control { margin-left: 10px; }
+    // The second (side-by-side) map isn't underneath the left drawer, so its controls don't need to move clear of it
+    &.catalogue-open .side-by-side-map-2 .leaflet-left { left: 0; }
 }
 
 // Hide elements we don't want to see while the map is printing
