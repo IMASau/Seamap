@@ -441,7 +441,12 @@
        {:id    "current-view"
         :title (reagent/as-element
                 [b/tooltip {:content "Configure the map layers"} "View Settings"])
-        :panel (reagent/as-element [current-view])}]]]))
+        :panel (reagent/as-element [current-view])}]]
+     [:a.how-to-use-banner
+      {:href   (str wordpress-url-base "resources/how-to-use-the-atlas/")
+       :target "_blank"}
+      [b/icon {:icon "help"}]
+      "Learn how to use the map"]]))
 
 (defn- hazard-layer-legend []
   (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]

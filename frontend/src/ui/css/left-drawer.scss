@@ -52,6 +52,41 @@
     }
     &.natural-hazards-atlas-drawer {
         .bp3-drawer-header h4 { height: 100%; }
+
+        // Tabs take the remaining height, leaving the how-to banner at the bottom
+        > .drawer-children {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow-y: hidden;
+
+            > .left-drawer-tabs {
+                flex: 1;
+                min-height: 0;
+                height: unset;
+            }
+        }
+
+        .how-to-use-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 12px;
+            padding: 10px 16px;
+            border-radius: 6px;
+            background-color: var(--tab-color);
+            color: white;
+            font-weight: 600;
+
+            .bp3-icon { color: inherit; }
+
+            &:hover {
+                background-color: var(--tab-color-selected);
+                color: white;
+                text-decoration: none;
+            }
+        }
     }
     .left-drawer-tabs {
         overflow-y: hidden;
