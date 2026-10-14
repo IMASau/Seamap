@@ -434,21 +434,25 @@
           ;; If there's only one layer, then we render a single pane and layer.
           ^{:key (str id server_url layer_name z-index)}
           [:<>
-           (if (:side-by-side-views-selected rich-layer)
-             [side-by-side-layer
-              {:layer           layer
-               :boundary-filter boundary-filter
-               :layer-opacities layer-opacities
-               :cql-filter-fn   cql-filter-fn
-               :z-index         z-index
-               :rich-layer-fn   rich-layer-fn}]
-             [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
-              [layer-component
-               {:layer           layer
-                :displayed-layer displayed-layer
-                :boundary-filter boundary-filter
-                :layer-opacities layer-opacities
-                :cql-filter      (cql-filter-fn layer)}]])]))
+           ;; A layer without a server URL has nothing to display (e.g. a Natural Hazards
+           ;; Atlas hazard layer with no dataset for the current view), and Leaflet
+           ;; would request the missing URL as "null".
+           (when server_url
+             (if (:side-by-side-views-selected rich-layer)
+               [side-by-side-layer
+                {:layer           layer
+                 :boundary-filter boundary-filter
+                 :layer-opacities layer-opacities
+                 :cql-filter-fn   cql-filter-fn
+                 :z-index         z-index
+                 :rich-layer-fn   rich-layer-fn}]
+               [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
+                [layer-component
+                 {:layer           layer
+                  :displayed-layer displayed-layer
+                  :boundary-filter boundary-filter
+                  :layer-opacities layer-opacities
+                  :cql-filter      (cql-filter-fn layer)}]]))]))
       visible-layers)]))
 
 (defn map-component []

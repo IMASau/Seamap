@@ -108,8 +108,9 @@
                  (nhatutils/hazard-layer-dataset layer cmip-phase-1 model-1 scenario-1 seasonal-data-1 is-historic?-1)
                  {min-2 :color_scale_range_min max-2 :color_scale_range_max}
                  (nhatutils/hazard-layer-dataset layer cmip-phase-2 model-2 scenario-2 seasonal-data-2 is-historic?-2)]
-             {:color-scale-range-min (min min-1 min-2)
-              :color-scale-range-max (max max-1 max-2)}))]
+             ;; Either map may have no dataset for its current view, so ignore missing values
+             {:color-scale-range-min (some->> [min-1 min-2] (remove nil?) seq (apply min))
+              :color-scale-range-max (some->> [max-1 max-2] (remove nil?) seq (apply max))}))]
     (if layer
       (get-hazard-layer-min-max layer)
       (reduce
@@ -122,6 +123,27 @@
    for retrieving that single layer for showing its legend on the map."
   [[{:keys [active-layers]} hazard-layers] _]
   (->> hazard-layers (filter (set active-layers)) first))
+
+(defn current-view-no-data?-signals
+  "Signals function for current-view-no-data?.
+
+   Signals function is a necessity, in order to pass through subscription args"
+  [[_ map-id]]
+  [(re-frame/subscribe [:map.layers/active-hazard-layer])
+   (re-frame/subscribe [:current-view/selected-cmip-phase map-id])
+   (re-frame/subscribe [:current-view/selected-model map-id])
+   (re-frame/subscribe [:current-view/selected-scenario map-id])
+   (re-frame/subscribe [:current-view/selected-seasonal-data map-id])
+   (re-frame/subscribe [:current-view/is-historic? map-id])])
+
+(defn current-view-no-data?
+  "Is there an active hazard layer with no dataset for the options selected in the
+   current view? Such a layer has nothing to display on the map."
+  [[active-hazard-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?] _]
+  (boolean
+   (and
+    active-hazard-layer
+    (not (nhatutils/hazard-layer-dataset active-hazard-layer selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?)))))
 
 (defn hazard-layers-units
   "Units for hazard layers"

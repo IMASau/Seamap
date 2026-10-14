@@ -582,13 +582,14 @@
 
         request-id (gensym)
 
-        visible-layers-1 (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup-1 point db)
+        ;; Hazard layers with no dataset for the current view have no server URL, and aren't on the map to query
+        visible-layers-1 (filter :server_url (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup-1 point db))
         requests-1 ; requests for map 1
         (->>
          visible-layers-1
          (remove #(mutils/is-insecure? (:server_url %)))
          (map (fn [{:keys [info_format_type] :as layer}] [:map/get-feature-info info_format_type [layer] request-id leaflet-props point]))) ; 1 request per layer (per map)
-        visible-layers-2 (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup-2 point db)
+        visible-layers-2 (filter :server_url (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup-2 point db))
         requests-2 ; requests for map 2
         (->>
          visible-layers-2

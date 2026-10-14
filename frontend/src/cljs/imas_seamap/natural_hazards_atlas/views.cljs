@@ -286,7 +286,25 @@
    [current-view-analysis {:map-id map-id}]
    [b/card {:id "time-control"}
     [time-period-select {:map-id map-id}]
-    [timeline-select {:map-id map-id}]]])
+    (when-not @(re-frame/subscribe [:current-view/no-data? map-id]) ; no years to select from without data
+      [timeline-select {:map-id map-id}])]])
+
+(defn- no-data-warning
+  "Warning banner for when the active hazard layer has no data for the options
+   selected in the current view, so nothing is displayed on the map."
+  []
+  (let [side-by-side-active? @(re-frame/subscribe [:ui.side-by-side/active?])
+        no-data-1?           @(re-frame/subscribe [:current-view/no-data?])
+        no-data-2?           (and side-by-side-active? @(re-frame/subscribe [:current-view/no-data? :map-2]))]
+    (when (or no-data-1? no-data-2?)
+      [:div.bp3-callout.bp3-intent-warning.bp3-icon-warning-sign.current-view-no-data
+       (str
+        "There is no data for the selected options"
+        (when side-by-side-active? ; say which map, since only one map's options are shown at a time
+          (cond
+            (and no-data-1? no-data-2?) " on either map"
+            no-data-1?                  " on Map 1"
+            :else                       " on Map 2")))])))
 
 (defn- current-view
   "Control tab to select the current view of the hazard data.
@@ -300,7 +318,8 @@
     (fn []
       (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]
         (if active-hazard-layer ; only show controls when we have an active hazard layer, else show message to select a hazard layer
-          [:<> (when @(re-frame/subscribe [:ui.side-by-side/active?])
+          [:<> [no-data-warning]
+           (when @(re-frame/subscribe [:ui.side-by-side/active?])
                  [b/button-group {:fill true}
                   [b/button
                    {:text     "Map 1"

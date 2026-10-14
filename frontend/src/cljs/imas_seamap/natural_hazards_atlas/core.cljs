@@ -122,6 +122,7 @@
                                                  :<- [:current-view/is-historic? :map-2]
                                                  nhasubs/hazard-layers-color-scale-range]
     :map.layers/active-hazard-layer       [:<- [:map/layers] :<- [:map.layers/hazard-layers] nhasubs/hazard-layers-active-hazard-layer]
+    :current-view/no-data?                [nhasubs/current-view-no-data?-signals nhasubs/current-view-no-data?]
     :map.layers.hazard-layers/units       [:<- [:map.layers/hazard-layers] nhasubs/hazard-layers-units]
     :map.layers/supporting-layers         [:<- [:map/layers] nhasubs/supporting-layers]
     :map.layers/filtered-hazard-layers    [:<- [:map/layers] :<- [:map.layers/hazard-layers] nhasubs/filtered-hazard-layers]
