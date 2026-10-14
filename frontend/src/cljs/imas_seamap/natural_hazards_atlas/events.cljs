@@ -475,7 +475,6 @@
   (let [{:keys [location leaflet-props]}
         (or (utils/get-independent-map-state db nil [:feature])
             (utils/get-independent-map-state db :map-2 [:feature]))]
-    (js/console.log "[popup] refresh-feature-info will refresh?" (boolean (and location leaflet-props))) ; TODO: remove popup debug logging
     (when (and location leaflet-props)
       [:map/feature-info-dispatcher leaflet-props location {:keep-popup? true}])))
 
@@ -657,10 +656,6 @@
               :leaflet-props leaflet-props
               :location point
               :show?    false})))]
-    (js/console.log "[popup] feature-info-dispatcher keep-popup?" (boolean keep-popup?) "request-id" (str request-id) ; TODO: remove popup debug logging
-                    "requests map-1/map-2" (count requests-1) (count requests-2) "will-request?" (boolean will-request?) "had-insecure?" (boolean had-insecure?)
-                    "existing feature map-1" (clj->js (select-keys (utils/get-independent-map-state db nil [:feature]) [:status :show?]))
-                    "existing feature map-2" (clj->js (select-keys (utils/get-independent-map-state db :map-2 [:feature]) [:status :show?])))
     (merge
      {:db
       (cond-> db
@@ -723,8 +718,6 @@
    in the popup view."
   [{:keys [db]} [_ popup-id map-id]]
   (let [{:keys [location status]} (utils/get-independent-map-state db map-id [:feature])]
-    (js/console.log "[popup] destroy-popup" (str map-id) "popup-id" popup-id "current id" (str ((juxt :lat :lng) location) status) ; TODO: remove popup debug logging
-                    "destroying?" (boolean (or (nil? popup-id) (= popup-id (str ((juxt :lat :lng) location) status)))))
     (when (or (nil? popup-id)
               (= popup-id (str ((juxt :lat :lng) location) status)))
       {:db

@@ -132,7 +132,6 @@
     [:div
      {:ref
       (fn [element]
-        (js/console.log "[popup] contents ref" (if element "mount" "unmount") "responses:" (count responses)) ; TODO: remove popup debug logging
         (when element
           (set! (.-innerHTML element) nil)
           (doseq [{:keys [_body _style] :as response} responses]
@@ -156,9 +155,7 @@
                         ;; destroy-popup can ignore remove events from popups that are merely being
                         ;; replaced (eg the "waiting" spinner unmounting when results arrive).
                         ;; map-id says which map the popup is on, for apps with independent maps:
-                        {:add    #(js/console.log "[popup] leaflet add" (str map-id) popup-id) ; TODO: remove popup debug logging
-                         :remove #(do (js/console.log "[popup] leaflet remove" (str map-id) popup-id) ; TODO: remove popup debug logging
-                                      (re-frame/dispatch [:map/popup-closed popup-id map-id]))})]
+                        {:remove #(re-frame/dispatch [:map/popup-closed popup-id map-id])})]
     (fn [_props & children]
       (into
        [leaflet/popup
@@ -170,7 +167,6 @@
        children))))
 
 (defn popup [{:keys [has-info? responses location status show? map-id] :as _feature-info}]
-  (js/console.log "[popup] render" (str map-id) "show?" show? "has-info?" has-info? "status" (str status) "popup-id" (str location status) "responses:" (count responses)) ; TODO: remove popup debug logging
   (when (and show? has-info?)
     ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
     (let [popup-id (str location status)]
