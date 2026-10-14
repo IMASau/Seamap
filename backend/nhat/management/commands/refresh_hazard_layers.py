@@ -336,7 +336,11 @@ class Command(BaseCommand):
         self.thredds_server_type, _ = catalogue.models.ServerType.objects.get_or_create(name="thredds")
         self.stdout.write(f"Loading hazard layers from {self.server_url}...")
         self.load_hazard_layers()
-        cache.delete("nhatlayer_list") # dataset changes don't trigger the cache-clearing signals in nhat.signals
+        # Dataset changes don't trigger the cache-clearing signals in nhat.signals, and
+        # cached legend responses (cache_page, keyed by URL hash) would otherwise keep
+        # pointing at NetCDF files the refresh may have removed. Everything cached is
+        # derived from the DB/servers, so clear it all.
+        cache.clear()
         for label, names in self.created.items():
             if names:
                 self.stdout.write(f"The following new {label} were created: {', '.join(sorted(names))}")

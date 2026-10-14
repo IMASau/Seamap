@@ -343,6 +343,7 @@
        {:dispatch   [:map/got-featureinfo request-id point nil nil nil []]}))))
 
 (defn show-popup [db [_ request-id]]
+  (js/console.log "[popup] show-popup request-id" (str request-id) "current request-id" (str (get-in db [:feature-query :request-id])) "has feature?" (boolean (:feature db))) ; TODO: remove popup debug logging
   (cond-> db
     (and (:feature db) (= (get-in db [:feature-query :request-id]) request-id))
     (assoc-in [:feature :show?] true)))
@@ -385,17 +386,21 @@
        :side-of-divider (map-utils/which-side-of-divider point db)})))
 
 (defn got-feature-info [db [_ request-id point info-format layers map-id response]]
+  (js/console.log "[popup] got-feature-info" (str map-id) "request-id" (str request-id) "current request-id" (str (utils/get-independent-map-state db map-id [:feature-query :request-id])) "remain before" (utils/get-independent-map-state db map-id [:feature-query :response-remain])) ; TODO: remove popup debug logging
   (if (not= request-id (utils/get-independent-map-state db map-id [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
     (let [db (-> db
                  (utils/update-independent-map-state map-id [:feature-query :response-remain] dec)
                  (utils/update-independent-map-state map-id [:feature-query :responses] #(conj % {:response response :info-format info-format :layers layers})))]
 
+      (when-not (pos? (utils/get-independent-map-state db map-id [:feature-query :response-remain])) ; TODO: remove popup debug logging
+        (js/console.log "[popup] got-feature-info last response, setting feature" (str map-id) (clj->js (dissoc (responses-feature-info db point map-id) :leaflet-props))))
       (if-not (pos? (utils/get-independent-map-state db map-id [:feature-query :response-remain]))
         (utils/assoc-independent-map-state db map-id [:feature] (responses-feature-info db point map-id)) ;; If this is the last response expected, update the displayed feature
         db))))
 
 (defn got-feature-info-error [db [_ request-id point map-id _]]
+  (js/console.log "[popup] got-feature-info-error" (str map-id) "request-id" (str request-id) "current request-id" (str (utils/get-independent-map-state db map-id [:feature-query :request-id]))) ; TODO: remove popup debug logging
   (if (not= request-id (utils/get-independent-map-state db map-id [:feature-query :request-id]))
     db ; Ignore late responses to old clicks
     (let [db (-> db
@@ -1109,6 +1114,7 @@
   (let [old-width  (get-in db [:feature :popup-width])
         old-height (get-in db [:feature :popup-height])
         dimensions-changed? (or (not= popup-width old-width) (not= popup-height old-height))]
+    (js/console.log "[popup] set-popup-dimensions" popup-width popup-height "old" old-width old-height "changed?" dimensions-changed?) ; TODO: remove popup debug logging
     (merge
      {:db
       (->
@@ -1146,7 +1152,10 @@
         map-lng         (cond-> map-lng
                           (pos? overflow-left) (- (* overflow-left x-to-lng))
                           (pos? overflow-right) (+ (* overflow-right x-to-lng)))]
-    (when feature {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]}))) ; only pan if still popup exists, otherwise the calculations are incorrect! ISA-491
+    (js/console.log "[popup] pan-to-popup has feature?" (boolean feature) "overflow t/b/l/r" overflow-top overflow-bottom overflow-left overflow-right) ; TODO: remove popup debug logging
+    (when (and feature ; only pan if still popup exists, otherwise the calculations are incorrect! ISA-491
+               (some pos? [overflow-top overflow-bottom overflow-left overflow-right])) ; and only if it doesn't fit; flying to the same view still moves the map, making layers redraw
+      {:dispatch [:map/update-map-view {:center [map-lat map-lng]}]})))
 
 (defn get-layer-legend
   "Retrieves the legend for a layer, if it hasn't already been retrieved.

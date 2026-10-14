@@ -466,44 +466,62 @@
   [db [_ seasonal-datas]]
   (assoc-in db [:current-view :seasonal-datas] seasonal-datas))
 
+(defn- refresh-feature-info
+  "If a feature info popup is open (or loading) on either map, returns an event to
+   re-query it at the same point, so its values match the newly displayed hazard
+   data after the current view changes. Either map's feature may be nil if that
+   map had no data at the point, so check both."
+  [db]
+  (let [{:keys [location leaflet-props]}
+        (or (utils/get-independent-map-state db nil [:feature])
+            (utils/get-independent-map-state db :map-2 [:feature]))]
+    (js/console.log "[popup] refresh-feature-info will refresh?" (boolean (and location leaflet-props))) ; TODO: remove popup debug logging
+    (when (and location leaflet-props)
+      [:map/feature-info-dispatcher leaflet-props location {:keep-popup? true}])))
+
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
    scenarios for analyzing hazard data."
   [{:keys [db]} [_ {cmip-phase-id :id :as cmip-phase} map-id]]
-  (let [cmip-phases (get-in db [:current-view :cmip-phases])]
+  (let [cmip-phases (get-in db [:current-view :cmip-phases])
+        db          (utils/assoc-independent-map-state db map-id [:current-view :selected-cmip-phase-id] cmip-phase-id)]
     (assert (some #{cmip-phase-id} (map :id cmip-phases)) (str "Selected CMIP phase " cmip-phase " is not a valid option"))
-    {:db (utils/assoc-independent-map-state db map-id [:current-view :selected-cmip-phase-id] cmip-phase-id)
-     :dispatch [:maybe-autosave]}))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
 
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data"
   [{:keys [db]} [_ {model-id :id :as model} map-id]]
-  (let [models (get-in db [:current-view :models])]
+  (let [models (get-in db [:current-view :models])
+        db     (utils/assoc-independent-map-state db map-id [:current-view :selected-model-id] model-id)]
     (assert (some #{model-id} (map :id models)) (str "Selected model " model " is not a valid option"))
-    {:db (utils/assoc-independent-map-state db map-id [:current-view :selected-model-id] model-id)
-     :dispatch [:maybe-autosave]}))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
 
 (defn current-view-selected-scenario
   "Scientific scenario to analyze the hazard data"
   [{:keys [db]} [_ {scenario-id :id :as scenario} map-id]]
-  (let [scenarios (get-in db [:current-view :scenarios])]
+  (let [scenarios (get-in db [:current-view :scenarios])
+        db        (utils/assoc-independent-map-state db map-id [:current-view :selected-scenario-id] scenario-id)]
     (assert (some #{scenario-id} (map :id scenarios)) (str "Selected scenario " scenario " is not a valid option"))
-    {:db (utils/assoc-independent-map-state db map-id [:current-view :selected-scenario-id] scenario-id)
-     :dispatch [:maybe-autosave]}))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
 
 (defn current-view-selected-seasonal-data
   "Season to view the hazard data under"
   [{:keys [db]} [_ {seasonal-data-id :id :as seasonal-data} map-id]]
-  (let [seasonal-datas (get-in db [:current-view :seasonal-datas])]
+  (let [seasonal-datas (get-in db [:current-view :seasonal-datas])
+        db             (utils/assoc-independent-map-state db map-id [:current-view :selected-seasonal-data-id] seasonal-data-id)]
     (assert (some #{seasonal-data-id} (map :id seasonal-datas)) (str "Selected seasonal data " seasonal-data " is not a valid option"))
-    {:db (utils/assoc-independent-map-state db map-id [:current-view :selected-seasonal-data-id] seasonal-data-id)
-     :dispatch [:maybe-autosave]}))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
 
 (defn current-view-is-historic?
   "Indicates whether the current view is for historic data."
   [{:keys [db]} [_ is-historic? map-id]]
-  {:db (utils/assoc-independent-map-state db map-id [:current-view :is-historic?] is-historic?)
-   :dispatch [:maybe-autosave]})
+  (let [db (utils/assoc-independent-map-state db map-id [:current-view :is-historic?] is-historic?)]
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
 
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data.
@@ -560,8 +578,13 @@
 
    Args:
    - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
-   - point:         The lat lng and x y pixel coords of the clicked point"
-  [{:keys [db]} [_ leaflet-props point]]
+   - point:         The lat lng and x y pixel coords of the clicked point
+   - opts:
+     - keep-popup?: Re-querying an already open popup (eg the current view or time
+                    changed); keep showing the existing popup contents until the
+                    new responses replace them, instead of hiding it and showing
+                    a loading spinner."
+  [{:keys [db]} [_ leaflet-props point {:keys [keep-popup?]}]]
   (let [layers                          (get-in db [:map :layers])
         rich-layer-fn                   (mutils/rich-layer-fn db)
         hazard-layers                   (nhatutils/hazard-layers layers)
@@ -597,7 +620,25 @@
          (map (fn [{:keys [info_format_type] :as layer}] [:map/get-feature-info info_format_type [layer] request-id leaflet-props point :map-2]))) ; 1 request per layer (per map)
 
         had-insecure? (some #(mutils/is-insecure? (:server_url %)) (concat visible-layers-1 visible-layers-2)) ; if any insecure layers on either map 1 or 2
-        will-request? (and (seq requests-1) (seq requests-2) (not had-insecure?))] ; will we request, or show "no data" popup?
+        will-request? (and (seq requests-1) (seq requests-2) (not had-insecure?)) ; will we request, or show "no data" popup?
+
+        ;; A map with no popup open still needs the waiting feature, as got-feature-info builds its feature from it
+        assoc-waiting-feature
+        (fn [db map-id]
+          (if (and keep-popup? (utils/get-independent-map-state db map-id [:feature]))
+            db
+            (utils/assoc-independent-map-state
+             db
+             map-id
+             [:feature]
+             {:status   :feature-info/waiting
+              :leaflet-props leaflet-props
+              :location point
+              :show?    false})))]
+    (js/console.log "[popup] feature-info-dispatcher keep-popup?" (boolean keep-popup?) "request-id" (str request-id) ; TODO: remove popup debug logging
+                    "requests map-1/map-2" (count requests-1) (count requests-2) "will-request?" (boolean will-request?) "had-insecure?" (boolean had-insecure?)
+                    "existing feature map-1" (clj->js (select-keys (utils/get-independent-map-state db nil [:feature]) [:status :show?]))
+                    "existing feature map-2" (clj->js (select-keys (utils/get-independent-map-state db :map-2 [:feature]) [:status :show?])))
     (merge
      {:db
       (cond-> db
@@ -614,13 +655,7 @@
            :response-remain   (count requests-1)
            :had-insecure?     had-insecure?
            :responses         []})
-         (utils/assoc-independent-map-state
-          nil
-          [:feature]
-          {:status   :feature-info/waiting
-           :leaflet-props leaflet-props
-           :location point
-           :show?    false})
+         (assoc-waiting-feature nil)
          (utils/assoc-independent-map-state
           :map-2
           [:feature-query]
@@ -628,14 +663,8 @@
            :response-remain   (count requests-2)
            :had-insecure?     had-insecure?
            :responses         []})
-         (utils/assoc-independent-map-state
-          :map-2
-          [:feature]
-          {:status   :feature-info/waiting
-           :leaflet-props leaflet-props
-           :location point
-           :show?    false})))
-      :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
+         (assoc-waiting-feature :map-2)))}
+      (when-not keep-popup? {:dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}})
       (when will-request? {:dispatch-n (concat requests-1 requests-2)})
       (when-not will-request? {:dispatch [:map/got-featureinfo request-id point nil nil nil []]})))) ; shows "no data" popup
 
@@ -672,6 +701,8 @@
    in the popup view."
   [{:keys [db]} [_ popup-id map-id]]
   (let [{:keys [location status]} (utils/get-independent-map-state db map-id [:feature])]
+    (js/console.log "[popup] destroy-popup" (str map-id) "popup-id" popup-id "current id" (str ((juxt :lat :lng) location) status) ; TODO: remove popup debug logging
+                    "destroying?" (boolean (or (nil? popup-id) (= popup-id (str ((juxt :lat :lng) location) status)))))
     (when (or (nil? popup-id)
               (= popup-id (str ((juxt :lat :lng) location) status)))
       {:db
@@ -724,12 +755,16 @@
    layers on the map).
 
    Overrides imas-seamap.map.events/time-set-current-time to stop playback when it
-   reaches the end of the available times."
+   reaches the end of the available times, and to refresh any open feature info
+   popup when the time changes (this event also fires on timeDimension's
+   \"timeload\" with the already-set time, which shouldn't re-query)."
   [{:keys [db]} [_ current-time map-id]]
-  (let [{:keys [db dispatch]} (mevents/time-set-current-time {:db db} [_ current-time map-id])
+  (let [time-changed?         (not= current-time (utils/get-independent-map-state db map-id [:display :current-time]))
+        {:keys [db dispatch]} (mevents/time-set-current-time {:db db} [_ current-time map-id])
         time-available-times  (nhatutils/time-available-times db map-id)
         is-last-time?         (= current-time (last time-available-times))]
     {:db db
      :dispatch-n
      (cond-> [dispatch]
-       is-last-time? (conj [:map.time/pause map-id]))}))
+       is-last-time? (conj [:map.time/pause map-id])
+       time-changed? (conj (refresh-feature-info db)))}))

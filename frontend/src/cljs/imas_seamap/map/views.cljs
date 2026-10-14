@@ -132,29 +132,51 @@
     [:div
      {:ref
       (fn [element]
+        (js/console.log "[popup] contents ref" (if element "mount" "unmount") "responses:" (count responses)) ; TODO: remove popup debug logging
         (when element
           (set! (.-innerHTML element) nil)
           (doseq [{:keys [_body _style] :as response} responses]
             (.appendChild element (create-shadow-dom-element response)))
           (re-frame/dispatch [:map/set-popup-dimensions (popup-dimensions element)])))}]))
 
+(defn- leaflet-popup
+  "A Leaflet popup whose props are created once, when the component mounts.
+
+   react-leaflet's Popup closes and reopens the Leaflet popup (remounting its
+   contents) whenever its position prop changes by reference, and rebinds its
+   event handlers whenever they change by reference. Reagent converts the props to
+   new JS objects every render, so if built each render, every change to the
+   popup contents (eg a refreshed value) would make the popup flicker. The popup
+   is keyed on location and status, so these props don't change for its lifetime."
+  [{:keys [location status map-id popup-id]} & _children]
+  (let [position       (clj->js location)
+        event-handlers (clj->js
+                        ;; Leaflet's built-in close button ("x") closes the popup without telling us,
+                        ;; leaving app-state thinking it's still open. Pass this popup's identity so
+                        ;; destroy-popup can ignore remove events from popups that are merely being
+                        ;; replaced (eg the "waiting" spinner unmounting when results arrive).
+                        ;; map-id says which map the popup is on, for apps with independent maps:
+                        {:add    #(js/console.log "[popup] leaflet add" (str map-id) popup-id) ; TODO: remove popup debug logging
+                         :remove #(do (js/console.log "[popup] leaflet remove" (str map-id) popup-id) ; TODO: remove popup debug logging
+                                      (re-frame/dispatch [:map/popup-closed popup-id map-id]))})]
+    (fn [_props & children]
+      (into
+       [leaflet/popup
+        {:position      position
+         :max-width     "100%"
+         :auto-pan      false
+         :class         (when (= status :feature-info/waiting) "waiting")
+         :eventHandlers event-handlers}]
+       children))))
+
 (defn popup [{:keys [has-info? responses location status show? map-id] :as _feature-info}]
+  (js/console.log "[popup] render" (str map-id) "show?" show? "has-info?" has-info? "status" (str status) "popup-id" (str location status) "responses:" (count responses)) ; TODO: remove popup debug logging
   (when (and show? has-info?)
     ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
     (let [popup-id (str location status)]
       ^{:key popup-id}
-      [leaflet/popup
-       {:position location
-        :max-width "100%"
-        :auto-pan false
-        :class (when (= status :feature-info/waiting) "waiting")
-        ;; Leaflet's built-in close button ("x") closes the popup without telling us,
-        ;; leaving app-state thinking it's still open. Pass this popup's identity so
-        ;; destroy-popup can ignore remove events from popups that are merely being
-        ;; replaced (eg the "waiting" spinner unmounting when results arrive).
-        ;; map-id says which map the popup is on, for apps with independent maps:
-        :eventHandlers {:remove #(re-frame/dispatch [:map/popup-closed popup-id map-id])}}
-
+      [leaflet-popup
+       {:location location :status status :map-id map-id :popup-id popup-id}
        ^{:key (str status responses)} [popup-contents {:status status :responses responses}]])))
 
 (defn distance-tooltip []
