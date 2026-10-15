@@ -116,7 +116,7 @@
    classification)."
   [{:keys [title summary]} on-close]
   [b/dialogue {:title    title
-               :class    "info-card"
+               :class    "info-card grouping-info-card"
                :is-open  (boolean summary)
                :on-close on-close}
    [:div.bp3-dialog-body
