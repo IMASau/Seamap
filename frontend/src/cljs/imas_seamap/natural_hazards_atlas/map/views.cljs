@@ -10,6 +10,10 @@
             ["react-leaflet"]
             ["esri-leaflet-renderers"]))
 
+;; Matches LISTmap's restrictedExtent (EPSG:3857 14900000,-7500000 17810000,-4500000)
+(def ^:private max-bounds
+  (map->bounds {:west 133.849 :south -55.7054 :east 159.99 :north -34.4356}))
+
 (defn- divider
   "Vertical divider that can be dragged left and right to adjust the split ratio of
    the maps.
@@ -75,7 +79,9 @@
              :zoom                 zoom
              :zoomControl          true
              :minZoom              2
-             :keyboard             false ; handled externally
+             :maxBounds            max-bounds
+             :maxBoundsViscosity   1.0
+             :keyboard            false ; handled externally
              :close-popup-on-click false ; We'll handle that ourselves
              :ref                  #(do (reset! map-a %) (when % (re-frame/dispatch [:map/update-leaflet-map %])))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
             (when (seq bounds) {:bounds (map->bounds bounds)}))
@@ -130,7 +136,9 @@
          [:div.side-by-side-map-2
           {:style {:height "100%" :width (str (- 100 split-ratio) "%") :display (if side-by-side-active? "block" "none")}}
           [leaflet/map-container
-           {:style {:height "100%"}
+           {:style              {:height "100%"}
+            :maxBounds          max-bounds
+            :maxBoundsViscosity 1.0
             :ref
             (fn [leaflet-map]
               (when (and leaflet-map (not= leaflet-map @map-b))
