@@ -8,7 +8,7 @@
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node legend-display]]
+            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node layer-control legend-display]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
@@ -100,6 +100,36 @@
     [:span.control.bp3-icon-large.bp3-icon-help.bp3-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
 
+(defn- set-summary-html!
+  "Ref callback body for rendering admin-authored summary HTML; links open in a
+   new tab unless the author specified a target."
+  [el html]
+  (when el
+    (set! (.-innerHTML el) html)
+    (let [hyperlinks (js/Array.prototype.slice.call (.getElementsByTagName el "a"))]
+      (doseq [hyperlink hyperlinks]
+        (when-not (.getAttribute hyperlink "target")
+          (.setAttribute hyperlink "target" "_blank"))))))
+
+(defn- grouping-info-card
+  "Dialog showing the summary of a catalogue grouping node (eg a data
+   classification)."
+  [{:keys [title summary]} on-close]
+  [b/dialogue {:title    title
+               :class    "info-card"
+               :is-open  (boolean summary)
+               :on-close on-close}
+   [:div.bp3-dialog-body
+    [:div.metadata-record
+     [:div {:ref #(set-summary-html! % summary)}]]]
+   [:div.bp3-dialog-footer
+    [:div.bp3-dialog-footer-actions
+     [b/button
+      {:text       "Close"
+       :auto-focus true
+       :intent     b/INTENT-PRIMARY
+       :on-click   on-close}]]]])
+
 (defn- ->sort-by [sorting-info ordering-key]
   (let [name-key-mapping (get sorting-info ordering-key)]
     ;; Sort by key first, then name (ie, return vector of [key name])
@@ -108,13 +138,14 @@
 (defn- layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   layer-props open-all? tma?]
+   layer-props open-all? tma? on-info]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
-        ;; sorting-info maps category key -> label -> [sort-key,id].
+        ;; sorting-info maps category key -> label -> [sort-key,id,display-name,summary].
         ;; We use the id for a stable node-id:
         :let [sorting-id (get-in sorting-info [ordering val 1])
               id-str (str id-base "|" sorting-id)
               display-name (get-in sorting-info [ordering val 2])
+              summary (get-in sorting-info [ordering val 3])
               expanded? (or (get expanded-states id-str false) open-all?)]]
     {:id id-str
      :label (reagent/as-element
@@ -124,13 +155,19 @@
                 :size  "22px"
                 :class (str "bp3-tree-node-caret" (when expanded? " bp3-tree-node-caret-open"))}]
               [b/clipped-text {:ellipsize true}
-               (or display-name "Ungrouped")]])
+               (or display-name "Ungrouped")]
+              (when (seq summary)
+                [:div.layer-controls.grouping-controls
+                 [layer-control
+                  {:tooltip  "Info"
+                   :icon     "info-sign"
+                   :on-click #(on-info {:title display-name :summary summary})}]])])
      :isExpanded expanded?
      :hasCaret   false
      :className  (-> ordering name (string/replace "_" "-"))
      :childNodes (concat
                   (if (seq ordering-remainder)
-                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all? tma?)
+                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all? tma? on-info)
                     (map-indexed
                      (fn [i layer]
                        (layer-catalogue-node
@@ -158,10 +195,14 @@
                    (let [{:keys [childNodes id]} (js->clj node :keywordize-keys true)]
                      (when (seq childNodes)
                        ;; If we have children, toggle expanded state, else add to map
-                       (re-frame/dispatch [:ui.catalogue/toggle-node catid id]))))]
+                       (re-frame/dispatch [:ui.catalogue/toggle-node catid id]))))
+        grouping-info (reagent/atom nil)
+        on-info #(reset! grouping-info %)]
     (fn [_catid layers ordering id layer-props open-all? tma?]
      [:div.tab-body {:id id}
-      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all? tma?)
+      ;; Rendered outside the tree so clicks in the dialog don't bubble to tree nodes
+      [grouping-info-card @grouping-info #(reset! grouping-info nil)]
+      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all? tma? on-info)
                :onNodeCollapse on-close
                :onNodeExpand on-open
                :onNodeClick on-click
@@ -432,14 +473,7 @@
        (when (seq metadata_summary)
          [:div
           [:h3 "About"]
-          [:p
-           {:ref
-            #(when %
-               (set! (.-innerHTML %) metadata_summary)
-               (let [hyperlinks (js/Array.prototype.slice.call (.getElementsByTagName % "a"))]
-                 (doseq [hyperlink hyperlinks]
-                   (when-not (.getAttribute hyperlink "target")
-                     (.setAttribute hyperlink "target" "_blank")))))}]])
+          [:p {:ref #(set-summary-html! % metadata_summary)}]])
 
        (when (seq constraints)
          [:div

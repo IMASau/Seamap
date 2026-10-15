@@ -218,6 +218,15 @@
                                 >.bp3-tree-node-caret {
                                     color: inherit;
                                 }
+
+                                >.bp3-text-overflow-ellipsis { min-width: 0; }
+
+                                // Right-aligned, and matches the grouping's text colour
+                                >.grouping-controls {
+                                    margin-left: auto;
+                                    padding-left: 6px;
+                                    .layer-control { color: inherit; }
+                                }
                             }
                         }
                     }
@@ -283,6 +292,15 @@
 
                         >.bp3-tree-node-caret {
                             color: inherit;
+                        }
+
+                        >.bp3-text-overflow-ellipsis { min-width: 0; }
+
+                        // Right-aligned, and matches the grouping's text colour
+                        >.grouping-controls {
+                            margin-left: auto;
+                            padding-left: 6px;
+                            .layer-control { color: inherit; }
                         }
                     }
                 }

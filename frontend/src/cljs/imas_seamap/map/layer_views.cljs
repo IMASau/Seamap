@@ -110,7 +110,7 @@
        (if (seq filters-text) 1000 0)}
       [b/clipped-text {:ellipsize true} (or (:name displayed-layer) name)]]]))
 
-(defn- layer-control
+(defn layer-control
   "Basic layer control. It's an icon with a tooltip that does something when
    clicked."
   [{:keys [tooltip icon on-click]}]

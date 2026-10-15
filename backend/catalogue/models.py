@@ -32,6 +32,7 @@ class DataClassification(models.Model):
     for third-party layers)"""
     name = models.CharField(max_length = 200)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
+    summary = HTMLField(null=True, blank=True)
 
     def __str__(self):
         return self.name
