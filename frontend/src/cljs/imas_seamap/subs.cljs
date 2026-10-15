@@ -3,10 +3,11 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.subs
     (:require [clojure.set :refer [rename-keys] :as set]
-              [imas-seamap.map.utils :refer [->dynamic-pill]]
+              [imas-seamap.map.utils :refer [db->ctx ->dynamic-pill] :as map-utils]
               [imas-seamap.utils :refer [first-where]]
               [imas-seamap.map.views :refer [point->latlng point-distance]]
-              #_[debux.cs.core :refer [dbg] :include-macros true]))
+              #_[debux.cs.core :refer [dbg] :include-macros true]
+              [imas-seamap.utils :as utils]))
 
 (defn scale-distance
   "Given a line from two x-y points and a percentage, return the point
@@ -41,15 +42,17 @@
         remainder-pct (/ (- pct lower) (- upper lower))]
     (scale-distance s1 s2 remainder-pct)))
 
-(defn feature-info [{:keys [feature] :as _db} _]
-  (if-let [{:keys [status location had-insecure? responses show?]} feature]
-    {:has-info?     true
-     :had-insecure? had-insecure?
-     :status        status
-     :responses     responses
-     :location      ((juxt :lat :lng) location)
-     :show?         show?}
-    {:has-info? false}))
+(defn feature-info [db [_ map-id]]
+  (let [{:keys [status location had-insecure? responses] :as feature} (utils/get-independent-map-state db map-id [:feature])]
+    (if feature
+      {:has-info?     true
+       :had-insecure? had-insecure?
+       :status        status
+       :responses     responses
+       :location      ((juxt :lat :lng) location)
+       :show?         (map-utils/popup-visible? db)
+       :map-id        map-id}
+      {:has-info? false})))
 
 (defn download-info [db _]
   (-> db
@@ -154,6 +157,16 @@
 (defn settings-overlay [db _]
   (get-in db [:display :settings-overlay]))
 
+(defn pinned-legends?
+  "Is the pinned legends panel open?"
+  [db _]
+  (get-in db [:display :pinned-legends?]))
+
+(defn pinned-legends-scale
+  "What is the scale of the pinned legends?"
+  [db _]
+  (get-in db [:display :pinned-legends-scale] 1))
+
 (defn right-sidebar [db _]
   (last (get-in db [:display :right-sidebars])))
 
@@ -161,7 +174,8 @@
   (get-in db [:display :open-pill]))
 
 (defn dynamic-pills [{{:keys [dynamic-pills]} :dynamic-pills :as db} _]
-  (let [dynamic-pills (mapv #(->dynamic-pill % db) dynamic-pills)]
+  (let [ctx (db->ctx db)
+        dynamic-pills (mapv #(->dynamic-pill % ctx) dynamic-pills)]
     {:filtered
      (filterv
       #(seq (:active-layers %))
@@ -200,3 +214,26 @@
     :habitat-observations-imagery-data-provider
     :habitat-observations-video-data-provider
     :habitat-observations-sediment-data-provider]))
+
+(defn split-layer-range-value
+  "Get the current value (percentage, represented between 0-1) of the divider for
+   the active side-by-side view.
+   The value 0 means the divider is on the very left side of the current map view,
+   1 on the very right, and 0.5 in the center."
+  [db _]
+  (get-in db [:display :split-layer-range-value] 0.5))
+
+(defn side-by-side-active?
+  "Whether the side-by-side maps are currently active.
+   True will show the split maps and divider, false will hide them and show a
+   single map."
+  [db _]
+  (get-in db [:display :side-by-side :active?] false))
+
+(defn side-by-side-split-ratio
+  "The current value (percentage, represented between 0-100) of the divider for the
+   side-by-side maps.
+   The value 0 means the divider is on the very left side of the viewport, 100
+   means the divider is on the very right, and 50 in the center."
+  [db _]
+  (get-in db [:display :side-by-side :split-ratio] 50))

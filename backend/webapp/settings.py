@@ -34,7 +34,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Application definition
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,7 +50,15 @@ INSTALLED_APPS = (
     'habitat',
     'sql',
     'carbonabatementsidebar',
-)
+]
+
+# Dynamically support additional apps; this environment variable
+# should be a comma-separated list of apps to load at the end of
+# INSTALLED_APPS (see webapp.urls for details of the app's AppConfig):
+if EXTRA_APPS := os.getenv("EXTRA_APPS", None):
+    EXTRA_APPS = EXTRA_APPS.split(",")
+    INSTALLED_APPS += EXTRA_APPS
+
 
 MIDDLEWARE = (
     'corsheaders.middleware.CorsMiddleware',
@@ -180,9 +188,15 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
     }
 }
 
 CSP_FRAME_ANCESTORS = ("'self'")
 CSP_SCRIPT_SRC = ("'self'")
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+
+TINYMCE_DEFAULT_CONFIG = {
+    'plugins': 'table',
+}

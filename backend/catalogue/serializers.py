@@ -62,7 +62,7 @@ class LayerSerializer(serializers.ModelSerializer):
             try:
                 plugin_module = importlib.import_module(module_name)
                 plugin_fn = getattr(plugin_module, fn_name)
-                return plugin_fn(self, obj)
+                return plugin_fn(obj)
             except ModuleNotFoundError:
                 logger.error(f"Error trying to import bbox path {bbox_fn}", exc_info=True)
                 raise
@@ -106,6 +106,11 @@ class RichLayerTimelineSerializer(serializers.ModelSerializer):
         model = models.RichLayerTimeline
         exclude = ('id', 'richlayer',)
 
+class RichLayerSideBySideViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.RichLayerSideBySideView
+        exclude = ('id', 'richlayer',)
+
 class RichLayerControlSerializer(serializers.ModelSerializer):
     default_value = serializers.SerializerMethodField()
     
@@ -124,6 +129,7 @@ class RichLayerControlSerializer(serializers.ModelSerializer):
 class RichLayerSerializer(serializers.ModelSerializer):
     alternate_views = RichLayerAlternateViewSerializer(many=True, read_only=True)
     timeline = RichLayerTimelineSerializer(many=True, read_only=True)
+    side_by_side_views =RichLayerSideBySideViewSerializer(many=True, read_only=True)
     controls = RichLayerControlSerializer(many=True, read_only=True)
 
     class Meta:

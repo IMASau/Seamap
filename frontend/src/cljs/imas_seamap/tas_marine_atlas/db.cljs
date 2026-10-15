@@ -54,6 +54,8 @@
                      :help-overlay          false
                      :welcome-overlay       true
                      :settings-overlay      false
+                     :pinned-legends?       false
+                     :pinned-legends-scale 1 ; initial scale of the pinned legends
                      :left-drawer           true
                      :left-drawer-tab       "catalogue"
                      :layers-search-omnibar false
@@ -65,7 +67,9 @@
                                              :selected  "tab-activelayers"}
                      :right-sidebars        []
                      :open-pill             nil
-                     :outage-message-open?  false}
+                     :outage-message-open?  false
+                     :split-layer-range-value nil
+                     :split-layer-container-x nil}
    :dynamic-pills {:dynamic-pills []
                    :states        {}
                    :async-datas   {}}

@@ -255,10 +255,13 @@
                           (assoc-in [:map :active-layers] active-layers)
                           (assoc-in [:map :active-base-layer] active-base))
 
-        {:keys [legend-ids opacity-ids]} db
+        {:keys [opacity-ids]} db
         layers        (get-in db [:map :layers])
-        legends-shown (init-layer-legend-status layers legend-ids)
-        legends-get   (map #(rich-layer->displayed-layer % db) legends-shown)
+        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the pinned legends panel when the app loads
+        ctx           (mutils/db->ctx db)
+        legends-get   (concat
+                       (map #(rich-layer->displayed-layer % ctx) legends-shown) ; displayed layers to get legends for
+                       (filter identity (map #(mutils/rich-layer->side-by-side-views-selected-layer % ctx) legends-shown))) ; get legends for any side-by-side views
         db            (-> db
                           (assoc-in [:layer-state :legend-shown] legends-shown)
                           (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
@@ -268,7 +271,7 @@
         rich-layers           (get-in db [:map :rich-layers :rich-layers])
         cql-get
         (->>
-         legend-ids
+         active ; get CQL filters for all applicable active layers
          (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
          (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
 
@@ -292,9 +295,9 @@
                (assoc-in [:map :active-layers] startup-layers)
                (assoc-in [:map :active-base-layer] (first (get-in db [:map :grouped-base-layers])))
                (assoc :initialised true))
-        {:keys [zoom center]} (:map db)]
+        {:keys [zoom center bounds]} (:map db)]
     {:db         db
-     :dispatch   [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center})]
+     :dispatch   [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center :bounds bounds})]
      :local-storage/remove
      {:name :seamap-app-state}}))
 
@@ -450,20 +453,19 @@
   (if-not (and (:seen-welcome cookies) (not force-open))
     {:db (assoc-in db [:display :welcome-overlay] true)}))
 
-(defn welcome-layer-close [{:keys [db]} _]
-  {:db         (assoc-in db [:display :welcome-overlay] false)
-   :cookie/set {:name  :seen-welcome
-                :value true}})
+(defn welcome-layer-close [{:keys [db]} [_ dont-show-again?]]
+  (cond-> {:db (assoc-in db [:display :welcome-overlay] false)}
+    dont-show-again? (assoc :cookie/set {:name :seen-welcome :value true}))) ; Can't do a simple :cookie/set `:value dont-show-again?` because that sets the value of the cookie to "false" instead of false, which is truthy. Better to only set the cookie if we are given a value.
 
 (defn layer-show-info [{:keys [db]} [_ layer]]
   (let [{:keys [metadata_url] :as displayed-layer}
-        (rich-layer->displayed-layer layer db)]
+        (rich-layer->displayed-layer layer (mutils/db->ctx db))]
     ;; This regexp: has been relaxed slightly; it used to be a strict
     ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
     ;; alpha-nums with optional hyphens. I assume this is from records
     ;; re-hosted in our server, but with IDs created externally, but
     ;; it's just not that important to be strict here, regardless:
-    (if (re-matches #"(?i)^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}$" metadata_url)
+    (if (and metadata_url (re-matches #"(?i)^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog.search#/metadata/[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}$" metadata_url))
       {:db         (assoc-in db [:display :info-card] :display.info/loading)
        :http-xhrio {:method          :get
                     :uri             (-> displayed-layer :metadata_url geonetwork-force-xml)
@@ -573,7 +575,8 @@
                                 :distance (linestring->distance linestring)
                                 :habitat :loading
                                 :bathymetry :loading})
-        visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers db-map))
+        ctx (mutils/db->ctx db)
+        visible-layers (map #(rich-layer->displayed-layer % ctx) (visible-layers db-map))
         habitat-layers (filter habitat-layer? visible-layers)]
     (merge
      {:db         db
@@ -612,7 +615,8 @@
        :message [status-text b/INTENT-DANGER]})))
 
 (defn transect-query-habitat [{{db-map :map :as db} :db} [_ query-id linestring]]
-  (let [visible-layers (map #(rich-layer->displayed-layer % db) (visible-layers db-map))
+  (let [ctx (mutils/db->ctx db)
+        visible-layers (map #(rich-layer->displayed-layer % ctx) (visible-layers db-map))
         habitat-layers (filter habitat-layer? visible-layers)
         ;; Note, we reverse because the top layer is last, so we want
         ;; its features to be given priority in this search, so it
@@ -708,12 +712,15 @@
   (assoc-in db [:transect :mouse-percentage] nil))
 
 (defn download-show-link [db [_ layer bounds download-type]]
-  (update-in db [:map :controls :download]
-             merge {:link         (download-link layer bounds download-type (get-in db [:config :url-base :api-url-base]))
-                    :layer        layer
-                    :type         download-type
-                    :bbox         bounds
-                    :display-link true}))
+  (let [api-url-base (get-in db [:config :url-base :api-url-base])
+        time         (mutils/ms-to-iso (get-in db [:display :current-time]))] ; time is necessary for GeoTIFF of Thredds layers. Without image x-axis is lat and y-axis is time, with x-axis is lon and y-axis is lat
+    (update-in
+     db [:map :controls :download]
+     merge {:link         (download-link layer bounds download-type api-url-base time)
+            :layer        layer
+            :type         download-type
+            :bbox         bounds
+            :display-link true})))
 
 (defn close-download-dialogue [db _]
   (assoc-in db [:map :controls :download :display-link] false))
@@ -860,8 +867,15 @@
 (defn layers-search-omnibar-close [db _]
   (assoc-in db [:display :layers-search-omnibar] false))
 
+;; Dispatched on every leaflet mousemove, so this runs at pointer-poll rate. The
+;; only consumer is `distance-tooltip`, which is hidden unless a transect
+;; distance exists; skip the write otherwise. Returning `db` unchanged means
+;; re-frame's :db effect leaves app-db untouched (it checks `identical?`), so no
+;; subscription is invalidated.
 (defn mouse-pos [db [_ mouse-pos]]
-  (assoc-in db [:display :mouse-pos] mouse-pos))
+  (if (get-in db [:transect :distance])
+    (assoc-in db [:display :mouse-pos] mouse-pos)
+    db))
 
 (defn toggle-autosave [{:keys [db]} _]
   (let [db        (update db :autosave? not)
@@ -882,6 +896,41 @@
 
 (defn settings-overlay [db [_ open?]]
   (assoc-in db [:display :settings-overlay] open?))
+
+(defn pinned-legends?
+  "Is the pinned legends panel open?
+   
+   Reset scale of legends to 100%"
+  [{:keys [db]} [_ open?]]
+  {:db
+   (->
+    db
+    (assoc-in [:display :pinned-legends?] open?)
+    (assoc-in [:display :pinned-legends-scale] 1))
+   :dispatch [:maybe-autosave]})
+
+(defn pinned-legends-scale
+  "What is the scale of the pinned legends?
+
+   Clamps function to arbitrary min/max range."
+  [{:keys [db]} [_ scale]]
+  {:db (assoc-in db [:display :pinned-legends-scale] (min (max scale 0.3) 1.5))
+   :dispatch [:maybe-autosave]})
+
+(defn split-layer-range-value [{:keys [db]} [_ split-layer-range-value split-layer-container-x]]
+  {:db       (-> db
+                 (assoc-in [:display :split-layer-range-value] split-layer-range-value)
+                 (assoc-in [:display :split-layer-container-x] split-layer-container-x))
+   :dispatch [:maybe-autosave]})
+
+(defn side-by-side-split-ratio
+  "The current value (percentage, represented between 0-100) of the divider for the
+   side-by-side maps.
+   The value 0 means the divider is on the very left side of the viewport, 100
+   means the divider is on the very right, and 50 in the center."
+  [{:keys [db]} [_ split-ratio]]
+  {:db       (assoc-in db [:display :side-by-side :split-ratio] split-ratio)
+   :dispatch [:maybe-autosave]})
 
 (defn- ->dynamic-pill [dynamic-pill]
   (->

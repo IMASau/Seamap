@@ -1,0 +1,38 @@
+.leaflet-sbs-range {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    z-index: 999;
+}
+.leaflet-sbs-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    margin-left: -2px;
+    width: 4px;
+    background-color: #fff;
+    pointer-events: none;
+    z-index: 999;
+}
+
+.leaflet-sbs-left-label,
+.leaflet-sbs-right-label {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    user-select: none;
+    z-index: 999;
+    background-color: rgba(255,255,255,.5019607843);
+    font-family: "BlinkMacSystemFont","Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Open Sans","Helvetica Neue","Icons16",sans-serif;
+    font-size: 13px;
+    padding: 2px 6px;
+    white-space: nowrap;
+    max-width: 200px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.leaflet-sbs-left-label {
+    transform: translateX(calc(-100%));
+}

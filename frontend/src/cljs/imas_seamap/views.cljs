@@ -8,17 +8,19 @@
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
             [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node]]
+            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node legend-display]]
             [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
             [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.utils :refer [handler-fn handler-dispatch first-where append-query-params] :include-macros true]
             [imas-seamap.components :as components]
-            [imas-seamap.map.utils :refer [layer-search-keywords]]
+            [imas-seamap.map.subs :as msubs]
+            [imas-seamap.map.utils :refer [download-type->str layer-search-keywords]]
             [imas-seamap.fx :refer [show-message]]
             [imas-seamap.subs.features]  ; Phase 3: feature flag subscriptions
             [imas-seamap.config.components :as components-registry]  ; Phase 4: component registry
             [imas-seamap.dev.deployment-switcher :as dev-switcher]  ; Test harness
+            [goog.string :as gstring]
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -145,7 +147,7 @@
                     [{:id (str id-str "-" (inc (count layer-subset)))
                       :className "tree-cap"}]))}))
 
-(defn- layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all?]
+(defn layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all?]
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes catid])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
@@ -209,7 +211,23 @@
       :on-click #(re-frame/dispatch [:toggle-autosave])
       :text     text}]))
 
-(defn- layer-search-filter []
+(defn pinned-legends-toggle
+  "Toggle button in settings menu to enable/disable pinned legends on map."
+  []
+  (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
+        
+        [icon text] (if pinned-legends?
+                      ["unpin" "Unpin Legends From Map View"]
+                      ["pin" "Pin Legends To Map View"])
+        toggle-pinned-legends-fn #(re-frame/dispatch [:ui/pinned-legends? (not pinned-legends?)])]
+    [b/button
+     {:icon     icon
+      :class    "bp3-fill"
+      :intent   b/INTENT-PRIMARY
+      :on-click toggle-pinned-legends-fn
+      :text     text}]))
+
+(defn layer-search-filter []
   (let [timeout-id (reagent/atom nil)] ; To store the timeout ID for the filter event dispatch
     (fn []
       [b/text-input
@@ -317,7 +335,7 @@
        [:<> "Welcome to" [:br] "Seamap Australia."])
       :class    "welcome-splash"
       :is-open  open?
-      :on-close #(re-frame/dispatch [:welcome-layer/close])}
+      :on-close #(re-frame/dispatch [:welcome-layer/close true])}
      [:div.bp3-dialog-body
       [:div.overview
        "Seamap Australia is a nationally synthesised product of
@@ -330,7 +348,7 @@
        {:text       "Get Started!"
         :intent     b/INTENT-PRIMARY
         :auto-focus true
-        :on-click   #(re-frame/dispatch [:welcome-layer/close])}]]
+        :on-click   #(re-frame/dispatch [:welcome-layer/close true])}]]
      [:div.bp3-dialog-footer
       [:h3 "Citations"]
       [:div.citation-section
@@ -392,13 +410,14 @@
     :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
    [:div.bp3-dialog-body
     [autosave-application-state-toggle]
-    [viewport-only-toggle]]])
+    [viewport-only-toggle]
+    [pinned-legends-toggle]]])
 
 (defn- metadata-record [_props]
   (let [expanded (reagent/atom false)
         {:keys [img-url-base]} @(re-frame/subscribe [:url-base])]
     (fn [{:keys [license-name license-link license-img constraints other]
-          {:keys [category organisation metadata_url server_url layer_name metadata_summary layer_type] :as layer} :layer}]
+          {:keys [category organisation metadata_url server_url layer_name metadata_summary layer_type metadata_content] :as layer} :layer}]
       [:div.metadata-record
 
        (when-let [logo (:logo @(re-frame/subscribe [:map/organisations organisation]))]
@@ -406,6 +425,10 @@
           [:img.metadata-img.org-logo
            {:class (string/replace logo #"\..+$" "")
             :src   (str img-url-base logo)}]])
+       
+       (when metadata_content
+         [:div.metadata-content
+          {:ref #(when % (set! (.-innerHTML %) metadata_content))}])
        
        (when (seq metadata_summary)
          [:div
@@ -467,37 +490,65 @@
          [:p.download-instructions
           "Downloading implies acceptance of all citation and usage requirements."])])))
 
-(defn- download-menu [{:keys [title disabled? layer bbox]}]
+(defn- download-menu [{:keys [title disabled? bbox] {:keys [download_format] :as layer} :layer}]
+  "Download menu for layers.
+   Layers with the WFS download format will have GeoTIFF, SHP, and CSV available, while WCS will only have GeoTIFF available.
+   Assumption for now that WFS and WCS are the only download formats that need to be supported."
   [b/popover {:position           b/BOTTOM
               :disabled           disabled?
               :popover-class-name "bp3-minimal"
-              :content            (reagent/as-element
-                                   [b/menu
-                                    [b/menu-item {:text     "GeoTIFF"
-                                                  :label    (reagent/as-element [b/icon {:icon "globe"}])
-                                                  :on-click (handler-dispatch [:map.layer/download
-                                                                               layer
-                                                                               bbox
-                                                                               :map.layer.download/geotiff])}]
-                                    [b/menu-item {:text     "SHP File"
-                                                  :label    (reagent/as-element [b/icon {:icon "polygon-filter"}])
-                                                  :on-click (handler-dispatch [:map.layer/download
-                                                                               layer
-                                                                               bbox
-                                                                               :map.layer.download/shp])}]
-                                    [b/menu-item {:text     "CSV"
-                                                  :label    (reagent/as-element [b/icon {:icon "th"}])
-                                                  :on-click (handler-dispatch [:map.layer/download
-                                                                               layer
-                                                                               bbox
-                                                                               :map.layer.download/csv])}]])}
+              :content
+              (reagent/as-element
+               [b/menu
+                (when (= download_format :map.layer.download-format/wfs)
+                  [b/menu-item {:text     "GeoTIFF"
+                                :label    (reagent/as-element [b/icon {:icon "globe"}])
+                                :on-click (handler-dispatch [:map.layer/download
+                                                             layer
+                                                             bbox
+                                                             :map.layer.download/geotiff-wms])}])
+                (when (= download_format :map.layer.download-format/wfs)
+                  [b/menu-item {:text     "SHP File"
+                                :label    (reagent/as-element [b/icon {:icon "polygon-filter"}])
+                                :on-click (handler-dispatch [:map.layer/download
+                                                             layer
+                                                             bbox
+                                                             :map.layer.download/shp])}])
+                (when (= download_format :map.layer.download-format/wfs)
+                  [b/menu-item {:text     "CSV"
+                                :label    (reagent/as-element [b/icon {:icon "th"}])
+                                :on-click (handler-dispatch [:map.layer/download
+                                                             layer
+                                                             bbox
+                                                             :map.layer.download/csv])}])
+                (when (= download_format :map.layer.download-format/wcs)
+                  [b/menu-item {:text     "GeoTIFF"
+                                :label    (reagent/as-element [b/icon {:icon "globe"}])
+                                :on-click (handler-dispatch [:map.layer/download
+                                                             layer
+                                                             bbox
+                                                             :map.layer.download/geotiff-wcs])}])
+                (when (= download_format :map.layer.download-format/thredds-wcs)
+                  [b/menu-item {:text     "NetCDF"
+                                :label    (reagent/as-element [b/icon {:icon "doughnut-chart"}])
+                                :on-click (handler-dispatch [:map.layer/download
+                                                             layer
+                                                             bbox
+                                                             :map.layer.download/netcdf-thredds-http])}])
+                (when (= download_format :map.layer.download-format/thredds-wcs)
+                      [b/menu-item {:text     "GeoTIFF"
+                                    :label    (reagent/as-element [b/icon {:icon "globe"}])
+                                    :on-click (handler-dispatch [:map.layer/download
+                                                                 layer
+                                                                 bbox
+                                                                 :map.layer.download/geotiff-thredds-wcs])}])])}
    [b/button {:text       title
               :disabled   disabled?
               :right-icon "caret-down"}]])
 
 (defn info-card []
   (let [layer-info       @(re-frame/subscribe [:map.layer/info])
-        {:keys [metadata_url category] :as layer} (:layer layer-info)
+        {:keys [metadata_url category download_format] :as layer} (:layer layer-info)
         title            (or (get-in layer-info [:layer :name]) "Layer Information")
         {:keys [region]} @(re-frame/subscribe [:map.layer.selection/info])]
     [b/dialogue {:title    title
@@ -521,11 +572,7 @@
      
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions
-       (when
-        (and
-         metadata_url
-         (re-matches #"^https://metadata\.imas\.utas\.edu\.au/geonetwork/srv/eng/catalog\.search#/metadata/[-0-9a-zA-Z]+$" metadata_url)
-         (= category :habitat))
+       (when download_format
          [:<>
           [download-menu {:title     "Download Selection..."
                           :layer     layer
@@ -538,6 +585,27 @@
          :auto-focus true
          :intent     b/INTENT-PRIMARY
          :on-click   #(re-frame/dispatch [:map.layer/close-info])}]]]]))
+
+(defn download-component []
+  (let [{:keys [display-link link bbox download-type download-layer]} @(re-frame/subscribe [:download/info])
+        type-str (download-type->str download-type)]
+    [b/dialogue
+     {:is-open   display-link
+      :title     (str "Download " type-str)
+      :icon      "import"
+      :on-close  #(re-frame/dispatch [:ui.download/close-dialogue])}
+     [:div.bp3-dialog-body
+      [:a
+       {:href     link
+        :target   "_blank"
+        :on-click #(re-frame/dispatch [:download-click {:link link :layer download-layer :type type-str}])}
+       "Click here to download " (when bbox "region ") "as " type-str]]
+     [:div.bp3-dialog-footer
+      [:div.bp3-dialog-footer-actions
+       [b/button
+        {:text     "Done"
+         :intent   b/INTENT-PRIMARY
+         :on-click #(re-frame/dispatch [:ui.download/close-dialogue])}]]]]))
 
 (defn control-block [& children]
   (into [:div.leaflet-bar.leaflet-control.leaflet-control-block] children))
@@ -564,21 +632,11 @@
        [b/icon {:icon icon :size 18}]])))
 
 (defn print-control []
-  [:div.print-control
-   [:a
-    {:id       "print-control"
-     :on-click #(-> "CurrentSize" js/document.getElementsByClassName first .click)
-     :title    "Export at Current Size"}
-    [b/icon {:icon "media" :size 18}]]
-   [:div.options
-    [:a
-     {:on-click #(-> "A4Landscape page" js/document.getElementsByClassName first .click)
-      :title    "A4 Landscape"}
-     [b/icon {:icon "document" :size 18 :style {:transform "rotate(-90deg)"}}]]
-    [:a
-     {:on-click #(-> "A4Portrait page" js/document.getElementsByClassName first .click)
-      :title    "A4 Portrait"}
-     [b/icon {:icon "document" :size 18}]]]])
+  [control-block-child
+   {:on-click #(re-frame/dispatch [:map.print/start])
+    :tooltip  "Export Map As Image"
+    :id       "print-control"
+    :icon     "media"}])
 
 (defn transect-control []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
@@ -627,7 +685,7 @@
       :icon      icon
       :id        "select-control"}]))
 
-(defn- leaflet-control-button [{:keys [on-click tooltip icon id]}]
+(defn leaflet-control-button [{:keys [on-click tooltip icon id]}]
   [:div.leaflet-bar.leaflet-control
    (when id {:id id})
    (if tooltip
@@ -785,6 +843,29 @@
       :icon icon
       :on-click #(re-frame/dispatch [:dynamic-pill/active dynamic-pill true])}]))
 
+(defn side-by-side-views-pill
+  [{:keys [layer displayed-layer side-by-side-views side-by-side-views-selected] :as rich-layer}]
+  (let [text (or (:display_name side-by-side-views-selected) (:name displayed-layer) (:name layer))]
+    [components/floating-pill-control-menu
+     {:text           text
+      :id             "state-of-knowledge-pill"
+      :icon           "arrows-horizontal"
+      :active?        (boolean side-by-side-views-selected)
+      :tooltip        text}
+     [components/form-group
+      {:label "Side-By-Side Compare"}
+      [:div
+       {:on-click #(.stopPropagation %)}
+       [components/select
+        {:value        side-by-side-views-selected
+         :options      side-by-side-views
+         :onChange     #(re-frame/dispatch [:map.rich-layer/side-by-side-views-selected rich-layer %])
+         :isSearchable true
+         :isClearable  true
+         :keyfns
+         {:id   #(get-in % [:layer :id])
+          :text #(get-in % [:display_name])}}]]]]))
+
 (defn floating-pills []
   (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
         state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
@@ -796,7 +877,8 @@
         ;; Feature flags for individual pills
         has-sok?                 @(re-frame/subscribe [:feature/enabled? :feature/state-of-knowledge])
         has-boundaries-pill?     @(re-frame/subscribe [:feature/enabled? :feature/boundaries-pill])
-        has-zones-pill?          @(re-frame/subscribe [:feature/enabled? :feature/zones-pill])]
+        has-zones-pill?          @(re-frame/subscribe [:feature/enabled? :feature/zones-pill])
+        rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
     [:div
      {:class (str "floating-pills" (when collapsed " collapsed"))}
 
@@ -825,9 +907,14 @@
      ;; Dynamic pills (always shown when floating-pills feature is enabled)
      (for [{:keys [id] :as dp} dynamic-pills]
        ^{:key (str id)}
-       [dynamic-pill dp])]))
+       [dynamic-pill dp])
+     (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
+       ^{:key (str id)}
+       [side-by-side-views-pill rich-layer])]))
 
-(defn layers-search-omnibar []
+(defn layers-search-omnibar
+  "Optionally takes the layers to search; defaults to all catalogue layers."
+  [& [layers]]
   (let [categories @(re-frame/subscribe [:map/categories-map])
         open?      @(re-frame/subscribe [:layers-search-omnibar/open?])
         {:keys [sorted-layers]} @(re-frame/subscribe [:map/layers])]
@@ -835,7 +922,7 @@
      {:placeholder  "Search Layers..."
       :isOpen       open?
       :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
-      :items        sorted-layers
+      :items        (or layers sorted-layers)
       :onItemSelect #(re-frame/dispatch [:map/add-layer-from-omnibar %])
       :keyfns
       {:id          :id
@@ -850,7 +937,13 @@
        :keywords    #(layer-search-keywords categories %)}}]))
 
 (defn left-drawer-catalogue []
-  (let [{:keys [filtered-layers active-layers visible-layers viewport-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])
+  (let [{:keys [filtered-layers active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
+        loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
+        error-ids       @(re-frame/subscribe [::msubs/error-layers])
+        expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
+        layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])
+        viewport-layers @(re-frame/subscribe [:map/layers.viewport])
         viewport-only? @(re-frame/subscribe [:map/viewport-only?])
         catalogue-layers (filterv #(or (not viewport-only?) ((set viewport-layers) %)) filtered-layers)]
     [:<>
@@ -858,21 +951,26 @@
      [layer-catalogue :main catalogue-layers
       {:active-layers  active-layers
        :visible-layers visible-layers
-       :loading-fn     loading-layers
-       :error-fn       error-layers
-       :expanded-fn    expanded-layers
-       :opacity-fn     layer-opacities
+       :loading-fn     #(contains? loading-ids (:id %))
+       :error-fn       #(contains? error-ids (:id %))
+       :expanded-fn    #(contains? expanded-ids (:id %))
+       :opacity-fn     #(get layer-opacities (:id %) 100)
        :rich-layer-fn  rich-layer-fn}]]))
 
 (defn left-drawer-active-layers []
-  (let [{:keys [active-layers visible-layers loading-layers error-layers expanded-layers layer-opacities rich-layer-fn]} @(re-frame/subscribe [:map/layers])]
+  (let [{:keys [active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
+        loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
+        error-ids       @(re-frame/subscribe [::msubs/error-layers])
+        expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
+        layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])]
     [active-layer-selection-list
      {:layers         active-layers
       :visible-layers visible-layers
-      :loading-fn     loading-layers
-      :error-fn       error-layers
-      :expanded-fn    expanded-layers
-      :opacity-fn     layer-opacities
+      :loading-fn     #(contains? loading-ids (:id %))
+      :error-fn       #(contains? error-ids (:id %))
+      :expanded-fn    #(contains? expanded-ids (:id %))
+      :opacity-fn     #(get layer-opacities (:id %) 100)
       :rich-layer-fn  rich-layer-fn}]))
 
 (defn left-drawer []
@@ -979,6 +1077,95 @@
             {:src preview-layer-url
              :onError #(reset! error? true)}])])))) ; if there's an error in displaying the image, then we keep track of it so we can instead display an error message
 
+(defn map-legends
+  "Pinned map legends panel.
+
+   Only displays if pinned legends setting is enabled.
+   Can be scaled up and down via scale control buttons in the panel.
+
+   Has resize observer and extra code to have scroll up/down buttons (client req)
+   that only appear when the legends panel reaches its maximum size.
+
+   Args:
+   * `legends: *vec[:map/legend]`: Ref to legends to display in the panel. Passing a 
+     ref and deferencing it in this component allows us to configure what legends are
+     displayed in the panel while also avoiding unnecessary re-renders of the parent
+     component.
+   * `position: #{:left :right}`: Where to position the panel. Defaults to `:left`."
+  [{:keys [_legends _position] :as _props}]
+  (let [legends-ref (reagent/atom nil)
+        scrollable? (reagent/atom false)
+        measure!    (fn [& _]
+                      (when-let [el @legends-ref]
+                        (reset! scrollable? (> (.-scrollHeight el) (.-clientHeight el)))))
+        ;; Watch the scroll container (its height changes with the window/plot)
+        ;; and each legend (their heights change with the scale, and as legend
+        ;; images load) so we know when there's anything to scroll to.
+        observer    (js/ResizeObserver. measure!)
+        observe!    (fn [& _]
+                      (.disconnect observer)
+                      (when-let [el @legends-ref]
+                        (.observe observer el)
+                        (doseq [child (array-seq (.-children el))]
+                          (.observe observer child))))
+        scroll-by   (fn [amount]
+                      (when-let [el @legends-ref]
+                        (.scrollBy el #js {:top amount :behavior "smooth"})))
+        set-scale-fn #(re-frame/dispatch [:ui/pinned-legends-scale %])]
+    (reagent/create-class
+     {:component-did-mount    observe!
+      :component-did-update   observe!
+      :component-will-unmount (fn [_] (.disconnect observer))
+      :reagent-render
+      (fn [{:keys [legends position]
+            :or {position :left}}]
+        (let [pinned-legends? @(re-frame/subscribe [:ui/pinned-legends?])
+              scale           @(re-frame/subscribe [:ui/pinned-legends-scale]) ; Should this sub be paired with :ui/pinned-legends?, so fewer sub calls?
+              legends         @legends
+              inc-scale-fn    #(set-scale-fn (+ scale 0.1))
+              dec-scale-fn    #(set-scale-fn (- scale 0.1))]
+          (when (and pinned-legends? (seq legends))
+            [:div.map-legends-panel
+             ; Scale is CSS var, consumed by legend elements lower to affect their scale in
+             ; styling. Works beautifully. Much better than "transform: scale", because it
+             ; affects element size in DOM.
+             {:style {"--legend-scale" scale}
+              :class (str "map-legends-panel map-legends-panel-" (name position))}
+             (when @scrollable?
+               [b/button
+                {:class    "legend-scroll-button"
+                 :icon     "chevron-up"
+                 :minimal  true
+                 :fill     true
+                 :on-click #(scroll-by -200)}])
+             [:div.map-legends
+              {:ref #(reset! legends-ref %)}
+              (for [{:keys [layer-id layer-name] :as legend} legends
+                    :when legend]
+                ^{:key (str layer-id)}
+                [:div.pinned-legend
+                 [:h2 layer-name]
+                 [legend-display legend]])]
+             [:div.scale-controls
+              [b/button
+               {:icon     "plus"
+                :minimal  true
+                :on-click inc-scale-fn}]
+              [b/button
+               {:icon     "minus"
+                :minimal  true
+                :on-click dec-scale-fn}]
+              ; Scale is a float, and repeated increments accumulate floating
+              ; point error, so round before displaying.
+              [:span.scale-percentage (gstring/format "%d%%" (js/Math.round (* scale 100)))]]
+             (when @scrollable?
+               [b/button
+                {:class    "legend-scroll-button"
+                 :icon     "chevron-down"
+                 :minimal  true
+                 :fill     true
+                 :on-click #(scroll-by 200)}])])))})))
+
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [m keydown-v]
@@ -1072,9 +1259,13 @@
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
+        plot-open?         @(re-frame/subscribe [:transect.plot/show?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])
+        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])
+        side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])
 
         ;; Phase 4: Configuration-driven layout
         css-class          @(re-frame/subscribe [:branding/css-class])
@@ -1087,7 +1278,9 @@
      {:class (str css-class
                   (when catalogue-open? " catalogue-open")
                   (when right-drawer-open? " right-drawer-open")
-                  (when loading? " loading"))}
+                  (when loading? " loading")
+                  (when plot-open? " plot-open")
+                  (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
 
@@ -1096,7 +1289,9 @@
         (for [component-key footer-components]
           ^{:key component-key}
           (when-let [component (components-registry/get-component component-key)]
-            [component])))]
+            [component])))
+      [map-legends {:legends legends}]
+      [map-legends {:legends side-by-side-legends :position :right}]]
      
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [helper-overlay
@@ -1131,6 +1326,7 @@
      (when has-settings?
        [settings-overlay])
      [info-card]
+     [download-component]
      [loading-display]
      [left-drawer]
      [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]

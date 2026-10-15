@@ -1,0 +1,785 @@
+;;; Seamap: view and interact with Australian coastal habitat data
+;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
+;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+(ns imas-seamap.natural-hazards-atlas.events
+  (:require [ajax.core :as ajax]
+            [imas-seamap.natural-hazards-atlas.db :as db]
+            [imas-seamap.utils :as utils :refer [copy-text merge-in ids->layers first-where]]
+            [imas-seamap.map.events :as mevents]
+            [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities rich-layer->displayed-layer]]
+            [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
+            #_[debux.cs.core :refer [dbg] :include-macros true]))
+
+(defn- boot-flow
+  "Like imas-seamap.events/boot-flow, but we don't dispatch the events that load
+   region reports and state of knowledge data since those aren't present in the
+   Natural Hazards Atlas."
+  []
+  {:first-dispatch [:ui/show-loading "Loading Natural Hazards Atlas..."]
+   :rules
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
+    {:when :seen? :events :construct-urls :dispatch [:initialise-layers]}
+    {:when :seen-all-of? :events [:map/update-base-layers
+                                  :map/update-base-layer-groups]
+     :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layers]
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
+    {:when :seen-all-of? :events [:map/update-grouped-base-layers
+                                  :map/update-layers
+                                  :map/update-organisations
+                                  :map/update-classifications
+                                  :map/update-descriptors
+                                  :map/update-categories
+                                  :map/update-keyed-layers
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers
+                                  :current-view/update-cmip-phases
+                                  :current-view/update-models
+                                  :current-view/update-scenarios
+                                  :current-view/update-seasonal-datas]
+     :dispatch-n [[:map/initialise-display]
+                  [:transect/maybe-query]]}
+    {:when :seen? :events :ui/hide-loading
+     :dispatch-n [[:welcome-layer/open]
+                  [:display.outage-message/open true]]
+     :halt? true}
+    {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
+
+(defn- boot-flow-hash-state
+    "Like imas-seamap.events/boot-flow-hash-state, but we don't dispatch the events
+     that load region reports and state of knowledge data since those aren't present
+     in the Natural Hazards Atlas."
+  [hash-code]
+  {:first-dispatch [:ui/show-loading "Loading Natural Hazards Atlas..."]
+   :rules
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
+    {:when :seen? :events :construct-urls :dispatch [:load-hash-state hash-code]}
+    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+    {:when :seen-all-of? :events [:map/update-base-layers
+                                  :map/update-base-layer-groups]
+     :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layers]
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
+    {:when :seen-all-of? :events [:map/update-grouped-base-layers
+                                  :map/update-layers
+                                  :map/update-organisations
+                                  :map/update-classifications
+                                  :map/update-descriptors
+                                  :map/update-categories
+                                  :map/update-keyed-layers
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers
+                                  :current-view/update-cmip-phases
+                                  :current-view/update-models
+                                  :current-view/update-scenarios
+                                  :current-view/update-seasonal-datas]
+     :dispatch-n [[:map/initialise-display]
+                  [:transect/maybe-query]]}
+    {:when :seen? :events :ui/hide-loading
+     :dispatch-n [[:welcome-layer/open]
+                  [:display.outage-message/open true]]
+     :halt? true}
+    {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
+
+(defn- boot-flow-save-state
+  "Like imas-seamap.events/boot-flow-save-state, but we don't dispatch the events
+   that load region reports and state of knowledge data since those aren't present
+   in the Natural Hazards Atlas."
+  [shortcode]
+  {:first-dispatch [:ui/show-loading "Loading Natural Hazards Atlas..."]
+   :rules
+   [{:when :seen? :events :ui/show-loading :dispatch [:construct-urls]}
+    {:when :seen? :events :construct-urls :dispatch [:get-save-state shortcode [:load-hash-state]]}
+    {:when :seen? :events :load-hash-state :dispatch [:initialise-layers]}
+    {:when :seen-all-of? :events [:map/update-base-layers
+                                  :map/update-base-layer-groups]
+     :dispatch [:map/update-grouped-base-layers]}
+    {:when :seen-all-of? :events [:map/update-layers
+                                  :map/update-keyed-layers
+                                  :map/update-rich-layers]
+     :dispatch-n [[:map/join-keyed-layers]
+                  [:map/join-rich-layers]]}
+    {:when :seen-all-of? :events [:map/update-grouped-base-layers
+                                  :map/update-layers
+                                  :map/update-organisations
+                                  :map/update-classifications
+                                  :map/update-descriptors
+                                  :map/update-categories
+                                  :map/update-keyed-layers
+                                  :map/join-keyed-layers
+                                  :map/join-rich-layers
+                                  :current-view/update-cmip-phases
+                                  :current-view/update-models
+                                  :current-view/update-scenarios
+                                  :current-view/update-seasonal-datas]
+     :dispatch-n [[:map/initialise-display]
+                  [:transect/maybe-query]]}
+    {:when :seen? :events :ui/hide-loading
+     :dispatch-n [[:welcome-layer/open]
+                  [:display.outage-message/open true]]
+     :halt? true}
+    {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
+
+(defn construct-urls [db _]
+  (let [{:keys
+         [site-configuration
+          layer
+          base-layer
+          base-layer-group
+          organisation
+          classification
+          region-stats
+          descriptor
+          save-state
+          category
+          keyed-layers
+          rich-layers
+          region-reports
+          dynamic-pills
+          layer-legend
+          cql-filter-values
+          dynamic-pill-region-control-values
+          layer-previews
+          story-maps
+          cmip-phases
+          scientific-models
+          scenarios
+          seasons]}
+        (get-in db [:config :url-paths])
+        {:keys [api-url-base media-url-base wordpress-url-base _img-url-base]} (get-in db [:config :url-base])]
+    (assoc-in
+     db [:config :urls]
+     {:site-configuration-url      (str api-url-base site-configuration)
+      :layer-url                   (str api-url-base layer)
+      :base-layer-url              (str api-url-base base-layer)
+      :base-layer-group-url        (str api-url-base base-layer-group)
+      :organisation-url            (str api-url-base organisation)
+      :classification-url          (str api-url-base classification)
+      :region-stats-url            (str api-url-base region-stats)
+      :descriptor-url              (str api-url-base descriptor)
+      :save-state-url              (str api-url-base save-state)
+      :category-url                (str api-url-base category)
+      :keyed-layers-url            (str api-url-base keyed-layers)
+      :rich-layers-url             (str api-url-base rich-layers)
+      :region-reports-url          (str api-url-base region-reports)
+      :dynamic-pills-url           (str api-url-base dynamic-pills)
+      :layer-legend-url            (str api-url-base layer-legend)
+      :cql-filter-values-url       (str api-url-base cql-filter-values)
+      :dynamic-pill-region-control-values-url (str api-url-base dynamic-pill-region-control-values)
+      :layer-previews-url          (str media-url-base layer-previews)
+      :story-maps-url              (str wordpress-url-base story-maps)
+      :cmip-phases-url             (str api-url-base cmip-phases)
+      :scientific-models-url       (str api-url-base scientific-models)
+      :scenarios-url               (str api-url-base scenarios)
+      :seasons-url                 (str api-url-base seasons)})))
+
+(defn boot
+  "Identical to imas-seamap.events/boot, just triggers the private versions of the
+   boot flow functions that don't load region reports and state of knowledge data."
+  [{:keys [save-code hash-code] {:keys [seamap-app-state]} :local-storage/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
+  {:db         (assoc-in
+                db/default-db [:config :url-base]
+                {:api-url-base       api-url-base
+                 :media-url-base     media-url-base
+                 :wordpress-url-base wordpress-url-base
+                 :img-url-base       img-url-base})
+   :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
+                 (seq save-code)    (boot-flow-save-state save-code)    ; A shortform save-code that can be used to query for a hash-code
+                 (seq hash-code)    (boot-flow-hash-state hash-code)    ; A hash-code that can be decoded into th DB's initial state
+                 (seq seamap-app-state) (boot-flow-hash-state seamap-app-state) ; Same as hash-code, except that we use the one stored in local storage
+                 :else              (boot-flow))})                      ; No information, so we start with an empty DB
+
+(defn merge-state
+  "Takes a hash-code and merges it into the current application state.
+   
+   Like imas-seamap.events/merge-state, but uses the NHAT version of parse-state,
+   which doesn't include state of knowledge, but does include the current view
+   (selections of model, scenario, seasonal data, and time period)."
+  [{:keys [db]} [_ hash-code]]
+  (let [parsed-state (-> (nhatutils/parse-state hash-code)
+                         (dissoc :story-maps))
+        parsed-state (-> parsed-state
+                         (update
+                          :display
+                          dissoc
+                          :left-drawer ; discard the left drawer open/closed state
+                          :right-sidebars) ; discard the right sidebar state
+                         (cond->
+                          (not (get-in parsed-state [:display :left-drawer])) ; if the left drawer was closed, then discard the tab state
+                           (update :display dissoc :left-drawer-tab)))
+        db           (merge-in db parsed-state)
+        {:keys [active active-base zoom center]} (:map db)
+        startup-layers (get-in db [:map :keyed-layers :startup] [])
+
+        active-layers (if active
+                        (vec (ids->layers active (get-in db [:map :layers])))
+                        startup-layers)
+        active-base   (->> (get-in db [:map :grouped-base-layers]) (filter (comp #(= active-base %) :id)) first)
+        db            (-> db
+                          (assoc-in [:map :active-layers] active-layers)
+                          (assoc-in [:map :active-base-layer] active-base))
+
+        {:keys [opacity-ids]} db
+        layers        (get-in db [:map :layers])
+        ctx           (mutils/db->ctx db)
+        legends-shown (init-layer-legend-status layers active) ; get legends for all active layers - needed so legends can display in the hazard legends panel when the app loads
+        legends-get   (concat
+                       (map #(rich-layer->displayed-layer % ctx) legends-shown) ; displayed layers to get legends for
+                       (filter identity (map #(mutils/rich-layer->side-by-side-views-selected-layer % ctx) legends-shown))) ; get legends for any side-by-side views
+        db            (-> db
+                          (assoc-in [:layer-state :legend-shown] legends-shown)
+                          (assoc-in [:layer-state :opacity] (init-layer-opacities layers opacity-ids)))
+
+        feature-location      (get-in db [:feature :location])
+        feature-leaflet-props (get-in db [:feature :leaflet-props])
+        rich-layers (get-in db [:map :rich-layers :rich-layers])
+        cql-get
+        (->>
+         active ; get CQL filters for all applicable active layers
+         (mapv #(get-in db [:map :rich-layers :layer-lookup %]))
+         (mapv (fn [id] (first-where #(= (:id %) id) rich-layers))))
+
+        dynamic-pills (get-in db [:dynamic-pills :dynamic-pills])
+        active-dynamic-pills (filter #(get-in db [:dynamic-pills :states (:id %) :active?]) dynamic-pills)]
+    {:db         db
+     :dispatch-n
+     (concat
+      [[:map/update-map-view {:zoom zoom :center center}]
+       (when (and feature-location feature-leaflet-props)
+         [:map/feature-info-dispatcher feature-leaflet-props feature-location])
+       [:map/popup-closed]]
+      (mapv #(vector :map.layer/get-legend %) (filter identity legends-get))
+      (mapv #(vector :map.rich-layer/get-cql-filter-values %) (filter identity cql-get))
+      (mapv #(vector :dynamic-pill.region-control/get-values %) active-dynamic-pills))}))
+
+(defn re-boot
+  "Identical to imas-seamap.events/re-boot, just triggers the private versions of
+   the boot flow functions that don't load region reports and state of knowledge
+   data."
+ [{:keys [db]} _]
+  (let [db (merge-in db/default-db (nhatutils/ajax-loaded-info db))
+        startup-layers (get-in db [:map :keyed-layers :startup] [])
+        db (-> db
+               (assoc-in [:map :active-layers] startup-layers)
+               (assoc-in [:map :active-base-layer] (first (get-in db [:map :grouped-base-layers])))
+               (assoc :initialised true))
+        {:keys [zoom center bounds]} (:map db)]
+    {:db         db
+     :dispatch   [:map/update-map-view (if (seq startup-layers) {:bounds (:bounding_box (first startup-layers))} {:zoom zoom :center center :bounds bounds})]
+     :local-storage/remove
+     {:name :seamap-app-state}}))
+
+(defn load-hash-state
+  [{:keys [db]} [_ hash-code]]
+  (let [db (merge-in db (nhatutils/parse-state hash-code))]
+    (merge
+     {:db db}
+     (when (and hash-code (not= hash-code "null"))
+       {:dispatch [:map/update-map-view (assoc (:map db) :instant? true)]}))))
+
+(defn initialise-layers
+  "Like imas-seamap.events/initialise-layers, but we don't dispatch requests for
+   region reports or state of knowledge data."
+  [{:keys [db]} _]
+  (let [{:keys [site-configuration-url
+                layer-url
+                base-layer-url
+                base-layer-group-url
+                organisation-url
+                classification-url
+                descriptor-url
+                category-url
+                keyed-layers-url
+                rich-layers-url
+                dynamic-pills-url
+                story-maps-url
+                cmip-phases-url
+                scientific-models-url
+                scenarios-url
+                seasons-url]} (get-in db [:config :urls])]
+    {:db         db
+     :http-xhrio [{:method          :get
+                   :uri             site-configuration-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-site-configuration]
+                   :on-failure      [:update-site-configuration/error-handler]}
+                  {:method          :get
+                   :uri             layer-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             base-layer-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-base-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             base-layer-group-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-base-layer-groups]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             descriptor-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-descriptors]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             classification-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-classifications]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             organisation-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-organisations]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             category-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-categories]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             keyed-layers-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-keyed-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             rich-layers-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:map/update-rich-layers]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             dynamic-pills-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:update-dynamic-pills]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             story-maps-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:sm/update-featured-maps]
+                   :on-failure      [:sm/update-featured-maps []]}
+                  {:method          :get
+                   :uri             cmip-phases-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:current-view/update-cmip-phases]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             scientific-models-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:current-view/update-models]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             scenarios-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:current-view/update-scenarios]
+                   :on-failure      [:ajax/default-err-handler]}
+                  {:method          :get
+                   :uri             seasons-url
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:current-view/update-seasonal-datas]
+                   :on-failure      [:ajax/default-err-handler]}]}))
+
+(defn create-save-state
+  "Like imas-seamap.events/create-save-state, but uses the NHAT version of
+   encode-state, which doesn't include state of knowledge, but does include the
+   current view (selections of model, scenario, seasonal data, and time period)."
+  [{:keys [db]} _]
+  (copy-text js/location.href)
+  (let [save-state-url (get-in db [:config :urls :save-state-url])]
+    {:http-xhrio [{:method          :post
+                   :uri             save-state-url
+                   :params          {:hashstate (nhatutils/encode-state db)}
+                   :format          (ajax/json-request-format)
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:create-save-state-success]
+                   :on-failure      [:create-save-state-failure]}]}))
+
+(defn maybe-autosave
+  "Like imas-seamap.events/maybe-autosave, but uses the NHAT version of
+   encode-state, which doesn't include state of knowledge, but does include the
+   current view (selections of model, scenario, seasonal data, and time period)."
+  [{{:keys [autosave?] :as db} :db} _]
+  (when autosave?
+    {:local-storage/set
+     {:name  :seamap-app-state
+      :value (nhatutils/encode-state db)}
+     :put-hash   ""}))
+
+(defn side-by-side-active?
+  "Whether the side-by-side maps are currently active.
+   True will show the split maps and divider, false will hide them and show a
+   single map.
+
+   Duplicates the current view for :map-2 (hardcoded) so that it is independently
+   controlled from the default single map."
+  [{:keys [db]} [_ active?]]
+  (let [current-view (get db :current-view)
+        current-time (get-in db [:display :current-time])]
+    {:db
+     (->
+      db
+      (assoc-in [:display :side-by-side :active?] active?)
+      (utils/assoc-independent-map-state :map-2 [:current-view] current-view)
+      (utils/assoc-independent-map-state :map-2 [:display :load-time] current-time)) ; time that is set after time dimension loads (if this is the first time the time dimension has loaded)
+     :dispatch-n
+     [[:maybe-autosave]
+      [:map.time/pause]
+      [:map.time/current-time current-time :map-2]]}))
+
+(defn current-view-update-cmip-phases
+  "From the REST API, update the CMIP phases the user can select in the current
+   view.
+
+   Update the selected CMIP phase to be the first in the list, if no selected phase
+   exists."
+  [db [_ cmip-phases]]
+  (assoc-in db [:current-view :cmip-phases] cmip-phases))
+
+(defn current-view-update-models
+  "From the REST API, update the scientific models the user can select in the
+   current view.
+
+   Update the selected model to be the first in the list, if no selected model
+   exists."
+  [db [_ models]]
+  (assoc-in db [:current-view :models] models))
+
+(defn current-view-update-scenarios
+  "From the REST API, update the scenarios the user can select in the current view.
+
+   Update the selected scenario to be the first in the list, if no selected
+   scenario exists."
+  [db [_ scenarios]]
+  (assoc-in db [:current-view :scenarios] scenarios))
+
+(defn current-view-update-seasonal-datas
+  "From the REST API, update the seasons the user can select in the current view.
+
+   Update the selected season to be the first in the list, if no selected season
+   exists."
+  [db [_ seasonal-datas]]
+  (assoc-in db [:current-view :seasonal-datas] seasonal-datas))
+
+(defn- refresh-feature-info
+  "If a feature info popup is open (or loading) on either map, returns an event to
+   re-query it at the same point, so its values match the newly displayed hazard
+   data after the current view changes. Either map's feature may be nil if that
+   map had no data at the point, so check both."
+  [db]
+  (let [{:keys [location leaflet-props]}
+        (or (utils/get-independent-map-state db nil [:feature])
+            (utils/get-independent-map-state db :map-2 [:feature]))]
+    (when (and location leaflet-props)
+      [:map/feature-info-dispatcher leaflet-props location {:keep-popup? true}])))
+
+(defn current-view-selected-cmip-phase
+  "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
+   scenarios for analyzing hazard data."
+  [{:keys [db]} [_ {cmip-phase-id :id :as cmip-phase} map-id]]
+  (let [cmip-phases (get-in db [:current-view :cmip-phases])
+        db          (utils/assoc-independent-map-state db map-id [:current-view :selected-cmip-phase-id] cmip-phase-id)]
+    (assert (some #{cmip-phase-id} (map :id cmip-phases)) (str "Selected CMIP phase " cmip-phase " is not a valid option"))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
+
+(defn current-view-selected-model
+  "Scientific model to analyze the hazard data"
+  [{:keys [db]} [_ {model-id :id :as model} map-id]]
+  (let [models (get-in db [:current-view :models])
+        db     (utils/assoc-independent-map-state db map-id [:current-view :selected-model-id] model-id)]
+    (assert (some #{model-id} (map :id models)) (str "Selected model " model " is not a valid option"))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
+
+(defn current-view-selected-scenario
+  "Scientific scenario to analyze the hazard data"
+  [{:keys [db]} [_ {scenario-id :id :as scenario} map-id]]
+  (let [scenarios (get-in db [:current-view :scenarios])
+        db        (utils/assoc-independent-map-state db map-id [:current-view :selected-scenario-id] scenario-id)]
+    (assert (some #{scenario-id} (map :id scenarios)) (str "Selected scenario " scenario " is not a valid option"))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
+
+(defn current-view-selected-seasonal-data
+  "Season to view the hazard data under"
+  [{:keys [db]} [_ {seasonal-data-id :id :as seasonal-data} map-id]]
+  (let [seasonal-datas (get-in db [:current-view :seasonal-datas])
+        db             (utils/assoc-independent-map-state db map-id [:current-view :selected-seasonal-data-id] seasonal-data-id)]
+    (assert (some #{seasonal-data-id} (map :id seasonal-datas)) (str "Selected seasonal data " seasonal-data " is not a valid option"))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
+
+(defn- sync-time-to-time-period
+  "Moves the map's time to suit its (newly) selected time period: periods with a
+   display year are fixed to that year with playback stopped; otherwise, if the
+   current time isn't available in the period, reset to the first available time
+   in its range."
+  [db map-id]
+  (let [{:keys [display-year] :as time-period} (nhatutils/current-view-selected-time-period db map-id)
+        current-time                           (utils/get-independent-map-state db map-id [:display :current-time])
+        available-times                        (utils/get-independent-map-state db map-id [:display :available-times])
+        time                                   (nhatutils/time-period-time time-period current-time available-times)]
+    {:db         (cond-> db
+                   time (utils/assoc-independent-map-state map-id [:display :load-time] time)) ; so the time is kept if timeDimension reloads its available times
+     :dispatch-n [(when display-year [:map.time/pause map-id])
+                  (when (and time (not= time current-time)) [:map.time/current-time time map-id])]}))
+
+(defn current-view-is-historic?
+  "Indicates whether the current view is for historic data."
+  [{:keys [db]} [_ is-historic? map-id]]
+  (let [db                      (utils/assoc-independent-map-state db map-id [:current-view :is-historic?] is-historic?)
+        {:keys [db dispatch-n]} (sync-time-to-time-period db map-id)] ; historic data is always "all", but projected data may be fixed to a display year
+    {:db db
+     :dispatch-n (into dispatch-n [[:maybe-autosave] (refresh-feature-info db)])}))
+
+(defn current-view-selected-time-period
+  "Time period to analyze the hazard data.
+
+   If the period has a display year, fix the time to that year. Otherwise, if the
+   currently selected time isn't avaliable in the new period, reset to the first
+   available time in the range."
+  [{:keys [db]} [_ {time-period-id :id :as time-period} map-id]]
+  (assert (some #{time-period-id} (map :id nhatutils/time-periods)) (str "Selected time period " time-period " is not a valid option"))
+  (let [db                      (utils/assoc-independent-map-state db map-id [:current-view :selected-time-period-id] time-period-id)
+        {:keys [db dispatch-n]} (sync-time-to-time-period db map-id)]
+    {:db db
+     :dispatch-n (conj dispatch-n [:maybe-autosave])}))
+
+(defn time-available-times
+  "The available times for the layers, driven by the timeDimension component.
+
+   Overrides imas-seamap.map.events/time-available-times so that the time set
+   after loading suits the selected time period (e.g. fixed to its display year),
+   since the period may have been selected before any times were available."
+  [{:keys [db]} [_ available-times map-id]]
+  (let [db          (utils/assoc-independent-map-state db map-id [:display :available-times] available-times)
+        load-time   (utils/get-independent-map-state db map-id [:display :load-time])
+        time-period (nhatutils/current-view-selected-time-period db map-id)]
+    {:db       db
+     :dispatch [:map.time/current-time (nhatutils/time-period-time time-period load-time available-times) map-id]}))
+
+(defn current-view-time-step-forward
+  "Move forward one time step in the hazard data"
+  [{:keys [db]} [_ map-id]]
+  (let [available-times (utils/get-independent-map-state db map-id [:display :available-times])
+        current-time    (utils/get-independent-map-state db map-id [:display :current-time])
+        current-index   (.indexOf available-times current-time)
+        next-index      (mod (inc current-index) (count available-times))
+        next-time       (nth available-times next-index)]
+    (assert (seq available-times) "No available times to step through")
+    (assert current-time "Current time is not set")
+    {:dispatch [:map.time/current-time next-time map-id]}))
+
+(defn current-view-time-step-backward
+  "Move backward one time step in the hazard data"
+  [{:keys [db]} [_ map-id]]
+  (let [available-times (utils/get-independent-map-state db map-id [:display :available-times])
+        current-time    (utils/get-independent-map-state db map-id [:display :current-time])
+        current-index   (.indexOf available-times current-time)
+        prev-index      (mod (dec current-index) (count available-times))
+        prev-time       (nth available-times prev-index)]
+    (assert (seq available-times) "No available times to step through")
+    (assert current-time "Current time is not set")
+    {:dispatch [:map.time/current-time prev-time map-id]}))
+
+(defn feature-info-dispatcher
+  "Takes a map click event, and dispatches :map/get-feature-info events for each
+   visible layer.
+
+   Overrides imas-seamap.map.events/feature-info-dispatcher by using
+   `nhatutils/displayed-layers-under-point` instead of
+   `mutils/displayed-layers-under-point`, which uses uses the NHAT
+   `layer-displayed-layers-lookup` function that changes hazard layers server URLs.
+
+   Args:
+   - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
+   - point:         The lat lng and x y pixel coords of the clicked point
+   - opts:
+     - keep-popup?: Re-querying an already open popup (eg the current view or time
+                    changed); keep showing the existing popup contents until the
+                    new responses replace them, instead of hiding it and showing
+                    a loading spinner."
+  [{:keys [db]} [_ leaflet-props point {:keys [keep-popup?]}]]
+  (let [layers                          (get-in db [:map :layers])
+        rich-layer-fn                   (mutils/rich-layer-fn db)
+        hazard-layers                   (nhatutils/hazard-layers layers)
+
+        selected-cmip-phase-1           (nhatutils/current-view-selected-cmip-phase db)
+        selected-model-1                (nhatutils/current-view-selected-model db)
+        selected-scenario-1             (nhatutils/current-view-selected-scenario db)
+        selected-seasonal-data-1        (nhatutils/current-view-selected-seasonal-data db)
+        is-historic?-1                  (nhatutils/current-view-is-historic? db)
+        layer-displayed-layers-lookup-1 (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase-1 selected-model-1 selected-scenario-1 selected-seasonal-data-1 is-historic?-1)
+
+        selected-cmip-phase-2           (nhatutils/current-view-selected-cmip-phase db :map-2)
+        selected-model-2                (nhatutils/current-view-selected-model db :map-2)
+        selected-scenario-2             (nhatutils/current-view-selected-scenario db :map-2)
+        selected-seasonal-data-2        (nhatutils/current-view-selected-seasonal-data db :map-2)
+        is-historic?-2                  (nhatutils/current-view-is-historic? db :map-2)
+        layer-displayed-layers-lookup-2 (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase-2 selected-model-2 selected-scenario-2 selected-seasonal-data-2 is-historic?-2)
+
+        request-id (gensym)
+
+        ;; Hazard layers with no dataset for the current view have no server URL, and aren't on the map to query
+        visible-layers-1 (filter :server_url (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup-1 point db))
+        requests-1 ; requests for map 1
+        (->>
+         visible-layers-1
+         (remove #(mutils/is-insecure? (:server_url %)))
+         (map (fn [{:keys [info_format_type] :as layer}] [:map/get-feature-info info_format_type [layer] request-id leaflet-props point]))) ; 1 request per layer (per map)
+        visible-layers-2 (filter :server_url (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup-2 point db))
+        requests-2 ; requests for map 2
+        (->>
+         visible-layers-2
+         (remove #(mutils/is-insecure? (:server_url %)))
+         (map (fn [{:keys [info_format_type] :as layer}] [:map/get-feature-info info_format_type [layer] request-id leaflet-props point :map-2]))) ; 1 request per layer (per map)
+
+        had-insecure? (some #(mutils/is-insecure? (:server_url %)) (concat visible-layers-1 visible-layers-2)) ; if any insecure layers on either map 1 or 2
+        will-request? (and (seq requests-1) (seq requests-2) (not had-insecure?)) ; will we request, or show "no data" popup?
+
+        ;; A map with no popup open still needs the waiting feature, as got-feature-info builds its feature from it
+        assoc-waiting-feature
+        (fn [db map-id]
+          (if (and keep-popup? (utils/get-independent-map-state db map-id [:feature]))
+            db
+            (utils/assoc-independent-map-state
+             db
+             map-id
+             [:feature]
+             {:status   :feature-info/waiting
+              :leaflet-props leaflet-props
+              :location point
+              :show?    false})))]
+    (merge
+     {:db
+      (cond-> db
+        had-insecure?
+        (-> ;; Fall-through case for "layers are visible, but they're http so we can't query them":
+         (utils/assoc-independent-map-state nil [:feature] {:status :feature-info/none-queryable :location point :show? true})
+         (utils/assoc-independent-map-state :map-2 [:feature] {:status :feature-info/none-queryable :location point :show? true}))
+        (not had-insecure?)
+        (->
+         (utils/assoc-independent-map-state
+          nil
+          [:feature-query]
+          {:request-id        request-id
+           :response-remain   (count requests-1)
+           :had-insecure?     had-insecure?
+           :responses         []})
+         (assoc-waiting-feature nil)
+         (utils/assoc-independent-map-state
+          :map-2
+          [:feature-query]
+          {:request-id        request-id
+           :response-remain   (count requests-2)
+           :had-insecure?     had-insecure?
+           :responses         []})
+         (assoc-waiting-feature :map-2)))}
+      (when-not keep-popup? {:dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}})
+      (when will-request? {:dispatch-n (concat requests-1 requests-2)})
+      (when-not will-request? {:dispatch [:map/got-featureinfo request-id point nil nil nil []]})))) ; shows "no data" popup
+
+(defn download-show-link [db [_ layer bounds download-type]]
+  (let [api-url-base (get-in db [:config :url-base :api-url-base])
+        time         (mutils/ms-to-iso (get-in db [:display :current-time])) ; time is necessary for GeoTIFF of Thredds layers. Without image x-axis is lat and y-axis is time, with x-axis is lon and y-axis is lat
+        
+        layers                        (get-in db [:map :layers])
+        rich-layer-fn                 (mutils/rich-layer-fn db)
+        hazard-layers                 (nhatutils/hazard-layers layers)
+        selected-cmip-phase           (nhatutils/current-view-selected-cmip-phase db)
+        selected-model                (nhatutils/current-view-selected-model db)
+        selected-scenario             (nhatutils/current-view-selected-scenario db)
+        selected-seasonal-data        (nhatutils/current-view-selected-seasonal-data db)
+        is-historic?                  (nhatutils/current-view-is-historic? db)
+        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?)
+        displayed-layer (get layer-displayed-layers-lookup layer)]
+    (update-in
+     db [:map :controls :download]
+     merge {:link         (mutils/download-link displayed-layer bounds download-type api-url-base time)
+            :layer        layer
+            :type         download-type
+            :bbox         bounds
+            :display-link true})))
+
+(defn destroy-popup
+  "Overrides imas-seamap.map.events/destroy-popup to destroy the popups for both
+   side-by-side maps.
+
+   As with the base event, popup-id is only provided when Leaflet itself closed
+   the popup, and then the popups are only destroyed if the id still identifies
+   the feature of the map the popup is on (map-id); a stale popup unmounting must
+   not clobber the current features. Must be computed the same way as popup-id
+   in the popup view."
+  [{:keys [db]} [_ popup-id map-id]]
+  (let [{:keys [location status]} (utils/get-independent-map-state db map-id [:feature])]
+    (when (or (nil? popup-id)
+              (= popup-id (str ((juxt :lat :lng) location) status)))
+      {:db
+       (->
+        db
+        (utils/assoc-independent-map-state nil [:feature] nil)
+        (utils/assoc-independent-map-state :map-2 [:feature] nil))
+       :put-hash ""})))
+
+(defn add-layer
+  "Adds a layer to the list of active layers.
+   
+   Overrides imas-seamap.map.events/add-layer to disallow multiple hazard layers
+   from being active at a time, while also triggering a get-legend for layers
+   whenever they are activated (should be included in core Seamap?)
+   
+   Args:
+    - layer: Layer you wish to add to active layers
+    - target-layer (optional): If supplied, the new layer will be added just beneath
+      this layer in the active layers list."
+  [{:keys [db]} [_ layer target-layer]]
+  (let [{:keys [db dispatch-n]} (mevents/add-layer {:db db} [_ layer target-layer]) ; base event
+        db (if (:hazardlayer layer) ; if the added layer is a hazard layer, disable other hazard layers
+             (update-in
+              db [:map :active-layers]
+              (fn [active-layers] (->> active-layers (remove #(and (:hazardlayer %) (not= % layer))) vec)))
+             db)
+        dispatch-n (vec (conj dispatch-n [:map.layer/get-legend layer]))]
+    {:db         db
+     :dispatch-n dispatch-n}))
+
+(defn add-layer-from-omnibar
+  "Overrides imas-seamap.map.events/add-layer-from-omnibar to select the catalogue
+   tab the layer belongs to (hazards or supporting layers) and expand the
+   catalogue tree down to that layer."
+  [{:keys [db]} [_ layer]]
+  (let [[tab categories] (if (:hazardlayer layer)
+                           ["hazards" [:category :data_classification]]
+                           ["supporting-layers" [:data_classification]])]
+    {:db         (assoc-in db [:display :layers-search-omnibar] false)
+     :dispatch-n [[:map/add-layer layer]
+                  [:left-drawer/open]
+                  [:left-drawer/tab "catalogue"]
+                  [:ui.catalogue/select-tab :main tab]
+                  [:ui.catalogue/catalogue-add-nodes-to-layer :main layer tab categories]]}))
+
+(defn time-set-current-time
+  "Updates the current time in the app state and in the timeDimension component
+   (timeDimension is a component from the plugin that controls the timeseries
+   layers on the map).
+
+   Overrides imas-seamap.map.events/time-set-current-time to stop playback when it
+   reaches the end of the available times, and to refresh any open feature info
+   popup when the time changes (this event also fires on timeDimension's
+   \"timeload\" with the already-set time, which shouldn't re-query)."
+  [{:keys [db]} [_ current-time map-id]]
+  (let [time-changed?         (not= current-time (utils/get-independent-map-state db map-id [:display :current-time]))
+        {:keys [db dispatch]} (mevents/time-set-current-time {:db db} [_ current-time map-id])
+        time-available-times  (nhatutils/time-available-times db map-id)
+        is-last-time?         (= current-time (last time-available-times))]
+    {:db db
+     :dispatch-n
+     (cond-> [dispatch]
+       is-last-time? (conj [:map.time/pause map-id])
+       time-changed? (conj (refresh-feature-info db)))}))

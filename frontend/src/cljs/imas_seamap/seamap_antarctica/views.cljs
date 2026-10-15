@@ -13,6 +13,57 @@
             [goog.string.format]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
+(defn custom-leaflet-controls []
+  "Differs from the custom-leaflet-controls component in imas-seamap.views by removing region-control"
+  [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
+   [views/menu-button]
+   [views/settings-button]
+   [views/zoom-control]
+
+   [views/control-block
+    [views/print-control]
+
+    [views/control-block-child
+     {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
+      :tooltip  "Search All Layers"
+      :id       "omnisearch-control"
+      :icon     "search"}]
+
+    [views/transect-control]
+
+    [views/control-block-child
+     {:on-click #(re-frame/dispatch [:create-save-state])
+      :tooltip  "Create Shareable URL"
+      :id       "share-control"
+      :icon     "share"}]
+
+    [views/control-block-child
+     {:on-click #(re-frame/dispatch [:re-boot])
+      :tooltip  "Reset Interface"
+      :id       "reset-control"
+      :icon     "undo"}]]
+
+   [views/control-block
+    [views/control-block-child
+     {:on-click #(js/document.dispatchEvent (js/KeyboardEvent. "keydown" #js{:which 47 :keyCode 47 :shiftKey true :bubbles true})) ; https://github.com/palantir/blueprint/issues/1590
+      :tooltip  "Show Keyboard Shortcuts"
+      :id       "shortcuts-control"
+      :icon     "key-command"}]
+
+    [views/control-block-child
+     {:on-click #(re-frame/dispatch [:help-layer/toggle])
+      :tooltip  "Show Help Overlay"
+      :id       "overlay-control"
+      :icon     "help"}]]])
+
+(defn floating-pills []
+  (let [collapsed                      (:collapsed @(re-frame/subscribe [:ui/sidebar]))
+        rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
+    [:div {:class (str "floating-pills" (when collapsed " collapsed"))}
+     (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
+       ^{:key (str id)}
+       [views/side-by-side-views-pill rich-layer])]))
+
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
@@ -67,18 +118,71 @@
                 [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
         :panel (reagent/as-element [featured-maps])}]]]))
 
+(def hotkeys-combos
+  (let [keydown-wrapper
+        (fn [m keydown-v]
+          (assoc m :global    true
+                 :group "Keyboard Shortcuts"
+                 :onKeyDown #(re-frame/dispatch keydown-v)))]
+    ;; See note on `use-hotkeys' for rationale invoking `clj->js' here:
+    (clj->js
+     [(keydown-wrapper
+       {:label "Zoom In"                :combo "plus"}
+       [:map/zoom-in])
+      (keydown-wrapper
+       {:label "Zoom Out"               :combo "-"}
+       [:map/zoom-out])
+      (keydown-wrapper
+       {:label "Pan Up"                 :combo "up"}
+       [:map/pan-direction :up])
+      (keydown-wrapper
+       {:label "Pan Down"               :combo "down"}
+       [:map/pan-direction :down])
+      (keydown-wrapper
+       {:label "Pan Left"               :combo "left"}
+       [:map/pan-direction :left])
+      (keydown-wrapper
+       {:label "Pan Right"              :combo "right"}
+       [:map/pan-direction :right])
+      (keydown-wrapper
+       {:label "Toggle Left Drawer"     :combo "a"}
+       [:left-drawer/toggle])
+      (keydown-wrapper
+       {:label "Start/Clear Measurement"   :combo "t"}
+       [:transect.draw/toggle])
+      (keydown-wrapper
+       {:label "Cancel"                 :combo "esc"}
+       [:ui.drawing/cancel])
+      (keydown-wrapper
+       {:label "Layer Power Search"     :combo "s"}
+       [:layers-search-omnibar/toggle])
+      (keydown-wrapper
+       {:label "Reset"                  :combo "shift + r"}
+       [:re-boot])
+      (keydown-wrapper
+       {:label "Create Shareable URL"   :combo "c"}
+       [:create-save-state])
+      (keydown-wrapper
+       {:label "Show Help Overlay"      :combo "h"}
+       [:help-layer/toggle])])))
+
 (defn layout-app []
-  (let [hot-keys (use-memo (fn [] views/hotkeys-combos))
+  (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])
-        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :feature/layer-preview])]
-    [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
-     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
+        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :feature/layer-preview])
+        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])
+        side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])]
+    [:div#main-wrapper.seamap.seamap-antarctica ;{:on-key-down handle-keydown :on-key-up handle-keyup}
+     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when is-printing? " map-printing"))}
      [:div#content-wrapper
-      [map-component]]
+      [map-component]
+      [views/map-legends {:legends legends}]
+      [views/map-legends {:legends side-by-side-legends :position :right}]]
 
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [views/helper-overlay
@@ -96,7 +200,6 @@
       {:id "print-control" :helperText "Export current map view as an image"}
       {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
       {:id "transect-control" :helperText "Take a measurement"}
-      {:id "select-control" :helperText "Select a region for download (habitat data)"}
       {:id "share-control" :helperText "Create a shareable URL for current map view"}
       {:id "reset-control" :helperText "Reset the application back to its initial state"}
       {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
@@ -112,16 +215,16 @@
      [views/outage-message-dialogue]
      [views/settings-overlay]
      [views/info-card]
+     [views/download-component]
      [views/loading-display]
      [left-drawer]
      [views/right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
      [views/layers-search-omnibar]
-     [views/custom-leaflet-controls]
+     [custom-leaflet-controls]
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [views/layers-control]]
      ;; Definitely no state-of-knowledge, and probably no generic pills for now at least:
-     ;; [views/floating-pills]
+     [floating-pills]
      (when has-layer-preview?
        [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])])]))
-

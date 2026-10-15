@@ -11,6 +11,14 @@
             [re-frame.core :as re-frame]
             [reagent.core :as reagent]))
 
+(defn floating-pills []
+  (let [collapsed                      (:collapsed @(re-frame/subscribe [:ui/sidebar]))
+        rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
+    [:div {:class (str "floating-pills" (when collapsed " collapsed"))}
+     (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
+       ^{:key (str id)}
+       [views/side-by-side-views-pill rich-layer])]))
+
 (defn left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
@@ -64,15 +72,21 @@
   (let [hot-keys (use-memo (fn [] views/hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
+        plot-open?         @(re-frame/subscribe [:transect.plot/show?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])
-        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :feature/layer-preview])]
+        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :feature/layer-preview])
+        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])
+        side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])]
     [:div#main-wrapper.futures-of-seafood ;{:on-key-down handle-keydown :on-key-up handle-keyup}
-     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading"))}
+     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when plot-open? " plot-open") (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
-      [views/plot-component]]
+      [views/plot-component]
+      [views/map-legends {:legends legends}]
+      [views/map-legends {:legends side-by-side-legends :position :right}]]
 
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [views/helper-overlay
@@ -104,6 +118,7 @@
      [views/outage-message-dialogue]
      [views/settings-overlay]
      [views/info-card]
+     [views/download-component]
      [views/loading-display]
      [left-drawer]
      [views/right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
@@ -112,5 +127,6 @@
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
       [views/layers-control]]
+     [floating-pills]
      (when has-layer-preview?
        [views/layer-preview @(re-frame/subscribe [:ui/preview-layer-url])])]))

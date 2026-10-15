@@ -3,15 +3,14 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.map.views
   (:require [clojure.string :as string]
-            [reagent.core :as r]
+            [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.utils :refer [copy-text handler-dispatch create-shadow-dom-element format-number] :include-macros true]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds bounds->map]]
             [imas-seamap.interop.leaflet :as leaflet]
             [goog.string :as gstring]
-            ["react-leaflet" :as ReactLeaflet]
-            ["/leaflet-scalefactor/leaflet.scalefactor"]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -50,26 +49,6 @@
   (let [lt (event->layer-tuple e)
         layer (-> @(re-frame/subscribe [:map.layers/lookup]) (get lt))]
     (re-frame/dispatch [:map.layer/load-finished layer])))
-
-(defn download-component [{:keys [display-link link bbox download-type download-layer] :as _download-info}]
-  (let [type-str (download-type->str download-type)]
-    [b/dialogue
-     {:is-open   display-link
-      :title     (str "Download " type-str)
-      :icon      "import"
-      :on-close  #(re-frame/dispatch [:ui.download/close-dialogue])}
-     [:div.bp3-dialog-body
-      [:a
-       {:href     link
-        :target   "_blank"
-        :on-click #(re-frame/dispatch [:download-click {:link link :layer download-layer :type type-str}])}
-       "Click here to download " (when bbox "region ") "as " type-str]]
-     [:div.bp3-dialog-footer
-      [:div.bp3-dialog-footer-actions
-       [b/button
-        {:text     "Done"
-         :intent   b/INTENT-PRIMARY
-         :on-click #(re-frame/dispatch [:ui.download/close-dialogue])}]]]]))
 
 (defn draw-transect-control []
   [leaflet/feature-group
@@ -136,18 +115,18 @@
 (defn popup-contents [{:keys [status responses]}]
   (case status
     :feature-info/waiting        [b/non-ideal-state
-                                  {:icon (r/as-element [b/spinner {:intent "success"}])}]
+                                  {:icon (reagent/as-element [b/spinner {:intent "success"}])}]
     
     :feature-info/none-queryable [b/non-ideal-state
                                   {:title       "Invalid Info"
                                    :description "Could not query the external data provider"
                                    :icon        "warning-sign"
-                                   :ref         #(when % (re-frame/dispatch [:map/pan-to-popup {:x 305 :y 210}]))}] ; hardcoded popup contents size because we can't get the size of react elements
+                                   :ref         #(when % (re-frame/dispatch [:map/set-popup-dimensions {:x 305 :y 210}]))}] ; hardcoded popup contents size because we can't get the size of react elements
     
     :feature-info/error          [b/non-ideal-state
                                   {:title "Server Error"
                                    :icon  "error"
-                                   :ref   #(when % (re-frame/dispatch [:map/pan-to-popup {:x 305 :y 210}]))}] ; hardcoded popup contents size because we can't get the size of react elements
+                                   :ref   #(when % (re-frame/dispatch [:map/set-popup-dimensions {:x 305 :y 210}]))}] ; hardcoded popup contents size because we can't get the size of react elements
     
     ;; Default; we have actual content:
     [:div
@@ -157,33 +136,61 @@
           (set! (.-innerHTML element) nil)
           (doseq [{:keys [_body _style] :as response} responses]
             (.appendChild element (create-shadow-dom-element response)))
-          (re-frame/dispatch [:map/pan-to-popup (popup-dimensions element)])))}]))
+          (re-frame/dispatch [:map/set-popup-dimensions (popup-dimensions element)])))}]))
 
-(defn popup [{:keys [has-info? responses location status show?] :as _feature-info}]
+(defn- leaflet-popup
+  "A Leaflet popup whose props are created once, when the component mounts.
+
+   react-leaflet's Popup closes and reopens the Leaflet popup (remounting its
+   contents) whenever its position prop changes by reference, and rebinds its
+   event handlers whenever they change by reference. Reagent converts the props to
+   new JS objects every render, so if built each render, every change to the
+   popup contents (eg a refreshed value) would make the popup flicker. The popup
+   is keyed on location and status, so these props don't change for its lifetime."
+  [{:keys [location status map-id popup-id]} & _children]
+  (let [position       (clj->js location)
+        event-handlers (clj->js
+                        ;; Leaflet's built-in close button ("x") closes the popup without telling us,
+                        ;; leaving app-state thinking it's still open. Pass this popup's identity so
+                        ;; destroy-popup can ignore remove events from popups that are merely being
+                        ;; replaced (eg the "waiting" spinner unmounting when results arrive).
+                        ;; map-id says which map the popup is on, for apps with independent maps:
+                        {:remove #(re-frame/dispatch [:map/popup-closed popup-id map-id])})]
+    (fn [_props & children]
+      (into
+       [leaflet/popup
+        {:position      position
+         :max-width     "100%"
+         :auto-pan      false
+         :class         (when (= status :feature-info/waiting) "waiting")
+         :eventHandlers event-handlers}]
+       children))))
+
+(defn popup [{:keys [has-info? responses location status show? map-id] :as _feature-info}]
   (when (and show? has-info?)
     ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
-    ^{:key (str location status)}
-    [leaflet/popup
-     {:position location
-      :max-width "100%"
-      :auto-pan false
-      :class (when (= status :feature-info/waiting) "waiting")}
+    (let [popup-id (str location status)]
+      ^{:key popup-id}
+      [leaflet-popup
+       {:location location :status status :map-id map-id :popup-id popup-id}
+       ^{:key (str status responses)} [popup-contents {:status status :responses responses}]])))
 
-     ^{:key (str status responses)} [popup-contents {:status status :responses responses}]]))
-
-(defn distance-tooltip [{:keys [distance] {:keys [x y]} :mouse-pos}]
-  [:div.leaflet-draw-tooltip.distance-tooltip
-   {:style {:visibility "inherit"
-            :transform  (str "translate3d(" x "px, " y "px, 0px)")
-            :z-index    700}}
-   (if (> distance 1000)
-     (str (format-number (/ distance 1000) 2) "km")
-     (str (format-number distance 0) "m"))])
+(defn distance-tooltip []
+  (let [{:keys [x y] :as mouse-pos} @(re-frame/subscribe [:ui/mouse-pos])
+        {:keys [distance]}          @(re-frame/subscribe [:transect/info])
+        visible? (and mouse-pos distance)]
+    [:div.leaflet-draw-tooltip.distance-tooltip
+     {:style {:visibility (if visible? "visible" "hidden")
+              :transform  (str "translate3d(" x "px, " y "px, 0px)")
+              :z-index    700}}
+     (if (> distance 1000)
+       (str (format-number (/ distance 1000) 2) "km")
+       (str (format-number distance 0) "m"))]))
 
 (defmulti layer-component (comp :layer_type :displayed-layer))
 
 (defmethod layer-component :wms
-  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style]} :displayed-layer}]
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style hazardlayer]} :displayed-layer}]
   [leaflet/wms-layer
    (merge
     {:url              server_url
@@ -199,7 +206,12 @@
      :format           "image/png"}
     (when style {:styles style})
     (when boundary-filter (boundary-filter layer))
-    (when cql-filter {:cql_filter cql-filter}))])
+    (when cql-filter {:cql_filter cql-filter})
+    (when hazardlayer
+      {:styles (str "default-scalar/" (:color_palette hazardlayer))
+       :colorscalerange (str (:color_scale_range_min hazardlayer) "," (:color_scale_range_max hazardlayer))
+       :abovemaxcolor (:above_max_color hazardlayer)
+       :belowmincolor (:below_min_color hazardlayer)}))])
 
 (defmethod layer-component :tile
   [{:keys [layer-opacities layer] {:keys [server_url]} :displayed-layer}]
@@ -283,6 +295,30 @@
     (when boundary-filter (boundary-filter layer))
     (when cql-filter {:cql_filter cql-filter}))])
 
+(defmethod layer-component :wms-timeseries
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style hazardlayer]} :displayed-layer}]
+  (let [{:keys [color-scale-range-min color-scale-range-max]} (when hazardlayer @(re-frame/subscribe [:map.layers.hazard-layers/color-scale-range layer]))] ; sub is only registered in Natural Hazards Atlas
+    [leaflet/wms-timeseries-layer
+     (merge
+      {:url              server_url
+       :layers           layer_name
+       :eventHandlers
+       {:loading       on-load-start
+        :tileloadstart on-tile-load-start
+        :tileerror     on-tile-error
+        :load          on-load-end} ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
+       :transparent      true
+       :opacity          (/ (layer-opacities layer) 100)
+       :tiled            true
+       :format           "image/png"}
+      (when style {:styles style})
+      (when boundary-filter (boundary-filter layer))
+      (when cql-filter {:cql_filter cql-filter})
+      (when hazardlayer
+        {:colorscalerange (str color-scale-range-min "," color-scale-range-max)
+         :abovemaxcolor (:above_max_color hazardlayer)
+         :belowmincolor (:below_min_color hazardlayer)}))]))
+
 (defmethod layer-component :wmts
   [{:keys [layer-opacities layer] {:keys [server_url layer_name]} :displayed-layer}]
   [leaflet/wmts-layer
@@ -295,7 +331,10 @@
 
 (defmethod basemap-layer-component :tile
  [{:keys [server_url attribution]}]
- [leaflet/tile-layer {:url server_url :attribution attribution}])
+ [leaflet/tile-layer
+  {:url             server_url
+   :attribution     attribution
+   :referrer-policy "origin"}]) ; ISA-702: including referrer-policy header, because OSM requires it: https://operations.osmfoundation.org/policies/tiles/
 
 (defmethod basemap-layer-component :vector
   [{:keys [server_url attribution]}]
@@ -319,121 +358,175 @@
     :layer layer_name
     :useGetCapabilities true}])
 
-(defn map-component [& children]
-  (let [{:keys [center zoom bounds crs]} @(re-frame/subscribe [:map/props])
-        {:keys [layer-opacities visible-layers rich-layer-fn cql-filter-fn]} @(re-frame/subscribe [:map/layers])
-        {:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])
-        feature-info                                  @(re-frame/subscribe [:map.feature/info])
-        {:keys [query mouse-loc distance] :as transect-info} @(re-frame/subscribe [:transect/info])
-        {:keys [region] :as region-info}              @(re-frame/subscribe [:map.layer.selection/info])
-        download-info                                 @(re-frame/subscribe [:download/info])
+(defn side-by-side-layer
+  "Renders a side-by-side comparison of two layers within the layer stack.
+
+   Creates two Leaflet panes (left and right) that each contain a layer-component,
+   along with the interactive side-by-side divider control. Uses the same z-index
+   based stacking and takes the same rendering parameters (layer-opacities, cql-filter,
+   boundary-filter) as other layers in the map."
+  [{:keys [_layer _boundary-filter _layer-opacities _cql-filter-fn _z-index _rich-layer-fn]}]
+  (let [left-pane  (reagent/atom nil)
+        right-pane (reagent/atom nil)]
+    (fn [{:keys [layer boundary-filter layer-opacities cql-filter-fn z-index rich-layer-fn]}]
+      (let [{:keys [side-by-side-views-selected side-by-side-views-left-label-text side-by-side-views-right-label-text] :as rich-layer} (rich-layer-fn layer)
+            left-layer  (or (:displayed-layer rich-layer) layer)
+            right-layer (:layer side-by-side-views-selected)]
+        ^{:key (str (:id left-layer) (:id right-layer) z-index)}
+        [:<>
+         [leaflet/pane
+          {:ref   #(reset! left-pane %)
+           :name  (str (random-uuid) (.now js/Date))
+           :style {:z-index z-index}}
+          [layer-component
+           {:layer           layer
+            :displayed-layer left-layer
+            :boundary-filter boundary-filter
+            :layer-opacities layer-opacities
+            :cql-filter      (cql-filter-fn layer)}]]
+         [leaflet/pane
+          {:ref   #(reset! right-pane %)
+           :name  (str (random-uuid) (.now js/Date))
+           :style {:z-index z-index}}
+          [layer-component
+           {:layer           layer
+            :displayed-layer right-layer
+            :boundary-filter boundary-filter
+            :layer-opacities layer-opacities
+            :cql-filter      (cql-filter-fn layer)}]]
+         [leaflet/side-by-side
+          {:left-pane        @left-pane
+           :right-pane       @right-pane
+           :left-label-text  side-by-side-views-left-label-text
+           :right-label-text side-by-side-views-right-label-text
+           :on-range-updated #(re-frame/dispatch [:ui/split-layer-range-value %1 %2])
+           :range-value      @(re-frame/subscribe [:ui/split-layer-range-value])}]]))))
+
+(defn basemap-layers []
+  (let [{:keys [grouped-base-layers active-base-layer]} @(re-frame/subscribe [:map/base-layers])]
+    [:<>
+     ;; When the current active layer is a vector tile layer, display the default
+     ;; basemap layer underneath, since vector tile layers don't support printing.
+     (when (= (:layer_type active-base-layer) :vector)
+       [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index -1}}
+        [basemap-layer-component (first grouped-base-layers)]])
+
+     ;; Basemap layer
+     (when active-base-layer ; Don't render unless we have a basemap
+       ^{:key (str active-base-layer)} ; Key changes with each basemap, so the layer re-renders
+       [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
+        [basemap-layer-component active-base-layer]])
+
+     ;; Additional basemap layers
+     (map-indexed
+      (fn [i {:keys [id] :as base-layer}]
+        ^{:key (str id (+ i 1))}
+        [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1)}}
+         [basemap-layer-component base-layer]])
+      (:layers active-base-layer))]))
+
+(defn catalogue-layers [{:keys [map-id]}]
+  (let [{:keys [visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
+        rich-layer-fn               #(get rich-layers-by-layer-id (:id %))
+        opacities                   @(re-frame/subscribe [::msubs/layer-opacities])
+        cql-filters                 @(re-frame/subscribe [::msubs/cql-filters])
+        layer-opacities             #(get opacities (:id %) 100)
+        cql-filter-fn               #(get cql-filters (:id %))
+        ;; Only include map-id in the query when there is one, so the single-map
+        ;; case shares its cached subscription with the other consumers of
+        ;; [:map.layer/displayed-layers-lookup]:
+        displayed-layers-lookup     @(re-frame/subscribe (if map-id
+                                                           [:map.layer/displayed-layers-lookup map-id]
+                                                           [:map.layer/displayed-layers-lookup]))
+        {:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         ;; Only subscribe to boundary-filter if state-of-knowledge feature is enabled
-        has-sok?                                      @(re-frame/subscribe [:feature/enabled? :feature/state-of-knowledge])
-        boundary-filter                               (when has-sok?
-                                                        @(re-frame/subscribe [:sok/boundary-layer-filter]))
-        mouse-pos                                     @(re-frame/subscribe [:ui/mouse-pos])]
-    (into
-     [:div.map-wrapper
-      [download-component download-info]
-      [leaflet/map-container
-       (merge
-        {:id                   "map"
-         :crs                  (if crs
-                                  (leaflet/crs-from-keyword crs)
-                                  leaflet/crs-epsg3857)
-         :preferCanvas         true
-         :use-fly-to           false
-         :center               center
-         :zoom                 zoom
-         :zoomControl          true
-         :scaleFactor          true
-         :minZoom              2
-         :keyboard             false ; handled externally
-         :close-popup-on-click false} ; We'll handle that ourselves
-        (when (seq bounds) {:bounds (map->bounds bounds)}))
-       
-       ;; Unfortunately, only map container children in react-leaflet v4 are able to
-       ;; obtain a reference to the leaflet map through useMap. We make a dummy child here
-       ;; to get around the issue and obtain the map.
-       (r/create-element
-        #(when-let [leaflet-map (ReactLeaflet/useMap)]
-           (re-frame/dispatch [:map/update-leaflet-map leaflet-map])
-           nil))
+        has-sok?                    @(re-frame/subscribe [:feature/enabled? :feature/state-of-knowledge])
+        boundary-filter             (when has-sok?
+                                      @(re-frame/subscribe [:sok/boundary-layer-filter]))]
+    [:<>
+     (map-indexed
+      (fn [i layer]
+        (let [rich-layer (rich-layer-fn layer)
+              {:keys [id server_url layer_name] :as displayed-layer} (get displayed-layers-lookup layer)
+              z-index (+ i 1 (count (:layers active-base-layer)))]
+          ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
+          ;; display two panes (left and right) for the two layers, and the side-by-side
+          ;; control for sliding between the two layers.
+          ;; If there's only one layer, then we render a single pane and layer.
+          ^{:key (str id server_url layer_name z-index)}
+          [:<>
+           ;; A layer without a server URL has nothing to display (e.g. a Natural Hazards
+           ;; Atlas hazard layer with no dataset for the current view), and Leaflet
+           ;; would request the missing URL as "null".
+           (when server_url
+             (if (:side-by-side-views-selected rich-layer)
+               [side-by-side-layer
+                {:layer           layer
+                 :boundary-filter boundary-filter
+                 :layer-opacities layer-opacities
+                 :cql-filter-fn   cql-filter-fn
+                 :z-index         z-index
+                 :rich-layer-fn   rich-layer-fn}]
+               [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
+                [layer-component
+                 {:layer           layer
+                  :displayed-layer displayed-layer
+                  :boundary-filter boundary-filter
+                  :layer-opacities layer-opacities
+                  :cql-filter      (cql-filter-fn layer)}]]))]))
+      visible-layers)]))
 
-       ;; When the current active layer is a vector tile layer, display the default
-       ;; basemap layer underneath, since vector tile layers don't support printing.
-       (when (= (:layer_type active-base-layer) :vector)
-         [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index -1}}
-          [basemap-layer-component (first grouped-base-layers)]])
-
-       ;; Basemap layer
-       (when active-base-layer ; Don't render unless we have a basemap
-         ^{:key (str active-base-layer)} ; Key changes with each basemap, so the layer re-renders
-         [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index 0}}
-          [basemap-layer-component active-base-layer]])
-       
-       ;; Additional basemap layers
-       (map-indexed
-        (fn [i {:keys [id] :as base-layer}]
-          ^{:key (str id (+ i 1))}
-          [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1)}}
-           [basemap-layer-component base-layer]])
-        (:layers active-base-layer))
-       
-       ;; Catalogue layers
-       (map-indexed
-        (fn [i layer]
-          (let [{:keys [id] :as displayed-layer} (or (:displayed-layer (rich-layer-fn layer)) layer)]
-            ;; While it's not efficient, we give every layer it's own pane to simplify the
-            ;; code.
-            ;; Panes are given a name based on a uuid and time because if a pane is given the
-            ;; same name as a previously existing pane leaflet complains about a new pane being
-            ;; made with the same name as an existing pane (causing leaflet to no longer work).
-            ^{:key (str id (+ i 1 (count (:layers active-base-layer))))}
-            [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index (+ i 1 (count (:layers active-base-layer)))}}
-             [layer-component
-              {:layer           layer
-               :displayed-layer displayed-layer
-               :boundary-filter boundary-filter
-               :layer-opacities layer-opacities
-               :cql-filter      (cql-filter-fn layer)}]]))
-        visible-layers)
-       
-       (when query
-         [leaflet/geojson-layer {:data (clj->js query)}])
-       (when region
-         [leaflet/geojson-layer {:data (clj->js (bounds->geojson region))}])
-       (when (and query mouse-loc)
-         [leaflet/circle-marker {:center      mouse-loc
-                                 :radius      3
-                                 :fillColor   "#3f8ffa"
-                                 :color       "#3f8ffa"
-                                 :opacity     1
-                                 :fillOpacity 1}])
-
-       (when (:drawing? transect-info)
-         [draw-transect-control])
-       (when (:selecting? region-info)
-         [draw-region-control]) 
-       
-       ;; This control needs to exist so we can trigger its functions programmatically in
-       ;; the control-block element.
-       [leaflet/print-control
-        {:position   "topleft" :title "Export as PNG"
-         :export-only true
-         :size-modes ["Current", "A4Landscape", "A4Portrait"]}]
-
-       [leaflet/scale-control]
-
-       [leaflet/coordinates-control
-        {:decimals 2
-         :labelTemplateLat "{y}"
-         :labelTemplateLng "{x}"
-         :useLatLngOrder   true
-         :enableUserInput  false}]
-
-       (when (and mouse-pos distance) [distance-tooltip {:mouse-pos mouse-pos :distance distance}])
-
-       [popup feature-info]]]
-     
-     children)))
+(defn map-component []
+  (let [{:keys [center zoom bounds crs]}            @(re-frame/subscribe [:map/props])
+        feature-info                                @(re-frame/subscribe [:map.feature/info])
+        {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
+        {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])]
+    [leaflet/map-container
+     (merge
+      {:id                   "map"
+       :crs                  (if crs
+                               (leaflet/crs-from-keyword crs)
+                               leaflet/crs-epsg3857)
+       :preferCanvas         true
+       :use-fly-to           false
+       :center               center
+       :zoom                 zoom
+       :zoomControl          true
+       :minZoom              2
+       :keyboard             false ; handled externally
+       :close-popup-on-click false ; We'll handle that ourselves
+       :ref                  #(when % (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
+      (when (seq bounds) {:bounds (map->bounds bounds)}))
+    
+     [basemap-layers]
+     [catalogue-layers]
+    
+     (when query
+       [leaflet/geojson-layer {:data (clj->js query)}])
+     (when region
+       [leaflet/geojson-layer {:data (clj->js (bounds->geojson region))}])
+     (when (and query mouse-loc)
+       [leaflet/circle-marker {:center      mouse-loc
+                               :radius      3
+                               :fillColor   "#3f8ffa"
+                               :color       "#3f8ffa"
+                               :opacity     1
+                               :fillOpacity 1}])
+    
+     (when (:drawing? transect-info)
+       [draw-transect-control])
+     (when (:selecting? region-info)
+       [draw-region-control])
+    
+     [leaflet/coordinates-control
+      {:decimals 2
+       :labelTemplateLat "{y}"
+       :labelTemplateLng "{x}"
+       :useLatLngOrder   true
+       :enableUserInput  false}]
+     [leaflet/scale-factor-control {:position "bottomright"}]
+     [leaflet/scale-control {:position "bottomright"}]
+    
+     [distance-tooltip]
+    
+     [popup feature-info]]))

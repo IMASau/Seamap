@@ -13,7 +13,7 @@ import numpy
 from pyproj import CRS, Transformer
 
 
-def serialise_bbox(_self, obj) -> dict:
+def serialise_bbox(obj) -> dict:
     """Plugin method to implement Antarctic-specific bounding-box
     projection. The issue is that the bounding box is used in the app
     to zoom to extents,etc. In other words the main property of

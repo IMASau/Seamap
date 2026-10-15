@@ -2,15 +2,16 @@
 # Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 # Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 
-import re
-from typing import Union
-from django.core.validators import MinValueValidator, RegexValidator
 import django.utils.timezone
+import re
+import requests
+import xml.etree.ElementTree as ET
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from six import python_2_unicode_compatible
+from tinymce.models import HTMLField
+from typing import Union
 from uuid import uuid4
-import requests
-import xml.etree.ElementTree as ET 
 
 # pylint: disable=line-too-long
 
@@ -89,6 +90,7 @@ LAYER_TYPE_CHOICES = [
     ('esri-vector-tile', 'esri-vector-tile'),
     ('wmts', 'wmts'),
     ('esri-image-map', 'esri-image-map'),
+    ('wms-timeseries', 'wms-timeseries')
 ]
 
 
@@ -97,6 +99,14 @@ CRS_CHOICES = [
     ('EPSG:3857', 'EPSG:3857'),
     ('EPSG:3112', 'EPSG:3112'),
     ('EPSG:3031', 'EPSG:3031'),
+]
+
+
+DOWNLOAD_FORMAT_CHOICES = [
+    (None, None),
+    ('wfs', 'wfs'),
+    ('wcs', 'wcs'),
+    ('thredds-wcs', 'thredds-wcs')
 ]
 
 
@@ -116,7 +126,7 @@ class Layer(models.Model):
     miny = models.DecimalField(max_digits=20, decimal_places=17)
     maxx = models.DecimalField(max_digits=20, decimal_places=17)
     maxy = models.DecimalField(max_digits=20, decimal_places=17)
-    metadata_url = models.URLField(max_length = 250)
+    metadata_url = models.URLField(max_length = 250, blank=True, null=True)
     server_type = models.ForeignKey(ServerType, on_delete=models.PROTECT)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
     info_format_type = models.IntegerField(
@@ -148,6 +158,7 @@ class Layer(models.Model):
                 <li><code>wms-non-tiled</code>: special case where we want a WMS request to be made of a single image of the layer, rather than a series of tiles. This is less efficient but is used sometimes for layers that use a global render (e.g. heatmaps)</li>
                 <li><code>esri-vector-tile</code>: For ESRI VectorTileServer layers. Rendered with <a href="https://developers.arcgis.com/esri-leaflet/api-reference/esri-leaflet-vector/vector-layer/">L.esri.Vector.vectorTileLayer</a></li>
                 <li><code>esri-image-map</code>: For ESRI ImageServer layers. Rendered with <a href="https://developers.arcgis.com/esri-leaflet/api-reference/esri-leaflet/image-map-layer/">L.esri.imageMapLayer</a></li>
+                <li><code>wms-timeseries</code>: </li>
             </ol>
             <p>Extra info:</p>
             <ul>
@@ -159,13 +170,14 @@ class Layer(models.Model):
         """
     )
     tooltip = models.TextField(null=True, blank=True)
-    metadata_summary = models.TextField(null=True, blank=True)
+    metadata_summary = HTMLField(null=True, blank=True)
     crs = models.CharField(max_length=10, choices=CRS_CHOICES, default='EPSG:3112')
     regenerate_preview = models.BooleanField(
         default=True,
         help_text="Dictates if a layer should generate a new layer preview each week, even if a preview already exists. If no preview image exists for the layer, this property will be ignored."
     )
     filter = models.CharField(max_length=255, null=True, blank=True, help_text="CQL filter to apply to the layer")
+    download_format = models.CharField(max_length=200, null=True, blank=True, choices=DOWNLOAD_FORMAT_CHOICES)
 
     def __str__(self):
         return self.name
@@ -749,7 +761,7 @@ class Layer(models.Model):
             return self._get_esri_image_map_legend()
 
         # ...otherwise, if the layer is a WMS layer
-        elif self.layer_type in ['wms', 'wms-non-tiled']:
+        elif self.layer_type in ['wms', 'wms-non-tiled', 'wms-timeseries']:
             return self._get_geoserver_legend()
 
         # ...otherwise, layer type is not supported
@@ -776,7 +788,8 @@ class BaseLayerGroup(models.Model):
 @python_2_unicode_compatible
 class BaseLayer(models.Model):
     name = models.CharField(max_length = 200, unique=True)
-    server_url = models.URLField(max_length = 200)
+    # CharField rather than URLField: tile URL templates (e.g. https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png) fail URL validation
+    server_url = models.CharField(max_length = 200)
     attribution = models.CharField(max_length = 200)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
     layer_group = models.ForeignKey(BaseLayerGroup, blank=True, null=True, on_delete=models.PROTECT, db_column='layer_group')
@@ -816,8 +829,8 @@ class KeyedLayer(models.Model):
 class RichLayer(models.Model):
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     tab_label = models.CharField(max_length=255)
-    slider_label = models.CharField(max_length=255)
-    alternate_view_label = models.CharField(max_length=255, default='Alternate View')
+    slider_label = models.CharField(max_length=255, blank=True)
+    alternate_view_label = models.CharField(max_length=255, default='Alternate View', blank=True)
     icon = models.CharField(max_length=255)
     tooltip = models.CharField(max_length=255)
 
@@ -836,6 +849,13 @@ class RichLayerTimeline(models.Model):
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
     value = models.FloatField(null=False)
     label = models.CharField(max_length=255)
+
+@python_2_unicode_compatible
+class RichLayerSideBySideView(models.Model):
+    richlayer = models.ForeignKey(RichLayer, on_delete=models.PROTECT, related_name='side_by_side_views')
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    sort_key = models.CharField(max_length=10, null=True, blank=True)
+    display_name = models.CharField(max_length=255)
 
 DATA_TYPE_CHOICES = [
     ('string', 'string'),
