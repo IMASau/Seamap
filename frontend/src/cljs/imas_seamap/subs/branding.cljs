@@ -10,6 +10,28 @@
             [imas-seamap.config.content :as content]))
 
 ;;; =============================================================================
+;;; RUNTIME URL RESOLUTION
+;;; =============================================================================
+
+(def ^:private url-base-keys
+  {:url-base/api       :api-url-base
+   :url-base/media     :media-url-base
+   :url-base/wordpress :wordpress-url-base
+   :url-base/img       :img-url-base})
+
+(defn resolve-url
+  "Resolve a branding URL value against the runtime url-base map.
+
+   A string is returned as-is; a keyword such as :url-base/wordpress returns that
+   base; a vector [:url-base/wordpress \"path/\"] joins the base and the path."
+  [url-base v]
+  (cond
+    (string? v)  v
+    (keyword? v) (get url-base (url-base-keys v))
+    (vector? v)  (let [[base path] v] (str (resolve-url url-base base) path))
+    :else        v))
+
+;;; =============================================================================
 ;;; BRANDING CONFIG SUBSCRIPTIONS
 ;;; =============================================================================
 
@@ -27,12 +49,14 @@
  (fn [branding _]
    (:logo branding)))
 
-;; Returns the main website URL for the deployment.
+;; Returns the main website URL for the deployment, resolved against the runtime
+;; URL bases (see `resolve-url`).
 (re-frame/reg-sub
  :branding/url
  :<- [:branding/config]
- (fn [branding _]
-   (:url branding)))
+ :<- [:url-base]
+ (fn [[branding url-base] _]
+   (resolve-url url-base (:url branding))))
 
 ;; Returns the deployment title.
 (re-frame/reg-sub
@@ -103,14 +127,16 @@
    (:welcome branding)))
 
 ;; Returns the resolved welcome content (hiccup).
-;; If content is a keyword, looks it up in the content registry.
+;; If content is a keyword, looks it up in the content registry, passing the
+;; runtime URL bases so content can link to them.
 (re-frame/reg-sub
  :branding/welcome-content
  :<- [:branding/welcome]
- (fn [welcome _]
+ :<- [:url-base]
+ (fn [[welcome url-base] _]
    (let [content (:content welcome)]
      (if (keyword? content)
-       (content/get-content content)
+       (content/get-content content url-base)
        content))))
 
 ;; Returns the welcome dialogue title.
@@ -124,7 +150,8 @@
 ;;; LINKS SUBSCRIPTIONS
 ;;; =============================================================================
 
-;; Get a deployment-specific external link by key.
+;; Get a deployment-specific external link by key, resolved against the runtime
+;; URL bases (see `resolve-url`).
 ;;
 ;; Usage:
 ;;   @(re-frame/subscribe [:branding/link :sea-country])
@@ -133,8 +160,9 @@
 (re-frame/reg-sub
  :branding/link
  :<- [:branding/config]
- (fn [branding [_ link-key]]
-   (get-in branding [:links link-key])))
+ :<- [:url-base]
+ (fn [[branding url-base] [_ link-key]]
+   (resolve-url url-base (get-in branding [:links link-key]))))
 
 ;; Returns all external links for the deployment.
 (re-frame/reg-sub
@@ -179,28 +207,8 @@
 ;;; UI LAYOUT SUBSCRIPTIONS
 ;;; =============================================================================
 
-;; Returns the ordered list of left drawer tabs for the deployment.
-(re-frame/reg-sub
- :ui/tabs
- :<- [:deployment/config]
- (fn [config _]
-   (:tabs config)))
-
-;; Returns the ordered list of map controls for the deployment.
-(re-frame/reg-sub
- :ui/controls
- :<- [:deployment/config]
- (fn [config _]
-   (:controls config)))
-
-;; Returns the right drawer slot mappings for the deployment.
-(re-frame/reg-sub
- :ui/drawers
- :<- [:deployment/config]
- (fn [config _]
-   (:drawers config)))
-
 ;; Returns the complete layout configuration for the deployment (Phase 4).
+;; Slot-specific views should destructure this rather than have one sub per slot.
 (re-frame/reg-sub
  :layout/config
  :<- [:deployment/config]

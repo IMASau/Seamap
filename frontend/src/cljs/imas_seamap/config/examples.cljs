@@ -8,7 +8,8 @@
    - How to access deployment configurations
    - How to use feature flag subscriptions
    - How to access branding information"
-  (:require [re-frame.core :as re-frame]
+  (:require [clojure.set :as set]
+            [re-frame.core :as re-frame]
             [imas-seamap.config.deployments :as deployments]
             [imas-seamap.subs.features :as features]))
 
@@ -151,7 +152,7 @@
   "Validates that all deployment configurations are properly structured.
    Returns a vector of error messages, or empty vector if valid."
   []
-  (let [required-keys #{:id :css-class :drawer-class :branding :map :features :drawers :tabs :controls}]
+  (let [required-keys #{:id :css-class :drawer-class :branding :map :features :layout}]
     (reduce
      (fn [errors [deployment-id config]]
        (let [missing-keys (set/difference required-keys (set (keys config)))]

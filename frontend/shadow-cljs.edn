@@ -1,4 +1,4 @@
-{:source-paths ["src/cljs" "src/gen" "src/thirdparty"]
+{:source-paths ["src/cljs" "src/gen" "src/thirdparty" "test/cljs"]
 
  :dependencies [[binaryage/devtools              "1.0.7"]
                 [cljs-ajax/cljs-ajax             "0.5.5"]
@@ -46,6 +46,11 @@
                                                     imas-seamap.tas-marine-atlas.core
                                                     imas-seamap.natural-hazards-atlas.core
                                                     imas-seamap.tmag-kiosk.core]}}}
+
+          ;; Unit tests: `npx shadow-cljs compile test && node out/test.js`
+          :test {:target    :node-test
+                 :output-to "out/test.js"
+                 :ns-regexp "-test$"}
 
           :mindev {:target            :browser
                    :output-dir        "resources/public/js/"

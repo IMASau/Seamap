@@ -11,6 +11,7 @@
    - Component migrations work properly"
   (:require [cljs.test :refer-macros [deftest testing is use-fixtures]]
             [re-frame.core :as re-frame]
+            [re-frame.db]
             [imas-seamap.config.deployments :as deployments]
             [imas-seamap.config.content :as content]
             [imas-seamap.subs.features]
@@ -33,17 +34,19 @@
 ;;; =============================================================================
 
 (deftest deployment-configs-exist
-  (testing "All four deployments are defined"
-    (is (= 4 (count deployments/deployments)))
+  (testing "All six deployments are defined"
+    (is (= 6 (count deployments/deployments)))
     (is (contains? deployments/deployments :seamap-australia))
     (is (contains? deployments/deployments :tas-marine-atlas))
     (is (contains? deployments/deployments :seamap-antarctica))
-    (is (contains? deployments/deployments :futures-of-seafood))))
+    (is (contains? deployments/deployments :futures-of-seafood))
+    (is (contains? deployments/deployments :natural-hazards-atlas))
+    (is (contains? deployments/deployments :tmag-kiosk))))
 
 (deftest deployment-configs-have-required-keys
   (testing "Each deployment has all required configuration keys"
     (let [required-keys #{:id :css-class :drawer-class :branding :map
-                          :features :drawers :tabs :controls}]
+                          :features :layout}]
       (doseq [[deployment-id config] deployments/deployments]
         (testing (str "Deployment " deployment-id)
           (is (every? #(contains? config %) required-keys)
@@ -57,38 +60,30 @@
         (let [branding (:branding config)]
           (is (map? (:logo branding)) "Logo should be a map")
           (is (string? (:src (:logo branding))) "Logo src should be a string")
-          (is (string? (:url branding)) "URL should be a string")
+          (is (or (string? (:url branding)) (keyword? (:url branding)) (vector? (:url branding)))
+              "URL should be a string, a runtime url-base keyword, or [url-base path]")
           (is (string? (:title branding)) "Title should be a string")
-          (is (map? (:welcome branding)) "Welcome should be a map"))))))
+          (is (or (nil? (:welcome branding)) (map? (:welcome branding)))
+              "Welcome should be a map, or nil for no dialogue"))))))
 
 (deftest map-configs-are-valid
   (testing "Each deployment has valid map configuration"
     (doseq [[deployment-id config] deployments/deployments]
       (testing (str "Deployment " deployment-id " map config")
-        (let [map-config (:map config)]
-          (is (keyword? (:crs map-config)) "CRS should be a keyword")
-          (is (vector? (:center map-config)) "Center should be a vector")
-          (is (= 2 (count (:center map-config))) "Center should have 2 coordinates")
-          (is (number? (first (:center map-config))) "Latitude should be a number")
-          (is (number? (second (:center map-config))) "Longitude should be a number")
-          (is (number? (:zoom map-config)) "Zoom should be a number")
-          (is (>= (:zoom map-config) 1) "Zoom should be >= 1"))))))
+        (let [{:keys [crs center bounds zoom]} (:map config)]
+          (is (keyword? crs) "CRS should be a keyword")
+          (is (or (vector? center) (map? bounds)) "Map needs a center or initial bounds")
+          (when center
+            (is (= 2 (count center)) "Center should have 2 coordinates")
+            (is (every? number? center) "Center coordinates should be numbers"))
+          (when bounds
+            (is (every? number? (map bounds [:west :south :east :north])) "Bounds need west/south/east/north"))
+          (is (number? zoom) "Zoom should be a number")
+          (is (>= zoom 1) "Zoom should be >= 1"))))))
 
 (deftest feature-sets-are-valid
   (testing "Each deployment has a valid feature set"
-    (let [valid-features #{:feature/state-of-knowledge
-                           :feature/data-in-region
-                           :feature/featured-maps
-                           :feature/floating-pills
-                           :feature/plot-component
-                           :feature/transect-control
-                           :feature/data-providers
-                           :feature/data-download
-                           :feature/boundaries-pill
-                           :feature/zones-pill
-                           :feature/settings
-                           :feature/region-select
-                           :feature/layer-preview}]
+    (let [valid-features deployments/all-features]
       (doseq [[deployment-id config] deployments/deployments]
         (testing (str "Deployment " deployment-id " features")
           (is (set? (:features config)) "Features should be a set")
@@ -118,8 +113,18 @@
       (testing "Featured Maps feature"
         (is (contains? (:features australia) :feature/featured-maps))
         (is (contains? (:features tma) :feature/featured-maps))
-        (is (not (contains? (:features antarctica) :feature/featured-maps)))
+        (is (contains? (:features antarctica) :feature/featured-maps))
         (is (not (contains? (:features fos) :feature/featured-maps))))
+
+      (testing "Transect control is present everywhere except NHAT and the kiosk"
+        (doseq [id [:seamap-australia :tas-marine-atlas :seamap-antarctica :futures-of-seafood]]
+          (is (contains? (:features (deployments/get-deployment id)) :feature/transect-control) (str id)))
+        (doseq [id [:natural-hazards-atlas :tmag-kiosk]]
+          (is (not (contains? (:features (deployments/get-deployment id)) :feature/transect-control)) (str id))))
+
+      (testing "Region select is absent from Antarctica and the kiosk"
+        (is (not (contains? (:features antarctica) :feature/region-select)))
+        (is (not (contains? (:features (deployments/get-deployment :tmag-kiosk)) :feature/region-select))))
 
       (testing "Plot Component feature"
         (is (contains? (:features australia) :feature/plot-component))
@@ -131,20 +136,25 @@
 ;;; Content Registry Tests (Phase 1)
 ;;; =============================================================================
 
+(def ^:private test-url-base
+  {:api-url-base       "http://localhost:8000/api/"
+   :media-url-base     "http://localhost:8000/media/"
+   :wordpress-url-base "http://localhost:8888/"
+   :img-url-base       "/img/"})
+
 (deftest welcome-content-exists
-  (testing "Welcome content exists for all deployments"
-    (is (some? (content/get-content :welcome/seamap-australia)))
-    (is (some? (content/get-content :welcome/tas-marine-atlas)))
-    (is (some? (content/get-content :welcome/seamap-antarctica)))
-    (is (some? (content/get-content :welcome/futures-of-seafood)))))
+  (testing "Every deployment that declares welcome content has it in the registry"
+    (doseq [[id config] deployments/deployments
+            :let [content-key (get-in config [:branding :welcome :content])]
+            :when content-key]
+      (is (some? (content/get-content content-key test-url-base)) (str id " " content-key)))))
 
 (deftest welcome-content-is-hiccup
-  (testing "Welcome content is valid Reagent hiccup"
-    (doseq [content-key [:welcome/seamap-australia
-                         :welcome/tas-marine-atlas
-                         :welcome/seamap-antarctica
-                         :welcome/futures-of-seafood]]
-      (let [content (content/get-content content-key)]
+  (testing "Welcome content resolves to valid Reagent hiccup"
+    (doseq [[id config] deployments/deployments
+            :let [content-key (get-in config [:branding :welcome :content])]
+            :when content-key]
+      (let [content (content/get-content content-key test-url-base)]
         (is (vector? content) (str content-key " should be a vector"))
         (is (keyword? (first content)) (str content-key " should start with a keyword"))))))
 
@@ -152,16 +162,25 @@
 ;;; Feature Subscription Tests (Phase 2)
 ;;; =============================================================================
 
+;; The tests don't load a deployment core namespace, so neither the :boot event
+;; nor the :url-base subscription are registered; register the one sub the
+;; branding subs depend on.
+(re-frame/reg-sub :url-base (fn [db _] (get-in db [:config :url-base])))
+
 (defn- setup-deployment-config
-  "Helper to set up a deployment config in app-db for testing"
+  "Put a deployment config (and a runtime url-base) straight into app-db."
   [deployment-id]
-  (let [config (deployments/get-deployment deployment-id)]
-    (re-frame/dispatch-sync [:boot
-                             "http://localhost:8000/api/"
-                             "http://localhost:8000/media/"
-                             "http://localhost:8888/"
-                             "/img/"
-                             config])))
+  (re-frame/clear-subscription-cache!)
+  (reset! re-frame.db/app-db
+          {:deployment-config (deployments/get-deployment deployment-id)
+           :config            {:url-base test-url-base}}))
+
+(deftest runtime-urls-resolve
+  (testing "NHAT branding URLs resolve against the runtime url-base"
+    (setup-deployment-config :natural-hazards-atlas)
+    (is (= "http://localhost:8888/" @(re-frame/subscribe [:branding/url])))
+    (is (= "http://localhost:8888/resources/how-to-use-the-atlas/"
+           @(re-frame/subscribe [:branding/link :how-to-use])))))
 
 (deftest feature-enabled-subscription-works
   (testing "Feature enabled subscription returns correct values"

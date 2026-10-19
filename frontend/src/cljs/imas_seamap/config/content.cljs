@@ -6,7 +6,11 @@
 
    This namespace stores rich content (like welcome dialogues) that would
    otherwise be hardcoded in components. Content is stored as Reagent hiccup
-   and referenced by keyword from deployment configurations.")
+   and referenced by keyword from deployment configurations.
+
+   Content that needs a runtime value (currently only the URL bases passed to
+   init) is stored as a function of the url-base map instead of plain hiccup;
+   `get-content` resolves it.")
 
 (def welcome-content
   "Welcome dialogue content for each deployment"
@@ -52,7 +56,13 @@
    :welcome/futures-of-seafood
    [:div.overview
     "Welcome to the Futures of Seafood interactive map. Explore seafood-related
-     data and information for Australian waters."]})
+     data and information for Australian waters."]
+
+   :welcome/natural-hazards-atlas
+   (fn [{:keys [wordpress-url-base]}]
+     [:div.overview
+      [:p "The Natural Hazards Atlas for Tasmania is an interactive platform developed by the University of Tasmania that brings together climate-driven natural hazards data, mapping and science communication to support disaster preparedness, resilience and informed decision-making across Tasmania."]
+      [:p "Explore the interactive map and visit " [:a {:href wordpress-url-base :target "_blank"} "here"] " to learn more about the atlas tools and features."]])})
 
 (def citation-content
   "Citation information for each deployment"
@@ -73,10 +83,14 @@
       viewed in the layer catalogue under the Classification tab of the left sidebar."]]})
 
 (defn get-content
-  "Retrieve content by keyword.
-   Returns nil if content key not found."
-  [content-key]
-  (get welcome-content content-key))
+  "Retrieve content by keyword. Returns nil if content key not found.
+
+   Content stored as a function is called with `url-base` (the map under
+   [:config :url-base] in app-db) so it can link to runtime URLs."
+  ([content-key] (get-content content-key nil))
+  ([content-key url-base]
+   (let [content (get welcome-content content-key)]
+     (if (fn? content) (content url-base) content))))
 
 (defn get-citation
   "Retrieve citation content by keyword.

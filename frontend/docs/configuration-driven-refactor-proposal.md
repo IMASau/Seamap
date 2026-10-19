@@ -47,15 +47,15 @@ Two details the original proposal missed:
 
 | Feature | Australia | TMA | Antarctica | FoS | NHAT | Kiosk |
 |---------|-----------|-----|------------|-----|------|-------|
-| State-of-Knowledge (panel, pills) | ✓ | ✗ | ✓ | ✗ | ✗ | ✗ |
+| State-of-Knowledge (panel, pills) | ✓ | ✗ | ✓ (handlers; no pills rendered) | ✗ | ✗ | ✗ |
 | Data-in-Region | ✗ | ✓ | ✗ | ✗ | ✗ | ✗ |
-| Featured Maps tab | ✓ | ✓ | ✗ | ✗ | ✗ | ✓ (only tab) |
+| Featured Maps tab | ✓ | ✓ | ✓ | ✗ | ✗ | ✓ (only tab) |
 | Rich-layer side-by-side pills | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ |
 | Pinned legends panel | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ |
 | On-map hazard legend (colour scale bar) | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
 | Plot Component (transect) | ✓ | ✗ | ✗ | ✓ | ✗ | ✗ |
 | Transect Control | ✓ | ✓ ("Measure") | ✓ ("Take a measurement") | ✓ | ✗ | ✗ |
-| Region select control | ✓ | ✓ (data-in-region variant) | ✓ | ✓ | ✓ ("Select Area of Interest") | ✗ |
+| Region select control | ✓ | ✓ (data-in-region variant) | ✗ | ✓ | ✓ ("Select Area of Interest") | ✗ |
 | Settings button | ✓ | ✓ (config says ✗) | ✓ | ✓ | ✗ | ✗ |
 | Autosave toggle in control bar | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
 | Print, share, shortcuts, help controls | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ |

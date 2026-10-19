@@ -7,13 +7,18 @@
    Each deployment configuration defines:
    - Unique identifier and CSS class
    - Branding (logo, title, colors, welcome content)
-   - Map configuration (CRS, center, zoom)
+   - Map configuration (CRS, center or bounds, zoom and zoom limits)
    - Feature flags (which features are enabled)
-   - UI layout (tabs, drawers, controls)
+   - UI layout (:layout - the slots described in docs/configuration-driven-refactor-proposal.md)
    - Initial state overrides
-   - Deployment-specific URL paths")
+   - Deployment-specific URL paths
 
-;;; FIXME: if features are name-spaced we can more-easily search for them, find all uses of eg ":feature/" etc
+   Feature keywords are namespaced (:feature/*) so uses are greppable. The full
+   list of recognised features is `all-features` at the end of this file.
+
+   Branding URLs may be a literal string, a keyword naming a runtime URL base
+   (:url-base/wordpress, :url-base/api, :url-base/media, :url-base/img), or a
+   vector [url-base-keyword path] joined at runtime. See subs/branding.cljs.")
 
 ;;; =============================================================================
 ;;; SEAMAP AUSTRALIA
@@ -55,27 +60,22 @@
                   :feature/data-providers
                   :feature/data-download
                   :feature/settings
+                  :feature/pinned-legends
                   :feature/layer-preview}
-
-   ;; Right drawer slot mappings (what can appear in the right drawer)
-   :drawers     {:story-map          :featured-map/drawer
-                 :state-of-knowledge :sok/panel}
-
-   ;; Left drawer tabs (ordered)
-   :tabs        [:catalogue :active-layers :featured-maps]
-
-   ;; Map controls (ordered, displayed in UI)
-   :controls    [:menu :settings :zoom :print :omnisearch
-                 :transect :region :share :reset :shortcuts :help]
 
    ;; Layout configuration (Phase 4: Unified layout)
    :layout      {:left-drawer    {:tabs [:catalogue :active-layers :featured-maps]}
+                 :right-drawer   {:story-map          :featured-map/drawer
+                                  :state-of-knowledge :sok/panel}
                  :footer         [:footer/plot]
-                 :floating-pills [:pill/boundaries :pill/zones]
-                 :controls       [:control/menu :control/settings :control/zoom
-                                  :control/print :control/omnisearch :control/transect
-                                  :control/region :control/share :control/reset
-                                  :control/shortcuts :control/help]}
+                 :floating-pills [:pill/state-of-knowledge :pill/boundaries :pill/zones
+                                  :pill/dynamic :pill/side-by-side-views]
+                 :map-overlays   [:overlay/pinned-legends]
+                 :controls       {:top-left  [:control/menu :control/settings :control/zoom
+                                              [:control/print :control/omnisearch :control/transect
+                                               :control/region :control/share :control/reset]
+                                              [:control/shortcuts :control/help]]
+                                  :top-right [:control/layers]}}
 
    ;; Feature-specific state initialization
    :initial-state
@@ -131,8 +131,9 @@
                   :height 86}
     :url         "https://tasmarineatlas.org"
     :title       "Tasmania's Marine Atlas"
-    :welcome     {:title   "Welcome to Tasmania's Marine Atlas."
-                  :content :welcome/tas-marine-atlas}
+    :welcome     {:title       "Welcome to Tasmania's Marine Atlas."
+                  :content     :welcome/tas-marine-atlas
+                  :button-text "Explore the Atlas"}
     :labels      {:region-control   "Find Data in Region"
                   :transect-control "Measure"
                   :layer-info       "Layer info"}
@@ -149,31 +150,27 @@
                  :center [-42.20157676555315 146.74253188097842]
                  :zoom   7}
 
-   ;; Feature flags - TMA has data-in-region instead of state-of-knowledge
-   ;; Note: TMA does NOT have :settings feature enabled
+   ;; Feature flags - TMA has data-in-region instead of state-of-knowledge.
+   ;; The transect control is present but labelled "Measure" (no habitat plot).
    :features    #{:feature/featured-maps
                   :feature/data-in-region
-                  :feature/floating-pills}
-
-   ;; Right drawer slot mappings
-   :drawers     {:story-map      :featured-map/drawer
-                 :data-in-region :data-in-region/panel}
-
-   ;; Left drawer tabs (ordered)
-   :tabs        [:catalogue :active-layers :featured-maps]
-
-   ;; Map controls (no transect control for TMA)
-   :controls    [:menu :settings :zoom :print :omnisearch
-                 :region :share :reset :shortcuts :help]
+                  :feature/floating-pills
+                  :feature/transect-control
+                  :feature/settings
+                  :feature/pinned-legends}
 
    ;; Layout configuration (Phase 4: Unified layout)
    :layout      {:left-drawer    {:tabs [:catalogue :active-layers :featured-maps]}
+                 :right-drawer   {:story-map      :featured-map/drawer
+                                  :data-in-region :data-in-region/panel}
                  :footer         []  ; No plot component for TMA
-                 :floating-pills []  ; TMA has floating-pills feature but no specific pills configured
-                 :controls       [:control/menu :control/settings :control/zoom
-                                  :control/print :control/omnisearch :control/region
-                                  :control/share :control/reset :control/shortcuts
-                                  :control/help]}
+                 :floating-pills [:pill/dynamic :pill/side-by-side-views]
+                 :map-overlays   [:overlay/pinned-legends]
+                 :controls       {:top-left  [:control/menu :control/settings :control/zoom
+                                              [:control/print :control/omnisearch :control/transect
+                                               :control/data-in-region :control/share :control/reset]
+                                              [:control/shortcuts :control/help]]
+                                  :top-right [:control/layers]}}
 
    ;; Feature-specific state initialization
    :initial-state
@@ -209,37 +206,35 @@
                   :layer-info       "Layer info"}}
 
    ;; Map configuration - Antarctic polar projection
-   :map         {:crs    :epsg-3031
-                 :center [-80 -90]
-                 :zoom   2}
+   :map         {:crs      :epsg-3031
+                 :center   [-80 -90]
+                 :zoom     2
+                 :min-zoom 1
+                 :max-zoom 15}  ; ISA-657 (see imas-seamap.interop.leaflet/crs-epsg3031)
 
-   ;; Feature flags - Antarctica has state-of-knowledge and floating pills
+   ;; Feature flags. The current Antarctica layout has no region-select control
+   ;; and no SOK pills (its floating-pills only shows side-by-side views), but it
+   ;; does register the SOK handlers and has a Featured Maps tab.
    :features    #{:feature/state-of-knowledge
+                  :feature/featured-maps
                   :feature/floating-pills
-                  :feature/boundaries-pill
-                  :feature/zones-pill
+                  :feature/transect-control
                   :feature/settings
-                  :feature/region-select
+                  :feature/pinned-legends
                   :feature/layer-preview}
 
-   ;; Right drawer slot mappings
-   :drawers     {:state-of-knowledge :sok/panel}
-
-   ;; Left drawer tabs (no featured maps for Antarctica)
-   :tabs        [:catalogue :active-layers]
-
-   ;; Map controls
-   :controls    [:menu :settings :zoom :print :omnisearch
-                 :region :share :reset :shortcuts :help]
-
    ;; Layout configuration (Phase 4: Unified layout)
-   :layout      {:left-drawer    {:tabs [:catalogue :active-layers]}
+   :layout      {:left-drawer    {:tabs [:catalogue :active-layers :featured-maps]}
+                 :right-drawer   {:story-map          :featured-map/drawer
+                                  :state-of-knowledge :sok/panel}
                  :footer         []  ; No plot component
-                 :floating-pills [:pill/boundaries :pill/zones]
-                 :controls       [:control/menu :control/settings :control/zoom
-                                  :control/print :control/omnisearch :control/region
-                                  :control/share :control/reset :control/shortcuts
-                                  :control/help]}
+                 :floating-pills [:pill/side-by-side-views]
+                 :map-overlays   [:overlay/pinned-legends]
+                 :controls       {:top-left  [:control/menu :control/settings :control/zoom
+                                              [:control/print :control/omnisearch :control/transect
+                                               :control/share :control/reset]
+                                              [:control/shortcuts :control/help]]
+                                  :top-right [:control/layers]}}
 
    ;; Feature-specific state initialization (same as Australia)
    :initial-state
@@ -314,28 +309,23 @@
    ;; Feature flags - minimal feature set
    :features    #{:feature/plot-component
                   :feature/transect-control
+                  :feature/floating-pills
                   :feature/settings
                   :feature/region-select
+                  :feature/pinned-legends
                   :feature/layer-preview}
-
-   ;; Right drawer slot mappings (empty for FoS)
-   :drawers     {}
-
-   ;; Left drawer tabs (basic catalogue and active layers only)
-   :tabs        [:catalogue :active-layers]
-
-   ;; Map controls
-   :controls    [:menu :settings :zoom :print :omnisearch
-                 :transect :region :share :reset :shortcuts :help]
 
    ;; Layout configuration (Phase 4: Unified layout)
    :layout      {:left-drawer    {:tabs [:catalogue :active-layers]}
+                 :right-drawer   {}
                  :footer         [:footer/plot]
-                 :floating-pills []  ; No floating pills for FoS
-                 :controls       [:control/menu :control/settings :control/zoom
-                                  :control/print :control/omnisearch :control/transect
-                                  :control/region :control/share :control/reset
-                                  :control/shortcuts :control/help]}
+                 :floating-pills [:pill/side-by-side-views]
+                 :map-overlays   [:overlay/pinned-legends]
+                 :controls       {:top-left  [:control/menu :control/settings :control/zoom
+                                              [:control/print :control/omnisearch :control/transect
+                                               :control/region :control/share :control/reset]
+                                              [:control/shortcuts :control/help]]
+                                  :top-right [:control/layers]}}
 
    ;; Feature-specific state initialization (minimal)
    :initial-state
@@ -345,15 +335,179 @@
    :url-paths {}})
 
 ;;; =============================================================================
+;;; NATURAL HAZARDS ATLAS
+;;; =============================================================================
+
+;; Not yet consumed by natural_hazards_atlas/core.cljs, which still boots without a
+;; deployment config. Documents the deployment's current behaviour; see the
+;; proposal's sections 5 to 7 for the boot-flow and persisted-state contributions
+;; that are deliberately not expressed here yet.
+(def natural-hazards-atlas
+  {:id           :natural-hazards-atlas
+   :css-class    "natural-hazards-atlas"
+   :drawer-class "natural-hazards-atlas-drawer"
+
+   :branding
+   {:logo        {:src    "img/Climate_Futures_NHAT_logo_COLOUR.png"
+                  :alt    "Natural Hazards Atlas"}
+    :url         :url-base/wordpress               ; resolved at runtime
+    :title       "Natural Hazards Atlas"
+    :welcome     {:title            "Welcome to the Natural Hazards Atlas"
+                  :content          :welcome/natural-hazards-atlas
+                  :dont-show-again? true
+                  :button-text      "Get Started"}
+    :labels      {:region-control   "Select Area of Interest"
+                  :layer-info       "Layer info"
+                  :loading          "Loading Natural Hazards Atlas..."}
+    :links       {:main-site  :url-base/wordpress
+                  :how-to-use [:url-base/wordpress "resources/how-to-use-the-atlas/"]}}
+
+   ;; Starts from bounds rather than a centre, to guarantee full coverage of
+   ;; Tasmania. Max bounds match LISTmap's restricted extent.
+   :map         {:crs        :epsg-3857
+                 :bounds     {:west 142.975 :south -44.025 :east 150.025 :north -39.175}
+                 :zoom       7
+                 :min-zoom   2
+                 :max-bounds {:west 133.849 :south -55.7054 :east 159.99 :north -34.4356}}
+
+   ;; :feature/supporting-layers is deliberately absent: the Supporting Layers
+   ;; catalogue tab is hidden until the client confirms the list.
+   :features    #{:feature/region-select
+                  :feature/layer-preview
+                  :feature/floating-pills
+                  :feature/side-by-side-maps
+                  :feature/time-dimension
+                  :feature/hazard-layers
+                  :feature/autosave-control}
+
+   :layout      {:map            :map/side-by-side
+                 :left-drawer    {:tabs   [:catalogue :active-layers :nhat/current-view]
+                                  :catalogue {:default-tab "hazards"
+                                              :tabs [{:id         "hazards"
+                                                      :title      "Hazards"
+                                                      :layers-sub [:map.layers/filtered-hazard-layers]
+                                                      :ordering   [:category :data_classification]}
+                                                     {:id         "supporting-layers"
+                                                      :title      "Supporting Layers"
+                                                      :layers-sub [:map.layers/filtered-supporting-layers]
+                                                      :ordering   [:data_classification]
+                                                      :requires   :feature/supporting-layers}]}
+                                  :footer [:nhat/how-to-use-banner]}
+                 :right-drawer   {:dynamic-pill :dynamic-pill/drawer}
+                 :footer         []
+                 :floating-pills [:pill/side-by-side-views]
+                 :map-overlays   [:nhat/hazard-layer-legend :nhat/no-data-warning]
+                 :controls       {:top-left  [:control/menu :control/autosave :control/zoom
+                                              [:control/print :control/omnisearch :control/region
+                                               :control/share :control/reset]
+                                              [:control/shortcuts :control/help]]
+                                  :top-right [:control/layers]}
+                 :omnisearch     {:layers-sub [:map.layers/hazard-layers]}
+                 :hotkeys        [:zoom :zoom-numpad :pan :drawer :region :search :reset :share :help]}
+
+   :initial-state
+   {:display      {:welcome-overlay false
+                   :catalogue {:main   {:tab "hazards" :expanded #{}}
+                               :region {:tab "hazards" :expanded #{}}}}
+    :current-view {:cmip-phases               []
+                   :models                    []
+                   :scenarios                 []
+                   :seasonal-datas            []
+                   :selected-cmip-phase-id    nil
+                   :selected-model-id         nil
+                   :selected-scenario-id      nil
+                   :selected-seasonal-data-id nil
+                   :selected-time-period-id   "medium"
+                   :is-historic?              false}}
+
+   ;; :layer and :layer-legend override the base paths (extra Thredds styling info).
+   :url-paths   {:layer             "nhat/layers/"
+                 :layer-legend      "nhat/layerlegend/"
+                 :cmip-phases       "nhat/cmipphases/"
+                 :scientific-models "nhat/scientificmodels/"
+                 :scenarios         "nhat/scenarios/"
+                 :seasons           "nhat/seasons/"}})
+
+;;; =============================================================================
+;;; TMAG KIOSK
+;;; =============================================================================
+
+;; Not yet consumed by tmag_kiosk/core.cljs. An unattended touchscreen at the
+;; Tasmanian Museum and Art Gallery: map plus a permanently open Featured Maps
+;; drawer, and nothing else. Reset sits top-right because the kiosk has no other
+;; way to clear search-added layers.
+(def tmag-kiosk
+  {:id           :tmag-kiosk
+   :css-class    "seamap tmag-kiosk"
+   :drawer-class "seamap-drawer"
+
+   :branding
+   {:logo        {:src    "img/Seamap2_V2_RGB.png"
+                  :alt    "Seamap Australia"}
+    :url         "https://seamapaustralia.org/"
+    :title       "Seamap Australia (TMAG kiosk)"
+    :welcome     nil                               ; no welcome dialogue
+    :labels      {:layer-info "Layer info"}}
+
+   :map         {:crs    :epsg-3857
+                 :center [-27.819644755 132.133333]
+                 :zoom   4}
+
+   :features    #{:feature/featured-maps}
+
+   :layout      {:map            :map/single
+                 :left-drawer    {:collapsible? false   ; always open: no close button, no menu control
+                                  :tabs         nil     ; a single panel, no tab strip
+                                  :component    :drawer/featured-maps}
+                 :right-drawer   {:story-map :featured-map/drawer}
+                 :footer         []
+                 :floating-pills []
+                 :map-overlays   []
+                 :controls       {:top-left  [:control/zoom [:control/omnisearch]]
+                                  :top-right [[:control/reset]]}
+                 :hotkeys        [:zoom :pan :search :reset]}
+
+   :initial-state
+   {:display {:welcome-overlay false
+              :left-drawer     true}}
+
+   :url-paths   {}})
+
+;;; =============================================================================
 ;;; DEPLOYMENT REGISTRY
 ;;; =============================================================================
 
 (def deployments
   "Registry of all deployment configurations, keyed by deployment ID"
-  {:seamap-australia   seamap-australia
-   :tas-marine-atlas   tas-marine-atlas
-   :seamap-antarctica  seamap-antarctica
-   :futures-of-seafood futures-of-seafood})
+  {:seamap-australia      seamap-australia
+   :tas-marine-atlas      tas-marine-atlas
+   :seamap-antarctica     seamap-antarctica
+   :futures-of-seafood    futures-of-seafood
+   :natural-hazards-atlas natural-hazards-atlas
+   :tmag-kiosk            tmag-kiosk})
+
+(def all-features
+  "Every feature keyword a deployment may declare. Keep in sync with the
+   Feature Variations table in docs/configuration-driven-refactor-proposal.md."
+  #{:feature/state-of-knowledge  ; SOK panel, boundaries, statistics
+    :feature/boundaries-pill     ; SOK boundaries floating pill
+    :feature/zones-pill          ; SOK AMP zones floating pill
+    :feature/data-in-region      ; TMA data-in-region panel and control
+    :feature/featured-maps       ; story-map drawer tab and right drawer
+    :feature/floating-pills      ; the floating-pills bar (dynamic and side-by-side pills)
+    :feature/plot-component      ; transect depth-profile plot under the map
+    :feature/transect-control    ; transect / measure control
+    :feature/region-select       ; region-select control
+    :feature/data-providers      ; data-providers listing (site configuration)
+    :feature/data-download       ; download options in layer info
+    :feature/settings            ; settings button and overlay
+    :feature/pinned-legends      ; pinned legends panels over the map
+    :feature/layer-preview       ; hover preview image for catalogue layers
+    :feature/side-by-side-maps   ; two synchronised maps with a divider (NHAT)
+    :feature/time-dimension      ; timeline controls for time-series layers (NHAT)
+    :feature/hazard-layers       ; current-view controls, hazard legend, one-active-hazard rule (NHAT)
+    :feature/supporting-layers   ; NHAT supporting-layers catalogue tab (currently hidden)
+    :feature/autosave-control})  ; autosave toggle in the map control bar (NHAT)
 
 ;;; =============================================================================
 ;;; HELPER FUNCTIONS
