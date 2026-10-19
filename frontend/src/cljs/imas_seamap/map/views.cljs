@@ -476,8 +476,26 @@
                   :cql-filter      (cql-filter-fn layer)}]]))]))
       visible-layers)]))
 
+(defn time-dimension-slider
+  "Leaflet TimeDimension control, shown while a time-series layer is active.
+
+   Only mounted when :feature/time-dimension is enabled, because the :map.time/*
+   subscriptions it needs are only registered by those deployments."
+  []
+  (when @(re-frame/subscribe [:map.time/show-time-slider?])
+    [:f> leaflet/time-dimension-control
+     {:time-dimension
+      {:ref #(re-frame/dispatch [:map.time/time-dimension-ref %])
+       :defaultTime @(re-frame/subscribe [:map.time/current-time])}
+      :auto-play false
+      :playerOptions
+      {:buffer 10
+       :transitionTime 500
+       :startOver true}}]))
+
 (defn map-component []
   (let [{:keys [center zoom bounds crs]}            @(re-frame/subscribe [:map/props])
+        time-dimension?                             @(re-frame/subscribe [:feature/enabled? :feature/time-dimension])
         feature-info                                @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])]
@@ -526,6 +544,9 @@
        :enableUserInput  false}]
      [leaflet/scale-factor-control {:position "bottomright"}]
      [leaflet/scale-control {:position "bottomright"}]
+
+     (when time-dimension?
+       [time-dimension-slider])
     
      [distance-tooltip]
     
