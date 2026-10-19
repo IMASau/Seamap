@@ -4,7 +4,7 @@
 
 This document was written against a four-deployment codebase. Since then:
 
-- **Phases 1 to 3 are implemented** on `feature/configuration-driven-app`: `config/deployments.cljs`, `config/content.cljs`, `subs/features.cljs`, and `subs/branding.cljs` exist; the `tma?` flag is gone from all leaf components; settings, region select, the floating pills, and the layer preview are feature-gated; `imas-seamap.core/init` accepts a deployment id. Feature keywords are namespaced (`:feature/state-of-knowledge`), which the examples below now use.
+- **Phases 1 to 3 are implemented** on `feature/configuration-driven-app`: `config/deployments.cljs`, `config/content.cljs`, `subs/features.cljs`, and `subs/branding.cljs` exist; the `tma?` flag is gone from all leaf components; settings, region select, the floating pills, and the layer preview are feature-gated; the drawer logo, link, drawer class, and the layer-info tooltip read from branding config (the welcome dialogue, control tooltips, colours, and links have subscriptions but no consumers yet); `imas-seamap.core/init` accepts a deployment id. Feature keywords are namespaced (`:feature/state-of-knowledge`), which the examples below now use.
 - **Phase 4 is started**: an atom-based component registry (`config/components.cljs`), a `:layout` key in each deployment config, and the Seamap Australia `layout-app` reads its CSS class, footer slot, and several feature flags from config. The other deployments still have their own `layout-app`.
 - **`develop` was merged on 2026-10-15.** It added two deployments (the Natural Hazards Atlas, NHAT, and the TMAG kiosk), side-by-side maps, a time dimension, pinned legends, image-based printing, and a `:dbsubs/*` subscription layer. Those changes invalidate several assumptions in the original text. Affected sections are marked **Updated**; sections 6 and 7 are **New** and cover ground the original proposal did not.
 - Related documents: `handler-registration-options.md`, `configuration-refactor-remaining-tasks.md`, `testing-configuration-system.md`, and `ADRs/01-sub-handler-registration.md` at the repository root.
@@ -29,7 +29,7 @@ This document was written against a four-deployment codebase. Since then:
 Two details the original proposal missed:
 
 - `mount-root` adds the deployment class to `document.body` as well as to `#main-wrapper`, and SCSS selects on the body class (for example `.natural-hazards-atlas .leaflet-bar-timecontrol`). Any unified `mount-root` must do the same.
-- The kiosk is served from its own `resources/public/tmag-kiosk.html` rather than through the Ansible-managed `index.html`.
+- The kiosk is served from its own `resources/public/tmag-kiosk.html` rather than through the Ansible-managed `index.html`. That file is not committed (it is untracked in the working tree), so the repository currently has no page that boots the kiosk.
 
 ### Current Patterns
 
@@ -553,6 +553,8 @@ A per-deployment **hash round-trip test** (encode, parse, compare) is the first 
 
 Valid deployment ids: `seamap-australia`, `tas-marine-atlas`, `seamap-antarctica`, `futures-of-seafood`, `natural-hazards-atlas`, `tmag-kiosk`.
 
+`dev/deployment_switcher.cljs` dispatches `:boot` with the current positional arguments plus a config; it must follow whatever signature `:boot` ends up with.
+
 ---
 
 ## Migration Path
@@ -570,6 +572,8 @@ Valid deployment ids: `seamap-australia`, `tas-marine-atlas`, `seamap-antarctica
 ### Phase 3: Migrate Leaf Components — done
 
 `tma?` is gone. Settings, region select, data-in-region control, the SOK pills, and the layer preview are feature-gated. The boundary-filter subscription in `catalogue-layers` is gated too, which lets the no-op `:sok/boundary-layer-filter` hack go.
+
+Still hard-coded despite having a subscription: the welcome dialogue (title, body, citations), the region and transect control tooltips, the `:colors` overrides (no `color-style-element` exists), and `:links`. These are Phase 4 work since they sit in the per-deployment layouts.
 
 ### Phase 4: Unify Layouts (Medium Risk) — in progress
 
@@ -951,7 +955,7 @@ This approach means:
 
 ## Next Steps
 
-1. Commit `config/components.cljs` and the Antarctica and FoS logo images, which are untracked on the branch.
+1. Commit `config/components.cljs`, the Antarctica logo image, and `tmag-kiosk.html`, all untracked on the branch. (The FoS logo the config references is already tracked.) Fix or delete `config/examples.cljs`: its `validate-deployments` uses `set/difference` without requiring `clojure.set`, and nothing requires the namespace so the build never compiles it.
 2. Add NHAT and kiosk configs to `deployments.cljs` (section 1) and reconcile the TMA config with its code.
 3. Add a shadow-cljs test build and the hash round-trip test (Testing Strategy) before Phase 4b touches persisted state.
 4. Finish Phase 4 for Seamap Australia, then the kiosk.
