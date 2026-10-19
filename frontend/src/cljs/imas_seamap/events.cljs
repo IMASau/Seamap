@@ -202,26 +202,25 @@
       :story-maps-url              (str wordpress-url-base story-maps)
       :region-report-pages-url     (str wordpress-url-base region-report-pages)})))
 
+(defn initial-db
+  "The app-db a deployment boots with: the base schema `db` with the runtime URL
+   bases applied and, when a deployment config is given, the config stored under
+   :deployment-config and its map CRS, centre and zoom applied.
+
+   Shared by the deployment-specific :boot handlers so they all initialise the same
+   way; only their boot flows differ."
+  [db api-url-base media-url-base wordpress-url-base img-url-base deployment-config]
+  (cond-> (assoc-in db [:config :url-base]
+                    {:api-url-base       api-url-base
+                     :media-url-base     media-url-base
+                     :wordpress-url-base wordpress-url-base
+                     :img-url-base       img-url-base})
+    deployment-config
+    (-> (assoc :deployment-config deployment-config)
+        (update :map merge (select-keys (:map deployment-config) [:crs :center :zoom])))))
+
 (defn boot [{:keys [save-code hash-code] {:keys [seamap-app-state]} :local-storage/get} [_ api-url-base media-url-base wordpress-url-base img-url-base & [deployment-config]]]
-  (let [initial-db (if deployment-config
-                     ;; Phase 2: Store deployment config if provided (new unified approach)
-                     (-> db/default-db
-                         (assoc :deployment-config deployment-config)
-                         (assoc-in [:config :url-base]
-                                   {:api-url-base       api-url-base
-                                    :media-url-base     media-url-base
-                                    :wordpress-url-base wordpress-url-base
-                                    :img-url-base       img-url-base})
-                         ;; Apply map configuration from deployment (center, zoom, and CRS)
-                         (assoc-in [:map :center] (get-in deployment-config [:map :center]))
-                         (assoc-in [:map :zoom] (get-in deployment-config [:map :zoom]))
-                         (assoc-in [:map :crs] (get-in deployment-config [:map :crs])))
-                     ;; Backward compatible: use default-db without config (old approach)
-                     (assoc-in db/default-db [:config :url-base]
-                               {:api-url-base       api-url-base
-                                :media-url-base     media-url-base
-                                :wordpress-url-base wordpress-url-base
-                                :img-url-base       img-url-base}))]
+  (let [initial-db (initial-db db/default-db api-url-base media-url-base wordpress-url-base img-url-base deployment-config)]
     {:db         initial-db
      :async-flow (cond ; Choose async boot flow based on what information we have for the DB:
                    (seq save-code)    (boot-flow-save-state save-code)    ; A shortform save-code that can be used to query for a hash-code
