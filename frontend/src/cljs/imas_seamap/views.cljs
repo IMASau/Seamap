@@ -327,62 +327,70 @@
           {:title  main-msg
            :icon (reagent/as-element [b/spinner {:intent "success"}])}])])))
 
-(defn welcome-dialogue []
-  (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
-    [b/dialogue
-     {:title
-      (reagent/as-element
-       [:<> "Welcome to" [:br] "Seamap Australia."])
-      :class    "welcome-splash"
-      :is-open  open?
-      :on-close #(re-frame/dispatch [:welcome-layer/close true])}
-     [:div.bp3-dialog-body
-      [:div.overview
-       "Seamap Australia is a nationally synthesised product of
-        seafloor habitat data collected from various stakeholders around
-        Australia. Source datasets were reclassified according to a
-        newly-developed national marine benthic habitat classification
-        scheme, and synthesised to produce a single standardised GIS
-        data layer of Australian benthic marine habitats."]
-      [b/button
-       {:text       "Get Started!"
-        :intent     b/INTENT-PRIMARY
-        :auto-focus true
-        :on-click   #(re-frame/dispatch [:welcome-layer/close true])}]]
-     [:div.bp3-dialog-footer
-      [:h3 "Citations"]
-      [:div.citation-section
-       [:p
-        "Please cite as "
-        [:span {:id "citation"} "Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
-         [:i "Seamap Australia - a national seafloor habitat classification scheme."]
-         " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]]
-       [:div.citation-button
-        {:on-click
-         ;; this code will copy the citation as rich text (with the italics for the citation), instead of as plaintext like with 'copy-text'
-         ;; https://stackoverflow.com/a/34192073
-         #(do
-            (.removeAllRanges (js/window.getSelection))
-            (let [range (js/document.createRange ())]
-              (.selectNode range (js/document.getElementById "citation"))
-              (.addRange (js/window.getSelection) range)
-              (js/document.execCommand "copy")
-              (.removeAllRanges (js/window.getSelection))
-              (show-message
-               ["Citation copied to clipboard!"
-                {:intent b/INTENT-SUCCESS :icon "clipboard"}])))}
-        [components/custom-icon {:icon "export" :size "27px"}]
-        [:div "Copy Citation"]]]
-      [:h3 "Acknowledgements"]
-      [:p
-       "Seamap Australia would not have been possible without the
+(defn- seamap-australia-welcome-footer
+  "Citation and acknowledgements footer of the Seamap Australia welcome dialogue."
+  []
+  [:div.bp3-dialog-footer
+   [:h3 "Citations"]
+   [:div.citation-section
+    [:p
+     "Please cite as "
+     [:span {:id "citation"} "Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
+      [:i "Seamap Australia - a national seafloor habitat classification scheme."]
+      " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]]
+    [:div.citation-button
+     {:on-click
+      ;; this code will copy the citation as rich text (with the italics for the citation), instead of as plaintext like with 'copy-text'
+      ;; https://stackoverflow.com/a/34192073
+      #(do
+         (.removeAllRanges (js/window.getSelection))
+         (let [range (js/document.createRange ())]
+           (.selectNode range (js/document.getElementById "citation"))
+           (.addRange (js/window.getSelection) range)
+           (js/document.execCommand "copy")
+           (.removeAllRanges (js/window.getSelection))
+           (show-message
+            ["Citation copied to clipboard!"
+             {:intent b/INTENT-SUCCESS :icon "clipboard"}])))}
+     [components/custom-icon {:icon "export" :size "27px"}]
+     [:div "Copy Citation"]]]
+   [:h3 "Acknowledgements"]
+   [:p
+    "Seamap Australia would not have been possible without the
         collaboration of its stakeholders, including (but not limited
         to): Parks Australia, The University of Queensland, The
         University of Western Australia, The University of Tasmania,
         James Cook University, Griffith University, Deakin University,
         CSIRO, IMOS, Geoscience Australia, Great Barrier Reef Marine
         Park Authority (GBRMPA), the National Environmental Science
-        Program (NESP), and all State Governments."]]]))
+        Program (NESP), and all State Governments."]])
+
+(defn welcome-dialogue
+  "Welcome dialogue driven by the deployment's [:branding :welcome]:
+   - :title        string or hiccup
+   - :content      content-registry key (see config/content.cljs) or hiccup
+   - :button-text  optional, default \"Get Started!\"
+   - :footer       optional registry key of a footer component
+   Renders nothing when the deployment has no :welcome config."
+  []
+  (let [open?   @(re-frame/subscribe [:welcome-layer/open?])
+        {:keys [title button-text footer] :or {button-text "Get Started!"} :as welcome} @(re-frame/subscribe [:branding/welcome])
+        content @(re-frame/subscribe [:branding/welcome-content])]
+    (when welcome
+      [b/dialogue
+       {:title    (reagent/as-element title)
+        :class    "welcome-splash"
+        :is-open  open?
+        :on-close #(re-frame/dispatch [:welcome-layer/close true])}
+       [:div.bp3-dialog-body
+        content
+        [b/button
+         {:text       button-text
+          :intent     b/INTENT-PRIMARY
+          :auto-focus true
+          :on-click   #(re-frame/dispatch [:welcome-layer/close true])}]]
+       (when footer
+         [(components-registry/resolve-component footer)])])))
 
 (defn outage-message-dialogue []
   (let [open? @(re-frame/subscribe [:display.outage-message/open?])
@@ -1496,6 +1504,7 @@
 
   ;; Overlays
   :overlay/welcome          welcome-dialogue
+  :welcome-footer/seamap-australia seamap-australia-welcome-footer
   :overlay/outage           outage-message-dialogue
   :overlay/settings         settings-overlay
   :overlay/info-card        info-card
