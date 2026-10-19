@@ -18,11 +18,11 @@
   {:welcome/seamap-australia
    [:div.overview
     "Seamap Australia is a nationally synthesised product of
-     seafloor habitat data collected from various stakeholders around
-     Australia. Source datasets were reclassified according to a
-     newly-developed national marine benthic habitat classification
-     scheme, and synthesised to produce a single standardised GIS
-     data layer of Australian benthic marine habitats."]
+        seafloor habitat data collected from various stakeholders around
+        Australia. Source datasets were reclassified according to a
+        newly-developed national marine benthic habitat classification
+        scheme, and synthesised to produce a single standardised GIS
+        data layer of Australian benthic marine habitats."]
 
    :welcome/tas-marine-atlas
    [:div.overview
@@ -64,24 +64,6 @@
       [:p "The Natural Hazards Atlas for Tasmania is an interactive platform developed by the University of Tasmania that brings together climate-driven natural hazards data, mapping and science communication to support disaster preparedness, resilience and informed decision-making across Tasmania."]
       [:p "Explore the interactive map and visit " [:a {:href wordpress-url-base :target "_blank"} "here"] " to learn more about the atlas tools and features."]])})
 
-(def citation-content
-  "Citation information for each deployment"
-
-  {:citation/seamap-australia
-   [:div.citation-section
-    [:p
-     "Please cite as "
-     [:span {:id "citation"}
-      "Lucieer V, Walsh P, Flukes E, Butler C, Proctor R, Johnson C (2017). "
-      [:i "Seamap Australia - a national seafloor habitat classification scheme."]
-      " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]]
-    [:p
-     "Data contributors should be acknowledged, and datasets cited where appropriate,
-      which may include adding citations to lists of references and/or citing the data
-      in figure captions. Dataset citations are available from each dataset's metadata
-      (Available from layer info controls). Contributors of source datasets can be
-      viewed in the layer catalogue under the Classification tab of the left sidebar."]]})
-
 (defn get-content
   "Retrieve content by keyword. Returns nil if content key not found.
 
@@ -91,9 +73,3 @@
   ([content-key url-base]
    (let [content (get welcome-content content-key)]
      (if (fn? content) (content url-base) content))))
-
-(defn get-citation
-  "Retrieve citation content by keyword.
-   Returns nil if citation key not found."
-  [citation-key]
-  (get citation-content citation-key))

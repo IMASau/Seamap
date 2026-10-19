@@ -36,8 +36,10 @@
                   :height 96}
     :url         "https://seamapaustralia.org"
     :title       "Seamap Australia"
-    :welcome     {:title   "Welcome to Seamap Australia."
-                  :content :welcome/seamap-australia}
+    :welcome     {:title       [:<> "Welcome to" [:br] "Seamap Australia."]
+                  :content     :welcome/seamap-australia
+                  :button-text "Get Started!"
+                  :footer      :welcome-footer/seamap-australia}
     :labels      {:region-control    "Select region"
                   :transect-control  "Draw transect (habitat data) or take a measurement"
                   :layer-info        "Layer info / Download data"}
@@ -293,8 +295,7 @@
                   :height 86}
     :url         "https://futuresofseafood.com.au"
     :title       "Futures of Seafood"
-    :welcome     {:title   "Welcome to Futures of Seafood."
-                  :content :welcome/futures-of-seafood}
+    :welcome     nil ; the FoS boot flow never opens the welcome dialogue
     :labels      {:region-control   "Select region"
                   :transect-control "Draw transect (habitat data) or take a measurement"
                   :layer-info       "Layer info"}}
@@ -304,14 +305,16 @@
                  :color-highlight-1 "#00b0a5"
                  :color-7          "white"}
 
-   ;; Map configuration (same as Australia)
+   ;; Map configuration: FoS boots from the base db, so it starts where Seamap
+   ;; Australia does.
    :map         {:crs    :epsg-3857
-                 :center [-28.0 134.0]
-                 :zoom   5}
+                 :center [-27.819644755 132.133333]
+                 :zoom   4}
 
-   ;; Feature flags - minimal feature set
+   ;; Feature flags - minimal feature set, plus the time slider for time-series layers
    :features    #{:feature/plot-component
                   :feature/transect-control
+                  :feature/time-dimension
                   :feature/floating-pills
                   :feature/settings
                   :feature/region-select

@@ -70,7 +70,7 @@ Ready for manual testing of the configuration system using the deployment switch
    - [ ] Logo displays: "Futures-of-Seafood-Logo-Reverse-400x218.png"
    - [ ] Features enabled: plot-component, transect-control
    - [ ] Features disabled: floating-pills, featured-maps
-   - [ ] Map centers at: [-42.5, 147], zoom 7
+   - [ ] Map centers at: [-27.82, 132.13], zoom 4 (same as Australia; FoS uses the base db)
    - [ ] CRS: EPSG:3857
 
 4. **Test subscription tester:**

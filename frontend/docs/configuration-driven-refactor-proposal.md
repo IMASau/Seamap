@@ -60,12 +60,12 @@ Two details the original proposal missed:
 | Autosave toggle in control bar | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
 | Print, share, shortcuts, help controls | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ |
 | Omnisearch | ✓ | ✓ | ✓ | ✓ | ✓ (hazard layers only) | ✓ |
-| Welcome dialogue | ✓ | ✓ | ✓ | ✓ | ✓ (+ "don't show again") | ✗ |
+| Welcome dialogue | ✓ | ✓ | ✓ (Australia's text) | ✗ (never opened) | ✓ (+ "don't show again") | ✗ |
 | Left drawer collapsible | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ (always open) |
 | Catalogue sub-tabs | Category / Organisation | same | same | same | Hazards / Supporting | none |
 | Drawer footer banner | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
 | Side-by-side compare maps | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
-| Time dimension / timeline controls | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
+| Time dimension (Leaflet time slider) | ✗ | ✗ | ✗ | ✓ | ✓ (+ timeline controls) | ✗ |
 | Hotkey set | full | full | full | full | full + numpad zoom | zoom, pan, search, reset |
 | Custom CRS | ✗ | ✗ | ✓ (EPSG:3031) | ✗ | ✗ | ✗ |
 | Map max bounds | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
@@ -536,7 +536,8 @@ A per-deployment **hash round-trip test** (encode, parse, compare) is the first 
 (defn mount-root [css-class]
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
-  (apply js/document.body.classList.add (string/split css-class #" "))   ; SCSS selects on body classes
+  (doseq [c (string/split css-class #" ")]                               ; SCSS selects on body classes
+    (.add (.-classList js/document.body) c))                            ; (not `apply`: DOM methods need their `this`)
   (.render @root (r/as-element [hotkeys-provider {...} [:f> layout/layout-app]])))
 
 (defn ^:export init
@@ -579,7 +580,7 @@ Still hard-coded despite having a subscription: the welcome dialogue (title, bod
 
 1. ~~Finish the Seamap Australia layout: left drawer tabs, controls, right drawer, floating pills, and map overlays all from `:layout`.~~ Done 2026-10-19. Remaining for Australia: `:omnisearch` and `:hotkeys` slots, the drawer `:footer`, and the catalogue sub-tab config (all needed first by NHAT or the kiosk).
 2. Add the kiosk config and migrate the kiosk next. It is the smallest deployment and exercises the two drawer modes the Australia layout does not: `:tabs nil` and `:collapsible? false`. Decide whether `tmag-kiosk.html` stays separate or becomes an Ansible variant of `index.html`.
-3. Migrate Futures of Seafood, then TMA, then Antarctica. Antarctica needs `:min-zoom`/`:max-zoom` from config; TMA needs the data-in-region control slot. Reconcile each config with the code before migrating (TMA renders settings and a "Measure" transect control today; its config says it has neither).
+3. ~~Migrate Futures of Seafood~~ (done 2026-10-19: FoS boots with its config, mounts the shared `layout-app` and shared `map-component`, and its `views.cljs` and `map/views.cljs` are deleted; the welcome dialogue is now config-driven and the Leaflet time slider sits in the shared map behind `:feature/time-dimension`), then TMA, then Antarctica. Antarctica needs `:min-zoom`/`:max-zoom` from config; TMA needs the data-in-region control slot, a "Measure" transect label, and its own welcome button text.
 4. Move the side-by-side-views floating pill, currently copied into three `views.cljs` files, into the shared pill slot.
 5. **NHAT: consume config only.** Give NHAT a config so branding, features, and labels work, and register its bespoke components in the registry, but keep its own `layout-app` and `map-component` until Phase 4b is done. Moving NHAT onto the unified layout before the handler and boot extension points exist would mean re-creating its overrides inside core.
 
@@ -668,7 +669,7 @@ test/cljs/imas_seamap/
 After full migration:
 - `tas_marine_atlas/core.cljs`, `tas_marine_atlas/views.cljs`, `tas_marine_atlas/db.cljs`, most of `tas_marine_atlas/events.cljs`
 - `seamap_antarctica/core.cljs`, `seamap_antarctica/views.cljs`, `seamap_antarctica/db.cljs`, `seamap_antarctica/events.cljs`, `seamap_antarctica/map/views.cljs` (after Phase 6)
-- `futuresofseafood/core.cljs`, `futuresofseafood/views.cljs`, `futuresofseafood/events.cljs`, `futuresofseafood/map/views.cljs`
+- `futuresofseafood/core.cljs`, `futuresofseafood/events.cljs` (`views.cljs` and `map/views.cljs` removed 2026-10-19)
 - `tmag_kiosk/core.cljs`, `tmag_kiosk/views.cljs`, `tmag_kiosk/events.cljs`, `tmag_kiosk/map/views.cljs`
 - `natural_hazards_atlas/core.cljs`, `natural_hazards_atlas/db.cljs`, the boot and persisted-state copies in `natural_hazards_atlas/events.cljs` and `natural_hazards_atlas/utils.cljs`, and (after Phase 6) `natural_hazards_atlas/map/views.cljs`. The current-view views, subs, and behavioural events stay as the `:feature/hazard-layers` module.
 - `dev/deployment_switcher.cljs` once a real deployment switch is a page reload with a different id
