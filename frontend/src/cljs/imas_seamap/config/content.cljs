@@ -48,11 +48,6 @@
       "here"]
      "."]]
 
-   :welcome/seamap-antarctica
-   [:div.overview
-    "Seamap Antarctica provides access to seafloor habitat data for the Antarctic region.
-     Explore benthic marine habitats and environmental data for Antarctic waters."]
-
    :welcome/futures-of-seafood
    [:div.overview
     "Welcome to the Futures of Seafood interactive map. Explore seafood-related

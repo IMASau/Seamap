@@ -494,7 +494,7 @@
        :startOver true}}]))
 
 (defn map-component []
-  (let [{:keys [center zoom bounds crs]}            @(re-frame/subscribe [:map/props])
+  (let [{:keys [center zoom bounds crs min-zoom max-zoom]} @(re-frame/subscribe [:map/props])
         time-dimension?                             @(re-frame/subscribe [:feature/enabled? :feature/time-dimension])
         feature-info                                @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
@@ -510,10 +510,11 @@
        :center               center
        :zoom                 zoom
        :zoomControl          true
-       :minZoom              2
+       :minZoom              (or min-zoom 2)
        :keyboard             false ; handled externally
        :close-popup-on-click false ; We'll handle that ourselves
        :ref                  #(when % (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
+      (when max-zoom {:maxZoom max-zoom}) ; e.g. Antarctica's polar CRS only defines resolutions up to 15 (ISA-657)
       (when (seq bounds) {:bounds (map->bounds bounds)}))
     
      [basemap-layers]

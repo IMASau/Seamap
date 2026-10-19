@@ -14,7 +14,7 @@
                                                 match-layer]]
    [imas-seamap.utils :as utils :refer [map-on-key first-where]]))
 
-(defn map-props [db _] (-> db :map (select-keys [:zoom :center :bounds :crs])))
+(defn map-props [db _] (-> db :map (select-keys [:zoom :center :bounds :crs :min-zoom :max-zoom])))
 
 (rf/reg-sub :dbsubs/layer-state-loading (fn [db _] (get-in db [:layer-state :loading-state])))
 (rf/reg-sub :dbsubs/layer-state-error-count (fn [db _] (get-in db [:layer-state :error-count])))

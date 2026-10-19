@@ -60,7 +60,7 @@ Two details the original proposal missed:
 | Autosave toggle in control bar | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
 | Print, share, shortcuts, help controls | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ |
 | Omnisearch | ✓ | ✓ | ✓ | ✓ | ✓ (hazard layers only) | ✓ |
-| Welcome dialogue | ✓ | ✓ | ✓ (Australia's text) | ✗ (never opened) | ✓ (+ "don't show again") | ✗ |
+| Welcome dialogue | ✓ | ✓ | ✗ (never opened) | ✗ (never opened) | ✓ (+ "don't show again") | ✗ |
 | Left drawer collapsible | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ (always open) |
 | Catalogue sub-tabs | Category / Organisation | same | same | same | Hazards / Supporting | none |
 | Drawer footer banner | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
@@ -111,7 +111,7 @@ A third problem is that the **map component itself varies**: Antarctica changes 
 | `:id`, `:css-class`, `:drawer-class` | Identity and styling hooks. `:css-class` may hold several classes and is applied to `#main-wrapper` and `document.body`. | Implemented (body class: proposed) |
 | `:branding` | Logo, URL, title, welcome dialogue, labels, links. See *Branding Configuration*. | Implemented; runtime URLs and dialogue options proposed |
 | `:colors` | CSS custom property overrides. | Implemented |
-| `:map` | `:crs`, `:center`, `:zoom`, plus `:bounds`, `:max-bounds`, `:min-zoom`, `:max-zoom`. NHAT starts from bounds, not a centre; Antarctica needs zoom limits. | Partly implemented |
+| `:map` | `:crs`, `:center`, `:zoom`, `:min-zoom`, `:max-zoom`, plus `:bounds`, `:max-bounds`. NHAT starts from bounds, not a centre. | Implemented except `:bounds`/`:max-bounds` |
 | `:features` | Set of `:feature/*` keywords. | Implemented |
 | `:layout` | Slots: `:map`, `:left-drawer`, `:right-drawer`, `:footer`, `:floating-pills`, `:map-overlays`, `:controls`, `:omnisearch`, `:hotkeys`. See section 3. | `:footer` only |
 | `:initial-state` | Deep-merged into the base db. | Proposed |
@@ -581,7 +581,7 @@ Still hard-coded despite having a subscription: the welcome dialogue (title, bod
 
 1. ~~Finish the Seamap Australia layout: left drawer tabs, controls, right drawer, floating pills, and map overlays all from `:layout`.~~ Done 2026-10-19. Remaining for Australia: `:omnisearch` and `:hotkeys` slots, the drawer `:footer`, and the catalogue sub-tab config (all needed first by NHAT or the kiosk).
 2. Add the kiosk config and migrate the kiosk next. It is the smallest deployment and exercises the two drawer modes the Australia layout does not: `:tabs nil` and `:collapsible? false`. Decide whether `tmag-kiosk.html` stays separate or becomes an Ansible variant of `index.html`.
-3. ~~Migrate Futures of Seafood~~ (done 2026-10-19: FoS boots with its config, mounts the shared `layout-app` and shared `map-component`, and its `views.cljs` and `map/views.cljs` are deleted; the welcome dialogue is now config-driven and the Leaflet time slider sits in the shared map behind `:feature/time-dimension`), ~~then TMA~~ (done 2026-10-19: TMA boots with its config on the shared layout; its `views.cljs` keeps only the data-in-region drawer, registered as `:data-in-region/panel`; the shared layout gained `:close-button?` on the drawer, a `:control/zoom-basic` variant, a feature-gated viewport-only toggle, and config-driven hotkeys and helper text), then Antarctica, which needs `:min-zoom`/`:max-zoom` from config and whose own `map-component` is otherwise the shared one with a different CRS.
+3. ~~Migrate Futures of Seafood~~ (done 2026-10-19: FoS boots with its config, mounts the shared `layout-app` and shared `map-component`, and its `views.cljs` and `map/views.cljs` are deleted; the welcome dialogue is now config-driven and the Leaflet time slider sits in the shared map behind `:feature/time-dimension`), ~~then TMA~~ (done 2026-10-19: TMA boots with its config on the shared layout; its `views.cljs` keeps only the data-in-region drawer, registered as `:data-in-region/panel`; the shared layout gained `:close-button?` on the drawer, a `:control/zoom-basic` variant, a feature-gated viewport-only toggle, and config-driven hotkeys and helper text), ~~then Antarctica~~ (done 2026-10-19: boots with its config on the shared layout and shared map; `:min-zoom`/`:max-zoom` now flow from config through the db into the map; its `views.cljs` and `map/views.cljs` are deleted). All four original deployments now share one layout; NHAT and the kiosk remain.
 4. Move the side-by-side-views floating pill, currently copied into three `views.cljs` files, into the shared pill slot.
 5. **NHAT: consume config only.** Give NHAT a config so branding, features, and labels work, and register its bespoke components in the registry, but keep its own `layout-app` and `map-component` until Phase 4b is done. Moving NHAT onto the unified layout before the handler and boot extension points exist would mean re-creating its overrides inside core.
 
@@ -669,7 +669,7 @@ test/cljs/imas_seamap/
 
 After full migration:
 - `tas_marine_atlas/core.cljs`, `tas_marine_atlas/db.cljs`, most of `tas_marine_atlas/events.cljs` (`views.cljs` reduced to the data-in-region drawer 2026-10-19)
-- `seamap_antarctica/core.cljs`, `seamap_antarctica/views.cljs`, `seamap_antarctica/db.cljs`, `seamap_antarctica/events.cljs`, `seamap_antarctica/map/views.cljs` (after Phase 6)
+- `seamap_antarctica/core.cljs`, `seamap_antarctica/db.cljs`, `seamap_antarctica/events.cljs` (`views.cljs` and `map/views.cljs` removed 2026-10-19)
 - `futuresofseafood/core.cljs`, `futuresofseafood/events.cljs` (`views.cljs` and `map/views.cljs` removed 2026-10-19)
 - `tmag_kiosk/core.cljs`, `tmag_kiosk/views.cljs`, `tmag_kiosk/events.cljs`, `tmag_kiosk/map/views.cljs`
 - `natural_hazards_atlas/core.cljs`, `natural_hazards_atlas/db.cljs`, the boot and persisted-state copies in `natural_hazards_atlas/events.cljs` and `natural_hazards_atlas/utils.cljs`, and (after Phase 6) `natural_hazards_atlas/map/views.cljs`. The current-view views, subs, and behavioural events stay as the `:feature/hazard-layers` module.

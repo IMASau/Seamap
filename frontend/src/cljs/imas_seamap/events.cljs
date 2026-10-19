@@ -205,7 +205,7 @@
 (defn initial-db
   "The app-db a deployment boots with: the base schema `db` with the runtime URL
    bases applied and, when a deployment config is given, the config stored under
-   :deployment-config and its map CRS, centre and zoom applied.
+   :deployment-config and its map CRS, centre, zoom and zoom limits applied.
 
    Shared by the deployment-specific :boot handlers so they all initialise the same
    way; only their boot flows differ."
@@ -217,7 +217,7 @@
                      :img-url-base       img-url-base})
     deployment-config
     (-> (assoc :deployment-config deployment-config)
-        (update :map merge (select-keys (:map deployment-config) [:crs :center :zoom])))))
+        (update :map merge (select-keys (:map deployment-config) [:crs :center :zoom :min-zoom :max-zoom])))))
 
 (defn boot [{:keys [save-code hash-code] {:keys [seamap-app-state]} :local-storage/get} [_ api-url-base media-url-base wordpress-url-base img-url-base & [deployment-config]]]
   (let [initial-db (initial-db db/default-db api-url-base media-url-base wordpress-url-base img-url-base deployment-config)]

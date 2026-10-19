@@ -231,7 +231,7 @@
 
 (def seamap-antarctica
   {:id          :seamap-antarctica
-   :css-class   "seamap"
+   :css-class   "seamap seamap-antarctica"
    :drawer-class "seamap-drawer"
 
    ;; Branding
@@ -241,8 +241,7 @@
                   :height 96}
     :url         "https://seamapantarctica.org"
     :title       "Seamap Antarctica"
-    :welcome     {:title   "Welcome to Seamap Antarctica."
-                  :content :welcome/seamap-antarctica}
+    :welcome     nil ; the Antarctica boot flow never opens the welcome dialogue
     :labels      {:transect-control "Transect/Measure"
                   :layer-info       "Layer info"}}
 
@@ -277,7 +276,38 @@
                                               [:control/print :control/omnisearch :control/transect
                                                :control/share :control/reset]
                                               [:control/shortcuts :control/help]]
-                                  :top-right [:control/layers]}}
+                                  :top-right [:control/layers]}
+                 ;; No transect plot and no region select; transect relabelled
+                 :hotkeys        [:zoom-in :zoom-out :pan-up :pan-down :pan-left :pan-right
+                                  :drawer
+                                  {:id :transect :label "Start/Clear Measurement"}
+                                  :cancel :search :reset :share :help]
+                 ;; Seamap Australia's list with the transect text changed
+                 :helper-overlay [{:selector       ".SelectionListItem:first-child .layer-card .layer-header"
+                                   :helperPosition "bottom"
+                                   :helperText     "Toggle layer visibility, view info and metadata, show legend, adjust transparency, choose from download options (habitat data)"
+                                   :padding        0}
+                                  {:id "state-of-knowledge-pill"
+                                   :helperText "Select a management region to view summaries of the current state of research knowledge for the area"}
+                                  {:selector       ".leaflet-control-layers-toggle"
+                                   :helperText     "Select from available basemaps"
+                                   :helperPosition "left"}
+                                  {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
+                                  {:id "settings-button" :helperText "Select from user-configurable settings"}
+                                  {:id "print-control" :helperText "Export current map view as an image"}
+                                  {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
+                                  {:id "transect-control" :helperText "Take a measurement"}
+                                  {:id "share-control" :helperText "Create a shareable URL for current map view"}
+                                  {:id "reset-control" :helperText "Reset the application back to its initial state"}
+                                  {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
+                                  {:id "overlay-control" :helperText "You are here!"}
+                                  {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
+                                   :helperText     "Filter layers by category or responsible organisation"
+                                   :helperPosition "bottom"
+                                   :padding        0}
+                                  {:id "plot-footer"
+                                   :helperText "Draw a transect to show a depth profile of habitat data"
+                                   :helperPosition "top"}]}
 
    ;; Feature-specific state initialization (same as Australia)
    :initial-state
