@@ -66,7 +66,8 @@
    ;; Layout configuration (Phase 4: Unified layout)
    :layout      {:left-drawer    {:tabs [:catalogue :active-layers :featured-maps]}
                  :right-drawer   {:story-map          :featured-map/drawer
-                                  :state-of-knowledge :sok/panel}
+                                  :state-of-knowledge :sok/panel
+                                  :dynamic-pill       :dynamic-pill/drawer}
                  :footer         [:footer/plot]
                  :floating-pills [:pill/state-of-knowledge :pill/boundaries :pill/zones
                                   :pill/dynamic :pill/side-by-side-views]
@@ -162,7 +163,8 @@
    ;; Layout configuration (Phase 4: Unified layout)
    :layout      {:left-drawer    {:tabs [:catalogue :active-layers :featured-maps]}
                  :right-drawer   {:story-map      :featured-map/drawer
-                                  :data-in-region :data-in-region/panel}
+                                  :data-in-region :data-in-region/panel
+                                  :dynamic-pill   :dynamic-pill/drawer}
                  :footer         []  ; No plot component for TMA
                  :floating-pills [:pill/dynamic :pill/side-by-side-views]
                  :map-overlays   [:overlay/pinned-legends]
@@ -226,7 +228,8 @@
    ;; Layout configuration (Phase 4: Unified layout)
    :layout      {:left-drawer    {:tabs [:catalogue :active-layers :featured-maps]}
                  :right-drawer   {:story-map          :featured-map/drawer
-                                  :state-of-knowledge :sok/panel}
+                                  :state-of-knowledge :sok/panel
+                                  :dynamic-pill       :dynamic-pill/drawer}
                  :footer         []  ; No plot component
                  :floating-pills [:pill/side-by-side-views]
                  :map-overlays   [:overlay/pinned-legends]
@@ -317,7 +320,7 @@
 
    ;; Layout configuration (Phase 4: Unified layout)
    :layout      {:left-drawer    {:tabs [:catalogue :active-layers]}
-                 :right-drawer   {}
+                 :right-drawer   {:dynamic-pill :dynamic-pill/drawer}
                  :footer         [:footer/plot]
                  :floating-pills [:pill/side-by-side-views]
                  :map-overlays   [:overlay/pinned-legends]

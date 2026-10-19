@@ -132,6 +132,26 @@
         (is (not (contains? (:features antarctica) :feature/plot-component)))
         (is (contains? (:features fos) :feature/plot-component))))))
 
+(deftest layout-configs-are-well-formed
+  (testing "Each deployment's :layout uses the slot shapes the unified layout expects"
+    (doseq [[id config] deployments/deployments
+            :let [{:keys [left-drawer right-drawer footer floating-pills map-overlays controls]} (:layout config)]]
+      (testing (str "Deployment " id)
+        (is (map? left-drawer) "left-drawer should be a map")
+        (let [{:keys [tabs component]} left-drawer]
+          (is (or (seq tabs) component) "left-drawer needs tabs or a single component")
+          (is (every? #(or (keyword? %) (map? %)) tabs) "tab entries are registry keywords or tab maps"))
+        (is (map? right-drawer) "right-drawer maps sidebar types to registry keys")
+        (is (every? keyword? (vals right-drawer)))
+        (doseq [[slot v] {:footer footer :floating-pills floating-pills :map-overlays map-overlays}]
+          (is (vector? v) (str slot " should be a vector"))
+          (is (every? keyword? v) (str slot " entries should be registry keywords")))
+        (is (map? controls) "controls are keyed by Leaflet corner")
+        (is (every? #{:top-left :top-right} (keys controls)))
+        (letfn [(control-entry? [e] (or (keyword? e) (and (vector? e) (every? control-entry? e))))]
+          (is (every? control-entry? (apply concat (vals controls)))
+              "control entries are registry keywords or vectors (control blocks) of them"))))))
+
 ;;; =============================================================================
 ;;; Content Registry Tests (Phase 1)
 ;;; =============================================================================

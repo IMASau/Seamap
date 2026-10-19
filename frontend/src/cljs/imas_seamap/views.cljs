@@ -725,7 +725,46 @@
      :id       "zoom-out-control"
      :icon     "minus"}]]))
 
-(defn custom-leaflet-controls []
+
+(defn omnisearch-control []
+  [control-block-child
+   {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
+    :tooltip  "Search All Layers"
+    :id       "omnisearch-control"
+    :icon     "search"}])
+
+(defn share-control []
+  [control-block-child
+   {:on-click #(re-frame/dispatch [:create-save-state])
+    :tooltip  "Create Shareable URL"
+    :id       "share-control"
+    :icon     "share"}])
+
+(defn reset-control []
+  [control-block-child
+   {:on-click #(re-frame/dispatch [:re-boot])
+    :tooltip  "Reset Interface"
+    :id       "reset-control"
+    :icon     "undo"}])
+
+(defn shortcuts-control []
+  [control-block-child
+   {:on-click #(js/document.dispatchEvent (js/KeyboardEvent. "keydown" #js{:which 47 :keyCode 47 :shiftKey true :bubbles true})) ; https://github.com/palantir/blueprint/issues/1590
+    :tooltip  "Show Keyboard Shortcuts"
+    :id       "shortcuts-control"
+    :icon     "key-command"}])
+
+(defn help-control []
+  [control-block-child
+   {:on-click #(re-frame/dispatch [:help-layer/toggle])
+    :tooltip  "Show Help Overlay"
+    :id       "overlay-control"
+    :icon     "help"}])
+
+(defn custom-leaflet-controls
+  "Hard-coded control bar, feature-gated. Still used by deployments that have not
+   moved to the config-driven layout; see `controls-slot` for the replacement."
+  []
   (let [has-settings? @(re-frame/subscribe [:feature/enabled? :feature/settings])
         has-region-select? @(re-frame/subscribe [:feature/enabled? :feature/region-select])
         has-data-in-region? @(re-frame/subscribe [:feature/enabled? :feature/data-in-region])]
@@ -737,43 +776,39 @@
 
      [control-block
       [print-control]
+      [omnisearch-control]
+      [transect-control]
+      (when has-region-select?
+        [region-control])
+      (when has-data-in-region?
+        [data-in-region-control])
+      [share-control]
+      [reset-control]]
 
-    [control-block-child
-     {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
-      :tooltip  "Search All Layers"
-      :id       "omnisearch-control"
-      :icon     "search"}]
+     [control-block
+      [shortcuts-control]
+      [help-control]]]))
 
-    [transect-control]
-    (when has-region-select?
-      [region-control])
-    (when has-data-in-region?
-      [data-in-region-control])
+(defn- render-control
+  "A control entry is either a registered :control/* key, or a vector of entries
+   rendered together as a `control-block`."
+  [entry]
+  (if (vector? entry)
+    (into [control-block] (map render-control entry))
+    [(components-registry/resolve-component entry)]))
 
-    [control-block-child
-     {:on-click #(re-frame/dispatch [:create-save-state])
-      :tooltip  "Create Shareable URL"
-      :id       "share-control"
-      :icon     "share"}]
-    
-    [control-block-child
-     {:on-click #(re-frame/dispatch [:re-boot])
-      :tooltip  "Reset Interface"
-      :id       "reset-control"
-      :icon     "undo"}]]
-
-   [control-block
-    [control-block-child
-     {:on-click #(js/document.dispatchEvent (js/KeyboardEvent. "keydown" #js{:which 47 :keyCode 47 :shiftKey true :bubbles true})) ; https://github.com/palantir/blueprint/issues/1590
-      :tooltip  "Show Keyboard Shortcuts"
-      :id       "shortcuts-control"
-      :icon     "key-command"}]
-
-    [control-block-child
-     {:on-click #(re-frame/dispatch [:help-layer/toggle])
-      :tooltip  "Show Help Overlay"
-      :id       "overlay-control"
-      :icon     "help"}]]]))
+(defn controls-slot
+  "Map controls from the deployment's `[:layout :controls]`, keyed by Leaflet
+   corner (:top-left, :top-right)."
+  [{:keys [top-left top-right]}]
+  [:<>
+   (when (seq top-left)
+     (into [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch]
+           (map render-control top-left)))
+   (when (seq top-right)
+     (into [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
+            {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}}] ; font style for Leaflet map-component - needs to be inherited into custom controls
+           (map render-control top-right)))])
 
 (defmulti dynamic-pill-region-control #(get-in % [:region-control :controller-type]))
 
@@ -866,51 +901,71 @@
          {:id   #(get-in % [:layer :id])
           :text #(get-in % [:display_name])}}]]]]))
 
-(defn floating-pills []
-  (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
-        state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
+
+;;; Floating pills. Each pill is self-contained (subscribes to what it needs and
+;;; decides its own visibility) so a deployment can list any subset of them under
+;;; [:layout :floating-pills] without the container knowing about SOK etc.
+
+(defn state-of-knowledge-pill []
+  (let [boundaries      @(re-frame/subscribe [:sok/boundaries])
+        active-boundary @(re-frame/subscribe [:sok/active-boundary])
+        open-pill       @(re-frame/subscribe [:ui/open-pill])]
+    [floating-state-of-knowledge-pill
+     {:expanded?       (= open-pill "state-of-knowledge")
+      :boundaries      boundaries
+      :active-boundary active-boundary}]))
+
+(defn boundaries-pill
+  "Shown while the State of Knowledge panel is open with a boundary selected."
+  []
+  (let [state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
         valid-boundaries         @(re-frame/subscribe [:sok/valid-boundaries])
-        boundaries               @(re-frame/subscribe [:sok/boundaries])
         active-boundary          @(re-frame/subscribe [:sok/active-boundary])
-        {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])
-        open-pill                @(re-frame/subscribe [:ui/open-pill])
-        ;; Feature flags for individual pills
-        has-sok?                 @(re-frame/subscribe [:feature/enabled? :feature/state-of-knowledge])
-        has-boundaries-pill?     @(re-frame/subscribe [:feature/enabled? :feature/boundaries-pill])
-        has-zones-pill?          @(re-frame/subscribe [:feature/enabled? :feature/zones-pill])
-        rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
-    [:div
-     {:class (str "floating-pills" (when collapsed " collapsed"))}
+        open-pill                @(re-frame/subscribe [:ui/open-pill])]
+    (when (and state-of-knowledge-open? active-boundary)
+      [floating-boundaries-pill
+       (merge
+        valid-boundaries
+        {:expanded?       (= open-pill "boundaries")
+         :active-boundary active-boundary})])))
 
-     ;; State of Knowledge pill - only show if feature enabled
-     (when has-sok?
-       [floating-state-of-knowledge-pill
-        {:expanded?       (= open-pill "state-of-knowledge")
-         :boundaries      boundaries
-         :active-boundary active-boundary}])
+(defn zones-pill
+  "Shown while the State of Knowledge panel is open on an AMP boundary."
+  []
+  (let [state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
+        valid-boundaries         @(re-frame/subscribe [:sok/valid-boundaries])
+        active-boundary          @(re-frame/subscribe [:sok/active-boundary])
+        open-pill                @(re-frame/subscribe [:ui/open-pill])]
+    (when (and state-of-knowledge-open? (= (:id active-boundary) "amp"))
+      [floating-zones-pill
+       (merge
+        valid-boundaries
+        {:expanded? (= open-pill "zones")})])))
 
-     ;; Boundaries pill - only show if feature enabled AND SOK is open with boundary
-     (when (and has-boundaries-pill? state-of-knowledge-open? active-boundary)
-       [floating-boundaries-pill
-        (merge
-         valid-boundaries
-         {:expanded?       (= open-pill "boundaries")
-          :active-boundary active-boundary})])
+(defn dynamic-pills
+  "One pill per dynamic pill that has active layers."
+  []
+  (let [{dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])]
+    (into [:<>]
+          (for [{:keys [id] :as dp} dynamic-pills]
+            ^{:key (str id)}
+            [dynamic-pill dp]))))
 
-     ;; Zones pill - only show if feature enabled AND SOK is open with AMP boundary
-     (when (and has-zones-pill? state-of-knowledge-open? (= (:id active-boundary) "amp"))
-       [floating-zones-pill
-        (merge
-         valid-boundaries
-         {:expanded? (= open-pill "zones")})])
+(defn side-by-side-views-pills
+  "One pill per active rich layer that offers side-by-side views."
+  []
+  (let [rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
+    (into [:<>]
+          (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
+            ^{:key (str id)}
+            [side-by-side-views-pill rich-layer]))))
 
-     ;; Dynamic pills (always shown when floating-pills feature is enabled)
-     (for [{:keys [id] :as dp} dynamic-pills]
-       ^{:key (str id)}
-       [dynamic-pill dp])
-     (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
-       ^{:key (str id)}
-       [side-by-side-views-pill rich-layer])]))
+(defn floating-pills-slot
+  "The floating-pills bar, populated from the deployment's [:layout :floating-pills]."
+  [pills]
+  (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))]
+    (into [:div {:class (str "floating-pills" (when collapsed " collapsed"))}]
+          (map (fn [k] [(components-registry/resolve-component k)]) pills))))
 
 (defn layers-search-omnibar
   "Optionally takes the layers to search; defaults to all catalogue layers."
@@ -973,10 +1028,49 @@
       :opacity-fn     #(get layer-opacities (:id %) 100)
       :rich-layer-fn  rich-layer-fn}]))
 
-(defn left-drawer []
-  (let [open? @(re-frame/subscribe [:left-drawer/open?])
+
+(defn- active-layers-tab-title []
+  (let [{:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
+    [:<> "Active Layers"
+     (when (seq active-layers)
+       [:div.notification-bubble (count active-layers)])]))
+
+(defn- resolve-tab
+  "A tab entry under [:layout :left-drawer :tabs] is either a tab-definition map,
+   or a keyword naming a registered one: a bare keyword looks up :tab/<name>, a
+   namespaced keyword is looked up as-is (so deployments can register their own)."
+  [entry]
+  (cond
+    (map? entry)        entry
+    (namespace entry)   (components-registry/resolve-component entry)
+    :else               (components-registry/resolve-component (keyword "tab" (name entry)))))
+
+(defn- drawer-tab
+  "Hiccup for one Blueprint tab. Called as a function, not a component: Blueprint's
+   Tabs only recognises Tab elements that are its direct children.
+
+   Tab definition keys: :id, :title (a string, or a function returning hiccup; it
+   is called here rather than mounted as a component so that Blueprint's tooltip
+   wraps plain content in its hover target), :tooltip, :component (registry key of
+   the panel), optional :class."
+  [{:keys [id class title tooltip component]}]
+  ^{:key id}
+  [b/tab
+   {:id    id
+    :class class
+    :title (reagent/as-element
+            [b/tooltip {:content tooltip}
+             (if (fn? title) (title) title)])
+    :panel (reagent/as-element [(components-registry/resolve-component component)])}])
+
+(defn left-drawer
+  "Left drawer, configured by the deployment's [:layout :left-drawer]:
+   - :tabs          ordered tab entries (see `resolve-tab`); nil for a single panel
+   - :component     the single panel to show when there are no tabs
+   - :collapsible?  default true; false keeps the drawer open with no close button"
+  [{:keys [tabs component collapsible?] :or {collapsible? true}}]
+  (let [open? (or (not collapsible?) @(re-frame/subscribe [:left-drawer/open?]))
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])
         logo @(re-frame/subscribe [:branding/logo])
         brand-url @(re-frame/subscribe [:branding/url])
         drawer-class @(re-frame/subscribe [:branding/drawer-class])]
@@ -986,55 +1080,32 @@
        [:div
         [:a {:href brand-url}
          [:img {:src (:src logo) :alt (:alt logo)}]]]
-       [b/button
-        {:icon     "double-chevron-left"
-         :minimal  true
-         :on-click #(re-frame/dispatch [:left-drawer/close])}]]
+       (when collapsible?
+         [b/button
+          {:icon     "double-chevron-left"
+           :minimal  true
+           :on-click #(re-frame/dispatch [:left-drawer/close])}])]
       :position    "left"
       :size        "368px"
       :isOpen      open?
-      :onClose     #(re-frame/dispatch [:left-drawer/close])
+      :onClose     #(when collapsible? (re-frame/dispatch [:left-drawer/close]))
       :className   (str "left-drawer " drawer-class)
       :isCloseButtonShown false
       :hasBackdrop false}
-     [b/tabs
-      {:id              "left-drawer-tabs"
-       :class           "left-drawer-tabs"
-       :selected-tab-id tab
-       :on-change       #(re-frame/dispatch [:left-drawer/tab %1])
-       :render-active-tab-panel-only true} ; doing this re-renders ellipsized text on tab switch, fixing ISA-359
+     (if (seq tabs)
+       (into [b/tabs
+              {:id              "left-drawer-tabs"
+               :class           "left-drawer-tabs"
+               :selected-tab-id tab
+               :on-change       #(re-frame/dispatch [:left-drawer/tab %1])
+               :render-active-tab-panel-only true}] ; doing this re-renders ellipsized text on tab switch, fixing ISA-359
+             (map (comp drawer-tab resolve-tab) tabs))
+       (when component
+         [(components-registry/resolve-component component)]))]))
 
-      [b/tab
-       {:id    "catalogue"
-        :class "catalogue"
-        :title (reagent/as-element
-                [b/tooltip {:content "All available map layers"} "Catalogue"])
-        :panel (reagent/as-element [left-drawer-catalogue])}]
 
-      [b/tab
-       {:id    "active-layers"
-        :title (reagent/as-element
-                [b/tooltip {:content "Currently active layers"}
-                 [:<> "Active Layers"
-                  (when (seq active-layers)
-                    [:div.notification-bubble (count active-layers)])]])
-        :panel (reagent/as-element [left-drawer-active-layers])}]
-
-      [b/tab
-       {:id    "featured-maps"
-        :title (reagent/as-element
-                [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
-        :panel (reagent/as-element [featured-maps])}]]]))
-
-(defmulti right-drawer :type)
-
-(defmethod right-drawer :state-of-knowledge []
-  [state-of-knowledge])
-
-(defmethod right-drawer :story-map []
-  [featured-map-drawer])
-
-(defmethod right-drawer :dynamic-pill
+(defn dynamic-pill-drawer
+  "Right drawer showing a dynamic pill's linked page in an iframe."
   [{{:keys [dynamic-pill-id]} :params}]
   (let [{dynamic-pills :mapped} @(re-frame/subscribe [:dynamic-pills])
         {:keys [text icon url displayed-layers region-control displayed-rich-layer-filters active-layers-metadata] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)
@@ -1059,8 +1130,33 @@
       :hasBackdrop false}
      (when (and (seq displayed-layers) url) [:iframe {:src url}])]))
 
+(defmulti right-drawer
+  "Hard-coded right drawer dispatch. Still used by deployments that have not moved
+   to the config-driven layout; see `right-drawer-slot` for the replacement."
+  :type)
+
+(defmethod right-drawer :state-of-knowledge []
+  [state-of-knowledge])
+
+(defmethod right-drawer :story-map []
+  [featured-map-drawer])
+
+(defmethod right-drawer :dynamic-pill [sidebar]
+  [dynamic-pill-drawer sidebar])
+
 (defmethod right-drawer :default []
   nil)
+
+(defn right-drawer-slot
+  "Right drawer from the deployment's [:layout :right-drawer], a map of sidebar
+   type to the registry key of the component that renders it. The component is
+   passed the sidebar map ({:type ... :params ...})."
+  [slots]
+  (let [{:keys [type] :as sidebar} @(re-frame/subscribe [:ui/right-sidebar])]
+    (when type
+      (if-let [component-key (get slots type)]
+        [(components-registry/resolve-component component-key) sidebar]
+        (js/console.warn "No [:layout :right-drawer] entry for sidebar type" (str type))))))
 
 (defn layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
@@ -1166,6 +1262,18 @@
                  :fill     true
                  :on-click #(scroll-by 200)}])])))})))
 
+
+(defn pinned-legends
+  "Both pinned-legend panels (main layers on the left, side-by-side views on the
+   right). Each panel hides itself unless pinned legends are enabled."
+  []
+  (let [legends              (re-frame/subscribe [:map.layer/visible-layers-legends])
+        side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])]
+    (fn []
+      [:<>
+       [map-legends {:legends legends}]
+       [map-legends {:legends side-by-side-legends :position :right}]])))
+
 (def hotkeys-combos
   (let [keydown-wrapper
         (fn [m keydown-v]
@@ -1255,6 +1363,12 @@
                  name]]])
             grouped-base-layers)]]]))))
 
+
+(defn- render-slot
+  "Render each registry key in `component-keys` as a component."
+  [component-keys]
+  (into [:<>] (map (fn [k] [(components-registry/resolve-component k)]) component-keys)))
+
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
@@ -1264,14 +1378,10 @@
         plot-open?         @(re-frame/subscribe [:transect.plot/show?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])
-        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])
-        side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])
 
-        ;; Phase 4: Configuration-driven layout
+        ;; Configuration-driven layout (Phase 4)
         css-class          @(re-frame/subscribe [:branding/css-class])
-        layout-config      @(re-frame/subscribe [:layout/config])
-        footer-components  (:footer layout-config)
-        has-floating-pills? @(re-frame/subscribe [:feature/enabled? :feature/floating-pills])
+        layout             @(re-frame/subscribe [:layout/config])
         has-settings?      @(re-frame/subscribe [:feature/enabled? :feature/settings])
         has-layer-preview? @(re-frame/subscribe [:feature/enabled? :feature/layer-preview])]
     [:div#main-wrapper
@@ -1283,15 +1393,8 @@
                   (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
-
-      ;; Footer components (conditional based on layout config)
-      (when (seq footer-components)
-        (for [component-key footer-components]
-          ^{:key component-key}
-          (when-let [component (components-registry/get-component component-key)]
-            [component])))
-      [map-legends {:legends legends}]
-      [map-legends {:legends side-by-side-legends :position :right}]]
+      [render-slot (:footer layout)]
+      [render-slot (:map-overlays layout)]]
      
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [helper-overlay
@@ -1328,18 +1431,12 @@
      [info-card]
      [download-component]
      [loading-display]
-     [left-drawer]
-     [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
+     [left-drawer (:left-drawer layout)]
+     [right-drawer-slot (:right-drawer layout)]
      [layers-search-omnibar]
-     [custom-leaflet-controls]
-     [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
-      {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
-      [layers-control]]
-
-     ;; Floating pills (conditional based on feature flag)
-     (when has-floating-pills?
-       [floating-pills])
-
+     [controls-slot (:controls layout)]
+     (when (seq (:floating-pills layout))
+       [floating-pills-slot (:floating-pills layout)])
      (when has-layer-preview?
        [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])])
 
@@ -1353,12 +1450,49 @@
 ;; Register components from this namespace into the component registry
 ;; This happens once when the namespace loads, avoiding circular dependencies
 (components-registry/register-components!
- {;; Footer components
+ {;; Footer (below the map)
   :footer/plot              plot-component
 
-  ;; Drawer components
+  ;; Map overlays (over the map, not Leaflet controls)
+  :overlay/pinned-legends   pinned-legends
+
+  ;; Left drawer tab definitions (see `resolve-tab`) and their panels
+  :tab/catalogue            {:id "catalogue" :class "catalogue" :title "Catalogue"
+                             :tooltip "All available map layers" :component :drawer/catalogue}
+  :tab/active-layers        {:id "active-layers" :title active-layers-tab-title
+                             :tooltip "Currently active layers" :component :drawer/active-layers}
+  :tab/featured-maps        {:id "featured-maps" :title "Featured Maps"
+                             :tooltip "Guided walkthrough of featured maps" :component :drawer/featured-maps}
   :drawer/catalogue         left-drawer-catalogue
   :drawer/active-layers     left-drawer-active-layers
+  :drawer/featured-maps     featured-maps
+
+  ;; Right drawer panels (receive the sidebar map)
+  :sok/panel                state-of-knowledge
+  :featured-map/drawer      featured-map-drawer
+  :dynamic-pill/drawer      dynamic-pill-drawer
+
+  ;; Map controls; a vector of these in config is a control-block
+  :control/menu             menu-button
+  :control/settings         settings-button
+  :control/zoom             zoom-control
+  :control/print            print-control
+  :control/omnisearch       omnisearch-control
+  :control/transect         transect-control
+  :control/region           region-control
+  :control/data-in-region   data-in-region-control
+  :control/share            share-control
+  :control/reset            reset-control
+  :control/shortcuts        shortcuts-control
+  :control/help             help-control
+  :control/layers           layers-control
+
+  ;; Floating pills
+  :pill/state-of-knowledge  state-of-knowledge-pill
+  :pill/boundaries          boundaries-pill
+  :pill/zones               zones-pill
+  :pill/dynamic             dynamic-pills
+  :pill/side-by-side-views  side-by-side-views-pills
 
   ;; Overlays
   :overlay/welcome          welcome-dialogue
@@ -1368,12 +1502,4 @@
   :overlay/loading          loading-display
   :overlay/helper           helper-overlay
   :overlay/layer-preview    layer-preview
-  :overlay/omnibar          layers-search-omnibar
-
-  ;; State of Knowledge components (from imported namespace)
-  :pill/boundaries          floating-boundaries-pill
-  :pill/zones               floating-zones-pill
-
-  ;; Story Maps components (from imported namespace)
-  :drawer/featured-map      featured-map-drawer})
-
+  :overlay/omnibar          layers-search-omnibar})

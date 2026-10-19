@@ -299,19 +299,19 @@ Usage in components (no more `tma?` parameter):
 
 ### 3. Slot-Based Layout System
 
-**Updated.** One `layout-app` for all deployments, with the slots below. The current implementation (Seamap Australia only) covers `:footer` plus feature-gated pills, settings, and layer preview. The NHAT sidebar and map are the reason for most of the additions.
+**Updated.** One `layout-app` for all deployments, with the slots below. The Seamap Australia `layout-app` in `views.cljs` now reads every slot except `:map`, `:omnisearch`, and `:hotkeys` from `:layout` (2026-10-19); the other deployments still use their own layouts and the hard-coded `custom-leaflet-controls` and `right-drawer` multimethod, which are kept for them. The NHAT sidebar and map are the reason for most of the additions.
 
-| Slot | Config key | Notes |
-|------|------------|-------|
-| Map | `:layout :map` | `:map/single` (default) or `:map/side-by-side`. See *The map slot* below. |
-| Left drawer | `:layout :left-drawer` | `:collapsible?`; ordered `:tabs`, each with a `:component` and an optional `:catalogue` sub-tab config; or `:tabs nil` with a single `:component`; optional `:footer` components rendered under the tabs. |
-| Right drawer | `:layout :right-drawer` | Map of drawer type to component key. Can stay the existing `right-drawer` multimethod; NHAT uses only the dynamic-pill drawer. |
-| Footer | `:layout :footer` | Below the map (transect plot). Implemented. |
-| Floating pills | `:layout :floating-pills` | Pill component keys. The side-by-side-views pill is common to five deployments and is currently copied into three `views.cljs` files. |
-| Map overlays | `:layout :map-overlays` | Components positioned over the map that are not Leaflet controls: pinned legend panels, NHAT's hazard legend and no-data warning. |
-| Controls | `:layout :controls` | Keyed by Leaflet corner; a nested vector is a `control-block`. Needed because the kiosk puts reset top-right and NHAT adds an autosave button. |
-| Omnisearch | `:layout :omnisearch` | Optional `:layers-sub` restricting the searchable layers (NHAT searches hazard layers only). |
-| Hotkeys | `:layout :hotkeys` | Which hotkey groups are active. The kiosk omits the drawer, help, share, and region keys; NHAT adds numpad zoom. |
+| Slot | Config key | Status | Notes |
+|------|------------|--------|-------|
+| Map | `:layout :map` | Proposed | `:map/single` (default) or `:map/side-by-side`. See *The map slot* below. |
+| Left drawer | `:layout :left-drawer` | Implemented (`left-drawer`) | `:collapsible?`; ordered `:tabs` as `:tab/*` registry keys or inline tab maps (`:id :title :tooltip :component`); or `:tabs nil` with a single `:component`. The `:catalogue` sub-tab config and drawer `:footer` are not read yet. |
+| Right drawer | `:layout :right-drawer` | Implemented (`right-drawer-slot`) | Map of sidebar type to registry key; the component receives the sidebar map. The `right-drawer` multimethod remains for unmigrated deployments. |
+| Footer | `:layout :footer` | Implemented | Below the map (transect plot). |
+| Floating pills | `:layout :floating-pills` | Implemented (`floating-pills-slot`) | Each pill is self-contained and decides its own visibility, so the container needs no SOK subscriptions. The side-by-side-views pill is still copied into three deployment `views.cljs` files. |
+| Map overlays | `:layout :map-overlays` | Implemented | Components over the map that are not Leaflet controls: `:overlay/pinned-legends`; NHAT's hazard legend and no-data warning to come. |
+| Controls | `:layout :controls` | Implemented (`controls-slot`) | Keyed by Leaflet corner; a nested vector is a `control-block`. Each control is its own registered component. |
+| Omnisearch | `:layout :omnisearch` | Proposed | Optional `:layers-sub` restricting the searchable layers (NHAT searches hazard layers only). |
+| Hotkeys | `:layout :hotkeys` | Proposed | Which hotkey groups are active. The kiosk omits the drawer, help, share, and region keys; NHAT adds numpad zoom. |
 
 ```clojure
 ;; src/cljs/imas_seamap/views/layout.cljs
@@ -577,7 +577,7 @@ Still hard-coded despite having a subscription: the welcome dialogue (title, bod
 
 ### Phase 4: Unify Layouts (Medium Risk) — in progress
 
-1. Finish the Seamap Australia layout: left drawer tabs, controls, right drawer, floating pills, and map overlays all from `:layout` (today only `:footer` is).
+1. ~~Finish the Seamap Australia layout: left drawer tabs, controls, right drawer, floating pills, and map overlays all from `:layout`.~~ Done 2026-10-19. Remaining for Australia: `:omnisearch` and `:hotkeys` slots, the drawer `:footer`, and the catalogue sub-tab config (all needed first by NHAT or the kiosk).
 2. Add the kiosk config and migrate the kiosk next. It is the smallest deployment and exercises the two drawer modes the Australia layout does not: `:tabs nil` and `:collapsible? false`. Decide whether `tmag-kiosk.html` stays separate or becomes an Ansible variant of `index.html`.
 3. Migrate Futures of Seafood, then TMA, then Antarctica. Antarctica needs `:min-zoom`/`:max-zoom` from config; TMA needs the data-in-region control slot. Reconcile each config with the code before migrating (TMA renders settings and a "Measure" transect control today; its config says it has neither).
 4. Move the side-by-side-views floating pill, currently copied into three `views.cljs` files, into the shared pill slot.
@@ -955,10 +955,10 @@ This approach means:
 
 ## Next Steps
 
-1. Commit `config/components.cljs`, the Antarctica logo image, and `tmag-kiosk.html`, all untracked on the branch. (The FoS logo the config references is already tracked.) Fix or delete `config/examples.cljs`: its `validate-deployments` uses `set/difference` without requiring `clojure.set`, and nothing requires the namespace so the build never compiles it.
-2. Add NHAT and kiosk configs to `deployments.cljs` (section 1) and reconcile the TMA config with its code.
-3. Add a shadow-cljs test build and the hash round-trip test (Testing Strategy) before Phase 4b touches persisted state.
-4. Finish Phase 4 for Seamap Australia, then the kiosk.
+1. Commit `config/components.cljs`, the Antarctica logo image, and `tmag-kiosk.html`, all untracked on the branch (the kiosk and Antarctica resolutions are still in flux, so this waits on them).
+2. ~~Add NHAT and kiosk configs to `deployments.cljs` and reconcile the TMA config with its code.~~ Done 2026-10-19, along with Antarctica and FoS reconciliation and the `all-features` set.
+3. ~~Add a shadow-cljs test build.~~ Done; `npx shadow-cljs compile test && node out/test.js`. The hash round-trip test (Testing Strategy) is still to write before Phase 4b touches persisted state.
+4. ~~Finish Phase 4 for Seamap Australia~~ (done 2026-10-19), then the kiosk.
 5. Start Phase 4b with the handler registry diff, which is additive and verifiable.
 
 ---
